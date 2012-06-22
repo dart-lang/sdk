@@ -1038,7 +1038,7 @@ RawType* Class::SignatureType() const {
   const TypeArguments& signature_type_arguments =
       TypeArguments::Handle(type_parameters());
   const Type& signature_type = Type::Handle(
-      Type::New(*this, signature_type_arguments, token_index()));
+      Type::New(*this, signature_type_arguments, token_pos()));
 
   // Return the still unfinalized signature type.
   ASSERT(!signature_type.IsFinalized());
@@ -1071,7 +1071,7 @@ RawClass* Class::New() {
   result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
-  result.raw_ptr()->token_index_ = Scanner::kDummyTokenIndex;
+  result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
   result.InitEmptyFields();
   Isolate::Current()->class_table()->Register(result);
   return result.raw();
@@ -1134,8 +1134,8 @@ void Class::AddClosureFunction(const Function& function) const {
 }
 
 
-// Lookup the innermost closure function that contains token at token_index.
-RawFunction* Class::LookupClosureFunction(intptr_t token_index) const {
+// Lookup the innermost closure function that contains token at token_pos.
+RawFunction* Class::LookupClosureFunction(intptr_t token_pos) const {
   if (raw_ptr()->closure_functions_ == GrowableObjectArray::null()) {
     return Function::null();
   }
@@ -1143,16 +1143,16 @@ RawFunction* Class::LookupClosureFunction(intptr_t token_index) const {
       GrowableObjectArray::Handle(raw_ptr()->closure_functions_);
   Function& closure = Function::Handle();
   intptr_t num_closures = closures.Length();
-  intptr_t best_fit_token_index = -1;
+  intptr_t best_fit_token_pos = -1;
   intptr_t best_fit_index = -1;
   for (intptr_t i = 0; i < num_closures; i++) {
     closure ^= closures.At(i);
     ASSERT(!closure.IsNull());
-    if ((closure.token_index() <= token_index) &&
-        (token_index < closure.end_token_index()) &&
-        (best_fit_token_index < closure.token_index())) {
+    if ((closure.token_pos() <= token_pos) &&
+        (token_pos < closure.end_token_pos()) &&
+        (best_fit_token_pos < closure.token_pos())) {
       best_fit_index = i;
-      best_fit_token_index = closure.token_index();
+      best_fit_token_pos = closure.token_pos();
     }
   }
   closure = Function::null();
@@ -1285,7 +1285,7 @@ void Class::set_factory_class(const Object& value) const {
 // Return a TypeParameter if the type_name is a type parameter of this class.
 // Return null otherwise.
 RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
-                                             intptr_t token_index) const {
+                                             intptr_t token_pos) const {
   ASSERT(!type_name.IsNull());
   const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
   if (!type_params.IsNull()) {
@@ -1297,14 +1297,14 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
       type_param_name = type_param.Name();
       if (type_param_name.Equals(type_name)) {
         intptr_t index = type_param.Index();
-        // Create a non-finalized new TypeParameter with the given token_index.
+        // Create a non-finalized new TypeParameter with the given token_pos.
         if (type_param.IsFinalized()) {
           // The index was adjusted during finalization. Revert.
           index -= NumTypeArguments() - num_type_params;
         } else {
           ASSERT(type_param.Index() == i);
         }
-        return TypeParameter::New(*this, index, type_name, token_index);
+        return TypeParameter::New(*this, index, type_name, token_pos);
       }
     }
   }
@@ -1416,27 +1416,27 @@ RawClass* Class::New(intptr_t index) {
 template <class FakeInstance>
 RawClass* Class::New(const String& name,
                      const Script& script,
-                     intptr_t token_index) {
+                     intptr_t token_pos) {
   Class& result = Class::Handle(New<FakeInstance>(kIllegalObjectKind));
   result.set_name(name);
   result.set_script(script);
-  result.set_token_index(token_index);
+  result.set_token_pos(token_pos);
   return result.raw();
 }
 
 
 RawClass* Class::New(const String& name,
                      const Script& script,
-                     intptr_t token_index) {
-  Class& result = Class::Handle(New<Instance>(name, script, token_index));
+                     intptr_t token_pos) {
+  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   return result.raw();
 }
 
 
 RawClass* Class::NewInterface(const String& name,
                               const Script& script,
-                              intptr_t token_index) {
-  Class& result = Class::Handle(New<Instance>(name, script, token_index));
+                              intptr_t token_pos) {
+  Class& result = Class::Handle(New<Instance>(name, script, token_pos));
   result.set_is_interface();
   return result.raw();
 }
@@ -1460,8 +1460,8 @@ RawClass* Class::NewSignatureClass(const String& name,
       type_parameter_bounds = owner_class.type_parameter_bounds();
     }
   }
-  const intptr_t token_index = signature_function.token_index();
-  Class& result = Class::Handle(New<Closure>(name, script, token_index));
+  const intptr_t token_pos = signature_function.token_pos();
+  Class& result = Class::Handle(New<Closure>(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
   ASSERT(!super_type.IsNull());
   result.set_super_type(super_type);
@@ -1660,9 +1660,9 @@ void Class::set_script(const Script& value) const {
 }
 
 
-void Class::set_token_index(intptr_t token_index) const {
-  ASSERT(token_index >= 0);
-  raw_ptr()->token_index_ = token_index;
+void Class::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  raw_ptr()->token_pos_ = token_pos;
 }
 
 
@@ -2004,11 +2004,11 @@ RawFunction* Class::LookupAccessorFunction(const char* prefix,
 }
 
 
-RawFunction* Class::LookupFunctionAtToken(intptr_t token_index) const {
+RawFunction* Class::LookupFunctionAtToken(intptr_t token_pos) const {
   // TODO(hausner): we can shortcut the negative case if we knew the
   // beginning and end token position of the class.
   Function& func = Function::Handle();
-  func = LookupClosureFunction(token_index);
+  func = LookupClosureFunction(token_pos);
   if (!func.IsNull()) {
     return func.raw();
   }
@@ -2016,8 +2016,8 @@ RawFunction* Class::LookupFunctionAtToken(intptr_t token_index) const {
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= funcs.At(i);
-    if ((func.token_index() <= token_index) &&
-        (token_index < func.end_token_index())) {
+    if ((func.token_pos() <= token_pos) &&
+        (token_pos < func.end_token_pos())) {
       return func.raw();
     }
   }
@@ -2122,11 +2122,11 @@ void Class::InsertCanonicalConstant(intptr_t index,
 
 RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
                                          const String& ident,
-                                         intptr_t token_index) {
+                                         intptr_t token_pos) {
   const UnresolvedClass& type = UnresolvedClass::Handle(UnresolvedClass::New());
   type.set_library_prefix(library_prefix);
   type.set_ident(ident);
-  type.set_token_index(token_index);
+  type.set_token_pos(token_pos);
   return type.raw();
 }
 
@@ -2141,9 +2141,9 @@ RawUnresolvedClass* UnresolvedClass::New() {
 }
 
 
-void UnresolvedClass::set_token_index(intptr_t token_index) const {
-  ASSERT(token_index >= 0);
-  raw_ptr()->token_index_ = token_index;
+void UnresolvedClass::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  raw_ptr()->token_pos_ = token_pos;
 }
 
 
@@ -2220,7 +2220,7 @@ RawAbstractTypeArguments* AbstractType::arguments() const  {
 }
 
 
-intptr_t AbstractType::token_index() const {
+intptr_t AbstractType::token_pos() const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return -1;
@@ -2660,7 +2660,7 @@ RawAbstractType* Type::InstantiateFrom(
   const Class& cls = Class::Handle(type_class());
   ASSERT(cls.is_finalized());
   Type& instantiated_type = Type::Handle(
-      Type::New(cls, type_arguments, token_index()));
+      Type::New(cls, type_arguments, token_pos()));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   instantiated_type.set_is_finalized_instantiated();
@@ -2776,19 +2776,19 @@ RawType* Type::New() {
 
 RawType* Type::New(const Object& clazz,
                    const AbstractTypeArguments& arguments,
-                   intptr_t token_index) {
+                   intptr_t token_pos) {
   const Type& result = Type::Handle(Type::New());
   result.set_type_class(clazz);
   result.set_arguments(arguments);
-  result.set_token_index(token_index);
+  result.set_token_pos(token_pos);
   result.raw_ptr()->type_state_ = RawType::kAllocated;
   return result.raw();
 }
 
 
-void Type::set_token_index(intptr_t token_index) const {
-  ASSERT(token_index >= 0);
-  raw_ptr()->token_index_ = token_index;
+void Type::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  raw_ptr()->token_pos_ = token_pos;
 }
 
 
@@ -2924,20 +2924,20 @@ RawTypeParameter* TypeParameter::New() {
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      intptr_t index,
                                      const String& name,
-                                     intptr_t token_index) {
+                                     intptr_t token_pos) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_index(index);
   result.set_name(name);
-  result.set_token_index(token_index);
+  result.set_token_pos(token_pos);
   result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
 }
 
 
-void TypeParameter::set_token_index(intptr_t token_index) const {
-  ASSERT(token_index >= 0);
-  raw_ptr()->token_index_ = token_index;
+void TypeParameter::set_token_pos(intptr_t token_pos) const {
+  ASSERT(token_pos >= 0);
+  raw_ptr()->token_pos_ = token_pos;
 }
 
 
@@ -3131,14 +3131,14 @@ bool AbstractTypeArguments::IsDynamicTypes(bool raw_instantiated,
 
 static RawError* FormatError(const Error& prev_error,
                              const Script& script,
-                             intptr_t token_index,
+                             intptr_t token_pos,
                              const char* format, ...) {
   va_list args;
   va_start(args, format);
   if (prev_error.IsNull()) {
-    return Parser::FormatError(script, token_index, "Error", format, args);
+    return Parser::FormatError(script, token_pos, "Error", format, args);
   } else {
-    return Parser::FormatErrorWithAppend(prev_error, script, token_index,
+    return Parser::FormatErrorWithAppend(prev_error, script, token_pos,
                                          "Error", format, args);
   }
 }
@@ -3186,7 +3186,7 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
               TypeArguments::Handle(cls.type_parameters());
           type = type_parameters.TypeAt(i);
           *malformed_error ^= FormatError(malformed_bound_error,
-                                          script, type.token_index(),
+                                          script, type.token_pos(),
                                           "type argument '%s' does not "
                                           "extend bound '%s' of '%s'\n",
                                           type_argument_name.ToCString(),
@@ -3611,9 +3611,9 @@ void Function::set_is_const(bool is_const) const {
 }
 
 
-void Function::set_token_index(intptr_t pos) const {
+void Function::set_token_pos(intptr_t pos) const {
   ASSERT(pos >= 0);
-  raw_ptr()->token_index_ = pos;
+  raw_ptr()->token_pos_ = pos;
 }
 
 
@@ -3909,7 +3909,7 @@ RawFunction* Function::New(const String& name,
                            RawFunction::Kind kind,
                            bool is_static,
                            bool is_const,
-                           intptr_t token_index) {
+                           intptr_t token_pos) {
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Array::Handle(Array::Empty()));
   result.set_parameter_names(Array::Handle(Array::Empty()));
@@ -3917,8 +3917,8 @@ RawFunction* Function::New(const String& name,
   result.set_kind(kind);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
-  result.set_token_index(token_index);
-  result.set_end_token_index(token_index);
+  result.set_token_pos(token_pos);
+  result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
   result.set_num_optional_parameters(0);
   result.set_usage_counter(0);
@@ -3931,7 +3931,7 @@ RawFunction* Function::New(const String& name,
 
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
-                                          intptr_t token_index) {
+                                          intptr_t token_pos) {
   ASSERT(!parent.IsNull());
   const Class& parent_class = Class::Handle(parent.owner());
   ASSERT(!parent_class.IsNull());
@@ -3940,7 +3940,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     RawFunction::kClosureFunction,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
-                    token_index));
+                    token_pos));
   result.set_parent_function(parent);
   result.set_owner(parent_class);
   return result.raw();
@@ -3956,7 +3956,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   // Create closure function.
   const String& closure_name = String::Handle(name());
   const Function& closure_function = Function::Handle(
-      NewClosureFunction(closure_name, *this, token_index()));
+      NewClosureFunction(closure_name, *this, token_pos()));
 
   // Set closure function's context scope.
   ContextScope& context_scope = ContextScope::Handle();
@@ -4268,7 +4268,7 @@ RawField* Field::New() {
 RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
-                     intptr_t token_index) {
+                     intptr_t token_pos) {
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
@@ -4278,7 +4278,7 @@ RawField* Field::New(const String& name,
     result.SetOffset(0);
   }
   result.set_is_final(is_final);
-  result.set_token_index(token_index);
+  result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
 }
@@ -4516,13 +4516,13 @@ void Script::Tokenize(const String& private_key) const {
 }
 
 
-void Script::GetTokenLocation(intptr_t token_index,
+void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   const String& src = String::Handle(source());
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(src, dummy_key);
-  scanner.ScanTo(token_index);
+  scanner.ScanTo(token_pos);
   *line = scanner.CurrentPosition().line;
   *column = scanner.CurrentPosition().column;
 }
@@ -4900,25 +4900,25 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
   }
 
   // Determine token position at given line number.
-  intptr_t token_index_at_line = script.TokenIndexAtLine(line_number);
-  if (token_index_at_line < 0) {
+  intptr_t token_pos_at_line = script.TokenIndexAtLine(line_number);
+  if (token_pos_at_line < 0) {
     // Script does not contain the given line number.
     return Function::null();
   }
 
-  return LookupFunctionInScript(script, token_index_at_line);
+  return LookupFunctionInScript(script, token_pos_at_line);
 }
 
 
 RawFunction* Library::LookupFunctionInScript(const Script& script,
-                                             intptr_t token_index) const {
+                                             intptr_t token_pos) const {
   Class& cls = Class::Handle();
   Function& func = Function::Handle();
   ClassDictionaryIterator it(*this);
   while (it.HasNext()) {
     cls = it.GetNextClass();
     if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_index);
+      func = cls.LookupFunctionAtToken(token_pos);
       if (!func.IsNull()) {
         return func.raw();
       }
@@ -4931,7 +4931,7 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
     cls ^= anon_classes.At(i);
     ASSERT(!cls.IsNull());
     if (script.raw() == cls.script()) {
-      func = cls.LookupFunctionAtToken(token_index);
+      func = cls.LookupFunctionAtToken(token_pos);
       if (!func.IsNull()) {
         return func.raw();
       }
@@ -6418,15 +6418,15 @@ RawCode* Code::LookupCode(uword pc) {
 
 
 intptr_t Code::GetTokenIndexOfPC(uword pc) const {
-  intptr_t token_index = -1;
+  intptr_t token_pos = -1;
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.PC(i) == pc) {
-      token_index = descriptors.TokenIndex(i);
+      token_pos = descriptors.TokenIndex(i);
       break;
     }
   }
-  return token_index;
+  return token_pos;
 }
 
 
@@ -6569,13 +6569,13 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
 
 
 intptr_t ContextScope::TokenIndexAt(intptr_t scope_index) const {
-  return Smi::Value(VariableDescAddr(scope_index)->token_index);
+  return Smi::Value(VariableDescAddr(scope_index)->token_pos);
 }
 
 
 void ContextScope::SetTokenIndexAt(intptr_t scope_index,
-                                   intptr_t token_index) const {
-  VariableDescAddr(scope_index)->token_index = Smi::New(token_index);
+                                   intptr_t token_pos) const {
+  VariableDescAddr(scope_index)->token_pos = Smi::New(token_pos);
 }
 
 
@@ -10075,7 +10075,7 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
     function = FunctionAtFrame(i);
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
-    intptr_t token_index = code.GetTokenIndexOfPC(pc);
+    intptr_t token_pos = code.GetTokenIndexOfPC(pc);
     function_class = function.owner();
     script = function_class.script();
     function_name = function.name();
@@ -10083,8 +10083,8 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
     url = script.url();
     intptr_t line = -1;
     intptr_t column = -1;
-    if (token_index >= 0) {
-      script.GetTokenLocation(token_index, &line, &column);
+    if (token_pos >= 0) {
+      script.GetTokenLocation(token_pos, &line, &column);
     }
     intptr_t len = OS::SNPrint(NULL, 0, kFormat,
                                i,

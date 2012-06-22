@@ -96,7 +96,7 @@ class OptimizingCodeGenerator : public CodeGenerator {
                             Register recv_reg,
                             Register value_reg);
 
-  void CallDeoptimize(intptr_t node_id, intptr_t token_index);
+  void CallDeoptimize(intptr_t node_id, intptr_t token_pos);
 
   void GenerateSmiUnaryOp(UnaryOpNode* node);
   void GenerateDoubleUnaryOp(UnaryOpNode* node);
@@ -111,17 +111,17 @@ class OptimizingCodeGenerator : public CodeGenerator {
                           Label* is_smi,
                           Label* not_double_or_smi);
   void GenerateDirectCall(intptr_t node_id,
-                          intptr_t token_index,
+                          intptr_t token_pos,
                           const Function& target,
                           intptr_t arg_count,
                           const Array& optional_argument_names);
   void GenerateCheckedInstanceCalls(AstNode* node,
                                     AstNode* receiver,
-                                    intptr_t token_index,
+                                    intptr_t token_pos,
                                     intptr_t num_args,
                                     const Array& optional_arguments_names);
   void GenerateInlineCacheCall(intptr_t node_id,
-                               intptr_t token_index,
+                               intptr_t token_pos,
                                const ICData& ic_data,
                                intptr_t num_args,
                                const Array& optional_arguments_names);

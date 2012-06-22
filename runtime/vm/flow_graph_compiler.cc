@@ -148,27 +148,27 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                              intptr_t cid,
-                                             intptr_t token_index,
+                                             intptr_t token_pos,
                                              intptr_t try_index) {
   ASSERT((kind != PcDescriptors::kDeopt) ||
          frame_register_allocator()->IsSpilled());
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
                                        cid,
-                                       token_index,
+                                       token_pos,
                                        try_index);
 }
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       intptr_t deopt_token_index,
+                                       intptr_t deopt_token_pos,
                                        intptr_t try_index,
                                        DeoptReasonId reason,
                                        Register reg1,
                                        Register reg2,
                                        Register reg3) {
   DeoptimizationStub* stub =
-      new DeoptimizationStub(deopt_id, deopt_token_index, try_index, reason);
+      new DeoptimizationStub(deopt_id, deopt_token_pos, try_index, reason);
   frame_register_allocator()->SpillInDeoptStub(stub);
   if (reg1 != kNoRegister) stub->Push(reg1);
   if (reg2 != kNoRegister) stub->Push(reg2);
@@ -270,7 +270,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t cid,
-    intptr_t token_index,
+    intptr_t token_pos,
     intptr_t try_index,
     const String& function_name,
     intptr_t argument_count,
@@ -304,13 +304,13 @@ void FlowGraphCompiler::GenerateInstanceCall(
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kIcCall,
                                        descr_offset,
                                        cid,
-                                       token_index,
+                                       token_pos,
                                        try_index);
 }
 
 
 void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
-                                           intptr_t token_index,
+                                           intptr_t token_pos,
                                            intptr_t try_index,
                                            const Function& function,
                                            intptr_t argument_count,
@@ -325,7 +325,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kFuncCall,
                                        descr_offset,
                                        cid,
-                                       token_index,
+                                       token_pos,
                                        try_index);
 }
 
@@ -389,13 +389,13 @@ void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
 
   AddCurrentDescriptor(PcDescriptors::kDeopt,
                        comp->cid(),
-                       comp->token_index(),
+                       comp->token_pos(),
                        comp->try_index());
 
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
   GenerateInstanceCall(comp->cid(),
-                       comp->token_index(),
+                       comp->token_pos(),
                        comp->try_index(),
                        function_name,
                        kNumArguments,

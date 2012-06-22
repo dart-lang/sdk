@@ -87,7 +87,7 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
       smi ^= literal().raw();
       const Instance& literal =
           Instance::ZoneHandle(Integer::New(-smi.Value()));
-      return new LiteralNode(this->token_index(), literal);
+      return new LiteralNode(this->token_pos(), literal);
     }
     if (literal().IsDouble()) {
       Double& dbl = Double::Handle();
@@ -97,7 +97,7 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
       Double& double_instance =
           Double::ZoneHandle(Double::New(new_value, Heap::kOld));
       double_instance ^= double_instance.Canonicalize();
-      return new LiteralNode(this->token_index(), double_instance);
+      return new LiteralNode(this->token_pos(), double_instance);
     }
   }
   return NULL;
@@ -250,14 +250,14 @@ const Instance* BinaryOpNode::EvalConstExpr() const {
 }
 
 
-AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_index,
+AstNode* UnaryOpNode::UnaryOpOrLiteral(intptr_t token_pos,
                                        Token::Kind kind,
                                        AstNode* operand) {
   AstNode* new_operand = operand->ApplyUnaryOp(kind);
   if (new_operand != NULL) {
     return new_operand;
   }
-  return new UnaryOpNode(token_index, kind, operand);
+  return new UnaryOpNode(token_pos, kind, operand);
 }
 
 
@@ -310,22 +310,22 @@ AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (HasPseudo()) {
     return NULL;
   }
-  return new StoreLocalNode(token_index(), local(), rhs);
+  return new StoreLocalNode(token_pos(), local(), rhs);
 }
 
 
 AstNode* LoadStaticFieldNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StoreStaticFieldNode(token_index(), field(), rhs);
+  return new StoreStaticFieldNode(token_pos(), field(), rhs);
 }
 
 
 AstNode* InstanceGetterNode::MakeAssignmentNode(AstNode* rhs) {
-  return new InstanceSetterNode(token_index(), receiver(), field_name(), rhs);
+  return new InstanceSetterNode(token_pos(), receiver(), field_name(), rhs);
 }
 
 
 AstNode* LoadIndexedNode::MakeAssignmentNode(AstNode* rhs) {
-  return new StoreIndexedNode(token_index(), array(), index_expr(), rhs);
+  return new StoreIndexedNode(token_pos(), array(), index_expr(), rhs);
 }
 
 
@@ -348,9 +348,9 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     const Field& field = Field::ZoneHandle(
         cls().LookupStaticField(field_name()));
     ASSERT(!field.IsNull());
-    return new StoreStaticFieldNode(token_index(), field, rhs);
+    return new StoreStaticFieldNode(token_pos(), field, rhs);
   } else {
-    return new StaticSetterNode(token_index(), cls(), field_name(), rhs);
+    return new StaticSetterNode(token_pos(), cls(), field_name(), rhs);
   }
 }
 

@@ -20,10 +20,10 @@ class SourceLabel;
 
 class LocalVariable : public ZoneAllocated {
  public:
-  LocalVariable(intptr_t token_index,
+  LocalVariable(intptr_t token_pos,
                 const String& name,
                 const AbstractType& type)
-    : token_index_(token_index),
+    : token_pos_(token_pos),
       name_(name),
       owner_(NULL),
       type_(type),
@@ -35,7 +35,7 @@ class LocalVariable : public ZoneAllocated {
     ASSERT(type.IsFinalized());
   }
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -85,7 +85,7 @@ class LocalVariable : public ZoneAllocated {
  private:
   static const int kUnitializedIndex = INT_MIN;
 
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this variable.
 
@@ -117,8 +117,8 @@ class SourceLabel : public ZoneAllocated {
     kStatement  // Any statement other than the above
   };
 
-  SourceLabel(intptr_t token_index, const String& name, Kind kind)
-    : token_index_(token_index),
+  SourceLabel(intptr_t token_pos, const String& name, Kind kind)
+    : token_pos_(token_pos),
       name_(name),
       owner_(NULL),
       kind_(kind),
@@ -129,17 +129,17 @@ class SourceLabel : public ZoneAllocated {
       is_continue_target_(false) {
   }
 
-  static SourceLabel* New(intptr_t token_index, String* name, Kind kind) {
+  static SourceLabel* New(intptr_t token_pos, String* name, Kind kind) {
     if (name != NULL) {
-      return new SourceLabel(token_index, *name, kind);
+      return new SourceLabel(token_pos, *name, kind);
     } else {
-      return new SourceLabel(token_index,
+      return new SourceLabel(token_pos,
                              String::ZoneHandle(String::New(kDefaultLabelName)),
                              kind);
     }
   }
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   const String& name() const { return name_; }
   LocalScope* owner() const { return owner_; }
   void set_owner(LocalScope* owner) {
@@ -178,7 +178,7 @@ class SourceLabel : public ZoneAllocated {
   void ResolveForwardReference() { kind_ = kCase; }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const String& name_;
   LocalScope* owner_;  // Local scope declaring this label.
 
@@ -222,11 +222,11 @@ class LocalScope : public ZoneAllocated {
     context_level_ = context_level;
   }
 
-  intptr_t begin_token_index() const { return begin_token_index_; }
-  void set_begin_token_index(intptr_t value) { begin_token_index_ = value; }
+  intptr_t begin_token_pos() const { return begin_token_pos_; }
+  void set_begin_token_pos(intptr_t value) { begin_token_pos_ = value; }
 
-  intptr_t end_token_index() const { return end_token_index_; }
-  void set_end_token_index(intptr_t value) { end_token_index_ = value; }
+  intptr_t end_token_pos() const { return end_token_pos_; }
+  void set_end_token_pos(intptr_t value) { end_token_pos_ = value; }
 
   // The number of variables allocated in the context and belonging to this
   // scope and to its children at the same loop level.
@@ -340,8 +340,8 @@ class LocalScope : public ZoneAllocated {
   int loop_level_;      // Reflects the loop nesting level.
   int context_level_;   // Reflects the level of the runtime context.
   int num_context_variables_;   // Only set if this scope is a context owner.
-  intptr_t begin_token_index_;  // Token index of beginning of scope.
-  intptr_t end_token_index_;    // Token index of end of scope.
+  intptr_t begin_token_pos_;  // Token index of beginning of scope.
+  intptr_t end_token_pos_;    // Token index of end of scope.
   GrowableArray<LocalVariable*> variables_;
   GrowableArray<SourceLabel*> labels_;
 

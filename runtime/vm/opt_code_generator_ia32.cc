@@ -124,7 +124,7 @@ class DeoptimizationBlob : public ZoneAllocated {
       codegen->assembler()->pushl(registers_[i]);
     }
     codegen->assembler()->movl(EAX, Immediate(Smi::RawValue(deopt_reason_id_)));
-    codegen->CallDeoptimize(node_->id(), node_->token_index());
+    codegen->CallDeoptimize(node_->id(), node_->token_pos());
 #if defined(DEBUG)
     // Check that deoptimization point exists in unoptimized code.
     const Code& unoptimized_code =
@@ -346,14 +346,14 @@ void OptimizingCodeGenerator::PrintCollectedClasses(AstNode* node) {
 
 void OptimizingCodeGenerator::TraceOpt(AstNode* node, const char* message) {
   if (FLAG_trace_optimization) {
-    OS::Print("Opt node ix: %d; %s\n", node->token_index(), message);
+    OS::Print("Opt node ix: %d; %s\n", node->token_pos(), message);
   }
 }
 
 
 void OptimizingCodeGenerator::TraceNotOpt(AstNode* node, const char* message) {
   if (FLAG_trace_optimization) {
-    OS::Print("NOTOpt node ix: %d; %s: ", node->token_index(), message);
+    OS::Print("NOTOpt node ix: %d; %s: ", node->token_pos(), message);
     AstPrinter::PrintNode(node);
     OS::Print("\n");
   }
@@ -361,9 +361,9 @@ void OptimizingCodeGenerator::TraceNotOpt(AstNode* node, const char* message) {
 
 
 void OptimizingCodeGenerator::CallDeoptimize(intptr_t node_id,
-                                             intptr_t token_index) {
+                                             intptr_t token_pos) {
   __ call(&StubCode::DeoptimizeLabel());
-  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_pos);
 #if defined(DEBUG)
   __ int3();
 #endif
@@ -672,7 +672,7 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
       const Array& no_optional_argument_names = Array::Handle();
       GenerateCheckedInstanceCalls(node,
                                    node->left(),
-                                   node->token_index(),
+                                   node->token_pos(),
                                    number_of_arguments,
                                    no_optional_argument_names);
       __ Bind(&done);
@@ -716,7 +716,7 @@ void OptimizingCodeGenerator::GenerateSmiShiftBinaryOp(BinaryOpNode* node) {
   const Array& no_optional_argument_names = Array::Handle();
   GenerateCheckedInstanceCalls(node,
                                node->left(),
-                               node->token_index(),
+                               node->token_pos(),
                                number_of_arguments,
                                no_optional_argument_names);
   __ Bind(&done);
@@ -789,7 +789,7 @@ void OptimizingCodeGenerator::GenerateDoubleUnaryOp(UnaryOpNode* node) {
         Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
     const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
     __ pushl(kOperandRegister);
-    GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+    GenerateCall(node->token_pos(), &label, PcDescriptors::kOther);
     ASSERT(kResultRegister == EAX);
     __ popl(kOperandRegister);
   } else if (info.is_temp()) {
@@ -935,7 +935,7 @@ void OptimizingCodeGenerator::GenerateSmiBinaryOp(BinaryOpNode* node) {
     node->left()->Visit(this);
     node->right()->Visit(this);
     CodeGenerator::GenerateBinaryOperatorCall(node->id(),
-                                              node->token_index(),
+                                              node->token_pos(),
                                               node->Name());
   }
   __ Bind(&done);
@@ -983,7 +983,7 @@ void OptimizingCodeGenerator::GenerateMintBinaryOp(BinaryOpNode* node,
     const Array& no_optional_argument_names = Array::Handle();
     GenerateCheckedInstanceCalls(node,
                                  node->left(),
-                                 node->token_index(),
+                                 node->token_pos(),
                                  number_of_arguments,
                                  no_optional_argument_names);
     __ Bind(&done);
@@ -1076,7 +1076,7 @@ void OptimizingCodeGenerator::GenerateDoubleBinaryOp(BinaryOpNode* node,
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
       __ pushl(kLeftRegister);
       __ pushl(kRightRegister);
-      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+      GenerateCall(node->token_pos(), &label, PcDescriptors::kOther);
       __ movl(result_register, EAX);
       __ popl(kRightRegister);
       __ popl(kLeftRegister);
@@ -1327,7 +1327,7 @@ void OptimizingCodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   const Array& no_optional_argument_names = Array::Handle();
   GenerateCheckedInstanceCalls(node,
                                node->left(),
-                               node->token_index(),
+                               node->token_pos(),
                                number_of_arguments,
                                no_optional_argument_names);
   HandleResult(node, EAX);
@@ -1506,7 +1506,7 @@ void OptimizingCodeGenerator::InlineInstanceGetter(AstNode* node,
     const Array& kNoArgumentNames = Array::Handle();
     GenerateCheckedInstanceCalls(node,
                                  receiver,
-                                 node->token_index(),
+                                 node->token_pos(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
   }
@@ -1545,7 +1545,7 @@ struct InstanceSetterArgs {
   Register recv_reg;
   Register value_reg;
   intptr_t id;
-  intptr_t token_index;
+  intptr_t token_pos;
 };
 
 
@@ -1564,7 +1564,7 @@ void OptimizingCodeGenerator::GenerateInstanceSetter(
     __ pushl(args.value_reg);
     const Array& no_optional_argument_names = Array::Handle();
     GenerateDirectCall(args.id,
-                       args.token_index,
+                       args.token_pos,
                        *(args.target),
                        2,
                        no_optional_argument_names);
@@ -1616,7 +1616,7 @@ void OptimizingCodeGenerator::InlineInstanceSetter(AstNode* node,
   // Initialize setter arguments, but leave the class and target fields NULL.
   InstanceSetterArgs setter_args =
       {NULL, NULL, &field_name, recv_reg, value_reg,
-      node->id(), node->token_index()};
+      node->id(), node->token_pos()};
 
   if (unique_target) {
     Label store_field;
@@ -1808,7 +1808,7 @@ void OptimizingCodeGenerator::GenerateSmiEquality(ComparisonNode* node) {
     __ pushl(EDX);
     GenerateCheckedInstanceCalls(node,
                                  node->left(),
-                                 node->token_index(),
+                                 node->token_pos(),
                                  kNumberOfArguments,
                                  kNoArgumentNames);
     __ CompareObject(EAX, bool_true);
@@ -2102,7 +2102,7 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     VisitLoadOne(node->left(), EAX);
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
-                       node->token_index(),
+                       node->token_pos(),
                        node->left(),
                        node->right()->AsTypeNode()->type(),
                        (node->kind() == Token::kISNOT));
@@ -2324,7 +2324,7 @@ void OptimizingCodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   }
   node->index_expr()->Visit(this);
   node->value()->Visit(this);
-  GenerateStoreIndexed(node->id(), node->token_index(), IsResultNeeded(node));
+  GenerateStoreIndexed(node->id(), node->token_pos(), IsResultNeeded(node));
 }
 
 
@@ -2355,7 +2355,7 @@ void OptimizingCodeGenerator::VisitForNode(ForNode* node) {
     }
   }
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);
@@ -2373,7 +2373,7 @@ void OptimizingCodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ Bind(label->continue_label());
   CodeGenInfo condition_info(node->condition());
   condition_info.set_false_label(label->break_label());
@@ -2413,7 +2413,7 @@ void OptimizingCodeGenerator::VisitWhileNode(WhileNode* node) {
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }
@@ -2454,7 +2454,7 @@ void OptimizingCodeGenerator::VisitIfNode(IfNode* node) {
 
 void OptimizingCodeGenerator::GenerateDirectCall(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const Function& target,
     intptr_t arg_count,
     const Array& optional_argument_names) {
@@ -2466,7 +2466,7 @@ void OptimizingCodeGenerator::GenerateDirectCall(
   __ LoadObject(ECX, target);
   __ LoadObject(EDX, ArgumentsDescriptor(arg_count, optional_argument_names));
   __ call(&target_label);
-  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_pos);
   __ addl(ESP, Immediate(arg_count * kWordSize));
 }
 
@@ -2478,7 +2478,7 @@ void OptimizingCodeGenerator::GenerateDirectCall(
 // collected in the meantime.
 void OptimizingCodeGenerator::GenerateInlineCacheCall(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const ICData& ic_data,
     intptr_t num_args,
     const Array& optional_arguments_names) {
@@ -2502,7 +2502,7 @@ void OptimizingCodeGenerator::GenerateInlineCacheCall(
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
                        node_id,
-                       token_index);
+                       token_pos);
   __ addl(ESP, Immediate(num_args * kWordSize));
 }
 
@@ -2558,7 +2558,7 @@ void OptimizingCodeGenerator::NormalizeClassChecks(
 void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     AstNode* node,
     AstNode* receiver,
-    intptr_t token_index,
+    intptr_t token_pos,
     intptr_t num_args,
     const Array& optional_arguments_names) {
   ASSERT(node != NULL);
@@ -2571,7 +2571,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     // Use a special inline cache call which can help us decide when to
     // re-optimize this optiumized function.
     GenerateInlineCacheCall(
-        node->id(), token_index, ic_data, num_args, optional_arguments_names);
+        node->id(), token_pos, ic_data, num_args, optional_arguments_names);
     return;
   }
 
@@ -2604,7 +2604,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
           AddDeoptimizationBlob(node, kDeoptPolymorphicInstanceCallSmiOnly);
       __ j(NOT_ZERO, deopt_blob->label());
       GenerateDirectCall(node->id(),
-                         token_index,
+                         token_pos,
                          *targets[0],
                          num_args,
                          optional_arguments_names);
@@ -2613,7 +2613,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
     Label not_smi;
     __ j(NOT_ZERO, &not_smi);
     GenerateDirectCall(node->id(),
-                       token_index,
+                       token_pos,
                        *targets[0],
                        num_args,
                        optional_arguments_names);
@@ -2638,7 +2638,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
           AddDeoptimizationBlob(node, kDeoptPolymorphicInstanceCallTestFail);
       __ j(NOT_EQUAL, deopt_blob->label());
       GenerateDirectCall(node->id(),
-                         token_index,
+                         token_pos,
                          target,
                          num_args,
                          optional_arguments_names);
@@ -2646,7 +2646,7 @@ void OptimizingCodeGenerator::GenerateCheckedInstanceCalls(
       Label next;
       __ j(NOT_EQUAL, &next);
       GenerateDirectCall(node->id(),
-                         token_index,
+                         token_pos,
                          target,
                          num_args,
                          optional_arguments_names);
@@ -2669,7 +2669,7 @@ void OptimizingCodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   } else {
     GenerateCheckedInstanceCalls(node,
                                  node->receiver(),
-                                 node->token_index(),
+                                 node->token_pos(),
                                  number_of_arguments,
                                  node->arguments()->names());
   }
@@ -2704,7 +2704,7 @@ bool OptimizingCodeGenerator::TryInlineInstanceCall(InstanceCallNode* node) {
       const Code& stub =
           Code::Handle(StubCode::GetAllocationStubForClass(double_class_));
       const ExternalLabel label(double_class_.ToCString(), stub.EntryPoint());
-      GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+      GenerateCall(node->token_pos(), &label, PcDescriptors::kOther);
       // EAX is double object.
       DeoptimizationBlob* deopt_blob =
           AddDeoptimizationBlob(node, EBX, kDeoptIntegerToDouble);
@@ -2751,7 +2751,7 @@ bool OptimizingCodeGenerator::TryInlineStaticCall(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+    GenerateCall(node->token_pos(), &StubCode::CallStaticFunctionLabel(),
                  PcDescriptors::kFuncCall);
     __ Bind(&done);
     return true;
@@ -2768,7 +2768,7 @@ void OptimizingCodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
     __ LoadObject(ECX, node->function());
     __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(), &StubCode::CallStaticFunctionLabel(),
+    GenerateCall(node->token_pos(), &StubCode::CallStaticFunctionLabel(),
                  PcDescriptors::kFuncCall);
   }
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));

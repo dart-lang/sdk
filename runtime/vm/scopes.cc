@@ -30,8 +30,8 @@ LocalScope::LocalScope(LocalScope* parent, int function_level, int loop_level)
       loop_level_(loop_level),
       context_level_(LocalScope::kUnitializedContextLevel),
       num_context_variables_(0),
-      begin_token_index_(0),
-      end_token_index_(0),
+      begin_token_pos_(0),
+      end_token_pos_(0),
       variables_(),
       labels_() {
   // Hook this node into the children of the parent, unless the parent has a
@@ -195,8 +195,8 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
       desc.name = &String::Handle(context_scope.NameAt(i));
       desc.info.kind =  RawLocalVarDescriptors::kContextVar;
       desc.info.scope_id = context_scope.ContextLevelAt(i);
-      desc.info.begin_pos = begin_token_index();
-      desc.info.end_pos = end_token_index();
+      desc.info.begin_pos = begin_token_pos();
+      desc.info.end_pos = end_token_pos();
       desc.info.index = context_scope.ContextIndexAt(i);
       vars.Add(desc);
     }
@@ -229,8 +229,8 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
     desc.name = &String::Handle();  // No name.
     desc.info.kind =  RawLocalVarDescriptors::kContextLevel;
     desc.info.scope_id = *scope_id;
-    desc.info.begin_pos = begin_token_index();
-    desc.info.end_pos = end_token_index();
+    desc.info.begin_pos = begin_token_pos();
+    desc.info.end_pos = end_token_pos();
     desc.info.index = context_level();
     vars->Add(desc);
   }
@@ -250,8 +250,8 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
           desc.info.kind = RawLocalVarDescriptors::kStackVar;
           desc.info.scope_id = *scope_id;
         }
-        desc.info.begin_pos = var->token_index();
-        desc.info.end_pos = var->owner()->end_token_index();
+        desc.info.begin_pos = var->token_pos();
+        desc.info.end_pos = var->owner()->end_token_pos();
         desc.info.index = var->index();
         vars->Add(desc);
       } else if (var->name().Equals(LocalVariable::kSavedContextVarName)) {
@@ -451,7 +451,7 @@ RawContextScope* LocalScope::PreserveOuterScope(int current_context_level)
     LocalVariable* variable = VariableAt(i);
     // Preserve the aliases of captured variables belonging to outer scopes.
     if (variable->owner()->function_level() != 1) {
-      context_scope.SetTokenIndexAt(captured_idx, variable->token_index());
+      context_scope.SetTokenIndexAt(captured_idx, variable->token_pos());
       context_scope.SetNameAt(captured_idx, variable->name());
       context_scope.SetIsFinalAt(captured_idx, variable->is_final());
       context_scope.SetTypeAt(captured_idx, variable->type());
@@ -505,7 +505,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
 
   // Create a descriptor for 'this' variable.
   const String& name = String::Handle(String::NewSymbol("this"));
-  context_scope.SetTokenIndexAt(0, func.token_index());
+  context_scope.SetTokenIndexAt(0, func.token_pos());
   context_scope.SetNameAt(0, name);
   context_scope.SetIsFinalAt(0, true);
   const AbstractType& type = AbstractType::Handle(func.ParameterTypeAt(0));

@@ -373,7 +373,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("Compiling %sfunction: '%s' @ token %d\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_index());
+                function.token_pos());
     }
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
@@ -541,7 +541,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.
-        fragment->token_index()));
+        fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);

@@ -402,7 +402,7 @@ class RawClass : public RawObject {
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
   intptr_t next_field_offset_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
-  intptr_t token_index_;
+  intptr_t token_pos_;
   int8_t class_state_;  // Of type ClassState.
   bool is_const_;
   bool is_interface_;
@@ -426,7 +426,7 @@ class RawUnresolvedClass : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->factory_signature_class_);
   }
-  intptr_t token_index_;
+  intptr_t token_pos_;
 };
 
 
@@ -459,7 +459,7 @@ class RawType : public RawAbstractType {
   RawObject** to() {
       return reinterpret_cast<RawObject**>(&ptr()->malformed_error_);
   }
-  intptr_t token_index_;
+  intptr_t token_pos_;
   int8_t type_state_;
 };
 
@@ -475,7 +475,7 @@ class RawTypeParameter : public RawAbstractType {
   RawString* name_;
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   intptr_t index_;
-  intptr_t token_index_;
+  intptr_t token_pos_;
   int8_t type_state_;
 };
 
@@ -571,8 +571,8 @@ class RawFunction : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->implicit_closure_function_);
   }
 
-  intptr_t token_index_;
-  intptr_t end_token_index_;
+  intptr_t token_pos_;
+  intptr_t end_token_pos_;
   intptr_t num_fixed_parameters_;
   intptr_t num_optional_parameters_;
   intptr_t usage_counter_;  // Incremented while function is running.
@@ -595,7 +595,7 @@ class RawField : public RawObject {
   RawInstance* value_;  // Offset for instance and value for static fields.
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
-  intptr_t token_index_;
+  intptr_t token_pos_;
   bool is_static_;
   bool is_final_;
   bool has_initializer_;
@@ -857,7 +857,7 @@ class RawContextScope : public RawObject {
   // TODO(iposva): Switch to convential enum offset based structure to avoid
   // alignment mishaps.
   struct VariableDesc {
-    RawSmi* token_index;
+    RawSmi* token_pos;
     RawString* name;
     RawBool* is_final;
     RawAbstractType* type;

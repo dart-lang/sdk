@@ -8,6 +8,7 @@
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/bitfield.h"
+#include "vm/datastream.h"
 #include "vm/globals.h"
 #include "vm/growable_array.h"
 #include "vm/isolate.h"
@@ -51,13 +52,6 @@ class RawTwoByteString;
 class RawUnresolvedClass;
 class String;
 
-static const int8_t kSerializedBitsPerByte = 7;
-static const int8_t kMaxSerializedUnsignedValuePerByte = 127;
-static const int8_t kMaxSerializedValuePerByte = 63;
-static const int8_t kMinSerializedValuePerByte = -64;
-static const uint8_t kEndByteMarker = (255 - kMaxSerializedValuePerByte);
-static const int8_t kSerializedByteMask = (1 << kSerializedBitsPerByte) - 1;
-
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
 // - VM internal type (from VM isolate): (index of type in vm isolate | 0x3)
@@ -71,8 +65,6 @@ enum SerializedHeaderType {
 static const int8_t kHeaderTagBits = 2;
 static const int8_t kObjectIdTagBits = (kBitsPerWord - kHeaderTagBits);
 static const intptr_t kMaxObjectId = (kIntptrMax >> kHeaderTagBits);
-
-typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
 
 class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
                                             0,
@@ -137,189 +129,6 @@ class Snapshot {
   uint8_t content_[];  // Stream content.
 
   DISALLOW_COPY_AND_ASSIGN(Snapshot);
-};
-
-
-// Stream for reading various types from a buffer.
-class ReadStream : public ValueObject {
- public:
-  ReadStream(const uint8_t* buffer, intptr_t size) : buffer_(buffer),
-                                                     current_(buffer),
-                                                     end_(buffer + size)  {}
-
- private:
-  template<typename T>
-  T Read() {
-    uint8_t b = ReadByte();
-    if (b > kMaxSerializedUnsignedValuePerByte) {
-      return static_cast<T>(b) - kEndByteMarker;
-    }
-    T r = 0;
-    uint8_t s = 0;
-    do {
-      r |= static_cast<T>(b) << s;
-      s += kSerializedBitsPerByte;
-      b = ReadByte();
-    } while (b <= kMaxSerializedUnsignedValuePerByte);
-    return r | ((static_cast<T>(b) - kEndByteMarker) << s);
-  }
-
-  template<int N, typename T>
-  class Raw { };
-
-  template<typename T>
-  class Raw<1, T> {
-   public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->ReadByte());
-    }
-  };
-
-  template<typename T>
-  class Raw<2, T> {
-   public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int16_t>());
-    }
-  };
-
-  template<typename T>
-  class Raw<4, T> {
-   public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int32_t>());
-    }
-  };
-
-  template<typename T>
-  class Raw<8, T> {
-   public:
-    static T Read(ReadStream* st) {
-      return bit_cast<T>(st->Read<int64_t>());
-    }
-  };
-
-  uint8_t ReadByte() {
-    ASSERT(current_ < end_);
-    return *current_++;
-  }
-
-  void ReadBytes(uint8_t* addr, intptr_t len) {
-    ASSERT((current_ + len) < end_);
-    memmove(addr, current_, len);
-    current_ += len;
-  }
-
- private:
-  const uint8_t* buffer_;
-  const uint8_t* current_;
-  const uint8_t* end_;
-
-  // SnapshotReader needs access to the private Raw classes.
-  friend class SnapshotReader;
-  friend class BaseReader;
-  DISALLOW_COPY_AND_ASSIGN(ReadStream);
-};
-
-
-// Stream for writing various types into a buffer.
-class WriteStream : public ValueObject {
- public:
-  static const int kBufferIncrementSize = 64 * KB;
-
-  WriteStream(uint8_t** buffer, ReAlloc alloc) :
-      buffer_(buffer),
-      end_(NULL),
-      current_(NULL),
-      current_size_(0),
-      alloc_(alloc) {
-    ASSERT(buffer != NULL);
-    ASSERT(alloc != NULL);
-    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(NULL,
-                                                 0,
-                                                 kBufferIncrementSize));
-    ASSERT(*buffer_ != NULL);
-    current_ = *buffer_ + Snapshot::kHeaderSize;
-    current_size_ = kBufferIncrementSize;
-    end_ = *buffer_ + kBufferIncrementSize;
-  }
-
-  uint8_t* buffer() const { return *buffer_; }
-  int bytes_written() const { return current_ - *buffer_; }
-
- private:
-  template<typename T>
-  void Write(T value) {
-    T v = value;
-    while (v < kMinSerializedValuePerByte ||
-           v > kMaxSerializedValuePerByte) {
-      WriteByte(static_cast<uint8_t>(v & kSerializedByteMask));
-      v = v >> kSerializedBitsPerByte;
-    }
-    WriteByte(static_cast<uint8_t>(v + kEndByteMarker));
-  }
-
-  template<int N, typename T>
-  class Raw { };
-
-  template<typename T>
-  class Raw<1, T> {
-   public:
-    static void Write(WriteStream* st, T value) {
-      st->WriteByte(bit_cast<int8_t>(value));
-    }
-  };
-
-  template<typename T>
-  class Raw<2, T> {
-   public:
-    static void Write(WriteStream* st, T value) {
-      st->Write<int16_t>(bit_cast<int16_t>(value));
-    }
-  };
-
-  template<typename T>
-  class Raw<4, T> {
-   public:
-    static void Write(WriteStream* st, T value) {
-      st->Write<int32_t>(bit_cast<int32_t>(value));
-    }
-  };
-
-  template<typename T>
-  class Raw<8, T> {
-   public:
-    static void Write(WriteStream* st, T value) {
-      st->Write<int64_t>(bit_cast<int64_t>(value));
-    }
-  };
-
-  void WriteByte(uint8_t value) {
-    if (current_ >= end_) {
-      intptr_t new_size = (current_size_ + kBufferIncrementSize);
-      *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
-                                                   current_size_,
-                                                   new_size));
-      ASSERT(*buffer_ != NULL);
-      current_ = *buffer_ + current_size_;
-      current_size_ = new_size;
-      end_ = *buffer_ + new_size;
-    }
-    ASSERT(current_ < end_);
-    *current_++ = value;
-  }
-
- private:
-  uint8_t** const buffer_;
-  uint8_t* end_;
-  uint8_t* current_;
-  intptr_t current_size_;
-  ReAlloc alloc_;
-
-  // MessageWriter and SnapshotWriter needs access to the private Raw
-  // classes.
-  friend class BaseWriter;
-  DISALLOW_COPY_AND_ASSIGN(WriteStream);
 };
 
 
@@ -526,6 +335,8 @@ class BaseWriter {
   BaseWriter(uint8_t** buffer, ReAlloc alloc) : stream_(buffer, alloc) {
     ASSERT(buffer != NULL);
     ASSERT(alloc != NULL);
+    // Make room for recording snapshot buffer size.
+    stream_.set_current(*buffer + Snapshot::kHeaderSize);
   }
   ~BaseWriter() { }
 

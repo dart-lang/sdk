@@ -480,7 +480,7 @@ class Class : public Object {
 
   RawScript* script() const { return raw_ptr()->script_; }
 
-  intptr_t token_index() const { return raw_ptr()->token_index_; }
+  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
   // This class represents the signature class of a closure function if
   // signature_function() is not null.
@@ -524,7 +524,7 @@ class Class : public Object {
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
   RawTypeParameter* LookupTypeParameter(const String& type_name,
-                                        intptr_t token_index) const;
+                                        intptr_t token_pos) const;
 
   // The type argument vector is flattened and includes the type arguments of
   // the super class.
@@ -641,7 +641,7 @@ class Class : public Object {
   void SetFunctions(const Array& value) const;
 
   void AddClosureFunction(const Function& function) const;
-  RawFunction* LookupClosureFunction(intptr_t token_index) const;
+  RawFunction* LookupClosureFunction(intptr_t token_pos) const;
 
   RawFunction* LookupDynamicFunction(const String& name) const;
   RawFunction* LookupStaticFunction(const String& name) const;
@@ -650,7 +650,7 @@ class Class : public Object {
   RawFunction* LookupFunction(const String& name) const;
   RawFunction* LookupGetterFunction(const String& name) const;
   RawFunction* LookupSetterFunction(const String& name) const;
-  RawFunction* LookupFunctionAtToken(intptr_t token_index) const;
+  RawFunction* LookupFunctionAtToken(intptr_t token_pos) const;
   RawField* LookupInstanceField(const String& name) const;
   RawField* LookupStaticField(const String& name) const;
   RawField* LookupField(const String& name) const;
@@ -712,10 +712,10 @@ class Class : public Object {
   // Allocate instance classes and interfaces.
   static RawClass* New(const String& name,
                        const Script& script,
-                       intptr_t token_index);
+                       intptr_t token_pos);
   static RawClass* NewInterface(const String& name,
                                 const Script& script,
-                                intptr_t token_index);
+                                intptr_t token_pos);
   static RawClass* NewNativeWrapper(Library* library,
                                     const String& name,
                                     int num_fields);
@@ -738,7 +738,7 @@ class Class : public Object {
  private:
   void set_name(const String& value) const;
   void set_script(const Script& value) const;
-  void set_token_index(intptr_t value) const;
+  void set_token_pos(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
   void set_class_state(int8_t state) const;
@@ -761,7 +761,7 @@ class Class : public Object {
   template <class FakeInstance> static RawClass* New(intptr_t id);
   template <class FakeInstance> static RawClass* New(const String& name,
                                                      const Script& script,
-                                                     intptr_t token_index);
+                                                     intptr_t token_pos);
 
   // Check the subtype or 'more specific' relationship.
   bool TypeTest(TypeTestKind test_kind,
@@ -786,7 +786,7 @@ class UnresolvedClass : public Object {
     return raw_ptr()->library_prefix_;
   }
   RawString* ident() const { return raw_ptr()->ident_; }
-  intptr_t token_index() const { return raw_ptr()->token_index_; }
+  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
   RawClass* factory_signature_class() const {
     return raw_ptr()->factory_signature_class_;
@@ -800,12 +800,12 @@ class UnresolvedClass : public Object {
   }
   static RawUnresolvedClass* New(const LibraryPrefix& library_prefix,
                                  const String& ident,
-                                 intptr_t token_index);
+                                 intptr_t token_pos);
 
  private:
   void set_library_prefix(const LibraryPrefix& library_prefix) const;
   void set_ident(const String& ident) const;
-  void set_token_index(intptr_t token_index) const;
+  void set_token_pos(intptr_t token_pos) const;
 
   static RawUnresolvedClass* New();
 
@@ -828,7 +828,7 @@ class AbstractType : public Object {
   virtual RawClass* type_class() const;
   virtual RawUnresolvedClass* unresolved_class() const;
   virtual RawAbstractTypeArguments* arguments() const;
-  virtual intptr_t token_index() const;
+  virtual intptr_t token_pos() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
   virtual bool IsIdentical(const AbstractType& other) const;
@@ -959,7 +959,7 @@ class Type : public AbstractType {
   RawString* TypeClassName() const;
   virtual RawAbstractTypeArguments* arguments() const;
   void set_arguments(const AbstractTypeArguments& value) const;
-  virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
+  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
   virtual bool IsIdentical(const AbstractType& other) const;
@@ -1009,10 +1009,10 @@ class Type : public AbstractType {
 
   static RawType* New(const Object& clazz,
                       const AbstractTypeArguments& arguments,
-                      intptr_t token_index);
+                      intptr_t token_pos);
 
  private:
-  void set_token_index(intptr_t token_index) const;
+  void set_token_pos(intptr_t token_pos) const;
   void set_type_state(int8_t state) const;
 
   static RawType* New();
@@ -1046,7 +1046,7 @@ class TypeParameter : public AbstractType {
   virtual RawString* Name() const { return raw_ptr()->name_; }
   virtual intptr_t Index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
-  virtual intptr_t token_index() const { return raw_ptr()->token_index_; }
+  virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
   virtual bool IsIdentical(const AbstractType& other) const;
@@ -1061,12 +1061,12 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(const Class& parameterized_class,
                                intptr_t index,
                                const String& name,
-                               intptr_t token_index);
+                               intptr_t token_pos);
 
  private:
   void set_parameterized_class(const Class& value) const;
   void set_name(const String& value) const;
-  void set_token_index(intptr_t token_index) const;
+  void set_token_pos(intptr_t token_pos) const;
   void set_type_state(int8_t state) const;
   static RawTypeParameter* New();
 
@@ -1399,11 +1399,11 @@ class Function : public Object {
   }
   bool IsInFactoryScope() const;
 
-  intptr_t token_index() const { return raw_ptr()->token_index_; }
+  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
-  intptr_t end_token_index() const { return raw_ptr()->end_token_index_; }
-  void set_end_token_index(intptr_t value) const {
-    raw_ptr()->end_token_index_ = value;
+  intptr_t end_token_pos() const { return raw_ptr()->end_token_pos_; }
+  void set_end_token_pos(intptr_t value) const {
+    raw_ptr()->end_token_pos_ = value;
   }
 
   static intptr_t num_fixed_parameters_offset() {
@@ -1534,7 +1534,7 @@ class Function : public Object {
                           RawFunction::Kind kind,
                           bool is_static,
                           bool is_const,
-                          intptr_t token_index);
+                          intptr_t token_pos);
 
   // Allocates a new Function object representing a closure function, as well as
   // a new associated Class object representing the signature class of the
@@ -1542,7 +1542,7 @@ class Function : public Object {
   // The function and the class share the same given name.
   static RawFunction* NewClosureFunction(const String& name,
                                          const Function& parent,
-                                         intptr_t token_index);
+                                         intptr_t token_pos);
 
   static const int kCtorPhaseInit = 1 << 0;
   static const int kCtorPhaseBody = 1 << 1;
@@ -1554,7 +1554,7 @@ class Function : public Object {
   void set_is_static(bool is_static) const;
   void set_is_const(bool is_const) const;
   void set_parent_function(const Function& value) const;
-  void set_token_index(intptr_t value) const;
+  void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   static RawFunction* New();
 
@@ -1613,11 +1613,11 @@ class Field : public Object {
   static RawField* New(const String& name,
                        bool is_static,
                        bool is_final,
-                       intptr_t token_index);
+                       intptr_t token_pos);
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
 
-  intptr_t token_index() const { return raw_ptr()->token_index_; }
+  intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
   bool has_initializer() const { return raw_ptr()->has_initializer_; }
   void set_has_initializer(bool has_initializer) const {
@@ -1642,8 +1642,8 @@ class Field : public Object {
   void set_is_final(bool is_final) const {
     raw_ptr()->is_final_ = is_final;
   }
-  void set_token_index(intptr_t token_index) const {
-    raw_ptr()->token_index_ = token_index;
+  void set_token_pos(intptr_t token_pos) const {
+    raw_ptr()->token_pos_ = token_pos;
   }
   static RawField* New();
 
@@ -1736,7 +1736,7 @@ class Script : public Object {
                         intptr_t to_line,
                         intptr_t to_column) const;
 
-  void GetTokenLocation(intptr_t token_index,
+  void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;
 
   intptr_t TokenIndexAtLine(intptr_t line_number) const;
@@ -1855,7 +1855,7 @@ class Library : public Object {
   RawFunction* LookupFunctionInSource(const String& script_url,
                                       intptr_t line_number) const;
   RawFunction* LookupFunctionInScript(const Script& script,
-                                      intptr_t token_index) const;
+                                      intptr_t token_pos) const;
 
   // Resolving native methods for script loaded in the library.
   Dart_NativeEntryResolver native_entry_resolver() const {
@@ -2081,12 +2081,12 @@ class PcDescriptors : public Object {
                      uword pc,
                      PcDescriptors::Kind kind,
                      intptr_t node_id,
-                     intptr_t token_index,
+                     intptr_t token_pos,
                      intptr_t try_index) const {
     SetPC(index, pc);
     SetKind(index, kind);
     SetNodeId(index, node_id);
-    SetTokenIndex(index, token_index);
+    SetTokenIndex(index, token_pos);
     SetTryIndex(index, try_index);
   }
 
@@ -2493,7 +2493,7 @@ class ContextScope : public Object {
   intptr_t num_variables() const { return raw_ptr()->num_variables_; }
 
   intptr_t TokenIndexAt(intptr_t scope_index) const;
-  void SetTokenIndexAt(intptr_t scope_index, intptr_t token_index) const;
+  void SetTokenIndexAt(intptr_t scope_index, intptr_t token_pos) const;
 
   RawString* NameAt(intptr_t scope_index) const;
   void SetNameAt(intptr_t scope_index, const String& name) const;

@@ -79,7 +79,7 @@ class ParsedFunction : ValueObject {
   bool has_expression_temp_var() const {
     return expression_temp_var_ != NULL;
   }
-  static LocalVariable* CreateExpressionTempVar(intptr_t token_index);
+  static LocalVariable* CreateExpressionTempVar(intptr_t token_pos);
 
   int first_parameter_index() const { return first_parameter_index_; }
   int first_stack_local_index() const { return first_stack_local_index_; }
@@ -105,12 +105,38 @@ class ParsedFunction : ValueObject {
 };
 
 
+// The class TokenStreamIterator encapsulates iteration over the TokenStream
+// object. The parser uses this to iterate over tokens while parsing a script
+// or a function.
+class TokenStreamIterator : ValueObject {
+ public:
+  TokenStreamIterator(const TokenStream& tokens, intptr_t token_pos)
+      : tokens_(tokens), token_position_(token_pos) { }
+
+  intptr_t NumberOfTokens() const { return tokens_.Length(); }
+  bool IsValid() const;
+
+  inline Token::Kind CurrentTokenKind() const;
+  Token::Kind LookaheadTokenKind(intptr_t num_tokens) const;
+
+  intptr_t CurrentPosition() const { return token_position_; }
+  void SetCurrentPosition(intptr_t value) { token_position_ = value; }
+
+  void Advance() { token_position_ += 1; }
+
+  RawObject* CurrentToken() const;
+  RawString* CurrentLiteral() const;
+
+ private:
+  const TokenStream& tokens_;
+  intptr_t token_position_;
+};
+
+
 class Parser : ValueObject {
  public:
   Parser(const Script& script, const Library& library);
-  Parser(const Script& script,
-         const Function& function,
-         intptr_t token_index);
+  Parser(const Script& script, const Function& function, intptr_t token_pos);
 
   // Parse the top level of a whole script file and register declared classes
   // and interfaces in the given library.
@@ -120,9 +146,9 @@ class Parser : ValueObject {
   static void ParseFunction(ParsedFunction* parsed_function);
 
   // Build an error object containing a formatted error or warning message.
-  // A null script means no source and a negative token_index means no position.
+  // A null script means no source and a negative token_pos means no position.
   static RawError* FormatError(const Script& script,
-                               intptr_t token_index,
+                               intptr_t token_pos,
                                const char* message_header,
                                const char* format,
                                va_list args);
@@ -130,7 +156,7 @@ class Parser : ValueObject {
   // Same as FormatError, but appends the new error to the 'prev_error'.
   static RawError* FormatErrorWithAppend(const Error& prev_error,
                                          const Script& script,
-                                         intptr_t token_index,
+                                         intptr_t token_pos,
                                          const char* message_header,
                                          const char* format,
                                          va_list args);
@@ -170,6 +196,7 @@ class Parser : ValueObject {
         (script_.kind() == RawScript::kLibrary);
   }
 
+  intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
   inline Token::Kind CurrentToken();
   Token::Kind LookaheadToken(int num_tokens);
   String* CurrentLiteral() const;
@@ -182,7 +209,7 @@ class Parser : ValueObject {
   void ConsumeToken() {
     // Reset cache and advance the token.
     token_kind_ = Token::kILLEGAL;
-    token_index_++;
+    tokens_iterator_.Advance();
     CompilerStats::num_tokens_consumed++;
   }
   void ConsumeRightAngleBracket();
@@ -221,9 +248,9 @@ class Parser : ValueObject {
     const AbstractTypeArguments& type_arguments);
 
   // Format an error or warning message into the message_buffer.
-  // A null script means no source and a negative token_index means no position.
+  // A null script means no source and a negative token_pos means no position.
   static void FormatMessage(const Script& script,
-                            intptr_t token_index,
+                            intptr_t token_pos,
                             const char* message_header,
                             char* message_buffer,
                             intptr_t message_buffer_size,
@@ -236,15 +263,15 @@ class Parser : ValueObject {
   void Unimplemented(const char* msg);
 
   // Reports error message at given location.
-  void ErrorMsg(intptr_t token_index, const char* msg, ...);
-  void Warning(intptr_t token_index, const char* msg, ...);
+  void ErrorMsg(intptr_t token_pos, const char* msg, ...);
+  void Warning(intptr_t token_pos, const char* msg, ...);
 
   // Reports an already formatted error message.
   void ErrorMsg(const Error& error);
 
   // Concatenates two error messages, the previous and the current one.
   void AppendErrorMsg(
-      const Error& prev_error, intptr_t token_index, const char* format, ...);
+      const Error& prev_error, intptr_t token_pos, const char* format, ...);
 
   const Instance& EvaluateConstExpr(AstNode* expr);
   AstNode* RunStaticFieldInitializer(const Field& field);
@@ -345,12 +372,10 @@ class Parser : ValueObject {
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
   void CaptureReceiver();
-  AstNode* LoadReceiver(intptr_t token_index);
+  AstNode* LoadReceiver(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
-  AstNode* CallGetter(intptr_t token_index,
-                      AstNode* object,
-                      const String& name);
+  AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);
 
   AstNode* ParseAssertStatement();
   AstNode* ParseJump(String* label_name);
@@ -465,7 +490,7 @@ class Parser : ValueObject {
                               AstNode* lhs,
                               AstNode* rhs);
   AstNode* PrepareCompoundAssignmentNodes(AstNode** expr);
-  LocalVariable* CreateTempConstVariable(intptr_t token_index,
+  LocalVariable* CreateTempConstVariable(intptr_t token_pos,
                                          intptr_t token_id,
                                          const char* s);
 
@@ -486,7 +511,7 @@ class Parser : ValueObject {
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);
   AstNode* ThrowTypeError(intptr_t type_pos, const AbstractType& type);
 
-  void CheckFunctionIsCallable(intptr_t token_index, const Function& function);
+  void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
 
   const LocalVariable& GetIncrementTempLocal();
@@ -495,16 +520,15 @@ class Parser : ValueObject {
   AstNode* InsertClosureCallNodes(AstNode* condition);
 
   ConstructorCallNode* CreateConstructorCallNode(
-      intptr_t token_index,
+      intptr_t token_pos,
       const AbstractTypeArguments& type_arguments,
       const Function& constructor,
       ArgumentListNode* arguments);
 
 
   const Script& script_;
-  const TokenStream& tokens_;
-  intptr_t token_index_;
-  Token::Kind token_kind_;  // Cached token kind for the token_index_.
+  TokenStreamIterator tokens_iterator_;
+  Token::Kind token_kind_;  // Cached token kind for current token.
   Block* current_block_;
 
   // is_top_level_ is true if parsing the "top level" of a compilation unit,

@@ -362,14 +362,14 @@ class ConstantVal: public Value {
 
 class AssertAssignableComp : public TemplateComputation<3> {
  public:
-  AssertAssignableComp(intptr_t token_index,
+  AssertAssignableComp(intptr_t token_pos,
                        intptr_t try_index,
                        Value* value,
                        Value* instantiator,
                        Value* instantiator_type_arguments,
                        const AbstractType& dst_type,
                        const String& dst_name)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         dst_type_(dst_type),
         dst_name_(dst_name) {
@@ -389,7 +389,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   Value* instantiator() const { return inputs_[1]; }
   Value* instantiator_type_arguments() const { return inputs_[2]; }
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
@@ -397,7 +397,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const AbstractType& dst_type_;
   const String& dst_name_;
@@ -408,10 +408,10 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
 class AssertBooleanComp : public TemplateComputation<1> {
  public:
-  AssertBooleanComp(intptr_t token_index,
+  AssertBooleanComp(intptr_t token_pos,
                     intptr_t try_index,
                     Value* value)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index) {
     ASSERT(value != NULL);
     inputs_[0] = value;
@@ -419,12 +419,12 @@ class AssertBooleanComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(AssertBoolean)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
@@ -472,7 +472,7 @@ class ClosureCallComp : public Computation {
   DECLARE_COMPUTATION(ClosureCall)
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -497,14 +497,14 @@ class ClosureCallComp : public Computation {
 
 class InstanceCallComp : public Computation {
  public:
-  InstanceCallComp(intptr_t token_index,
+  InstanceCallComp(intptr_t token_pos,
                    intptr_t try_index,
                    const String& function_name,
                    Token::Kind token_kind,
                    ZoneGrowableArray<Value*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         function_name_(function_name),
         token_kind_(token_kind),
@@ -522,7 +522,7 @@ class InstanceCallComp : public Computation {
 
   DECLARE_COMPUTATION(InstanceCall)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
@@ -542,7 +542,7 @@ class InstanceCallComp : public Computation {
   bool VerifyComputation();
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
@@ -637,23 +637,23 @@ class StrictCompareComp : public ComparisonComp {
 
 class EqualityCompareComp : public ComparisonComp {
  public:
-  EqualityCompareComp(intptr_t token_index,
+  EqualityCompareComp(intptr_t token_pos,
                       intptr_t try_index,
                       Value* left,
                       Value* right)
       : ComparisonComp(left, right),
-        token_index_(token_index),
+        token_pos_(token_pos),
         try_index_(try_index) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
@@ -662,13 +662,13 @@ class EqualityCompareComp : public ComparisonComp {
 
 class RelationalOpComp : public ComparisonComp {
  public:
-  RelationalOpComp(intptr_t token_index,
+  RelationalOpComp(intptr_t token_pos,
                    intptr_t try_index,
                    Token::Kind kind,
                    Value* left,
                    Value* right)
       : ComparisonComp(left, right),
-        token_index_(token_index),
+        token_pos_(token_pos),
         try_index_(try_index),
         kind_(kind),
         operands_class_id_(kObject) {
@@ -677,7 +677,7 @@ class RelationalOpComp : public ComparisonComp {
 
   DECLARE_COMPUTATION(RelationalOp)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Token::Kind kind() const { return kind_; }
 
@@ -692,7 +692,7 @@ class RelationalOpComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const Token::Kind kind_;
   intptr_t operands_class_id_;  // class id of both operands.
@@ -703,12 +703,12 @@ class RelationalOpComp : public ComparisonComp {
 
 class StaticCallComp : public Computation {
  public:
-  StaticCallComp(intptr_t token_index,
+  StaticCallComp(intptr_t token_pos,
                  intptr_t try_index,
                  const Function& function,
                  const Array& argument_names,
                  ZoneGrowableArray<Value*>* arguments)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         function_(function),
         argument_names_(argument_names),
@@ -723,7 +723,7 @@ class StaticCallComp : public Computation {
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
   const Array& argument_names() const { return argument_names_; }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
@@ -741,7 +741,7 @@ class StaticCallComp : public Computation {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
@@ -808,7 +808,7 @@ class NativeCallComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(NativeCall)
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
 
   const String& native_name() const {
@@ -939,11 +939,11 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
 
 class LoadIndexedComp : public TemplateComputation<2> {
  public:
-  LoadIndexedComp(intptr_t token_index,
+  LoadIndexedComp(intptr_t token_pos,
                   intptr_t try_index,
                   Value* array,
                   Value* index)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         receiver_type_(kIllegalObjectKind) {
     ASSERT(array != NULL);
@@ -954,7 +954,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(LoadIndexed)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -968,7 +968,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
   }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   ObjectKind receiver_type_;
 
@@ -980,12 +980,12 @@ class LoadIndexedComp : public TemplateComputation<2> {
 // semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public TemplateComputation<3> {
  public:
-  StoreIndexedComp(intptr_t token_index,
+  StoreIndexedComp(intptr_t token_pos,
                    intptr_t try_index,
                    Value* array,
                    Value* index,
                    Value* value)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         receiver_type_(kIllegalObjectKind) {
     inputs_[0] = array;
@@ -995,7 +995,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
@@ -1010,7 +1010,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
   }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   ObjectKind receiver_type_;
 
@@ -1022,12 +1022,12 @@ class StoreIndexedComp : public TemplateComputation<3> {
 // semantics: the value operand is preserved before the call.
 class InstanceSetterComp : public TemplateComputation<2> {
  public:
-  InstanceSetterComp(intptr_t token_index,
+  InstanceSetterComp(intptr_t token_pos,
                      intptr_t try_index,
                      const String& field_name,
                      Value* receiver,
                      Value* value)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         field_name_(field_name) {
     inputs_[0] = receiver;
@@ -1036,14 +1036,14 @@ class InstanceSetterComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(InstanceSetter)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
   Value* receiver() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const String& field_name_;
 
@@ -1055,11 +1055,11 @@ class InstanceSetterComp : public TemplateComputation<2> {
 // semantics: the value operand is preserved before the call.
 class StaticSetterComp : public TemplateComputation<1> {
  public:
-  StaticSetterComp(intptr_t token_index,
+  StaticSetterComp(intptr_t token_pos,
                    intptr_t try_index,
                    const Function& setter_function,
                    Value* value)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         setter_function_(setter_function) {
     inputs_[0] = value;
@@ -1067,13 +1067,13 @@ class StaticSetterComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(StaticSetter)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const Function& setter_function() const { return setter_function_; }
   Value* value() const { return inputs_[0]; }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const Function& setter_function_;
 
@@ -1099,14 +1099,14 @@ class BooleanNegateComp : public TemplateComputation<1> {
 
 class InstanceOfComp : public TemplateComputation<3> {
  public:
-  InstanceOfComp(intptr_t token_index,
+  InstanceOfComp(intptr_t token_pos,
                  intptr_t try_index,
                  Value* value,
                  Value* instantiator,
                  Value* instantiator_type_arguments,
                  const AbstractType& type,
                  bool negate_result)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         type_(type),
         negate_result_(negate_result) {
@@ -1127,13 +1127,13 @@ class InstanceOfComp : public TemplateComputation<3> {
 
   bool negate_result() const { return negate_result_; }
   const AbstractType& type() const { return type_; }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* value_;
   Value* instantiator_;
@@ -1158,7 +1158,7 @@ class AllocateObjectComp : public Computation {
   DECLARE_COMPUTATION(AllocateObject)
 
   const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
@@ -1191,7 +1191,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   DECLARE_COMPUTATION(AllocateObjectWithBoundsCheck)
 
   const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
   const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
 
@@ -1213,11 +1213,11 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 
 class CreateArrayComp : public TemplateComputation<1> {
  public:
-  CreateArrayComp(intptr_t token_index,
+  CreateArrayComp(intptr_t token_pos,
                   intptr_t try_index,
                   ZoneGrowableArray<Value*>* elements,
                   Value* element_type)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         elements_(elements) {
 #if defined(DEBUG)
@@ -1231,7 +1231,7 @@ class CreateArrayComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(CreateArray)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
@@ -1244,7 +1244,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
 
@@ -1268,7 +1268,7 @@ class CreateClosureComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(CreateClosure)
 
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
   Value* type_arguments() const { return inputs_[0]; }
@@ -1349,11 +1349,11 @@ class StoreVMFieldComp : public TemplateComputation<2> {
 
 class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
  public:
-  InstantiateTypeArgumentsComp(intptr_t token_index,
+  InstantiateTypeArgumentsComp(intptr_t token_pos,
                                intptr_t try_index,
                                const AbstractTypeArguments& type_arguments,
                                Value* instantiator)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         type_arguments_(type_arguments) {
     ASSERT(instantiator != NULL);
@@ -1366,13 +1366,13 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const AbstractTypeArguments& type_arguments_;
 
@@ -1383,11 +1383,11 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
 class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
  public:
   ExtractConstructorTypeArgumentsComp(
-      intptr_t token_index,
+      intptr_t token_pos,
       intptr_t try_index,
       const AbstractTypeArguments& type_arguments,
       Value* instantiator)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         type_arguments_(type_arguments) {
     ASSERT(instantiator != NULL);
@@ -1400,13 +1400,13 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
   const AbstractTypeArguments& type_arguments() const {
     return type_arguments_;
   }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const AbstractTypeArguments& type_arguments_;
 
@@ -1430,7 +1430,7 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
     return ast_node_.type_arguments();
   }
   const Function& constructor() const { return ast_node_.constructor(); }
-  intptr_t token_index() const { return ast_node_.token_index(); }
+  intptr_t token_pos() const { return ast_node_.token_pos(); }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -1441,23 +1441,23 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
 
 class AllocateContextComp : public TemplateComputation<0> {
  public:
-  AllocateContextComp(intptr_t token_index,
+  AllocateContextComp(intptr_t token_pos,
                       intptr_t try_index,
                       intptr_t num_context_variables)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index),
         num_context_variables_(num_context_variables) {}
 
   DECLARE_COMPUTATION(AllocateContext);
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   intptr_t num_context_variables() const { return num_context_variables_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   const intptr_t num_context_variables_;
 
@@ -1483,23 +1483,23 @@ class ChainContextComp : public TemplateComputation<1> {
 
 class CloneContextComp : public TemplateComputation<1> {
  public:
-  CloneContextComp(intptr_t token_index,
+  CloneContextComp(intptr_t token_pos,
                    intptr_t try_index,
                    Value* context_value)
-      : token_index_(token_index),
+      : token_pos_(token_pos),
         try_index_(try_index) {
     ASSERT(context_value != NULL);
     inputs_[0] = context_value;
   }
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* context_value() const { return inputs_[0]; }
 
   DECLARE_COMPUTATION(CloneContext)
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CloneContextComp);
@@ -1623,17 +1623,17 @@ class NumberNegateComp : public TemplateComputation<1> {
 
 class CheckStackOverflowComp : public TemplateComputation<0> {
  public:
-  CheckStackOverflowComp(intptr_t token_index, intptr_t try_index)
-      : token_index_(token_index),
+  CheckStackOverflowComp(intptr_t token_pos, intptr_t try_index)
+      : token_pos_(token_pos),
         try_index_(try_index) {}
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
   DECLARE_COMPUTATION(CheckStackOverflow)
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(CheckStackOverflowComp);
@@ -2194,15 +2194,15 @@ class PhiInstr: public Definition {
 
 class ReturnInstr : public InstructionWithInputs {
  public:
-  ReturnInstr(intptr_t token_index, Value* value)
-      : InstructionWithInputs(), token_index_(token_index), value_(value) {
+  ReturnInstr(intptr_t token_pos, Value* value)
+      : InstructionWithInputs(), token_pos_(token_pos), value_(value) {
     ASSERT(value_ != NULL);
   }
 
   DECLARE_INSTRUCTION(Return)
 
   Value* value() const { return value_; }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
@@ -2212,7 +2212,7 @@ class ReturnInstr : public InstructionWithInputs {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
@@ -2221,11 +2221,11 @@ class ReturnInstr : public InstructionWithInputs {
 
 class ThrowInstr : public InstructionWithInputs {
  public:
-  ThrowInstr(intptr_t token_index,
+  ThrowInstr(intptr_t token_pos,
              intptr_t try_index,
              Value* exception)
       : InstructionWithInputs(),
-        token_index_(token_index),
+        token_pos_(token_pos),
         try_index_(try_index),
         exception_(exception),
         successor_(NULL) {
@@ -2234,7 +2234,7 @@ class ThrowInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(Throw)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
 
@@ -2250,7 +2250,7 @@ class ThrowInstr : public InstructionWithInputs {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* exception_;
   Instruction* successor_;
@@ -2261,12 +2261,12 @@ class ThrowInstr : public InstructionWithInputs {
 
 class ReThrowInstr : public InstructionWithInputs {
  public:
-  ReThrowInstr(intptr_t token_index,
+  ReThrowInstr(intptr_t token_pos,
                intptr_t try_index,
                Value* exception,
                Value* stack_trace)
       : InstructionWithInputs(),
-        token_index_(token_index),
+        token_pos_(token_pos),
         try_index_(try_index),
         exception_(exception),
         stack_trace_(stack_trace),
@@ -2277,7 +2277,7 @@ class ReThrowInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(ReThrow)
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
@@ -2296,7 +2296,7 @@ class ReThrowInstr : public InstructionWithInputs {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* exception_;
   Value* stack_trace_;

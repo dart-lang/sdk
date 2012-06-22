@@ -95,15 +95,15 @@ class AstNode : public ZoneAllocated {
  public:
   static const int kNoId = -1;
 
-  explicit AstNode(intptr_t token_index)
-      : token_index_(token_index),
+  explicit AstNode(intptr_t token_pos)
+      : token_pos_(token_pos),
         id_(GetNextId()),
         ic_data_(ICData::ZoneHandle()),
         info_(NULL) {
-    ASSERT(token_index >= 0);
+    ASSERT(token_pos >= 0);
   }
 
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
 
 
   const ICData& ic_data() const { return ic_data_; }
@@ -166,7 +166,7 @@ NODE_LIST(AST_TYPE_CHECK)
   }
 
  private:
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   // Unique id per function compiled, used to match AST node to a PC.
   const intptr_t id_;
   // IC data collected for this node.
@@ -179,8 +179,8 @@ NODE_LIST(AST_TYPE_CHECK)
 
 class SequenceNode : public AstNode {
  public:
-  SequenceNode(intptr_t token_index, LocalScope* scope)
-    : AstNode(token_index),
+  SequenceNode(intptr_t token_pos, LocalScope* scope)
+    : AstNode(token_pos),
       scope_(scope),
       nodes_(4),
       label_(NULL),
@@ -226,8 +226,8 @@ class SequenceNode : public AstNode {
 
 class CloneContextNode : public AstNode {
  public:
-  explicit CloneContextNode(intptr_t token_index)
-    : AstNode(token_index) {
+  explicit CloneContextNode(intptr_t token_pos)
+    : AstNode(token_pos) {
   }
 
   virtual void VisitChildren(AstNodeVisitor* visitor) const { }
@@ -241,8 +241,8 @@ class CloneContextNode : public AstNode {
 
 class ArgumentListNode : public AstNode {
  public:
-  explicit ArgumentListNode(intptr_t token_index)
-     : AstNode(token_index),
+  explicit ArgumentListNode(intptr_t token_pos)
+     : AstNode(token_pos),
        nodes_(4),
        names_(Array::ZoneHandle()) {
   }
@@ -274,8 +274,8 @@ class ArgumentListNode : public AstNode {
 
 class ArrayNode : public AstNode {
  public:
-  ArrayNode(intptr_t token_index, const AbstractTypeArguments& type_arguments)
-      : AstNode(token_index),
+  ArrayNode(intptr_t token_pos, const AbstractTypeArguments& type_arguments)
+      : AstNode(token_pos),
         type_arguments_(type_arguments),
         elements_(4) {
     ASSERT(type_arguments_.IsZoneHandle());
@@ -307,8 +307,8 @@ class ArrayNode : public AstNode {
 
 class LiteralNode : public AstNode {
  public:
-  LiteralNode(intptr_t token_index, const Instance& literal)
-      : AstNode(token_index), literal_(literal) {
+  LiteralNode(intptr_t token_pos, const Instance& literal)
+      : AstNode(token_pos), literal_(literal) {
     ASSERT(literal.IsZoneHandle());
 #if defined(DEBUG)
     if (literal.IsString()) {
@@ -343,8 +343,8 @@ class LiteralNode : public AstNode {
 
 class TypeNode : public AstNode {
  public:
-  TypeNode(intptr_t token_index, const AbstractType& type)
-      : AstNode(token_index), type_(type) {
+  TypeNode(intptr_t token_pos, const AbstractType& type)
+      : AstNode(token_pos), type_(type) {
     ASSERT(type.IsZoneHandle());
     ASSERT(!type.IsNull());
     ASSERT(type.IsFinalized());
@@ -365,11 +365,11 @@ class TypeNode : public AstNode {
 
 class AssignableNode : public AstNode {
  public:
-  AssignableNode(intptr_t token_index,
+  AssignableNode(intptr_t token_pos,
                  AstNode* expr,
                  const AbstractType& type,
                  const String& dst_name)
-      : AstNode(token_index), expr_(expr), type_(type), dst_name_(dst_name) {
+      : AstNode(token_pos), expr_(expr), type_(type), dst_name_(dst_name) {
     ASSERT(expr_ != NULL);
     ASSERT(type_.IsZoneHandle());
     ASSERT(!type_.IsNull());
@@ -398,11 +398,11 @@ class AssignableNode : public AstNode {
 
 class ClosureNode : public AstNode {
  public:
-  ClosureNode(intptr_t token_index,
+  ClosureNode(intptr_t token_pos,
               const Function& function,
               AstNode* receiver,  // Non-null for implicit instance closures.
               LocalScope* scope)  // Null for implicit closures.
-      : AstNode(token_index),
+      : AstNode(token_pos),
         function_(function),
         receiver_(receiver),
         scope_(scope) {
@@ -442,8 +442,8 @@ class ClosureNode : public AstNode {
 // field access nodes.
 class PrimaryNode : public AstNode {
  public:
-  PrimaryNode(intptr_t token_index, const Object& primary)
-      : AstNode(token_index), primary_(primary) {
+  PrimaryNode(intptr_t token_pos, const Object& primary)
+      : AstNode(token_pos), primary_(primary) {
     ASSERT(primary.IsZoneHandle());
   }
 
@@ -463,14 +463,14 @@ class PrimaryNode : public AstNode {
 class ReturnNode : public AstNode {
  public:
   // Return from a void function returns the null object.
-  explicit ReturnNode(intptr_t token_index)
-      : AstNode(token_index),
-        value_(new LiteralNode(token_index, Instance::ZoneHandle())),
+  explicit ReturnNode(intptr_t token_pos)
+      : AstNode(token_pos),
+        value_(new LiteralNode(token_pos, Instance::ZoneHandle())),
         inlined_finally_list_() { }
   // Return from a non-void function.
-  ReturnNode(intptr_t token_index,
+  ReturnNode(intptr_t token_pos,
              AstNode* value)
-      : AstNode(token_index), value_(value), inlined_finally_list_() {
+      : AstNode(token_pos), value_(value), inlined_finally_list_() {
     ASSERT(value != NULL);
   }
 
@@ -504,11 +504,11 @@ class ReturnNode : public AstNode {
 
 class ComparisonNode : public AstNode {
  public:
-  ComparisonNode(intptr_t token_index,
+  ComparisonNode(intptr_t token_pos,
                  Token::Kind kind,
                  AstNode* left,
                  AstNode* right)
-  : AstNode(token_index), kind_(kind), left_(left), right_(right) {
+  : AstNode(token_pos), kind_(kind), left_(left), right_(right) {
     ASSERT(left_ != NULL);
     ASSERT(right_ != NULL);
     ASSERT(IsKindValid());
@@ -541,11 +541,11 @@ class ComparisonNode : public AstNode {
 
 class BinaryOpNode : public AstNode {
  public:
-  BinaryOpNode(intptr_t token_index,
+  BinaryOpNode(intptr_t token_pos,
                Token::Kind kind,
                AstNode* left,
                AstNode* right)
-      : AstNode(token_index), kind_(kind), left_(left), right_(right) {
+      : AstNode(token_pos), kind_(kind), left_(left), right_(right) {
     ASSERT(left_ != NULL);
     ASSERT(right_ != NULL);
     ASSERT(IsKindValid());
@@ -578,9 +578,9 @@ class BinaryOpNode : public AstNode {
 
 class StringConcatNode : public AstNode {
  public:
-  explicit StringConcatNode(intptr_t token_index)
-      : AstNode(token_index),
-        values_(new ArrayNode(token_index, TypeArguments::ZoneHandle())) {
+  explicit StringConcatNode(intptr_t token_pos)
+      : AstNode(token_pos),
+        values_(new ArrayNode(token_pos, TypeArguments::ZoneHandle())) {
   }
 
   ArrayNode* values() const { return values_; }
@@ -606,13 +606,13 @@ class StringConcatNode : public AstNode {
 class UnaryOpNode : public AstNode {
  public:
   // Returns optimized version, e.g., for ('-' '1') ('-1') literal is returned.
-  static AstNode* UnaryOpOrLiteral(intptr_t token_index,
+  static AstNode* UnaryOpOrLiteral(intptr_t token_pos,
                                    Token::Kind kind,
                                    AstNode* operand);
-  UnaryOpNode(intptr_t token_index,
+  UnaryOpNode(intptr_t token_pos,
               Token::Kind kind,
               AstNode* operand)
-      : AstNode(token_index), kind_(kind), operand_(operand) {
+      : AstNode(token_pos), kind_(kind), operand_(operand) {
     ASSERT(operand_ != NULL);
     ASSERT(IsKindValid());
   }
@@ -641,11 +641,11 @@ class UnaryOpNode : public AstNode {
 
 class ConditionalExprNode : public AstNode {
  public:
-  ConditionalExprNode(intptr_t token_index,
+  ConditionalExprNode(intptr_t token_pos,
                       AstNode* condition,
                       AstNode* true_expr,
                       AstNode* false_expr)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         condition_(condition),
         true_expr_(true_expr),
         false_expr_(false_expr) {
@@ -686,11 +686,11 @@ class ConditionalExprNode : public AstNode {
 
 class IfNode : public AstNode {
  public:
-  IfNode(intptr_t token_index,
+  IfNode(intptr_t token_pos,
          AstNode* condition,
          SequenceNode* true_branch,
          SequenceNode* false_branch)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         condition_(condition),
         true_branch_(true_branch),
         false_branch_(false_branch) {
@@ -722,13 +722,13 @@ class IfNode : public AstNode {
 
 class CaseNode : public AstNode {
  public:
-  CaseNode(intptr_t token_index,
+  CaseNode(intptr_t token_pos,
            SourceLabel* label,
            SequenceNode* case_expressions,
            bool contains_default,
            LocalVariable* switch_expr_value,
            SequenceNode* statements)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       label_(label),
       case_expressions_(case_expressions),
       contains_default_(contains_default),
@@ -766,10 +766,10 @@ class CaseNode : public AstNode {
 
 class SwitchNode : public AstNode {
  public:
-  SwitchNode(intptr_t token_index,
+  SwitchNode(intptr_t token_pos,
              SourceLabel* label,
              SequenceNode* body)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       label_(label),
       body_(body) {
     ASSERT(label_ != NULL);
@@ -795,11 +795,11 @@ class SwitchNode : public AstNode {
 
 class WhileNode : public AstNode {
  public:
-  WhileNode(intptr_t token_index,
+  WhileNode(intptr_t token_pos,
             SourceLabel* label,
             AstNode* condition,
             SequenceNode* body)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       label_(label),
       condition_(condition),
       body_(body) {
@@ -830,11 +830,11 @@ class WhileNode : public AstNode {
 
 class DoWhileNode : public AstNode {
  public:
-  DoWhileNode(intptr_t token_index,
+  DoWhileNode(intptr_t token_pos,
               SourceLabel* label,
               AstNode* condition,
               SequenceNode* body)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       label_(label),
       condition_(condition),
       body_(body) {
@@ -866,13 +866,13 @@ class DoWhileNode : public AstNode {
 // initializer, condition, increment expressions can be NULL.
 class ForNode : public AstNode {
  public:
-  ForNode(intptr_t token_index,
+  ForNode(intptr_t token_pos,
           SourceLabel* label,
           SequenceNode* initializer,
           AstNode* condition,
           SequenceNode* increment,
           SequenceNode* body)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       label_(label),
       initializer_(initializer),
       condition_(condition),
@@ -914,10 +914,10 @@ class ForNode : public AstNode {
 
 class JumpNode : public AstNode {
  public:
-  JumpNode(intptr_t token_index,
+  JumpNode(intptr_t token_pos,
            Token::Kind kind,
            SourceLabel* label)
-    : AstNode(token_index),
+    : AstNode(token_pos),
       kind_(kind),
       label_(label),
       inlined_finally_list_(NULL) {
@@ -957,14 +957,14 @@ class JumpNode : public AstNode {
 
 class LoadLocalNode : public AstNode {
  public:
-  LoadLocalNode(intptr_t token_index, const LocalVariable& local)
-      : AstNode(token_index), local_(local), pseudo_(NULL) { }
+  LoadLocalNode(intptr_t token_pos, const LocalVariable& local)
+      : AstNode(token_pos), local_(local), pseudo_(NULL) { }
   // The pseudo node does not produce input but must be visited before
   // completing local load.
-  LoadLocalNode(intptr_t token_index,
+  LoadLocalNode(intptr_t token_pos,
                 const LocalVariable& local,
                 AstNode* pseudo)
-      : AstNode(token_index), local_(local), pseudo_(pseudo) {}
+      : AstNode(token_pos), local_(local), pseudo_(pseudo) {}
 
   const LocalVariable& local() const { return local_; }
   AstNode* pseudo() const { return pseudo_; }  // Can be NULL.
@@ -990,10 +990,10 @@ class LoadLocalNode : public AstNode {
 
 class StoreLocalNode : public AstNode {
  public:
-  StoreLocalNode(intptr_t token_index,
+  StoreLocalNode(intptr_t token_pos,
                  const LocalVariable& local,
                  AstNode* value)
-      : AstNode(token_index), local_(local), value_(value) {
+      : AstNode(token_pos), local_(local), value_(value) {
     ASSERT(value_ != NULL);
   }
 
@@ -1017,10 +1017,10 @@ class StoreLocalNode : public AstNode {
 
 class LoadInstanceFieldNode : public AstNode {
  public:
-  LoadInstanceFieldNode(intptr_t token_index,
+  LoadInstanceFieldNode(intptr_t token_pos,
                         AstNode* instance,
                         const Field& field)
-      : AstNode(token_index), instance_(instance), field_(field) {
+      : AstNode(token_pos), instance_(instance), field_(field) {
     ASSERT(instance_ != NULL);
     ASSERT(field.IsZoneHandle());
   }
@@ -1044,11 +1044,11 @@ class LoadInstanceFieldNode : public AstNode {
 
 class StoreInstanceFieldNode : public AstNode {
  public:
-  StoreInstanceFieldNode(intptr_t token_index,
+  StoreInstanceFieldNode(intptr_t token_pos,
                          AstNode* instance,
                          const Field& field,
                          AstNode* value)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         instance_(instance),
         field_(field),
         value_(value) {
@@ -1079,8 +1079,8 @@ class StoreInstanceFieldNode : public AstNode {
 
 class LoadStaticFieldNode : public AstNode {
  public:
-  LoadStaticFieldNode(intptr_t token_index, const Field& field)
-      : AstNode(token_index), field_(field) {
+  LoadStaticFieldNode(intptr_t token_pos, const Field& field)
+      : AstNode(token_pos), field_(field) {
     ASSERT(field.IsZoneHandle());
   }
 
@@ -1106,8 +1106,8 @@ class LoadStaticFieldNode : public AstNode {
 
 class StoreStaticFieldNode : public AstNode {
  public:
-  StoreStaticFieldNode(intptr_t token_index, const Field& field, AstNode* value)
-      : AstNode(token_index), field_(field), value_(value) {
+  StoreStaticFieldNode(intptr_t token_pos, const Field& field, AstNode* value)
+      : AstNode(token_pos), field_(field), value_(value) {
     ASSERT(field.IsZoneHandle());
     ASSERT(value_ != NULL);
   }
@@ -1131,8 +1131,8 @@ class StoreStaticFieldNode : public AstNode {
 
 class LoadIndexedNode : public AstNode {
  public:
-  LoadIndexedNode(intptr_t token_index, AstNode* array, AstNode* index)
-      : AstNode(token_index), array_(array), index_expr_(index) {
+  LoadIndexedNode(intptr_t token_pos, AstNode* array, AstNode* index)
+      : AstNode(token_pos), array_(array), index_expr_(index) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
   }
@@ -1158,9 +1158,9 @@ class LoadIndexedNode : public AstNode {
 
 class StoreIndexedNode : public AstNode {
  public:
-  StoreIndexedNode(intptr_t token_index,
+  StoreIndexedNode(intptr_t token_pos,
                    AstNode* array, AstNode* index, AstNode* value)
-    : AstNode(token_index), array_(array), index_expr_(index), value_(value) {
+    : AstNode(token_pos), array_(array), index_expr_(index), value_(value) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -1188,11 +1188,11 @@ class StoreIndexedNode : public AstNode {
 
 class InstanceCallNode : public AstNode {
  public:
-  InstanceCallNode(intptr_t token_index,
+  InstanceCallNode(intptr_t token_pos,
                    AstNode* receiver,
                    const String& function_name,
                    ArgumentListNode* arguments)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         receiver_(receiver),
         function_name_(function_name),
         arguments_(arguments) {
@@ -1224,10 +1224,10 @@ class InstanceCallNode : public AstNode {
 
 class InstanceGetterNode : public AstNode {
  public:
-  InstanceGetterNode(intptr_t token_index,
+  InstanceGetterNode(intptr_t token_pos,
                      AstNode* receiver,
                      const String& field_name)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         receiver_(receiver),
         field_name_(field_name) {
     ASSERT(receiver_ != NULL);
@@ -1256,11 +1256,11 @@ class InstanceGetterNode : public AstNode {
 
 class InstanceSetterNode : public AstNode {
  public:
-  InstanceSetterNode(intptr_t token_index,
+  InstanceSetterNode(intptr_t token_pos,
                      AstNode* receiver,
                      const String& field_name,
                      AstNode* value)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         receiver_(receiver),
         field_name_(field_name),
         value_(value) {
@@ -1292,10 +1292,10 @@ class InstanceSetterNode : public AstNode {
 
 class StaticGetterNode : public AstNode {
  public:
-  StaticGetterNode(intptr_t token_index,
+  StaticGetterNode(intptr_t token_pos,
                    const Class& cls,
                    const String& field_name)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         cls_(cls),
         field_name_(field_name) {
     ASSERT(cls_.IsZoneHandle());
@@ -1324,11 +1324,11 @@ class StaticGetterNode : public AstNode {
 
 class StaticSetterNode : public AstNode {
  public:
-  StaticSetterNode(intptr_t token_index,
+  StaticSetterNode(intptr_t token_pos,
                    const Class& cls,
                    const String& field_name,
                    AstNode* value)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         cls_(cls),
         field_name_(field_name),
         value_(value) {
@@ -1358,10 +1358,10 @@ class StaticSetterNode : public AstNode {
 
 class StaticCallNode : public AstNode {
  public:
-  StaticCallNode(intptr_t token_index,
+  StaticCallNode(intptr_t token_pos,
                  const Function& function,
                  ArgumentListNode* arguments)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         function_(function),
         arguments_(arguments) {
     ASSERT(function.IsZoneHandle());
@@ -1387,10 +1387,10 @@ class StaticCallNode : public AstNode {
 
 class ClosureCallNode : public AstNode {
  public:
-  ClosureCallNode(intptr_t token_index,
+  ClosureCallNode(intptr_t token_pos,
                   AstNode* closure,
                   ArgumentListNode* arguments)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         closure_(closure),
         arguments_(arguments) {
     ASSERT(closure_ != NULL);
@@ -1446,12 +1446,12 @@ class ClosureCallNode : public AstNode {
 // constructor is being called.
 class ConstructorCallNode : public AstNode {
  public:
-  ConstructorCallNode(intptr_t token_index,
+  ConstructorCallNode(intptr_t token_pos,
                       const AbstractTypeArguments& type_arguments,
                       const Function& constructor,
                       ArgumentListNode* arguments,
                       const LocalVariable& allocated_object_var)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         type_arguments_(type_arguments),
         constructor_(constructor),
         arguments_(arguments),
@@ -1489,13 +1489,13 @@ class ConstructorCallNode : public AstNode {
 // The body of a Dart function marked as 'native' consists of this node.
 class NativeBodyNode : public AstNode {
  public:
-  NativeBodyNode(intptr_t token_index,
+  NativeBodyNode(intptr_t token_pos,
                  const String& native_c_function_name,
                  NativeFunction native_c_function,
                  int argument_count,
                  bool has_optional_parameters,
                  bool is_native_instance_closure)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         native_c_function_name_(native_c_function_name),
         native_c_function_(native_c_function),
         argument_count_(argument_count),
@@ -1537,12 +1537,12 @@ class CatchClauseNode : public AstNode {
  public:
   static const int kInvalidTryIndex = -1;
 
-  CatchClauseNode(intptr_t token_index,
+  CatchClauseNode(intptr_t token_pos,
                   SequenceNode* catch_block,
                   const LocalVariable& context_var,
                   const LocalVariable& exception_var,
                   const LocalVariable& stacktrace_var)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         try_index_(kInvalidTryIndex),
         catch_block_(catch_block),
         context_var_(context_var),
@@ -1580,13 +1580,13 @@ class CatchClauseNode : public AstNode {
 
 class TryCatchNode : public AstNode {
  public:
-  TryCatchNode(intptr_t token_index,
+  TryCatchNode(intptr_t token_pos,
                SequenceNode* try_block,
                SourceLabel* end_catch_label,
                const LocalVariable& context_var,
                CatchClauseNode* catch_block,
                SequenceNode* finally_block)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         try_block_(try_block),
         end_catch_label_(end_catch_label),
         context_var_(context_var),
@@ -1628,8 +1628,8 @@ class TryCatchNode : public AstNode {
 
 class ThrowNode : public AstNode {
  public:
-  ThrowNode(intptr_t token_index, AstNode* exception, AstNode* stacktrace)
-      : AstNode(token_index), exception_(exception), stacktrace_(stacktrace) {
+  ThrowNode(intptr_t token_pos, AstNode* exception, AstNode* stacktrace)
+      : AstNode(token_pos), exception_(exception), stacktrace_(stacktrace) {
     ASSERT(exception != NULL);
   }
 
@@ -1654,10 +1654,10 @@ class ThrowNode : public AstNode {
 
 class InlinedFinallyNode : public AstNode {
  public:
-  InlinedFinallyNode(intptr_t token_index,
+  InlinedFinallyNode(intptr_t token_pos,
                      AstNode* finally_block,
                      const LocalVariable& context_var)
-      : AstNode(token_index),
+      : AstNode(token_pos),
         finally_block_(finally_block),
         context_var_(context_var) {
     ASSERT(finally_block != NULL);

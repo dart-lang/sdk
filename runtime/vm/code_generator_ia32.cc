@@ -323,7 +323,7 @@ void CodeGenerator::GeneratePushVariable(const LocalVariable& variable,
 
 void CodeGenerator::GenerateInstanceCall(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const String& function_name,
     int num_arguments,
     const Array& optional_arguments_names,
@@ -360,7 +360,7 @@ void CodeGenerator::GenerateInstanceCall(
   __ call(&target_label);
   AddCurrentDescriptor(PcDescriptors::kIcCall,
                        node_id,
-                       token_index);
+                       token_pos);
   __ addl(ESP, Immediate(num_arguments * kWordSize));
 }
 
@@ -707,7 +707,7 @@ void CodeGenerator::GenerateReturnEpilog(ReturnNode* node) {
   __ nop(1);
   AddCurrentDescriptor(PcDescriptors::kReturn,
                        node->id(),
-                       node->token_index());
+                       node->token_pos());
 
 #ifdef DEBUG
   __ Bind(&wrong_stack);
@@ -756,7 +756,7 @@ void CodeGenerator::VisitReturnNode(ReturnNode* node) {
     if (is_static || !is_implicit_getter) {
       GenerateAssertAssignable(
           node->id(),
-          node->value()->token_index(),
+          node->value()->token_pos(),
           node->value(),
           AbstractType::ZoneHandle(parsed_function().function().result_type()),
           String::ZoneHandle(String::NewSymbol("function result")));
@@ -783,7 +783,7 @@ void CodeGenerator::VisitAssignableNode(AssignableNode* node) {
   node->expr()->Visit(this);
   __ popl(EAX);
   GenerateAssertAssignable(node->id(),
-                           node->token_index(),
+                           node->token_pos(),
                            node->expr(),
                            node->type(),
                            node->dst_name());
@@ -823,14 +823,14 @@ void CodeGenerator::VisitClosureNode(ClosureNode* node) {
   if (requires_type_arguments) {
     ASSERT(!function.IsImplicitStaticClosureFunction());
     const bool kPushInstantiator = false;
-    GenerateInstantiatorTypeArguments(node->token_index(), kPushInstantiator);
+    GenerateInstantiatorTypeArguments(node->token_pos(), kPushInstantiator);
   } else {
     __ pushl(raw_null);  // No type arguments.
   }
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(function));
   const ExternalLabel label(function.ToCString(), stub.EntryPoint());
-  GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+  GenerateCall(node->token_pos(), &label, PcDescriptors::kOther);
   __ popl(ECX);  // Pop type arguments.
   __ popl(ECX);  // Pop receiver.
   if (IsResultNeeded(node)) {
@@ -849,7 +849,7 @@ void CodeGenerator::VisitCloneContextNode(CloneContextNode *node) {
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
   __ pushl(CTX);
   GenerateCallRuntime(node->id(),
-      node->token_index(), kCloneContextRuntimeEntry);
+      node->token_pos(), kCloneContextRuntimeEntry);
   __ popl(EAX);
   __ popl(CTX);  // result: cloned context. Set as current context.
 }
@@ -867,7 +867,7 @@ void CodeGenerator::VisitSequenceNode(SequenceNode* node_sequence) {
     __ movl(EDX, Immediate(num_context_variables));
     const ExternalLabel label("alloc_context",
                               StubCode::AllocateContextEntryPoint());
-    GenerateCall(node_sequence->token_index(), &label, PcDescriptors::kOther);
+    GenerateCall(node_sequence->token_pos(), &label, PcDescriptors::kOther);
 
     // If this node_sequence is the body of the function being compiled, and if
     // this function is not a closure, do not link the current context as the
@@ -965,7 +965,7 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
   const AbstractTypeArguments& element_type = node->type_arguments();
   const bool instantiate_type_arguments =  true;
   GenerateTypeArguments(node->id(),
-                        node->token_index(),
+                        node->token_pos(),
                         element_type,
                         instantiate_type_arguments);
   __ popl(ECX);
@@ -974,7 +974,7 @@ void CodeGenerator::VisitArrayNode(ArrayNode* node) {
   // Allocate the array.
   //   EDX : Array length as Smi.
   //   ECX : element type for the array.
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::AllocateArrayLabel(),
                PcDescriptors::kOther);
 
@@ -1007,7 +1007,7 @@ void CodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
   __ popl(EAX);
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
-                             node->value()->token_index(),
+                             node->value()->token_pos(),
                              node->value(),
                              node->local().type(),
                              node->local().name());
@@ -1021,7 +1021,7 @@ void CodeGenerator::VisitStoreLocalNode(StoreLocalNode* node) {
 
 void CodeGenerator::VisitLoadInstanceFieldNode(LoadInstanceFieldNode* node) {
   node->instance()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   __ popl(EAX);  // Instance.
   __ movl(EAX, FieldAddress(EAX, node->field().Offset()));
   if (IsResultNeeded(node)) {
@@ -1033,11 +1033,11 @@ void CodeGenerator::VisitLoadInstanceFieldNode(LoadInstanceFieldNode* node) {
 void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
   node->instance()->Visit(this);
   node->value()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   __ popl(EAX);  // Value.
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
-                             node->value()->token_index(),
+                             node->value()->token_pos(),
                              node->value(),
                              AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
@@ -1050,7 +1050,7 @@ void CodeGenerator::VisitStoreInstanceFieldNode(StoreInstanceFieldNode* node) {
 
 // Expects array and index on stack and returns result in EAX.
 void CodeGenerator::GenerateLoadIndexed(intptr_t node_id,
-                                        intptr_t token_index) {
+                                        intptr_t token_pos) {
   // Invoke the [] operator on the receiver object with the index as argument.
   const String& operator_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
@@ -1058,7 +1058,7 @@ void CodeGenerator::GenerateLoadIndexed(intptr_t node_id,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
-                       token_index,
+                       token_pos,
                        operator_name,
                        kNumArguments,
                        kNoArgumentNames,
@@ -1070,8 +1070,8 @@ void CodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
   node->array()->Visit(this);
   // Now compute the index.
   node->index_expr()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
-  GenerateLoadIndexed(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
+  GenerateLoadIndexed(node->id(), node->token_pos());
   // Result is in EAX.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -1084,7 +1084,7 @@ void CodeGenerator::VisitLoadIndexedNode(LoadIndexedNode* node) {
 // TOS(1): index.
 // TOS(2): array.
 void CodeGenerator::GenerateStoreIndexed(intptr_t node_id,
-                                         intptr_t token_index,
+                                         intptr_t token_pos,
                                          bool preserve_value) {
   // It is not necessary to generate a type test of the assigned value here,
   // because the []= operator will check the type of its incoming arguments.
@@ -1105,7 +1105,7 @@ void CodeGenerator::GenerateStoreIndexed(intptr_t node_id,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
-                       token_index,
+                       token_pos,
                        operator_name,
                        kNumArguments,
                        kNoArgumentNames,
@@ -1120,13 +1120,13 @@ void CodeGenerator::VisitStoreIndexedNode(StoreIndexedNode* node) {
   node->index_expr()->Visit(this);
   // Finally compute the value to assign.
   node->value()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
-  GenerateStoreIndexed(node->id(), node->token_index(), IsResultNeeded(node));
+  MarkDeoptPoint(node->id(), node->token_pos());
+  GenerateStoreIndexed(node->id(), node->token_pos(), IsResultNeeded(node));
 }
 
 
 void CodeGenerator::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   __ LoadObject(EDX, node->field());
   __ movl(EAX, FieldAddress(EDX, Field::value_offset()));
   if (IsResultNeeded(node)) {
@@ -1137,11 +1137,11 @@ void CodeGenerator::VisitLoadStaticFieldNode(LoadStaticFieldNode* node) {
 
 void CodeGenerator::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
   node->value()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   __ popl(EAX);  // Value.
   if (FLAG_enable_type_checks) {
     GenerateAssertAssignable(node->id(),
-                             node->value()->token_index(),
+                             node->value()->token_pos(),
                              node->value(),
                              AbstractType::ZoneHandle(node->field().type()),
                              String::ZoneHandle(node->field().name()));
@@ -1160,9 +1160,9 @@ void CodeGenerator::GenerateLogicalNotOp(UnaryOpNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   node->operand()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   Label done;
-  GenerateConditionTypeCheck(node->id(), node->operand()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->operand()->token_pos());
   __ popl(EDX);
   __ LoadObject(EAX, bool_true);
   __ cmpl(EAX, EDX);
@@ -1190,7 +1190,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
     }
     return;
   }
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   String& operator_name = String::ZoneHandle();
   if (node->kind() == Token::kSUB) {
     operator_name = String::NewSymbol(Token::Str(Token::kNEGATE));
@@ -1201,7 +1201,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
-                       node->token_index(),
+                       node->token_pos(),
                        operator_name,
                        kNumberOfArguments,
                        kNoArgumentNames,
@@ -1220,7 +1220,7 @@ void CodeGenerator::VisitUnaryOpNode(UnaryOpNode* node) {
 // code (type-feedback).
 RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -1268,7 +1268,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateSubtype1TestCacheLookup(
 // Clobbers many registers.
 RawSubtypeTestCache* CodeGenerator::GenerateInlineInstanceof(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -1279,27 +1279,27 @@ RawSubtypeTestCache* CodeGenerator::GenerateInlineInstanceof(
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (type_class.HasTypeArguments()) {
       return GenerateInstantiatedTypeWithArgumentsTest(node_id,
-                                                       token_index,
+                                                       token_pos,
                                                        type,
                                                        is_instance_lbl,
                                                        is_not_instance_lbl);
       // Fall through to runtime call.
     } else {
       GenerateInstantiatedTypeNoArgumentsTest(node_id,
-                                              token_index,
+                                              token_pos,
                                               type,
                                               is_instance_lbl,
                                               is_not_instance_lbl);
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
       return GenerateSubtype1TestCacheLookup(
-          node_id, token_index, type_class,
+          node_id, token_pos, type_class,
           is_instance_lbl, is_not_instance_lbl);
     }
   } else {
     return GenerateUninstantiatedTypeTest(type,
                                           node_id,
-                                          token_index,
+                                          token_pos,
                                           is_instance_lbl,
                                           is_not_instance_lbl);
   }
@@ -1318,7 +1318,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateInlineInstanceof(
 // Returns:
 // - true or false on stack.
 void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
-                                       intptr_t token_index,
+                                       intptr_t token_pos,
                                        AstNode* value,
                                        const AbstractType& type,
                                        bool negate_result) {
@@ -1385,11 +1385,11 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     __ Bind(&non_null);
   }
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  test_cache = GenerateInlineInstanceof(node_id, token_index, type,
+  test_cache = GenerateInlineInstanceof(node_id, token_pos, type,
                                         &is_instance_of, &is_not_instance_of);
 
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  const Immediate location = Immediate(Smi::RawValue(token_index));
+  const Immediate location = Immediate(Smi::RawValue(token_pos));
   const Immediate node_id_as_smi = Immediate(Smi::RawValue(node_id));
   __ pushl(location);  // Push the source location.
   __ pushl(node_id_as_smi);  // node-id.
@@ -1400,11 +1400,11 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
     __ pushl(raw_null);  // Null instantiator.
   } else {
     const bool kPushInstantiator = true;
-    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    GenerateInstantiatorTypeArguments(token_pos, kPushInstantiator);
   }
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateCallRuntime(node_id, token_index, kInstanceofRuntimeEntry);
+  GenerateCallRuntime(node_id, token_pos, kInstanceofRuntimeEntry);
   // Pop the two parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
   __ addl(ESP, Immediate(7 * kWordSize));
@@ -1433,7 +1433,7 @@ void CodeGenerator::GenerateInstanceOf(intptr_t node_id,
 // be completed.
 RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -1464,7 +1464,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
       __ j(EQUAL, is_instance_lbl);
     }
     return
-        GenerateSubtype1TestCacheLookup(node_id, token_index, type_class,
+        GenerateSubtype1TestCacheLookup(node_id, token_pos, type_class,
                                         is_instance_lbl, is_not_instance_lbl);
   }
   // If one type argument only, quick check.
@@ -1482,7 +1482,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             node_id,
-            token_index,
+            token_pos,
             type_class,
             is_instance_lbl,
             is_not_instance_lbl);
@@ -1519,7 +1519,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateInstantiatedTypeWithArgumentsTest(
 // Clobbers: EBX, ECX, EDX.
 void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
@@ -1606,7 +1606,7 @@ void CodeGenerator::GenerateInstantiatedTypeNoArgumentsTest(
 RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     const AbstractType& type,
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   ASSERT(!type.IsInstantiated());
@@ -1617,7 +1617,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     // EAX must be preserved!
     Label fall_through;
     const bool kPushInstantiator = false;
-    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    GenerateInstantiatorTypeArguments(token_pos, kPushInstantiator);
     // Type arguments are on stack.
     __ popl(EBX);
     // Check if type argument is dynamic.
@@ -1687,7 +1687,7 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
     __ pushl(EDX);  // Subtype test cache.
     __ pushl(EAX);  // Instance.
     const bool kPushInstantiator = false;
-    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    GenerateInstantiatorTypeArguments(token_pos, kPushInstantiator);
     __ call(&StubCode::Subtype3TestCacheLabel());
     __ popl(EDX);  // Discard type arguments.
     __ popl(EAX);  // Restore receiver.
@@ -1719,12 +1719,12 @@ RawSubtypeTestCache* CodeGenerator::GenerateUninstantiatedTypeTest(
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
 void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
-                                             intptr_t token_index,
+                                             intptr_t token_pos,
                                              AstNode* value,
                                              const AbstractType& dst_type,
                                              const String& dst_name) {
   ASSERT(FLAG_enable_type_checks);
-  ASSERT(token_index >= 0);
+  ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
 
@@ -1777,11 +1777,11 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     const String& error_message = String::ZoneHandle(
         String::NewSymbol(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+    __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
-    GenerateCallRuntime(node_id, token_index, kMalformedTypeErrorRuntimeEntry);
+    GenerateCallRuntime(node_id, token_pos, kMalformedTypeErrorRuntimeEntry);
     // We should never return here.
     __ int3();
 
@@ -1790,12 +1790,12 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
   }
 
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  test_cache = GenerateInlineInstanceof(node_id, token_index, dst_type,
+  test_cache = GenerateInlineInstanceof(node_id, token_pos, dst_type,
                                         &done, &runtime_call);
 
   __ Bind(&runtime_call);
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushl(Immediate(Smi::RawValue(node_id)));  // node-id.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
@@ -1804,12 +1804,12 @@ void CodeGenerator::GenerateAssertAssignable(intptr_t node_id,
     __ pushl(raw_null);  // Null instantiator type argument.
   } else {
     const bool kPushInstantiator = true;
-    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    GenerateInstantiatorTypeArguments(token_pos, kPushInstantiator);
   }
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateCallRuntime(node_id, token_index, kTypeCheckRuntimeEntry);
+  GenerateCallRuntime(node_id, token_pos, kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ addl(ESP, Immediate(8 * kWordSize));
@@ -1831,7 +1831,7 @@ void CodeGenerator::GenerateArgumentTypeChecks() {
     LocalVariable* parameter = scope->VariableAt(i);
     GenerateLoadVariable(EAX, *parameter);
     GenerateAssertAssignable(sequence_node.ParameterIdAt(i),
-                             parameter->token_index(),
+                             parameter->token_pos(),
                              NULL,
                              parameter->type(),
                              parameter->name());
@@ -1840,7 +1840,7 @@ void CodeGenerator::GenerateArgumentTypeChecks() {
 
 
 void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
-                                               intptr_t token_index) {
+                                               intptr_t token_pos) {
   if (!FLAG_enable_type_checks) {
     return;
   }
@@ -1863,9 +1863,9 @@ void CodeGenerator::GenerateConditionTypeCheck(intptr_t node_id,
   __ j(EQUAL, &done, Assembler::kNearJump);
 
   __ Bind(&runtime_call);
-  __ pushl(Immediate(Smi::RawValue(token_index)));  // Source location.
+  __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushl(EAX);  // Push the source object.
-  GenerateCallRuntime(node_id, token_index, kConditionTypeErrorRuntimeEntry);
+  GenerateCallRuntime(node_id, token_pos, kConditionTypeErrorRuntimeEntry);
   // We should never return here.
   __ int3();
 
@@ -1883,7 +1883,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     __ popl(EAX);  // Left operand.
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
-                       node->token_index(),
+                       node->token_pos(),
                        node->left(),
                        node->right()->AsTypeNode()->type(),
                        (node->kind() == Token::kISNOT));
@@ -1921,7 +1921,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
 
   // '!=' not overloadable, always implements negation of '=='.
   // Call operator for '=='.
@@ -1960,7 +1960,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     const Array& kNoArgumentNames = Array::Handle();
     const int kNumArgumentsChecked = 1;
     GenerateInstanceCall(node->id(),
-                         node->token_index(),
+                         node->token_pos(),
                          operator_name,
                          kNumberOfArguments,
                          kNoArgumentNames,
@@ -1988,7 +1988,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
   }
 
   // Call operator.
-  GenerateBinaryOperatorCall(node->id(), node->token_index(), node->Name());
+  GenerateBinaryOperatorCall(node->id(), node->token_pos(), node->Name());
   // Result is in EAX.
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -1997,7 +1997,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
 
 
 void CodeGenerator::HandleBackwardBranch(
-    intptr_t loop_id, intptr_t token_index) {
+    intptr_t loop_id, intptr_t token_pos) {
   // Use stack overflow check to eventually stop execution of loops.
   // This is necessary only if a loop does not have calls.
   __ cmpl(ESP,
@@ -2005,7 +2005,7 @@ void CodeGenerator::HandleBackwardBranch(
   Label no_stack_overflow;
   __ j(ABOVE, &no_stack_overflow);
   GenerateCallRuntime(loop_id,
-                      token_index,
+                      token_pos,
                       kStackOverflowRuntimeEntry);
   __ Bind(&no_stack_overflow);
 }
@@ -2016,13 +2016,13 @@ void CodeGenerator::VisitWhileNode(WhileNode* node) {
   SourceLabel* label = node->label();
   __ Bind(label->continue_label());
   node->condition()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->condition()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
   __ j(NOT_EQUAL, label->break_label());
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ jmp(label->continue_label());
   __ Bind(label->break_label());
 }
@@ -2034,10 +2034,10 @@ void CodeGenerator::VisitDoWhileNode(DoWhileNode* node) {
   Label loop;
   __ Bind(&loop);
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ Bind(label->continue_label());
   node->condition()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->condition()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
@@ -2054,14 +2054,14 @@ void CodeGenerator::VisitForNode(ForNode* node) {
   __ Bind(&loop);
   if (node->condition() != NULL) {
     node->condition()->Visit(this);
-    GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
+    GenerateConditionTypeCheck(node->id(), node->condition()->token_pos());
     __ popl(EAX);
     __ LoadObject(EDX, bool_true);
     __ cmpl(EAX, EDX);
     __ j(NOT_EQUAL, label->break_label());
   }
   node->body()->Visit(this);
-  HandleBackwardBranch(node->id(), node->token_index());
+  HandleBackwardBranch(node->id(), node->token_pos());
   __ Bind(label->continue_label());
   node->increment()->Visit(this);
   __ jmp(&loop);
@@ -2117,7 +2117,7 @@ void CodeGenerator::VisitConditionalExprNode(ConditionalExprNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Label false_label, done;
   node->condition()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->condition()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
@@ -2177,7 +2177,7 @@ void CodeGenerator::VisitIfNode(IfNode* node) {
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   Label false_label;
   node->condition()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->condition()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->condition()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
@@ -2203,7 +2203,7 @@ void CodeGenerator::GenerateLogicalAndOrOp(BinaryOpNode* node) {
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   Label load_false, done;
   node->left()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->left()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->left()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
@@ -2214,7 +2214,7 @@ void CodeGenerator::GenerateLogicalAndOrOp(BinaryOpNode* node) {
     __ j(EQUAL, &done);
   }
   node->right()->Visit(this);
-  GenerateConditionTypeCheck(node->id(), node->right()->token_index());
+  GenerateConditionTypeCheck(node->id(), node->right()->token_pos());
   __ popl(EAX);
   __ LoadObject(EDX, bool_true);
   __ cmpl(EAX, EDX);
@@ -2231,14 +2231,14 @@ void CodeGenerator::GenerateLogicalAndOrOp(BinaryOpNode* node) {
 // Expect receiver(left operand) and right operand on stack.
 // Return result in EAX.
 void CodeGenerator::GenerateBinaryOperatorCall(intptr_t node_id,
-                                               intptr_t token_index,
+                                               intptr_t token_pos,
                                                const char* name) {
   const String& operator_name = String::ZoneHandle(String::NewSymbol(name));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
   GenerateInstanceCall(node_id,
-                       token_index,
+                       token_pos,
                        operator_name,
                        kNumberOfArguments,
                        kNoArgumentNames,
@@ -2255,8 +2255,8 @@ void CodeGenerator::VisitBinaryOpNode(BinaryOpNode* node) {
   }
   node->left()->Visit(this);
   node->right()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
-  GenerateBinaryOperatorCall(node->id(), node->token_index(), node->Name());
+  MarkDeoptPoint(node->id(), node->token_pos());
+  GenerateBinaryOperatorCall(node->id(), node->token_pos(), node->Name());
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
   }
@@ -2306,7 +2306,7 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
     if (concatenated.IsUnhandledException()) {
       // TODO(hausner): Shouldn't we generate a throw?
       // Then remove unused CodeGenerator::ErrorMsg().
-      ErrorMsg(node->token_index(),
+      ErrorMsg(node->token_pos(),
           "Exception thrown in CodeGenerator::VisitStringConcatNode");
     }
     ASSERT(!concatenated.IsNull());
@@ -2319,13 +2319,13 @@ void CodeGenerator::VisitStringConcatNode(StringConcatNode* node) {
 
   // Could not concatenate at compile time, generate a call to
   // interpolation function.
-  ArgumentListNode* interpol_arg = new ArgumentListNode(node->token_index());
+  ArgumentListNode* interpol_arg = new ArgumentListNode(node->token_pos());
   interpol_arg->Add(node->values());
   node->values()->Visit(this);
   __ LoadObject(ECX, interpol_func);
   __ LoadObject(EDX, ArgumentsDescriptor(interpol_arg->length(),
                                          interpol_arg->names()));
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(interpol_arg->length() * kWordSize));
@@ -2344,10 +2344,10 @@ void CodeGenerator::VisitInstanceCallNode(InstanceCallNode* node) {
   node->arguments()->Visit(this);
   // Some method may be inlined using type feedback, therefore this may be a
   // deoptimization point.
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node->id(),
-                       node->token_index(),
+                       node->token_pos(),
                        node->function_name(),
                        number_of_arguments,
                        node->arguments()->names(),
@@ -2364,7 +2364,7 @@ void CodeGenerator::VisitStaticCallNode(StaticCallNode* node) {
   __ LoadObject(ECX, node->function());
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(node->arguments()->length() * kWordSize));
@@ -2391,7 +2391,7 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
   // NOTE: The stub accesses the closure before the parameter list.
   __ LoadObject(EDX, ArgumentsDescriptor(node->arguments()->length(),
                                          node->arguments()->names()));
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::CallClosureFunctionLabel(),
                PcDescriptors::kOther);
   __ addl(ESP, Immediate((node->arguments()->length() + 1) * kWordSize));
@@ -2407,7 +2407,7 @@ void CodeGenerator::VisitClosureCallNode(ClosureCallNode* node) {
 // Pushes either the instantiator or null.
 // Pushes the type arguments of the instantiator on the stack.
 // Destroys EBX, ECX.
-void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
+void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_pos,
                                                       bool push_instantiator) {
   if (push_instantiator) {
     const Immediate raw_null =
@@ -2421,7 +2421,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
     // TODO(regis): Temporary type should be allocated in new gen heap.
     Type& type = Type::Handle(
-        Type::New(instantiator_class, type_arguments, token_index));
+        Type::New(instantiator_class, type_arguments, token_pos));
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
     type_arguments = type.arguments();
@@ -2466,7 +2466,7 @@ void CodeGenerator::GenerateInstantiatorTypeArguments(intptr_t token_index,
 // arguments are instantiated).
 void CodeGenerator::GenerateTypeArguments(
     intptr_t node_id,
-    intptr_t token_index,
+    intptr_t token_pos,
     const AbstractTypeArguments& type_arguments,
     bool instantiate_type_arguments) {
   const Immediate raw_null =
@@ -2482,7 +2482,7 @@ void CodeGenerator::GenerateTypeArguments(
   } else {
     // The type arguments are uninstantiated.
     const bool kPushInstantiator = false;
-    GenerateInstantiatorTypeArguments(token_index, kPushInstantiator);
+    GenerateInstantiatorTypeArguments(token_pos, kPushInstantiator);
     __ popl(EAX);  // Pop instantiator.
     // EAX is the instantiator AbstractTypeArguments object (or null).
     // If the instantiator is null and if the type argument vector
@@ -2514,7 +2514,7 @@ void CodeGenerator::GenerateTypeArguments(
       __ PushObject(type_arguments);
       __ pushl(EAX);  // Push instantiator type arguments.
       GenerateCallRuntime(node_id,
-                          token_index,
+                          token_pos,
                           kInstantiateTypeArgumentsRuntimeEntry);
       __ popl(EAX);  // Pop instantiator type arguments.
       __ popl(EAX);  // Pop uninstantiated type arguments.
@@ -2541,7 +2541,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   if (node->constructor().IsFactory()) {
     const bool instantiate_type_arguments = true;  // First argument to factory.
     GenerateTypeArguments(node->id(),
-                          node->token_index(),
+                          node->token_pos(),
                           node->type_arguments(),
                           instantiate_type_arguments);
     // The top of stack is an instantiated AbstractTypeArguments object
@@ -2552,7 +2552,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
     __ LoadObject(ECX, node->constructor());
     __ LoadObject(EDX, ArgumentsDescriptor(num_args,
                                            node->arguments()->names()));
-    GenerateCall(node->token_index(),
+    GenerateCall(node->token_pos(),
                  &StubCode::CallStaticFunctionLabel(),
                  PcDescriptors::kFuncCall);
     // Factory constructor returns object in EAX.
@@ -2568,7 +2568,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   const bool instantiate_type_arguments = false;  // Done in stub or runtime.
   if (requires_type_arguments) {
     GenerateTypeArguments(node->id(),
-                          node->token_index(),
+                          node->token_pos(),
                           node->type_arguments(),
                           instantiate_type_arguments);
   }
@@ -2595,12 +2595,12 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 
     // Push the result place holder initialized to NULL.
     __ PushObject(Object::ZoneHandle());
-    __ pushl(Immediate(Smi::RawValue(node->token_index())));
+    __ pushl(Immediate(Smi::RawValue(node->token_pos())));
     __ PushObject(cls);
     __ pushl(EAX);  // Push type arguments.
     __ pushl(ECX);  // Push instantiator type arguments.
     GenerateCallRuntime(node->id(),
-                        node->token_index(),
+                        node->token_pos(),
                         kAllocateObjectWithBoundsCheckRuntimeEntry);
     __ popl(ECX);  // Pop instantiator type arguments.
     __ popl(ECX);  // Pop type arguments.
@@ -2610,7 +2610,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   } else {
     const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
     const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-    GenerateCall(node->token_index(), &label, PcDescriptors::kOther);
+    GenerateCall(node->token_pos(), &label, PcDescriptors::kOther);
     if (requires_type_arguments) {
       __ popl(ECX);  // Pop instantiator type arguments.
       __ popl(ECX);  // Pop type arguments.
@@ -2635,7 +2635,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
   int num_args = node->arguments()->length() + 2;
   __ LoadObject(ECX, node->constructor());
   __ LoadObject(EDX, ArgumentsDescriptor(num_args, node->arguments()->names()));
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   // Constructors do not return any value.
@@ -2647,7 +2647,7 @@ void CodeGenerator::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 // Expects receiver on stack, returns result in EAX..
 void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
-                                               intptr_t token_index,
+                                               intptr_t token_pos,
                                                const String& field_name) {
   const String& getter_name =
       String::ZoneHandle(Field::GetterSymbol(field_name));
@@ -2655,7 +2655,7 @@ void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
-                       token_index,
+                       token_pos,
                        getter_name,
                        kNumberOfArguments,
                        kNoArgumentNames,
@@ -2666,9 +2666,9 @@ void CodeGenerator::GenerateInstanceGetterCall(intptr_t node_id,
 // Call to the instance getter.
 void CodeGenerator::VisitInstanceGetterNode(InstanceGetterNode* node) {
   node->receiver()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   GenerateInstanceGetterCall(node->id(),
-                             node->token_index(),
+                             node->token_pos(),
                              node->field_name());
   if (IsResultNeeded(node)) {
     __ pushl(EAX);
@@ -2678,7 +2678,7 @@ void CodeGenerator::VisitInstanceGetterNode(InstanceGetterNode* node) {
 
 // Expects receiver and value on stack.
 void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
-                                               intptr_t token_index,
+                                               intptr_t token_pos,
                                                const String& field_name) {
   const String& setter_name =
       String::ZoneHandle(Field::SetterSymbol(field_name));
@@ -2686,7 +2686,7 @@ void CodeGenerator::GenerateInstanceSetterCall(intptr_t node_id,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 1;
   GenerateInstanceCall(node_id,
-                       token_index,
+                       token_pos,
                        setter_name,
                        kNumberOfArguments,
                        kNoArgumentNames,
@@ -2700,7 +2700,7 @@ void CodeGenerator::VisitInstanceSetterNode(InstanceSetterNode* node) {
   // Compute the receiver object and pass it as first argument to call.
   node->receiver()->Visit(this);
   node->value()->Visit(this);
-  MarkDeoptPoint(node->id(), node->token_index());
+  MarkDeoptPoint(node->id(), node->token_pos());
   if (IsResultNeeded(node)) {
     __ popl(EAX);   // value.
     __ popl(EDX);   // receiver.
@@ -2711,13 +2711,13 @@ void CodeGenerator::VisitInstanceSetterNode(InstanceSetterNode* node) {
   // It is not necessary to generate a type test of the assigned value here,
   // because the setter will check the type of its incoming arguments.
   GenerateInstanceSetterCall(node->id(),
-                             node->token_index(),
+                             node->token_pos(),
                              node->field_name());
 }
 
 
 // Return result in EAX.
-void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
+void CodeGenerator::GenerateStaticGetterCall(intptr_t token_pos,
                                              const Class& field_class,
                                              const String& field_name) {
   const String& getter_name = String::Handle(Field::GetterName(field_name));
@@ -2728,7 +2728,7 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
   const int kNumberOfArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index,
+  GenerateCall(token_pos,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   // No arguments were pushed, hence nothing to pop.
@@ -2737,7 +2737,7 @@ void CodeGenerator::GenerateStaticGetterCall(intptr_t token_index,
 
 // Call to static getter.
 void CodeGenerator::VisitStaticGetterNode(StaticGetterNode* node) {
-  GenerateStaticGetterCall(node->token_index(),
+  GenerateStaticGetterCall(node->token_pos(),
                            node->cls(),
                            node->field_name());
   // Result is in EAX.
@@ -2748,7 +2748,7 @@ void CodeGenerator::VisitStaticGetterNode(StaticGetterNode* node) {
 
 
 // Expects value on stack.
-void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
+void CodeGenerator::GenerateStaticSetterCall(intptr_t token_pos,
                                              const Class& field_class,
                                              const String& field_name) {
   const String& setter_name = String::Handle(Field::SetterName(field_name));
@@ -2759,7 +2759,7 @@ void CodeGenerator::GenerateStaticSetterCall(intptr_t token_index,
   const int kNumberOfArguments = 1;  // value.
   const Array& kNoArgumentNames = Array::Handle();
   __ LoadObject(EDX, ArgumentsDescriptor(kNumberOfArguments, kNoArgumentNames));
-  GenerateCall(token_index,
+  GenerateCall(token_pos,
                &StubCode::CallStaticFunctionLabel(),
                PcDescriptors::kFuncCall);
   __ addl(ESP, Immediate(kNumberOfArguments * kWordSize));
@@ -2777,7 +2777,7 @@ void CodeGenerator::VisitStaticSetterNode(StaticSetterNode* node) {
   }
   // It is not necessary to generate a type test of the assigned value here,
   // because the setter will check the type of its incoming arguments.
-  GenerateStaticSetterCall(node->token_index(),
+  GenerateStaticSetterCall(node->token_pos(),
                            node->cls(),
                            node->field_name());
 }
@@ -2800,7 +2800,7 @@ void CodeGenerator::VisitNativeBodyNode(NativeBodyNode* node) {
   }
   __ movl(ECX, Immediate(reinterpret_cast<uword>(node->native_c_function())));
   __ movl(EDX, Immediate(argument_count));
-  GenerateCall(node->token_index(),
+  GenerateCall(node->token_pos(),
                &StubCode::CallNativeCFunctionLabel(),
                PcDescriptors::kOther);
   // Result is on the stack.
@@ -2893,9 +2893,9 @@ void CodeGenerator::VisitThrowNode(ThrowNode* node) {
   // Exception object is on TOS.
   if (node->stacktrace() != NULL) {
     node->stacktrace()->Visit(this);
-    GenerateCallRuntime(node->id(), node->token_index(), kReThrowRuntimeEntry);
+    GenerateCallRuntime(node->id(), node->token_pos(), kReThrowRuntimeEntry);
   } else {
-    GenerateCallRuntime(node->id(), node->token_index(), kThrowRuntimeEntry);
+    GenerateCallRuntime(node->id(), node->token_pos(), kThrowRuntimeEntry);
   }
   // We should never return here.
   __ int3();
@@ -2922,48 +2922,48 @@ void CodeGenerator::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-void CodeGenerator::GenerateCall(intptr_t token_index,
+void CodeGenerator::GenerateCall(intptr_t token_pos,
                                  const ExternalLabel* ext_label,
                                  PcDescriptors::Kind desc_kind) {
   __ call(ext_label);
-  AddCurrentDescriptor(desc_kind, AstNode::kNoId, token_index);
+  AddCurrentDescriptor(desc_kind, AstNode::kNoId, token_pos);
 }
 
 
 void CodeGenerator::GenerateCallRuntime(intptr_t node_id,
-                                        intptr_t token_index,
+                                        intptr_t token_pos,
                                         const RuntimeEntry& entry) {
   __ CallRuntime(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, node_id, token_pos);
 }
 
 
 void CodeGenerator::MarkDeoptPoint(intptr_t node_id,
-                                   intptr_t token_index) {
+                                   intptr_t token_pos) {
   ASSERT(node_id != AstNode::kNoId);
-  AddCurrentDescriptor(PcDescriptors::kDeopt, node_id, token_index);
+  AddCurrentDescriptor(PcDescriptors::kDeopt, node_id, token_pos);
 }
 
 
 // Uses current pc position and try-index.
 void CodeGenerator::AddCurrentDescriptor(PcDescriptors::Kind kind,
                                          intptr_t node_id,
-                                         intptr_t token_index) {
+                                         intptr_t token_pos) {
   pc_descriptors_list_->AddDescriptor(kind,
                                       assembler_->CodeSize(),
                                       node_id,
-                                      token_index,
+                                      token_pos,
                                       state()->try_index());
 }
 
 
-void CodeGenerator::ErrorMsg(intptr_t token_index, const char* format, ...) {
+void CodeGenerator::ErrorMsg(intptr_t token_pos, const char* format, ...) {
   va_list args;
   va_start(args, format);
   const Class& cls = Class::Handle(parsed_function_.function().owner());
   const Script& script = Script::Handle(cls.script());
   const Error& error = Error::Handle(
-      Parser::FormatError(script, token_index, "Error", format, args));
+      Parser::FormatError(script, token_pos, "Error", format, args));
   va_end(args);
   Isolate::Current()->long_jump_base()->Jump(1, error);
   UNREACHABLE();
