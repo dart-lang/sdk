@@ -104,8 +104,9 @@ static bool HasOneSmi(const ICData& ic_data) {
 }
 
 
-static bool HasTwoSmi(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClassIds(ic_data, kSmi, kSmi);
+static bool HasOnlyTwoSmi(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kSmi, kSmi);
 }
 
 
@@ -124,39 +125,59 @@ static bool HasOneDouble(const ICData& ic_data) {
 }
 
 
-static bool HasTwoDouble(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClassIds(ic_data, kDouble, kDouble);
+static bool HasOnlyTwoDouble(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kDouble, kDouble);
 }
 
 
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
-  BinaryOpComp::OperandsType operands_type;
-  if ((op_kind == Token::kBIT_AND) && HasTwoMintOrSmi(*comp->ic_data())) {
-    operands_type = BinaryOpComp::kMintOperands;
-  } else if (comp->ic_data()->NumberOfChecks() != 1) {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  } else if (HasTwoSmi(*comp->ic_data())) {
-    if (op_kind == Token::kDIV ||
-        op_kind == Token::kMOD) {
-      // TODO(srdjan): Not yet supported.
-      return false;
-    }
-    operands_type = BinaryOpComp::kSmiOperands;
-  } else if (HasTwoDouble(*comp->ic_data())) {
-    if (op_kind != Token::kADD &&
-        op_kind != Token::kSUB &&
-        op_kind != Token::kMUL &&
-        op_kind != Token::kDIV) {
-      // TODO(vegorov): Not yet supported.
-      return false;
-    }
-    operands_type = BinaryOpComp::kDoubleOperands;
-  } else {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  }
+  BinaryOpComp::OperandsType operands_type = BinaryOpComp::kDynamicOperands;
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  switch (op_kind) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else if (HasOnlyTwoDouble(ic_data)) {
+        operands_type = BinaryOpComp::kDoubleOperands;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kDIV:
+    case Token::kMOD:
+      if (HasOnlyTwoDouble(ic_data)) {
+        operands_type = BinaryOpComp::kDoubleOperands;
+      } else {
+        return false;
+      }
+    case Token::kBIT_AND:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else if (HasTwoMintOrSmi(ic_data)) {
+        operands_type = BinaryOpComp::kMintOperands;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kTRUNCDIV:
+    case Token::kSHR:
+    case Token::kSHL:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else {
+        return false;
+      }
+      break;
+    default:
+      UNREACHABLE();
+  };
 
   ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 2);
@@ -551,9 +572,9 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   if (ic_data.NumberOfChecks() != 1) return;
   ASSERT(HasOneTarget(ic_data));
 
-  if (HasTwoSmi(ic_data)) {
+  if (HasOnlyTwoSmi(ic_data)) {
     comp->set_operands_class_id(kSmi);
-  } else if (HasTwoDouble(ic_data)) {
+  } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDouble);
   } else {
     return;

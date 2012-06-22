@@ -1530,6 +1530,7 @@ class CatchEntryComp : public TemplateComputation<0> {
 class BinaryOpComp : public TemplateComputation<2> {
  public:
   enum OperandsType {
+    kDynamicOperands,
     kSmiOperands,
     kMintOperands,
     kDoubleOperands
