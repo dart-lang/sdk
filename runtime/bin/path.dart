@@ -123,6 +123,14 @@ interface Path default _Path {
   List<String> segments();
 
   /**
+   * Appends [finalSegment] to a path as a new segment.  Adds a path separator
+   * between the path and [finalSegment] if the path does not already end in
+   * a path separator.  The path is not canonicalized, and [finalSegment] may
+   * contain path separators.
+   */
+  Path append(String finalSegment);
+
+  /**
    * Drops the final path separator and whatever follows it from this Path,
    * and returns the resulting Path object.  If the only path separator in
    * this Path is the first character, returns '/' instead of the empty string.
@@ -147,7 +155,7 @@ interface Path default _Path {
 
   /**
    * The part of [filename] before the last '.', or the entire filename if it
-   * contains no '.'.
+   * contains no '.'.  If [filename] is '.' or '..' it is unchanged.
    *
    *     new Path('/c:/My Documents/Heidi.txt').filenameWithoutExtension
    *     would return 'Heidi'.
@@ -158,7 +166,7 @@ interface Path default _Path {
 
   /**
    * The part of [filename] after the last '.', or '' if [filename]
-   * contains no '.'.
+   * contains no '.'.  If [filename] is '.' or '..', returns ''.
    *
    *     new Path('tiger.svg').extension == 'svg'
    *     new Path('/src/dart/dart_secrets').extension == ''

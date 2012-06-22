@@ -9,43 +9,50 @@
 void main() {
   testBaseFunctions();
   testCanonicalize();
+  testJoinAppend();
 }
 
 void testBaseFunctions() {
   testGetters(new Path("/foo/bar/fisk.hest"),
               ['/foo/bar', 'fisk.hest', 'fisk', 'hest'],
               'absolute canonical');
-  testGetters(new Path("/foo/bar/fisk.hest"),
-              ['/foo/bar', 'fisk.hest', 'fisk', 'hest'],
-              'absolute canonical');
-  testGetters(new Path("/foo/bar/fisk.hest"),
-              ['/foo/bar', 'fisk.hest', 'fisk', 'hest'],
-              'absolute canonical');
   testGetters(new Path(''),
-    ['', '', '', ''],
-    'empty');
+              ['', '', '', ''],
+              'empty');
   // This corner case leaves a trailing slash for the root.
   testGetters(new Path('/'),
-    ['/', '', '', ''],
-    'absolute directory canonical trailing');
+              ['/', '', '', ''],
+              'absolute canonical trailing');
   testGetters(new Path('.'),
-    ['', '.', '', ''],
-    'canonical');
+              ['', '.', '.', ''],
+              'canonical');
+  testGetters(new Path('..'),
+              ['', '..', '..', ''],
+              'canonical');
   testGetters(new Path('/ab,;- .c.d'),
-    ['/', 'ab,;- .c.d', 'ab,;- .c', 'd'],
-    'absolute directory canonical');
+              ['/', 'ab,;- .c.d', 'ab,;- .c', 'd'],
+              'absolute canonical');
 
   // Canonical and non-canonical cases
   testGetters(new Path("a/b/../c/./d/e"),
-    ['a/b/../c/./d', 'e', 'e', ''],
-    '');
+              ['a/b/../c/./d', 'e', 'e', ''],
+              '');
   testGetters(new Path("a./b../..c/.d/e"),
-    ['a./b../..c/.d', 'e', 'e', ''],
-    'canonical');
+              ['a./b../..c/.d', 'e', 'e', ''],
+              'canonical');
   // .. is allowed at the beginning of a canonical relative path.
   testGetters(new Path("../../a/b/c/d/"),
-    ['../../a/b/c/d', '', '', ''],
-    'canonical directory trailing');
+              ['../../a/b/c/d', '', '', ''],
+              'canonical trailing');
+
+  // '.' at the end of a path is not considered an extension.
+  testGetters(new Path("a/b.c/."),
+              ['a/b.c', '.', '.', ''],
+              '');
+  // '..' at the end of a path is not considered an extension.
+  testGetters(new Path("a/bc/../.."),
+              ['a/bc/..', '..', '..', ''],
+              '');
 
   // Test the special path cleaning operations on the Windows platform.
   if (Platform.operatingSystem == 'windows') {
@@ -54,15 +61,15 @@ void testBaseFunctions() {
                 'absolute canonical');
     testGetters(new Path.fromNative("\\foo\\bar\\"),
                 ['/foo/bar', '', '', ''],
-                'absolute directory canonical trailing');
+                'absolute canonical trailing');
     testGetters(new Path.fromNative("\\foo\\bar\\hest"),
                 ['/foo/bar', 'hest', 'hest', ''],
                 'absolute canonical');
     testGetters(new Path.fromNative(@"foo/bar\hest/.fisk"),
                 ['foo/bar/hest', '.fisk', '', 'fisk'],
                 'canonical');
-    testGetters(new Path.fromNative(@"foo//bar\\hest/\/.fisk"),
-                ['foo//bar//hest', '.fisk', '', 'fisk'],
+    testGetters(new Path.fromNative(@"foo//bar\\hest/\/.fisk."),
+                ['foo//bar//hest', '.fisk.', '.fisk', ''],
                 '');
   } else {
     // Make sure that backslashes are uninterpreted on other platforms.
@@ -82,11 +89,12 @@ void testBaseFunctions() {
 void testGetters(Path path, List components, String properties) {
   final int DIRNAME = 0;
   final int FILENAME = 1;
-  final int BASENAME = 2;
+  final int FILENAME_NO_EXTENSION = 2;
   final int EXTENSION = 3;
   Expect.equals(components[DIRNAME], path.directoryPath.toString());
   Expect.equals(components[FILENAME], path.filename);
-  Expect.equals(components[BASENAME], path.filenameWithoutExtension);
+  Expect.equals(components[FILENAME_NO_EXTENSION],
+                path.filenameWithoutExtension);
   Expect.equals(components[EXTENSION], path.extension);
 
   Expect.equals(path.isCanonical, properties.contains('canonical'));
@@ -121,4 +129,51 @@ void testCanonicalize() {
   t('/%:/foo/../..', '/%:/');
   t('c:/foo/../../..', '..');
   t('c:/foo/../../bad/dad/./..', 'bad');
+}
+
+void testJoinAppend() {
+  void testJoin(String a, String b, String c) {
+    Expect.equals(new Path(a).join(new Path(b)).toString(), c);
+  }
+
+  testJoin('/a/b', 'c/d', '/a/b/c/d');
+  testJoin('a/', 'b/c/', 'a/b/c/');
+  testJoin('a/b/./c/..//', 'd/.././..//e/f//', 'a/e/f/');
+  testJoin('a/b', 'c/../../../..', '..');
+  testJoin('a/b', 'c/../../../', '.');
+  testJoin('/a/b', 'c/../../../..', '/');
+  testJoin('/a/b', 'c/../../../', '/');
+  testJoin('a/b', 'c/../../../../../', '../../');
+  testJoin('a/b/c', '../../d', 'a/d');
+  testJoin('/a/b/c', '../../d', '/a/d');
+  testJoin('/a/b/c', '../../d/', '/a/d/');
+  testJoin('a/b/c', '../../d/', 'a/d/');
+
+  void testAppend(String a, String b, String c) {
+    Expect.equals(new Path(a).append(b).toString(), c);
+  }
+
+  testAppend('/a/b', 'c', '/a/b/c');
+  testAppend('a/b/', 'cd', 'a/b/cd');
+  testAppend('.', '..', './..');
+  testAppend('a/b', '/c/d', 'a/b//c/d');
+
+  // .join can only join a relative path to a path.
+  // It cannot join an absolute path to a path.
+  Expect.throws(() => new Path('/a/b/').join(new Path('/c/d')));
+
+  // Test Path.relativeTo.
+  Expect.equals('c/d',
+                new Path('/a/b/c/d').relativeTo(new Path('/a/b')).toString());
+  Expect.equals('c/d',
+                new Path('/a/b/c/d').relativeTo(new Path('/a/b/')).toString());
+  Expect.equals('.',
+                new Path('/a').relativeTo(new Path('/a')).toString());
+
+  // Not implemented yet.  Should return new Path('../b/c/d/').
+  Expect.throws(() =>
+                new Path('b/c/d/').relativeTo(new Path('a/')));
+  // Should always throw - no relative path can be constructed.
+  Expect.throws(() =>
+                new Path('a/b').relativeTo(new Path('../../d')));
 }

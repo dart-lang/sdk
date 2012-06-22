@@ -3,10 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _Path implements Path {
-  final String path;
+  final String _path;
 
-  const _Path(String source) : path = source;
-  _Path.fromNative(String source) : path = _clean(source);
+  const _Path(String source) : _path = source;
+  _Path.fromNative(String source) : _path = _clean(source);
 
   static String _clean(String source) {
     switch (Platform.operatingSystem) {
@@ -27,28 +27,31 @@ class _Path implements Path {
     return clean;
   }
 
-  bool get isEmpty() => path.isEmpty();
-  bool get isAbsolute() => path.startsWith('/');
-  bool get hasTrailingSeparator() => path.endsWith('/');
+  bool get isEmpty() => _path.isEmpty();
+  bool get isAbsolute() => _path.startsWith('/');
+  bool get hasTrailingSeparator() => _path.endsWith('/');
 
-  String toString() => path;
+  String toString() => _path;
 
   Path relativeTo(Path base) {
     // Throws exception if an unimplemented or impossible case is reached.
     // Returns a path "relative" such that
-    //    base.join(relative) == this.canonlicalize.
+    //    base.join(relative) == this.canonicalize.
     // Throws an exception if no such path exists, or the case is not
     // implemented yet.
-    if (base.isAbsolute && path.startsWith(base.path)) {
-      if (path == base.path) return new Path('.');
-      if (path[base.path.length] == '/') {
-        return new Path(path.substring(base.path.length + 1));
+    if (base.isAbsolute && _path.startsWith(base._path)) {
+      if (_path == base._path) return new Path('.');
+      if (base.hasTrailingSeparator) {
+        return new Path(_path.substring(base._path.length));
+      }
+      if (_path[base._path.length] == '/') {
+        return new Path(_path.substring(base._path.length + 1));
       }
     }
     throw new NotImplementedException(
       "Unimplemented case of Path.relativeTo(base):\n"
       "  Only absolute paths with strict containment are handled at present.\n"
-      "  Arguments: $path.relativeTo($base)");
+      "  Arguments: $_path.relativeTo($base)");
   }
 
   Path join(Path further) {
@@ -60,9 +63,9 @@ class _Path implements Path {
       return further.canonicalize();
     }
     if (hasTrailingSeparator) {
-      return new Path('$path${further.path}').canonicalize();
+      return new Path('$_path${further._path}').canonicalize();
     }
-    return new Path('$path/${further.path}').canonicalize();
+    return new Path('$_path/${further._path}').canonicalize();
   }
 
   // Note: The URI RFC names for these operations are normalize, resolve, and
@@ -78,8 +81,8 @@ class _Path implements Path {
     // Absolute paths have no segments that are '..'.
     // All '..' segments of a relative path are at the beginning.
     if (isEmpty) return false;  // The canonical form of '' is '.'.
-    if (path == '.') return true;
-    List segs = path.split('/');  // Don't mask the getter 'segments'.
+    if (_path == '.') return true;
+    List segs = _path.split('/');  // Don't mask the getter 'segments'.
     if (segs[0] == '') {  // Absolute path
       segs[0] = null;  // Faster than removeRange().
     } else {  // A canonical relative path may start with .. segments.
@@ -155,10 +158,9 @@ class _Path implements Path {
     return new Path(Strings.join(segmentsToJoin, '/'));
   }
 
-
   String toNativePath() {
     if (Platform.operatingSystem == 'windows') {
-      String nativePath = path;
+      String nativePath = _path;
       // Drop '/' before a drive letter.
       if (nativePath.startsWith('/') && nativePath[2] == ':') {
         nativePath = nativePath.substring(1);
@@ -166,18 +168,27 @@ class _Path implements Path {
       nativePath = nativePath.replaceAll('/', '\\');
       return nativePath;
     }
-    return path;
+    return _path;
   }
 
   List<String> segments() {
-    List result = path.split('/');
+    List result = _path.split('/');
     if (isAbsolute) result.removeRange(0, 1);
     if (hasTrailingSeparator) result.removeLast();
     return result;
   }
 
+  Path append(String finalSegment) {
+    if (hasTrailingSeparator) {
+      return new Path('$_path$finalSegment');
+    } else {
+      return new Path('$_path/$finalSegment');
+    }
+  }
+
   String get filenameWithoutExtension() {
     var name = filename;
+    if (name == '.' || name == '..') return name;
     int pos = name.lastIndexOf('.');
     return (pos < 0) ? name : name.substring(0, pos);
   }
@@ -189,14 +200,14 @@ class _Path implements Path {
   }
 
   Path get directoryPath() {
-    int pos = path.lastIndexOf('/');
+    int pos = _path.lastIndexOf('/');
     if (pos < 0) return new Path('');
-    while (pos > 0 && path[pos - 1] == '/') --pos;
-    return new Path((pos > 0) ? path.substring(0, pos) : '/');
+    while (pos > 0 && _path[pos - 1] == '/') --pos;
+    return new Path((pos > 0) ? _path.substring(0, pos) : '/');
   }
 
   String get filename() {
-    int pos = path.lastIndexOf('/');
-    return path.substring(pos + 1);
+    int pos = _path.lastIndexOf('/');
+    return _path.substring(pos + 1);
   }
 }
