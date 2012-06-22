@@ -586,10 +586,8 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 }
 
 
-// Simple implementation: for positive dividend values greater than divisor,
-// return dividend.
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
-  Label fall_through, return_zero;
+  Label fall_through, return_zero, try_modulo;
   TestBothArgumentsSmis(assembler, &fall_through);
   // EAX: right argument (divisor)
   // Check if modulo by zero -> exception thrown in main function.
@@ -600,11 +598,22 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
   __ j(LESS, &fall_through, Assembler::kNearJump);
   __ cmpl(EBX, EAX);
   __ j(EQUAL, &return_zero, Assembler::kNearJump);
-  __ j(GREATER, &fall_through, Assembler::kNearJump);
-  __ movl(EAX, EBX);  // Return dividend.
+  __ j(GREATER, &try_modulo, Assembler::kNearJump);
+  __ movl(EAX, EBX);  // Return dividend as it is smaller than divisor.
   __ ret();
   __ Bind(&return_zero);
   __ xorl(EAX, EAX);  // Return zero.
+  __ ret();
+  __ Bind(&try_modulo);
+  // EAX: right (non-null divisor).
+  __ movl(EBX, EAX);
+  __ SmiUntag(EBX);
+  __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument (dividend).
+  __ SmiUntag(EAX);
+  __ cdq();
+  __ idivl(EBX);
+  __ movl(EAX, EDX);
+  __ SmiTag(EAX);
   __ ret();
   __ Bind(&fall_through);
   return false;
