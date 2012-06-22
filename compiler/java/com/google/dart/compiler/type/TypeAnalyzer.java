@@ -1108,6 +1108,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * @return a non-null type
      */
     private Type nonVoidTypeOf(DartNode node) {
+      if (node != null) {
+        ElementKind kind = ElementKind.of(node.getElement());
+        if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS || kind == ElementKind.TYPE_VARIABLE) {
+          // We have already created an error in this case.
+          return dynamicType;
+        }
+      }
       Type type = typeOf(node);
       return checkNonVoid(node, type);
     }

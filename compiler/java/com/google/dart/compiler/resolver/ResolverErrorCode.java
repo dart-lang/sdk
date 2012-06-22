@@ -44,6 +44,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
+  CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
   CONST_REQUIRES_VALUE("Constant fields must have an initial value"),

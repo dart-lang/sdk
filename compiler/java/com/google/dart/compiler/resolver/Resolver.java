@@ -1032,6 +1032,18 @@ public class Resolver {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
       }
 
+      if (!isQualifier) {
+        switch (ElementKind.of(element)) {
+          case CLASS:
+          case FUNCTION_TYPE_ALIAS:
+            onError(x, ResolverErrorCode.CANNOT_USE_TYPE, name);
+            break;
+          case TYPE_VARIABLE:
+            onError(x, ResolverErrorCode.CANNOT_USE_TYPE_VARIABLE, name);
+            break;
+        }
+      }
+
       // If we we haven't resolved the identifier, it will be normalized to
       // this.<identifier>.
 

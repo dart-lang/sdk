@@ -1066,6 +1066,31 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE);
   }
 
+  public void test_typedefUsedAsExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "typedef f();",
+        "main() {",
+        "  try {",
+        "    0.25 - f;",
+        "  } catch(var e) {}",
+        "}"),
+        ResolverErrorCode.CANNOT_USE_TYPE);
+  }
+
+  public void test_typeVariableUsedAsExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A<B> {",
+        "  f() {",
+        "    try {",
+        "      0.25 - B;",
+        "    } catch(var e) {}",
+        "  }",
+        "}"),
+        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+  }
+
   public void test_shadowType_withVariable() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
