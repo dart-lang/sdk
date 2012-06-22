@@ -36883,11 +36883,10 @@ class _DOMWindowCrossFrameImpl implements Window {
   // Fields.
   // TODO(vsm): Implement history and location getters.
 
+  // TODO(vsm): Add frames to navigate subframes.  See 2312.
+
   bool get closed() => _closed(_window);
   static bool _closed(win) native "return win.closed;";
-
-  bool get length() => _length(_window);
-  static bool _length(win) native "return win.length;";
 
   Window get opener() => _createSafe(_opener(_window));
   static Window _opener(win) native "return win.opener;";
