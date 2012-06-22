@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1411,14 +1411,15 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+// Destroys the incoming value.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
                                       Label* no_update) {
-  andl(value, Immediate(0x5));
+  andl(value, Immediate(0x9));
   shrl(value, Immediate(1));
   adcl(value, object);
-  andl(value, Immediate(0x7));
-  cmpl(value, Immediate(0x4));
+  andl(value, Immediate(0xf));
+  cmpl(value, Immediate(0x6));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 

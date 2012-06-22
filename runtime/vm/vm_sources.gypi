@@ -11,6 +11,7 @@
     'allocation_test.cc',
     'assembler.cc',
     'assembler.h',
+    'assembler_test.cc',
     'assembler_arm.h',
     'assembler_ia32.cc',
     'assembler_ia32.h',

@@ -1085,7 +1085,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   __ movl(RBX,
           Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
   __ movq(Address(CTX,
-                  RBX, TIMES_4,
+                  RBX, TIMES_8,
                   store_buffer_offset + StoreBufferBlock::pointers_offset()),
           RAX);
 
