@@ -73,7 +73,6 @@ public enum ResolverErrorCode implements ErrorCode {
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
-  DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
   DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,

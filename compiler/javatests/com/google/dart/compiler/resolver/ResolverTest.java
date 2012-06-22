@@ -173,6 +173,8 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testDuplicatedInterfaces() {
+    // The analyzer used to catch inheriting from two different variations of the same interface
+    // but the spec mentions no such error
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -181,8 +183,7 @@ public class ResolverTest extends ResolverTestCase {
         "}",
         "class A extends C implements I<int> {}",
         "class B extends C implements I<bool> {}",
-        "class C implements I<int> {}"),
-        ResolverErrorCode.DUPLICATED_INTERFACE);
+        "class C implements I<int> {}"));
   }
 
   public void testImplicitDefaultConstructor() {

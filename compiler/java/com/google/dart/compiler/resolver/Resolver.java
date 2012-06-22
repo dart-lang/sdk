@@ -264,11 +264,7 @@ public class Resolver {
           errorTarget = cls;
         }
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
-      } catch (DuplicatedInterfaceException e) {
-        onError(cls, ResolverErrorCode.DUPLICATED_INTERFACE,
-                        e.getFirst(), e.getSecond());
       }
-
       checkClassTypeVariables(classElement);
 
       // Push new resolution context.

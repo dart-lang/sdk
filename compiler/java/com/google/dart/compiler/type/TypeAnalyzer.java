@@ -107,7 +107,6 @@ import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.ConstructorElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
-import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.Element;
 import com.google.dart.compiler.resolver.ElementKind;
 import com.google.dart.compiler.resolver.Elements;
@@ -478,7 +477,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         onError(errorTarget, TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT, operator);
       }
     }
-    
+
     /**
      * @return the best guess for operator token location in the given {@link DartNode}.
      */
@@ -1267,11 +1266,42 @@ public class TypeAnalyzer implements DartCompilationPhase {
               sb);
         }
       }
+
+      try {
+        checkClassDuplicateInterfaces(node, element, element.getAllSupertypes());
+      } catch (CyclicDeclarationException ignored) {
+      }
+
       // Finish current class.
       setCurrentClass(null);
       return type;
     }
 
+    /**
+     * Check for duplicate interfaces that aren't assignable to each other due to parameterization.
+     *
+     * Issue 3803: This isn't in the spec as of 0.10, adding as a 'value added' check, because there is no
+     * way to satisfy the method override rules without either causing errors in checked mode or
+     * causing override errors for every method implemented for this interface.
+     *
+     * @param classElement
+     */
+    private void checkClassDuplicateInterfaces(DartClass node, ClassElement classElement,
+        List<InterfaceType> allSupertypes) {
+      Map<Element, InterfaceType> elementMap = Maps.newHashMap();
+      for (InterfaceType supertype : allSupertypes) {
+        Element e = supertype.getElement();
+        if (e != null) {
+          InterfaceType foundType = elementMap.get(e);
+          if (foundType != null && ! types.isAssignable(supertype, foundType)) {
+            typeError(node.getName(), TypeErrorCode.INCOMPATIBLE_TYPES_IN_HIERARCHY, foundType.toString(),
+                supertype.toString());
+          } else {
+            elementMap.put(e, supertype);
+          }
+        }
+      }
+    }
     /**
      * Checks that interface constructors have corresponding methods in default class.
      */
@@ -2548,14 +2578,19 @@ public class TypeAnalyzer implements DartCompilationPhase {
         } catch (CyclicDeclarationException e) {
           // Already reported by resolver.
           hasCyclicDeclaration = true;
-        } catch (DuplicatedInterfaceException e) {
-          // Already reported by resolver.
         }
 
         // Add all super members to resolve.
         Element currentLibrary = currentClass.getElement().getEnclosingElement();
+
+        // cull out duplicate elements in the supertype list - inheriting more than one interface
+        // of the same type is valid.
+        Set<ClassElement> supertypeElements = Sets.newHashSet();
         for (InterfaceType supertype : supertypes) {
-          for (Element member : supertype.getElement().getMembers()) {
+          supertypeElements.add(supertype.getElement());
+        }
+        for (ClassElement interfaceElement : supertypeElements) {
+          for (Element member : interfaceElement.getMembers()) {
             String name = member.getName();
             if (DartIdentifier.isPrivateName(name)) {
               if (currentLibrary != member.getEnclosingElement().getEnclosingElement()) {

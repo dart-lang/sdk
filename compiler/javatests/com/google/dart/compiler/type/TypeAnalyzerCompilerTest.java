@@ -1204,7 +1204,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
-  
+
   /**
    * It is a compile-time error to use type variables in "const" instance creation.
    * <p>
@@ -2776,7 +2776,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
   }
-  
+
   /**
    * It is a compile-time error if T is a parameterized type of the form G < T1; : : : ; Tn > and G
    * is not a generic type with n type parameters.
@@ -2795,7 +2795,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 11, 12));
   }
-  
+
   /**
    * It is a static warning if T does not denote a type available in the current lexical scope.
    * <p>
@@ -2811,6 +2811,38 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+
+  public void test_incompatibleTypesInHierarchy1() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface Interface<T> {",
+        "  T m();",
+        "}",
+        "abstract class A implements Interface {",
+        "}",
+        "class C extends A implements Interface<int> {",
+        "  int m() => 0;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+  }
+
+  public void test_incompatibleTypesInHierarchy2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface Interface<T> {",
+        "  T m();",
+        "}",
+        "abstract class A implements Interface<String> {",
+        "}",
+        "class C extends A implements Interface<int> {",
+        "  int m() => 0;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, 8, 7, 1),
+        errEx(TypeErrorCode.INCOMPATIBLE_TYPES_IN_HIERARCHY, 7, 7, 1));
   }
 
   private static <T extends DartNode> T findNode(

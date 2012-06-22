@@ -8,7 +8,6 @@ import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
-import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.util.EnumSet;
@@ -534,7 +533,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testGetAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException {
+      throws CyclicDeclarationException {
     Map<String, ClassNodeElement> classes = loadSource(
         "class A extends B<String> {",
         "}",
