@@ -48,7 +48,7 @@ String WrapDartTestInLibrary(String test) =>
 #source('${nativePathToUri(test)}');
 """;
 
-String DartTestWrapper(String dartHome, String library, String filter) {
+String DartTestWrapper(String dartHome, String library) {
   dartHome = nativePathToUri(dartHome);
   library = nativePathToUri(library);
 return """
@@ -63,7 +63,6 @@ main() {
   config.useHtmlConfiguration();
   try {
     unittest.ensureInitialized();
-    unittest.setFilter('$filter');
     Test.main();
   } catch(var e, var trace) {
     unittest.reportTestError(

@@ -446,9 +446,6 @@ class StandardTestSuite implements TestSuite {
       String testPath =
           new File(info.filename).fullPathSync().replaceAll('\\', '/');
       String tempDir = createOutputDirectory(testPath, '');
-      if (configuration['filter'] != '') {
-        args.add('--filter="${configuration["filter"]}"');
-      }
       args.add('--out=$tempDir/out.js');
       List<Command> commands = <Command>[new Command(shellPath(), args)];
       if (configuration['runtime'] == 'd8') {
@@ -457,9 +454,6 @@ class StandardTestSuite implements TestSuite {
       }
       return commands;
     } else {
-      if (configuration['filter'] != '') {
-        args.add('--filter="${configuration["filter"]}"');
-      }
       return <Command>[new Command(shellPath(), args)];
     }
   }
@@ -569,8 +563,7 @@ class StandardTestSuite implements TestSuite {
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(
-            DartTestWrapper(dartDir, dartLibraryFilename,
-                configuration['filter']));
+            DartTestWrapper(dartDir, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = testPath;

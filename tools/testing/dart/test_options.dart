@@ -192,12 +192,6 @@ is 'dart file.dart' and you specify special command
               false,
               'bool'),
           new _TestOptionSpecification(
-              'filter',
-              'Pattern to filter tests by name',
-              ['--filter'],
-              [],
-              ''),
-          new _TestOptionSpecification(
               'valgrind',
               'Run tests through valgrind',
               ['--valgrind'],
