@@ -662,7 +662,12 @@ class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyze(WorkItem work, Enqueuer world) {
-    if (work.isAnalyzed()) return work.resolutionTree;
+    if (work.isAnalyzed()) {
+      // TODO(ahe): Clean this up and find a better way for adding all resolved
+      // elements.
+      enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
+      return work.resolutionTree;
+    }
     if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.

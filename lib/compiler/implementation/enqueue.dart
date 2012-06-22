@@ -28,11 +28,8 @@ class RecompilationQueue {
 
   void add(Element element, TreeElements elements) {
     if (queueElements.contains(element)) return;
-    // TODO(sgjesse): Make this handle constructor bodies as well.
-    if (element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      queueElements.add(element);
-      queue.add(new WorkItem(element, elements));
-    }
+    queueElements.add(element);
+    queue.add(new WorkItem(element, elements));
   }
 
   int get length() => queue.length;
