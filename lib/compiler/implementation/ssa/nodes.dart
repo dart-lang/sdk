@@ -1381,7 +1381,7 @@ class HBinaryArithmetic extends HInvokeBinary {
   bool get builtin() => left.isNumber() && right.isNumber();
 
   HType computeTypeFromInputTypes() {
-    if (left.isInteger() && right.isInteger()) return left.propagatedType;
+    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
     if (left.isNumber()) {
       if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
       return HType.NUMBER;
@@ -1558,7 +1558,7 @@ class HShiftLeft extends HBinaryBitOp {
   // Shift left cannot be mapped to the native operator unless the
   // shift count is guaranteed to be an integer in the [0,31] range.
   bool get builtin() {
-    if (!left.isInteger() || !right.isConstantInteger()) return false;
+    if (!left.isNumber() || !right.isConstantInteger()) return false;
     HConstant rightConstant = right;
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
@@ -1671,8 +1671,6 @@ class HNegate extends HInvokeUnary {
 class HBitNot extends HInvokeUnary {
   HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
-
-  bool get builtin() => operand.isInteger();
 
   HType computeTypeFromInputTypes() {
     // All bitwise operations on primitive types either produce an
