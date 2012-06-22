@@ -320,6 +320,15 @@ class DirectoryTest {
     }
   }
 
+  static void testFromPath() {
+    var name = new File('.').fullPathSync();
+    Directory current1 = new Directory(name);
+    var path = new Path.fromNative(name);
+    Directory current2 = new Directory.fromPath(path);
+    Expect.equals(current1.path, current2.path);
+    Expect.isTrue(current1.existsSync());
+  }
+
   static void testMain() {
     testListing();
     testListNonExistent();
@@ -333,6 +342,7 @@ class DirectoryTest {
     testCreateTemp();
     testCreateDeleteTemp();
     testCurrent();
+    testFromPath();
   }
 }
 

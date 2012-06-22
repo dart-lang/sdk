@@ -16,7 +16,8 @@ class _Directory implements Directory {
   static final OSERROR_RESPONSE = 2;
 
   _Directory(String this._path);
-  _Directory.current() : _path = _current();
+  _Directory.fromPath(Path path) : this(path.toNativePath());
+  _Directory.current() : this(_current());
 
   static String _current() native "Directory_Current";
   static _createTemp(String template) native "Directory_CreateTemp";

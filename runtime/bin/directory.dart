@@ -7,11 +7,18 @@
  */
 interface Directory default _Directory {
   /**
-   * Creates a directory object. The path is either a full path or
-   * relative to the directory in which the Dart VM was
-   * started.
+   * Creates a directory object. The path is either an absolute path,
+   * or it is a relative path which is interpreted relative to the directory
+   * in which the Dart VM was started.
    */
   Directory(String path);
+
+  /**
+   * Creates a directory object from a Path object. The path is either
+   * an absolute path, or it is a relative path which is interpreted
+   * relative to the directory in which the Dart VM was started.
+   */
+  Directory.fromPath(Path path);
 
   /**
    * Creates a directory object pointing to the current working
