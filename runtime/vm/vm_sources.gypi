@@ -119,6 +119,8 @@
     'flags.cc',
     'flags.h',
     'flags_test.cc',
+    'flow_graph_allocator.cc',
+    'flow_graph_allocator.h',
     'flow_graph_builder.cc',
     'flow_graph_builder.h',
     'flow_graph_compiler.cc',

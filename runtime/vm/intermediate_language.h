@@ -9,6 +9,7 @@
 #include "vm/ast.h"
 #include "vm/growable_array.h"
 #include "vm/handles_impl.h"
+#include "vm/locations.h"
 #include "vm/object.h"
 
 namespace dart {
@@ -46,7 +47,6 @@ class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Function;
 class LocalVariable;
-class LocationSummary;
 
 // M is a two argument macro.  It is applied to each concrete value's
 // typename and classname.
@@ -1706,6 +1706,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
   M(Branch)                                                                    \
+  M(ParallelMove)
 
 
 // Forward declarations for Instruction classes.
@@ -2361,6 +2362,38 @@ class BranchInstr : public InstructionWithInputs {
   bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
+};
+
+
+class MoveOperands : public ValueObject {
+ public:
+  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
+
+  Location src() const { return src_; }
+  Location dest() const { return dest_; }
+
+ private:
+  Location dest_;
+  Location src_;
+};
+
+
+class ParallelMoveInstr : public Instruction {
+ public:
+  ParallelMoveInstr() : moves_(1) { }
+
+  DECLARE_INSTRUCTION(ParallelMove)
+
+  void AddMove(Location dest, Location src) {
+    moves_.Add(MoveOperands(dest, src));
+  }
+
+  const GrowableArray<MoveOperands>& moves() { return moves_; }
+
+ private:
+  GrowableArray<MoveOperands> moves_;
+
+  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
 
 #undef DECLARE_INSTRUCTION

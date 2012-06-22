@@ -2375,10 +2375,6 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
       printer.PrintFunction();
     }
   }
-
-  if (for_optimized && FLAG_use_ssa) {
-    Bailout("No SSA code generation support.");
-  }
 }
 
 

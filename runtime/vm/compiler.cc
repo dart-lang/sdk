@@ -13,6 +13,7 @@
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_optimizer.h"
@@ -34,6 +35,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     " certain optimizations");
 DEFINE_FLAG(bool, use_new_compiler, true, "Use the new compiler backend.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from new compiler.");
+DECLARE_FLAG(bool, use_ssa);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -193,6 +195,15 @@ static bool CompileWithNewCompiler(
       if (optimized) {
         FlowGraphOptimizer optimizer(block_order);
         optimizer.ApplyICData();
+
+        if (FLAG_use_ssa) {
+          // Perform register allocation on the SSA graph.
+          FlowGraphAllocator allocator(block_order);
+          allocator.ResolveConstraints();
+
+          // Temporary bailout until we support code generation from SSA form.
+          graph_builder.Bailout("No SSA code generation support.");
+        }
       }
     }
 
