@@ -17557,8 +17557,9 @@ class _SessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _ShadowRootFactoryProvider {
-  factory ShadowRoot(Element host) native
-      '''return new ShadowRoot(host);''';
+  factory ShadowRoot(Element host) native '''
+      return new WebKitShadowRoot(host);
+    ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
