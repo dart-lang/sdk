@@ -685,7 +685,7 @@ class _Int8ArrayFactory {
     return new _Int8Array(length);
   }
 
-  factory Int8List.view(ByteArray array, [int start, int length]) {
+  factory Int8List.view(ByteArray array, [int start = 0, int length]) {
     return new _Int8ArrayView(array, start, length);
   }
 }
@@ -696,7 +696,7 @@ class _Uint8ArrayFactory {
     return new _Uint8Array(length);
   }
 
-  factory Uint8List.view(ByteArray array, [int start, int length]) {
+  factory Uint8List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint8ArrayView(array, start, length);
   }
 }
@@ -707,7 +707,7 @@ class _Int16ArrayFactory {
     return new _Int16Array(length);
   }
 
-  factory Int16List.view(ByteArray array, [int start, int length]) {
+  factory Int16List.view(ByteArray array, [int start = 0, int length]) {
     return new _Int16ArrayView(array, start, length);
   }
 }
@@ -718,7 +718,7 @@ class _Uint16ArrayFactory {
     return new _Uint16Array(length);
   }
 
-  factory Uint16List.view(ByteArray array, [int start, int length]) {
+  factory Uint16List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint16ArrayView(array, start, length);
   }
 }
@@ -729,7 +729,7 @@ class _Int32ArrayFactory {
     return new _Int32Array(length);
   }
 
-  factory Int32List.view(ByteArray array, [int start, int length]) {
+  factory Int32List.view(ByteArray array, [int start = 0, int length]) {
     return new _Int32ArrayView(array, start, length);
   }
 }
@@ -740,7 +740,7 @@ class _Uint32ArrayFactory {
     return new _Uint32Array(length);
   }
 
-  factory Uint32List.view(ByteArray array, [int start, int length]) {
+  factory Uint32List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint32ArrayView(array, start, length);
   }
 }
@@ -751,7 +751,7 @@ class _Int64ArrayFactory {
     return new _Int64Array(length);
   }
 
-  factory Int64List.view(ByteArray array, [int start, int length]) {
+  factory Int64List.view(ByteArray array, [int start = 0, int length]) {
     return new _Int64ArrayView(array, start, length);
   }
 }
@@ -762,7 +762,7 @@ class _Uint64ArrayFactory {
     return new _Uint64Array(length);
   }
 
-  factory Uint64List.view(ByteArray array, [int start, int length]) {
+  factory Uint64List.view(ByteArray array, [int start = 0, int length]) {
     return new _Uint64ArrayView(array, start, length);
   }
 }
@@ -773,7 +773,7 @@ class _Float32ArrayFactory {
     return new _Float32Array(length);
   }
 
-  factory Float32List.view(ByteArray array, [int start, int length]) {
+  factory Float32List.view(ByteArray array, [int start = 0, int length]) {
     return new _Float32ArrayView(array, start, length);
   }
 }
@@ -784,13 +784,18 @@ class _Float64ArrayFactory {
     return new _Float64Array(length);
   }
 
-  factory Float64List.view(ByteArray array, [int start, int length]) {
+  factory Float64List.view(ByteArray array, [int start = 0, int length]) {
     return new _Float64ArrayView(array, start, length);
   }
 }
 
 
 abstract class _ByteArrayBase {
+  abstract int lengthInBytes();
+
+  abstract int bytesPerElement();
+
+  abstract operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -816,7 +821,7 @@ abstract class _ByteArrayBase {
   }
 
   bool some(bool f(element)) {
-    return Collections.some(this, f);;
+    return Collections.some(this, f);
   }
 
   bool isEmpty() {
@@ -888,9 +893,12 @@ abstract class _ByteArrayBase {
 
   ByteArray asByteArray([int start = 0, int length]) {
     if (length === null) {
-      length = this.lengthInBytes();
+      length = this.length;
     }
-    return new _ByteArrayView(this, start, length);
+    _rangeCheck(this.length, start, length);
+    return new _ByteArrayView(this,
+                              start * this.bytesPerElement(),
+                              length * this.bytesPerElement());
   }
 
   int _length() native "ByteArray_getLength";
@@ -969,16 +977,35 @@ int _toUint64(int value) {
 }
 
 
-void _rangeCheck(List a, int start, int length) {
+void _rangeCheck(int listLength, int start, int length) {
   if (length < 0) {
-    throw new IllegalArgumentException("negative length $length");
+    throw new IndexOutOfRangeException(length);
   }
   if (start < 0) {
-    throw new IndexOutOfRangeException("negative start $start");
+    throw new IndexOutOfRangeException(start);
   }
-  if (start + length > a.length) {
+  if (start + length > listLength) {
     throw new IndexOutOfRangeException(start + length);
   }
+}
+
+
+int _requireInteger(object) {
+  if (object is int) {
+    return object;
+  }
+  throw new IllegalArgumentException("$object is not an integer");
+}
+
+
+int _requireIntegerOrNull(object, value) {
+  if (object is int) {
+    return object;
+  }
+  if (object === null) {
+    return _requireInteger(value);
+  }
+  throw new IllegalArgumentException("$object is not an integer or null");
 }
 
 
@@ -1007,7 +1034,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1015,10 +1042,10 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int8Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1070,7 +1097,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1078,10 +1105,10 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint8Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1133,7 +1160,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1141,10 +1168,10 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int16Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1196,7 +1223,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1204,10 +1231,10 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint16Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1259,7 +1286,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1267,10 +1294,10 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1322,7 +1349,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1330,10 +1357,10 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1385,7 +1412,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1393,10 +1420,10 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Int64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1448,7 +1475,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1456,10 +1483,10 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _Uint64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1511,7 +1538,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1519,10 +1546,10 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _Float32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1574,7 +1601,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = _new(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1582,10 +1609,10 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _Float64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1617,7 +1644,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toInt8(value));
   }
 
@@ -1626,7 +1653,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int8List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1634,10 +1661,10 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt8Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1667,7 +1694,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toUint8(value));
   }
 
@@ -1676,7 +1703,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint8List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1684,10 +1711,10 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint8Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1717,7 +1744,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toInt16(value));
   }
 
@@ -1726,7 +1753,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int16List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1734,10 +1761,10 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt16Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1767,7 +1794,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toUint16(value));
   }
 
@@ -1776,7 +1803,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint16List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1784,10 +1811,10 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint16Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1819,7 +1846,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toInt32(value));
   }
 
@@ -1828,7 +1855,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1836,10 +1863,10 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1871,7 +1898,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toUint32(value));
   }
 
@@ -1880,7 +1907,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1888,10 +1915,10 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1923,7 +1950,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toInt64(value));
   }
 
@@ -1932,7 +1959,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1940,10 +1967,10 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalInt64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -1975,7 +2002,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, int value) {
+  void operator[]=(int index, int value) {
     _setIndexed(index, _toUint64(value));
   }
 
@@ -1984,7 +2011,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -1992,10 +2019,10 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
     if (from is _ExternalUint64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -2023,11 +2050,11 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
 
 
 class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
-  int operator[](int index) {
+  double operator[](int index) {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, double value) {
+  void operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -2036,7 +2063,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = new Float32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2044,10 +2071,10 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _ExternalFloat32Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -2075,11 +2102,11 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
 
 
 class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
-  int operator[](int index) {
+  double operator[](int index) {
     return _getIndexed(index);
   }
 
-  int operator[]=(int index, double value) {
+  void operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -2088,7 +2115,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = new Float64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2096,10 +2123,10 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
 
   void setRange(int start, int length, List<double> from, [int startFrom = 0]) {
     if (from is _ExternalFloat64Array) {
-      int startInBytes = start * _BYTES_PER_ELEMENT;
-      int lengthInBytes = length * _BYTES_PER_ELEMENT;
-      int startFromInBytes = startFrom * _BYTES_PER_ELEMENT;
-      _setRange(startInBytes, lengthInBytes, from, startFromInBytes);
+      _setRange(start * _BYTES_PER_ELEMENT,
+                length * _BYTES_PER_ELEMENT,
+                from,
+                startFrom * _BYTES_PER_ELEMENT);
     } else {
       Arrays.copy(from, startFrom, this, start, length);
     }
@@ -2127,8 +2154,10 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
 
 
 class _ByteArrayIterator<E> implements Iterator<E> {
-  _ByteArrayIterator(_ByteArrayBase array)
-    : _array = array, _length = array.length, _pos = 0;
+  _ByteArrayIterator(List array)
+    : _array = array, _length = array.length, _pos = 0 {
+    assert(array is _ByteArrayBase || array is _ByteArrayViewBase);
+  }
 
   bool hasNext() {
    return _length > _pos;
@@ -2142,15 +2171,14 @@ class _ByteArrayIterator<E> implements Iterator<E> {
   }
 
   final List<E> _array;
-
   final int _length;
-
   int _pos;
 }
 
 
 class _ByteArrayView implements ByteArray {
   _ByteArrayView(this._array, this._offset, this._length) {
+    _rangeCheck(_array.lengthInBytes(), _offset, _length);
   }
 
   int lengthInBytes() {
@@ -2161,78 +2189,77 @@ class _ByteArrayView implements ByteArray {
     if (length === null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
     return new _ByteArrayView(_array, _offset + start, length);
   }
 
   int getInt8(int byteOffset) {
     return _array._getInt8(_offset + byteOffset);
   }
-  void setInt8(int byteOffset, int value) {
-    _array._setInt8(_offset + byteOffset, value);
+  int setInt8(int byteOffset, int value) {
+    return _array._setInt8(_offset + byteOffset, value);
   }
 
   int getUint8(int byteOffset) {
     return _array._getUint8(_offset + byteOffset);
   }
-  void setUint8(int byteOffset, int value) {
-    _array._setUint8(_offset + byteOffset, value);
+  int setUint8(int byteOffset, int value) {
+    return _array._setUint8(_offset + byteOffset, value);
   }
 
   int getInt16(int byteOffset) {
     return _array._getInt16(_offset + byteOffset);
   }
-  void setInt16(int byteOffset, int value) {
-    _array._setInt16(_offset + byteOffset, value);
+  int setInt16(int byteOffset, int value) {
+    return _array._setInt16(_offset + byteOffset, value);
   }
 
   int getUint16(int byteOffset) {
     return _array._getUint16(_offset + byteOffset);
   }
-  void setUint16(int byteOffset, int value) {
-    _array._setUint16(_offset + byteOffset, value);
+  int setUint16(int byteOffset, int value) {
+    return _array._setUint16(_offset + byteOffset, value);
   }
 
   int getInt32(int byteOffset) {
     return _array._getInt32(_offset + byteOffset);
   }
-  void setInt32(int byteOffset, int value) {
-    _array._setInt32(_offset + byteOffset, value);
+  int setInt32(int byteOffset, int value) {
+    return _array._setInt32(_offset + byteOffset, value);
   }
 
   int getUint32(int byteOffset) {
     return _array._getUint32(_offset + byteOffset);
   }
-  void setUint32(int byteOffset, int value) {
-    _array._setUint32(_offset + byteOffset, value);
+  int setUint32(int byteOffset, int value) {
+    return _array._setUint32(_offset + byteOffset, value);
   }
 
   int getInt64(int byteOffset) {
     return _array._getInt64(_offset + byteOffset);
   }
-  void setInt64(int byteOffset, int value) {
-    _array._setInt64(_offset + byteOffset, value);
+  int setInt64(int byteOffset, int value) {
+    return _array._setInt64(_offset + byteOffset, value);
   }
 
   int getUint64(int byteOffset) {
     return _array._getUint64(_offset + byteOffset);
   }
-  void setUint64(int byteOffset, int value) {
-    _array._setUint64(_offset + byteOffset, value);
+  int setUint64(int byteOffset, int value) {
+    return _array._setUint64(_offset + byteOffset, value);
   }
 
   double getFloat32(int byteOffset) {
     return _array._getFloat32(_offset + byteOffset);
   }
-  void setFloat32(int byteOffset, double value) {
-    _array._setFloat32(_offset + byteOffset, value);
+  int setFloat32(int byteOffset, double value) {
+    return _array._setFloat32(_offset + byteOffset, value);
   }
 
   double getFloat64(int byteOffset) {
     return _array._getFloat64(_offset + byteOffset);
   }
-  void setFloat64(int byteOffset, double value) {
-    _array._setFloat64(_offset + byteOffset, value);
+  int setFloat64(int byteOffset, double value) {
+    return _array._setFloat64(_offset + byteOffset, value);
   }
 
   final _ByteArrayBase _array;
@@ -2242,6 +2269,7 @@ class _ByteArrayView implements ByteArray {
 
 
 class _ByteArrayViewBase {
+  abstract num operator[](int index);
 
   // Methods implementing the Collection interface.
 
@@ -2274,9 +2302,7 @@ class _ByteArrayViewBase {
     return this.length === 0;
   }
 
-  int get length() {
-    return _length();
-  }
+  abstract int get length();
 
   // Methods implementing the List interface.
 
@@ -2342,16 +2368,11 @@ class _ByteArrayViewBase {
 class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
   _Int8ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2377,7 +2398,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int8List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2403,7 +2424,7 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2417,16 +2438,11 @@ class _Int8ArrayView extends _ByteArrayViewBase implements Int8List {
 class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
   _Uint8ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2452,7 +2468,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint8List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2478,7 +2494,7 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2492,16 +2508,11 @@ class _Uint8ArrayView extends _ByteArrayViewBase implements Uint8List {
 class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
   _Int16ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2527,7 +2538,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int16List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2553,7 +2564,7 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2567,16 +2578,11 @@ class _Int16ArrayView extends _ByteArrayViewBase implements Int16List {
 class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
   _Uint16ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2602,7 +2608,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint16List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2628,7 +2634,7 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2642,16 +2648,11 @@ class _Uint16ArrayView extends _ByteArrayViewBase implements Uint16List {
 class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
   _Int32ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2677,7 +2678,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2703,7 +2704,7 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2717,16 +2718,11 @@ class _Int32ArrayView extends _ByteArrayViewBase implements Int32List {
 class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
   _Uint32ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2752,7 +2748,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2778,7 +2774,7 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2792,16 +2788,11 @@ class _Uint32ArrayView extends _ByteArrayViewBase implements Uint32List {
 class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
   _Int64ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2827,7 +2818,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Int64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2853,7 +2844,7 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2867,16 +2858,11 @@ class _Int64ArrayView extends _ByteArrayViewBase implements Int64List {
 class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
   _Uint64ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2902,7 +2888,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
   }
 
   List<int> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<int> result = new Uint64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -2928,7 +2914,7 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -2942,16 +2928,11 @@ class _Uint64ArrayView extends _ByteArrayViewBase implements Uint64List {
 class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
   _Float32ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -2977,7 +2958,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = new Float32List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -3003,7 +2984,7 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 
@@ -3017,16 +2998,11 @@ class _Float32ArrayView extends _ByteArrayViewBase implements Float32List {
 class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
   _Float64ArrayView(ByteArray array, [int offsetInBytes = 0, int length])
     : _array = array,
-      _offset = offsetInBytes,
-      _length = (length === null) ? (array.lengthInBytes() - offsetInBytes)
-    : length {
-    if (offsetInBytes < 0 || offsetInBytes >= array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(offsetInBytes);
-    }
-    int lengthInBytes = length * _BYTES_PER_ELEMENT;
-    if (length < 0 || (lengthInBytes + _offset) > array.lengthInBytes()) {
-      throw new IndexOutOfRangeException(length);
-    }
+      _offset = _requireInteger(offsetInBytes),
+      _length = _requireIntegerOrNull(
+        length,
+        ((array.lengthInBytes() - offsetInBytes) ~/ _BYTES_PER_ELEMENT)) {
+    _rangeCheck(array.lengthInBytes(), _offset, _length * _BYTES_PER_ELEMENT);
   }
 
   get length() {
@@ -3052,7 +3028,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
   }
 
   List<double> getRange(int start, int length) {
-    _rangeCheck(this, start, length);
+    _rangeCheck(this.length, start, length);
     List<double> result = new Float64List(length);
     result.setRange(0, length, this, start);
     return result;
@@ -3078,7 +3054,7 @@ class _Float64ArrayView extends _ByteArrayViewBase implements Float64List {
     if (length == null) {
       length = this.lengthInBytes();
     }
-    _rangeCheck(start, length);
+    _rangeCheck(this.length, start, length);
     return _array.subByteArray(_offset + start, length);
   }
 

@@ -8,7 +8,7 @@ class GrowableObjectArray<T> implements List<T> {
         "GrowableObjectArray can only be allocated by the VM");
   }
 
-  void copyFrom(List<Object> src, int srcStart, int dstStart, int count) {
+  void copyFrom(List src, int srcStart, int dstStart, int count) {
     Arrays.copy(src, srcStart, this, dstStart, count);
   }
 

@@ -50,8 +50,8 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
   _LocalObjectMirrorImpl(ref) : super(ref) {}
 
   Future<InstanceMirror> invoke(String memberName,
-                                List<Object> positionalArguments,
-                                [Map<String,Object> namedArguments]) {
+                                List positionalArguments,
+                                [Map<String,Dynamic> namedArguments]) {
     if (namedArguments !== null) {
       throw new NotImplementedException('named arguments not implemented');
     }
