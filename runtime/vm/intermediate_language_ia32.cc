@@ -11,6 +11,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
 #include "vm/stub_code.h"
 
 #define __ compiler->assembler()->
@@ -92,8 +93,9 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   __ LeaveFrame();
   __ ret();
-  // Add a NOP to make return code pattern 5 bytes long for patching
-  // in breakpoints during debugging.
+
+  // Generate 1 byte NOP so that the debugger can patch the
+  // return pattern with a call to the debug stub.
   __ nop(1);
   compiler->AddCurrentDescriptor(PcDescriptors::kReturn,
                                  cid(),
@@ -444,6 +446,7 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
+  ASSERT(!is_fused_with_branch());
   ASSERT(operands_class_id() == kObject);
   return MakeCallSummary();
 }
@@ -488,7 +491,6 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
   } else {
     Register result = comp->locs()->out().reg();
     Label done, is_true;
-
     __ j(true_condition, &is_true);
     __ LoadObject(result, compiler->bool_false());
     __ jmp(&done);
@@ -581,7 +583,11 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* NativeCallComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(0, 3, LocationSummary::kCall);
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 3;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
   locs->set_temp(0, Location::RegisterLocation(EAX));
   locs->set_temp(1, Location::RegisterLocation(ECX));
   locs->set_temp(2, Location::RegisterLocation(EDX));
@@ -595,6 +601,7 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(1).reg() == ECX);
   ASSERT(locs()->temp(2).reg() == EDX);
   Register result = locs()->out().reg();
+
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
   // Pass a pointer to the first argument in EAX.
@@ -681,14 +688,11 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     ASSERT(locs()->out().reg() == EAX);
     return;
   }
+
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register result = locs()->out().reg();
   Register temp = locs()->temp(0).reg();
-
-  const Class& receiver_class =
-      Class::ZoneHandle(Isolate::Current()->class_table()->At(
-          receiver_type()));
 
   const DeoptReasonId deopt_reason = (receiver_type() == kGrowableObjectArray) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
@@ -702,7 +706,7 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ testl(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
   __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_class.id(), temp);
+  __ CompareClassId(receiver, receiver_type(), temp);
   __ j(NOT_EQUAL, deopt);
 
   __ testl(index, Immediate(kSmiTagMask));
@@ -740,7 +744,8 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  if (receiver_type() == kGrowableObjectArray || receiver_type() == kArray) {
+  if ((receiver_type() == kGrowableObjectArray) ||
+      (receiver_type() == kArray)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
     locs->set_in(0, Location::RequiresRegister());
@@ -773,7 +778,7 @@ static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                  comp->try_index(),
                                  function_name,
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No named args.
+                                 Array::ZoneHandle(),  // No named arguments.
                                  kNumArgsChecked);
 }
 
@@ -1013,15 +1018,17 @@ LocationSummary* CreateArrayComp::MakeLocationSummary() const {
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp_reg = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
+
+  // Allocate the array.  EDX = length, ECX = element type.
   ASSERT(temp_reg == EDX);
   ASSERT(locs()->in(0).reg() == ECX);
-  // 1. Allocate the array.  EDX = length, ECX = element type.
-  __ movl(EDX,  Immediate(Smi::RawValue(ElementCount())));
+  __ movl(temp_reg,  Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_index(),
                          try_index(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther);
   ASSERT(result_reg == EAX);
+
   // Pop the element values from the stack into the array.
   __ leal(temp_reg, FieldAddress(result_reg, Array::data_offset()));
   for (int i = ElementCount() - 1; i >= 0; --i) {
@@ -1032,7 +1039,7 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary*
-AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
+    AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
   return LocationSummary::Make(2,
                                Location::RequiresRegister(),
                                LocationSummary::kCall);
@@ -1046,6 +1053,7 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
   Register instantiator_type_arguments = locs()->in(1).reg();
   Register result = locs()->out().reg();
 
+  // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
   __ pushl(Immediate(Smi::RawValue(token_index())));
   __ PushObject(cls);
@@ -1124,8 +1132,9 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   if (type_arguments().IsUninstantiatedIdentity()) {
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
-    // No need to check instantiator for null (again), because a null instance
-    // will have the wrong class (Null instead of TypeArguments).
+    // No need to check the instantiator ('instantiator_reg') for null here,
+    // because a null instantiator will have the wrong class (Null instead of
+    // TypeArguments).
     Label type_arguments_uninstantiated;
     __ CompareClassId(instantiator_reg, kTypeArguments, temp);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
@@ -1146,11 +1155,12 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   __ popl(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
   ASSERT(instantiator_reg == result_reg);
+  // 'result_reg': Instantiated type arguments.
 }
 
 
 LocationSummary*
-ExtractConstructorTypeArgumentsComp::MakeLocationSummary() const {
+    ExtractConstructorTypeArgumentsComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
@@ -1207,7 +1217,7 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
 
 
 LocationSummary*
-ExtractConstructorInstantiatorComp::MakeLocationSummary() const {
+    ExtractConstructorInstantiatorComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 1;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
@@ -1819,7 +1829,6 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         value);
   if (test_class_id == kDouble) {
     Register temp = locs()->temp(0).reg();
-    ASSERT(result != temp);
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);  // Smi.
     __ CompareClassId(value, kDouble, temp);
@@ -1835,6 +1844,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                            &label,
                            PcDescriptors::kOther);
     // Result is in EAX.
+    ASSERT(result != temp);
     __ movl(result, EAX);
     __ popl(temp);
     __ movsd(XMM0, FieldAddress(temp, Double::value_offset()));
@@ -1864,8 +1874,8 @@ LocationSummary* ToDoubleComp::MakeLocationSummary() const {
 
 
 void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register result = locs()->out().reg();
   Register value = (from() == kDouble) ? locs()->in(0).reg() : EBX;
+  Register result = locs()->out().reg();
 
   const DeoptReasonId deopt_reason = (from() == kDouble) ?
       kDeoptDoubleToDouble : kDeoptIntegerToDouble;

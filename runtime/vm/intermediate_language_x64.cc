@@ -21,6 +21,15 @@ namespace dart {
 DECLARE_FLAG(int, optimization_counter_threshold);
 DECLARE_FLAG(bool, trace_functions);
 
+// Generic summary for call instructions that have all arguments pushed
+// on the stack and return the result in a fixed register RAX.
+LocationSummary* Computation::MakeCallSummary() {
+  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
+  result->set_out(Location::RegisterLocation(RAX));
+  return result;
+}
+
+
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
   if (locs()->out().kind() == Location::kRegister) {
@@ -70,10 +79,10 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
   }
   if (FLAG_trace_functions) {
-    __ pushq(result);  // Preserve result.
     const Function& function =
         Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(temp, function);
+    __ pushq(result);  // Preserve result.
     __ pushq(temp);
     compiler->GenerateCallRuntime(AstNode::kNoId,
                                   0,
@@ -87,6 +96,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Generate 8 bytes of NOPs so that the debugger can patch the
   // return pattern with a call to the debug stub.
+  // Note that the nop(8) byte pattern is not recognized by the debugger.
   __ nop(1);
   __ nop(1);
   __ nop(1);
@@ -99,15 +109,6 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  cid(),
                                  token_index(),
                                  CatchClauseNode::kInvalidTryIndex);
-}
-
-
-// Generic summary for call instructions that have all arguments pushed
-// on the stack and return the result in a fixed register RAX.
-LocationSummary* Computation::MakeCallSummary() {
-  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(RAX));
-  return result;
 }
 
 
@@ -388,10 +389,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
 // type by type check (either === or static call to the operator.
 static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
                                        EqualityCompareComp* comp) {
-  const Immediate raw_null =
-        Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Register left = comp->locs()->in(0).reg();
   Register right = comp->locs()->in(1).reg();
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
   Label done, non_null_compare;
   __ cmpq(left, raw_null);
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
@@ -549,7 +550,7 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
   } else {
     Register result = comp->locs()->out().reg();
     Label is_false, is_true, done;
-    __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);
+    __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
     __ j(true_condition, &is_true, Assembler::kNearJump);
     __ Bind(&is_false);
     __ LoadObject(result, compiler->bool_false());
@@ -642,7 +643,8 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
     locs->set_temp(0, Location::RequiresRegister());
     locs->set_out(Location::RequiresRegister());
     return locs;
-  } else if (receiver_type() == kArray || receiver_type() == kImmutableArray) {
+  } else if ((receiver_type() == kArray) ||
+             (receiver_type() == kImmutableArray)) {
     return LocationSummary::Make(kNumInputs, Location::RequiresRegister());
   } else {
     ASSERT(receiver_type() == kIllegalObjectKind);
@@ -683,7 +685,6 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
                             comp->try_index());
   __ Bind(&done);
 }
-
 
 
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
@@ -769,7 +770,6 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
 }
 
 
-
 static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                     StoreIndexedComp* comp) {
   const String& function_name =
@@ -787,7 +787,7 @@ static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                  comp->try_index(),
                                  function_name,
                                  kNumArguments,
-                                 Array::ZoneHandle(),  // No names arguments.
+                                 Array::ZoneHandle(),  // No named arguments.
                                  kNumArgsChecked);
 }
 
@@ -840,10 +840,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
 
-  const Class& receiver_class =
-      Class::ZoneHandle(Isolate::Current()->class_table()->At(
-          receiver_type()));
-
   Label* deopt = compiler->AddDeoptStub(cid(),
                                         token_index(),
                                         try_index(),
@@ -854,7 +850,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   __ testq(receiver, Immediate(kSmiTagMask));  // Deoptimize if Smi.
   __ j(ZERO, deopt);
-  __ CompareClassId(receiver, receiver_class.id());
+  __ CompareClassId(receiver, receiver_type());
   __ j(NOT_EQUAL, deopt);
 
   __ testq(index, Immediate(kSmiTagMask));
@@ -1032,7 +1028,7 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp_reg = locs()->temp(0).reg();
   Register result_reg = locs()->out().reg();
 
-  // 1. Allocate the array.  R10 = length, RBX = element type.
+  // Allocate the array.  R10 = length, RBX = element type.
   ASSERT(temp_reg == R10);
   ASSERT(locs()->in(0).reg() == RBX);
   __ movq(temp_reg, Immediate(Smi::RawValue(ElementCount())));
@@ -1041,7 +1037,8 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther);
   ASSERT(result_reg == RAX);
-  // 2. Initialize the array in result_reg with the element values.
+
+  // Pop the element values from the stack into the array.
   __ leaq(temp_reg, FieldAddress(result_reg, Array::data_offset()));
   for (int i = ElementCount() - 1; i >= 0; --i) {
     ASSERT(ElementAt(i)->IsUse());
@@ -1050,8 +1047,8 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* AllocateObjectWithBoundsCheckComp::
-    MakeLocationSummary() const {
+LocationSummary*
+    AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
   return LocationSummary::Make(2,
                                Location::RequiresRegister(),
                                LocationSummary::kCall);
@@ -1140,12 +1137,12 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   }
   // Instantiate non-null type arguments.
   if (type_arguments().IsUninstantiatedIdentity()) {
-    Label type_arguments_uninstantiated;
     // Check if the instantiator type argument vector is a TypeArguments of a
     // matching length and, if so, use it as the instantiated type_arguments.
     // No need to check the instantiator ('instantiator_reg') for null here,
     // because a null instantiator will have the wrong class (Null instead of
     // TypeArguments).
+    Label type_arguments_uninstantiated;
     __ CompareClassId(instantiator_reg, kTypeArguments);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
     __ cmpq(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
@@ -1169,8 +1166,8 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
 }
 
 
-LocationSummary* ExtractConstructorTypeArgumentsComp::
-    MakeLocationSummary() const {
+LocationSummary*
+    ExtractConstructorTypeArgumentsComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
@@ -1224,8 +1221,8 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
 }
 
 
-LocationSummary* ExtractConstructorInstantiatorComp::
-    MakeLocationSummary() const {
+LocationSummary*
+    ExtractConstructorInstantiatorComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
@@ -1303,6 +1300,7 @@ LocationSummary* AllocateContextComp::MakeLocationSummary() const {
 
 void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(locs()->temp(0).reg() == R10);
+  ASSERT(locs()->out().reg() == RAX);
 
   __ movq(R10, Immediate(num_context_variables()));
   const ExternalLabel label("alloc_context",
@@ -1428,9 +1426,11 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   } else if (op_kind() == Token::kSHL) {
+    // Two Smi operands can easily overflow into Mint.
     const intptr_t kNumTemps = 2;
-    LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
-    summary->set_in(0, Location::RequiresRegister());
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+    summary->set_in(0, Location::RegisterLocation(RAX));
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::SameAsFirstInput());
     summary->set_temp(0, Location::RequiresRegister());
@@ -1460,6 +1460,8 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
                                         kDeoptSmiBinaryOp,
                                         temp,
                                         right);
+  // TODO(vegorov): for many binary operations this pattern can be rearranged
+  // to save one move.
   __ movq(temp, left);
   __ orq(left, right);
   __ testq(left, Immediate(kSmiTagMask));
@@ -1538,10 +1540,11 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       break;
     }
     case Token::kSHL: {
+      Label call_method, done;
       // Check if count too large for handling it inlined.
       __ cmpq(right,
           Immediate(reinterpret_cast<int64_t>(Smi::New(Smi::kBits))));
-      __ j(ABOVE_EQUAL, deopt);
+      __ j(ABOVE_EQUAL, &call_method, Assembler::kNearJump);
       Register right_temp = comp->locs()->temp(1).reg();
       ASSERT(right_temp == RCX);  // Count must be in RCX
       __ movq(right_temp, right);
@@ -1550,9 +1553,27 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       __ shlq(left, right_temp);
       __ sarq(left, right_temp);
       __ cmpq(left, temp);
-      __ j(NOT_EQUAL, deopt);  // Overflow.
+      __ j(NOT_EQUAL, &call_method, Assembler::kNearJump);  // Overflow.
       // Shift for result now we know there is no overflow.
       __ shlq(left, right_temp);
+      __ jmp(&done);
+      {
+        __ Bind(&call_method);
+        Function& target = Function::ZoneHandle(
+            comp->ic_data()->GetTargetForReceiverClassId(kSmi));
+        ASSERT(!target.IsNull());
+        const intptr_t kArgumentCount = 2;
+        __ pushq(temp);
+        __ pushq(right);
+        compiler->GenerateStaticCall(comp->instance_call()->cid(),
+                                     comp->instance_call()->token_index(),
+                                     comp->instance_call()->try_index(),
+                                     target,
+                                     kArgumentCount,
+                                     Array::Handle());  // No argument names.
+        ASSERT(result == RAX);
+      }
+      __ Bind(&done);
       break;
     }
     case Token::kDIV: {
@@ -1853,7 +1874,7 @@ LocationSummary* ToDoubleComp::MakeLocationSummary() const {
     return locs;
   } else {
     ASSERT(from() == kSmi);
-    return MakeCallSummary();
+    return MakeCallSummary();  // Calls a stub to allocate result.
   }
 }
 
@@ -1886,7 +1907,7 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
-  // TODO(vegorov): allocate box in the driver loop to avoid pushing and poping.
+  // TODO(vegorov): allocate box in the driver loop to avoid spilling.
   compiler->GenerateCall(instance_call()->token_index(),
                          instance_call()->try_index(),
                          &label,
@@ -1922,6 +1943,7 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label handle_smi;
   Label* is_smi_label =
       ic_data()->GetReceiverClassIdAt(0) == kSmi ?  &handle_smi : deopt;
+
   // Load receiver into RAX.
   __ movq(RAX,
       Address(RSP, (instance_call()->ArgumentCount() - 1) * kWordSize));
