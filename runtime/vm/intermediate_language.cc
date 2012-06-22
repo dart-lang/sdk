@@ -1075,10 +1075,18 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  if (!is_fused_with_branch()) {
-    return LocationSummary::Make(2, Location::SameAsFirstInput());
+  if (is_fused_with_branch()) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kNoCall,
+                                                LocationSummary::kBranch);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    return locs;
   } else {
-    return LocationSummary::Make(2, Location::NoLocation());
+    return LocationSummary::Make(2, Location::SameAsFirstInput());
   }
 }
 

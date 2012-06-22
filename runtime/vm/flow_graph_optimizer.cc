@@ -566,7 +566,7 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
+void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp) {
   TryFuseComparisonWithBranch(comp);
 }
 
