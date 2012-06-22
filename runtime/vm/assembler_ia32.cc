@@ -1392,7 +1392,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
   adcl(value, object);
   andl(value, Immediate(0x7));
   cmpl(value, Immediate(0x4));
-  j(NOT_ZERO, no_update);
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
 

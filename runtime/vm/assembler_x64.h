@@ -417,6 +417,8 @@ class Assembler : public ValueObject {
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register reg);
 
+  void adcl(Register dst, Register src);
+
   void subl(Register dst, Register src);
 
   void cdq();
