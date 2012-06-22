@@ -623,7 +623,13 @@ interface HttpResponse default _HttpResponse {
 
 
 /**
- * HTTP client factory.
+ * HTTP client factory. The [HttpClient] handles all the sockets associated
+ * with the [HttpClientConnection]s and when the endpoint supports it, it will
+ * try to reuse opened sockets for several requests to support HTTP 1.1
+ * persistent connections. This means that sockets will be kept open for some
+ * time after a requests have completed, unless HTTP procedures indicate that it
+ * must be closed as part of completing the request. Use [:HttpClient.shutdown:]
+ * to force close the idle sockets.
  */
 interface HttpClient default _HttpClient {
   static final int DEFAULT_HTTP_PORT = 80;
