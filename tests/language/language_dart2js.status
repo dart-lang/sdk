@@ -302,7 +302,3 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-
-
-[ $compiler == dart2js && $system == windows ]
-function_type_alias6_test: Fail # Test runner bug: this is a crash.

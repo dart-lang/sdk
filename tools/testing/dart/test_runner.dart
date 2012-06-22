@@ -263,6 +263,9 @@ class TestOutputImpl implements TestOutput {
   bool get unexpectedOutput() => !testCase.expectedOutcomes.contains(result);
 
   bool get hasCrashed() {
+    // The Java dartc runner and dart2js exits with code 253 in case
+    // of unhandled exceptions.
+    if (exitCode == 253) return true;
     if (Platform.operatingSystem == 'windows') {
       // The VM uses std::abort to terminate on asserts.
       // std::abort terminates with exit code 3 on Windows.
@@ -271,9 +274,7 @@ class TestOutputImpl implements TestOutput {
       }
       return (!timedOut && (exitCode < 0) && ((0x3FFFFF00 & exitCode) == 0));
     }
-    // The Java dartc runner exits with code 253 in case of unhandled
-    // exceptions.
-    return (!timedOut && ((exitCode < 0) || (exitCode == 253)));
+    return !timedOut && ((exitCode < 0));
   }
 
   bool get hasTimedOut() => timedOut;
