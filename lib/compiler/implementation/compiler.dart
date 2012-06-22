@@ -57,6 +57,7 @@ class JavaScriptBackend extends Backend {
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
   final Map<Element, Map<Element, HType>> fieldInitializers;
+  final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, bool>> fieldIntegerSetters;
 
   List<CompilerTask> get tasks() {
@@ -66,6 +67,7 @@ class JavaScriptBackend extends Backend {
   JavaScriptBackend(Compiler compiler, bool generateSourceMap)
       : emitter = new CodeEmitterTask(compiler, generateSourceMap),
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
+        fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
@@ -140,6 +142,52 @@ class JavaScriptBackend extends Backend {
     HType propagatedType = fields[field];
     if (propagatedType == null) return false;
     return propagatedType == requestedType;
+  }
+
+  void updateFieldConstructorSetters(Element field, HType type) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, HType> fields =
+        fieldConstructorSetters.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
+    if (!fields.containsKey(field)) {
+      fields[field] = type;
+    } else {
+      fields[field] = fields[field].union(type);
+    }
+  }
+
+  // Check if this field is set in the constructor body.
+  bool hasConstructorBodyFieldSetter(Element field) {
+    if (!fieldConstructorSetters.containsKey(field.enclosingElement)) {
+      return false;
+    }
+    return fieldConstructorSetters[field.enclosingElement][field] != null;
+  }
+
+  // Provide an optimistic estimate of the type of a field after construction.
+  // This only takes the initializer lists and field assignments in the
+  // constructor body into account. The constructor body might have method calls
+  // that could alter the field.
+  HType optimisticFieldTypeAfterConstruction(Element field) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+
+    if (hasConstructorBodyFieldSetter(field)) {
+      // If there are field setters for this field in some constructor only one
+      // constructor then the type set will be the field type after
+      // construction.
+      if (field.enclosingElement.constructors.length == 1) {
+        return fieldConstructorSetters[field.enclosingElement][field];
+      } else {
+        return HType.UNKNOWN;
+      }
+    } else if (fieldInitializers.containsKey(field.enclosingElement)) {
+      HType type = fieldInitializers[field.enclosingElement][field];
+      return type == null ? HType.UNKNOWN : type;
+    } else {
+      return HType.UNKNOWN;
+    }
   }
 
   void updateFieldIntegerSetters(Element field, bool isInteger) {

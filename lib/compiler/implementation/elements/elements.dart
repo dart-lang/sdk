@@ -118,6 +118,8 @@ class Element implements Hashable {
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers !== null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
+  bool isGenerativeConstructorBody() =>
+      kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
   bool isCompilationUnit() {
     return kind === ElementKind.COMPILATION_UNIT ||
            kind === ElementKind.LIBRARY;

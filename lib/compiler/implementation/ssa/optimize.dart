@@ -1188,6 +1188,41 @@ class SsaProcessRecompileCandidates
     visitDominatorTree(visitee);
   }
 
+  void visitFieldGet(HFieldGet node) {
+    if (!node.element.enclosingElement.isClass()) return;
+    Element field = node.element;
+    HType type = backend.optimisticFieldTypeAfterConstruction(field);
+    switch (compiler.phase) {
+      case Compiler.PHASE_COMPILING:
+        if (!type.isConflicting()) {
+          compiler.enqueuer.codegen.registerRecompilationCandidate(
+              work.element);
+        }
+        break;
+      case Compiler.PHASE_RECOMPILING:
+        if (!type.isConflicting() && !type.isUnknown()) {
+          // Check if optimistic type is based on a setter in the constructor
+          // body.
+          if (backend.hasConstructorBodyFieldSetter(field)) {
+            // There is at least one field setter from the constructor.
+            // TODO(sgjesse): Collect the type for all the field setters so that
+            // this could be a guarenteed type if all field setters have the
+            // same type and there are no invoked setters.
+            node.propagatedType = type;
+          } else {
+            // Optimistic type is based in field initializer list.
+            if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
+                !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+              node.guaranteedType = type;
+            } else {
+              node.propagatedType = type;
+            }
+          }
+        }
+        break;
+    }
+  }
+
   HInstruction visitEquals(HEquals node) {
     // Try to optimize the case where a field which is known to always be an
     // integer is compared with a constant integer literal.
@@ -1232,4 +1267,5 @@ class SsaProcessRecompileCandidates
       }
     }
   }
+
 }

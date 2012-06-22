@@ -1723,6 +1723,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
+    if (work.element.isGenerativeConstructorBody() &&
+        node.element.enclosingElement.isClass() &&
+        node.value.hasGuaranteedType() &&
+        node.block.dominates(currentGraph.exit)) {
+      backend.updateFieldConstructorSetters(node.element,
+                                            node.value.guaranteedType);
+    }
     String name = compiler.namer.getName(node.element);
     beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
