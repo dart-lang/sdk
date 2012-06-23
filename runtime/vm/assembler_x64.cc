@@ -1411,15 +1411,23 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
-// Destroys the incoming value.
+// Destroys the value register.
 void Assembler::StoreIntoObjectFilter(Register object,
                                       Register value,
                                       Label* no_update) {
-  andl(value, Immediate(0x9));
+  // For the value we are only interested in the new/old bit and the tag bit.
+  andl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  // Shift the tag bit into the carry.
   shrl(value, Immediate(1));
+  // Add the tag bits together, if the value is not a Smi the addition will
+  // overflow into the next bit, leaving us with a zero low bit.
   adcl(value, object);
-  andl(value, Immediate(0xf));
-  cmpl(value, Immediate(0x6));
+  // Mask out higher, uninteresting bits which were polluted by dest.
+  andl(value, Immediate(kObjectAlignment - 1));
+  // Compare with the expected bit pattern.
+  cmpl(value, Immediate(
+      (kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
+      kOldObjectAlignmentOffset + kHeapObjectTag));
   j(NOT_ZERO, no_update, Assembler::kNearJump);
 }
 
