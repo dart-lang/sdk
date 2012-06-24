@@ -329,7 +329,7 @@ function(collectedClasses) {
         } else {
           Constant value = handler.initialVariableValues[element];
           if (value == null) {
-            argumentsBuffer[count] = '(void 0)';
+            argumentsBuffer[count] = NullConstant.JsNull;
           } else {
             if (!value.isNull()) {
               // If the value is the null constant, we should not pass it
