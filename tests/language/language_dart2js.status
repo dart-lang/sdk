@@ -241,7 +241,6 @@ override_field_method5_negative_test: Fail, OK # Negative language test.
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
-double_to_string_as_exponential_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]
