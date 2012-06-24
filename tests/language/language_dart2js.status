@@ -250,7 +250,6 @@ bad_named_parameters_test: Fail # BUG(3304)
 call_through_getter_test: Fail # BUG(3304)
 call_through_null_getter_test: Fail # BUG(3304)
 div_by_zero_test: Fail # BUG(3304)
-double_to_string_as_exponential_test: Fail # BUG(3304)
 double_to_string_as_fixed_test: Fail
 dynamic_field_test: Fail # BUG(3304)
 exception_test: Fail # BUG(3304)
