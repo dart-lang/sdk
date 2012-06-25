@@ -20,7 +20,6 @@ Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
-Language/07_Classes/5_Constructors/2_Factories_A01_t01: Fail  # Issue 2478
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477

@@ -268,10 +268,16 @@ public class MemberBuilder {
 
     private Element resolveConstructorName(final DartMethodDefinition method) {
       return method.getName().accept(new ASTVisitor<Element>() {
-        @Override public Element visitPropertyAccess(DartPropertyAccess node) {
-          Element element = node.getQualifier().accept(this);
-          recordElement(node.getQualifier(), element);
-          if (ElementKind.of(element).equals(ElementKind.CLASS)) {
+        @Override
+        public Element visitPropertyAccess(DartPropertyAccess node) {
+          Element element = context.resolveName(node);
+          if (ElementKind.of(element) == ElementKind.CLASS) {
+            return resolveType(node);
+          } else {
+            element = node.getQualifier().accept(this);
+            recordElement(node.getQualifier(), element);
+          }
+          if (ElementKind.of(element) == ElementKind.CLASS) {
             return Elements.constructorFromMethodNode(
                 method, node.getPropertyName(), (ClassElement) currentHolder, (ClassElement) element);
           } else {
@@ -279,7 +285,11 @@ public class MemberBuilder {
             return getTypeProvider().getDynamicType().getElement();
           }
         }
-        @Override public Element visitIdentifier(DartIdentifier node) {
+        @Override
+        public Element visitIdentifier(DartIdentifier node) {
+          return resolveType(node);
+        }
+        private Element resolveType(DartNode node) {
           return context.resolveType(
               node,
               node,
@@ -289,7 +299,8 @@ public class MemberBuilder {
               ResolverErrorCode.NO_SUCH_TYPE_CONSTRUCTOR,
               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS).getElement();
         }
-        @Override public Element visitParameterizedTypeNode(DartParameterizedTypeNode node) {
+        @Override
+        public Element visitParameterizedTypeNode(DartParameterizedTypeNode node) {
           Element element = node.getExpression().accept(this);
           if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
             recordElement(node.getExpression(), currentHolder);
@@ -298,7 +309,8 @@ public class MemberBuilder {
           }
           return element;
         }
-        @Override public Element visitNode(DartNode node) {
+        @Override
+        public Element visitNode(DartNode node) {
           throw new RuntimeException("Unexpected node " + node);
         }
       });

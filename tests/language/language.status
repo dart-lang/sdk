@@ -81,7 +81,6 @@ const_syntax_test/02: Fail # test issue 3626
 const_syntax_test/03: Fail # test issue 3626
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-default_factory_library_test: Fail          # Issue 514
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
