@@ -4,8 +4,10 @@
 
 #library('system_cache');
 
+#import('io.dart');
 #import('package.dart');
 #import('source_registry.dart');
+#import('utils.dart');
 
 /**
  * The system-wide cache of installed packages.
@@ -79,9 +81,7 @@ class SystemCache {
     }).chain((_) {
       return id.source.install(id, path);
     }).chain((found) {
-      if (!found) {
-        throw 'Package ${id.fullName} not found in source "${id.source.name}".';
-      }
+      if (!found) throw 'Package $id not found.';
       return Package.load(path, sources);
     });
 

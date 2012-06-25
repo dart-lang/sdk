@@ -59,7 +59,11 @@ class Pubspec {
       }
 
       dependencyEntries.forEach((name, spec) {
-        var description, source, versionConstraint;
+        var description, source;
+        // TODO(nweiz): The correct default for versionConstraint is new
+        // VersionRange(), but that won't work until the version solver is
+        // hooked in.
+        var versionConstraint = Version.none;
         if (spec == null) {
           description = name;
           source = sources.defaultSource;
