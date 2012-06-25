@@ -263,8 +263,8 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_.length() - index - 1;
   }
 
-  // Returns true if the generated code does not call other Dart code.
-  // Only deoptimization is allowed to occur. Closures are not leaf.
+  // Returns true if the generated code does not call other Dart code or
+  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
   bool IsLeaf() const;
 
   class Assembler* assembler_;
