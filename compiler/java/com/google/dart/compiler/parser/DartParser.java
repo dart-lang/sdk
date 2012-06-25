@@ -4406,6 +4406,10 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartIdentifier parseIdentifier() {
     beginIdentifier();
+    if (peek(0) == Token.AS) {
+      next();
+      return done(new DartIdentifier("as"));
+    }
     if (looksLikeTopLevelKeyword()) {
       reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_IDENTIFIER);
       return done(new DartSyntheticErrorIdentifier());

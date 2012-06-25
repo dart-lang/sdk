@@ -44,6 +44,13 @@ public class SyntaxTest extends AbstractParserTest {
         "}"));
   }
 
+  public void test_identifier_as() {
+    parseUnit("identifier.dart", Joiner.on("\n").join(
+        "class G {",
+        "  int as = 0;",
+        "}"));
+  }
+
   public void test_setter() {
     parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",

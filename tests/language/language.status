@@ -101,7 +101,6 @@ private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
-pseudo_kw_test: Fail # Issue 3401, 'as' is not a reserved word.
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 switch7_negative_test: Fail    # Issue 3658
 switch_label_test: Fail        # Issue 3658
