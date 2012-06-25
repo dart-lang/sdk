@@ -309,7 +309,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
       runtime_check = emitter.Format(
-          '        if (ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
+          '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
