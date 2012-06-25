@@ -780,21 +780,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * {@link FunctionAliasType}.
      */
     private static void inferFunctionLiteralParametersTypes(DartExpression mayBeLiteral,
-        Type mayBeFunctionAliasType) {
-      if (mayBeLiteral instanceof DartFunctionExpression
-          && TypeKind.of(mayBeFunctionAliasType) == TypeKind.FUNCTION_ALIAS) {
-        // prepare required function literal type
-        FunctionAliasType functionAliasType = (FunctionAliasType) mayBeFunctionAliasType;
-        FunctionType requiredType = Types.asFunctionType(functionAliasType);
-        // prepare actual function literal
-        DartFunctionExpression literal = (DartFunctionExpression) mayBeLiteral;
-        List<DartParameter> parameterNodes = literal.getFunction().getParameters();
-        // try to infer types of "normal" parameters
-        List<Type> requiredNormalParameterTypes = requiredType.getParameterTypes();
-        for (int i = 0; i < requiredNormalParameterTypes.size(); i++) {
-          DartParameter parameterNode = parameterNodes.get(i);
-          Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
-          inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
+        Type mayBeFunctionType) {
+      if (mayBeLiteral instanceof DartFunctionExpression) {
+        // prepare required type of function literal
+        FunctionType requiredType = null;
+        if (TypeKind.of(mayBeFunctionType) == TypeKind.FUNCTION) {
+          requiredType = (FunctionType) mayBeFunctionType;
+        }
+        if (TypeKind.of(mayBeFunctionType) == TypeKind.FUNCTION_ALIAS) {
+          FunctionAliasType functionAliasType = (FunctionAliasType) mayBeFunctionType;
+          requiredType = Types.asFunctionType(functionAliasType);
+        }
+        // OK, we can try to infer parameter types
+        if (requiredType != null) {
+          DartFunctionExpression literal = (DartFunctionExpression) mayBeLiteral;
+          List<DartParameter> parameterNodes = literal.getFunction().getParameters();
+          // try to infer types of "normal" parameters
+          List<Type> requiredNormalParameterTypes = requiredType.getParameterTypes();
+          for (int i = 0; i < requiredNormalParameterTypes.size(); i++) {
+            DartParameter parameterNode = parameterNodes.get(i);
+            Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
+            inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
+          }
         }
       }
     }

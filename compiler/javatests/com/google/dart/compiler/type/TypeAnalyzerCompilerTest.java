@@ -2231,6 +2231,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v", "Event");
   }
+  
+  /**
+   * We should infer closure parameter types even in {@link FunctionType} is specified directly,
+   * without using {@link FunctionAliasType}.
+   */
+  public void test_typesPropagation_parameterOfClosure_functionType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "class Button<T> {",
+        "  onClick(listener(T e)) {",
+        "  }",
+        "}",
+        "main() {",
+        "  var button = new Button<Event>();",
+        "  button.onClick((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
 
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
