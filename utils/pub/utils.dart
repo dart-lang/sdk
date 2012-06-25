@@ -16,6 +16,16 @@ class FormatException implements Exception {
   String toString() => message;
 }
 
+/** A pair of values. */
+class Pair<E, F> {
+  E first;
+  F last;
+
+  Pair(this.first, this.last);
+
+  String toString() => '($first, $last)';
+}
+
 // TODO(rnystrom): Move into String?
 /** Pads [source] to [length] by adding spaces at the end. */
 String padRight(String source, int length) {
@@ -69,4 +79,19 @@ only(Iterable iter) {
   var obj = iterator.next();
   assert(!iterator.hasNext());
   return obj;
+}
+
+/**
+ * Replace each instance of [matcher] in [source] with the return value of [fn].
+ */
+String replace(String source, Pattern matcher, String fn(Match)) {
+  var buffer = new StringBuffer();
+  var start = 0;
+  for (var match in matcher.allMatches(source)) {
+    buffer.add(source.substring(start, match.start()));
+    start = match.end();
+    buffer.add(fn(match));
+  }
+  buffer.add(source.substring(start));
+  return buffer.toString();
 }
