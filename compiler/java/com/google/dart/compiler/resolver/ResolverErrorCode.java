@@ -120,6 +120,7 @@ public enum ResolverErrorCode implements ErrorCode {
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS(
       "Only fields of immediately surrounding class can be initialized"),
+  INSTANCE_METHOD_FROM_INITIALIZER("Instance methods cannot be referenced from constructor initializer"),
   INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),

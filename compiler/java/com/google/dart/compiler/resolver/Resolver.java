@@ -1073,6 +1073,11 @@ public class Resolver {
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;
           }
+          if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
+            if (referencedFromInitializer(x)) {
+              onError(x, ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER);
+            }
+          }
           break;
         case CLASS:
           if (!isQualifier) {
@@ -1928,15 +1933,27 @@ public class Resolver {
           if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
             onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC);
           }
-        if (calledFromRedirectConstructor(node)) {
-          if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+        if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+          if (referencedFromRedirectConstructor(node)) {
             onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT);
+          } else if (referencedFromInitializer(node)) {
+            onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER);
           }
         }
       }
     }
 
-    private boolean calledFromRedirectConstructor(DartNode node) {
+    private boolean referencedFromInitializer(DartNode node) {
+      do {
+        if (node instanceof DartInitializer) {
+          return true;
+        }
+        node = node.getParent();
+      } while (node != null);
+      return false;
+    }
+
+    private boolean referencedFromRedirectConstructor(DartNode node) {
       do {
         if (node instanceof DartRedirectConstructorInvocation) {
           return true;

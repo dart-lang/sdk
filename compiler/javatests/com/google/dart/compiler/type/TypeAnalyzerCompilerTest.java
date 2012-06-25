@@ -106,7 +106,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.source.indexOf("call() => 42"),
         element.getNameLocation().getOffset());
   }
-
+  
   /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.

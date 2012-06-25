@@ -4,6 +4,8 @@
 
 package com.google.dart.compiler.resolver;
 
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
@@ -13,8 +15,6 @@ import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
-
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import junit.framework.Assert;
 
@@ -1327,6 +1327,44 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "typedef Object func([_foo]);"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4));
+  }
+
+  /**
+   * "this" is not accessible to initializers, so invocation of instance method is error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2477
+   */
+  public void test_callInstanceMethod_fromInitializer() throws Exception {
+    resolveAndTest(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  var x;",
+            "  A() : x = foo() {}",
+            "  foo() {}",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 5));
+  }
+  
+  /**
+   * "this" is not accessible to initializers, so reference of instance method is error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2477
+   */
+  public void test_referenceInstanceMethod_fromInitializer() throws Exception {
+    resolveAndTest(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  var x;",
+            "  A() : x = foo {}",
+            "  foo() {}",
+            "}",
+            ""),
+            errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 3));
   }
 
   public void testRedirectConstructor() {
