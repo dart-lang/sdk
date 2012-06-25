@@ -165,7 +165,11 @@ void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
-  LocationSummary* summary = new LocationSummary(3, 0);
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));  // Value.
   summary->set_in(1, Location::RegisterLocation(RCX));  // Instantiator.
   summary->set_in(2, Location::RegisterLocation(RDX));  // Type arguments.
@@ -984,7 +988,11 @@ void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceOfComp::MakeLocationSummary() const {
-  LocationSummary* summary = new LocationSummary(3, 0);
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(RAX));
   summary->set_in(1, Location::RegisterLocation(RCX));
   summary->set_in(2, Location::RegisterLocation(RDX));

@@ -28,7 +28,8 @@ class FlowGraphCompiler : public ValueObject {
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
                     const GrowableArray<BlockEntryInstr*>& block_order,
-                    bool is_optimizing);
+                    bool is_optimizing,
+                    bool is_leaf);
 
   ~FlowGraphCompiler();
 
@@ -262,6 +263,10 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_.length() - index - 1;
   }
 
+  // Returns true if the generated code does not call other Dart code or
+  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
+  bool IsLeaf() const;
+
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
@@ -276,6 +281,7 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+  const bool is_dart_leaf_;
 
   const Bool& bool_true_;
   const Bool& bool_false_;

@@ -33,6 +33,16 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
       __ pushl(registers_[i]);
     }
   }
+  if (compiler->IsLeaf()) {
+    Label L;
+    __ call(&L);
+    const intptr_t offset = assem->CodeSize();
+    __ Bind(&L);
+    __ popl(EAX);
+    __ subl(EAX,
+        Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
+    __ movl(Address(EBP, -kWordSize), EAX);
+  }
   __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
   compiler->AddCurrentDescriptor(PcDescriptors::kOther,
@@ -762,6 +772,7 @@ void FlowGraphCompiler::CopyParameters() {
                         CatchClauseNode::kInvalidTryIndex,
                         kClosureArgumentMismatchRuntimeEntry);
   } else {
+    ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
     const int kNumArgsChecked = 1;
     ICData& ic_data = ICData::ZoneHandle();
@@ -881,7 +892,11 @@ void FlowGraphCompiler::CompileGraph() {
   const int parameter_count = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().copied_parameter_count();
   const int local_count = parsed_function().stack_local_count();
-  AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+  if (IsLeaf()) {
+    AssemblerMacros::EnterDartLeafFrame(assembler(), (StackSize() * kWordSize));
+  } else {
+    AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
+  }
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
@@ -924,17 +939,18 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  // Generate stack overflow check.
-  __ cmpl(ESP,
-          Address::Absolute(Isolate::Current()->stack_limit_address()));
-  Label no_stack_overflow;
-  __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
-  GenerateCallRuntime(AstNode::kNoId,
-                      function.token_pos(),
-                      CatchClauseNode::kInvalidTryIndex,
-                      kStackOverflowRuntimeEntry);
-  __ Bind(&no_stack_overflow);
-
+  if (!IsLeaf()) {
+    // Generate stack overflow check.
+    __ cmpl(ESP,
+            Address::Absolute(Isolate::Current()->stack_limit_address()));
+    Label no_stack_overflow;
+    __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
+    GenerateCallRuntime(AstNode::kNoId,
+                        function.token_pos(),
+                        CatchClauseNode::kInvalidTryIndex,
+                        kStackOverflowRuntimeEntry);
+    __ Bind(&no_stack_overflow);
+  }
   if (FLAG_print_scopes) {
     // Print the function scope (again) after generating the prologue in order
     // to see annotations such as allocation indices of locals.
@@ -964,6 +980,7 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      intptr_t try_index,
                                      const ExternalLabel* label,
                                      PcDescriptors::Kind kind) {
+  ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ call(label);
   AddCurrentDescriptor(kind, AstNode::kNoId, token_pos, try_index);
@@ -974,6 +991,7 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
                                             intptr_t token_pos,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry) {
+  ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, cid, token_pos, try_index);
@@ -984,6 +1002,7 @@ intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
                                              const ICData& ic_data,
                                              const Array& arguments_descriptor,
                                              intptr_t argument_count) {
+  ASSERT(!IsLeaf());
   __ LoadObject(ECX, ic_data);
   __ LoadObject(EDX, arguments_descriptor);
 
@@ -997,6 +1016,7 @@ intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
 intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
                                            const Array& arguments_descriptor,
                                            intptr_t argument_count) {
+  ASSERT(!IsLeaf());
   __ LoadObject(ECX, function);
   __ LoadObject(EDX, arguments_descriptor);
   __ call(&StubCode::CallStaticFunctionLabel());

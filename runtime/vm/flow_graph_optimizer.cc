@@ -614,4 +614,28 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 }
 
 
+
+FlowGraphAnalyzer::FlowGraphAnalyzer(
+    const GrowableArray<BlockEntryInstr*>& blocks)
+        :blocks_(blocks), is_leaf_(false) {}
+
+
+void FlowGraphAnalyzer::Analyze() {
+  is_leaf_ = true;
+  for (intptr_t i = 0; i < blocks_.length(); ++i) {
+    BlockEntryInstr* block_entry = blocks_[i];
+    Instruction* instr = block_entry->StraightLineSuccessor();
+    while ((instr != NULL) && !instr->IsBlockEntry()) {
+      LocationSummary* locs = instr->locs();
+      if (locs != NULL) {
+        if (locs->is_call()) {
+          is_leaf_ = false;
+          return;
+        }
+      }
+      instr = instr->StraightLineSuccessor();
+    }
+  }
+}
+
 }  // namespace dart

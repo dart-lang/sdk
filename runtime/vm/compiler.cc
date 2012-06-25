@@ -210,9 +210,15 @@ static bool CompileWithNewCompiler(
       }
     }
 
+    bool is_leaf = false;
+    if (optimized) {
+      FlowGraphAnalyzer analyzer(block_order);
+      analyzer.Analyze();
+      is_leaf = analyzer.is_leaf();
+    }
     Assembler assembler;
     FlowGraphCompiler graph_compiler(&assembler, parsed_function,
-                                     block_order, optimized);
+                                     block_order, optimized, is_leaf);
     {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphcompiler_timer,

@@ -31,7 +31,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
     const GrowableArray<BlockEntryInstr*>& block_order,
-    bool is_optimizing)
+    bool is_optimizing,
+    bool is_leaf)
     : assembler_(assembler),
       parsed_function_(parsed_function),
       block_order_(block_order),
@@ -42,6 +43,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       block_info_(block_order.length()),
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
+      is_dart_leaf_(is_leaf),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
@@ -58,6 +60,13 @@ FlowGraphCompiler::~FlowGraphCompiler() {
     ASSERT(!block_info_[i]->label.IsLinked());
     ASSERT(!block_info_[i]->label.HasNear());
   }
+}
+
+
+bool FlowGraphCompiler::IsLeaf() const {
+  return is_dart_leaf_ &&
+         !parsed_function_.function().IsClosureFunction() &&
+         (parsed_function().copied_parameter_count() == 0);
 }
 
 
@@ -278,6 +287,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t checked_argument_count) {
+  ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
