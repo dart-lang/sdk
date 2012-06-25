@@ -53,8 +53,8 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 prefix_core_test: Fail # Issue 3638.
 
 # Issue 2501
-cascade_test: Pass,Fail  # Some cases pass, but for the wrong reason  
-cascade_precedence_test: Fail 
+cascade_test: Pass,Fail  # Some cases pass, but for the wrong reason
+cascade_precedence_test: Fail
 
 fauxverride_test/none: Fail # Issue 3778.
 
@@ -70,7 +70,7 @@ application_negative_test: Fail # Runtime only test, rewrite as multitest
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
 assign_instance_method_negative_test: Fail  # Issue 3662
 body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
-call_operator_test: Pass # Issue 1355  
+call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 cascade_precedence_test: Fail  # Issue 3729
 char_escape_test: Pass # Issue 1654
@@ -85,7 +85,7 @@ default_factory_library_test: Fail          # Issue 514
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
-field3a_negative_test: Fail # Issue 3655  
+field3a_negative_test: Fail # Issue 3655
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -96,12 +96,13 @@ list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail # Runtime only test, rewrite as multitest
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest 
+no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
 override_field_test/04: Fail # Issue 3656
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
+pseudo_kw_test: Fail # Issue 3401, 'as' is not a reserved word.
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 switch7_negative_test: Fail    # Issue 3658
 switch_label_test: Fail        # Issue 3658
