@@ -2098,7 +2098,7 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
     return;
   }
 
-  if (Token::IsInstanceofOperator(node->kind())) {
+  if (Token::IsTypeTestOperator(node->kind())) {
     VisitLoadOne(node->left(), EAX);
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
@@ -2110,6 +2110,11 @@ void OptimizingCodeGenerator::VisitComparisonNode(ComparisonNode* node) {
       __ popl(EAX);  // Pop the result of the instanceof operation.
     }
     return;
+  }
+
+  if (Token::IsTypeCastOperator(node->kind())) {
+    // This code generator is not maintained anymore.
+    UNIMPLEMENTED();
   }
 
   if (NodeHasClassAt(node, smi_class_, 0)) {

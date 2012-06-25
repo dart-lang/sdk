@@ -1879,7 +1879,7 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
   node->left()->Visit(this);
 
   // The instanceof operator needs special handling.
-  if (Token::IsInstanceofOperator(node->kind())) {
+  if (Token::IsTypeTestOperator(node->kind())) {
     __ popl(EAX);  // Left operand.
     ASSERT(node->right()->IsTypeNode());
     GenerateInstanceOf(node->id(),
@@ -1891,6 +1891,11 @@ void CodeGenerator::VisitComparisonNode(ComparisonNode* node) {
       __ popl(EAX);  // Pop the result of the instanceof operation.
     }
     return;
+  }
+
+  if (Token::IsTypeCastOperator(node->kind())) {
+    // This code generator is not maintained anymore.
+    UNIMPLEMENTED();
   }
 
   node->right()->Visit(this);

@@ -178,7 +178,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                  Value** receiver,
                                  Value** value);
 
-  virtual void BuildInstanceOf(ComparisonNode* node);
+  virtual void BuildTypeTest(ComparisonNode* node);
+  virtual void BuildTypeCast(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
@@ -274,7 +275,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  virtual void BuildInstanceOf(ComparisonNode* node);
+  virtual void BuildTypeTest(ComparisonNode* node);
+  virtual void BuildTypeCast(ComparisonNode* node);
 };
 
 

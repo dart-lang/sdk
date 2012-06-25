@@ -311,7 +311,6 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 // destination type is Dynamic or if the static type of the value is a subtype
 // of the destination type.
 static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
-  ASSERT(FLAG_enable_type_checks);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
   if (!FLAG_eliminate_type_checks) {
@@ -657,7 +656,7 @@ AssertAssignableComp* EffectGraphVisitor::BuildAssertAssignable(
 }
 
 
-// Used to to test assignments.
+// Used for type casts and to test assignments.
 Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
                                                 Value* value,
                                                 const AbstractType& dst_type,
@@ -675,24 +674,43 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
 }
 
 
-void EffectGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
-  ASSERT(Token::IsInstanceofOperator(node->kind()));
+void EffectGraphVisitor::BuildTypeTest(ComparisonNode* node) {
+  ASSERT(Token::IsTypeTestOperator(node->kind()));
   EffectGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
 }
 
 
-void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
-  ASSERT(Token::IsInstanceofOperator(node->kind()));
+void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
+  ASSERT(Token::IsTypeCastOperator(node->kind()));
+  const AbstractType& type = node->right()->AsTypeNode()->type();
+  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->left()->Visit(&for_value);
+  Append(for_value);
+  const String& dst_name = String::ZoneHandle(
+      String::NewSymbol(Exceptions::kCastExceptionDstName));
+  if (!CanSkipTypeCheck(for_value.value(), type)) {
+    AssertAssignableComp* assert_assignable =
+        BuildAssertAssignable(node->token_pos(),
+                              for_value.value(),
+                              type,
+                              dst_name);
+    AddInstruction(new DoInstr(assert_assignable));
+  }
+}
+
+
+void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
+  ASSERT(Token::IsTypeTestOperator(node->kind()));
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
   const Bool& bool_false = Bool::ZoneHandle(Bool::False());
   const AbstractType& type = node->right()->AsTypeNode()->type();
   ASSERT(type.IsFinalized() && !type.IsMalformed());
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
-  const Type& object_type =
-      Type::Handle(Isolate::Current()->object_store()->object_type());
+  const Type& object_type = Type::Handle(Type::ObjectType());
   Error& malformed_error = Error::Handle();
   if (type.IsInstantiated() &&
       object_type.IsSubtypeOf(type, &malformed_error)) {
@@ -757,13 +775,33 @@ void ValueGraphVisitor::BuildInstanceOf(ComparisonNode* node) {
 }
 
 
+void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
+  ASSERT(Token::IsTypeCastOperator(node->kind()));
+  const AbstractType& type = node->right()->AsTypeNode()->type();
+  ASSERT(type.IsFinalized());  // The type in a type cast may be malformed.
+  ValueGraphVisitor for_value(owner(), temp_index());
+  node->left()->Visit(&for_value);
+  Append(for_value);
+  const String& dst_name = String::ZoneHandle(
+      String::NewSymbol(Exceptions::kCastExceptionDstName));
+  ReturnValue(BuildAssignableValue(node->token_pos(),
+                                   for_value.value(),
+                                   type,
+                                   dst_name));
+}
+
+
 // <Expression> :: Comparison { kind:  Token::Kind
 //                              left:  <Expression>
 //                              right: <Expression> }
 // TODO(srdjan): Implement new equality.
 void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
-  if (Token::IsInstanceofOperator(node->kind())) {
-    BuildInstanceOf(node);
+  if (Token::IsTypeTestOperator(node->kind())) {
+    BuildTypeTest(node);
+    return;
+  }
+  if (Token::IsTypeCastOperator(node->kind())) {
+    BuildTypeCast(node);
     return;
   }
   if ((node->kind() == Token::kEQ_STRICT) ||

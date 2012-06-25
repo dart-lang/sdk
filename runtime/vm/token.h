@@ -14,7 +14,7 @@ namespace dart {
 //  13  multiplicative  * / ~/ %
 //  12  additive        + -
 //  11  shift           << >>
-//  10  relational      >= > <= < is
+//  10  relational      >= > <= < is as
 //   9  equality        == != === !==
 //   8  bitwise and     &
 //   7  bitwise xor     ^
@@ -106,7 +106,10 @@ namespace dart {
   TOK(kGTE, ">=", 10, kNoAttribute)                                            \
                                                                                \
   /* Internal token for !(expr is Type) negative type test operator */         \
-  TOK(kISNOT, "", 0, kNoAttribute)                                             \
+  TOK(kISNOT, "", 10, kNoAttribute)                                            \
+                                                                               \
+  /* Internal token for (expr as Type) type cast operator */                   \
+  TOK(kAS, "", 10, kNoAttribute)                                               \
                                                                                \
   TOK(kINDEX, "[]", 0, kNoAttribute)                                           \
   TOK(kASSIGN_INDEX, "[]=", 0, kNoAttribute)                                   \
@@ -212,8 +215,12 @@ class Token {
     return kEQ <= tok && tok <= kNE_STRICT;
   }
 
-  static bool IsInstanceofOperator(Kind tok) {
+  static bool IsTypeTestOperator(Kind tok) {
     return (tok == kIS) || (tok == kISNOT);
+  }
+
+  static bool IsTypeCastOperator(Kind tok) {
+    return tok == kAS;
   }
 
   static bool IsPseudoKeyword(Kind tok) {

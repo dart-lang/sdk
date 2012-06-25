@@ -147,8 +147,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     if (tp_argument.IsType()) {
       ASSERT(tp_argument.HasResolvedTypeClass());
       // Check if type argument is dynamic or Object.
-      const Type& object_type =
-          Type::Handle(Isolate::Current()->object_store()->object_type());
+      const Type& object_type = Type::Handle(Type::ObjectType());
       Error& malformed_error = Error::Handle();
       if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
         // Instance class test only necessary.
@@ -316,8 +315,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(EQUAL,  is_instance_lbl);
     __ cmpq(RDI, raw_null);
     __ j(EQUAL,  is_instance_lbl);
-    const Type& object_type =
-       Type::ZoneHandle(Isolate::Current()->object_store()->object_type());
+    const Type& object_type = Type::ZoneHandle(Type::ObjectType());
     __ CompareObject(RDI, object_type);
     __ j(EQUAL,  is_instance_lbl);
 
@@ -437,7 +435,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
                                                  intptr_t try_index,
                                                  const AbstractType& dst_type,
                                                  const String& dst_name) {
-  ASSERT(FLAG_enable_type_checks);
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());

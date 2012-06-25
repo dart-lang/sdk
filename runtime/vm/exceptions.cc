@@ -16,6 +16,10 @@ namespace dart {
 DEFINE_FLAG(bool, print_stack_trace_at_throw, false,
     "Prints a stack trace everytime a throw occurs.");
 
+
+const char* Exceptions::kCastExceptionDstName = "type cast";
+
+
 // Iterate through the stack frames and try to find a frame with an
 // exception handler. Once found, set the pc, sp and fp so that execution
 // can continue in that frame.
@@ -182,13 +186,21 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& dst_type_name,
                                          const String& dst_name,
                                          const String& malformed_error) {
-  // Allocate a new instance of TypeError.
-  const Instance& type_error = Instance::Handle(NewInstance("TypeError"));
+  // Allocate a new instance of TypeError or CastException.
+  Instance& type_error = Instance::Handle();
+  Class& cls = Class::Handle();
+  if (dst_name.Equals(kCastExceptionDstName)) {
+    type_error = NewInstance("CastException");
+    cls = type_error.clazz();
+    cls = cls.SuperClass();
+  } else {
+    type_error = NewInstance("TypeError");
+    cls = type_error.clazz();
+  }
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
-  const Class& cls = Class::Handle(type_error.clazz());
   // Location fields are defined in AssertionError, the superclass of TypeError.
   const Class& assertion_error_class = Class::Handle(cls.SuperClass());
   SetLocationFields(type_error, assertion_error_class, script, location);

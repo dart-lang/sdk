@@ -89,6 +89,7 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
+type_cast_vm_test: Fail # type cast not yet implemented
 
 
 # Implementation errors (library or generated code).

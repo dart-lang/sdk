@@ -5946,6 +5946,9 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
   TRACE_PARSER("ParseBinaryExpr");
   ASSERT(min_preced >= 4);
   AstNode* left_operand = ParseUnaryExpr();
+  if (IsLiteral("as")) {  // Not a reserved word.
+    token_kind_ = Token::kAS;
+  }
   int current_preced = Token::Precedence(CurrentToken());
   while (current_preced >= min_preced) {
     while (Token::Precedence(CurrentToken()) == current_preced) {
@@ -5956,11 +5959,11 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
       const intptr_t op_pos = TokenPos();
       ConsumeToken();
       AstNode* right_operand = NULL;
-      if (op_kind != Token::kIS) {
+      if ((op_kind != Token::kIS) && (op_kind != Token::kAS)) {
         right_operand = ParseBinaryExpr(current_preced + 1);
       } else {
-        // For 'is' we expect the right operand to be a type.
-        if (CurrentToken() == Token::kNOT) {
+        // For 'is' and 'as' we expect the right operand to be a type.
+        if ((op_kind == Token::kIS) && (CurrentToken() == Token::kNOT)) {
           ConsumeToken();
           op_kind = Token::kISNOT;
         }
@@ -5973,15 +5976,19 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
           CaptureReceiver();
         }
         right_operand = new TypeNode(type_pos, type);
-        if (type.IsMalformed()) {
-          // Note that a type error is thrown even if the tested value is null.
+        if ((op_kind == Token::kIS) && type.IsMalformed()) {
+          // Note that a type error is thrown even if the tested value is null
+          // in a type test. However, no cast exception is thrown if the value
+          // is null in a type cast.
           return ThrowTypeError(type_pos, type);
         }
       }
       if (Token::IsRelationalOperator(op_kind)
-          || Token::IsInstanceofOperator(op_kind)
+          || Token::IsTypeTestOperator(op_kind)
+          || Token::IsTypeCastOperator(op_kind)
           || Token::IsEqualityOperator(op_kind)) {
-        if (Token::IsInstanceofOperator(op_kind)) {
+        if (Token::IsTypeTestOperator(op_kind) ||
+            Token::IsTypeCastOperator(op_kind)) {
           if (!right_operand->AsTypeNode()->type().IsInstantiated()) {
             EnsureExpressionTemp();
           }

@@ -107,7 +107,8 @@ AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
 bool ComparisonNode::IsKindValid() const {
   return Token::IsRelationalOperator(kind_)
       || Token::IsEqualityOperator(kind_)
-      || Token::IsInstanceofOperator(kind_);
+      || Token::IsTypeTestOperator(kind_)
+      || Token::IsTypeCastOperator(kind_);
 }
 
 
