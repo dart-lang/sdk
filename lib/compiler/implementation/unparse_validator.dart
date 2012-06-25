@@ -31,13 +31,7 @@ class UnparseValidator extends CompilerTask {
 
   UnparseValidator(Compiler compiler, this.validateUnparse) : super(compiler);
 
-  void check(Element element) {
-    if (!validateUnparse) return;
-
-    // TODO(antonm): consider supporting other kinds of elements.
-    if (element is! PartialFunctionElement) return;
-
-    PartialFunctionElement originalFunction = element;
+  void checkFunction(PartialFunctionElement originalFunction) {
     FunctionExpression originalNode = originalFunction.parseNode(compiler);
     String unparsed = originalNode.unparse();
 
@@ -50,7 +44,7 @@ class UnparseValidator extends CompilerTask {
         parser.findGetOrSet(parser.parseModifiers(newTokens));
 
     // TODO(ahe): This is also too frigging complicated.
-    Script originalScript = element.getCompilationUnit().script;
+    Script originalScript = originalFunction.getCompilationUnit().script;
     String name = SourceSpan.withOffsets(
         originalFunction.beginToken, originalFunction.endToken,
         (beginOffset, endOffset) =>
@@ -59,12 +53,30 @@ class UnparseValidator extends CompilerTask {
     Script synthesizedScript =
         new Script(originalScript.uri, synthesizedSourceFile);
     LibraryElement lib = new LibraryElement(synthesizedScript);
-    lib.canUseNative = element.getLibrary().canUseNative;
+    lib.canUseNative = originalFunction.getLibrary().canUseNative;
     NodeListener listener =
         new NodeListener(new ValidatorListener(synthesizedSourceFile), lib);
     parser = new Parser(listener);
     parser.parseFunction(newTokens, getOrSet);
     FunctionExpression newNode = listener.popNode();
     // TODO(antonm): add Node comparison.
+  }
+
+  void check(Element element) {
+    if (!validateUnparse) return;
+
+    if (element is PartialFunctionElement) {
+      checkFunction(element);
+    } else if (element.isGenerativeConstructor()) {
+      assert(element is FunctionElement);
+      // Generative constructors parse to very special function expressions.
+      // Handle them when classes are properly handled.
+    } else if (element.isField()) {
+      assert(element is VariableElement);
+      // Fields are just names with possible initialization expressions.
+      // Nothing to care about for now.
+    } else {
+      compiler.cancel('Cannot handle $element', element: element);
+    }
   }
 }
