@@ -31,24 +31,6 @@ void CPU::FlushICache(uword start, uword size) {
 }
 
 
-void CPU::JumpToExceptionHandler(uword program_counter,
-                                 uword stack_pointer,
-                                 uword frame_pointer,
-                                 const Instance& exception_object,
-                                 const Instance& stacktrace_object) {
-  UNIMPLEMENTED();
-}
-
-
-void CPU::JumpToErrorHandler(
-    uword program_counter,
-    uword stack_pointer,
-    uword frame_pointer,
-    const Error& error) {
-  UNIMPLEMENTED();
-}
-
-
 const char* CPU::Id() {
   return "arm";
 }

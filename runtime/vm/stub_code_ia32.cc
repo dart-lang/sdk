@@ -1906,6 +1906,52 @@ void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
+
+// Return the current stack pointer address, used to stack alignment
+// checks.
+// TOS + 0: return address
+// Result in EAX.
+void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+  __ leal(EAX, Address(ESP, kWordSize));
+  __ ret();
+}
+
+
+// Jump to the exception handler.
+// TOS + 0: return address
+// TOS + 1: program_counter
+// TOS + 2: stack_pointer
+// TOS + 3: frame_pointer
+// TOS + 4: exception object
+// TOS + 5: stacktrace object
+// No Result.
+void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == EAX);
+  ASSERT(kStackTraceObjectReg == EDX);
+  __ movl(kStackTraceObjectReg, Address(ESP, 5 * kWordSize));
+  __ movl(kExceptionObjectReg, Address(ESP, 4 * kWordSize));
+  __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
+  __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
+  __ jmp(EBX);  // Jump to the exception handler code.
+}
+
+
+// Jump to the error handler.
+// TOS + 0: return address
+// TOS + 1: program_counter
+// TOS + 2: stack_pointer
+// TOS + 3: frame_pointer
+// TOS + 4: error object
+// No Result.
+void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
+  __ movl(EAX, Address(ESP, 4 * kWordSize));  // Load error object.
+  __ movl(EBP, Address(ESP, 3 * kWordSize));  // Load target frame_pointer.
+  __ movl(EBX, Address(ESP, 1 * kWordSize));  // Load target PC into EBX.
+  __ movl(ESP, Address(ESP, 2 * kWordSize));  // Load target stack_pointer.
+  __ jmp(EBX);  // Jump to the exception handler code.
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_IA32

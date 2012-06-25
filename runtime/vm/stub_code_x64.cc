@@ -1873,6 +1873,50 @@ void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   GenerateSubtypeNTestCacheStub(assembler, 3);
 }
 
+
+// Return the current stack pointer address, used to stack alignment
+// checks.
+// TOS + 0: return address
+// Result in RAX.
+void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+  __ leaq(RAX, Address(RSP, kWordSize));
+  __ ret();
+}
+
+
+// Jump to the exception handler.
+// TOS + 0: return address
+// RDI: program counter
+// RSI: stack pointer
+// RDX: frame_pointer
+// RCX: exception object
+// R8: stacktrace object
+// No Result.
+void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+  ASSERT(kExceptionObjectReg == RAX);
+  ASSERT(kStackTraceObjectReg == RDX);
+  __ movq(RBP, RDX);  // target frame pointer.
+  __ movq(kStackTraceObjectReg, R8);  // stacktrace object.
+  __ movq(kExceptionObjectReg, RCX);  // exception object.
+  __ movq(RSP, RSI);   // target stack_pointer.
+  __ jmp(RDI);  // Jump to the exception handler code.
+}
+
+
+// Jump to the error handler.
+// TOS + 0: return address
+// RDI: program_counter
+// RSI: stack_pointer
+// RDX: frame_pointer
+// RCX: error object
+// No Result.
+void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
+  __ movq(RAX, RCX);  // error object.
+  __ movq(RBP, RDX);  // target frame_pointer.
+  __ movq(RSP, RSI);  // target stack_pointer.
+  __ jmp(RDI);  // Jump to the exception handler code.
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64
