@@ -16,7 +16,6 @@
 #import('git_source.dart');
 #import('package.dart');
 #import('pubspec.dart');
-#import('repo_source.dart');
 #import('sdk_source.dart');
 #import('source.dart');
 #import('source_registry.dart');
@@ -77,8 +76,6 @@ main() {
   var cache = new SystemCache(cacheDir);
   cache.sources.register(new SdkSource(sdkDir));
   cache.sources.register(new GitSource());
-  cache.sources.register(new RepoSource());
-  // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
   cache.sources.setDefault('sdk');
 
   // Select the command.
@@ -171,7 +168,6 @@ class PubCommand {
         return commandFuture;
       } catch (var error) {
         handleError(error);
-        return new Future.immediate(null);
       }
     }).handleException(handleError);
   }
