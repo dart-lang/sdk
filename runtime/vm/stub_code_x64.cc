@@ -609,7 +609,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   if (FLAG_inline_alloc) {
     // Compute the size to be allocated, it is based on the array length
-    // and it computed as:
+    // and is computed as:
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
     __ testq(R10, Immediate(kSmiTagSize));
