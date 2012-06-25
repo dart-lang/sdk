@@ -879,10 +879,9 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   bpt = new SourceBreakpoint(nextId(), target_function, token_pos);
   RegisterSourceBreakpoint(bpt);
   if (verbose && !target_function.HasCode()) {
-    OS::Print("Registering breakpoint for uncompiled function '%s'"
-              " (%s:%d)\n",
-              String::Handle(target_function.name()).ToCString(),
-              String::Handle(bpt->SourceUrl()).ToCString(),
+    OS::Print("Registering breakpoint for "
+              "uncompiled function '%s' at line %d\n",
+              target_function.ToFullyQualifiedCString(),
               bpt->LineNumber());
   }
 
@@ -1338,7 +1337,7 @@ void Debugger::NotifyCompilation(const Function& func) {
       if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {
         if (verbose) {
           OS::Print("Resetting pending breakpoint to function %s\n",
-                    String::Handle(closure.name()).ToCString());
+                    closure.ToFullyQualifiedCString());
         }
         bpt->set_function(closure);
       } else {

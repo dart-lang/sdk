@@ -165,8 +165,11 @@ class Parser : ValueObject {
   struct Block;
   class TryBlocks;
 
-  // The function being parsed.
+  // The function for which we will generate code.
   const Function& current_function() const;
+
+  // The innermost function being parsed.
+  const Function& innermost_function() const;
 
   // Note that a local function may be parsed multiple times. It is first parsed
   // when its outermost enclosing function is being parsed. It is then parsed
@@ -177,10 +180,13 @@ class Parser : ValueObject {
   // itself nested in a static function, is parsed 3 times (unless it does not
   // end up being invoked).
   // Now, current_function() always points to the outermost function being
-  // parsed (i.e. the function that is being invoked), and is not updated while
-  // parsing a nested function of that outermost function.
-  // Therefore, the statements being parsed may or may not belong to the body of
-  // the current_function(); they may belong to nested functions.
+  // compiled (i.e. the function that is being invoked), and is not updated
+  // while parsing a nested function of that outermost function.
+  // Therefore, the statements being parsed may or may not belong to the body
+  // of the current_function(); they may belong to nested functions.
+  // innermost_function() is the function that is currently being parsed.
+  // It is either the same as current_function(), or a lexically nested
+  // function.
   // The function level of the current parsing scope reflects the function
   // nesting. The function level is zero while parsing the body of the
   // current_function(), but is greater than zero while parsing the body of
@@ -543,8 +549,11 @@ class Parser : ValueObject {
   bool SetAllowFunctionLiterals(bool value);
   bool allow_function_literals_;
 
-  // The function currently being parsed.
+  // The function currently being compiled.
   const Function& current_function_;
+
+  // The function currently being parsed.
+  Function& innermost_function_;
 
   // The class or interface currently being parsed, or the owner class of the
   // function currently being parsed. It is used for primary identifier lookups.

@@ -279,6 +279,7 @@ Parser::Parser(const Script& script,
       current_member_(NULL),
       allow_function_literals_(true),
       current_function_(Function::Handle()),
+      innermost_function_(Function::Handle()),
       current_class_(Class::Handle()),
       library_(library),
       try_blocks_list_(NULL),
@@ -300,6 +301,7 @@ Parser::Parser(const Script& script,
       current_member_(NULL),
       allow_function_literals_(true),
       current_function_(function),
+      innermost_function_(Function::Handle(function.raw())),
       current_class_(Class::Handle(current_function_.owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL),
@@ -321,6 +323,11 @@ bool Parser::SetAllowFunctionLiterals(bool value) {
 
 const Function& Parser::current_function() const {
   return current_function_;
+}
+
+
+const Function& Parser::innermost_function() const {
+  return innermost_function_;
 }
 
 
@@ -2098,8 +2105,14 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 SequenceNode* Parser::ParseFunc(const Function& func,
                                 Array& default_parameter_values) {
   TRACE_PARSER("ParseFunc");
+  Function& saved_innermost_function =
+      Function::Handle(innermost_function().raw());
+  innermost_function_ = func.raw();
+
   if (func.IsConstructor()) {
-    return ParseConstructor(func, default_parameter_values);
+    SequenceNode* statements = ParseConstructor(func, default_parameter_values);
+    innermost_function_ = saved_innermost_function.raw();
+    return statements;
   }
 
   ASSERT(!func.IsConstructor());
@@ -2174,6 +2187,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   }
   SequenceNode* body = CloseBlock();
   current_block_->statements->Add(body);
+  innermost_function_ = saved_innermost_function.raw();
   return CloseBlock();
 }
 
@@ -4220,10 +4234,10 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // non-closurized version of this same function.
   function = current_class().LookupClosureFunction(function_pos);
   if (function.IsNull() || (function.token_pos() != function_pos) ||
-      (function.parent_function() != current_function().raw())) {
+      (function.parent_function() != innermost_function().raw())) {
     is_new_closure = true;
     function = Function::NewClosureFunction(*function_name,
-                                            current_function(),
+                                            innermost_function(),
                                             function_pos);
     function.set_result_type(result_type);
     current_class().AddClosureFunction(function);
@@ -5409,7 +5423,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   // Finally parse the 'finally' block.
   SequenceNode* finally_block = NULL;
   if (CurrentToken() == Token::kFINALLY) {
-    current_function_.set_is_optimizable(false);
+    current_function().set_is_optimizable(false);
     ConsumeToken();  // Consume the 'finally'.
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
