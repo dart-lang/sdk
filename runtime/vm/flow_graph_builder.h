@@ -42,6 +42,10 @@ class FlowGraphBuilder: public ValueObject {
 
   void AddCatchEntry(TargetEntryInstr* entry);
 
+  intptr_t current_ssa_temp_index() const {
+    return current_ssa_temp_index_;
+  }
+
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
                          GrowableArray<intptr_t>* parent,

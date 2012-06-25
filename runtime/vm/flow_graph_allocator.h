@@ -12,13 +12,26 @@ namespace dart {
 
 class FlowGraphAllocator : public ValueObject {
  public:
-  explicit FlowGraphAllocator(const GrowableArray<BlockEntryInstr*>& blocks)
-      : blocks_(blocks) { }
+  FlowGraphAllocator(const GrowableArray<BlockEntryInstr*>& postorder,
+                     intptr_t max_ssa_temp_index);
 
   void ResolveConstraints();
 
+  void AnalyzeLiveness();
+
  private:
-  const GrowableArray<BlockEntryInstr*>& blocks_;
+  void ComputeKillAndGenSets();
+  bool UpdateLiveOut(BlockEntryInstr* instr);
+  bool UpdateLiveIn(BlockEntryInstr* instr);
+  void ComputeLiveInAndLiveOutSets();
+  void DumpLiveness();
+
+  GrowableArray<BitVector*> live_out_;
+  GrowableArray<BitVector*> kill_;
+  GrowableArray<BitVector*> gen_;
+  GrowableArray<BitVector*> live_in_;
+  const GrowableArray<BlockEntryInstr*>& postorder_;
+  const intptr_t vreg_count_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };

@@ -197,9 +197,12 @@ static bool CompileWithNewCompiler(
         optimizer.ApplyICData();
 
         if (FLAG_use_ssa) {
+          printf("====================================\n");
           // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(block_order);
+          FlowGraphAllocator allocator(graph_builder.postorder_block_entries(),
+                                       graph_builder.current_ssa_temp_index());
           allocator.ResolveConstraints();
+          allocator.AnalyzeLiveness();
 
           // Temporary bailout until we support code generation from SSA form.
           graph_builder.Bailout("No SSA code generation support.");
