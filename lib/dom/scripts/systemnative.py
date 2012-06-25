@@ -302,10 +302,24 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
         self._interface.id, self._interface.ext_attrs, raises_dom_exceptions)
+
+    runtime_check = None
+    database = self._system._database
+    if 'synthesizedV8EnabledPerContext' in self._interface.ext_attrs:
+      raises_exceptions = True
+      self._cpp_impl_includes.add('"ContextFeatures.h"')
+      runtime_check = emitter.Format(
+          '        if (ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
+          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            goto fail;\n'
+          '        }',
+          FEATURE=self._interface.ext_attrs['synthesizedV8EnabledPerContext'])
+
     self._GenerateNativeCallback(callback_name='constructorCallback',
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
-        raises_exceptions=raises_exceptions)
+        raises_exceptions=raises_exceptions,
+        runtime_check=runtime_check)
 
   def _EmitHtmlElementFactoryConstructors(self, infos, html_interface_name):
     EmitHtmlElementFactoryConstructors(
@@ -900,22 +914,31 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         raises_exceptions=raises_exceptions)
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
-      needs_receiver, invocation, raises_exceptions):
+      needs_receiver, invocation, raises_exceptions, runtime_check=None):
+
+    head = parameter_definitions
 
     if needs_receiver:
-      parameter_definitions = emitter.Format(
+      head = emitter.Format(
           '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
-          '        $PARAMETER_DEFINITIONS\n',
+          '$HEAD\n',
           WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
-          PARAMETER_DEFINITIONS=parameter_definitions)
+          HEAD=head)
+
+    if runtime_check:
+      head = emitter.Format(
+          '$RUNTIME_CHECK\n'
+          '$HEAD\n',
+          RUNTIME_CHECK=runtime_check,
+          HEAD=head)
 
     body = emitter.Format(
         '    {\n'
-        '$PARAMETER_DEFINITIONS'
+        '$HEAD'
         '$INVOCATION'
         '        return;\n'
         '    }\n',
-        PARAMETER_DEFINITIONS=parameter_definitions,
+        HEAD=head,
         INVOCATION=invocation)
 
     if raises_exceptions:
