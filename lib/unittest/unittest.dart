@@ -242,6 +242,13 @@ void expectThrow(function, [bool callback(exception)]) {
 }
 
 /**
+ * The regexp pattern filter which constrains which tests to run
+ * based on their descriptions.
+ */
+
+String filter = null;
+
+/**
  * Creates a new test case with the given description and body. The
  * description will include the descriptions of any surrounding group()
  * calls.
@@ -640,6 +647,10 @@ _runTests() {
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
     _tests = _tests.filter((t) => t == _soloTest);
+  }
+  if (filter != null) {
+    RegExp re = new RegExp(filter);
+    _tests = _tests.filter((t) => re.hasMatch(t.description));
   }
 
   _config.onStart();
