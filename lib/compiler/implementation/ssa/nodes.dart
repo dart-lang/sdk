@@ -770,6 +770,7 @@ class HInstruction implements Hashable {
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
   bool isPrimitive() => propagatedType.isPrimitive();
   bool canBePrimitive() => propagatedType.canBePrimitive();
+  bool canBeNull() => propagatedType.canBeNull();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not

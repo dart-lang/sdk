@@ -196,7 +196,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (!input.canBePrimitive() && !node.getter && !node.setter) {
-      return fromInterceptorToDynamicInvocation(node, node.name);
+      bool transformToDynamicInvocation = true;
+      if (input.canBeNull()) {
+        // Check if the method exists on Null. If yes we must not transform
+        // the static interceptor call to a dynamic invocation.
+        // TODO(floitsch): get a list of methods that exist on 'null' and only
+        // bail out on them.
+        transformToDynamicInvocation = false;
+      }
+      if (transformToDynamicInvocation) {
+        return fromInterceptorToDynamicInvocation(node, node.name);
+      }
     }
 
     return node;
