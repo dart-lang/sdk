@@ -281,7 +281,6 @@ class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   TreeValidatorTask validator;
-  UnparseValidator unparseValidator;
   ResolverTask resolver;
   TypeCheckerTask checker;
   Backend backend;
@@ -319,15 +318,14 @@ class Compiler implements DiagnosticListener {
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
-    unparseValidator = new UnparseValidator(this, validateUnparse);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
         new JavaScriptBackend(this, generateSourceMap) :
-        new dart_backend.DartBackend(this);
+        new dart_backend.DartBackend(this, validateUnparse);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             unparseValidator, constantHandler, enqueuer];
+             constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 
@@ -655,7 +653,6 @@ class Compiler implements DiagnosticListener {
     assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
-    unparseValidator.check(element);
     elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;
