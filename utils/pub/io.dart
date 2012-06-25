@@ -8,7 +8,6 @@
 #library('io');
 
 #import('dart:io');
-#import('dart:uri');
 
 /** Gets the current working directory. */
 String get workingDir() => new File('.').fullPathSync();
@@ -264,51 +263,6 @@ Future<File> createSymlink(from, to) {
 String getFullPath(entry) => new File(_getPath(entry)).fullPathSync();
 
 /**
- * Opens an input stream for a HTTP GET request to [uri], which may be a
- * [String] or [Uri].
- */
-InputStream httpGet(uri) {
-  var resultStream = new ListInputStream();
-  var connection = new HttpClient().getUrl(_getUri(uri));
-
-  // TODO(nweiz): propagate this error to the return value. See issue 3657.
-  connection.onError = (e) { throw e; };
-  connection.onResponse = (response) {
-    if (response.statusCode >= 400) {
-      // TODO(nweiz): propagate this error to the return value. See issue 3657.
-      throw new Exception(
-          "HTTP request for $uri failed with status ${response.statusCode}");
-    }
-
-    pipeInputToInput(response.inputStream, resultStream);
-  };
-
-  return resultStream;
-}
-
-/**
- * Takes all input from [source] and writes it to [sink].
- */
-void pipeInputToInput(InputStream source, ListInputStream sink) {
-  source.onClosed = sink.markEndOfStream;
-  source.onData = () => sink.write(source.read());
-  // TODO(nweiz): propagate this error to the sink. See issue 3657.
-  source.onError = (e) { throw e; };
-}
-
-/**
- * Buffers all input from an InputStream and returns it as a future.
- */
-Future<List<int>> consumeInputStream(InputStream stream) {
-  var completer = new Completer<List<int>>();
-  var buffer = <int>[];
-  stream.onClosed = () => completer.complete(buffer);
-  stream.onData = () => buffer.addAll(stream.read());
-  stream.onError = (e) => completer.completeException(e);
-  return completer.future;
-}
-
-/**
  * Spawns and runs the process located at [executable], passing in [args].
  * Returns a [Future] that will complete the results of the process after it
  * has ended.
@@ -403,24 +357,6 @@ Future<bool> get isGitInstalled() {
 }
 
 /**
- * Extracts a `.tar.gz` file from [stream] to [destination], which can be a
- * directory or a path. Returns whether or not the extraction was successful.
- */
-Future<bool> extractTarGz(InputStream stream, destination) {
-  var process = Process.start("tar",
-      ["--extract", "--gunzip", "--directory", _getPath(destination)]);
-  var completer = new Completer<int>();
-
-  stream.pipe(process.stdin);
-  process.stdout.pipe(stdout, close: false);
-  process.stderr.pipe(stderr, close: false);
-
-  process.onExit = completer.complete;
-  process.onError = completer.completeException;
-  return completer.future.transform((exitCode) => exitCode == 0);
-}
-
-/**
  * Contains the results of invoking a [Process] and waiting for it to complete.
  */
 class PubProcessResult {
@@ -452,12 +388,4 @@ String _getPath(entry) {
 Directory _getDirectory(entry) {
   if (entry is Directory) return entry;
   return new Directory(entry);
-}
-
-/**
- * Gets a [Uri] for [uri], which can either already be one, or be a [String].
- */
-Uri _getUri(uri) {
-  if (uri is Uri) return uri;
-  return new Uri.fromString(uri);
 }
