@@ -9,7 +9,8 @@
 class ByteArrayScanner extends ArrayBasedScanner<ByteString> {
   final List<int> bytes;
 
-  ByteArrayScanner(List<int> this.bytes) : super();
+  ByteArrayScanner(List<int> this.bytes, [bool includeComments = false])
+    : super(includeComments);
 
   int nextByte() => byteAt(++byteOffset);
 

@@ -278,6 +278,9 @@ class Parser {
     return token;
   }
 
+  /**
+   * Returns true if the stringValue of the [token] is [value].
+   */
   bool optional(String value, Token token) => value === token.stringValue;
 
   bool notEofOrValue(String value, Token token) {
@@ -1279,16 +1282,32 @@ class Parser {
     return token;
   }
 
+  /**
+   * Only called when [:token.kind === STRING_TOKEN:].
+   */
   Token parseSingleLiteralString(Token token) {
     listener.beginLiteralString(token);
+    // Parsing the prefix, for instance 'x of 'x${id}y${id}z'
     token = token.next;
     int interpolationCount = 0;
-    while (optional('\${', token)) {
-      token = token.next;
-      token = parseExpression(token);
-      token = expect('}', token);
-      token = parseStringPart(token);
+    var kind = token.kind;
+    while (kind != EOF_TOKEN) {
+      if (kind === STRING_INTERPOLATION_TOKEN) {
+        // Parsing ${expression}.
+        token = token.next;
+        token = parseExpression(token);
+        token = expect('}', token);
+      } else if (kind === STRING_INTERPOLATION_IDENTIFIER_TOKEN) {
+        // Parsing $identifier.
+        token = token.next;
+        token = parseExpression(token);
+      } else {
+        break;
+      }
       ++interpolationCount;
+      // Parsing the infix/suffix, for instance y and z' of 'x${id}y${id}z'
+      token = parseStringPart(token);
+      kind = token.kind;
     }
     listener.endLiteralString(interpolationCount);
     return token;

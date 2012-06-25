@@ -8,13 +8,14 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
   Token tail;
   int tokenStart;
   int byteOffset;
+  final bool includeComments;
 
   /** Since the input is UTF8, some characters are represented by more
    * than one byte. [extraCharOffset] tracks the difference. */
   int extraCharOffset;
   Link<BeginGroupToken> groupingStack = const EmptyLink<BeginGroupToken>();
 
-  ArrayBasedScanner()
+  ArrayBasedScanner(this.includeComments)
     : this.extraCharOffset = 0,
       this.tokenStart = -1,
       this.byteOffset = -1,
@@ -162,6 +163,12 @@ class ArrayBasedScanner<S extends SourceString> extends AbstractScanner<S> {
       groupingStack.head.endGroup = tail;
       groupingStack = groupingStack.tail;
     }
+  }
+
+  void appendComment() {
+    if (!includeComments) return;
+    SourceString value = utf8String(tokenStart, -1);
+    appendByteStringToken(COMMENT_INFO, value);
   }
 
   void discardOpenLt() {

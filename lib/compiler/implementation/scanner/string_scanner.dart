@@ -9,7 +9,8 @@
 class StringScanner extends ArrayBasedScanner<SourceString> {
   final String string;
 
-  StringScanner(String this.string) : super();
+  StringScanner(String this.string, [bool includeComments = false])
+    : super(includeComments);
 
   int nextByte() => charAt(++byteOffset);
 

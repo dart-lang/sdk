@@ -12,14 +12,53 @@ interface Scanner {
 class AbstractScanner<T extends SourceString> implements Scanner {
   abstract int advance();
   abstract int nextByte();
+
+  /**
+   * Returns the current character or byte depending on the underlying input
+   * kind. For example, [StringScanner] operates on [String] and thus returns
+   * characters (Unicode codepoints represented as int) whereas
+   * [ByteArrayScanner] operates on byte arrays and thus returns bytes.
+   */
   abstract int peek();
+
+  /**
+   * Appends a fixed token based on whether the current char is [choice] or not.
+   * If the current char is [choice] a fixed token whose kind and content
+   * is determined by [yes] is appended, otherwise a fixed token whose kind
+   * and content is determined by [no] is appended.
+   */
   abstract int select(int choice, PrecedenceInfo yes, PrecedenceInfo no);
+
+  /**
+   * Appends a fixed token whose kind and content is determined by [info].
+   */
   abstract void appendPrecedenceToken(PrecedenceInfo info);
+
+  /**
+   * Appends a token whose kind is determined by [info] and content is [value].
+   */
   abstract void appendStringToken(PrecedenceInfo info, String value);
+
+  /**
+   * Appends a token whose kind is determined by [info] and content is defined
+   * by the SourceString [value].
+   */
   abstract void appendByteStringToken(PrecedenceInfo info, T value);
+
+  /**
+   * Appends a keyword token whose kind is determined by [keyword].
+   */
   abstract void appendKeywordToken(Keyword keyword);
   abstract void appendWhiteSpace(int next);
   abstract void appendEofToken();
+
+  /**
+   * Creates an ASCII SourceString whose content begins at the source byte
+   * offset [start] and ends at [offset] bytes from the current byte offset of
+   * the scanner. For example, if the current byte offset is 10,
+   * [:asciiString(0,-1):] creates an ASCII SourceString whose content is found
+   * at the [0,9[ byte interval of the source text.
+   */
   abstract T asciiString(int start, int offset);
   abstract T utf8String(int start, int offset);
   abstract Token firstToken();
@@ -33,6 +72,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   abstract void appendGt(PrecedenceInfo info, String value);
   abstract void appendGtGt(PrecedenceInfo info, String value);
   abstract void appendGtGtGt(PrecedenceInfo info, String value);
+  abstract void appendComment();
 
   /**
    * We call this method to discard '<' from the "grouping" stack
@@ -543,6 +583,7 @@ class AbstractScanner<T extends SourceString> implements Scanner {
     while (true) {
       next = advance();
       if ($LF === next || $CR === next || $EOF === next) {
+        appendComment();
         return next;
       }
     }
@@ -560,7 +601,9 @@ class AbstractScanner<T extends SourceString> implements Scanner {
         if ($SLASH === next) {
           --nesting;
           if (0 === nesting) {
-            return advance();
+            next = advance();
+            appendComment();
+            return next;
           } else {
             next = advance();
           }
@@ -686,7 +729,8 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeStringInterpolation(int start) {
-    beginToken();
+    appendByteStringToken(STRING_INFO, utf8String(start, -1));
+    beginToken(); // $ starts here.
     int next = advance();
     if (next === $OPEN_CURLY_BRACKET) {
       return tokenizeInterpolatedExpression(next, start);
@@ -696,21 +740,23 @@ class AbstractScanner<T extends SourceString> implements Scanner {
   }
 
   int tokenizeInterpolatedExpression(int next, int start) {
-    appendByteStringToken(STRING_INFO, utf8String(start, -2));
     appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
+    beginToken(); // The expression starts here.
     next = advance();
     while (next !== $EOF && next !== $STX) {
       next = bigSwitch(next);
     }
     if (next === $EOF) return next;
-    return advance();
+    next = advance();
+    beginToken(); // The string interpolation suffix starts here.
+    return next;
   }
 
   int tokenizeInterpolatedIdentifier(int next, int start) {
-    appendByteStringToken(STRING_INFO, utf8String(start, -2));
-    appendBeginGroup(STRING_INTERPOLATION_INFO, "\${");
+    appendPrecedenceToken(STRING_INTERPOLATION_IDENTIFIER_INFO);
+    beginToken(); // The identifier starts here.
     next = tokenizeKeywordOrIdentifier(next, false);
-    appendEndGroup(CLOSE_CURLY_BRACKET_INFO, "}", OPEN_CURLY_BRACKET_TOKEN);
+    beginToken(); // The string interpolation suffix starts here.
     return next;
   }
 
