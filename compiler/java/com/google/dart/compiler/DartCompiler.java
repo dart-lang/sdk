@@ -1193,7 +1193,9 @@ public class DartCompiler {
       CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
       throws IOException {
     HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
-    return analyzeLibraries(lib, resolvedLibs, parsedUnits, config, provider, null, listener, false).get(lib.getUri());
+    Map<URI, LibraryUnit> libraryUnit = analyzeLibraries(lib, resolvedLibs, parsedUnits, config,
+        provider, null, listener, false);
+    return libraryUnit != null ? libraryUnit.get(lib.getUri()) : null;
   }
 
   /**
