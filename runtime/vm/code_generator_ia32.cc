@@ -25,8 +25,8 @@
 namespace dart {
 
 DECLARE_FLAG(bool, print_ast);
-DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
+DECLARE_FLAG(bool, print_scopes);
+DECLARE_FLAG(bool, trace_functions);
 DEFINE_FLAG(bool, print_ic_in_optimized, false,
     "Debugging helper to identify potential performance pitfalls.");
 DECLARE_FLAG(int, optimization_counter_threshold);

@@ -11,18 +11,11 @@
 
 namespace dart {
 
-class AbstractType;
-class Assembler;
 class Code;
 class DeoptimizationStub;
-class FlowGraphCompiler;
 template <typename T> class GrowableArray;
 class ParsedFunction;
-class StackMapBuilder;
 
-
-// Stubbed out implementation of graph compiler, bails out immediately if
-// CompileGraph is called. The rest of the public API is UNIMPLEMENTED.
 class FlowGraphCompiler : public ValueObject {
  private:
   struct BlockInfo : public ZoneAllocated {
@@ -80,26 +73,22 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t try_index,
                            const RuntimeEntry& entry);
 
-  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
-  // pc-descriptor information.
-  intptr_t EmitStaticCall(const Function& function,
-                          const Array& arguments_descriptor,
-                          intptr_t argument_count);
-
   void GenerateCall(intptr_t token_pos,
                     intptr_t try_index,
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
-  void GenerateInstanceOf(intptr_t cid,
-                          intptr_t token_pos,
-                          intptr_t try_index,
-                          const AbstractType& type,
-                          bool negate_result);
+
   void GenerateAssertAssignable(intptr_t cid,
                                 intptr_t token_pos,
                                 intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
+
+  void GenerateInstanceOf(intptr_t cid,
+                          intptr_t token_pos,
+                          intptr_t try_index,
+                          const AbstractType& type,
+                          bool negate_result);
 
   void GenerateInstanceCall(intptr_t cid,
                             intptr_t token_pos,
@@ -128,6 +117,13 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateListTypeCheck(Register kClassIdReg,
                              Label* is_instance_lbl);
 
+  void EmitComment(Instruction* instr);
+
+  void EmitClassChecksNoSmi(const ICData& ic_data,
+                            Register instance_reg,
+                            Register temp_reg,
+                            Label* deopt);
+
   // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
   // pc-descriptor information.
   intptr_t EmitInstanceCall(ExternalLabel* target_label,
@@ -136,13 +132,6 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t argument_count);
 
   void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
-
-  void EmitComment(Instruction* instr);
-
-  void EmitClassChecksNoSmi(const ICData& ic_data,
-                            Register instance_reg,
-                            Register temp_reg,
-                            Label* deopt);
   void EmitTestAndCall(const ICData& ic_data,
                        Register class_id_reg,
                        intptr_t arg_count,
@@ -181,26 +170,37 @@ class FlowGraphCompiler : public ValueObject {
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
 
+  const Bool& bool_true() const { return bool_true_; }
+  const Bool& bool_false() const { return bool_false_; }
+  const Class& double_class() const { return double_class_; }
+
   FrameRegisterAllocator* frame_register_allocator() {
     return &frame_register_allocator_;
   }
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
-  const Bool& bool_true() const { return bool_true_; }
-  const Bool& bool_false() const { return bool_false_; }
-  const Class& double_class() const { return double_class_; }
-
  private:
   friend class DeoptimizationStub;
 
   void GenerateDeferredCode();
 
-  void CopyParameters();
   void EmitInstructionPrologue(Instruction* instr);
 
-  void GenerateInlinedGetter(intptr_t offset);
-  void GenerateInlinedSetter(intptr_t offset);
+  // Emit code to load a Value into register 'dst'.
+  void LoadValue(Register dst, Value* value);
+
+  // Returns pc-offset (in bytes) of the pc after the call, can be used to emit
+  // pc-descriptor information.
+  intptr_t EmitStaticCall(const Function& function,
+                          const Array& arguments_descriptor,
+                          intptr_t argument_count);
+
+  // Type checking helper methods.
+  void CheckClassIds(Register class_id_reg,
+                     const GrowableArray<intptr_t>& class_ids,
+                     Label* is_instance_lbl,
+                     Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
                                                 intptr_t token_pos,
@@ -250,11 +250,10 @@ class FlowGraphCompiler : public ValueObject {
 
   void GenerateBoolToJump(Register bool_reg, Label* is_true, Label* is_false);
 
-  void CheckClassIds(Register class_id_reg,
-                     const GrowableArray<intptr_t>& class_ids,
-                     Label* is_equal_lbl,
-                     Label* is_not_equal_lbl);
+  void CopyParameters();
 
+  void GenerateInlinedGetter(intptr_t offset);
+  void GenerateInlinedSetter(intptr_t offset);
 
   // Map a block number in a forward iteration into the block number in the
   // corresponding reverse iteration.  Used to obtain an index into
@@ -317,7 +316,6 @@ class DeoptimizationStub : public ZoneAllocated {
 
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
 };
-
 
 }  // namespace dart
 

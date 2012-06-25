@@ -13,7 +13,6 @@ namespace dart {
 
 class Code;
 class DeoptimizationStub;
-class ExceptionHandlerList;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
@@ -74,7 +73,6 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t try_index,
                            const RuntimeEntry& entry);
 
-  // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_pos,
                     intptr_t try_index,
                     const ExternalLabel* label,

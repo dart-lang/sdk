@@ -17,6 +17,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
+DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);

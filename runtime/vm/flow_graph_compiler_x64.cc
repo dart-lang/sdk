@@ -9,9 +9,6 @@
 
 #include "lib/error.h"
 #include "vm/ast_printer.h"
-#include "vm/code_descriptors.h"
-#include "vm/code_generator.h"
-#include "vm/disassembler.h"
 #include "vm/il_printer.h"
 #include "vm/locations.h"
 #include "vm/object_store.h"
@@ -20,10 +17,10 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
-DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, print_ast);
+DECLARE_FLAG(bool, print_scopes);
+DECLARE_FLAG(bool, trace_functions);
 
 
 void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
@@ -49,7 +46,6 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
 #define __ assembler()->
 
 
-
 // Fall through if bool_register contains null.
 void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
                                            Label* is_true,
@@ -66,6 +62,7 @@ void FlowGraphCompiler::GenerateBoolToJump(Register bool_register,
 }
 
 
+// Clobbers RCX.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
     TypeTestStubKind test_kind,
     Register instance_reg,
@@ -94,7 +91,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   } else {
     UNREACHABLE();
   }
-  // Result is in ECX: null -> not found, otherwise Bool::True or Bool::False.
+  // Result is in RCX: null -> not found, otherwise Bool::True or Bool::False.
+  ASSERT(instance_reg != RCX);
+  ASSERT(temp_reg != RCX);
   __ popq(instance_reg);  // Discard.
   __ popq(instance_reg);  // Restore receiver.
   __ popq(temp_reg);  // Discard.
@@ -102,10 +101,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
   return type_test_cache.raw();
 }
 
+
 // Jumps to labels 'is_instance' or 'is_not_instance' respectively, if
 // type test is conclusive, otherwise fallthrough if a type test could not
 // be completed.
-// RAX: instance (must survive),
+// RAX: instance (must survive).
+// Clobbers R10.
 RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
     intptr_t cid,
@@ -156,7 +157,6 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       }
     }
   }
-
   // Regular subtype test cache involving instance's type arguments.
   const Register kTypeArgumentsReg = kNoRegister;
   const Register kTempReg = R10;
@@ -181,10 +181,10 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 }
 
 
-
 // Testing against an instantiated type with no arguments, without
 // SubtypeTestCache.
 // RAX: instance to test against (preserved).
+// Clobbers R10, R13.
 void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t cid,
     intptr_t token_pos,
@@ -192,12 +192,13 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   ASSERT(type.IsInstantiated());
-  const Class& type_class = Class::ZoneHandle(type.type_class());
+  const Class& type_class = Class::Handle(type.type_class());
   ASSERT(!type_class.HasTypeArguments());
 
+  const Register kInstanceReg = RAX;
   Label compare_classes;
-  __ testq(RAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &compare_classes);
+  __ testq(kInstanceReg, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
   // Instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
   // TODO(regis): We should introduce a SmiType.
@@ -210,19 +211,17 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   } else {
     __ jmp(is_not_instance_lbl);
   }
-
-  // Compare if the classes are equal. Instance is not Smi.
+  // Compare if the classes are equal.
   __ Bind(&compare_classes);
   const Register kClassIdReg = R10;
-  __ LoadClassId(kClassIdReg, RAX);
+  __ LoadClassId(kClassIdReg, kInstanceReg);
   // If type is an interface, we can skip the class equality check.
   if (!type_class.is_interface()) {
     __ cmpl(kClassIdReg, Immediate(type_class.id()));
     __ j(EQUAL, is_instance_lbl);
   }
-  // Check for interfaces that cannot be implemented by user.
-  // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   // Bool interface can be implemented only by core class Bool.
+  // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   if (type.IsBoolInterface()) {
     __ cmpl(kClassIdReg, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
@@ -258,7 +257,11 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 
 // Uses SubtypeTestCache to store instance class and result.
 // RAX: instance to test.
+// Clobbers R10, R13.
 // Immediate class test already done.
+// TODO(srdjan): Implement a quicker subtype check, as type test
+// arrays can grow too high, but they may be useful when optimizing
+// code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     intptr_t cid,
     intptr_t token_pos,
@@ -267,6 +270,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
     Label* is_not_instance_lbl) {
   const Register kInstanceReg = RAX;
   __ LoadClass(R10, kInstanceReg);
+  // R10: instance class.
   // Check immediate superclass equality.
   __ movq(R13, FieldAddress(R10, Class::super_type_offset()));
   __ movq(R13, FieldAddress(R13, Type::type_class_offset()));
@@ -286,6 +290,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 
 // Generates inlined check if 'type' is a type parameter or type itsef
 // RAX: instance (preserved).
+// Clobbers RDI, RDX, R10.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     intptr_t cid,
     intptr_t token_pos,
@@ -293,6 +298,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
   ASSERT(!type.IsInstantiated());
+  // Skip check if destination is a dynamic type.
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
@@ -309,8 +315,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ j(NOT_EQUAL, &fall_through);
     __ movq(RDI,
         FieldAddress(RDX, TypeArguments::type_at_offset(type.Index())));
-    // RDI: Concrete type.
-    // Check if it is Dynamic,
+    // RDI: Concrete type of type.
+    // Check if type argument is dynamic.
     __ CompareObject(RDI, Type::ZoneHandle(Type::DynamicType()));
     __ j(EQUAL,  is_instance_lbl);
     __ cmpq(RDI, raw_null);
@@ -319,7 +325,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareObject(RDI, object_type);
     __ j(EQUAL,  is_instance_lbl);
 
-    // For Smi check quickly against int and num interface types.
+    // For Smi check quickly against int and num interfaces.
     Label not_smi;
     __ testq(RAX, Immediate(kSmiTagMask));  // Value is Smi?
     __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
@@ -344,7 +350,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
                                         kTempReg,
                                         is_instance_lbl,
                                         is_not_instance_lbl));
-
     __ Bind(&fall_through);
     return type_test_cache.raw();
   }
@@ -371,9 +376,9 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // Inputs:
 // - RAX: instance to test against (preserved).
 // - RDX: optional instantiator type arguments (preserved).
-// Destroys RCX.
+// Clobbers R10, R13.
 // Returns:
-// - unchanged object in RAX and optional instantiator type arguments in RDX.
+// - preserved instance in RAX and optional instantiator type arguments in RDX.
 // Note that this inlined code must be followed by the runtime_call code, as it
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
@@ -418,134 +423,8 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 }
 
 
-// Optimize assignable type check by adding inlined tests for:
-// - NULL -> return NULL.
-// - Smi -> compile time subtype check (only if dst class is not parameterized).
-// - Class equality (only if class is not parameterized).
-// Inputs:
-// - RAX: object.
-// - RDX: instantiator type arguments or raw_null.
-// - RCX: instantiator or raw_null.
-// Returns:
-// - object in RAX for successful assignable check (or throws TypeError).
-// Performance notes: positive checks must be quick, negative checks can be slow
-// as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
-                                                 intptr_t token_pos,
-                                                 intptr_t try_index,
-                                                 const AbstractType& dst_type,
-                                                 const String& dst_name) {
-  ASSERT(token_pos >= 0);
-  ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsFinalized());
-  // Assignable check is skipped in FlowGraphBuilder, not here.
-  ASSERT(dst_type.IsMalformed() ||
-         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  ASSERT(!dst_type.IsVoidType());
-  __ pushq(RCX);  // Store instantiator.
-  __ pushq(RDX);  // Store instantiator type arguments.
-  // A null object is always assignable and is returned as result.
-  const Immediate raw_null =
-      Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label is_assignable, runtime_call;
-  __ cmpq(RAX, raw_null);
-  __ j(EQUAL, &is_assignable);
-
-  // Generate throw new TypeError() if the type is malformed.
-  if (dst_type.IsMalformed()) {
-    const Error& error = Error::Handle(dst_type.malformed_error());
-    const String& error_message = String::ZoneHandle(
-        String::NewSymbol(error.ToErrorCString()));
-    __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
-    __ pushq(RAX);  // Push the source object.
-    __ PushObject(dst_name);  // Push the name of the destination.
-    __ PushObject(error_message);
-    GenerateCallRuntime(cid,
-                        token_pos,
-                        try_index,
-                        kMalformedTypeErrorRuntimeEntry);
-    // We should never return here.
-    __ int3();
-
-    __ Bind(&is_assignable);  // For a null object.
-    return;
-  }
-
-  // Generate inline type check, linking to runtime call if not assignable.
-  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  test_cache = GenerateInlineInstanceof(cid, token_pos, dst_type,
-                                        &is_assignable, &runtime_call);
-  __ Bind(&runtime_call);
-  __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
-  __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
-  __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
-  __ pushq(RAX);  // Push the source object.
-  __ PushObject(dst_type);  // Push the type of the destination.
-  __ pushq(RCX);  // Instantiator.
-  __ pushq(RDX);  // Instantiator type arguments.
-  __ PushObject(dst_name);  // Push the name of the destination.
-  __ LoadObject(RAX, test_cache);
-  __ pushq(RAX);
-  GenerateCallRuntime(cid,
-                      token_pos,
-                      try_index,
-                      kTypeCheckRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // type check runtime call is the checked value.
-  __ Drop(8);
-  __ popq(RAX);
-
-  __ Bind(&is_assignable);
-  __ popq(RDX);  // Remove pushed instantiator type arguments..
-  __ popq(RCX);  // Remove pushed instantiator.
-}
-
-
-void FlowGraphCompiler::LoadValue(Register dst, Value* value) {
-  if (value->IsConstant()) {
-    ConstantVal* constant = value->AsConstant();
-    if (constant->value().IsSmi()) {
-      int64_t imm = reinterpret_cast<int64_t>(constant->value().raw());
-      __ movq(dst, Immediate(imm));
-    } else {
-      __ LoadObject(dst, value->AsConstant()->value());
-    }
-  } else {
-    ASSERT(value->IsUse());
-    __ popq(dst);
-  }
-}
-
-
-intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
-                                         const ICData& ic_data,
-                                         const Array& arguments_descriptor,
-                                         intptr_t argument_count) {
-  __ LoadObject(RBX, ic_data);
-  __ LoadObject(R10, arguments_descriptor);
-
-  __ call(target_label);
-  const intptr_t descr_offset = assembler()->CodeSize();
-  __ Drop(argument_count);
-  return descr_offset;
-}
-
-intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
-                                           const Array& arguments_descriptor,
-                                           intptr_t argument_count) {
-  __ LoadObject(RBX, function);
-  __ LoadObject(R10, arguments_descriptor);
-  __ call(&StubCode::CallStaticFunctionLabel());
-  const intptr_t descr_offset = assembler()->CodeSize();
-  __ Drop(argument_count);
-  return descr_offset;
-}
-
-
-// Optimize instanceof type test by adding inlined tests for:
+// If instanceof type test cannot be performed successfully at compile time and
+// therefore eliminated, optimize it by adding inlined tests for:
 // - NULL -> return false.
 // - Smi -> compile time subtype check (only if dst class is not parameterized).
 // - Class equality (only if class is not parameterized).
@@ -553,7 +432,7 @@ intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
 // - RAX: object.
 // - RDX: instantiator type arguments or raw_null.
 // - RCX: instantiator or raw_null.
-// Destroys RCX and RDX.
+// Clobbers RCX and RDX.
 // Returns:
 // - true or false in RAX.
 void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
@@ -627,6 +506,93 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 }
 
 
+// Optimize assignable type check by adding inlined tests for:
+// - NULL -> return NULL.
+// - Smi -> compile time subtype check (only if dst class is not parameterized).
+// - Class equality (only if class is not parameterized).
+// Inputs:
+// - RAX: object.
+// - RDX: instantiator type arguments or raw_null.
+// - RCX: instantiator or raw_null.
+// Returns:
+// - object in RAX for successful assignable check (or throws TypeError).
+// Performance notes: positive checks must be quick, negative checks can be slow
+// as they throw an exception.
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
+                                                 intptr_t token_pos,
+                                                 intptr_t try_index,
+                                                 const AbstractType& dst_type,
+                                                 const String& dst_name) {
+  ASSERT(token_pos >= 0);
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+  // Assignable check is skipped in FlowGraphBuilder, not here.
+  ASSERT(dst_type.IsMalformed() ||
+         (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  ASSERT(!dst_type.IsVoidType());
+  __ pushq(RCX);  // Store instantiator.
+  __ pushq(RDX);  // Store instantiator type arguments.
+  // A null object is always assignable and is returned as result.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label is_assignable, runtime_call;
+  __ cmpq(RAX, raw_null);
+  __ j(EQUAL, &is_assignable);
+
+  // Generate throw new TypeError() if the type is malformed.
+  if (dst_type.IsMalformed()) {
+    const Error& error = Error::Handle(dst_type.malformed_error());
+    const String& error_message = String::ZoneHandle(
+        String::NewSymbol(error.ToErrorCString()));
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
+    __ pushq(RAX);  // Push the source object.
+    __ PushObject(dst_name);  // Push the name of the destination.
+    __ PushObject(error_message);
+    GenerateCallRuntime(cid,
+                        token_pos,
+                        try_index,
+                        kMalformedTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
+
+    __ Bind(&is_assignable);  // For a null object.
+    return;
+  }
+
+  // Generate inline type check, linking to runtime call if not assignable.
+  SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
+  test_cache = GenerateInlineInstanceof(cid, token_pos, dst_type,
+                                        &is_assignable, &runtime_call);
+
+  __ Bind(&runtime_call);
+  __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
+  __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
+  __ PushObject(Object::ZoneHandle());  // Make room for the result.
+  __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
+  __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
+  __ pushq(RAX);  // Push the source object.
+  __ PushObject(dst_type);  // Push the type of the destination.
+  __ pushq(RCX);  // Instantiator.
+  __ pushq(RDX);  // Instantiator type arguments.
+  __ PushObject(dst_name);  // Push the name of the destination.
+  __ LoadObject(RAX, test_cache);
+  __ pushq(RAX);
+  GenerateCallRuntime(cid,
+                      token_pos,
+                      try_index,
+                      kTypeCheckRuntimeEntry);
+  // Pop the parameters supplied to the runtime entry. The result of the
+  // type check runtime call is the checked value.
+  __ Drop(8);
+  __ popq(RAX);
+
+  __ Bind(&is_assignable);
+  __ popq(RDX);  // Remove pushed instantiator type arguments..
+  __ popq(RCX);  // Remove pushed instantiator.
+}
+
+
 void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   LocationSummary* locs = instr->locs();
   ASSERT(locs != NULL);
@@ -641,7 +607,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 }
 
 
-// Copied from CodeGenerator::CopyParameters (CodeGenerator will be deprecated).
 void FlowGraphCompiler::CopyParameters() {
   const Function& function = parsed_function().function();
   const bool is_native_instance_closure =
@@ -676,6 +641,7 @@ void FlowGraphCompiler::CopyParameters() {
   // fp[1 + num_args - (num_pos_args - 1)].
   __ subq(RBX, RCX);
   __ leaq(RBX, Address(RBP, RBX, TIMES_4, 2 * kWordSize));
+
   // Let RDI point to the last copied positional argument, i.e. to
   // fp[ParsedFunction::kFirstLocalSlotIndex - (num_pos_args - 1)].
   const int index =
@@ -905,8 +871,9 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
 void FlowGraphCompiler::CompileGraph() {
   InitCompiler();
   if (TryIntrinsify()) {
-    // Make it patchable: code must have a minimum code size, nop(2) increases
-    // the minimum code size appropriately.
+    // Although this intrinsified code will never be patched, it must satisfy
+    // CodePatcher::CodeIsPatchable, which verifies that this code has a minimum
+    // code size, and nop(2) increases the minimum code size appropriately.
     __ nop(2);
     __ int3();
     __ jmp(&StubCode::FixCallersTargetLabel());
@@ -919,7 +886,6 @@ void FlowGraphCompiler::CompileGraph() {
   const int num_copied_params = parsed_function().copied_parameter_count();
   const int local_count = parsed_function().stack_local_count();
   AssemblerMacros::EnterDartFrame(assembler(), (StackSize() * kWordSize));
-
   // We check the number of passed arguments when we have to copy them due to
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
@@ -950,10 +916,11 @@ void FlowGraphCompiler::CompileGraph() {
   } else {
     CopyParameters();
   }
-
-  // Initialize locals to null.
+  // Initialize (non-argument) stack allocated locals to null.
   if (local_count > 0) {
-    __ movq(RAX, Immediate(reinterpret_cast<intptr_t>(Object::null())));
+    const Immediate raw_null =
+        Immediate(reinterpret_cast<intptr_t>(Object::null()));
+    __ movq(RAX, raw_null);
     const int base = parsed_function().first_stack_local_index();
     for (int i = 0; i < local_count; ++i) {
       // Subtract index i (locals lie at lower addresses than RBP).
@@ -997,7 +964,6 @@ void FlowGraphCompiler::CompileGraph() {
 }
 
 
-// Infrastructure copied from class CodeGenerator.
 void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      intptr_t try_index,
                                      const ExternalLabel* label,
@@ -1015,6 +981,32 @@ void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
   ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
   AddCurrentDescriptor(PcDescriptors::kOther, cid, token_pos, try_index);
+}
+
+
+intptr_t FlowGraphCompiler::EmitInstanceCall(ExternalLabel* target_label,
+                                             const ICData& ic_data,
+                                             const Array& arguments_descriptor,
+                                             intptr_t argument_count) {
+  __ LoadObject(RBX, ic_data);
+  __ LoadObject(R10, arguments_descriptor);
+
+  __ call(target_label);
+  const intptr_t descr_offset = assembler()->CodeSize();
+  __ Drop(argument_count);
+  return descr_offset;
+}
+
+
+intptr_t FlowGraphCompiler::EmitStaticCall(const Function& function,
+                                           const Array& arguments_descriptor,
+                                           intptr_t argument_count) {
+  __ LoadObject(RBX, function);
+  __ LoadObject(R10, arguments_descriptor);
+  __ call(&StubCode::CallStaticFunctionLabel());
+  const intptr_t descr_offset = assembler()->CodeSize();
+  __ Drop(argument_count);
+  return descr_offset;
 }
 
 
