@@ -4,6 +4,8 @@
 
 #include <stdio.h>
 
+#include "bin/file.h"
+
 #include "vm/benchmark_test.h"
 #include "vm/dart.h"
 #include "vm/unit_test.h"
@@ -57,6 +59,29 @@ void Benchmark::RunBenchmark() {
 }
 
 
+static void DumpPprofSymbolInfo(const char* pprof_filename) {
+  if (pprof_filename != NULL) {
+    char* err = NULL;
+    Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, NULL, &err);
+    EXPECT(isolate != NULL);
+    Dart_EnterScope();
+    File* pprof_file =
+        File::Open(pprof_filename, File::kWriteTruncate);
+    ASSERT(pprof_file != NULL);
+    void* buffer;
+    int buffer_size;
+    Dart_GetPprofSymbolInfo(&buffer, &buffer_size);
+    if (buffer_size > 0) {
+      ASSERT(buffer != NULL);
+      pprof_file->WriteFully(buffer, buffer_size);
+    }
+    delete pprof_file;  // Closes the file.
+    Dart_ExitScope();
+    Dart_ShutdownIsolate();
+  }
+}
+
+
 static void PrintUsage() {
   fprintf(stderr, "run_vm_tests [--list | --benchmarks | "
                   "--tests | --all | <test name> | <benchmark name>]\n");
@@ -69,6 +94,7 @@ static int Main(int argc, const char** argv) {
   // Flags being passed to the Dart VM.
   int dart_argc = 0;
   const char** dart_argv = NULL;
+  const char* pprof_filename = NULL;
 
   if (argc < 2) {
     // Bad parameter count.
@@ -93,9 +119,19 @@ static int Main(int argc, const char** argv) {
   } else {
     // First argument is the test name, the rest are vm flags.
     run_filter = argv[1];
-    // Remove the first two values from the arguments.
-    dart_argc = argc - 2;
-    dart_argv = &argv[2];
+    const char* pprof_option = "--generate_pprof_symbols=";
+    int length = strlen(pprof_option);
+    if (strncmp(pprof_option, argv[2], length) == 0) {
+      pprof_filename = (argv[2] + length);
+      Dart_InitPprofSupport();
+      // Remove the first three values from the arguments.
+      dart_argc = argc - 3;
+      dart_argv = &argv[3];
+    } else {
+      // Remove the first two values from the arguments.
+      dart_argc = argc - 2;
+      dart_argv = &argv[2];
+    }
   }
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
                                                              dart_argv);
@@ -111,6 +147,8 @@ static int Main(int argc, const char** argv) {
     fprintf(stderr, "No tests matched: %s\n", run_filter);
     return 1;
   }
+  // Dump symbol information for the profiler.
+  DumpPprofSymbolInfo(pprof_filename);
   return 0;
 }
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #import("dart:io");
+#import("dart:isolate");
 #import("../../../tools/testing/dart/test_runner.dart");
 #import("../../../tools/testing/dart/status_file_parser.dart");
 #import("../../../tools/testing/dart/test_options.dart");

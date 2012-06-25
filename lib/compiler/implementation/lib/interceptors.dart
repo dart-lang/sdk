@@ -55,7 +55,7 @@ set$length(receiver, newLength) {
 }
 
 toString(var value) {
-  if (JS('bool', @'typeof # == "object"', value)) {
+  if (JS('bool', @'typeof # == "object" && # !== null', value, value)) {
     if (isJsArray(value)) {
       return Collections.collectionToString(value);
     } else {
@@ -449,10 +449,13 @@ toStringAsExponential(receiver, fractionDigits) {
   if (receiver is !num) {
     return UNINTERCEPTED(receiver.toStringAsExponential(fractionDigits));
   }
-  if (fractionDigits !== null) checkNum(fractionDigits);
-
-  String result = JS('String', @'#.toExponential(#)',
-                     receiver, fractionDigits);
+  String result;
+  if (fractionDigits !== null) {
+    checkNum(fractionDigits);
+    result = JS('String', @'#.toExponential(#)', receiver, fractionDigits);
+  } else {
+    result = JS('String', @'#.toExponential()', receiver);
+  }
   if (receiver == 0 && receiver.isNegative()) return "-$result";
   return result;
 }

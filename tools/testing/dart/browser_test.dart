@@ -22,31 +22,6 @@ String GetHtmlContents(String title,
 <body>
   <h1> Running $title </h1>
   <script type="text/javascript" src="$controllerScript"></script>
-  <script type="text/javascript">
-    // If nobody intercepts the error, finish the test.
-    onerror = function(message, url, lineNumber) {
-       if (window.layoutTestController) {
-         window.layoutTestController.notifyDone();
-       }
-    };
-
-    document.onreadystatechange = function() {
-      if (document.readyState != "loaded") return;
-      // If 'startedDartTest' is not set, that means that the test did not have
-      // a chance to load. This will happen when a load error occurs in the VM.
-      // Give the machine time to start up.
-      setTimeout(function() {
-        // A window.postMessage might have been enqueued after this timeout.
-        // Just sleep another time to give the browser the time to process the
-        // posted message.
-        setTimeout(function() {
-          if (layoutTestController && !layoutTestController.startedDartTest) {
-            layoutTestController.notifyDone();
-          }
-        }, 0);
-      }, 50);
-    };
-  </script>
   <script type="$scriptType" src="$sourceScript"></script>
 </body>
 </html>

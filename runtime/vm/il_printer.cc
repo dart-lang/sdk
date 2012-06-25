@@ -412,6 +412,11 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
+  UNIMPLEMENTED();
+}
+
+
 void FlowGraphVisualizer::Print(const char* format, ...) {
   char str[120];
   BufferFormatter f(str, sizeof(str));
@@ -637,6 +642,12 @@ void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
             true_successor()->block_id(),
             false_successor()->block_id());
 }
+
+
+void ParallelMoveInstr::PrintToVisualizer(BufferFormatter* f) const {
+  UNIMPLEMENTED();
+}
+
 
 
 }  // namespace dart

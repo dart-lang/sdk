@@ -18,7 +18,7 @@ import java.util.List;
 /**
  * Dummy element corresponding to {@link DynamicType}.
  */
-class DynamicElementImplementation extends AbstractNodeElement implements DynamicElement {
+class DynamicElementImplementation extends AbstractNodeElement implements DynamicElement, MethodNodeElement {
 
   private DynamicElementImplementation() {
     super(null, "<dynamic>");

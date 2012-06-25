@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1303,6 +1303,18 @@ ASSEMBLER_TEST_RUN(SquareRootDouble, entry) {
   const double kDoubleConst = .7;
   double res = reinterpret_cast<SquareRootDoubleCode>(entry)(kDoubleConst);
   EXPECT_FLOAT_EQ(sqrt(kDoubleConst), res, 0.0001);
+}
+
+
+// Called from assembler_test.cc.
+ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
+  __ pushq(CTX);
+  __ movq(CTX, RDI);
+  __ StoreIntoObject(RDX,
+                     FieldAddress(RDX, GrowableObjectArray::data_offset()),
+                     RSI);
+  __ popq(CTX);
+  __ ret();
 }
 
 }  // namespace dart

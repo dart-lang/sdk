@@ -89,6 +89,7 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
+type_cast_vm_test: Fail # type cast not yet implemented
 
 
 # Implementation errors (library or generated code).
@@ -241,7 +242,6 @@ override_field_method5_negative_test: Fail, OK # Negative language test.
 call_through_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 call_through_null_getter_test: Fail # Expected: ObjectNotClosureException got: Instance of 'TypeError'
 double_to_string_as_fixed_test: Fail
-double_to_string_as_exponential_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]
@@ -251,7 +251,6 @@ bad_named_parameters_test: Fail # BUG(3304)
 call_through_getter_test: Fail # BUG(3304)
 call_through_null_getter_test: Fail # BUG(3304)
 div_by_zero_test: Fail # BUG(3304)
-double_to_string_as_exponential_test: Fail # BUG(3304)
 double_to_string_as_fixed_test: Fail
 dynamic_field_test: Fail # BUG(3304)
 exception_test: Fail # BUG(3304)
@@ -302,7 +301,3 @@ closure3_test: Fail # Uncaught error: Instance of 'TypeError'
 method_invocation_test: Fail # Uncaught error: Instance of 'TypeError'
 null_pointer_exception_test: Fail # Uncaught error: Instance of 'TypeError'
 string_interpolate_npe_test: Fail # Uncaught error: Instance of 'TypeError'
-
-
-[ $compiler == dart2js && $system == windows ]
-function_type_alias6_test: Fail # Test runner bug: this is a crash.

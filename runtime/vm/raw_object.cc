@@ -33,12 +33,13 @@ void RawObject::Validate(Isolate* isolate) const {
 
 
 intptr_t RawObject::SizeFromClass() const {
-  NoHandleScope no_handles(Isolate::Current());
+  Isolate* isolate = Isolate::Current();
+  NoHandleScope no_handles(isolate);
 
   // Only reasonable to be called on heap objects.
   ASSERT(IsHeapObject());
 
-  RawClass* raw_class = Isolate::Current()->class_table()->At(GetClassId());
+  RawClass* raw_class = isolate->class_table()->At(GetClassId());
   intptr_t instance_size = raw_class->ptr()->instance_size_;
   ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
 

@@ -242,6 +242,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void withPrecedence(int precedence, void action()) {
+    int oldPrecedence = expectedPrecedence;
+    beginExpression(precedence);
+    expectedPrecedence = precedence;
+    action();
+    expectedPrecedence = oldPrecedence;
+    endExpression(precedence);
+  }
+
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
     new SsaConditionMerger(generateAtUseSite,
@@ -1169,13 +1178,52 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  void emitIdentityComparison(HInstruction left, HInstruction right) {
+    HType leftType = left.propagatedType;
+    HType rightType = right.propagatedType;
+    if (leftType.canBeNull() && rightType.canBeNull()) {
+      if (left.isConstantNull() || right.isConstantNull() ||
+          (leftType.isPrimitive() && leftType == rightType)) {
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(' == ');
+        use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      } else {
+        assert(NullConstant.JsNull == 'null');
+        withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
+          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' == null');
+          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' ? ');
+          this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
+          withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
+            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(' == null');
+            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(" : ");
+            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(' === ');
+            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          });
+        });
+      }
+    } else {
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' === ');
+      use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    }
+  }
+
   visitEquals(HEquals node) {
     if (node.builtin) {
-      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      use(node.left, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' === ');
-      use(node.right, JSPrecedence.RELATIONAL_PRECEDENCE);
-      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      emitIdentityComparison(node.left, node.right);
     } else if (node.element === equalsNullElement ||
                node.element === boolifiedEqualsNullElement) {
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -1187,6 +1235,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       visitInvokeStatic(node);
     }
+  }
+
+  visitIdentity(HIdentity node) {
+    assert(node.builtin);
+    emitIdentityComparison(node.left, node.right);
   }
 
   visitAdd(HAdd node)               => visitInvokeBinary(node, '+');
@@ -1207,7 +1260,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitNegate(HNegate node)         => visitInvokeUnary(node, '-');
 
-  visitIdentity(HIdentity node)         => visitInvokeBinary(node, '===');
   visitLess(HLess node)                 => visitInvokeBinary(node, '<');
   visitLessEqual(HLessEqual node)       => visitInvokeBinary(node, '<=');
   visitGreater(HGreater node)           => visitInvokeBinary(node, '>');
@@ -1664,7 +1716,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(compiler.namer.closureInvocationName(node.selector));
     visitArguments(node.inputs);
     // TODO(floitsch): we should have a separate list for closure invocations.
-    world.registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME,
+    world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
                                     node.selector);
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
@@ -1723,6 +1775,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
+    if (work.element.isGenerativeConstructorBody() &&
+        node.element.enclosingElement.isClass() &&
+        node.value.hasGuaranteedType() &&
+        node.block.dominates(currentGraph.exit)) {
+      backend.updateFieldConstructorSetters(node.element,
+                                            node.value.guaranteedType);
+    }
     String name = compiler.namer.getName(node.element);
     beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
@@ -1730,9 +1789,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(name);
     Type type = node.receiver.propagatedType.computeType(compiler);
     if (type != null) {
-      world.registerFieldSetter(node.element.name,
-                                type,
-                                node.value.isInteger());
+      world.registerFieldSetter(node.element.name, type);
+      backend.updateFieldIntegerSetters(node.element,
+                                        node.value.isInteger());
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -1767,16 +1826,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitForeignNew(HForeignNew node) {
-    var i = 0;
+    int j = 0;
     node.element.forEachInstanceField(
       includeBackendMembers: true,
       includeSuperMembers: true,
       f: (ClassElement enclosingClass, Element member) {
-        world.registerFieldInitializer(member.name,
-                                       enclosingClass.computeType(compiler),
-                                       node.inputs[i].isInteger());
-
-        i++;
+        backend.updateFieldInitializers(member,
+                                        node.inputs[j].propagatedType);
+        j++;
       });
     String jsClassReference = compiler.namer.isolateAccess(node.element);
     beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
@@ -2225,11 +2282,35 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkObject(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add('typeof ');
-    use(input, JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(" $cmp 'object'");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    assert(NullConstant.JsNull == 'null');
+    if (cmp == "===") {
+      withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add('typeof ');
+        use(input, JSPrecedence.PREFIX_PRECEDENCE);
+        buffer.add(" === 'object'");
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(" && ");
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        use(input, JSPrecedence.PREFIX_PRECEDENCE);
+        buffer.add(" !== null");
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      });
+    } else {
+      assert(cmp == "!==");
+      withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add('typeof ');
+        use(input, JSPrecedence.PREFIX_PRECEDENCE);
+        buffer.add(" !== 'object'");
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(" || ");
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        use(input, JSPrecedence.PREFIX_PRECEDENCE);
+        buffer.add(" === null");
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      });
+    }
   }
 
   void checkArray(HInstruction input, String cmp) {
@@ -2265,24 +2346,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void checkNull(HInstruction input) {
     beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     use(input, JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(" === (void 0)");
+    buffer.add(" == null");
     endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
   }
 
   void checkFunction(HInstruction input, Element element) {
-    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add('typeof ');
-    use(input, JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(" === 'function'");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(" || ");
-    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-    checkObject(input, '===');
-    buffer.add(" && ");
-    checkType(input, element);
-    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add('typeof ');
+      use(input, JSPrecedence.PREFIX_PRECEDENCE);
+      buffer.add(" === 'function'");
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(" || ");
+      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      checkObject(input, '===');
+      buffer.add(" && ");
+      checkType(input, element);
+      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    });
   }
 
   void checkType(HInstruction input, Element element, [bool negative = false]) {
@@ -2309,15 +2390,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // would need to check for List too.
     assert(element !== compiler.listClass
            && !Elements.isListSupertype(element, compiler));
-    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
-    checkString(input, '===');
-    buffer.add(' || ');
-    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-    checkObject(input, '===');
-    buffer.add(' && ');
-    checkType(input, element);
-    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
+      checkString(input, '===');
+      buffer.add(' || ');
+      withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
+        checkObject(input, '===');
+        buffer.add(' && ');
+        checkType(input, element);
+      });
+    });
   }
 
   void handleListOrSupertypeCheck(HInstruction input, Element element) {
@@ -2349,8 +2430,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
+    int oldPrecedence;
     if (node.nullOk) {
+      oldPrecedence = expectedPrecedence;
       beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+      expectedPrecedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
       checkNull(input);
       buffer.add(' || ');
     }
@@ -2404,6 +2488,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       });
     }
     if (node.nullOk) {
+      expectedPrecedence = oldPrecedence;
       endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
     }
   }

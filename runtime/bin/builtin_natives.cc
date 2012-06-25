@@ -139,17 +139,16 @@ void FUNCTION_NAME(Exit)(Dart_NativeArguments args) {
 }
 
 
-void Builtin::SetNativeResolver(Builtin::BuiltinLibraryId id) {
-  Dart_Handle url;
-  if (id == Builtin::kBuiltinLibrary) {
-    url = Dart_NewString(DartUtils::kBuiltinLibURL);
-  } else {
-    ASSERT(id == Builtin::kIOLibrary);
-    url = Dart_NewString(DartUtils::kIOLibURL);
-  }
-  Dart_Handle builtin_lib = Dart_LookupLibrary(url);
-  DART_CHECK_VALID(builtin_lib);
-  // Setup the native resolver for built in library functions.
-  Dart_Handle result = Dart_SetNativeResolver(builtin_lib, NativeLookup);
-  DART_CHECK_VALID(result);
+void Builtin::SetupIOLibrary(Dart_Handle io_lib) {
+  Dart_Handle url = Dart_NewString(DartUtils::kIsolateLibURL);
+  DART_CHECK_VALID(url);
+  Dart_Handle isolate_lib = Dart_LookupLibrary(url);
+  DART_CHECK_VALID(isolate_lib);
+  Dart_Handle timer_closure =
+      Dart_Invoke(io_lib, Dart_NewString("_getTimerFactoryClosure"), 0, NULL);
+  Dart_Handle args[1];
+  args[0] = timer_closure;
+  DART_CHECK_VALID(Dart_Invoke(isolate_lib,
+                               Dart_NewString("_setTimerFactoryClosure"),
+                               1, args));
 }

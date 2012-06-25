@@ -8,45 +8,41 @@
  * method.
  */
 class Collections {
-  static void forEach(Iterable<Object> iterable, void f(Object o)) {
+  static void forEach(Iterable iterable, void f(o)) {
     for (final e in iterable) {
       f(e);
     }
   }
 
-  static bool some(Iterable<Object> iterable, bool f(Object o)) {
+  static bool some(Iterable iterable, bool f(o)) {
     for (final e in iterable) {
       if (f(e)) return true;
     }
     return false;
   }
 
-  static bool every(Iterable<Object> iterable, bool f(Object o)) {
+  static bool every(Iterable iterable, bool f(o)) {
     for (final e in iterable) {
       if (!f(e)) return false;
     }
     return true;
   }
 
-  static List<Object> map(Iterable<Object> source,
-                          List<Object> destination,
-                          f(Object o)) {
+  static List map(Iterable source, List destination, f(o)) {
     for (final e in source) {
       destination.add(f(e));
     }
     return destination;
   }
 
-  static List<Object> filter(Iterable<Object> source,
-                             List<Object> destination,
-                             bool f(Object o)) {
+  static List filter(Iterable source, List destination, bool f(o)) {
     for (final e in source) {
       if (f(e)) destination.add(e);
     }
     return destination;
   }
 
-  static bool isEmpty(Iterable<Object> iterable) {
+  static bool isEmpty(Iterable iterable) {
     return !iterable.iterator().hasNext();
   }
 

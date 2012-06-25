@@ -7689,7 +7689,7 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBRequestImpl count([key_OR_range = null]) native;
 
-  _IDBIndexImpl createIndex(String name, String keyPath, [Map options = null]) native;
+  _IDBIndexImpl createIndex(String name, keyPath, [Map options = null]) native;
 
   _IDBRequestImpl delete(key_OR_keyRange) native;
 
@@ -16013,7 +16013,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   _WebGLActiveInfoImpl getActiveUniform(_WebGLProgramImpl program, int index) native;
 
-  List getAttachedShaders(_WebGLProgramImpl program) native;
+  List<Object> getAttachedShaders(_WebGLProgramImpl program) native;
 
   int getAttribLocation(_WebGLProgramImpl program, String name) native;
 
@@ -16042,6 +16042,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   _WebGLShaderPrecisionFormatImpl getShaderPrecisionFormat(int shadertype, int precisiontype) native;
 
   String getShaderSource(_WebGLShaderImpl shader) native;
+
+  List<String> getSupportedExtensions() native;
 
   Object getTexParameter(int target, int pname) native;
 
@@ -16341,6 +16343,17 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   // Override top to return secure wrapper.
   Window get top() => _DOMWindowCrossFrameImpl._createSafe(_top);
 
+  Window _open2(url, name) native "return this.open(url, name);";
+
+  Window _open3(url, name, options) native "return this.open(url, name, options);";
+
+  Window open(String url, String name, [String options]) {
+    if (options == null) {
+      return _DOMWindowCrossFrameImpl._createSafe(_open2(url, name));
+    } else {
+      return _DOMWindowCrossFrameImpl._createSafe(_open3(url, name, options));
+    }
+  }
 
   // API level getter and setter for Location.
   // TODO: The cross domain safe wrapper can be inserted here or folded into
@@ -16574,8 +16587,6 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   void moveBy(num x, num y) native;
 
   void moveTo(num x, num y) native;
-
-  _WindowImpl open(String url, String name, [String options = null]) native;
 
   _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
 
@@ -17546,8 +17557,9 @@ class _SessionDescriptionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _ShadowRootFactoryProvider {
-  factory ShadowRoot(Element host) native
-      '''return new ShadowRoot(host);''';
+  factory ShadowRoot(Element host) native '''
+      return new WebKitShadowRoot(host);
+    ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -24927,7 +24939,7 @@ interface IDBObjectStore {
   IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, String keyPath, [Map options]);
+  IDBIndex createIndex(String name, keyPath, [Map options]);
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange);
@@ -34472,7 +34484,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
   /** @domName WebGLRenderingContext.getAttachedShaders */
-  List getAttachedShaders(WebGLProgram program);
+  List<Object> getAttachedShaders(WebGLProgram program);
 
   /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
@@ -34515,6 +34527,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   /** @domName WebGLRenderingContext.getShaderSource */
   String getShaderSource(WebGLShader shader);
+
+  /** @domName WebGLRenderingContext.getSupportedExtensions */
+  List<String> getSupportedExtensions();
 
   /** @domName WebGLRenderingContext.getTexParameter */
   Object getTexParameter(int target, int pname);
@@ -36869,18 +36884,29 @@ class _DOMWindowCrossFrameImpl implements Window {
   // Fields.
   // TODO(vsm): Implement history and location getters.
 
-  bool get closed() => _window.closed;
-  int get length() => _window.length;
-  Window get opener() => _createSafe(_window.opener);
-  Window get parent() => _createSafe(_window.parent);
-  Window get top() => _createSafe(_window.top);
+  // TODO(vsm): Add frames to navigate subframes.  See 2312.
+
+  bool get closed() => _closed(_window);
+  static bool _closed(win) native "return win.closed;";
+
+  Window get opener() => _createSafe(_opener(_window));
+  static Window _opener(win) native "return win.opener;";
+
+  Window get parent() => _createSafe(_parent(_window));
+  static Window _parent(win) native "return win.parent;";
+
+  Window get top() => _createSafe(_top(_window));
+  static Window _top(win) native "return win.top;";
 
   // Methods.
-  void focus() => _window.focus();
+  void focus() => _focus(_window);
+  static void _focus(win) native "win.focus()";
 
-  void blur() => _window.blur();
+  void blur() => _blur(_window);
+  static void _blur(win) native "win.blur()";
 
-  void close() => _window.close();
+  void close() => _close(_window);
+  static void _close(win) native "win.close()";
 
   void postMessage(Dynamic message,
                    String targetOrigin,

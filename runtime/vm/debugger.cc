@@ -41,16 +41,16 @@ class RemoteObjectCache : public ZoneAllocated {
 
 SourceBreakpoint::SourceBreakpoint(intptr_t id,
                                    const Function& func,
-                                   intptr_t token_index)
+                                   intptr_t token_pos)
     : id_(id),
       function_(func.raw()),
-      token_index_(token_index),
+      token_pos_(token_pos),
       line_number_(-1),
       is_enabled_(false),
       next_(NULL) {
   ASSERT(!func.IsNull());
-  ASSERT((func.token_index() <= token_index_) &&
-         (token_index_ < func.end_token_index()));
+  ASSERT((func.token_pos() <= token_pos_) &&
+         (token_pos_ < func.end_token_pos()));
 }
 
 
@@ -84,7 +84,7 @@ intptr_t SourceBreakpoint::LineNumber() {
   if (line_number_ < 0) {
     const Script& script = Script::Handle(SourceCode());
     intptr_t ignore_column;
-    script.GetTokenLocation(token_index_, &line_number_, &ignore_column);
+    script.GetTokenLocation(token_pos_, &line_number_, &ignore_column);
   }
   return line_number_;
 }
@@ -111,7 +111,7 @@ ActivationFrame::ActivationFrame(uword pc, uword fp, uword sp,
     : pc_(pc), fp_(fp), sp_(sp),
       ctx_(Context::ZoneHandle(ctx.raw())),
       function_(Function::ZoneHandle()),
-      token_index_(-1),
+      token_pos_(-1),
       pc_desc_index_(-1),
       line_number_(-1),
       context_level_(-1),
@@ -185,20 +185,20 @@ void ActivationFrame::GetPcDescriptors() {
 }
 
 
-// Compute token_index_ and pc_desc_index_.
+// Compute token_pos_ and pc_desc_index_.
 intptr_t ActivationFrame::TokenIndex() {
-  if (token_index_ < 0) {
+  if (token_pos_ < 0) {
     GetPcDescriptors();
     for (int i = 0; i < pc_desc_.Length(); i++) {
       if (pc_desc_.PC(i) == pc_) {
         pc_desc_index_ = i;
-        token_index_ = pc_desc_.TokenIndex(i);
+        token_pos_ = pc_desc_.TokenIndex(i);
         break;
       }
     }
-    ASSERT(token_index_ >= 0);
+    ASSERT(token_pos_ >= 0);
   }
-  return token_index_;
+  return token_pos_;
 }
 
 
@@ -455,8 +455,8 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   ASSERT(!code.IsNull());  // Function must be compiled.
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
-  token_index_ = desc.TokenIndex(pc_desc_index);
-  ASSERT(token_index_ >= 0);
+  token_pos_ = desc.TokenIndex(pc_desc_index);
+  ASSERT(token_pos_ >= 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
   breakpoint_kind_ = desc.DescriptorKind(pc_desc_index);
@@ -498,7 +498,7 @@ intptr_t CodeBreakpoint::LineNumber() {
   if (line_number_ < 0) {
     const Script& script = Script::Handle(SourceCode());
     intptr_t ignore_column;
-    script.GetTokenLocation(token_index_, &line_number_, &ignore_column);
+    script.GetTokenLocation(token_pos_, &line_number_, &ignore_column);
   }
   return line_number_;
 }
@@ -638,7 +638,9 @@ bool Debugger::IsActive() {
   // This is probably not conservative enough (we could set the first
   // breakpoint after optimized code has already been produced).
   // Long-term, we need to be able to de-optimize code.
-  return (src_breakpoints_ != NULL) || (code_breakpoints_ != NULL);
+  return (src_breakpoints_ != NULL) ||
+         (code_breakpoints_ != NULL) ||
+         (exc_pause_info_ != kNoPauseOnExceptions);
 }
 
 
@@ -754,6 +756,9 @@ DebuggerStackTrace* Debugger::CollectStackTrace() {
 
 
 void Debugger::SetExceptionPauseInfo(Dart_ExceptionPauseInfo pause_info) {
+  ASSERT((pause_info == kNoPauseOnExceptions) ||
+         (pause_info == kPauseOnUnhandledExceptions) ||
+         (pause_info == kPauseOnAllExceptions));
   exc_pause_info_ = pause_info;
 }
 
@@ -783,7 +788,9 @@ bool Debugger::ShouldPauseOnException(DebuggerStackTrace* stack_trace,
 
 
 void Debugger::SignalExceptionThrown(const Object& exc) {
-  if (ignore_breakpoints_ || (event_handler_ == NULL)) {
+  if (ignore_breakpoints_ ||
+      (event_handler_ == NULL) ||
+      (exc_pause_info_ == kNoPauseOnExceptions)) {
     return;
   }
   DebuggerStackTrace* stack_trace = CollectStackTrace();
@@ -807,7 +814,7 @@ void Debugger::SignalExceptionThrown(const Object& exc) {
 
 
 CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
-                                             intptr_t token_index) {
+                                             intptr_t token_pos) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
@@ -816,16 +823,16 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   intptr_t best_fit_index = -1;
   intptr_t best_fit = INT_MAX;
   for (int i = 0; i < desc.Length(); i++) {
-    intptr_t desc_token_index = desc.TokenIndex(i);
-    if (desc_token_index < token_index) {
+    intptr_t desc_token_pos = desc.TokenIndex(i);
+    if (desc_token_pos < token_pos) {
       continue;
     }
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
         (kind == PcDescriptors::kReturn)) {
-      if ((desc_token_index - token_index) < best_fit) {
-        best_fit = desc_token_index - token_index;
+      if ((desc_token_pos - token_pos) < best_fit) {
+        best_fit = desc_token_pos - token_pos;
         ASSERT(best_fit >= 0);
         best_fit_index = i;
       }
@@ -857,30 +864,29 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
 
 
 SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
-                                          intptr_t token_index) {
-  if ((token_index < target_function.token_index()) ||
-      (target_function.end_token_index() <= token_index)) {
+                                          intptr_t token_pos) {
+  if ((token_pos < target_function.token_pos()) ||
+      (target_function.end_token_pos() <= token_pos)) {
     // The given token position is not within the target function.
     return NULL;
   }
   EnsureFunctionIsDeoptimized(target_function);
-  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_index);
+  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_pos);
   if (bpt != NULL) {
     // A breakpoint for this location already exists, return it.
     return bpt;
   }
-  bpt = new SourceBreakpoint(nextId(), target_function, token_index);
+  bpt = new SourceBreakpoint(nextId(), target_function, token_pos);
   RegisterSourceBreakpoint(bpt);
   if (verbose && !target_function.HasCode()) {
-    OS::Print("Registering breakpoint for uncompiled function '%s'"
-              " (%s:%d)\n",
-              String::Handle(target_function.name()).ToCString(),
-              String::Handle(bpt->SourceUrl()).ToCString(),
+    OS::Print("Registering breakpoint for "
+              "uncompiled function '%s' at line %d\n",
+              target_function.ToFullyQualifiedCString(),
               bpt->LineNumber());
   }
 
   if (target_function.HasCode()) {
-    CodeBreakpoint* cbpt = MakeCodeBreakpoint(target_function, token_index);
+    CodeBreakpoint* cbpt = MakeCodeBreakpoint(target_function, token_pos);
     if (cbpt != NULL) {
       ASSERT(cbpt->src_bpt() == NULL);
       cbpt->set_src_bpt(bpt);
@@ -918,7 +924,7 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 SourceBreakpoint* Debugger::SetBreakpointAtEntry(
       const Function& target_function) {
   ASSERT(!target_function.IsNull());
-  return SetBreakpoint(target_function, target_function.token_index());
+  return SetBreakpoint(target_function, target_function.token_pos());
 }
 
 
@@ -942,8 +948,8 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
     return NULL;
   }
-  intptr_t token_index_at_line = script.TokenIndexAtLine(line_number);
-  if (token_index_at_line < 0) {
+  intptr_t token_pos_at_line = script.TokenIndexAtLine(line_number);
+  if (token_pos_at_line < 0) {
     // Script does not contain the given line number.
     if (verbose) {
       OS::Print("Script '%s' does not contain line number %d\n",
@@ -952,7 +958,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     return NULL;
   }
   const Function& func =
-      Function::Handle(lib.LookupFunctionInScript(script, token_index_at_line));
+      Function::Handle(lib.LookupFunctionInScript(script, token_pos_at_line));
   if (func.IsNull()) {
     if (verbose) {
       OS::Print("No executable code at line %d in '%s'\n",
@@ -960,7 +966,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
     return NULL;
   }
-  return SetBreakpoint(func, token_index_at_line);
+  return SetBreakpoint(func, token_pos_at_line);
 }
 
 
@@ -1284,7 +1290,8 @@ void Debugger::SignalBpReached() {
     }
   }
 
-  if (func_to_instrument.raw() != currently_instrumented_func.raw()) {
+  if (func_to_instrument.IsNull() ||
+      (func_to_instrument.raw() != currently_instrumented_func.raw())) {
     last_bpt_line_ = -1;
     RemoveInternalBreakpoints();  // *bpt is now invalid.
     if (!func_to_instrument.IsNull()) {
@@ -1326,11 +1333,11 @@ void Debugger::NotifyCompilation(const Function& func) {
       // within the newly compiled function.
       Class& owner = Class::Handle(lookup_function.owner());
       Function& closure =
-          Function::Handle(owner.LookupClosureFunction(bpt->token_index()));
+          Function::Handle(owner.LookupClosureFunction(bpt->token_pos()));
       if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {
         if (verbose) {
           OS::Print("Resetting pending breakpoint to function %s\n",
-                    String::Handle(closure.name()).ToCString());
+                    closure.ToFullyQualifiedCString());
         }
         bpt->set_function(closure);
       } else {
@@ -1339,7 +1346,7 @@ void Debugger::NotifyCompilation(const Function& func) {
                     String::Handle(lookup_function.name()).ToCString());
         }
         // Set breakpoint in newly compiled code of function func.
-        CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_index());
+        CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_pos());
         if (cbpt != NULL) {
           cbpt->set_src_bpt(bpt);
           SignalBpResolved(bpt);
@@ -1432,11 +1439,11 @@ void Debugger::RemoveInternalBreakpoints() {
 
 
 SourceBreakpoint* Debugger::GetSourceBreakpoint(const Function& func,
-                                                intptr_t token_index) {
+                                                intptr_t token_pos) {
   SourceBreakpoint* bpt = src_breakpoints_;
   while (bpt != NULL) {
     if ((bpt->function() == func.raw()) &&
-        (bpt->token_index() == token_index)) {
+        (bpt->token_pos() == token_pos)) {
       return bpt;
     }
     bpt = bpt->next();

@@ -43,28 +43,32 @@ class _SomeElement extends _CollectionMatcher {
 /**
  * Returns a matcher which matches [Iterable]s that have the same
  * length and the same elements as [expected], and in the same order.
+ * This is equivalent to equals but does not recurse.
  */
+
 Matcher orderedEquals(Iterable expected) => new _OrderedEquals(expected);
 
 class _OrderedEquals extends BaseMatcher {
-  Iterable _expected;
+  final Iterable _expected;
+  Matcher _matcher;
 
-  _OrderedEquals(this._expected);
-
-  String _test(item) {
-    return _compareIterables(_expected, item,
-      (expected, actual, location) => expected == actual? null : location);
+  _OrderedEquals(this._expected) {
+    _matcher = equals(_expected, 1);
   }
 
-  bool matches(item) => (_test(item) == null);
+  bool matches(item) => (item is Iterable) && _matcher.matches(item);
 
   Description describe(Description description) =>
       description.add('equals ').addDescriptionOf(_expected).add(' ordered');
 
-  Description describeMismatch(item, Description mismatchDescription) =>
-      mismatchDescription.add(_test(item));
+  Description describeMismatch(item, Description mismatchDescription) {
+    if (item is !Iterable) {
+      return mismatchDescription.add('not an Iterable');
+    } else {
+      return _matcher.describeMismatch(item, mismatchDescription);
+    }
+  }
 }
-
 /**
  * Returns a matcher which matches [Iterable]s that have the same
  * length and the same elements as [expected], but not necessarily in
@@ -124,8 +128,11 @@ class _UnorderedEquals extends BaseMatcher {
         ++actualPosition;
       }
       if (!gotMatch) {
-        return 'has no match for element ${expectedElement} '
-               'at position ${expectedPosition}';
+        Description reason = new StringDescription();
+        reason.add('has no match for element ').
+            addDescriptionOf(expectedElement).
+            add(' at position ${expectedPosition}');
+        return reason.toString();
       }
       ++expectedPosition;
     }
@@ -145,8 +152,7 @@ class _UnorderedEquals extends BaseMatcher {
  * Collection matchers match against [Collection]s. We add this intermediate
  * class to give better mismatch error messages than the base Matcher class.
  */
-
-/*abstract*/ class _CollectionMatcher extends BaseMatcher {
+/* abstract */ class _CollectionMatcher extends BaseMatcher {
   const _CollectionMatcher();
   Description describeMismatch(item, Description mismatchDescription) {
     if (item is !Collection) {

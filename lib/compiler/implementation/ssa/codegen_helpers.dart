@@ -39,13 +39,24 @@ class SsaInstructionMerger extends HBaseVisitor {
   // set generate at use site.
   void visitIs(HIs instruction) {}
 
-  // A check method must not have its input generate at use site,
+  // A check method must not have its input generated at use site,
   // because it's using it multiple times.
   void visitCheck(HCheck instruction) {}
 
   // A type guard should not generate its input at use site, otherwise
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
+
+  // If an equality operation is builtin it must not have its input generated at
+  // use site, because it's using it multiple times (because of null/undefined).
+  void visitEquals(HEquals instruction) {
+    if (!instruction.builtin) super.visitEquals(instruction);
+    // Otherwise do nothing.
+  }
+
+  // Identity operations must not have its input generated at use site, because
+  // it's using it multiple times (because of null/undefined).
+  void visitIdentity(HIdentity instruction) {}
 
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked()) {
@@ -221,7 +232,7 @@ class SsaConditionMerger extends HGraphVisitor {
     while (thenBlock.successors[0] != end && thenBlock.first is HGoto) {
       thenBlock = thenBlock.successors[0];
     }
-    
+
     // If the [thenBlock] is already a control flow operation, and does not
     // have any statement and its join block is [end], we can emit a
     // sequence of control flow operation.
@@ -234,7 +245,7 @@ class SsaConditionMerger extends HGraphVisitor {
       if (hasAnyStatement(thenBlock, thenInput)) return;
       assert(thenBlock.successors.length == 1);
     }
-     
+
     // From now on, we have recognized a control flow operation built from
     // the builder. Mark the if instruction as such.
     controlFlowOperators.add(startIf);

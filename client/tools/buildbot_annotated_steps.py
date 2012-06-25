@@ -151,12 +151,13 @@ def main():
 
   #TODO(sigmund): remove this indirection once we update our bots
   (name, version) = GetBuildInfo()
-  # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
-  # root directory, set JAVA_HOME based on that.
-  FixJavaHome()
   if name.startswith('dart-editor'):
+    # TODO (danrubel) Fix dart-editor builds so that we can call FixJavaHome() before the build
     status = ProcessTools('release', name, version)
   else:
+    # The buildbot will set a BUILDBOT_JAVA_HOME relative to the dart
+    # root directory, set JAVA_HOME based on that.
+    FixJavaHome()
     status = ProcessCompiler(name)
 
   if status:

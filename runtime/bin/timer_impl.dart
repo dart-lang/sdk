@@ -186,3 +186,15 @@ class _Timer implements Timer {
   bool _repeating;
 }
 
+// Provide a closure which will allocate a Timer object to be able to hook
+// up the Timer interface in dart:isolate with the implementation here.
+_getTimerFactoryClosure() {
+  return (int milliSeconds, void callback(Timer timer), bool repeating) {
+    if (repeating) {
+      return new _Timer.repeating(milliSeconds, callback);
+    }
+    return new _Timer(milliSeconds, callback);
+  };
+}
+
+

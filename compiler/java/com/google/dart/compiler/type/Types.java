@@ -152,7 +152,7 @@ public class Types {
     }
   }
 
-  FunctionType asFunctionType(FunctionAliasType alias) {
+  static FunctionType asFunctionType(FunctionAliasType alias) {
     FunctionAliasElement element = alias.getElement();
     FunctionType type =
         (FunctionType) element.getFunctionType().subst(alias.getArguments(),

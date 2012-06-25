@@ -381,12 +381,12 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   intptr_t in_use_before = in_use_;
   in_use_ = in_use;
 
+  int64_t end = OS::GetCurrentTimeMillis();
   timer.Stop();
 
   // Record signals for growth control.
-  int64_t elapsed = timer.TotalElapsedTime() * kMicrosecondsPerMillisecond;
   page_space_controller_.EvaluateGarbageCollection(in_use_before, in_use,
-                                                   start, start + elapsed);
+                                                   start, end);
 
   if (FLAG_verbose_gc) {
     const intptr_t KB2 = KB / 2;
@@ -450,11 +450,32 @@ void PageSpaceController::EvaluateGarbageCollection(
   int collected_garbage_ratio =
       static_cast<int>((static_cast<double>(in_use_before - in_use_after) /
                         static_cast<double>(in_use_before)) * 100);
-  if ((collected_garbage_ratio > heap_growth_ratio_) &&
-      (history_.GarbageCollectionTimeFraction() <
-       garbage_collection_time_ratio_)) {
+  bool enough_free_space =
+      (collected_garbage_ratio >= heap_growth_ratio_);
+  int garbage_collection_time_fraction =
+      history_.GarbageCollectionTimeFraction();
+  bool enough_free_time =
+      (garbage_collection_time_fraction <= garbage_collection_time_ratio_);
+  if (enough_free_space && enough_free_time) {
     grow_heap_ = 0;
   } else {
+    if (FLAG_verbose_gc) {
+      OS::PrintErr("PageSpaceController: ");
+      if (!enough_free_space) {
+        OS::PrintErr("free space %d%% < %d%%",
+                     collected_garbage_ratio,
+                     heap_growth_ratio_);
+      }
+      if (!enough_free_space && !enough_free_time) {
+        OS::PrintErr(", ");
+      }
+      if (!enough_free_time) {
+        OS::PrintErr("garbage collection time %d%% > %d%%",
+                     garbage_collection_time_fraction,
+                     garbage_collection_time_ratio_);
+      }
+      OS::PrintErr("\n");
+    }
     grow_heap_ = heap_growth_rate_;
   }
 }
@@ -462,7 +483,7 @@ void PageSpaceController::EvaluateGarbageCollection(
 
 PageSpaceGarbageCollectionHistory::PageSpaceGarbageCollectionHistory()
     : index_(0) {
-  for (uint32_t i = 0; i < kHistoryLength; i++) {
+  for (intptr_t i = 0; i < kHistoryLength; i++) {
     start_[i] = 0;
     end_[i] = 0;
   }
@@ -470,7 +491,7 @@ PageSpaceGarbageCollectionHistory::PageSpaceGarbageCollectionHistory()
 
 
 void PageSpaceGarbageCollectionHistory::
-    AddGarbageCollectionTime(uint64_t start, uint64_t end) {
+    AddGarbageCollectionTime(int64_t start, int64_t end) {
   int index = index_ % kHistoryLength;
   start_[index] = start;
   end_[index] = end;
@@ -481,9 +502,9 @@ void PageSpaceGarbageCollectionHistory::
 int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
   int current;
   int previous;
-  uint64_t gc_time = 0;
-  uint64_t total_time = 0;
-  for (uint32_t i = 1; i < kHistoryLength; i++) {
+  int64_t gc_time = 0;
+  int64_t total_time = 0;
+  for (intptr_t i = 1; i < kHistoryLength; i++) {
     current = (index_ - i) % kHistoryLength;
     previous = (index_ - 1 - i) % kHistoryLength;
     if (end_[previous] == 0) {
@@ -496,8 +517,10 @@ int PageSpaceGarbageCollectionHistory::GarbageCollectionTimeFraction() {
   if (total_time == 0) {
     return 0;
   } else {
-    return static_cast<int>((static_cast<double>(gc_time) /
-                             static_cast<double>(total_time))*100);
+    ASSERT(total_time >= gc_time);
+    int result= static_cast<int>((static_cast<double>(gc_time) /
+                             static_cast<double>(total_time)) * 100);
+    return result;
   }
 }
 

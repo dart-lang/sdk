@@ -53,7 +53,6 @@
 // #source('../../../../runtime/bin/stdio.dart');
 #source('../../../../runtime/bin/stream_util.dart');
 #source('../../../../runtime/bin/string_stream.dart');
-#source('../../../../runtime/bin/timer.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
 #source('../../../../runtime/bin/websocket.dart');
 #source('../../../../runtime/bin/websocket_impl.dart');
@@ -61,6 +60,10 @@
 class _File {
   factory File(arg) {
     throw new UnsupportedOperationException('new File($arg)');
+  }
+
+  factory File.fromPath(arg) {
+    throw new UnsupportedOperationException('new File.fromPath($arg)');
   }
 }
 
@@ -89,6 +92,10 @@ class _Platform {
 class _Directory {
   factory Directory(arg) {
     throw new UnsupportedOperationException('new Directory($arg)');
+  }
+
+  factory Directory.fromPath(arg) {
+    throw new UnsupportedOperationException('new Directory.fromPath($arg)');
   }
 
   factory Directory.current() {

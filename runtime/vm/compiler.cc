@@ -13,6 +13,7 @@
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_optimizer.h"
@@ -32,14 +33,9 @@ DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
-#if defined(TARGET_ARCH_X64)
-DEFINE_FLAG(bool, use_new_compiler, true,
-    "Try to use the new compiler backend.");
-#else
-DEFINE_FLAG(bool, use_new_compiler, false,
-    "Try to use the new compiler backend.");
-#endif
+DEFINE_FLAG(bool, use_new_compiler, true, "Use the new compiler backend.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from new compiler.");
+DECLARE_FLAG(bool, use_ssa);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -155,6 +151,7 @@ static bool CompileWithNewCompiler(
     const ParsedFunction& parsed_function, bool optimized) {
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
   const intptr_t prev_cid = isolate->computation_id();
   isolate->set_computation_id(0);
   LongJump* old_base = isolate->long_jump_base();
@@ -198,6 +195,18 @@ static bool CompileWithNewCompiler(
       if (optimized) {
         FlowGraphOptimizer optimizer(block_order);
         optimizer.ApplyICData();
+
+        if (FLAG_use_ssa) {
+          printf("====================================\n");
+          // Perform register allocation on the SSA graph.
+          FlowGraphAllocator allocator(graph_builder.postorder_block_entries(),
+                                       graph_builder.current_ssa_temp_index());
+          allocator.ResolveConstraints();
+          allocator.AnalyzeLiveness();
+
+          // Temporary bailout until we support code generation from SSA form.
+          graph_builder.Bailout("No SSA code generation support.");
+        }
       }
     }
 
@@ -209,7 +218,6 @@ static bool CompileWithNewCompiler(
                        &CompilerStats::graphcompiler_timer,
                        isolate);
       graph_compiler.CompileGraph();
-      isolate->set_ic_data_array(Array::null());
     }
     {
       TimerScope timer(FLAG_compiler_stats,
@@ -247,6 +255,8 @@ static bool CompileWithNewCompiler(
     }
     is_compiled = false;
   }
+  // Reset global isolate state.
+  isolate->set_ic_data_array(Array::null());
   isolate->set_long_jump_base(old_base);
   isolate->set_computation_id(prev_cid);
   return is_compiled;
@@ -366,7 +376,7 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("Compiling %sfunction: '%s' @ token %d\n",
                 (optimized ? "optimized " : ""),
                 function.ToFullyQualifiedCString(),
-                function.token_index());
+                function.token_pos());
     }
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
@@ -534,7 +544,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.
-        fragment->token_index()));
+        fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);

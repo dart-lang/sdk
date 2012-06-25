@@ -770,6 +770,7 @@ class HInstruction implements Hashable {
   bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
   bool isPrimitive() => propagatedType.isPrimitive();
   bool canBePrimitive() => propagatedType.canBePrimitive();
+  bool canBeNull() => propagatedType.canBeNull();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
@@ -1250,8 +1251,6 @@ abstract class HFieldAccess extends HInstruction {
   final Element element;
 
   HFieldAccess(this.element, List<HInstruction> inputs) : super(inputs);
-
-  bool isFromActivation() => element === null;
 }
 
 class HFieldGet extends HFieldAccess {
@@ -1260,7 +1259,6 @@ class HFieldGet extends HFieldAccess {
   HFieldGet(Element element, HInstruction receiver,
             [this.isFinalOrConst = false])
       : super(element, <HInstruction>[receiver]);
-  HFieldGet.fromActivation(receiver) : this(null, receiver);
 
   HInstruction get receiver() => inputs[0];
 
@@ -1279,8 +1277,6 @@ class HFieldGet extends HFieldAccess {
 class HFieldSet extends HFieldAccess {
   HFieldSet(Element element, HInstruction receiver, HInstruction value)
       : super(element, <HInstruction>[receiver, value]);
-  HFieldSet.fromActivation(receiver, value)
-      : this(null, receiver, value);
 
   HInstruction get receiver() => inputs[0];
   HInstruction get value() => inputs[1];
@@ -1386,7 +1382,7 @@ class HBinaryArithmetic extends HInvokeBinary {
   bool get builtin() => left.isNumber() && right.isNumber();
 
   HType computeTypeFromInputTypes() {
-    if (left.isInteger() && right.isInteger()) return left.propagatedType;
+    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
     if (left.isNumber()) {
       if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
       return HType.NUMBER;
@@ -1529,8 +1525,6 @@ class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
-  bool get builtin() => left.isInteger() && right.isInteger();
-
   HType computeTypeFromInputTypes() {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
@@ -1565,7 +1559,7 @@ class HShiftLeft extends HBinaryBitOp {
   // Shift left cannot be mapped to the native operator unless the
   // shift count is guaranteed to be an integer in the [0,31] range.
   bool get builtin() {
-    if (!left.isInteger() || !right.isConstantInteger()) return false;
+    if (!left.isNumber() || !right.isConstantInteger()) return false;
     HConstant rightConstant = right;
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
@@ -1678,8 +1672,6 @@ class HNegate extends HInvokeUnary {
 class HBitNot extends HInvokeUnary {
   HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
-
-  bool get builtin() => operand.isInteger();
 
   HType computeTypeFromInputTypes() {
     // All bitwise operations on primitive types either produce an

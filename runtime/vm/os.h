@@ -57,9 +57,6 @@ class OS {
   // Sleep the currently executing thread for millis ms.
   static void Sleep(int64_t millis);
 
-  // Debug break.
-  static void DebugBreak();
-
   // Print formatted output to stdout/stderr for debugging.
   static void Print(const char* format, ...);
   static void PrintErr(const char* format, ...);

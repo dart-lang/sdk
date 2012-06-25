@@ -80,8 +80,6 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
-    library.define(new ForeignElement(
-        const SourceString('native'), library), compiler);
     library.canUseNative = true;
     if (compiler.jsIndexingBehaviorInterface !== null) {
       library.define(compiler.jsIndexingBehaviorInterface, compiler);
@@ -141,35 +139,21 @@ Token handleNativeClassBody(Listener listener, Token token) {
   return token;
 }
 
-RegExp nativeRedirectionRegExp = const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$');
-
 Token handleNativeFunctionBody(ElementListener listener, Token token) {
   checkAllowedLibrary(listener, token);
   Token begin = token;
-  listener.beginExpressionStatement(token);
-  listener.handleIdentifier(token);
+  listener.beginReturnStatement(token);
   token = token.next;
+  bool hasExpression = false;
   if (token.kind === STRING_TOKEN) {
+    hasExpression = true;
     listener.beginLiteralString(token);
     listener.endLiteralString(0);
-    LiteralString str = listener.popNode();
-    listener.pushNode(new NodeList.singleton(str));
-    listener.endSend(token);
     token = token.next;
-    // If this native method is just redirecting to another method,
-    // we add a return node to match the SSA builder expectations.
-    if (nativeRedirectionRegExp.hasMatch(str.dartString.slowToString())) {
-      listener.endReturnStatement(true, begin, token);
-    } else {
-      listener.endExpressionStatement(token);
-    }
-  } else {
-    listener.pushNode(new NodeList.empty());
-    listener.endSend(token);
-    listener.endReturnStatement(true, begin, token);
   }
-  listener.endFunctionBody(1, begin, token);
+  listener.endReturnStatement(hasExpression, begin, token);
   // TODO(ngeoffray): expect a ';'.
+  // Currently there are method with both native marker and Dart body.
   return token.next;
 }
 
@@ -196,7 +180,7 @@ bool isOverriddenMethod(FunctionElement element,
   return false;
 }
 
-void handleSsaNative(SsaBuilder builder, Send node) {
+void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   Compiler compiler = builder.compiler;
   FunctionElement element = builder.work.element;
   element.setNative();
@@ -215,7 +199,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     builder.add(method);
     builder.push(new HInvokeStatic(Selector.INVOCATION_1,
         <HInstruction>[method, builder.localsHandler.readThis()]));
-    return;
+    builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   }
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
@@ -230,19 +214,16 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     return closure;
   }
 
-
   // Check which pattern this native method follows:
   // 1) foo() native; hasBody = false, isRedirecting = false
   // 2) foo() native "bar"; hasBody = false, isRedirecting = true
   // 3) foo() native "return 42"; hasBody = true, isRedirecting = false
+  RegExp nativeRedirectionRegExp = const RegExp(@'^[a-zA-Z][a-zA-Z_$0-9]*$');
   bool hasBody = false;
   bool isRedirecting = false;
   String nativeMethodName = element.name.slowToString();
-  if (!node.arguments.isEmpty()) {
-    if (!node.arguments.tail.isEmpty()) {
-      builder.compiler.cancel('More than one argument to native');
-    }
-    LiteralString jsCode = node.arguments.head;
+  if (nativeBody !== null) {
+    LiteralString jsCode = nativeBody.asLiteralString();
     String str = jsCode.dartString.slowToString();
     if (nativeRedirectionRegExp.hasMatch(str)) {
       nativeMethodName = str;
@@ -290,6 +271,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
     DartString jsCode = new DartString.literal(nativeMethodCall);
     builder.push(
         new HForeign(jsCode, const LiteralDartString('Object'), inputs));
+    builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   } else {
     // This is JS code written in a Dart file with the construct
     // native """ ... """;. It does not work well with mangling,
@@ -309,7 +291,7 @@ void handleSsaNative(SsaBuilder builder, Send node) {
             <HInstruction>[jsClosure]));
       }
     });
-    LiteralString jsCode = node.arguments.head;
+    LiteralString jsCode = nativeBody.asLiteralString();
     builder.push(new HForeign(jsCode.dartString,
                               const LiteralDartString('Object'),
                               <HInstruction>[]));

@@ -147,6 +147,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
   # Merging:
   builder.merge_imported_interfaces(optional_argument_whitelist)
 
+  builder.fetch_constructor_data(webkit_options)
   builder.fix_displacements('WebKit')
 
   # Cleanup:

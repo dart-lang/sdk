@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
@@ -14,6 +15,28 @@ namespace dart {
 class Isolate;
 class Object;
 class RawObject;
+
+
+#if defined(TESTING) || defined(DEBUG)
+
+#if defined(TARGET_OS_WINDOWS)
+// The compiler may dynamically align the stack on Windows, so do not check.
+#define CHECK_STACK_ALIGNMENT { }
+#else
+#define CHECK_STACK_ALIGNMENT {                                                \
+  uword (*func)() =                                                            \
+      reinterpret_cast<uword (*)()>(StubCode::GetStackPointerEntryPoint());    \
+  uword current_sp = func();                                                   \
+  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
+         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
+}
+#endif
+
+#else
+
+#define CHECK_STACK_ALIGNMENT { }
+
+#endif
 
 
 // Class NativeArguments is used to access arguments passed in from

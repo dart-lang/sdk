@@ -37,7 +37,7 @@ interface StringBuffer default StringBufferImpl {
   /**
    * Adds all items in [objects] to the buffer. Returns [:this:].
    */
-  StringBuffer addAll(Collection<Object> objects);
+  StringBuffer addAll(Collection objects);
 
   /**
    * Clears the string buffer. Returns [:this:].

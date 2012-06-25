@@ -56,13 +56,19 @@ class JavaScriptBackend extends Backend {
   SsaOptimizerTask optimizer;
   SsaCodeGeneratorTask generator;
   CodeEmitterTask emitter;
+  final Map<Element, Map<Element, HType>> fieldInitializers;
+  final Map<Element, Map<Element, HType>> fieldConstructorSetters;
+  final Map<Element, Map<Element, bool>> fieldIntegerSetters;
 
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
 
-  JavaScriptBackend(Compiler compiler)
-      : emitter = new CodeEmitterTask(compiler),
+  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
+      : emitter = new CodeEmitterTask(compiler, generateSourceMap),
+        fieldInitializers = new Map<Element, Map<Element, HType>>(),
+        fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
+        fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -100,6 +106,112 @@ class JavaScriptBackend extends Backend {
 
   void assembleProgram() {
     emitter.assembleProgram();
+  }
+
+  void updateFieldInitializers(Element field, HType propagatedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, HType> fields =
+        fieldInitializers.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
+    if (!fields.containsKey(field)) {
+      fields[field] = propagatedType;
+    } else {
+      fields[field] = fields[field].union(propagatedType);
+    }
+  }
+
+  bool couldHaveFieldSingleTypeInitializers(Element field,
+                                            HType requestedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    // If there is no information on the initializer it might still be
+    // initialized to integers only.
+    if (!fieldInitializers.containsKey(field.enclosingElement)) return true;
+    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
+    HType propagatedType = fields[field];
+    if (propagatedType == null) return true;
+    return propagatedType == requestedType;
+  }
+
+  bool hasFieldSingleTypeInitializers(Element field, HType requestedType) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    if (!fieldInitializers.containsKey(field.enclosingElement)) return false;
+    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
+    HType propagatedType = fields[field];
+    if (propagatedType == null) return false;
+    return propagatedType == requestedType;
+  }
+
+  void updateFieldConstructorSetters(Element field, HType type) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, HType> fields =
+        fieldConstructorSetters.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
+    if (!fields.containsKey(field)) {
+      fields[field] = type;
+    } else {
+      fields[field] = fields[field].union(type);
+    }
+  }
+
+  // Check if this field is set in the constructor body.
+  bool hasConstructorBodyFieldSetter(Element field) {
+    if (!fieldConstructorSetters.containsKey(field.enclosingElement)) {
+      return false;
+    }
+    return fieldConstructorSetters[field.enclosingElement][field] != null;
+  }
+
+  // Provide an optimistic estimate of the type of a field after construction.
+  // This only takes the initializer lists and field assignments in the
+  // constructor body into account. The constructor body might have method calls
+  // that could alter the field.
+  HType optimisticFieldTypeAfterConstruction(Element field) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+
+    if (hasConstructorBodyFieldSetter(field)) {
+      // If there are field setters for this field in some constructor only one
+      // constructor then the type set will be the field type after
+      // construction.
+      if (field.enclosingElement.constructors.length == 1) {
+        return fieldConstructorSetters[field.enclosingElement][field];
+      } else {
+        return HType.UNKNOWN;
+      }
+    } else if (fieldInitializers.containsKey(field.enclosingElement)) {
+      HType type = fieldInitializers[field.enclosingElement][field];
+      return type == null ? HType.UNKNOWN : type;
+    } else {
+      return HType.UNKNOWN;
+    }
+  }
+
+  void updateFieldIntegerSetters(Element field, bool isInteger) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    Map<Element, bool> fields =
+        fieldIntegerSetters.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, bool>());
+    if (!fields.containsKey(field)) {
+      fields[field] = isInteger;
+    } else {
+      fields[field] = fields[field] && isInteger;
+    }
+  }
+
+  // Returns whether nothing but setters setting the field to an integer have
+  // been seen during compilation so far.
+  bool onlyFieldIntegerSettersSoFar(Element field) {
+    assert(field.isField());
+    assert(field.enclosingElement.isClass());
+    if (!fieldIntegerSetters.containsKey(field.enclosingElement)) return true;
+    Map<Element, bool> fields = fieldIntegerSetters[field.enclosingElement];
+    if (!fields.containsKey(field)) return false;
+    return fields[field];
   }
 }
 
@@ -196,7 +308,8 @@ class Compiler implements DiagnosticListener {
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
             bool emitJavascript = true,
-            validateUnparse = false])
+            validateUnparse = false,
+            generateSourceMap = true])
       : libraries = new Map<String, LibraryElement>(),
         world = new World(),
         progress = new Stopwatch.start() {
@@ -210,7 +323,8 @@ class Compiler implements DiagnosticListener {
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
-        new JavaScriptBackend(this) : new dart_backend.DartBackend(this);
+        new JavaScriptBackend(this, generateSourceMap) :
+        new dart_backend.DartBackend(this);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
              unparseValidator, constantHandler, enqueuer];
@@ -548,12 +662,17 @@ class Compiler implements DiagnosticListener {
   }
 
   TreeElements analyze(WorkItem work, Enqueuer world) {
-    if (work.isAnalyzed()) return work.resolutionTree;
+    if (work.isAnalyzed()) {
+      // TODO(ahe): Clean this up and find a better way for adding all resolved
+      // elements.
+      enqueuer.resolution.resolvedElements[work.element] = work.resolutionTree;
+      return work.resolutionTree;
+    }
     if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
       // use it to separate this from the --verbose option.
       if (phase == PHASE_RESOLVING) {
-        log('Resolved ${enqueuer.resolution.resolvedElements.length}'
+        log('Resolved ${enqueuer.resolution.resolvedElements.length} '
             'elements.');
         progress.reset();
       }

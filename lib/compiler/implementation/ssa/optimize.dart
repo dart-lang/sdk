@@ -196,7 +196,17 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     }
 
     if (!input.canBePrimitive() && !node.getter && !node.setter) {
-      return fromInterceptorToDynamicInvocation(node, node.name);
+      bool transformToDynamicInvocation = true;
+      if (input.canBeNull()) {
+        // Check if the method exists on Null. If yes we must not transform
+        // the static interceptor call to a dynamic invocation.
+        // TODO(floitsch): get a list of methods that exist on 'null' and only
+        // bail out on them.
+        transformToDynamicInvocation = false;
+      }
+      if (transformToDynamicInvocation) {
+        return fromInterceptorToDynamicInvocation(node, node.name);
+      }
     }
 
     return node;
@@ -432,7 +442,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
     if (left.propagatedType.isExact()) {
       HBoundedType type = left.propagatedType;
-      Element element = type.lookupMember(Namer.OPERATOR_EQUALS);
+      Element element = type.lookupMember(Elements.OPERATOR_EQUALS);
       if (element !== null) {
         // If the left-hand side is guaranteed to be a non-primitive
         // type and and it defines operator==, we emit a call to that
@@ -1188,6 +1198,41 @@ class SsaProcessRecompileCandidates
     visitDominatorTree(visitee);
   }
 
+  void visitFieldGet(HFieldGet node) {
+    if (!node.element.enclosingElement.isClass()) return;
+    Element field = node.element;
+    HType type = backend.optimisticFieldTypeAfterConstruction(field);
+    switch (compiler.phase) {
+      case Compiler.PHASE_COMPILING:
+        if (!type.isConflicting()) {
+          compiler.enqueuer.codegen.registerRecompilationCandidate(
+              work.element);
+        }
+        break;
+      case Compiler.PHASE_RECOMPILING:
+        if (!type.isConflicting() && !type.isUnknown()) {
+          // Check if optimistic type is based on a setter in the constructor
+          // body.
+          if (backend.hasConstructorBodyFieldSetter(field)) {
+            // There is at least one field setter from the constructor.
+            // TODO(sgjesse): Collect the type for all the field setters so that
+            // this could be a guarenteed type if all field setters have the
+            // same type and there are no invoked setters.
+            node.propagatedType = type;
+          } else {
+            // Optimistic type is based in field initializer list.
+            if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
+                !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+              node.guaranteedType = type;
+            } else {
+              node.propagatedType = type;
+            }
+          }
+        }
+        break;
+    }
+  }
+
   HInstruction visitEquals(HEquals node) {
     // Try to optimize the case where a field which is known to always be an
     // integer is compared with a constant integer literal.
@@ -1196,23 +1241,20 @@ class SsaProcessRecompileCandidates
         node.right.isInteger()) {
       HFieldGet left = node.left;
       HConstant right = node.right;
-      if (left.element != null) {
-        Type type = left.receiver.propagatedType.computeType(compiler);
+      if (left.element != null && left.element.enclosingElement.isClass()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if (compiler.codegenWorld.couldHaveFieldOnlyIntegerSetters(
-                    type, left.element.name) &&
-                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
-                    type, left.element.name)) {
+            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+                backend.couldHaveFieldSingleTypeInitializers(
+                    left.element, HType.INTEGER)) {
               compiler.enqueuer.codegen.registerRecompilationCandidate(
                   work.element);
             }
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (compiler.codegenWorld.hasFieldOnlyIntegerSetters(
-                    type, left.element.name) &&
-                compiler.codegenWorld.hasFieldOnlyIntegerInitializers(
-                    type, left.element.name)) {
+            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+                backend.hasFieldSingleTypeInitializers(
+                    left.element, HType.INTEGER)) {
               if (compiler.codegenWorld.hasInvokedSetter(left.element,
                                                          compiler)) {
                 // If there are invoked setters we don't know for sure that the
@@ -1235,4 +1277,5 @@ class SsaProcessRecompileCandidates
       }
     }
   }
+
 }

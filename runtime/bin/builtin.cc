@@ -17,7 +17,8 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { DartUtils::kUriLibURL,     uri_source_,     false },
   { DartUtils::kCryptoLibURL,  crypto_source_,  false },
   { DartUtils::kIOLibURL,      io_source_,      true  },
-  { DartUtils::kUtfLibURL,     utf_source_,     false }
+  { DartUtils::kUtfLibURL,     utf_source_,     false },
+  { DartUtils::kWebLibURL,     web_source_,     false }
 };
 
 

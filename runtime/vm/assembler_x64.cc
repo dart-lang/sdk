@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -879,6 +879,15 @@ void Assembler::addq(const Address& address, Register reg) {
 }
 
 
+void Assembler::adcl(Register dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  Operand operand(src);
+  EmitOperandREX(dst, operand, REX_NONE);
+  EmitUint8(0x13);
+  EmitOperand(dst & 7, operand);
+}
+
+
 void Assembler::subl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1402,11 +1411,58 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+// Destroys the value register.
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // For the value we are only interested in the new/old bit and the tag bit.
+  andl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  // Shift the tag bit into the carry.
+  shrl(value, Immediate(1));
+  // Add the tag bits together, if the value is not a Smi the addition will
+  // overflow into the next bit, leaving us with a zero low bit.
+  adcl(value, object);
+  // Mask out higher, uninteresting bits which were polluted by dest.
+  andl(value, Immediate(kObjectAlignment - 1));
+  // Compare with the expected bit pattern.
+  cmpl(value, Immediate(
+      (kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
+      kOldObjectAlignmentOffset + kHeapObjectTag));
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
+}
+
+
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
-  // TODO(iposva): Add write barrier.
   movq(dest, value);
+
+  Label done;
+  pushq(value);
+  StoreIntoObjectFilter(object, value, &done);
+  // A store buffer update is required.
+  if (value != RAX) pushq(RAX);
+  leaq(RAX, dest);
+  call(&StubCode::UpdateStoreBufferLabel());
+  if (value != RAX) popq(RAX);
+  Bind(&done);
+  popq(value);
+}
+
+
+void Assembler::StoreIntoObjectNoBarrier(Register object,
+                                         const FieldAddress& dest,
+                                         Register value) {
+  movq(dest, value);
+#if defined(DEBUG)
+  Label done;
+  pushq(value);
+  StoreIntoObjectFilter(object, value, &done);
+  Stop("Store buffer update is required");
+  Bind(&done);
+  popq(value);
+#endif  // defined(DEBUG)
+  // No store buffer update.
 }
 
 

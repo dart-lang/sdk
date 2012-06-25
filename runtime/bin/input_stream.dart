@@ -100,8 +100,7 @@ interface InputStream {
 
 
 /**
- * String encodings supported by [StringInputStream] and
- * [StringOutputStream].
+ * String encodings.
  */
 class Encoding {
   static final Encoding UTF_8 = const Encoding._internal("UTF-8");

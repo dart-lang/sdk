@@ -12,6 +12,7 @@ Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (c
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
 Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 152.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
 Language/10_Expressions/08_Function_Expressions_A01_t05: Skip # issue 1286. (This test may become obsolete)
 Language/10_Expressions/10_Instance_Creation/1_New_A09_t09: Fail # issue 2014 (Evaluation order in ctor initializers)

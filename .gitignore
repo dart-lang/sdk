@@ -11,6 +11,11 @@ xcodebuild
 *.vcproj
 *.sln
 *.ncb
+*.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+.children
+.project
 
 # Generated files
 /samples/third_party/dromaeo/tests/frog/
@@ -44,11 +49,12 @@ ReleaseX64/
 # Not sure what creates this
 fixed_length_file_out
 
-# third_party deps from svn
-third_party/gyp/
-third_party/v8/
-third_party/closure_compiler_src/
-tests/co19/src/
+# Third party deps from gclient.
+/third_party/gyp/
+/third_party/v8/
+/third_party/closure_compiler_src/
+/tests/co19/src/
+/third_party/cygwin/
 
 # Built by chromebot and downloaded from Google Storage
 client/tests/drt
@@ -80,3 +86,6 @@ third_party/gsutil/*/gsutilc
 
 # Local GDB files.
 .gdb_history
+
+# Default dart2js output.
+out.js

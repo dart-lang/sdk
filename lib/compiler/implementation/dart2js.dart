@@ -71,6 +71,7 @@ void compile(List<String> argv) {
   bool verbose = false;
   Uri libraryRoot = cwd;
   Uri out = cwd.resolve('out.js');
+  Uri sourceMapOut = cwd.resolve('out.js.map');
   Uri packageRoot = null;
   List<String> options = new List<String>();
   bool explicitOut = false;
@@ -90,6 +91,7 @@ void compile(List<String> argv) {
   setOutput(String argument) {
     explicitOut = true;
     out = cwd.resolve(nativeToUriPath(extractParameter(argument)));
+    sourceMapOut = new Uri.fromString('$out.map');
   }
 
   handleShortOptions(String argument) {
@@ -181,6 +183,13 @@ void compile(List<String> argv) {
 
   void handler(Uri uri, int begin, int end, String message,
                api.Diagnostic kind) {
+    if (kind.name === 'source map') {
+      // TODO(podivilov): We should find a better way to return source maps from
+      // emitter. Using diagnostic handler for that purpose is a temporary hack.
+      writeString(sourceMapOut, message);
+      return;
+    }
+
     if (isAborting) return;
     isAborting = kind === api.Diagnostic.CRASH;
     bool fatal = (kind.ordinal & FATAL) != 0;
@@ -233,6 +242,7 @@ void compile(List<String> argv) {
   if (code === null) {
     fail('Error: Compilation failed.');
   }
+  code = '$code\n//@ sourceMappingURL=${relativize(out, sourceMapOut)}';
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '

@@ -71,6 +71,9 @@ final int PERCENT_EQ_TOKEN = TILDE_SLASH_TOKEN + 1;
 final int GT_GT_TOKEN = PERCENT_EQ_TOKEN + 1;
 final int CARET_EQ_TOKEN = GT_GT_TOKEN + 1;
 final int IS_TOKEN = CARET_EQ_TOKEN + 1;
+final int COMMENT_TOKEN = IS_TOKEN + 1;
+final int GT_GT_GT_TOKEN = COMMENT_TOKEN + 1;
+final int STRING_INTERPOLATION_IDENTIFIER_TOKEN = COMMENT_TOKEN + 1;
 
 // TODO(ahe): Get rid of this.
 final int UNKNOWN_TOKEN = 1024;
@@ -79,20 +82,63 @@ final int UNKNOWN_TOKEN = 1024;
  * A token that doubles as a linked list.
  */
 class Token {
+  /**
+   * The precedence info for this token. [info] determines the kind and the
+   * precedence level of this token.
+   */
   final PrecedenceInfo info;
+
+  /**
+   * The character offset of the start of this token within the source text.
+   */
   final int charOffset;
+
+  /**
+   * The next token in the token stream.
+   */
   Token next;
 
   Token(PrecedenceInfo this.info, int this.charOffset);
 
   get value() => info.value;
+
+  /**
+   * Returns the string value for keywords and symbols. For instance 'class' for
+   * the [CLASS] keyword token and '*' for a [Token] based on [STAR_INFO]. For
+   * other tokens, such identifiers, strings, numbers, etc, [stringValue]
+   * returns [:null:].
+   *
+   * [stringValue] should only be used for testing keywords and symbols.
+   */
   String get stringValue() => info.value.stringValue;
+
+  /**
+   * The kind enum of this token as determined by its [info].
+   */
   int get kind() => info.kind;
+
+  /**
+   * The precedence level for this token.
+   */
   int get precedence() => info.precedence;
 
+  /**
+   * Returns a textual representation of this token to be used for debugging
+   * purposes. The resulting string might contain information about the
+   * structure of the token, for example 'StringToken(foo)' for the identifier
+   * token 'foo'. Use [slowToString] for the text actually parsed by the token.
+   */
   String toString() => info.value.toString();
 
+  /**
+   * The text parsed by this token.
+   */
   String slowToString() => toString();
+
+  /**
+   * The number of characters parsed by this token.
+   */
+  int get slowCharLength() => slowToString().length;
 }
 
 /**
@@ -367,7 +413,7 @@ final PrecedenceInfo LT_INFO =
 
 // Shift operators.
 final PrecedenceInfo GT_GT_GT_INFO =
-  const PrecedenceInfo(const SourceString('>>>'), 11, GT_GT_TOKEN);
+  const PrecedenceInfo(const SourceString('>>>'), 11, GT_GT_GT_TOKEN);
 final PrecedenceInfo GT_GT_INFO =
   const PrecedenceInfo(const SourceString('>>'), 11, GT_GT_TOKEN);
 final PrecedenceInfo LT_LT_INFO =
@@ -436,8 +482,15 @@ final PrecedenceInfo STRING_INTERPOLATION_INFO =
   const PrecedenceInfo(const SourceString('\${'), 0,
                        STRING_INTERPOLATION_TOKEN);
 
+final PrecedenceInfo STRING_INTERPOLATION_IDENTIFIER_INFO =
+  const PrecedenceInfo(const SourceString('\$'), 0,
+                       STRING_INTERPOLATION_IDENTIFIER_TOKEN);
+
 final PrecedenceInfo HEXADECIMAL_INFO =
   const PrecedenceInfo(const SourceString('hexadecimal'), 0, HEXADECIMAL_TOKEN);
+
+final PrecedenceInfo COMMENT_INFO =
+  const PrecedenceInfo(const SourceString('comment'), 0, COMMENT_TOKEN);
 
 // For reporting lexical errors.
 final PrecedenceInfo ERROR_INFO =

@@ -47,9 +47,9 @@ static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
 }
 
 
-static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
-                                             intptr_t receiver_class_id,
-                                             intptr_t argument_class_id) {
+static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
+                                              intptr_t receiver_class_id,
+                                              intptr_t argument_class_id) {
   ASSERT(receiver_class_id != kIllegalObjectKind);
   ASSERT(argument_class_id != kIllegalObjectKind);
   if (ic_data.num_args_tested() != 2) return false;
@@ -68,18 +68,55 @@ static bool ICDataHasReceiverArgumentClasses(const ICData& ic_data,
 }
 
 
+static bool ClassIdIsOneOf(intptr_t class_id,
+                           GrowableArray<intptr_t>* class_ids) {
+  for (intptr_t i = 0; i < class_ids->length(); i++) {
+    if ((*class_ids)[i] == class_id) {
+      return true;
+    }
+  }
+  return false;
+}
+
+
+static bool ICDataHasOnlyReceiverArgumentClassIds(
+    const ICData& ic_data,
+    GrowableArray<intptr_t>* receiver_class_ids,
+    GrowableArray<intptr_t>* argument_class_ids) {
+  if (ic_data.num_args_tested() != 2) return false;
+
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    ASSERT(class_ids.length() == 2);
+    if (!ClassIdIsOneOf(class_ids[0], receiver_class_ids) ||
+        !ClassIdIsOneOf(class_ids[1], argument_class_ids)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 static bool HasOneSmi(const ICData& ic_data) {
   return ICDataHasReceiverClassId(ic_data, kSmi);
 }
 
 
-static bool HasTwoSmi(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kSmi, kSmi);
+static bool HasOnlyTwoSmi(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kSmi, kSmi);
 }
 
 
-static bool HasMintSmi(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kMint, kSmi);
+// Returns false if the ICData contains anything other than the 4 combinations
+// of Mint and Smi for the receiver and argument classes.
+static bool HasTwoMintOrSmi(const ICData& ic_data) {
+  GrowableArray<intptr_t> class_ids;
+  class_ids.Add(kSmi);
+  class_ids.Add(kMint);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, &class_ids, &class_ids);
 }
 
 
@@ -88,53 +125,59 @@ static bool HasOneDouble(const ICData& ic_data) {
 }
 
 
-static bool HasTwoDouble(const ICData& ic_data) {
-  return ICDataHasReceiverArgumentClasses(ic_data, kDouble, kDouble);
+static bool HasOnlyTwoDouble(const ICData& ic_data) {
+  return (ic_data.NumberOfChecks() == 1) &&
+      ICDataHasReceiverArgumentClassIds(ic_data, kDouble, kDouble);
 }
 
 
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
-  BinaryOpComp::OperandsType operands_type;
-
-  if (HasMintSmi(*comp->ic_data())) {
-    // We check for Mint receiver and Smi argument, but we try to support any
-    // combination of Mint and Smi.
-    if (op_kind != Token::kBIT_AND) {
-      // TODO(regis): Not yet supported.
-      return false;
-    }
-
-    operands_type = BinaryOpComp::kMintOperands;
-  }
-
-  if (comp->ic_data()->NumberOfChecks() != 1) {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  }
-
-  if (HasTwoSmi(*comp->ic_data())) {
-    if (op_kind == Token::kDIV ||
-        op_kind == Token::kMOD) {
-      // TODO(srdjan): Not yet supported.
-      return false;
-    }
-
-    operands_type = BinaryOpComp::kSmiOperands;
-  } else if (HasTwoDouble(*comp->ic_data())) {
-    if (op_kind != Token::kADD &&
-        op_kind != Token::kSUB &&
-        op_kind != Token::kMUL &&
-        op_kind != Token::kDIV) {
-      // TODO(vegorov): Not yet supported.
-      return false;
-    }
-
-    operands_type = BinaryOpComp::kDoubleOperands;
-  } else {
-    // TODO(srdjan): Not yet supported.
-    return false;
-  }
+  BinaryOpComp::OperandsType operands_type = BinaryOpComp::kDynamicOperands;
+  ASSERT(comp->HasICData());
+  const ICData& ic_data = *comp->ic_data();
+  switch (op_kind) {
+    case Token::kADD:
+    case Token::kSUB:
+    case Token::kMUL:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else if (HasOnlyTwoDouble(ic_data)) {
+        operands_type = BinaryOpComp::kDoubleOperands;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kDIV:
+    case Token::kMOD:
+      if (HasOnlyTwoDouble(ic_data)) {
+        operands_type = BinaryOpComp::kDoubleOperands;
+      } else {
+        return false;
+      }
+    case Token::kBIT_AND:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else if (HasTwoMintOrSmi(ic_data)) {
+        operands_type = BinaryOpComp::kMintOperands;
+      } else {
+        return false;
+      }
+      break;
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+    case Token::kTRUNCDIV:
+    case Token::kSHR:
+    case Token::kSHL:
+      if (HasOnlyTwoSmi(ic_data)) {
+        operands_type = BinaryOpComp::kSmiOperands;
+      } else {
+        return false;
+      }
+      break;
+    default:
+      UNREACHABLE();
+  };
 
   ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 2);
@@ -371,13 +414,18 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
       return;
     }
     const intptr_t kMaxChecks = 4;
-    if (comp->ic_data()->num_args_tested() <= kMaxChecks) {
+    if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
       PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
       ICData& unary_checks =
-          ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
+          ICData::ZoneHandle(ToUnaryClassChecks(*comp->ic_data()));
       call->set_ic_data(&unary_checks);
       comp->ReplaceWith(call);
     }
+  } else {
+    // Mark it for deopt.
+    PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
+    call->set_ic_data(&ICData::ZoneHandle());
+    comp->ReplaceWith(call);
   }
 }
 
@@ -399,7 +447,7 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
     return false;
   }
   if (!HasOneTarget(ic_data)) {
-    // TODO(srdjan): Implement when not all targets are the sa,e.
+    // TODO(srdjan): Implement when not all targets are the same.
     return false;
   }
   Function& target = Function::Handle();
@@ -426,10 +474,13 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
 
 
 void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
-  // TODO(srdjan): Add assigneable check node if --enable_type_checks.
+  // TODO(srdjan): Add assignable check node if --enable_type_checks.
   if (comp->HasICData() && !FLAG_enable_type_checks) {
-    TryInlineInstanceSetter(comp);
+    if (TryInlineInstanceSetter(comp)) {
+      return;
+    }
   }
+  // TODO(srdjan): Polymorphic dispatch to setters or deoptimize.
 }
 
 
@@ -521,9 +572,9 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   if (ic_data.NumberOfChecks() != 1) return;
   ASSERT(HasOneTarget(ic_data));
 
-  if (HasTwoSmi(ic_data)) {
+  if (HasOnlyTwoSmi(ic_data)) {
     comp->set_operands_class_id(kSmi);
-  } else if (HasTwoDouble(ic_data)) {
+  } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDouble);
   } else {
     return;
@@ -536,15 +587,14 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitStrictCompareComp(StrictCompareComp* comp) {
+void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp) {
   TryFuseComparisonWithBranch(comp);
 }
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
-  const intptr_t kMaxChecks = 4;
-  if (comp->HasICData() && (comp->ic_data()->num_args_tested() <= kMaxChecks)) {
-    // Replace binary checks with unary ones.
+  if (comp->HasICData()) {
+    // Replace binary checks with unary ones since EmitNative expects it.
     ICData& unary_checks =
         ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
     comp->set_ic_data(&unary_checks);

@@ -173,6 +173,8 @@ public class ResolverTest extends ResolverTestCase {
   }
 
   public void testDuplicatedInterfaces() {
+    // The analyzer used to catch inheriting from two different variations of the same interface
+    // but the spec mentions no such error
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -181,8 +183,7 @@ public class ResolverTest extends ResolverTestCase {
         "}",
         "class A extends C implements I<int> {}",
         "class B extends C implements I<bool> {}",
-        "class C implements I<int> {}"),
-        ResolverErrorCode.DUPLICATED_INTERFACE);
+        "class C implements I<int> {}"));
   }
 
   public void testImplicitDefaultConstructor() {
@@ -1063,6 +1064,31 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.NO_SUCH_TYPE);
+  }
+
+  public void test_typedefUsedAsExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "typedef f();",
+        "main() {",
+        "  try {",
+        "    0.25 - f;",
+        "  } catch(var e) {}",
+        "}"),
+        ResolverErrorCode.CANNOT_USE_TYPE);
+  }
+
+  public void test_typeVariableUsedAsExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A<B> {",
+        "  f() {",
+        "    try {",
+        "      0.25 - B;",
+        "    } catch(var e) {}",
+        "  }",
+        "}"),
+        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
   }
 
   public void test_shadowType_withVariable() throws Exception {

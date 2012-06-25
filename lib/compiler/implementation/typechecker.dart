@@ -601,6 +601,10 @@ class TypeCheckerVisitor implements Visitor<Type> {
 
   /** Dart Programming Language Specification: 11.10 Return */
   Type visitReturn(Return node) {
+    if (node.getBeginToken().stringValue === 'native') {
+      return StatementType.RETURNING;
+    }
+
     final expression = node.expression;
     final isVoidFunction = (expectedReturnType === types.voidType);
 

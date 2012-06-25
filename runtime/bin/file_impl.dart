@@ -492,6 +492,9 @@ class _File extends _FileBase implements File {
   // Constructor for file.
   _File(String this._name);
 
+  // Constructor from Path for file.
+  _File.fromPath(Path path) : this(path.toNativePath());
+
   Future<bool> exists() {
     _ensureFileService();
     List request = new List(2);

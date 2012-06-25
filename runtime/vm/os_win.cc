@@ -130,11 +130,6 @@ void OS::Sleep(int64_t millis) {
 }
 
 
-void OS::DebugBreak() {
-  __asm { int 3 }
-}
-
-
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);

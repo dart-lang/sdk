@@ -103,6 +103,11 @@ NoHandleScope::NoHandleScope(BaseIsolate* isolate) : StackResource(isolate) {
 }
 
 
+NoHandleScope::NoHandleScope() : StackResource(Isolate::Current()) {
+  isolate()->IncrementNoHandleScopeDepth();
+}
+
+
 NoHandleScope::~NoHandleScope() {
   isolate()->DecrementNoHandleScopeDepth();
 }

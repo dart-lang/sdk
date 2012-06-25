@@ -310,6 +310,17 @@ bool Intrinsifier::Uint32Array_getIndexed(Assembler* assembler) {
 }
 
 
+// Tests if two top most arguments are smis, jumps to label not_smi if not.
+// Topmost argument is in RAX.
+static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  __ orq(RCX, RAX);
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, not_smi, Assembler::kNearJump);
+}
+
+
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   return false;
 }
@@ -342,6 +353,35 @@ bool Intrinsifier::Integer_mul(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_modulo(Assembler* assembler) {
+  Label fall_through, return_zero, try_modulo;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX: right argument (divisor)
+  // Check if modulo by zero -> exception thrown in main function.
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &fall_through,  Assembler::kNearJump);
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  __ cmpq(RCX, Immediate(0));
+  __ j(LESS, &fall_through, Assembler::kNearJump);
+  __ cmpq(RCX, RAX);
+  __ j(EQUAL, &return_zero, Assembler::kNearJump);
+  __ j(GREATER, &try_modulo, Assembler::kNearJump);
+  __ movq(RAX, RCX);  // Return dividend as it is smaller than divisor.
+  __ ret();
+  __ Bind(&return_zero);
+  __ xorq(RAX, RAX);  // Return zero.
+  __ ret();
+  __ Bind(&try_modulo);
+  // RAX: right (non-null divisor).
+  __ movq(RCX, RAX);
+  __ SmiUntag(RCX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  __ SmiUntag(RAX);
+  __ cqo();
+  __ idivq(RCX);
+  __ movq(RAX, RDX);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 

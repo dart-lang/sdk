@@ -28,11 +28,8 @@ class RecompilationQueue {
 
   void add(Element element, TreeElements elements) {
     if (queueElements.contains(element)) return;
-    // TODO(sgjesse): Make this handle constructor bodies as well.
-    if (element.kind !== ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      queueElements.add(element);
-      queue.add(new WorkItem(element, elements));
-    }
+    queueElements.add(element);
+    queue.add(new WorkItem(element, elements));
   }
 
   int get length() => queue.length;
@@ -150,7 +147,8 @@ class Enqueuer {
         Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
-            registerDynamicInvocation(Namer.CLOSURE_INVOCATION_NAME, selector);
+            registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
+                                      selector);
           }
         }
       }
@@ -289,12 +287,6 @@ class Enqueuer {
     addToWorkList(element);
   }
 
-  void registerFieldInitializer(SourceString name, Type type, bool isInteger) {
-    task.measure(() {
-      universe.updateFieldIntegerInitializers(type, name, isInteger);
-    });
-  }
-
   void registerDynamicGetter(SourceString methodName, Selector selector) {
     registerInvokedGetter(methodName, selector);
   }
@@ -311,12 +303,11 @@ class Enqueuer {
     });
   }
 
-  void registerFieldSetter(SourceString setterName, Type type, bool isInteger) {
+  void registerFieldSetter(SourceString setterName, Type type) {
     task.measure(() {
       registerNewSelector(setterName,
                           new TypedSelector(type, Selector.SETTER),
                           universe.fieldSetters);
-      universe.updateFieldIntegerSetters(type, setterName, isInteger);
     });
   }
 

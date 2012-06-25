@@ -977,6 +977,18 @@ class FileTest {
     }
   }
 
+  static void testOpenFileFromPath() {
+    var name = getFilename("tests/vm/data/fixed_length_file");
+    var path = new Path(name);
+    var f = new File.fromPath(path);
+    Expect.isTrue(f.existsSync());
+    name = f.fullPathSync();
+    path = new Path.fromNative(name);
+    var g = new File.fromPath(path);
+    Expect.isTrue(g.existsSync());
+    Expect.equals(name, g.fullPathSync());
+  }
+
   static void testReadAsBytes() {
     var port = new ReceivePort();
     port.receive((result, replyTo) {
@@ -1187,6 +1199,7 @@ class FileTest {
     testPositionSync();
     testOpenDirectoryAsFile();
     testOpenDirectoryAsFileSync();
+    testOpenFileFromPath();
     testReadAsBytes();
     testReadAsBytesSync();
     testReadAsText();

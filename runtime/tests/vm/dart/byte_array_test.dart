@@ -924,14 +924,23 @@ class ByteArrayTest {
     Expect.throws(() { new Int8List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int8List.view(array.asByteArray(),
-                                          array.length); },
+                                         array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int8List.view(array.asByteArray(),
-                                          0, array.length + 1); },
+                                         0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int8List.view(array.asByteArray(),
-                                          array.length - 1, 2); },
+                                         array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Int8List.view(array.asByteArray(),
+                                  array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Int8List);
+    Expect.equals(0, empty.length);
+    var whole = new Int8List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Int8List);
+    Expect.equals(12, whole.length);
     var view = new Int8List.view(array.asByteArray(), 1, array.length - 2);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int8List);
@@ -1043,14 +1052,23 @@ class ByteArrayTest {
     Expect.throws(() { new Uint8List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint8List.view(array.asByteArray(),
-                                           array.length); },
+                                          array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint8List.view(array.asByteArray(),
-                                           0, array.length + 1); },
+                                          0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint8List.view(array.asByteArray(),
-                                           array.length - 1, 2); },
+                                          array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Uint8List.view(array.asByteArray(),
+                                   array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Uint8List);
+    Expect.equals(0, empty.length);
+    var whole = new Uint8List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Uint8List);
+    Expect.equals(12, whole.length);
     var view = new Uint8List.view(array.asByteArray(), 1, array.length - 2);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint8List);
@@ -1141,7 +1159,7 @@ class ByteArrayTest {
     Expect.throws(() { new Int16List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int16List.view(array.asByteArray(),
-                                           array.length); },
+                                          array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int16List.view(array.asByteArray(),
                                            0, array.length + 1); },
@@ -1149,6 +1167,15 @@ class ByteArrayTest {
     Expect.throws(() { new Int16List.view(array.asByteArray(),
                                            array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Int16List.view(array.asByteArray(),
+                                   array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Int16List);
+    Expect.equals(0, empty.length);
+    var whole = new Int16List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Int16List);
+    Expect.equals(12, whole.length);
     var view = new Int16List.view(array.asByteArray(), 2, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int16List);
@@ -1267,14 +1294,23 @@ class ByteArrayTest {
     Expect.throws(() { new Uint16List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint16List.view(array.asByteArray(),
-                                            array.length); },
+                                           array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint16List.view(array.asByteArray(),
-                                            0, array.length + 1); },
+                                           0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint16List.view(array.asByteArray(),
-                                            array.length - 1, 2); },
+                                           array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Uint16List.view(array.asByteArray(),
+                                    array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Uint16List);
+    Expect.equals(0, empty.length);
+    var whole = new Uint16List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Uint16List);
+    Expect.equals(12, whole.length);
     var view = new Uint16List.view(array.asByteArray(), 2, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint16List);
@@ -1370,14 +1406,23 @@ class ByteArrayTest {
     Expect.throws(() { new Int32List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int32List.view(array.asByteArray(),
-                                           array.length); },
+                                          array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int32List.view(array.asByteArray(),
-                                           0, array.length + 1); },
+                                          0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int32List.view(array.asByteArray(),
-                                           array.length - 1, 2); },
+                                          array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Int32List.view(array.asByteArray(),
+                                   array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Int32List);
+    Expect.equals(0, empty.length);
+    var whole = new Int32List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Int32List);
+    Expect.equals(12, whole.length);
     var view = new Int32List.view(array.asByteArray(), 4, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int32List);
@@ -1520,14 +1565,23 @@ class ByteArrayTest {
     Expect.throws(() { new Uint32List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint32List.view(array.asByteArray(),
-                                            array.length); },
+                                           array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint32List.view(array.asByteArray(),
-                                            0, array.length + 1); },
+                                           0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint32List.view(array.asByteArray(),
-                                            array.length - 1, 2); },
+                                           array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Uint32List.view(array.asByteArray(),
+                                    array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Uint32List);
+    Expect.equals(0, empty.length);
+    var whole = new Uint32List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Uint32List);
+    Expect.equals(12, whole.length);
     var view = new Uint32List.view(array.asByteArray(), 4, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint32List);
@@ -1640,14 +1694,23 @@ class ByteArrayTest {
     Expect.throws(() { new Int64List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int64List.view(array.asByteArray(),
-                                           array.length); },
+                                          array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int64List.view(array.asByteArray(),
-                                           0, array.length + 1); },
+                                          0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Int64List.view(array.asByteArray(),
-                                           array.length - 1, 2); },
+                                          array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Int64List.view(array.asByteArray(),
+                                   array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Int64List);
+    Expect.equals(0, empty.length);
+    var whole = new Int64List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Int64List);
+    Expect.equals(12, whole.length);
     var view = new Int64List.view(array.asByteArray(), 8, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Int64List);
@@ -1827,14 +1890,23 @@ class ByteArrayTest {
     Expect.throws(() { new Uint64List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint64List.view(array.asByteArray(),
-                                            array.length); },
+                                           array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint64List.view(array.asByteArray(),
-                                            0, array.length + 1); },
+                                           0, array.length + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Uint64List.view(array.asByteArray(),
-                                            array.length - 1, 2); },
+                                           array.length - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Uint64List.view(array.asByteArray(),
+                                    array.lengthInBytes());
+    Expect.isTrue(empty is List<int>);
+    Expect.isTrue(empty is Uint64List);
+    Expect.equals(0, empty.length);
+    var whole = new Uint64List.view(array.asByteArray());
+    Expect.isTrue(whole is List<int>);
+    Expect.isTrue(whole is Uint64List);
+    Expect.equals(12, whole.length);
     var view = new Uint64List.view(array.asByteArray(), 8, 10);
     Expect.isTrue(view is List<int>);
     Expect.isTrue(view is Uint64List);
@@ -1975,16 +2047,26 @@ class ByteArrayTest {
     Expect.throws(() { new Float32List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                             array.lengthInBytes() + 1); },
+                                            array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                             0, array.lengthInBytes() + 1); },
+                                            0, array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float32List.view(array.asByteArray(),
-                                             array.lengthInBytes() - 1, 2); },
+                                            array.lengthInBytes() - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Float32List.view(array.asByteArray(),
+                                     array.lengthInBytes());
+    Expect.isTrue(empty is List<double>);
+    Expect.isTrue(empty is Float32List);
+    Expect.equals(0, empty.length);
+    var whole = new Float32List.view(array.asByteArray());
+    Expect.isTrue(whole is List<double>);
+    Expect.isTrue(whole is Float32List);
+    Expect.equals(12, whole.length);
     var view = new Float32List.view(array.asByteArray(), 4, 10);
     Expect.isTrue(view is List<double>);
+    Expect.isTrue(view is Float32List);
     Expect.equals(10, view.length);
     Expect.equals(4, view.bytesPerElement());
     Expect.equals(40, view.lengthInBytes());
@@ -2068,16 +2150,26 @@ class ByteArrayTest {
     Expect.throws(() { new Float64List.view(array.asByteArray(), 0, -1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                             array.lengthInBytes() + 1); },
+                                            array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                             0, array.lengthInBytes() + 1); },
+                                            0, array.lengthInBytes() + 1); },
                   (e) { return e is IndexOutOfRangeException; });
     Expect.throws(() { new Float64List.view(array.asByteArray(),
-                                             array.lengthInBytes() - 1, 2); },
+                                            array.lengthInBytes() - 1, 2); },
                   (e) { return e is IndexOutOfRangeException; });
+    var empty = new Float64List.view(array.asByteArray(),
+                                     array.lengthInBytes());
+    Expect.isTrue(empty is List<double>);
+    Expect.isTrue(empty is Float64List);
+    Expect.equals(0, empty.length);
+    var whole = new Float64List.view(array.asByteArray());
+    Expect.isTrue(whole is List<double>);
+    Expect.isTrue(whole is Float64List);
+    Expect.equals(12, whole.length);
     var view = new Float64List.view(array.asByteArray(), 8, 10);
     Expect.isTrue(view is List<double>);
+    Expect.isTrue(view is Float64List);
     Expect.equals(10, view.length);
     Expect.equals(8, view.bytesPerElement());
     Expect.equals(80, view.lengthInBytes());

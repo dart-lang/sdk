@@ -18,28 +18,6 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 
-
-#if defined(TESTING) || defined(DEBUG)
-
-#if defined(TARGET_OS_WINDOWS)
-// The compiler may dynamically align the stack on Windows, so do not check.
-#define CHECK_STACK_ALIGNMENT { }
-#else
-#define CHECK_STACK_ALIGNMENT {                                                \
-  uword current_sp;                                                            \
-  asm volatile("mov %%rsp, %[current_sp]" : [current_sp] "=r" (current_sp));   \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
-}
-#endif
-
-#else
-
-#define CHECK_STACK_ALIGNMENT { }
-
-#endif
-
-
 class Immediate : public ValueObject {
  public:
   explicit Immediate(int64_t value) : value_(value) { }
@@ -417,6 +395,8 @@ class Assembler : public ValueObject {
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register reg);
 
+  void adcl(Register dst, Register src);
+
   void subl(Register dst, Register src);
 
   void cdq();
@@ -516,6 +496,13 @@ class Assembler : public ValueObject {
   void StoreIntoObject(Register object,  // Object we are storing into.
                        const FieldAddress& dest,  // Where we are storing into.
                        Register value);  // Value we are storing.
+
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                Register value);
+  void StoreIntoObjectNoBarrier(Register object,
+                                const FieldAddress& dest,
+                                const Object& value);
 
   void DoubleNegate(XmmRegister d);
   void FloatNegate(XmmRegister f);
@@ -621,6 +608,8 @@ class Assembler : public ValueObject {
 
   void EmitGenericShift(bool wide, int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(bool wide, int rm, Register operand, Register shifter);
+
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

@@ -42,6 +42,10 @@ class FlowGraphBuilder: public ValueObject {
 
   void AddCatchEntry(TargetEntryInstr* entry);
 
+  intptr_t current_ssa_temp_index() const {
+    return current_ssa_temp_index_;
+  }
+
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
                          GrowableArray<intptr_t>* parent,
@@ -137,7 +141,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
   BindInstr* BuildInstantiatedTypeArguments(
-      intptr_t token_index,
+      intptr_t token_pos,
       const AbstractTypeArguments& type_arguments);
 
   // Creates a possibly uninstantiated type argument vector and the type
@@ -147,21 +151,21 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildConstructorTypeArguments(ConstructorCallNode* node,
                                      ZoneGrowableArray<Value*>* args);
 
-  void BuildTypecheckArguments(intptr_t token_index,
+  void BuildTypecheckArguments(intptr_t token_pos,
                                Value** instantiator,
                                Value** instantiator_type_arguments);
   Value* BuildInstantiator();
-  Value* BuildInstantiatorTypeArguments(intptr_t token_index,
+  Value* BuildInstantiatorTypeArguments(intptr_t token_pos,
                                         Value* instantiator);
 
   // Perform a type check on the given value.
-  AssertAssignableComp* BuildAssertAssignable(intptr_t token_index,
+  AssertAssignableComp* BuildAssertAssignable(intptr_t token_pos,
                                               Value* value,
                                               const AbstractType& dst_type,
                                               const String& dst_name);
 
   // Perform a type check on the given value and return it.
-  Value* BuildAssignableValue(intptr_t token_index,
+  Value* BuildAssignableValue(intptr_t token_pos,
                               Value* value,
                               const AbstractType& dst_type,
                               const String& dst_name);
@@ -174,7 +178,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                  Value** receiver,
                                  Value** value);
 
-  virtual void BuildInstanceOf(ComparisonNode* node);
+  virtual void BuildTypeTest(ComparisonNode* node);
+  virtual void BuildTypeCast(ComparisonNode* node);
 
   bool MustSaveRestoreContext(SequenceNode* node) const;
 
@@ -270,7 +275,8 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void CompiletimeStringInterpolation(const Function& interpol_func,
                                               const Array& literals);
 
-  virtual void BuildInstanceOf(ComparisonNode* node);
+  virtual void BuildTypeTest(ComparisonNode* node);
+  virtual void BuildTypeCast(ComparisonNode* node);
 };
 
 
@@ -289,17 +295,17 @@ class ValueGraphVisitor : public EffectGraphVisitor {
 // We expect that AstNode in test contexts either have only nonlocal exits
 // or else control flow has both true and false successors.
 //
-// The cis and token_index are used in checked mode to verify that the
+// The cis and token_pos are used in checked mode to verify that the
 // condition of the test is of type bool.
 class TestGraphVisitor : public ValueGraphVisitor {
  public:
   TestGraphVisitor(FlowGraphBuilder* owner,
                    intptr_t temp_index,
-                   intptr_t condition_token_index)
+                   intptr_t condition_token_pos)
       : ValueGraphVisitor(owner, temp_index),
         true_successor_address_(NULL),
         false_successor_address_(NULL),
-        condition_token_index_(condition_token_index) {
+        condition_token_pos_(condition_token_pos) {
   }
 
   TargetEntryInstr** true_successor_address() const {
@@ -311,7 +317,7 @@ class TestGraphVisitor : public ValueGraphVisitor {
     return false_successor_address_;
   }
 
-  intptr_t condition_token_index() const { return condition_token_index_; }
+  intptr_t condition_token_pos() const { return condition_token_pos_; }
 
  private:
   // Construct and concatenate a Branch instruction to this graph fragment.
@@ -322,7 +328,7 @@ class TestGraphVisitor : public ValueGraphVisitor {
   TargetEntryInstr** true_successor_address_;
   TargetEntryInstr** false_successor_address_;
 
-  intptr_t condition_token_index_;
+  intptr_t condition_token_pos_;
 };
 
 }  // namespace dart

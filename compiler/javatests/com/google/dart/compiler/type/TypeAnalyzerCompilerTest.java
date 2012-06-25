@@ -792,10 +792,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getTypeErrors(),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 3, 18, 2),
-        errEx(TypeErrorCode.MISSING_ARGUMENT, 5, 12, 7),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 5, 12, 5),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 22, 2),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 7, 26, 2),
-        errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 7),
+        errEx(TypeErrorCode.MISSING_ARGUMENT, 9, 12, 5),
         errEx(TypeErrorCode.EXTRA_ARGUMENT, 13, 21, 1),
         errEx(TypeErrorCode.NO_SUCH_NAMED_PARAMETER, 15, 18, 4),
         errEx(TypeErrorCode.DUPLICATE_NAMED_ARGUMENT, 19, 25, 5));
@@ -1204,7 +1204,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 11, 3, 1),
         errEx(TypeErrorCode.FIELD_IS_FINAL, 13, 5, 1));
   }
-  
+
   /**
    * It is a compile-time error to use type variables in "const" instance creation.
    * <p>
@@ -2146,6 +2146,92 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v", "F");
   }
 
+  /**
+   * When we pass "function literal" into invocation on some method, we may know exact
+   * <code>Function</code> type expected by this method, so we know types of "function literal"
+   * parameters. So, if these types are not specified in "function literal", we can use "expected"
+   * types.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNormalParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo(EventListener listener) {",
+        "}",
+        "main() {",
+        "  foo((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNamedPositionalParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo([EventListener listener]) {",
+        "}",
+        "main() {",
+        "  foo((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationNamedParameter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "foo([EventListener listener]) {",
+        "}",
+        "main() {",
+        "  foo(listener: (e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
+  /**
+   * http://code.google.com/p/dart/issues/detail?id=3712
+   */
+  public void test_typesPropagation_parameterOfClosure_invocationOfMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "typedef void EventListener(Event event);",
+        "class Button {",
+        "  onClick(EventListener listener) {",
+        "  }",
+        "}",
+        "main() {",
+        "  Button button = new Button();",
+        "  button.onClick((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var arg) {",
@@ -2690,7 +2776,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
   }
-  
+
   /**
    * It is a compile-time error if T is a parameterized type of the form G < T1; : : : ; Tn > and G
    * is not a generic type with n type parameters.
@@ -2709,7 +2795,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS, 4, 11, 12));
   }
-  
+
   /**
    * It is a static warning if T does not denote a type available in the current lexical scope.
    * <p>
@@ -2725,6 +2811,38 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 3, 11, 1));
+  }
+
+  public void test_incompatibleTypesInHierarchy1() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface Interface<T> {",
+        "  T m();",
+        "}",
+        "abstract class A implements Interface {",
+        "}",
+        "class C extends A implements Interface<int> {",
+        "  int m() => 0;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+  }
+
+  public void test_incompatibleTypesInHierarchy2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "interface Interface<T> {",
+        "  T m();",
+        "}",
+        "abstract class A implements Interface<String> {",
+        "}",
+        "class C extends A implements Interface<int> {",
+        "  int m() => 0;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, 8, 7, 1),
+        errEx(TypeErrorCode.INCOMPATIBLE_TYPES_IN_HIERARCHY, 7, 7, 1));
   }
 
   private static <T extends DartNode> T findNode(

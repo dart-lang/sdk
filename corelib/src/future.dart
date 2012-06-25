@@ -201,7 +201,7 @@ class Futures {
     Completer completer = new Completer<List>();
     Future<List> result = completer.future;
     int remaining = futures.length;
-    List<Object> values = new List(futures.length);
+    List values = new List(futures.length);
 
     // As each future completes, put its value into the corresponding
     // position in the list of values.

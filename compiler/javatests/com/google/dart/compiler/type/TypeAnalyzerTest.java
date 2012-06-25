@@ -8,7 +8,6 @@ import com.google.dart.compiler.parser.Token;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.CyclicDeclarationException;
-import com.google.dart.compiler.resolver.DuplicatedInterfaceException;
 import com.google.dart.compiler.resolver.TypeErrorCode;
 
 import java.util.EnumSet;
@@ -271,29 +270,29 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   public void testConstructorForwarding() {
     Map<String, ClassNodeElement> classes = loadSource(
         "class MissingArgument {",
-        "  MissingArgument() : this.bar() {}",
+        "  MissingArgument() : this.bar();",
         "  MissingArgument.bar(int i) {}",
         "}",
         "class IntArgument {",
-        "  IntArgument() : this.bar(1) {}",
+        "  IntArgument() : this.bar(1);",
         "  IntArgument.bar(int i) {}",
         "}",
         "class ExtraIntArgument {",
-        "  ExtraIntArgument() : this.bar(1, 1) {}",
+        "  ExtraIntArgument() : this.bar(1, 1);",
         "  ExtraIntArgument.bar(int i) {}",
         "}",
         "class StringArgument {",
-        "  StringArgument() : this.bar('') {}",
+        "  StringArgument() : this.bar('');",
         "  StringArgument.bar(int i) {}",
         "}",
         "class NullArgument {",
-        "  NullArgument() : this.bar(null) {}",
+        "  NullArgument() : this.bar(null);",
         "  NullArgument.bar(int i) {}",
         "}",
         "class OptionalParameter {",
-        "  OptionalParameter() : this.bar() {}",
+        "  OptionalParameter() : this.bar();",
         "  OptionalParameter.bar([int i = null]) {}",
-        "  OptionalParameter.foo() : this.bar('') {}",
+        "  OptionalParameter.foo() : this.bar('');",
         "}");
     analyzeClass(classes.get("MissingArgument"), 1);
     analyzeClass(classes.get("IntArgument"), 0);
@@ -534,7 +533,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
   }
 
   public void testGetAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException {
+      throws CyclicDeclarationException {
     Map<String, ClassNodeElement> classes = loadSource(
         "class A extends B<String> {",
         "}",
@@ -1374,7 +1373,7 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyze("{ var val1 = new IA<Bar>(); }");
     analyzeFail("{ var val1 = new IA<String>(); }",TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE);
   }
-  
+
   public void testStringConcat() {
     Map<String, ClassNodeElement> source = loadSource(
         "class Object {}",
@@ -1389,8 +1388,8 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
     analyzeFail("{ var c = s + b; }",
         TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
     analyzeFail("var c = 'foo' + 1;",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);        
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
     analyzeFail("var c = 'foo' + 'bar';",
-        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);                
-  }  
+        TypeErrorCode.PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT);
+  }
 }

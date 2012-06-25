@@ -11249,8 +11249,11 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
     if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_1(storeName_OR_storeNames, mode);
     }
-    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
+    if ((storeName_OR_storeNames is List<String> || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
       return _transaction_2(storeName_OR_storeNames, mode);
+    }
+    if ((storeName_OR_storeNames is String || storeName_OR_storeNames === null) && (mode is String || mode === null)) {
+      return _transaction_3(storeName_OR_storeNames, mode);
     }
     throw "Incorrect number or type of arguments";
   }
@@ -11258,6 +11261,8 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
   IDBTransaction _transaction_1(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_1_Callback";
 
   IDBTransaction _transaction_2(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_2_Callback";
+
+  IDBTransaction _transaction_3(storeName_OR_storeNames, mode) native "IDBDatabase_transaction_3_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11538,15 +11543,28 @@ class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
   IDBRequest _count_3(key_OR_range) native "IDBObjectStore_count_3_Callback";
 
   IDBIndex createIndex(name, keyPath, [options = _null]) {
-    if (options === _null) {
+    if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && options === _null) {
       return _createIndex_1(name, keyPath);
     }
-    return _createIndex_2(name, keyPath, options);
+    if ((name is String || name === null) && (keyPath is List<String> || keyPath === null) && (options is Map || options === null)) {
+      return _createIndex_2(name, keyPath, options);
+    }
+    if ((name is String || name === null) && (keyPath is String || keyPath === null) && options === _null) {
+      return _createIndex_3(name, keyPath);
+    }
+    if ((name is String || name === null) && (keyPath is String || keyPath === null) && (options is Map || options === null)) {
+      return _createIndex_4(name, keyPath, options);
+    }
+    throw "Incorrect number or type of arguments";
   }
 
   IDBIndex _createIndex_1(name, keyPath) native "IDBObjectStore_createIndex_1_Callback";
 
   IDBIndex _createIndex_2(name, keyPath, options) native "IDBObjectStore_createIndex_2_Callback";
+
+  IDBIndex _createIndex_3(name, keyPath) native "IDBObjectStore_createIndex_3_Callback";
+
+  IDBIndex _createIndex_4(name, keyPath, options) native "IDBObjectStore_createIndex_4_Callback";
 
   IDBRequest delete(key_OR_keyRange) {
     if ((key_OR_keyRange is IDBKeyRange || key_OR_keyRange === null)) {
@@ -19922,7 +19940,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index) native "WebGLRenderingContext_getActiveUniform_Callback";
 
-  List getAttachedShaders(WebGLProgram program) native "WebGLRenderingContext_getAttachedShaders_Callback";
+  List<Object> getAttachedShaders(WebGLProgram program) native "WebGLRenderingContext_getAttachedShaders_Callback";
 
   int getAttribLocation(WebGLProgram program, String name) native "WebGLRenderingContext_getAttribLocation_Callback";
 
@@ -19951,6 +19969,8 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype) native "WebGLRenderingContext_getShaderPrecisionFormat_Callback";
 
   String getShaderSource(WebGLShader shader) native "WebGLRenderingContext_getShaderSource_Callback";
+
+  List<String> getSupportedExtensions() native "WebGLRenderingContext_getSupportedExtensions_Callback";
 
   Object getTexParameter(int target, int pname) native "WebGLRenderingContext_getTexParameter_Callback";
 
@@ -28671,7 +28691,7 @@ interface IDBObjectStore {
   IDBRequest count([key_OR_range]);
 
   /** @domName IDBObjectStore.createIndex */
-  IDBIndex createIndex(String name, String keyPath, [Map options]);
+  IDBIndex createIndex(String name, keyPath, [Map options]);
 
   /** @domName IDBObjectStore.delete */
   IDBRequest delete(key_OR_keyRange);
@@ -38216,7 +38236,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
   /** @domName WebGLRenderingContext.getAttachedShaders */
-  List getAttachedShaders(WebGLProgram program);
+  List<Object> getAttachedShaders(WebGLProgram program);
 
   /** @domName WebGLRenderingContext.getAttribLocation */
   int getAttribLocation(WebGLProgram program, String name);
@@ -38259,6 +38279,9 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   /** @domName WebGLRenderingContext.getShaderSource */
   String getShaderSource(WebGLShader shader);
+
+  /** @domName WebGLRenderingContext.getSupportedExtensions */
+  List<String> getSupportedExtensions();
 
   /** @domName WebGLRenderingContext.getTexParameter */
   Object getTexParameter(int target, int pname);

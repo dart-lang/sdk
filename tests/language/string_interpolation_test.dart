@@ -7,6 +7,8 @@ class StringInterpolationTest {
 
   StringInterpolationTest() {}
 
+  static void m() {}
+
   static final int i = 1;
   static final String a = "<hi>";
 
@@ -57,6 +59,8 @@ class StringInterpolationTest {
     if (alwaysFalse) {
       "${i.toHorse()}"; /// 01: static type warning
     }
+
+    Expect.equals("${m}", "$m");
   }
 
   String embedParams(int z) {

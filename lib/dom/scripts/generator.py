@@ -602,6 +602,9 @@ class IDLTypeInfo(object):
   def conversion_includes(self):
     return ['"Dart%s.h"' % include for include in self._conversion_includes]
 
+  def to_native_includes(self):
+    return ['"Dart%s.h"' % self.idl_type()]
+
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
     return 'Dart%s::toDart(%s)' % (self._idl_type, value)
 
@@ -622,6 +625,24 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
   def conversion_includes(self):
     return self._item_info.conversion_includes()
+
+
+class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
+  def __init__(self):
+    super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', _dom_string_type_info)
+
+  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+    emitter.Emit(
+        '\n'
+        '        RefPtr<DOMStringList> $NAME = DartDOMStringList::toNative($HANDLE, exception);\n'
+        '        if (exception)\n'
+        '            goto fail;\n',
+        NAME=name,
+        HANDLE=handle)
+    return name
+
+  def to_native_includes(self):
+    return ['"DartDOMStringList.h"']
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
@@ -655,6 +676,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return self.native_type()
 
   def conversion_includes(self):
+    return []
+
+  def to_native_includes(sefl):
     return []
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
@@ -707,6 +731,9 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
     conversion_cast = conversion_cast % (self.native_type(), value)
     return 'Dart%s::toDart(%s)' %  (self._idl_type, conversion_cast)
 
+_dom_string_type_info = PrimitiveIDLTypeInfo(
+    'DOMString', dart_type='String', native_type='String')
+
 _idl_type_registry = {
     'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
                                     webcore_getter_name='hasAttribute',
@@ -732,12 +759,11 @@ _idl_type_registry = {
     'double': PrimitiveIDLTypeInfo('double', dart_type='num'),
 
     'any': PrimitiveIDLTypeInfo('any', dart_type='Object'),
-    'any[]': PrimitiveIDLTypeInfo('any[]', dart_type='List'),
     'Array': PrimitiveIDLTypeInfo('Array', dart_type='List'),
     'custom': PrimitiveIDLTypeInfo('custom', dart_type='Dynamic'),
     'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
     'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object', native_type='ScriptValue'),
-    'DOMString': PrimitiveIDLTypeInfo('DOMString', dart_type='String', native_type='String'),
+    'DOMString': _dom_string_type_info,
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
     'Dictionary': PrimitiveIDLTypeInfo('Dictionary', dart_type='Map'),
@@ -760,6 +786,7 @@ _idl_type_registry = {
 
     'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
     'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
+    'DOMString[]': DOMStringArrayTypeInfo(),
     'DOMStringList': IDLTypeInfo('DOMStringList', dart_type='List<String>', custom_to_native=True),
     'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
     'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
@@ -798,7 +825,16 @@ _svg_supplemental_includes = [
 ]
 
 def GetIDLTypeInfo(idl_type_name):
+  type_info = _idl_type_registry.get(idl_type_name)
+  if type_info is not None:
+    return type_info
+
   match = re.match(r'sequence<(\w+)>$', idl_type_name)
   if match:
     return SequenceIDLTypeInfo(idl_type_name, GetIDLTypeInfo(match.group(1)))
-  return _idl_type_registry.get(idl_type_name, IDLTypeInfo(idl_type_name))
+
+  match = re.match(r'(\w+)\[\]$', idl_type_name)
+  if match:
+    return SequenceIDLTypeInfo(idl_type_name, GetIDLTypeInfo(match.group(1)))
+
+  return IDLTypeInfo(idl_type_name)

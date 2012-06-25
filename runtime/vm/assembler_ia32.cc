@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1384,26 +1384,41 @@ void Assembler::CompareObject(Register reg, const Object& object) {
 }
 
 
+// Destroys the value register.
+void Assembler::StoreIntoObjectFilter(Register object,
+                                      Register value,
+                                      Label* no_update) {
+  // For the value we are only interested in the new/old bit and the tag bit.
+  andl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
+  // Shift the tag bit into the carry.
+  shrl(value, Immediate(1));
+  // Add the tag bits together, if the value is not a Smi the addition will
+  // overflow into the next bit, leaving us with a zero low bit.
+  adcl(value, object);
+  // Mask out higher, uninteresting bits which were polluted by dest.
+  andl(value, Immediate(kObjectAlignment - 1));
+  // Compare with the expected bit pattern.
+  cmpl(value, Immediate(
+      (kNewObjectAlignmentOffset >> 1) + kHeapObjectTag +
+      kOldObjectAlignmentOffset + kHeapObjectTag));
+  j(NOT_ZERO, no_update, Assembler::kNearJump);
+}
+
+
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
   movl(dest, value);
   Label done;
-  // Check that 'value' is a new object.  Store buffer updates are not
-  // required when storing a smi or an old object.
-  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
-  j(PARITY_ODD, &done, Assembler::kNearJump);
-  j(ZERO, &done, Assembler::kNearJump);
-  // Check that 'object' is an old object.  A store buffer update is
-  // not required when storing into a new object.
-  testl(object, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, &done, Assembler::kNearJump);
+  pushl(value);
+  StoreIntoObjectFilter(object, value, &done);
   // A store buffer update is required.
-  pushl(EAX);  // Preserve EAX.
+  if (value != EAX) pushl(EAX);  // Preserve EAX.
   leal(EAX, dest);
   call(&StubCode::UpdateStoreBufferLabel());
-  popl(EAX);  // Restore EAX.
+  if (value != EAX) popl(EAX);  // Restore EAX.
   Bind(&done);
+  popl(value);
 }
 
 
@@ -1411,15 +1426,14 @@ void Assembler::StoreIntoObjectNoBarrier(Register object,
                                          const FieldAddress& dest,
                                          Register value) {
   movl(dest, value);
-#if 0  // TODO(cshapiro) Turn this back on after it is fixed defined(DEBUG).
+#if defined(DEBUG)
   Label done;
-  testl(value, Immediate(kNewObjectAlignmentOffset | kHeapObjectTag));
-  j(PARITY_ODD, &done, Assembler::kNearJump);
-  testl(object, Immediate(kNewObjectAlignmentOffset));
-  j(NOT_ZERO, &done, Assembler::kNearJump);
+  pushl(value);
+  StoreIntoObjectFilter(object, value, &done);
   Stop("Store buffer update is required");
   Bind(&done);
-#endif
+  popl(value);
+#endif  // defined(DEBUG)
   // No store buffer update.
 }
 

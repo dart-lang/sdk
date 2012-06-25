@@ -164,18 +164,11 @@ dynamicBind(var obj,
       proto, DART_CLOSURE_TO_JS(throwNoSuchMethod), name, name);
   }
 
-  var nullCheckMethod = JS('var',
-      'function() {'
-        'var res = #.apply(this, Array.prototype.slice.call(arguments));'
-        'return res === null ? (void 0) : res;'
-      '}',
-    method);
-
   if (JS('bool', '!#.hasOwnProperty(#)', proto, name)) {
-    defineProperty(proto, name, nullCheckMethod);
+    defineProperty(proto, name, method);
   }
 
-  return JS('var', '#.apply(#, #)', nullCheckMethod, obj, arguments);
+  return JS('var', '#.apply(#, #)', method, obj, arguments);
 }
 
 /**

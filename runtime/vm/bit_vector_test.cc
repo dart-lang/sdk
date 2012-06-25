@@ -52,6 +52,29 @@ TEST_CASE(BitVector) {
     iter.Advance();
     EXPECT(iter.Done());
   }
+
+  { BitVector* a = new BitVector(128);
+    BitVector* b = new BitVector(128);
+    BitVector* c = new BitVector(128);
+    b->Add(0);
+    b->Add(32);
+    b->Add(64);
+    a->AddAll(b);
+    EXPECT_EQ(true, a->Contains(0));
+    EXPECT_EQ(true, a->Contains(32));
+    EXPECT_EQ(true, a->Contains(64));
+    EXPECT_EQ(false, a->Contains(96));
+    EXPECT_EQ(false, a->Contains(127));
+    b->Add(96);
+    b->Add(127);
+    c->Add(127);
+    a->KillAndAdd(c, b);
+    EXPECT_EQ(true, a->Contains(0));
+    EXPECT_EQ(true, a->Contains(32));
+    EXPECT_EQ(true, a->Contains(64));
+    EXPECT_EQ(true, a->Contains(96));
+    EXPECT_EQ(false, a->Contains(127));
+  }
 }
 
 }  // namespace dart

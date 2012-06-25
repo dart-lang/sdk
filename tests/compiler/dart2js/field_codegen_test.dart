@@ -20,7 +20,7 @@ main() { return x; }
 
 main() {
   String generated = compileAll(TEST_NULL0);
-  Expect.isTrue(generated.contains("(void 0)"));
+  Expect.isTrue(generated.contains("null"));
   generated = compileAll(TEST_NULL1);
-  Expect.isTrue(generated.contains("(void 0)"));
+  Expect.isTrue(generated.contains("null"));
 }

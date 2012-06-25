@@ -14,12 +14,9 @@ Language/03_Overview/2_Privacy_A01_t14: Fail # Issue 3793
 Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
 Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
-Language/07_Classes/07_Classes_A02_t06: Fail # Issue 2474
-Language/07_Classes/07_Classes_A02_t08: Fail # Issue 2474
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t02: Fail # Issue 2474
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t04: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A11_t07: Fail # Issue 2477
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
@@ -35,7 +32,7 @@ Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # Issue 2479
+Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # co19 issue 131
 Language/08_Interfaces/Interfaces_A01_t01: Fail # Issue 3522
 Language/09_Generics/09_Generics_A01_t04: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t01: Fail # co19 issue 142
@@ -76,20 +73,9 @@ Language/10_Expressions/20_Equality_A03_t01: Fail # co19 issue 136
 Language/10_Expressions/20_Equality_A03_t02: Fail # co19 issue 136
 Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/22_Shift_A01_t01: Fail # Issue 1489
-Language/10_Expressions/23_Additive_Expressions_A01_t11: Fail # Issue 2437
-Language/10_Expressions/23_Additive_Expressions_A01_t12: Fail # Issue 2437
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t14: Fail # Issue 2437
-Language/10_Expressions/24_Multiplicative_Expressions_A01_t15: Fail # Issue 2437
-Language/10_Expressions/25_Unary_Expressions_A01_t04: Fail # Issue 2437
-Language/10_Expressions/25_Unary_Expressions_A01_t17: Fail # Issue 2437
-Language/10_Expressions/25_Unary_Expressions_A01_t18: Fail # Issue 2437
-Language/10_Expressions/25_Unary_Expressions_A01_t19: Fail # Issue 2437
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # Issue 1489,2439
-Language/10_Expressions/26_Postfix_Expressions_A01_t02: Fail # Issue 2437
-Language/10_Expressions/27_Assignable_Expressions_A01_t09: Fail # Issue 2437
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # Issue 1489
 Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # Issue 1439
-Language/10_Expressions/28_Identifier_Reference_A04_t06: Fail # Issue 2437
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
@@ -98,7 +84,6 @@ Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
-Language/10_Expressions/29_Type_Test_A01_t04: Fail # Issue 2437
 Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
 Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
@@ -113,18 +98,12 @@ Language/11_Statements/13_Continue_A02_t13: Fail # Issue 2442
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
-Language/12_Libraries_and_Scripts/1_Imports_A02_t06: Fail # Issue 2384
-Language/12_Libraries_and_Scripts/1_Imports_A05_t01: Fail # Issue 2386
-Language/12_Libraries_and_Scripts/1_Imports_A07_t09: Fail # Issue 2387
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
-Language/12_Libraries_and_Scripts/2_Includes_A02_t02: Fail # Issue 2405
-Language/12_Libraries_and_Scripts/3_Scripts_A01_t16: Fail # co19 Issue 109, 111
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 148
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
-Language/13_Types/4_Interface_Types_A11_t04: Fail # Issue 2495
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
 
 

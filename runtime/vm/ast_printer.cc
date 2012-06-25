@@ -402,7 +402,7 @@ void AstPrinter::PrintLocalScope(const LocalScope* scope,
     } else if (var->owner()->function_level() != 0) {
       OS::Print(" lev %d", var->owner()->function_level());
     }
-    OS::Print(" valid %d-%d)", var->token_index(), scope->end_token_index());
+    OS::Print(" valid %d-%d)", var->token_pos(), scope->end_token_pos());
   }
   const LocalScope* child = scope->child();
   while (child != NULL) {
@@ -462,7 +462,7 @@ void AstPrinter::PrintFunctionScope(const ParsedFunction& parsed_function) {
         OS::Print(" ctx %d", param->owner()->context_level());
       }
     }
-    OS::Print(" valid %d-%d)", param->token_index(), scope->end_token_index());
+    OS::Print(" valid %d-%d)", param->token_pos(), scope->end_token_pos());
     pos++;
   }
   // Visit remaining non-parameter variables and children scopes.

@@ -170,6 +170,23 @@ void BranchInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t ParallelMoveInstr::InputCount() const {
+  UNREACHABLE();
+  return 0;
+}
+
+
+Value* ParallelMoveInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void ParallelMoveInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t ReThrowInstr::InputCount() const {
   return 2;
 }
@@ -912,7 +929,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->cid(),
-                                          original()->token_index(),
+                                          original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
                                           instance_reg,
@@ -940,7 +957,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(exception()->IsUse());
   compiler->GenerateCallRuntime(cid(),
-                                token_index(),
+                                token_pos(),
                                 try_index(),
                                 kThrowRuntimeEntry);
   __ int3();
@@ -958,7 +975,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(exception()->IsUse());
   ASSERT(stack_trace()->IsUse());
   compiler->GenerateCallRuntime(cid(),
-                                token_index(),
+                                token_pos(),
                                 try_index(),
                                 kReThrowRuntimeEntry);
   __ int3();
@@ -1058,10 +1075,18 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  if (!is_fused_with_branch()) {
-    return LocationSummary::Make(2, Location::SameAsFirstInput());
+  if (is_fused_with_branch()) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 0;
+    LocationSummary* locs = new LocationSummary(kNumInputs,
+                                                kNumTemps,
+                                                LocationSummary::kNoCall,
+                                                LocationSummary::kBranch);
+    locs->set_in(0, Location::RequiresRegister());
+    locs->set_in(1, Location::RequiresRegister());
+    return locs;
   } else {
-    return LocationSummary::Make(2, Location::NoLocation());
+    return LocationSummary::Make(2, Location::SameAsFirstInput());
   }
 }
 
@@ -1101,7 +1126,7 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                          argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
 
-  compiler->GenerateCall(token_index(),
+  compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::CallClosureFunctionLabel(),
                          PcDescriptors::kOther);
@@ -1118,10 +1143,10 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(VerifyCallComputation(this));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
-                                 token_index(),
+                                 token_pos(),
                                  try_index());
   compiler->GenerateInstanceCall(cid(),
-                                 token_index(),
+                                 token_pos(),
                                  try_index(),
                                  function_name(),
                                  ArgumentCount(),
@@ -1148,7 +1173,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Falls through to static call when operand type is not double or smi.
   }
   compiler->GenerateStaticCall(cid(),
-                               token_index(),
+                               token_pos(),
                                try_index(),
                                function(),
                                ArgumentCount(),
@@ -1169,7 +1194,7 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateAssertAssignable(cid(),
-                                     token_index(),
+                                     token_pos(),
                                      try_index(),
                                      dst_type(),
                                      dst_name());
@@ -1262,7 +1287,7 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Class& cls = Class::ZoneHandle(constructor().owner());
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_index(),
+  compiler->GenerateCall(token_pos(),
                          try_index(),
                          &label,
                          PcDescriptors::kOther);
@@ -1280,7 +1305,7 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Code& stub = Code::Handle(
       StubCode::GetAllocationStubForClosure(closure_function));
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(token_index(), try_index(), &label,
+  compiler->GenerateCall(token_pos(), try_index(), &label,
                          PcDescriptors::kOther);
   __ Drop(2);  // Discard type arguments and receiver.
 }

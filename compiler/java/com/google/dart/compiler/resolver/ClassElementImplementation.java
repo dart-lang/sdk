@@ -75,7 +75,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   public DartDeclaration<?> getNode() {
     return (DartClass) super.getNode();
   }
-  
+
   @Override
   public SourceInfo getNameLocation() {
     return nameLocation;
@@ -170,7 +170,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   public String getNativeName() {
     return nativeName;
   }
-  
+
   @Override
   public String getDeclarationNameWithTypeParameters() {
     return declarationNameWithTypeParameter;
@@ -295,7 +295,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
 
   @Override
   public List<InterfaceType> getAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException {
+      throws CyclicDeclarationException {
     List<InterfaceType> list = allSupertypes.get();
     if (list == null) {
       allSupertypes.compareAndSet(null, computeAllSupertypes());
@@ -305,7 +305,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   }
 
   private List<InterfaceType> computeAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException {
+      throws CyclicDeclarationException {
     Map<ClassElement, InterfaceType> interfaces = new HashMap<ClassElement, InterfaceType>();
     if (!seenSupertypes.get().add(this)) {
       throw new CyclicDeclarationException(this);
@@ -313,12 +313,12 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     ArrayList<InterfaceType> supertypes = new ArrayList<InterfaceType>();
     try {
       for (InterfaceType intf : getInterfaces()) {
-        addCheckDuplicated(interfaces, supertypes, intf);
+        addInterfaceToSupertypes(interfaces, supertypes, intf);
       }
       for (InterfaceType intf : getInterfaces()) {
         for (InterfaceType t : intf.getElement().getAllSupertypes()) {
           if (!t.getElement().isObject()) {
-            addCheckDuplicated(interfaces, supertypes,
+            addInterfaceToSupertypes(interfaces, supertypes,
                                t.subst(intf.getArguments(),
                                        intf.getElement().getTypeParameters()));
           }
@@ -327,7 +327,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       if (supertype != null) {
         for (InterfaceType t : supertype.getElement().getAllSupertypes()) {
           if (t.getElement().isInterface()) {
-            addCheckDuplicated(interfaces, supertypes,
+            addInterfaceToSupertypes(interfaces, supertypes,
                                t.subst(supertype.getArguments(),
                                        supertype.getElement().getTypeParameters()));
           }
@@ -346,24 +346,20 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     return supertypes;
   }
 
-  private void addCheckDuplicated(Map<ClassElement, InterfaceType> interfaces,
+  private void addInterfaceToSupertypes(Map<ClassElement, InterfaceType> interfaces,
                                   ArrayList<InterfaceType> supertypes,
-                                  InterfaceType intf) throws DuplicatedInterfaceException {
+                                  InterfaceType intf) {
     InterfaceType existing = interfaces.put(intf.getElement(), intf);
-    if (existing == null) {
+    if (existing == null || !(existing.equals(intf))){
       supertypes.add(intf);
-    } else {
-      if (!existing.equals(intf)) {
-        throw new DuplicatedInterfaceException(existing, intf);
-      }
     }
   }
-  
+
   @Override
   public List<Element> getUnimplementedMembers() {
     return unimplementedMembers;
   }
-  
+
   @Override
   public void setUnimplementedMembers(List<Element> members) {
     this.unimplementedMembers = members;

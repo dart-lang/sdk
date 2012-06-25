@@ -8,10 +8,6 @@
 class Namer {
   final Compiler compiler;
 
-  static final CLOSURE_INVOCATION_NAME = const SourceString('\$call');
-  static final STATIC_CLOSURE_NAME_NAME = '\$name';
-  static final OPERATOR_EQUALS = const SourceString('operator\$eq');
-
   static Set<String> _jsReserved = null;
   Set<String> get jsReserved() {
     if (_jsReserved === null) {
@@ -31,9 +27,13 @@ class Namer {
         usedGlobals = new Map<String, int>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>();
 
-  final String CURRENT_ISOLATE = "\$";
-  final String ISOLATE = "Isolate";
-  final String ISOLATE_PROPERTIES = "\$isolateProperties";
+  final String CURRENT_ISOLATE = @'$';
+  final String ISOLATE = 'Isolate';
+  final String ISOLATE_PROPERTIES = @"$isolateProperties";
+  /** Some closures must contain their name. The name is stored in
+    * [STATIC_CLOSURE_NAME_NAME]. */
+  final String STATIC_CLOSURE_NAME_NAME = @'$name';
+  final SourceString CLOSURE_INVOCATION_NAME = const SourceString(@'$call');
 
 
   String closureInvocationName(Selector selector) {

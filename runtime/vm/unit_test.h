@@ -40,7 +40,12 @@
 // The ASSEMBLER_TEST_GENERATE macro is used to generate a unit test
 // for the assembler.
 #define ASSEMBLER_TEST_GENERATE(name, assembler)                               \
-  static void AssemblerTestGenerate##name(Assembler* assembler)
+  void AssemblerTestGenerate##name(Assembler* assembler)
+
+// The ASSEMBLER_TEST_EXTERN macro is used to declare a unit test
+// for the assembler.
+#define ASSEMBLER_TEST_EXTERN(name)                                            \
+  extern void AssemblerTestGenerate##name(Assembler* assembler);
 
 // The ASSEMBLER_TEST_RUN macro is used to execute the assembler unit
 // test generated using the ASSEMBLER_TEST_GENERATE macro.

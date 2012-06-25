@@ -117,6 +117,27 @@ void StubCode::GenerateSubtype3TestCacheStub(Assembler* assembler) {
   __ Unimplemented("Subtype3TestCache Stub");
 }
 
+
+// Return the current stack pointer address, used to stack alignment
+// checks.
+void StubCode::GenerateGetStackPointerStub(Assembler* assembler) {
+  __ Unimplemented("GetStackPointer Stub");
+}
+
+
+// Jump to the exception handler.
+// No Result.
+void StubCode::GenerateJumpToExceptionHandlerStub(Assembler* assembler) {
+  __ Unimplemented("JumpToExceptionHandler Stub");
+}
+
+
+// Jump to the error handler.
+// No Result.
+void StubCode::GenerateJumpToErrorHandlerStub(Assembler* assembler) {
+  __ Unimplemented("JumpToErrorHandler Stub");
+}
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_ARM

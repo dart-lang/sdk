@@ -23,10 +23,10 @@ class RemoteObjectCache;
 // SourceBreakpoint.
 class SourceBreakpoint {
  public:
-  SourceBreakpoint(intptr_t id, const Function& func, intptr_t token_index);
+  SourceBreakpoint(intptr_t id, const Function& func, intptr_t token_pos);
 
   RawFunction* function() const { return function_; }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   intptr_t id() const { return id_; }
 
   RawScript* SourceCode();
@@ -46,7 +46,7 @@ class SourceBreakpoint {
 
   const intptr_t id_;
   RawFunction* function_;
-  const intptr_t token_index_;
+  const intptr_t token_pos_;
   intptr_t line_number_;
   bool is_enabled_;
 
@@ -67,7 +67,7 @@ class CodeBreakpoint {
 
   RawFunction* function() const { return function_; }
   uword pc() const { return pc_; }
-  intptr_t token_index() const { return token_index_; }
+  intptr_t token_pos() const { return token_pos_; }
   bool IsInternal() const { return src_bpt_ == NULL; }
 
   RawScript* SourceCode();
@@ -95,7 +95,7 @@ class CodeBreakpoint {
 
   RawFunction* function_;
   intptr_t pc_desc_index_;
-  intptr_t token_index_;
+  intptr_t token_pos_;
   uword pc_;
   intptr_t line_number_;
   bool is_enabled_;
@@ -167,7 +167,7 @@ class ActivationFrame : public ZoneAllocated {
   const Context& ctx_;
 
   Function& function_;
-  intptr_t token_index_;
+  intptr_t token_pos_;
   intptr_t pc_desc_index_;
   intptr_t line_number_;
   intptr_t context_level_;
@@ -292,15 +292,15 @@ class Debugger {
   void EnsureFunctionIsDeoptimized(const Function& func);
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
-                                  intptr_t token_index);
+                                  intptr_t token_pos);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);
   void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
   void RegisterCodeBreakpoint(CodeBreakpoint* bpt);
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
-                                        intptr_t token_index);
+                                        intptr_t token_pos);
   CodeBreakpoint* MakeCodeBreakpoint(const Function& func,
-                                     intptr_t token_index);
+                                     intptr_t token_pos);
 
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);

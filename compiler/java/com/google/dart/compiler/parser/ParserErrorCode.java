@@ -85,6 +85,7 @@ public enum ParserErrorCode implements ErrorCode {
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
+  REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY("Redirecting constructor cannot have a body"),
   REDIRECTING_CONSTRUCTOR_PARAM("Redirecting constructor cannot have initializers"),
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor cannot have initializers"),
   REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),

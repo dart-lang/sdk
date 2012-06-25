@@ -14,6 +14,7 @@
 #import('ssa/ssa.dart');
 #import('string_validator.dart');
 #import('source_file.dart');
+#import('source_map_builder.dart');
 #import('tree/tree.dart');
 #import('util/characters.dart');
 #import('util/util.dart');

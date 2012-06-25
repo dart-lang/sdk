@@ -104,15 +104,6 @@ void OS::Sleep(int64_t millis) {
 }
 
 
-void OS::DebugBreak() {
-#if defined(HOST_ARCH_X64) || defined(HOST_ARCH_IA32)
-  asm("int $3");
-#else
-#error Unsupported architecture.
-#endif
-}
-
-
 void OS::Print(const char* format, ...) {
   va_list args;
   va_start(args, format);

@@ -140,9 +140,13 @@ class _Manager {
     $globalThis.onmessage = function (e) {
       _IsolateNatives._processWorkerMessage(this.mainManager, e);
     }
+  """;
+  /*: TODO: check that _processWorkerMessage is not discarded while treeshaking.
   """ {
     _IsolateNatives._processWorkerMessage(null, null);
   }
+  */
+
 
   /** Close the worker running this code if all isolates are done. */
   void maybeCloseWorker() {

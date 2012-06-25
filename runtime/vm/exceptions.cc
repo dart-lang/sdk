@@ -4,17 +4,21 @@
 
 #include "vm/exceptions.h"
 
-#include "vm/cpu.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/flags.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
+#include "vm/stub_code.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, print_stack_trace_at_throw, false,
     "Prints a stack trace everytime a throw occurs.");
+
+
+const char* Exceptions::kCastExceptionDstName = "type cast";
+
 
 // Iterate through the stack frames and try to find a frame with an
 // exception handler. Once found, set the pc, sp and fp so that execution
@@ -64,6 +68,62 @@ static void FindErrorHandler(uword* handler_pc,
 }
 
 
+void JumpToExceptionHandler(uword program_counter,
+                            uword stack_pointer,
+                            uword frame_pointer,
+                            const Instance& exception_object,
+                            const Instance& stacktrace_object) {
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
+  NoGCScope no_gc;
+  RawInstance* exception = exception_object.raw();
+  RawInstance* stacktrace = stacktrace_object.raw();
+
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous frames.
+  Isolate* isolate = Isolate::Current();
+  while (isolate->top_resource() != NULL &&
+         (reinterpret_cast<uword>(isolate->top_resource()) < stack_pointer)) {
+    isolate->top_resource()->~StackResource();
+  }
+
+  // Set up the appropriate register state and jump to the handler.
+  typedef void (*ExcpHandler)(uword, uword, uword, RawInstance*, RawInstance*);
+  ExcpHandler func = reinterpret_cast<ExcpHandler>(
+      StubCode::JumpToExceptionHandlerEntryPoint());
+  func(program_counter, stack_pointer, frame_pointer, exception, stacktrace);
+  UNREACHABLE();
+}
+
+
+void JumpToErrorHandler(uword program_counter,
+                        uword stack_pointer,
+                        uword frame_pointer,
+                        const Error& error) {
+  // The no_gc StackResource is unwound through the tear down of
+  // stack resources below.
+  NoGCScope no_gc;
+  ASSERT(!error.IsNull());
+  RawError* raw_error = error.raw();
+
+  // Prepare for unwinding frames by destroying all the stack resources
+  // in the previous frames.
+  Isolate* isolate = Isolate::Current();
+  while (isolate->top_resource() != NULL &&
+         (reinterpret_cast<uword>(isolate->top_resource()) < stack_pointer)) {
+    isolate->top_resource()->~StackResource();
+  }
+
+  // Set up the error object as the return value in EAX and continue
+  // from the invocation stub.
+  typedef void (*ErrorHandler)(uword, uword, uword, RawError*);
+  ErrorHandler func = reinterpret_cast<ErrorHandler>(
+      StubCode::JumpToErrorHandlerEntryPoint());
+  func(program_counter, stack_pointer, frame_pointer, raw_error);
+  UNREACHABLE();
+}
+
+
 static void ThrowExceptionHelper(const Instance& incoming_exception,
                                  const Instance& existing_stacktrace) {
   Instance& exception = Instance::Handle(incoming_exception.raw());
@@ -99,11 +159,11 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   }
   if (handler_exists) {
     // Found a dart handler for the exception, jump to it.
-    CPU::JumpToExceptionHandler(handler_pc,
-                                handler_sp,
-                                handler_fp,
-                                exception,
-                                stacktrace);
+    JumpToExceptionHandler(handler_pc,
+                           handler_sp,
+                           handler_fp,
+                           exception,
+                           stacktrace);
   } else {
     // No dart exception handler found in this invocation sequence,
     // so we create an unhandled exception object and return to the
@@ -114,10 +174,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
     // the isolate etc.).
     const UnhandledException& unhandled_exception = UnhandledException::Handle(
         UnhandledException::New(exception, stacktrace));
-    CPU::JumpToErrorHandler(handler_pc,
-                            handler_sp,
-                            handler_fp,
-                            unhandled_exception);
+    JumpToErrorHandler(handler_pc, handler_sp, handler_fp, unhandled_exception);
   }
   UNREACHABLE();
 }
@@ -182,13 +239,21 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
                                          const String& dst_type_name,
                                          const String& dst_name,
                                          const String& malformed_error) {
-  // Allocate a new instance of TypeError.
-  const Instance& type_error = Instance::Handle(NewInstance("TypeError"));
+  // Allocate a new instance of TypeError or CastException.
+  Instance& type_error = Instance::Handle();
+  Class& cls = Class::Handle();
+  if (dst_name.Equals(kCastExceptionDstName)) {
+    type_error = NewInstance("CastException");
+    cls = type_error.clazz();
+    cls = cls.SuperClass();
+  } else {
+    type_error = NewInstance("TypeError");
+    cls = type_error.clazz();
+  }
 
   // Initialize 'url', 'line', and 'column' fields.
   DartFrameIterator iterator;
   const Script& script = Script::Handle(GetCallerScript(&iterator));
-  const Class& cls = Class::Handle(type_error.clazz());
   // Location fields are defined in AssertionError, the superclass of TypeError.
   const Class& assertion_error_class = Class::Handle(cls.SuperClass());
   SetLocationFields(type_error, assertion_error_class, script, location);
@@ -279,7 +344,7 @@ void Exceptions::PropagateError(const Object& obj) {
     uword handler_sp = 0;
     uword handler_fp = 0;
     FindErrorHandler(&handler_pc, &handler_sp, &handler_fp);
-    CPU::JumpToErrorHandler(handler_pc, handler_sp, handler_fp, error);
+    JumpToErrorHandler(handler_pc, handler_sp, handler_fp, error);
   }
   UNREACHABLE();
 }

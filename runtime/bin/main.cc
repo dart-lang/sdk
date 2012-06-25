@@ -407,6 +407,8 @@ static Dart_Handle LibraryTagHandler(Dart_LibraryTag tag,
       id = Builtin::kUriLibrary;
     } else if (DartUtils::IsDartUtfLibURL(url_string)) {
       id = Builtin::kUtfLibrary;
+    } else if (DartUtils::IsDartWebLibURL(url_string)) {
+      id = Builtin::kWebLibrary;
     } else {
       return Dart_Error("Do not know how to load '%s'", url_string);
     }
@@ -512,8 +514,10 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
 
   if (snapshot_buffer != NULL) {
     // Setup the native resolver as the snapshot does not carry it.
-    Builtin::SetNativeResolver(Builtin::kBuiltinLibrary);
-    Builtin::SetNativeResolver(Builtin::kIOLibrary);
+    Builtin::SetupLibrary(Builtin::LoadLibrary(Builtin::kBuiltinLibrary),
+                          Builtin::kBuiltinLibrary);
+    Builtin::SetupLibrary(Builtin::LoadLibrary(Builtin::kIOLibrary),
+                          Builtin::kIOLibrary);
   }
 
   // Set up the library tag handler for this isolate.
@@ -549,6 +553,10 @@ static bool CreateIsolateAndSetupHelper(const char* script_uri,
     Dart_ShutdownIsolate();
     return false;
   }
+
+  // Setup the IO library.
+  Dart_Handle io_lib = Builtin::LoadLibrary(Builtin::kIOLibrary);
+  Builtin::SetupIOLibrary(io_lib);
 
   if (package_root != NULL) {
     const int kNumArgs = 1;

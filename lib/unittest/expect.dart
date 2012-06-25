@@ -4,29 +4,20 @@
 
 /**
  * This is the main assertion function. It asserts that [actual]
- * matches the [matcher]. [reason] is optional and is typically
- * not supplied, as a reason can be generated from the matcher.
+ * matches the [matcher]. [matcher] is optional and defaults to isTrue,
+ * so expect can be used with a single predicate argument. [reason]
+ * is optional and is typically not supplied if a reasonable matcher is
+ * explicitly provided, as a reason can be generated from the matcher.
  * If [reason] is included it is appended to the reason generated
  * by the matcher.
+ *
+ * [matcher] can be a value in which case it will be wrapped in an
+ * [equals] matcher.
  *
  * If the assertion fails, then the default behavior is to throw an
  * [ExpectException], but this behavior can be changed by calling
  * [configureExpectHandler] and providing an alternative handler that
  * implements the [IFailureHandler] interface.
- *
- * [expect] allows an alternative call format, providing a Boolean
- * predicate as the first argument and an optional reason as a named
- * second argument. This supports brevity at the expense of detailed
- * error messages. For example, these are equivalent, but the first
- * form will give a detailed error message, while the second form will
- * just give a generic assertion failed message:
- *
- *     expect(foo, isLessThanOrEqual(bar));
- *     expect(foo <= bar);
- *
- * A better way of doing the second form is:
- *
- *     expect(foo <= bar, reason: "foo not less than or equal to bar");
  *
  * expect() is a 3rd generation assertion mechanism, drawing
  * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
@@ -36,43 +27,39 @@
  *     [Hamcrest] http://http://code.google.com/p/hamcrest/
  *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
-void expect(actual, [matcher = null, String reason = null]) {
-  if (matcher == null) {
-    // Treat this as an assert(predicate, [reason]).
-    if (!actual) {
-      if (reason == null) {
-        reason = 'Assertion failed';
-      }
-      // Make sure we have a failure handler configured.
-      configureExpectHandler(_assertFailureHandler);
-      _assertFailureHandler.fail(reason);
+void expect(actual, [matcher = isTrue, String reason = null]) {
+  matcher = wrapMatcher(matcher);
+  var doesMatch;
+  try {
+    doesMatch = matcher.matches(actual);
+  } catch (var e, var trace) {
+    doesMatch = false;
+    if (reason == null) {
+      reason = '${(e is String) ? e : e.toString()} at $trace';
     }
-  } else {
-    // Treat this as an expect(value, [matcher], [reason]).
-    matcher = wrapMatcher(matcher);
-    var doesMatch;
-    try {
-      doesMatch = matcher.matches(actual);
-    } catch (var e, var trace) {
-      doesMatch = false;
-      if (reason == null) {
-        reason = '${(e is String) ? e : e.toString()} at $trace';
-      }
-    }
-    if (!doesMatch) {
-      // Make sure we have a failure handler configured.
-      configureExpectHandler(_assertFailureHandler);
-      _assertFailureHandler.failMatch(actual, matcher, reason);
-    }
+  }
+  if (!doesMatch) {
+    // Make sure we have a failure handler configured.
+    configureExpectHandler(_assertFailureHandler);
+    _assertFailureHandler.failMatch(actual, matcher, reason);
   }
 }
 
 /**
  * Takes an argument and returns an equivalent matcher.
- * If the argument is already a matcher this does nothing, else it
- * generates an equals matcher for the argument.
+ * If the argument is already a matcher this does nothing,
+ * else if the argument is a function, it generates a predicate
+ * function matcher, else it generates an equals matcher.
  */
-Matcher wrapMatcher(x) => ((x is Matcher) ? x : equals(x));
+Matcher wrapMatcher(x) {
+  if (x is Matcher) {
+    return x;
+  } else if (x is Function) {
+    return predicate(x);
+  } else {
+    return equals(x);
+  }
+}
 
 // The handler for failed asserts.
 FailureHandler _assertFailureHandler = null;

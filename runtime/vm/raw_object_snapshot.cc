@@ -51,7 +51,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_type_arguments_instance_field_offset(reader->ReadIntptrValue());
     cls.set_next_field_offset(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
-    cls.set_token_index(reader->ReadIntptrValue());
+    cls.set_token_pos(reader->ReadIntptrValue());
     cls.set_class_state(reader->Read<int8_t>());
     if (reader->Read<bool>()) {
       cls.set_is_const();
@@ -95,7 +95,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->type_arguments_instance_field_offset_);
     writer->WriteIntptrValue(ptr()->next_field_offset_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
-    writer->WriteIntptrValue(ptr()->token_index_);
+    writer->WriteIntptrValue(ptr()->token_pos_);
     writer->Write<int8_t>(ptr()->class_state_);
     writer->Write<bool>(ptr()->is_const_);
     writer->Write<bool>(ptr()->is_interface_);
@@ -124,7 +124,7 @@ RawUnresolvedClass* UnresolvedClass::ReadFrom(SnapshotReader* reader,
   unresolved_class.set_tags(tags);
 
   // Set all non object fields.
-  unresolved_class.set_token_index(reader->ReadIntptrValue());
+  unresolved_class.set_token_pos(reader->ReadIntptrValue());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -151,7 +151,7 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
                             writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_pos_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);
@@ -190,7 +190,7 @@ RawType* Type::ReadFrom(SnapshotReader* reader,
   parameterized_type.set_tags(tags);
 
   // Set all non object fields.
-  parameterized_type.set_token_index(reader->ReadIntptrValue());
+  parameterized_type.set_token_pos(reader->ReadIntptrValue());
   parameterized_type.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -222,7 +222,7 @@ void RawType::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kTypeClass, writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
-  writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -247,7 +247,7 @@ RawTypeParameter* TypeParameter::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   type_parameter.set_index(reader->ReadIntptrValue());
-  type_parameter.set_token_index(reader->ReadIntptrValue());
+  type_parameter.set_token_pos(reader->ReadIntptrValue());
   type_parameter.set_type_state(reader->Read<int8_t>());
 
   // Set all the object fields.
@@ -277,7 +277,7 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->index_);
-  writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<int8_t>(ptr()->type_state_);
 
   // Write out all the object pointer fields.
@@ -422,8 +422,8 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_tags(tags);
 
   // Set all the non object fields.
-  func.set_token_index(reader->ReadIntptrValue());
-  func.set_end_token_index(reader->ReadIntptrValue());
+  func.set_token_pos(reader->ReadIntptrValue());
+  func.set_end_token_pos(reader->ReadIntptrValue());
   func.set_num_fixed_parameters(reader->ReadIntptrValue());
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_usage_counter(reader->ReadIntptrValue());
@@ -461,8 +461,8 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
                             writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_index_);
-  writer->WriteIntptrValue(ptr()->end_token_index_);
+  writer->WriteIntptrValue(ptr()->token_pos_);
+  writer->WriteIntptrValue(ptr()->end_token_pos_);
   writer->WriteIntptrValue(ptr()->num_fixed_parameters_);
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
@@ -494,7 +494,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_tags(tags);
 
   // Set all non object fields.
-  field.set_token_index(reader->ReadIntptrValue());
+  field.set_token_pos(reader->ReadIntptrValue());
   field.set_is_static(reader->Read<bool>());
   field.set_is_final(reader->Read<bool>());
   field.set_has_initializer(reader->Read<bool>());
@@ -525,7 +525,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kFieldClass, writer->GetObjectTags(this));
 
   // Write out all the non object fields.
-  writer->WriteIntptrValue(ptr()->token_index_);
+  writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<bool>(ptr()->is_static_);
   writer->Write<bool>(ptr()->is_final_);
   writer->Write<bool>(ptr()->has_initializer_);

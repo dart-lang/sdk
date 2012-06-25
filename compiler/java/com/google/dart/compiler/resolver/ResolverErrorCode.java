@@ -44,6 +44,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
+  CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
   CONST_REQUIRES_VALUE("Constant fields must have an initial value"),
@@ -73,7 +75,6 @@ public enum ResolverErrorCode implements ErrorCode {
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
-  DUPLICATED_INTERFACE("%s and %s are duplicated in the supertype graph"),
   DUPLICATE_INITIALIZATION("Duplicate initialization of '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,

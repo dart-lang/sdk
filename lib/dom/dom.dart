@@ -5289,7 +5289,7 @@ interface IDBObjectStore {
 
   IDBRequest count([key_OR_range]);
 
-  IDBIndex createIndex(String name, String keyPath, [Map options]);
+  IDBIndex createIndex(String name, keyPath, [Map options]);
 
   IDBRequest delete(key_OR_keyRange);
 
@@ -11333,7 +11333,7 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
 
   WebGLActiveInfo getActiveUniform(WebGLProgram program, int index);
 
-  List getAttachedShaders(WebGLProgram program);
+  List<Object> getAttachedShaders(WebGLProgram program);
 
   int getAttribLocation(WebGLProgram program, String name);
 
@@ -11362,6 +11362,8 @@ interface WebGLRenderingContext extends CanvasRenderingContext {
   WebGLShaderPrecisionFormat getShaderPrecisionFormat(int shadertype, int precisiontype);
 
   String getShaderSource(WebGLShader shader);
+
+  List<String> getSupportedExtensions();
 
   Object getTexParameter(int target, int pname);
 

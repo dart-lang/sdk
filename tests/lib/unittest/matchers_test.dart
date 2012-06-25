@@ -62,7 +62,7 @@ void main() {
       var a = new Map();
       var b = new Map();
       shouldPass(a, equals(a));
-      shouldFail(a, equals(b), "Expected: <{}> but: was <{}>");
+      shouldPass(a, equals(b));
     });
 
     test('anything', () {
@@ -77,6 +77,94 @@ void main() {
       shouldFail(doesNotThrow, throws,
         "Expected: throws an exception but: no exception");
       shouldPass(doesThrow, throws);
+    });
+
+    test('throwsA', () {
+      shouldPass(doesThrow, throwsA(equals('X')));
+      shouldFail(doesThrow, throwsA(equals('Y')),
+        "Expected: throws an exception which matches 'Y' "
+        "but:  no exception or exception does not match 'Y'");
+    });
+
+    test('throwsBadNumberFormatException', () {
+      shouldPass(() { throw new BadNumberFormatException(''); },
+          throwsBadNumberFormatException);
+      shouldFail(() { throw new Exception(); },
+          throwsBadNumberFormatException,
+        "Expected: throws an exception which matches BadNumberFormatException "
+        "but:  no exception or exception does not match "
+            "BadNumberFormatException");
+    });
+
+    test('throwsIllegalArgumentException', () {
+      shouldPass(() { throw new IllegalArgumentException(''); },
+          throwsIllegalArgumentException);
+      shouldFail(() { throw new Exception(); },
+          throwsIllegalArgumentException,
+        "Expected: throws an exception which matches IllegalArgumentException "
+        "but:  no exception or exception does not match "
+            "IllegalArgumentException");
+    });
+
+    test('throwsIllegalJSRegExpException', () {
+      shouldPass(() { throw new IllegalJSRegExpException('',''); },
+          throwsIllegalJSRegExpException);
+      shouldFail(() { throw new Exception(); },
+          throwsIllegalJSRegExpException,
+        "Expected: throws an exception which matches IllegalJSRegExpException "
+        "but:  no exception or exception does not match "
+            "IllegalJSRegExpException");
+    });
+
+    test('throwsIndexOutOfRangeException', () {
+      shouldPass(() { throw new IndexOutOfRangeException(0); },
+          throwsIndexOutOfRangeException);
+      shouldFail(() { throw new Exception(); },
+          throwsIndexOutOfRangeException,
+        "Expected: throws an exception which matches IndexOutOfRangeException "
+        "but:  no exception or exception does not match "
+            "IndexOutOfRangeException");
+    });
+
+    test('throwsNoSuchMethodException', () {
+      shouldPass(() { throw new NoSuchMethodException(null, '', null); },
+          throwsNoSuchMethodException);
+      shouldFail(() { throw new Exception(); },
+          throwsNoSuchMethodException,
+        "Expected: throws an exception which matches NoSuchMethodException "
+        "but:  no exception or exception does not match "
+            "NoSuchMethodException");
+    });
+
+    test('throwsNotImplementedException', () {
+      shouldPass(() { throw new NotImplementedException(''); },
+          throwsNotImplementedException);
+      shouldFail(() { throw new Exception(); },
+          throwsNotImplementedException,
+        "Expected: throws an exception which matches NotImplementedException "
+        "but:  no exception or exception does not match "
+            "NotImplementedException");
+    });
+
+    test('throwsNullPointerException', () {
+      shouldPass(() { throw new NullPointerException(''); },
+          throwsNullPointerException);
+      shouldFail(() { throw new Exception(); },
+          throwsNullPointerException,
+        "Expected: throws an exception which matches NullPointerException "
+        "but:  no exception or exception does not match "
+            "NullPointerException");
+    });
+
+    test('throwsUnsupportedOperationException', () {
+      shouldPass(() { throw new UnsupportedOperationException(''); },
+          throwsUnsupportedOperationException);
+      shouldFail(() { throw new Exception(); },
+          throwsUnsupportedOperationException,
+        "Expected: throws an exception which matches "
+            "UnsupportedOperationException "
+        "but:  no exception or exception does not match "
+            "UnsupportedOperationException");
     });
 
     test('returnsNormally', () {
@@ -225,7 +313,6 @@ void main() {
     });
   });
 
-
   group('String Matchers', () {
 
     test('isEmpty', () {
@@ -315,6 +402,11 @@ void main() {
       shouldFail(d, contains(0), "Expected: contains <0> but: was <[1, 2]>");
     });
 
+    test('isIn', () {
+      var d = [1, 2];
+      shouldPass(1, isIn(d));
+      shouldFail(0, isIn(d), "Expected: is in <[1, 2]> but: was <0>");
+    });
 
     test('everyElement', () {
       var d = [1, 2];
@@ -333,11 +425,12 @@ void main() {
     });
 
     test('orderedEquals', () {
+      shouldPass([null], orderedEquals([null]));
       var d = [1, 2];
       shouldPass(d, orderedEquals([1, 2]));
       shouldFail(d, orderedEquals([2, 1]),
           "Expected: equals <[2, 1]> ordered "
-          "but: mismatch at position 0");
+          "but: was <1> mismatch at position 0");
     });
 
     test('unorderedEquals', () {
@@ -351,7 +444,7 @@ void main() {
           "but: has too few elements (2 < 3)");
       shouldFail(d, unorderedEquals([3, 1]),
           "Expected: equals <[3, 1]> unordered "
-          "but: has no match for element 3 at position 0");
+          "but: has no match for element <3> at position 0");
     });
   });
 
@@ -393,7 +486,7 @@ void main() {
           "but:  contains key 'foo' but with value was 'bar'");
       shouldFail(a, containsPair('fo', 'bar'),
           "Expected: contains pair 'fo' => 'bar' "
-          "but: <{foo: bar}>' doesn't contain key ''fo'");
+          "but: <{foo: bar}> doesn't contain key 'fo'");
     });
 
     test('hasLength', () {
@@ -420,6 +513,14 @@ void main() {
       shouldFail(-1, allOf([lessThan(10), greaterThan(0)]),
           "Expected: (a value less than <10> and a value greater than <0>) "
           "but: a value greater than <0> was <-1>");
+    });
+  });
+
+  group('Predicate Matchers', () {
+    test('isInstanceOf', () {
+      shouldFail(0, predicate((x) => x is String, "an instance of String"),
+        "Expected: an instance of String but: was <0>");
+      shouldPass('cow', predicate((x) => x is String, "an instance of String"));
     });
   });
 }

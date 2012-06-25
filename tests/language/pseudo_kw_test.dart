@@ -11,6 +11,7 @@ class PseudoKWTest {
     // It sanity checks that these pseudo-keywords are legal identifiers.
 
     var abstract = 0;
+    var as = 0;
     var assert = 0;
     var call = 0;
     var Dynamic = 0;

@@ -17,16 +17,6 @@ class Instance;
 class CPU : public AllStatic {
  public:
   static void FlushICache(uword start, uword size);
-  static void JumpToExceptionHandler(uword program_counter,
-                                     uword stack_pointer,
-                                     uword frame_pointer,
-                                     const Instance& exception_object,
-                                     const Instance& stacktrace_object);
-  static void JumpToErrorHandler(
-      uword program_counter,
-      uword stack_pointer,
-      uword frame_pointer,
-      const Error& error);
   static const char* Id();
 };
 

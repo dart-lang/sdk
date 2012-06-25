@@ -171,6 +171,7 @@ tdiv(var a, var b) {
 }
 
 eq(var a, var b) {
+  if (JS('bool', @"# == null", a)) return JS('bool', @"# == null", b);
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b);
@@ -183,6 +184,7 @@ eq(var a, var b) {
 }
 
 bool eqB(var a, var b) {
+  if (JS('bool', @"# == null", a)) return JS('bool', @"# == null", b);
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b) === true;
@@ -199,27 +201,23 @@ eqq(var a, var b) {
 }
 
 eqNull(var a) {
+  if (JS('bool', @'# == null', a)) return true;
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == null);
-    } else {
-      return false;
     }
-  } else {
-    return JS('bool', @'typeof # === "undefined"', a);
   }
+ return false;
 }
 
-bool eqNullB(var a) {
+eqNullB(var a) {
+  if (JS('bool', @'# == null', a)) return true;
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == null) === true;
-    } else {
-      return false;
     }
-  } else {
-    return JS('bool', @'typeof # === "undefined"', a);
   }
+ return false;
 }
 
 gt$slow(var a, var b) {

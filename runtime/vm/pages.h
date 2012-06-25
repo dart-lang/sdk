@@ -84,15 +84,15 @@ class PageSpaceGarbageCollectionHistory {
   PageSpaceGarbageCollectionHistory();
   ~PageSpaceGarbageCollectionHistory() {}
 
-  void AddGarbageCollectionTime(uint64_t start, uint64_t end);
+  void AddGarbageCollectionTime(int64_t start, int64_t end);
 
   int GarbageCollectionTimeFraction();
 
  private:
-  static const uint32_t kHistoryLength = 4;
-  uint64_t start_[kHistoryLength];
-  uint64_t end_[kHistoryLength];
-  uint32_t index_;
+  static const intptr_t kHistoryLength = 4;
+  int64_t start_[kHistoryLength];
+  int64_t end_[kHistoryLength];
+  intptr_t index_;
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(PageSpaceGarbageCollectionHistory);

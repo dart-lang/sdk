@@ -34,11 +34,16 @@ class CodeEmitterTask extends CompilerTask {
   String classesCollector;
   final Map<int, String> boundClosureCache;
 
-  CodeEmitterTask(Compiler compiler)
+  final bool generateSourceMap;
+  final List<SourceMappingEntry> sourceMappings;
+
+  CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
       : namer = compiler.namer,
         boundClosureBuffer = new StringBuffer(),
         mainBuffer = new StringBuffer(),
         boundClosureCache = new Map<int, String>(),
+        generateSourceMap = generateSourceMap,
+        sourceMappings = new List<SourceMappingEntry>(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
   }
@@ -324,7 +329,7 @@ function(collectedClasses) {
         } else {
           Constant value = handler.initialVariableValues[element];
           if (value == null) {
-            argumentsBuffer[count] = '(void 0)';
+            argumentsBuffer[count] = NullConstant.JsNull;
           } else {
             if (!value.isNull()) {
               // If the value is the null constant, we should not pass it
@@ -616,7 +621,14 @@ function(collectedClasses) {
     generatedCode.forEach((Element element, String codeBlock) {
       if (!element.isInstanceMember()) {
         String functionName = functionNamer(element);
-        buffer.add('$isolateProperties.$functionName = $codeBlock;\n\n');
+        buffer.add('$isolateProperties.$functionName = ');
+        int beginPosition = buffer.length;
+        buffer.add(codeBlock);
+        int endPosition = buffer.length;
+        buffer.add(';\n\n');
+        if (generateSourceMap) {
+          addSourceMapping(element, beginPosition, endPosition);
+        }
       }
     });
   }
@@ -639,7 +651,7 @@ function(collectedClasses) {
       // create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
@@ -652,7 +664,7 @@ function(collectedClasses) {
       });
       // If a static function is used as a closure we need to add its name
       // in case it is used in spawnFunction.
-      String fieldName = Namer.STATIC_CLOSURE_NAME_NAME;
+      String fieldName = namer.STATIC_CLOSURE_NAME_NAME;
       buffer.add('$fieldAccess.$fieldName = "$staticName";\n');
     }
   }
@@ -706,7 +718,7 @@ function(collectedClasses) {
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
+          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, member);
 
       String invocationName =
           namer.instanceMethodName(member.getLibrary(),
@@ -759,7 +771,7 @@ function(collectedClasses) {
         String invocationName =
             namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                                selector);
-        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
+        SourceString callName = namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
             namer.instanceMethodInvocationName(member.getLibrary(), callName,
                                                selector);
@@ -870,7 +882,7 @@ function(collectedClasses) {
     compiler.codegenWorld.invokedNames.forEach((SourceString methodName,
                                             Set<Selector> selectors) {
       if (objectClass.lookupLocalMember(methodName) === null
-          && methodName != Namer.OPERATOR_EQUALS) {
+          && methodName != Elements.OPERATOR_EQUALS) {
         for (Selector selector in selectors) {
           if (methodName.isPrivate()) {
             for (LibraryElement lib in libraries) {
@@ -1032,7 +1044,29 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       emitFinishIsolateConstructor(mainBuffer);
       mainBuffer.add('}\n');
       compiler.assembledCode = mainBuffer.toString();
+
+      if (generateSourceMap) {
+        SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
+        String sourceMap = new SourceMapBuilder().build(sourceMappings,
+                                                        compiledFile);
+        // TODO(podivilov): We should find a better way to return source maps to
+        // compiler. Using diagnostic handler for that purpose is a temporary
+        // hack.
+        compiler.reportDiagnostic(
+            null, sourceMap, new api.Diagnostic(-1, 'source map'));
+      }
     });
     return compiler.assembledCode;
+  }
+
+  void addSourceMapping(FunctionElement element,
+                        int beginPosition,
+                        int endPosition) {
+    SourceFile sourceFile = element.getCompilationUnit().script.file;
+    FunctionExpression expression = element.cachedNode;
+    sourceMappings.add(new SourceMappingEntry(
+        sourceFile, expression.getBeginToken().charOffset, beginPosition));
+    sourceMappings.add(new SourceMappingEntry(
+        sourceFile, expression.getEndToken().charOffset, endPosition));
   }
 }

@@ -18,28 +18,6 @@ namespace dart {
 // Forward declarations.
 class RuntimeEntry;
 
-
-#if defined(TESTING) || defined(DEBUG)
-
-#if defined(TARGET_OS_WINDOWS)
-// The compiler may dynamically align the stack on Windows, so do not check.
-#define CHECK_STACK_ALIGNMENT { }
-#else
-#define CHECK_STACK_ALIGNMENT {                                                \
-  uword current_sp;                                                            \
-  asm volatile("mov %%esp, %[current_sp]" : [current_sp] "=r" (current_sp));   \
-  ASSERT((OS::ActivationFrameAlignment() == 0) ||                              \
-         (Utils::IsAligned(current_sp, OS::ActivationFrameAlignment())));      \
-}
-#endif
-
-#else
-
-#define CHECK_STACK_ALIGNMENT { }
-
-#endif
-
-
 class Immediate : public ValueObject {
  public:
   explicit Immediate(int32_t value) : value_(value) { }
@@ -633,6 +611,8 @@ class Assembler : public ValueObject {
 
   void EmitGenericShift(int rm, Register reg, const Immediate& imm);
   void EmitGenericShift(int rm, Register operand, Register shifter);
+
+  void StoreIntoObjectFilter(Register object, Register value, Label* no_update);
 
   DISALLOW_ALLOCATION();
   DISALLOW_COPY_AND_ASSIGN(Assembler);

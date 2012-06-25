@@ -14,19 +14,6 @@
 
 namespace dart {
 
-#if defined(TESTING) || defined(DEBUG)
-
-#define CHECK_STACK_ALIGNMENT {                                                \
-  UNIMPLEMENTED();                                                             \
-}
-
-#else
-
-#define CHECK_STACK_ALIGNMENT { }
-
-#endif
-
-
 class Label : public ValueObject {
  public:
   Label() : position_(0) { }

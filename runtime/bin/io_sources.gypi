@@ -42,7 +42,6 @@
     'socket_stream.dart',
     'socket_stream_impl.dart',
     'stdio.dart',
-    'timer.dart',
     'timer_impl.dart',
     'websocket.dart',
     'websocket_impl.dart',

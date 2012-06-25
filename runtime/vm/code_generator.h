@@ -61,6 +61,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptInstanceGetterSameTarget) \
   V(DeoptInstanceGetter) \
   V(DeoptStoreIndexed) \
+  V(DeoptStoreIndexedPolymorphic) \
   V(DeoptPolymorphicInstanceCallSmiOnly) \
   V(DeoptPolymorphicInstanceCallSmiFail) \
   V(DeoptPolymorphicInstanceCallTestFail) \
@@ -80,6 +81,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptDoubleComparison) \
   V(DeoptLoadIndexedFixedArray) \
   V(DeoptLoadIndexedGrowableArray) \
+  V(DeoptLoadIndexedPolymorphic) \
   V(DeoptNoTypeFeedback) \
   V(DeoptSAR) \
   V(DeoptUnaryOp) \

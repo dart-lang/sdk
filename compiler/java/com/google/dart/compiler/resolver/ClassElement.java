@@ -29,11 +29,10 @@ public interface ClassElement extends EnclosingElement {
 
   List<InterfaceType> getInterfaces();
 
-  List<InterfaceType> getAllSupertypes()
-      throws CyclicDeclarationException, DuplicatedInterfaceException;
+  List<InterfaceType> getAllSupertypes() throws CyclicDeclarationException;
 
   String getNativeName();
-  
+
   /**
    * FIXME(scheglov) We use this in {@link Resolver} to check that "factory" clause is exactly
    * same as declaration of factory class.

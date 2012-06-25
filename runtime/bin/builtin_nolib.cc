@@ -17,18 +17,27 @@ Builtin::builtin_lib_props Builtin::builtin_libraries_[] = {
   { DartUtils::kUriLibURL,     NULL,            false },
   { DartUtils::kCryptoLibURL,  NULL,            false },
   { DartUtils::kIOLibURL,      NULL,            true  },
-  { DartUtils::kUtfLibURL,     NULL,            false }
+  { DartUtils::kUtfLibURL,     NULL,            false },
+  { DartUtils::kWebLibURL,     web_source_,     false }
 };
 
 
 Dart_Handle Builtin::Source(BuiltinLibraryId id) {
-  UNREACHABLE();
-  return Dart_Null();
+  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
+         kInvalidLibrary);
+  ASSERT(id == kWebLibrary);
+  return Dart_NewString(builtin_libraries_[id].source_);
 }
 
 
 void Builtin::SetupLibrary(Dart_Handle library, BuiltinLibraryId id) {
-  UNREACHABLE();
+  ASSERT((sizeof(builtin_libraries_) / sizeof(builtin_lib_props)) ==
+         kInvalidLibrary);
+  ASSERT(id >= kBuiltinLibrary && id < kInvalidLibrary);
+  if (builtin_libraries_[id].has_natives_) {
+    // Setup the native resolver for built in library functions.
+    DART_CHECK_VALID(Dart_SetNativeResolver(library, NativeLookup));
+  }
 }
 
 

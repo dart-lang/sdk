@@ -10,6 +10,7 @@
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
 #import("../../../lib/compiler/implementation/leg.dart");
+#import("../../../lib/compiler/implementation/source_file.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 
 class LoggerCanceler implements DiagnosticListener {
@@ -27,7 +28,10 @@ Token scan(String text) => new StringScanner(text).tokenize();
 Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
-  NodeListener listener = new NodeListener(lc, null);
+  Script script = new Script(new Uri(scheme: "source"), new MockFile(text));
+  LibraryElement library = new LibraryElement(script);
+  library.canUseNative = true;
+  NodeListener listener = new NodeListener(lc, library);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -50,10 +54,9 @@ Node parseFunction(String text, Compiler compiler) {
 Node parseMember(String text) =>
     parseBodyCode(text, (parser, tokens) => parser.parseMember(tokens));
 
-class MockFile {
-  final filename = '<string>';
-  final text;
-  MockFile(this.text);
+class MockFile extends SourceFile {
+  MockFile(text)
+      : super('<string>', text);
 }
 
 Link<Element> parseUnit(String text, Compiler compiler,

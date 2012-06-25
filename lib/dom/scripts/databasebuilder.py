@@ -561,3 +561,28 @@ class DatabaseBuilder(object):
         map(normalize, interface.constants)
         map(normalize, interface.attributes)
         map(normalize, interface.operations)
+
+  def fetch_constructor_data(self, options):
+    window_interface = self._database.GetInterface('Window')
+    for attr in window_interface.attributes:
+      if not attr.is_fc_getter:
+        continue
+      type = attr.type.id
+      if not type.endswith('Constructor'):
+        continue
+      type = type[:-len('Constructor')]
+      # TODO: typos in WebKit IDL: HTMLImageElementConstructorConstructor...
+      if type in [
+          'HTMLAudioElementConstructor',
+          'HTMLImageElementConstructor',
+          'HTMLOptionElementConstructor' ]:
+        type = type[:-len('Constructor')]
+
+      # TODO(antonm): Ideally we'd like to have pristine copy of WebKit IDLs and fetch
+      # this information directly from it.  Unfortunately right now database is massaged
+      # a lot so it's difficult to maintain necessary information on DOMWindow itself.
+      interface = self._database.GetInterface(options.type_rename_map.get(type, type))
+      if 'V8EnabledPerContext' in attr.ext_attrs:
+        interface.ext_attrs['synthesizedV8EnabledPerContext'] = attr.ext_attrs['V8EnabledPerContext']
+      if 'V8EnabledAtRuntime' in attr.ext_attrs:
+        interface.ext_attrs['synthesizedV8EnabledAtRuntime'] = attr.ext_attrs['V8EnabledAtRuntime']

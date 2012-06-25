@@ -29,6 +29,11 @@ interface File default _File {
   File(String name);
 
   /**
+   * Create a File object from a Path object.
+   */
+  File.fromPath(Path path);
+
+  /**
    * Check if the file exists. Does not block and returns a
    * [:Future<bool>:].
    */

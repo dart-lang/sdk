@@ -264,11 +264,7 @@ public class Resolver {
           errorTarget = cls;
         }
         onError(errorTarget, ResolverErrorCode.CYCLIC_CLASS, e.getElement().getName());
-      } catch (DuplicatedInterfaceException e) {
-        onError(cls, ResolverErrorCode.DUPLICATED_INTERFACE,
-                        e.getFirst(), e.getSecond());
       }
-
       checkClassTypeVariables(classElement);
 
       // Push new resolution context.
@@ -1034,6 +1030,18 @@ public class Resolver {
       // May be local variable declared in lexical scope, but its declaration is not visited yet.
       if (getContext().getScope().isDeclaredButNotReachedVariable(name)) {
         onError(x, ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, x);
+      }
+
+      if (!isQualifier) {
+        switch (ElementKind.of(element)) {
+          case CLASS:
+          case FUNCTION_TYPE_ALIAS:
+            onError(x, ResolverErrorCode.CANNOT_USE_TYPE, name);
+            break;
+          case TYPE_VARIABLE:
+            onError(x, ResolverErrorCode.CANNOT_USE_TYPE_VARIABLE, name);
+            break;
+        }
       }
 
       // If we we haven't resolved the identifier, it will be normalized to

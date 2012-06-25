@@ -56,13 +56,16 @@ class PrimitiveConstant extends Constant {
 }
 
 class NullConstant extends PrimitiveConstant {
+  /** The value a Dart null is compiled to in JavaScript. */
+  static final String JsNull = "null";
+
   factory NullConstant() => const NullConstant._internal();
   const NullConstant._internal();
   bool isNull() => true;
   get value() => null;
 
   void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
-    buffer.add("(void 0)");
+    buffer.add(JsNull);
   }
 
   // The magic constant has no meaning. It is just a random value.
