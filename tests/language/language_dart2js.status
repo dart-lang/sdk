@@ -2,6 +2,11 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+[ $compiler == dart2js ]
+# VM specific tests that should not be run by dart2js.
+*vm_test: Skip
+*vm_negative_test: Skip
+
 [ $compiler == dart2js && $checked ]
 assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
@@ -89,7 +94,6 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
-type_cast_vm_test: Fail # type cast not yet implemented
 
 
 # Implementation errors (library or generated code).
@@ -206,7 +210,6 @@ string_interpolation7_negative_test: Fail, OK # Negative language test.
 throw7_negative_test: Fail, OK # Negative language test.
 try_catch_syntax_test/08: Fail, OK # Negative language test.
 
-type_vm_test: Fail, OK # VM specific test.
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
 
