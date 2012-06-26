@@ -9,6 +9,7 @@ import idlparser
 import logging
 import os
 import os.path
+import re
 
 from idlnode import *
 
@@ -570,14 +571,7 @@ class DatabaseBuilder(object):
       type = attr.type.id
       if not type.endswith('Constructor'):
         continue
-      type = type[:-len('Constructor')]
-      # TODO: typos in WebKit IDL: HTMLImageElementConstructorConstructor...
-      if type in [
-          'HTMLAudioElementConstructor',
-          'HTMLImageElementConstructor',
-          'HTMLOptionElementConstructor' ]:
-        type = type[:-len('Constructor')]
-
+      type = re.sub('(Constructor)+$', '', type)
       # TODO(antonm): Ideally we'd like to have pristine copy of WebKit IDLs and fetch
       # this information directly from it.  Unfortunately right now database is massaged
       # a lot so it's difficult to maintain necessary information on DOMWindow itself.
