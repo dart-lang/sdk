@@ -111,6 +111,7 @@ public enum ResolverErrorCode implements ErrorCode {
   FIELD_CONFLICTS("%s conflicts with previously defined %s at line %d column %d"),
   FIELD_DOES_NOT_HAVE_A_GETTER("Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
+  FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
   ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),

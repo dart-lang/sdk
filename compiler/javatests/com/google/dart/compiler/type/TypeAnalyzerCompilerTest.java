@@ -1531,6 +1531,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3860
+   */
+  public void test_setterGetterDifferentStatic() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static get field() => 0;",
+            "         set field(var v) {}",
+            "}",
+            "class B {",
+            "         get field() => 0;",
+            "  static set field(var v) {}",
+            "}",
+            "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 4, 14, 5),
+        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 8, 14, 5));
+  }
+  
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=380
    */
   public void test_setterGetterDifferentType() throws Exception {
@@ -1552,7 +1574,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  instance.field = new A();",
             "  B resultB = instance.field;",
             "}");
-
     assertErrors(result.getErrors());
   }
 

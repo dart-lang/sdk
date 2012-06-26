@@ -1717,6 +1717,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
               typeError(parameterElement, TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
                   setterType.getElement().getName(), getterType.getElement().getName());
             }
+            
+            // getter and setter should have same "static" flag
+            if (modifiers.isStatic() != getterElement.getModifiers().isStatic()) {
+              onError(node.getName(), ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC);
+            }
           }
         }
       }
