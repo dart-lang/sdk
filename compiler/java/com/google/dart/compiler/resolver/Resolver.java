@@ -1221,7 +1221,9 @@ public class Resolver {
           // Library prefix, lookup the element in the referenced library.
           Scope scope = ((LibraryPrefixElement) qualifier).getScope();
           element = scope.findElement(scope.getLibrary(), x.getPropertyName());
-          if (element == null) {
+          if (element != null) {
+            recordElement(x.getQualifier(), element.getEnclosingElement());
+          } else {
             onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
                 x.getPropertyName(), qualifier.getName());
           }
@@ -1325,6 +1327,7 @@ public class Resolver {
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, library, null);
           } else {
+            recordElement(x.getTarget(), element.getEnclosingElement());
             name.setElement(element);
           }
           break;
