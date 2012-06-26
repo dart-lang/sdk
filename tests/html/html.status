@@ -25,6 +25,7 @@ audiocontext_test: Pass, Fail
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 htmloptionscollection_test: Fail # Issue 3813.
+shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
