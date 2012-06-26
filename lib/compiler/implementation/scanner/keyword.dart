@@ -38,6 +38,7 @@ class Keyword implements SourceString {
 
   // Pseudo keywords:
   static final Keyword ABSTRACT = const Keyword("abstract", isPseudo: true);
+  static final Keyword AS = const Keyword("as", info: AS_INFO, isPseudo: true);
   static final Keyword ASSERT = const Keyword("assert", isPseudo: true);
   static final Keyword FACTORY = const Keyword("factory", isPseudo: true);
   static final Keyword GET = const Keyword("get", isPseudo: true);
@@ -54,6 +55,7 @@ class Keyword implements SourceString {
   static final Keyword TYPEDEF = const Keyword("typedef", isPseudo: true);
 
   static final List<Keyword> values = const <Keyword> [
+      AS,
       BREAK,
       CASE,
       CATCH,

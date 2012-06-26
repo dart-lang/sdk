@@ -2494,7 +2494,36 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (node.isChecked()) {
+    Map<String, SourceString> castNames = const <SourceString> {
+      "stringTypeCheck":
+          const SourceString("stringTypeCast"),
+      "doubleTypeCheck":
+          const SourceString("doubleTypeCast"),
+      "numTypeCheck":
+          const SourceString("numTypeCast"),
+      "boolTypeCheck":
+          const SourceString("boolTypeCast"),
+      "functionTypeCheck":
+          const SourceString("functionTypeCast"),
+      "intTypeCheck":
+          const SourceString("intTypeCast"),
+      "stringSuperNativeTypeCheck":
+          const SourceString("stringSuperNativeTypeCast"),
+      "stringSuperTypeCheck":
+          const SourceString("stringSuperTypeCast"),
+      "listTypeCheck":
+          const SourceString("listTypeCast"),
+      "listSuperNativeTypeCheck":
+          const SourceString("listSuperNativeTypeCast"),
+      "listSuperTypeCheck":
+          const SourceString("listSuperTypeCast"),
+      "callTypeCheck":
+          const SourceString("callTypeCast"),
+      "propertyTypeCheck":
+          const SourceString("propertyTypeCast")
+    };
+
+    if (node.isChecked) {
       Element element = node.type.computeType(compiler).element;
       world.registerIsCheck(element);
       SourceString helper;
@@ -2503,7 +2532,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
-      if (node.isArgumentTypeCheck()) {
+      if (node.isArgumentTypeCheck) {
         buffer.add('if (');
         if (element == compiler.intClass) {
           checkInt(node.checkedInput, '!==');
@@ -2516,7 +2545,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return;
       }
 
-      assert(node.isCheckedModeCheck());
+      assert(node.isCheckedModeCheck);
       if (element == compiler.stringClass) {
         helper = const SourceString('stringTypeCheck');
       } else if (element == compiler.doubleClass) {
@@ -2551,6 +2580,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else {
           helper = const SourceString('propertyTypeCheck');
         }
+      }
+      if (node.isCastTypeCheck) {
+        helper = castNames[helper.stringValue];
       }
       Element helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);

@@ -409,7 +409,7 @@ class Primitives {
   /** [: @"$".charCodeAt(0) :] */
   static final int DOLLAR_CHAR_VALUE = 36;
 
-  static String objectToString(Object object) {
+  static String objectTypeName(Object object) {
     String name = constructorNameFallback(object);
     if (name == 'Object') {
       // Try to decompile the constructor by turning it into a string
@@ -422,6 +422,11 @@ class Primitives {
     // TODO(kasperl): If the namer gave us a fresh global name, we may
     // want to remove the numeric suffix that makes it unique too.
     if (name.charCodeAt(0) === DOLLAR_CHAR_VALUE) name = name.substring(1);
+    return name;
+  }
+
+  static String objectToString(Object object) {
+    String name = objectTypeName(object);
     return "Instance of '$name'";
   }
 
@@ -978,13 +983,19 @@ getRuntimeTypeInfo(target) {
 
 /**
  * The following methods are called by the runtime to implement
- * checked mode. We specialize each primitive type (eg int, bool), and
- * use the compiler's convention to do is checks on regular objects.
+ * checked mode and casts. We specialize each primitive type (eg int, bool), and
+ * use the compiler's convention to do is-checks on regular objects.
  */
 stringTypeCheck(value) {
   if (value === null) return value;
   if (value is String) return value;
   throw new TypeError('$value does not implement String');
+}
+
+stringTypeCast(value) {
+  if (value is String || value === null) return value;
+  // TODO(lrn): When reified types are available, pass value.class and String.
+  throw new CastException(Primitives.objectTypeName(value), 'String');
 }
 
 doubleTypeCheck(value) {
@@ -993,10 +1004,20 @@ doubleTypeCheck(value) {
   throw new TypeError('$value does not implement double');
 }
 
+doubleTypeCast(value) {
+  if (value is double || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'double');
+}
+
 numTypeCheck(value) {
   if (value === null) return value;
   if (value is num) return value;
   throw new TypeError('$value does not implement num');
+}
+
+numTypeCast(value) {
+  if (value is num || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'num');
 }
 
 boolTypeCheck(value) {
@@ -1005,10 +1026,20 @@ boolTypeCheck(value) {
   throw new TypeError('$value does not implement bool');
 }
 
+boolTypeCast(value) {
+  if (value is bool || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'bool');
+}
+
 functionTypeCheck(value) {
   if (value === null) return value;
   if (value is Function) return value;
   throw new TypeError('$value does not implement Function');
+}
+
+functionTypeCast(value) {
+  if (value is Function || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'Function');
 }
 
 intTypeCheck(value) {
@@ -1017,10 +1048,22 @@ intTypeCheck(value) {
   throw new TypeError('$value does not implement int');
 }
 
+intTypeCast(value) {
+  if (value is int || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'int');
+}
+
 void propertyTypeError(value, property) {
   // Cuts the property name to the class name.
   String name = property.substring(3, property.length);
   throw new TypeError('$value does not implement $name');
+}
+
+void propertyTypeCastError(value, property) {
+  // Cuts the property name to the class name.
+  String actualType = Primitives.objectTypeName(value);
+  String expectedType = property.substring(3, property.length);
+  throw new CastException(actualType, expectedType);
 }
 
 /**
@@ -1032,6 +1075,16 @@ propertyTypeCheck(value, property) {
   if (value === null) return value;
   if (JS('bool', '!!#[#]', value, property)) return value;
   propertyTypeError(value, property);
+}
+
+/**
+ * For types that are not supertypes of native (eg DOM) types,
+ * we emit a simple property check to check that an object implements
+ * that type.
+ */
+propertyTypeCast(value, property) {
+  if (value === null || JS('bool', '!!#[#]', value, property)) return value;
+  propertyTypeCastError(value, property);
 }
 
 /**
@@ -1049,6 +1102,20 @@ callTypeCheck(value, property) {
 }
 
 /**
+ * For types that are supertypes of native (eg DOM) types, we emit a
+ * call because we cannot add a JS property to their prototype at load
+ * time.
+ */
+callTypeCast(value, property) {
+  if (value === null
+      || ((JS('bool', 'typeof # === "object"', value))
+          && JS('bool', '#[#]()', value, property))) {
+    return value;
+  }
+  propertyTypeCastError(value, property);
+}
+
+/**
  * Specialization of the type check for String and its supertype
  * since [value] can be a JS primitive.
  */
@@ -1059,11 +1126,22 @@ stringSuperTypeCheck(value, property) {
   propertyTypeError(value, property);
 }
 
+stringSuperTypeCast(value, property) {
+  if (value is String) return value;
+  return propertyTypeCast(value, property);
+}
+
 stringSuperNativeTypeCheck(value, property) {
   if (value === null) return value;
   if (value is String) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
+}
+
+stringSuperNativeTypeCast(value, property) {
+  if (value is String || value === null) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeCastError(value, property);
 }
 
 /**
@@ -1076,6 +1154,11 @@ listTypeCheck(value) {
   throw new TypeError('$value does not implement List');
 }
 
+listTypeCast(value) {
+  if (value is List || value === null) return value;
+  throw new CastException(Primitives.objectTypeName(value), 'List');
+}
+
 listSuperTypeCheck(value, property) {
   if (value === null) return value;
   if (value is List) return value;
@@ -1083,11 +1166,22 @@ listSuperTypeCheck(value, property) {
   propertyTypeError(value, property);
 }
 
+listSuperTypeCast(value, property) {
+  if (value is List) return value;
+  return propertyTypeCast(value, property);
+}
+
 listSuperNativeTypeCheck(value, property) {
   if (value === null) return value;
   if (value is List) return value;
   if (JS('bool', '#[#]()', value, property)) return value;
   propertyTypeError(value, property);
+}
+
+listSuperNativeTypeCast(value, property) {
+  if (value is List || value === null) return value;
+  if (JS('bool', '#[#]()', value, property)) return value;
+  propertyTypeCastError(value, property);
 }
 
 /**

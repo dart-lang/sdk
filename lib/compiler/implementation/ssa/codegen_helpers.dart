@@ -59,9 +59,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   void visitIdentity(HIdentity instruction) {}
 
   void visitTypeConversion(HTypeConversion instruction) {
-    if (!instruction.isChecked()) {
+    if (!instruction.isChecked) {
       generateAtUseSite.add(instruction);
-    } else if (instruction.isCheckedModeCheck()) {
+    } else if (instruction.isCheckedModeCheck) {
       // Checked mode checks compile to code that only use their input
       // once, so we can safely visit them and try to merge the input.
       visitInstruction(instruction);

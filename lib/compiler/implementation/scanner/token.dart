@@ -71,7 +71,8 @@ final int PERCENT_EQ_TOKEN = TILDE_SLASH_TOKEN + 1;
 final int GT_GT_TOKEN = PERCENT_EQ_TOKEN + 1;
 final int CARET_EQ_TOKEN = GT_GT_TOKEN + 1;
 final int IS_TOKEN = CARET_EQ_TOKEN + 1;
-final int COMMENT_TOKEN = IS_TOKEN + 1;
+final int AS_TOKEN = IS_TOKEN + 1;
+final int COMMENT_TOKEN = AS_TOKEN + 1;
 final int GT_GT_GT_TOKEN = COMMENT_TOKEN + 1;
 final int STRING_INTERPOLATION_IDENTIFIER_TOKEN = COMMENT_TOKEN + 1;
 
@@ -406,6 +407,8 @@ final PrecedenceInfo GT_INFO =
   const PrecedenceInfo(const SourceString('>'), 10, GT_TOKEN);
 final PrecedenceInfo IS_INFO =
   const PrecedenceInfo(const SourceString('is'), 10, IS_TOKEN);
+final PrecedenceInfo AS_INFO =
+  const PrecedenceInfo(const SourceString('as'), 10, AS_TOKEN);
 final PrecedenceInfo LT_EQ_INFO =
   const PrecedenceInfo(const SourceString('<='), 10, LT_EQ_TOKEN);
 final PrecedenceInfo LT_INFO =

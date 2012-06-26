@@ -1490,8 +1490,6 @@ class HSubtract extends HBinaryArithmetic {
  * An [HSwitch] instruction has one input for the incoming
  * value, and one input per constant that it can switch on.
  * Its block has one successor per constant, and one for the default.
- * If the switch didn't have a default case, the last successor is
- * the join block.
  */
 class HSwitch extends HControlFlow {
   HSwitch(List<HInstruction> inputs) : super(inputs);
@@ -1499,6 +1497,11 @@ class HSwitch extends HControlFlow {
   HConstant constant(int index) => inputs[index + 1];
   HInstruction get expression() => inputs[0];
 
+  /**
+   * Provides the target to jump to if none of the constants match
+   * the expression. If the switch had no default case, this is the
+   * following join-block.
+   */
   HBasicBlock get defaultTarget() => block.successors.last();
 
   accept(HVisitor visitor) => visitor.visitSwitch(this);
@@ -1832,7 +1835,7 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(element) : super(<HInstruction>[]) {
+  HLocalValue(Element element) : super(<HInstruction>[]) {
     sourceElement = element;
   }
 
@@ -1845,7 +1848,7 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(element) : super(element);
+  HParameterValue(Element element) : super(element);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
@@ -2254,22 +2257,24 @@ class HTypeConversion extends HCheck {
   static final int NO_CHECK = 0;
   static final int CHECKED_MODE_CHECK = 1;
   static final int ARGUMENT_TYPE_CHECK = 2;
+  static final int CAST_TYPE_CHECK = 3;
 
-  HTypeConversion(HType type, HInstruction input)
-      : this.internal(type, input, NO_CHECK);
-  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
-      : this.internal(type, input, CHECKED_MODE_CHECK);
-  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
-      : this.internal(type, input, ARGUMENT_TYPE_CHECK);
-
-  HTypeConversion.internal(this.type, HInstruction input, this.kind)
+  HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
     sourceElement = input.sourceElement;
   }
+  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
+      : this(type, input, CHECKED_MODE_CHECK);
+  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
+      : this(type, input, ARGUMENT_TYPE_CHECK);
+  HTypeConversion.castCheck(HType type, HInstruction input)
+      : this(type, input, CAST_TYPE_CHECK);
 
-  bool isChecked() => kind != NO_CHECK;
-  bool isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
-  bool isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
+
+  bool get isChecked() => kind != NO_CHECK;
+  bool get isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
+  bool get isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
+  bool get isCastTypeCheck() => kind == CAST_TYPE_CHECK;
 
   HType get guaranteedType() => type;
 

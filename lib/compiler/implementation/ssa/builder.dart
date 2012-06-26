@@ -1092,13 +1092,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction potentiallyCheckType(HInstruction original,
                                     Element sourceElement) {
     if (!compiler.enableTypeAssertions) return original;
+    return convertType(original, sourceElement,
+                       HTypeConversion.CHECKED_MODE_CHECK);
+  }
 
+  HInstruction convertType(HInstruction original,
+                           Element sourceElement,
+                           int kind) {
     Type type = sourceElement.computeType(compiler);
     if (type === null) return original;
     if (type.element === compiler.dynamicClass) return original;
     if (type.element === compiler.objectClass) return original;
 
-    HType convertedType = new HType.fromBoundedType(type, compiler, true);
+    // If the original can't be null, type conversion also can't produce null.
+    bool canBeNull = original.guaranteedType.canBeNull();
+    HType convertedType =
+        new HType.fromBoundedType(type, compiler, canBeNull);
 
     // No need to convert if we know the instruction has
     // [convertedType] as a bound.
@@ -1107,7 +1116,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInstruction instruction =
-        new HTypeConversion.checkedModeCheck(convertedType, original);
+        new HTypeConversion(convertedType, original, kind);
     add(instruction);
     return instruction;
   }
@@ -1978,6 +1987,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         push(instruction);
       }
+    } else if (const SourceString("as") == op.source) {
+      visit(node.receiver);
+      HInstruction expression = pop();
+      Node argument = node.arguments.head;
+      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
+      Type type = elements.getType(typeAnnotation);
+      HInstruction converted = convertType(expression, type.element,
+                                           HTypeConversion.CAST_TYPE_CHECK);
+      stack.add(converted);
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);

@@ -1141,7 +1141,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Element target = resolveSend(node);
     if (node.isOperator) {
       Operator op = node.selector.asOperator();
-      if (op.source.stringValue === 'is') {
+      if (op.source.stringValue === 'is' || op.source.stringValue === 'as') {
         resolveTypeTest(node.arguments.head);
         assert(node.arguments.tail.isEmpty());
         mapping.setSelector(node, Selector.BINARY_OPERATOR);
@@ -1233,6 +1233,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         case '&&':
         case '||':
         case 'is':
+        case 'as':
         case '>>>':
           return null;
       }

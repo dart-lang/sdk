@@ -305,6 +305,10 @@ class Listener {
   void endWhileStatement(Token whileKeyword, Token endToken) {
   }
 
+  void handleAsOperator(Token operathor, Token endToken) {
+    // TODO(ahe): Rename [operathor] to "operator" when VM bug is fixed.
+  }
+
   void handleAssignmentExpression(Token token) {
   }
 
@@ -1053,6 +1057,13 @@ class NodeListener extends ElementListener {
 
   void endCascade() {
     pushNode(new Cascade(popNode()));
+  }
+
+  void handleAsOperator(Token operathor, Token endToken) {
+    TypeAnnotation type = popNode();
+    Expression expression = popNode();
+    NodeList arguments = new NodeList.singleton(type);
+    pushNode(new Send(expression, new Operator(operathor), arguments));
   }
 
   void handleAssignmentExpression(Token token) {
