@@ -197,7 +197,6 @@ static bool CompileWithNewCompiler(
         optimizer.ApplyICData();
 
         if (FLAG_use_ssa) {
-          printf("====================================\n");
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(graph_builder.postorder_block_entries(),
                                        graph_builder.current_ssa_temp_index());

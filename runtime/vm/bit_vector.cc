@@ -33,4 +33,31 @@ void BitVector::Iterator::Advance() {
 }
 
 
+bool BitVector::AddAll(BitVector* from) {
+  ASSERT(data_length_ == from->data_length_);
+  bool changed = false;
+  for (intptr_t i = 0; i < data_length_; i++) {
+    const uword before = data_[i];
+    const uword after = data_[i] | from->data_[i];
+    if (before != after) changed = true;
+    data_[i] = after;
+  }
+  return changed;
+}
+
+
+bool BitVector::KillAndAdd(BitVector* kill, BitVector* gen) {
+  ASSERT(data_length_ == kill->data_length_);
+  ASSERT(data_length_ == gen->data_length_);
+  bool changed = false;
+  for (intptr_t i = 0; i < data_length_; i++) {
+    const uword before = data_[i];
+    const uword after = data_[i] | (gen->data_[i] & ~kill->data_[i]);
+    if (before != after) changed = true;
+    data_[i] = after;
+  }
+  return changed;
+}
+
+
 }  // namespace dart
