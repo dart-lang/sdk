@@ -191,9 +191,12 @@ public class Elements {
                                                            constructorType);
   }
 
-  @VisibleForTesting
   public static void setType(Element element, Type type) {
     ((AbstractNodeElement) element).setType(type);
+  }
+
+  public static void setOverridden(MethodElement methodElement, Set<Element> overridden) {
+    ((MethodElementImplementation) methodElement).setOverridden(overridden);
   }
 
 static FieldElementImplementation fieldFromNode(DartField node,

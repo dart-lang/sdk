@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -2692,6 +2693,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         String name = method.getName();
         if (superMembers != null && !method.isConstructor()) {
           Collection<Element> overridden = superMembers.removeAll(name);
+          Elements.setOverridden(method, ImmutableSet.copyOf(overridden));
           for (Element element : overridden) {
             if (canOverride(node.getName(), method.getModifiers(), element)) {
               switch (element.getKind()) {

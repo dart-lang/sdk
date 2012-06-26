@@ -1,10 +1,11 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
@@ -19,6 +20,7 @@ import com.google.dart.compiler.type.Type;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 class MethodElementImplementation extends AbstractNodeElement implements MethodNodeElement {
   private final Modifiers modifiers;
@@ -28,6 +30,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   private FunctionType type;
   private final SourceInfo nameLocation;
   private final boolean hasBody;
+  private Set<Element> overridden = ImmutableSet.of();
 
   // TODO(ngeoffray): name, return type, argument types.
   @VisibleForTesting
@@ -169,5 +172,13 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   @Override
   public SourceInfo getNameLocation() {
     return nameLocation;
+  }
+
+  public void setOverridden(Set<Element> overridden) {
+    this.overridden = overridden;
+  }
+  
+  public Set<Element> getOverridden() {
+    return overridden;
   }
 }

@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.type.DynamicType;
@@ -14,6 +15,7 @@ import com.google.dart.compiler.type.Types;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * Dummy element corresponding to {@link DynamicType}.
@@ -284,5 +286,10 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   @Override
   public List<Element> getUnimplementedMembers() {
     return null;
+  }
+
+  @Override
+  public Set<Element> getOverridden() {
+    return ImmutableSet.of();
   }
 }
