@@ -6,6 +6,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -77,6 +78,13 @@ void FlowGraphCompiler::InitCompiler() {
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
+}
+
+
+bool FlowGraphCompiler::CanOptimize() {
+  return !FLAG_report_usage_count &&
+         (FLAG_optimization_counter_threshold >= 0) &&
+         !Isolate::Current()->debugger()->IsActive();
 }
 
 
@@ -231,13 +239,6 @@ void FlowGraphCompiler::FinalizeComments(const Code& code) {
 }
 
 
-static bool CanOptimize() {
-  return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0) &&
-         !Isolate::Current()->debugger()->IsActive();
-}
-
-
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 bool FlowGraphCompiler::TryIntrinsify() {
@@ -295,7 +296,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
                                      cid,
                                      checked_argument_count));
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
   switch (checked_argument_count) {
     case 1:
@@ -330,7 +331,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
   ASSERT(frame_register_allocator()->IsSpilled());
 
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   const intptr_t descr_offset = EmitStaticCall(function,
                                                arguments_descriptor,
                                                argument_count);

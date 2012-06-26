@@ -2355,7 +2355,7 @@ void EffectGraphVisitor::VisitInlinedFinallyNode(InlinedFinallyNode* node) {
 }
 
 
-void FlowGraphBuilder::BuildGraph(bool for_optimized) {
+void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   if (FLAG_print_ast) {
     // Print the function ast before IL generation.
     AstPrinter::PrintFunctionNodes(parsed_function());
@@ -2387,7 +2387,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized) {
   for (intptr_t i = 0; i < block_count; ++i) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
-  if (for_optimized && FLAG_use_ssa) {
+  if (for_optimized && use_ssa) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,

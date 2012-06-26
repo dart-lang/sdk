@@ -46,6 +46,7 @@ class FlowGraphCompiler : public ValueObject {
   void set_current_block(BlockEntryInstr* value) {
     current_block_ = value;
   }
+  static bool CanOptimize();
   bool is_optimizing() const { return is_optimizing_; }
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
 

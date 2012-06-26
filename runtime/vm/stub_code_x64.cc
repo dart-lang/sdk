@@ -7,8 +7,8 @@
 
 #include "vm/assembler.h"
 #include "vm/assembler_macros.h"
-#include "vm/code_generator.h"
 #include "vm/compiler.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -1547,7 +1547,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   __ movq(RCX, FieldAddress(RBX, ICData::function_offset()));
   __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
-  if (CodeGenerator::CanOptimize()) {
+  if (FlowGraphCompiler::CanOptimize()) {
     __ cmpq(FieldAddress(RCX, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
     Label not_yet_hot;

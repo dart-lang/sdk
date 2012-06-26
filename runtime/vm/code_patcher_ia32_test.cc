@@ -56,7 +56,7 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   ICData& ic_data = ICData::ZoneHandle(
       ICData::New(function, target_name, 15, 1));
   __ LoadObject(ECX, ic_data);
-  __ LoadObject(EDX, CodeGenerator::ArgumentsDescriptor(1, Array::Handle()));
+  __ LoadObject(EDX, DartEntry::ArgumentsDescriptor(1, Array::Handle()));
   ExternalLabel target_label(
       "InlineCache", StubCode::OneArgCheckInlineCacheEntryPoint());
   __ call(&target_label);

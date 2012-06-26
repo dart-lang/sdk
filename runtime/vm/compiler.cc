@@ -20,7 +20,6 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
-#include "vm/opt_code_generator.h"
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/scanner.h"
@@ -33,8 +32,7 @@ DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
-DEFINE_FLAG(bool, use_new_compiler, true, "Use the new compiler backend.");
-DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from new compiler.");
+DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DECLARE_FLAG(bool, use_ssa);
 
 
@@ -47,35 +45,6 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
   const Error& error = Error::Handle(Compiler::CompileFunction(function));
   if (!error.IsNull()) {
     Exceptions::PropagateError(error);
-  }
-}
-
-
-// Extracts IC data associated with a node id.
-// TODO(srdjan): Check performance impact of node id search loop.
-static void ExtractTypeFeedback(const Code& code,
-                                SequenceNode* sequence_node) {
-  ASSERT(!code.IsNull() && !code.is_optimized());
-  GrowableArray<AstNode*> all_nodes;
-  sequence_node->CollectAllNodes(&all_nodes);
-  GrowableArray<intptr_t> node_ids;
-  const GrowableObjectArray& ic_data_objs =
-      GrowableObjectArray::Handle(GrowableObjectArray::New());
-  code.ExtractIcDataArraysAtCalls(&node_ids, ic_data_objs);
-  ICData& ic_data_obj = ICData::Handle();
-  for (intptr_t i = 0; i < node_ids.length(); i++) {
-    intptr_t node_id = node_ids[i];
-    bool found_node = false;
-    for (intptr_t n = 0; n < all_nodes.length(); n++) {
-      if (all_nodes[n]->id() == node_id) {
-        found_node = true;
-        // Make sure we assign ic data array only once.
-        ASSERT(all_nodes[n]->ic_data().IsNull());
-        ic_data_obj ^= ic_data_objs.At(i);
-        all_nodes[n]->set_ic_data(ic_data_obj);
-      }
-    }
-    ASSERT(found_node);
   }
 }
 
@@ -147,8 +116,9 @@ static void InstallUnoptimizedCode(const Function& function) {
 
 
 // Return false if bailed out.
-static bool CompileWithNewCompiler(
-    const ParsedFunction& parsed_function, bool optimized) {
+static bool CompileParsedFunctionHelper(
+    const ParsedFunction& parsed_function, bool optimized, bool use_ssa) {
+  TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
@@ -183,7 +153,7 @@ static bool CompileWithNewCompiler(
         }
       }
       FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph(optimized);
+      graph_builder.BuildGraph(optimized, use_ssa);
 
       // The non-optimizing compiler compiles blocks in reverse postorder,
       // because it is a 'natural' order for the human reader of the
@@ -196,7 +166,7 @@ static bool CompileWithNewCompiler(
         FlowGraphOptimizer optimizer(block_order);
         optimizer.ApplyICData();
 
-        if (FLAG_use_ssa) {
+        if (use_ssa) {
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(graph_builder.postorder_block_entries(),
                                        graph_builder.current_ssa_temp_index());
@@ -258,6 +228,8 @@ static bool CompileWithNewCompiler(
     if (FLAG_trace_bailout) {
       OS::Print("%s\n", bailout_error.ToErrorCString());
     }
+    // We only bail out from generating ssa code.
+    ASSERT(optimized && use_ssa);
     is_compiled = false;
   }
   // Reset global isolate state.
@@ -265,100 +237,6 @@ static bool CompileWithNewCompiler(
   isolate->set_long_jump_base(old_base);
   isolate->set_computation_id(prev_cid);
   return is_compiled;
-}
-
-
-static void CompileWithOldCompiler(
-    const ParsedFunction& parsed_function, bool optimized) {
-  const Function& function = parsed_function.function();
-  Assembler assembler;
-  if (optimized) {
-    // Transition to optimized code only from unoptimized code ...
-    // for now.
-    ASSERT(function.HasCode());
-    ASSERT(!function.HasOptimizedCode());
-    // Do not use type feedback to optimize a function that was
-    // deoptimized too often.
-    if (parsed_function.function().deoptimization_counter() <
-        FLAG_deoptimization_counter_threshold) {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphbuilder_timer);
-      ExtractTypeFeedback(
-          Code::Handle(parsed_function.function().unoptimized_code()),
-          parsed_function.node_sequence());
-    }
-    OptimizingCodeGenerator code_gen(&assembler, parsed_function);
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphcompiler_timer);
-      code_gen.GenerateCode();
-    }
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::codefinalizer_timer);
-      Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
-      code.set_is_optimized(true);
-      code_gen.FinalizePcDescriptors(code);
-      code_gen.FinalizeStackmaps(code);
-      code_gen.FinalizeExceptionHandlers(code);
-      code_gen.FinalizeComments(code);
-      function.SetCode(code);
-      CodePatcher::PatchEntry(Code::Handle(function.unoptimized_code()));
-    }
-    if (FLAG_trace_compiler) {
-      OS::Print("--> patching entry 0x%x\n",
-                Code::Handle(function.unoptimized_code()).EntryPoint());
-    }
-  } else {
-    // Compile unoptimized code.
-    ASSERT(!function.HasCode());
-    // Compiling first time.
-    CodeGenerator code_gen(&assembler, parsed_function);
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::graphcompiler_timer);
-      code_gen.GenerateCode();
-    }
-    {
-      TimerScope timer(FLAG_compiler_stats,
-                       &CompilerStats::codefinalizer_timer);
-      const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
-      code.set_is_optimized(false);
-      code_gen.FinalizePcDescriptors(code);
-      code_gen.FinalizeStackmaps(code);
-      code_gen.FinalizeVarDescriptors(code);
-      code_gen.FinalizeExceptionHandlers(code);
-      code_gen.FinalizeComments(code);
-      function.set_unoptimized_code(code);
-      function.SetCode(code);
-      ASSERT(CodePatcher::CodeIsPatchable(code));
-    }
-  }
-}
-
-static void CompileParsedFunctionHelper(
-    const ParsedFunction& parsed_function, bool optimized) {
-  TimerScope timer(FLAG_compiler_stats, &CompilerStats::codegen_timer);
-  bool is_compiled = false;
-  // TODO(srdjan): Remove once the old compiler has been ripped out.
-#if defined(TARGET_ARCH_X64)
-  const bool use_new_compiler = true;
-#else
-  const bool use_new_compiler = FLAG_use_new_compiler;
-#endif
-  if (use_new_compiler) {
-    is_compiled = CompileWithNewCompiler(parsed_function, optimized);
-    if (!is_compiled && optimized) {
-      // When bailing out from the optimizing compiler, mark function as
-      // non-optimizable and return.
-      parsed_function.function().set_is_optimizable(false);
-      return;
-    }
-  }
-
-  if (!is_compiled) {
-    CompileWithOldCompiler(parsed_function, optimized);
-  }
 }
 
 
@@ -386,7 +264,12 @@ static RawError* CompileFunctionHelper(const Function& function,
     Parser::ParseFunction(&parsed_function);
     parsed_function.AllocateVariables();
 
-    CompileParsedFunctionHelper(parsed_function, optimized);
+    if (!CompileParsedFunctionHelper(parsed_function,
+                                     optimized,
+                                     FLAG_use_ssa)) {
+      // Compile again using non-ssa code generation.
+      CompileParsedFunctionHelper(parsed_function, optimized, false);
+    }
 
     if (FLAG_trace_compiler) {
       OS::Print("--> '%s' entry: 0x%x\n",
@@ -497,7 +380,8 @@ RawError* Compiler::CompileParsedFunction(
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    CompileParsedFunctionHelper(parsed_function, false);  // Non-optimized.
+    // Non-optimized, non-ssa code generator.
+    CompileParsedFunctionHelper(parsed_function, false, false);
     isolate->set_long_jump_base(base);
     return Error::null();
   } else {
@@ -571,7 +455,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     fragment->scope()->AddVariable(parsed_function.expression_temp_var());
     parsed_function.AllocateVariables();
 
-    CompileParsedFunctionHelper(parsed_function, false);  // Non-optimized.
+    // Non-optimized, non-ssa code generator.
+    CompileParsedFunctionHelper(parsed_function, false, false);
 
     GrowableArray<const Object*> arguments;  // no arguments.
     const Array& kNoArgumentNames = Array::Handle();

@@ -54,6 +54,14 @@ class DartEntry : public AllStatic {
       const Closure& closure,
       const GrowableArray<const Object*>& arguments,
       const Array& optional_arguments_names);
+
+  // Allocate and return an arguments descriptor.
+  // Let 'num_names' be the length of 'optional_arguments_names'.
+  // Treat the first 'num_arguments - num_names' arguments as positional and
+  // treat the following 'num_names' arguments as named optional arguments.
+  static const Array& ArgumentsDescriptor(
+      int num_arguments,
+      const Array& optional_arguments_names);
 };
 
 

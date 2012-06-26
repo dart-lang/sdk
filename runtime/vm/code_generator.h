@@ -8,16 +8,6 @@
 #include "vm/globals.h"
 #include "vm/runtime_entry.h"
 
-#if defined(TARGET_ARCH_IA32)
-#include "vm/code_generator_ia32.h"
-#elif defined(TARGET_ARCH_X64)
-#include "vm/code_generator_x64.h"
-#elif defined(TARGET_ARCH_ARM)
-#include "vm/code_generator_arm.h"
-#else
-#error Unknown architecture.
-#endif
-
 namespace dart {
 
 // Declaration of runtime entries called from stub or generated code.
