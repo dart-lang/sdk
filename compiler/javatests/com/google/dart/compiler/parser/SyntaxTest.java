@@ -10,6 +10,7 @@ import com.google.dart.compiler.DartSourceTest;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartComment;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -190,9 +191,7 @@ public class SyntaxTest extends AbstractParserTest {
     String sourceCode = "= 123;";
     try {
       DartSourceTest dartSrc = new DartSourceTest(getName(), sourceCode, null);
-      DartScannerParserContext context =
-        new DartScannerParserContext(dartSrc, sourceCode, new DartCompilerListener.Empty());
-      DartParser parser = new DartParser(context);
+      DartParser parser = makeParser(dartSrc, sourceCode, new DartCompilerListener.Empty());
       parser.parseExpression();
     }
     catch(Exception e) {
@@ -809,5 +808,94 @@ public class SyntaxTest extends AbstractParserTest {
             "  A(): this.b() {}", // body not allowed
             "}"),
             ParserErrorCode.REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY, 4, 18);
+  }
+  public void test_metadata_deprecated() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  m0() {}",
+        "  // @deprecated",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
+      // m0()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
+        assertEquals("m0", method.getName().toSource());
+        assertEquals(false, method.getMetadata().isDeprecated());
+      }
+      // m1()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
+        assertEquals("m1", method.getName().toSource());
+        assertEquals(true, method.getMetadata().isDeprecated());
+      }
+    }
+  }
+  
+  public void test_metadata_override() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  m0() {}",
+        "  // @override",
+        "  m1() {}",
+        "  /** Leading DartDoc comment */",
+        "  // @override",
+        "  m2() {}",
+        "  /**",
+        "   * DartDoc comment",
+        "   * @override",
+        "   */",
+        "  m3() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    // A
+    {
+      DartClass classA = (DartClass) unit.getTopLevelNodes().get(0);
+      // m0()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
+        assertEquals("m0", method.getName().toSource());
+        assertEquals(false, method.getMetadata().isOverride());
+        assertNull(method.getDartDoc());
+      }
+      // m1()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
+        assertEquals("m1", method.getName().toSource());
+        assertEquals(true, method.getMetadata().isOverride());
+        assertNull(method.getDartDoc());
+      }
+      // m2()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(2);
+        assertEquals("m2", method.getName().toSource());
+        assertEquals(true, method.getMetadata().isOverride());
+        {
+          DartComment dartDoc = method.getDartDoc();
+          assertNotNull(dartDoc);
+          assertEquals("/** Leading DartDoc comment */", getNodeSource(code, dartDoc));
+        }
+      }
+      // m3()
+      {
+        DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(3);
+        assertEquals("m3", method.getName().toSource());
+        assertEquals(true, method.getMetadata().isOverride());
+        {
+          DartComment dartDoc = method.getDartDoc();
+          assertNotNull(dartDoc);
+          String commentCode = getNodeSource(code, dartDoc);
+          assertTrue(commentCode.contains("DartDoc comment"));
+          assertTrue(commentCode.contains("@override"));
+        }
+      }
+    }
   }
 }

@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.parser;
 
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.DartSource;
@@ -167,8 +168,13 @@ public class DartParserRunner implements DartCompilerListener, Runnable {
   public void run() {
     try {
       DartSourceTest dartSrc = new DartSourceTest(name, sourceCode, null);
-      ParserContext context = new DartScannerParserContext(dartSrc, sourceCode, this);
-      dartUnit = (new DartParser(context, apiParsing)).parseUnit(dartSrc);
+      dartUnit = (new DartParser(
+          dartSrc,
+          sourceCode,
+          apiParsing,
+          Sets.<String>newHashSet(),
+          this,
+          null)).parseUnit();
     } catch (Throwable t) {
       workerException.set(t);
     }

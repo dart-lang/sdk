@@ -74,7 +74,6 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
     public void run() {
       while (true) {
         DartSourceTest src;
-        ParserContext context;
         synchronized (lock) {
           while (state == ParseState.INIT) {
             try {
@@ -87,9 +86,8 @@ public class TruncatedSourceParserTest extends AbstractParserTest {
             return;
           }
           src = new DartSourceTest(srcName, srcCode, null);
-          context = makeParserContext(src, srcCode, listener);
         }
-        DartUnit unit = makeParser(context).parseUnit(src);
+        DartUnit unit = makeParser(src, srcCode, listener).parseUnit();
         synchronized (lock) {
           if (state == ParseState.STOP) {
             return;

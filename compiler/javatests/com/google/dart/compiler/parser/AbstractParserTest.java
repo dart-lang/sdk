@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -13,9 +13,7 @@ import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 
 import java.net.URL;
-import java.util.HashSet;
 import java.util.Iterator;
-import java.util.Set;
 
 /**
  * Tests for the parser, which simply assert that valid source units parse
@@ -160,12 +158,5 @@ public abstract class AbstractParserTest extends CompilerTestCase {
     parseUnit("Mega.dart", megaSource);
     System.out.format("%s ms for '%s.%s()'%n", System.currentTimeMillis() - start,
                       getClass().getName(), getName());
-  }
-
-  @Override
-  protected DartParser makeParser(ParserContext context) {
-    Set<String> prefixes = new HashSet<String>();
-    prefixes.add("prefix");
-    return new DartParser(context, prefixes, false);
   }
 }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ package com.google.dart.compiler.type;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.dart.compiler.ErrorCode;
 import com.google.dart.compiler.ast.DartClass;
@@ -20,7 +21,6 @@ import com.google.dart.compiler.ast.DartStatement;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.ClassElement;
 import com.google.dart.compiler.resolver.ClassNodeElement;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
@@ -265,7 +265,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
 
   private DartParser getParser(String string) {
     DartSourceString source = new DartSourceString("<source string>", string);
-    return new DartParser(new DartScannerParserContext(source, string, listener));
+    return new DartParser(source, string, false, Sets.<String>newHashSet(), listener, null);
   }
 
   private String getResource(String name) {
@@ -357,7 +357,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
 
   private DartUnit parseUnit(String string) {
     DartSourceString source = new DartSourceString("<source string>", string);
-    return getParser(string).parseUnit(source);
+    return getParser(string).parseUnit();
   }
 
   protected String returnWithType(String type, Object expression) {

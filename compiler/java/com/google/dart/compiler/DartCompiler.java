@@ -28,7 +28,6 @@ import com.google.dart.compiler.metrics.JvmMetrics;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.CompileTimeConstantAnalyzer;
 import com.google.dart.compiler.resolver.CompileTimeConstantResolver;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
@@ -844,10 +843,9 @@ public class DartCompiler {
           srcCode += "\nvoid assert(x) {}";
         }
 
-        DartScannerParserContext parserContext =
-            new DartScannerParserContext(dartSrc, srcCode, context, context.getCompilerMetrics());
-        DartParser parser = new DartParser(parserContext, libraryPrefixes, diet);
-        DartUnit unit = parser.parseUnit(dartSrc);
+        DartParser parser = new DartParser(dartSrc, srcCode, diet, libraryPrefixes, context,
+            context.getCompilerMetrics());
+        DartUnit unit = parser.parseUnit();
         if (compilerMetrics != null) {
           compilerMetrics.addParseTimeNano(CompilerMetrics.getThreadTime() - parseStart);
         }

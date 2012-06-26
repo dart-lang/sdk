@@ -91,10 +91,10 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.ImportCombinator;
-import com.google.dart.compiler.ast.ImportHideCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.util.Lists;
@@ -114,6 +114,8 @@ import java.util.Set;
  */
 public class DartParser extends CompletionHooksParserBase {
 
+  private final Source source;
+  private final String sourceCode;
   private final boolean isDietParse;
   private final Set<String> prefixes;
   private final boolean corelibParse;
@@ -206,48 +208,23 @@ public class DartParser extends CompletionHooksParserBase {
 
   public DartParser(Source source,
                     String sourceCode,
-                    DartCompilerListener listener) {
-    this(new DartScannerParserContext(source, sourceCode, listener));
-  }
-
-  public DartParser(ParserContext ctx) {
-    this(ctx, false);
-  }
-
-  public DartParser(ParserContext ctx, Set<String> prefixes, boolean isDietParse) {
-    this(ctx, isDietParse, prefixes);
-  }
-
-  public DartParser(ParserContext ctx, boolean isDietParse) {
-    this(ctx, isDietParse, Collections.<String>emptySet());
-  }
-
-  public DartParser(ParserContext ctx, boolean isDietParse, Set<String> prefixes) {
-    super(ctx);
+                    boolean isDietParse,
+                    Set<String> prefixes,
+                    DartCompilerListener listener,
+                    CompilerMetrics compilerMetrics) {
+    super(new DartParserCommentsHelper.CommentParserContext(source, sourceCode, listener, compilerMetrics));
+    this.source = source;
+    this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    {
-      Source source = ctx.getSource();
-      this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
-    }
+    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
   }
 
-  private DartParser(Source source, DartCompilerListener listener) throws IOException {
-    this(source, source.getSourceReader(), listener);
+  public static String read(Source source) throws IOException {
+    return read(source.getSourceReader());
   }
-
-  private DartParser(Source source,
-                    Reader sourceReader,
-                    DartCompilerListener listener) throws IOException {
-    this(new DartScannerParserContext(source, read(sourceReader), listener));
-  }
-
-  public static DartParser getSourceParser(Source source, DartCompilerListener listener)
-      throws IOException {
-    return new DartParser(source, listener);
-  }
-
-  private static String read(Reader reader) throws IOException {
+  
+  public static String read(Reader reader) throws IOException {
     try {
       return CharStreams.toString(reader);
     } finally {
@@ -307,11 +284,12 @@ public class DartParser extends CompletionHooksParserBase {
    */
   @Terminals(tokens={Token.EOS, Token.CLASS, Token.LIBRARY, Token.IMPORT, Token.SOURCE,
       Token.RESOURCE, Token.NATIVE})
-  public DartUnit parseUnit(DartSource source) {
+  public DartUnit parseUnit() {
+    DartSource dartSource = (DartSource) source;
     try {
       beginCompilationUnit();
-      ctx.unitAboutToCompile(source, isDietParse);
-      DartUnit unit = new DartUnit(source, isDietParse);
+      ctx.unitAboutToCompile(dartSource, isDietParse);
+      DartUnit unit = new DartUnit(dartSource, isDietParse);
 
       // parse any directives at the beginning of the source
       parseDirectives(unit);
@@ -358,6 +336,12 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
       expect(Token.EOS);
+      // add comments
+      {
+        List<int[]> commentLocs = ((DartParserCommentsHelper.CommentParserContext) ctx).getCommentLocs();
+        DartParserCommentsHelper.addComments(unit, source, sourceCode, commentLocs);
+      }
+      // done
       return done(unit);
     } catch (StringInterpolationParseError exception) {
       throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);

@@ -13,8 +13,11 @@
  */
 package com.google.dart.compiler.parser;
 
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.Source;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
+import com.google.dart.compiler.metrics.CompilerMetrics;
 
 import java.util.Set;
 
@@ -25,8 +28,14 @@ public class DartPrefixParser extends DartParser {
 
   private final Set<String> prefixes;
 
-  public DartPrefixParser(ParserContext parserCtx, boolean isDietParse, Set<String> prefixes) {
-    super(parserCtx, isDietParse, prefixes);
+  public DartPrefixParser(
+      Source source,
+      String sourceCode,
+      boolean isDietParse,
+      Set<String> prefixes,
+      DartCompilerListener listener,
+      CompilerMetrics compilerMetrics) {
+    super(source, sourceCode, isDietParse, prefixes, listener, compilerMetrics);
     this.prefixes = prefixes;
   }
   

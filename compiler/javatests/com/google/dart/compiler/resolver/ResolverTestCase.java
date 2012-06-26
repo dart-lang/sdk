@@ -7,13 +7,14 @@ package com.google.dart.compiler.resolver;
 import com.google.common.base.Joiner;
 import com.google.common.base.Splitter;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
-import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
@@ -22,7 +23,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
@@ -346,8 +346,14 @@ abstract class ResolverTestCase extends TestCase {
 
   protected DartUnit parseUnit(String string) {
     DartSourceString source = new DartSourceString("<source string>", string);
-    DartParser parser = new DartParser(new DartScannerParserContext(source, string, getListener()));
-    return parser.parseUnit(source);
+    DartParser parser = new DartParser(
+        source,
+        string,
+        false,
+        Sets.<String>newHashSet(),
+        getListener(),
+        null);
+    return parser.parseUnit();
   }
 
   private DartCompilerListener getListener() {

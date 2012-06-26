@@ -1489,6 +1489,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
+  
+  public void test_metadataOverride_OK_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "class B extends A {",
+        "  // @override",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+  
+  public void test_metadataOverride_Bad_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  // @override",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.INVALID_OVERRIDE_METADATA, 6, 3, 3));
+  }
 
   /**
    * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does

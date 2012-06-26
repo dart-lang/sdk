@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -18,7 +18,7 @@ public class DartComment extends DartNode {
 
   private Style style;
 
-  public DartComment(Source source, int start, int length, int line, int col, Style style) {
+  public DartComment(Source source, int start, int length, Style style) {
     setSourceInfo(new SourceInfo(source, start, length));
     this.style = style;
   }

@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.parser;
 
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilerListenerTest;
 import com.google.dart.compiler.DartSource;
 import com.google.dart.compiler.LibrarySource;
@@ -12,7 +13,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 
 import junit.framework.TestCase;
 
-import java.io.IOException;
 import java.io.Reader;
 import java.io.StringReader;
 import java.net.URI;
@@ -183,13 +183,14 @@ public class LibraryParserTest extends TestCase {
   private LibraryUnit parse(String text, Object... errors) {
     TestLibrarySource source = new TestLibrarySource(text);
     DartCompilerListenerTest listener = new DartCompilerListenerTest(source.getName(), errors);
-    try {
-      LibraryUnit unit =
-        DartParser.getSourceParser(source, listener).preProcessLibraryDirectives(source);
-      listener.checkAllErrorsReported();
-      return unit;
-    } catch (IOException ioEx) {
-      throw new AssertionError(ioEx);
-    }
+    LibraryUnit unit = new DartParser(
+        source,
+        text,
+        false,
+        Sets.<String>newHashSet(),
+        listener,
+        null).preProcessLibraryDirectives(source);
+    listener.checkAllErrorsReported();
+    return unit;
   }
 }
