@@ -65,10 +65,12 @@ class SourceMapBuilder {
       writeEntry(entry, targetFile, buffer);
     });
     buffer.add('",\n');
-    // TODO(podivilov): serialize lists directly to buffer.
-    buffer.add('  "sources": ${JSON.stringify(sourceUrlList)},\n');
-    buffer.add('  "names": ${JSON.stringify(sourceNameList)}\n');
-    buffer.add('}\n');
+    buffer.add('  "sources": ');
+    JSON.printOn(sourceUrlList, buffer);
+    buffer.add(',\n');
+    buffer.add('  "names": ');
+    JSON.printOn(sourceNameList, buffer);
+    buffer.add('\n}\n');
     return buffer.toString();
   }
 
