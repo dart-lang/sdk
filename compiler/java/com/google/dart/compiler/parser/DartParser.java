@@ -90,6 +90,8 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.ImportCombinator;
+import com.google.dart.compiler.ast.ImportHideCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -135,8 +137,10 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
+  //private static final String EXPORT_KEYWORD = "export";
   private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
+  //private static final String HIDE_KEYWORD = "hide";
   private static final String IMPLEMENTS_KEYWORD = "implements";
   private static final String INTERFACE_KEYWORD = "interface";
   private static final String NATIVE_KEYWORD = "native";
@@ -145,6 +149,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String OPERATOR_KEYWORD = "operator";
   private static final String PREFIX_KEYWORD = "prefix";
   private static final String SETTER_KEYWORD = "set";
+  //private static final String SHOW_KEYWORD = "show";
   private static final String STATIC_KEYWORD = "static";
   private static final String TYPEDEF_KEYWORD = "typedef";
 
@@ -496,24 +501,58 @@ public class DartParser extends CompletionHooksParserBase {
     beginLiteral();
     expect(Token.STRING);
     DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartBooleanLiteral export = null;
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     DartStringLiteral prefix = null;
+    // To add support for the new import syntax, change "if" to "while" and uncomment the following code.
     if (optional(Token.COMMA)) {
-      if (!optionalPseudoKeyword(PREFIX_KEYWORD)) {
+//      if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
+//        expect(Token.COLON);
+//        if (peek(0) == Token.TRUE_LITERAL) {
+//          beginLiteral();
+//          consume(Token.TRUE_LITERAL);
+//          export = done(DartBooleanLiteral.get(true));
+//        } else if (peek(0) == Token.FALSE_LITERAL) {
+//          beginLiteral();
+//          consume(Token.FALSE_LITERAL);
+//          export = done(DartBooleanLiteral.get(false));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_BOOLEAN_LITERAL);
+//        }
+//      } else if (optionalPseudoKeyword(HIDE_KEYWORD)) {
+//        expect(Token.COLON);
+//        DartExpression expression = parseExpression();
+//        if (expression instanceof DartArrayLiteral) {
+//          combinators.add(new ImportHideCombinator((DartArrayLiteral) expression));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
+//        }
+//      } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
+//        expect(Token.COLON);
+//        DartExpression expression = parseExpression();
+//        if (expression instanceof DartArrayLiteral) {
+//          combinators.add(new ImportShowCombinator((DartArrayLiteral) expression));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
+//        }
+//      } else
+      if (optionalPseudoKeyword(PREFIX_KEYWORD)) {
+        expect(Token.COLON);
+        beginLiteral();
+        expect(Token.STRING);
+        String id = ctx.getTokenString();
+        // The specification requires the value of this string be a valid identifier
+        if(id == null || !id.matches("[_a-zA-Z]([_A-Za-z0-9]*)")) {
+          reportError(position(), ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER);
+        }
+        prefix = done(DartStringLiteral.get(ctx.getTokenString()));
+      } else {
         reportError(position(), ParserErrorCode.EXPECTED_PREFIX_KEYWORD);
       }
-      expect(Token.COLON);
-      beginLiteral();
-      expect(Token.STRING);
-      String id = ctx.getTokenString();
-      // The specification requires the value of this string be a valid identifier
-      if(id == null || !id.matches("[_a-zA-Z]([_A-Za-z0-9]*)")) {
-        reportError(position(), ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER);
-      }
-      prefix = done(DartStringLiteral.get(ctx.getTokenString()));
     }
     expectCloseParen();
     expect(Token.SEMICOLON);
-    return new DartImportDirective(libUri, prefix);
+    return new DartImportDirective(libUri, export, combinators, prefix);
   }
 
   private DartSourceDirective parseSourceDirective() {

@@ -193,9 +193,21 @@ public class ASTVisitor<R> {
     return visitStatement(node);
   }
 
+  public R visitImportCombinator(ImportCombinator node) {
+    return visitNode(node);
+  } 
+
   public R visitImportDirective(DartImportDirective node) {
     return visitDirective(node);
   }
+
+  public R visitImportHideCombinator(ImportHideCombinator node) {
+    return visitImportCombinator(node);
+  } 
+
+  public R visitImportShowCombinator(ImportShowCombinator node) {
+    return visitImportCombinator(node);
+  } 
 
   public R visitInitializer(DartInitializer node) {
     return visitNode(node);
@@ -363,5 +375,5 @@ public class ASTVisitor<R> {
 
   public R visitRedirectConstructorInvocation(DartRedirectConstructorInvocation node) {
     return visitInvocation(node);
-  } 
+  }
 }
