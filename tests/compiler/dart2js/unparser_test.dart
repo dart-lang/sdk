@@ -2,7 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('dart:uri');
 #import('parser_helper.dart');
+#import("../../../lib/compiler/compiler.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 
 testUnparse(String statement) {
@@ -13,6 +15,47 @@ testUnparse(String statement) {
 testUnparseMember(String member) {
   Node node = parseMember(member);
   Expect.equals(member, node.unparse());
+}
+
+final coreLib = @'''
+#library('corelib');
+interface Object {}
+interface bool {}
+interface num {}
+interface int extends num {}
+interface double extends num {}
+interface String {}
+interface Function {}
+interface List {}
+interface Closure {}
+interface Dynamic {}
+interface Null {}
+''';
+
+testDart2Dart(String src, void continuation(String s)) {
+  fileUri(path) => new Uri(scheme: 'file', path: path);
+
+  final scriptUri = fileUri('script.dart');
+
+  provider(uri) {
+    if (uri == scriptUri) return new Future.immediate(src);
+    if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
+    return new Future.immediate('');
+  }
+
+  handler(uri, begin, end, message, kind) {
+    if (kind === Diagnostic.ERROR || kind === Diagnostic.CRASH) {
+      Expect.fail('$uri: $begin-$end: $message [$kind]');
+    }
+  }
+
+  compile(
+      scriptUri,
+      fileUri('libraryRoot'),
+      fileUri('packageRoot'),
+      provider,
+      handler,
+      const ['--output-type=dart', '--unparse-validation']).then(continuation);
 }
 
 testGenericTypes() {
@@ -45,6 +88,11 @@ testNativeMethods() {
   testUnparseMember('foo()native "this.x = 41";');
 }
 
+testSimpleFileUnparse() {
+  testDart2Dart('main() {}', (String s) {
+  });
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -52,4 +100,5 @@ main() {
   testClosure();
   testIndexedOperatorDecl();
   testNativeMethods();
+  testSimpleFileUnparse();
 }
