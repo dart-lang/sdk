@@ -112,7 +112,8 @@ void main() {
   // that dartdoc still works when run from the built SDK directory.
   final frogPath = joinPaths(scriptDir, 'frog/');
   final libDir = joinPaths(scriptDir, '..');
-  final compilerPath = 'dart2js';
+  final compilerPath
+      = Platform.operatingSystem == 'windows' ? 'dart2js.bat' : 'dart2js';
 
   parseOptions(frogPath, ['', '', '--libdir=$libDir'], files);
   initializeWorld(files);
@@ -139,11 +140,11 @@ void main() {
 
   Futures.wait([scriptCompiled, filesCopied]).then((_) {
     dartdoc.document(entrypoint);
-  });
 
-  print('Documented ${dartdoc._totalLibraries} libraries, '
-      '${dartdoc._totalTypes} types, and '
-      '${dartdoc._totalMembers} members.');
+    print('Documented ${dartdoc._totalLibraries} libraries, '
+        '${dartdoc._totalTypes} types, and '
+        '${dartdoc._totalMembers} members.');
+  });
 }
 
 /**

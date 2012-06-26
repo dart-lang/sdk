@@ -69,7 +69,8 @@ void main() {
   final frogPath = joinPaths(doc.scriptDir, '../../lib/dartdoc/frog/');
 
   if (compilerPath === null) {
-    compilerPath = 'dart2js';
+    compilerPath
+        = Platform.operatingSystem == 'windows' ? 'dart2js.bat' : 'dart2js';
   }
 
   doc.cleanOutputDirectory(outputDir);
