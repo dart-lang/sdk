@@ -11,10 +11,12 @@
 #library('test_pub');
 
 #import('dart:io');
+#import('dart:uri');
 
 #import('../../../lib/unittest/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
 #import('../../pub/io.dart');
+#import('../../pub/yaml/yaml.dart');
 
 /**
  * Creates a new [FileDescriptor] with [name] and [contents].
@@ -33,6 +35,84 @@ DirectoryDescriptor dir(String name, [List<Descriptor> contents]) =>
  */
 DirectoryDescriptor git(String name, [List<Descriptor> contents]) =>
     new GitRepoDescriptor(name, contents);
+
+/**
+ * Creates a new [TarFileDescriptor] with [name] and [contents].
+ */
+TarFileDescriptor tar(String name, [List<Descriptor> contents]) =>
+    new TarFileDescriptor(name, contents);
+
+/**
+ * Creates an HTTP server to serve [contents] as static files. This server will
+ * exist only for the duration of the pub run.
+ */
+void serve(String host, int port, [List<Descriptor> contents]) {
+  var baseDir = dir("serve-dir", contents);
+  if (host == 'localhost') {
+    host = '127.0.0.1';
+  }
+
+  _scheduleBeforePub((_) {
+    var server = new HttpServer();
+    server.defaultRequestHandler = (request, response) {
+      var path = request.uri.replaceFirst("/", "").split("/");
+      var stream = baseDir.load(path);
+      response.persistentConnection = false;
+      if (stream == null) {
+        response.statusCode = 404;
+        response.outputStream.close();
+        return;
+      }
+
+      var future = consumeInputStream(stream);
+      future.then((data) {
+        response.statusCode = 200;
+        response.contentLength = data.length;
+        response.outputStream.write(data);
+        response.outputStream.close();
+      });
+
+      future.handleException((e) {
+        print("Exception while handling ${request.uri}: $e");
+        response.statusCode = 500;
+        response.reasonPhrase = e.message;
+        response.outputStream.close();
+      });
+    };
+    server.listen(host, port);
+    _scheduleCleanup((_) => server.close());
+
+    return new Future.immediate(null);
+  });
+}
+
+/**
+ * Creates an HTTP server that replicates the structure of pub.dartlang.org.
+ * [pubspecs] is a list of YAML-format pubspecs representing the packages to
+ * serve.
+ */
+void servePackages(String host, int port, List<String> pubspecs) {
+  var packages = <Map<String, String>>{};
+  pubspecs.forEach((spec) {
+    var parsed = loadYaml(spec);
+    var name = parsed['name'];
+    var version = parsed['version'];
+    packages.putIfAbsent(name, () => <String>{})[version] = spec;
+  });
+
+  serve(host, port, [
+    dir('packages', packages.getKeys().map((name) {
+      return dir(name, [
+        dir('versions', packages[name].getKeys().map((version) {
+          return tar('$version.tar.gz', [
+            file('pubspec.yaml', packages[name][version]),
+            file('$name.dart', 'main() => print("$name $version");')
+          ]);
+        }))
+      ]);
+    }))
+  ]);
+}
 
 /**
  * The path of the package cache directory used for tests. Relative to the
@@ -75,20 +155,25 @@ List<_ScheduledEvent> _scheduledBeforePub;
  */
 List<_ScheduledEvent> _scheduledAfterPub;
 
+/**
+ * The list of events that are scheduled to run after Pub has been run, even if
+ * it failed.
+ */
+List<_ScheduledEvent> _scheduledCleanup;
+
 void runPub([List<String> args, Pattern output, Pattern error,
     int exitCode = 0]) {
   var createdSandboxDir;
 
   var asyncDone = expectAsync0(() {});
 
-  deleteSandboxIfCreated(onDeleted()) {
-    _scheduledBeforePub = null;
-    _scheduledAfterPub = null;
-    if (createdSandboxDir != null) {
-      deleteDir(createdSandboxDir).then((_) => onDeleted());
-    } else {
-      onDeleted();
-    }
+  Future cleanup() {
+    return _runScheduled(createdSandboxDir, _scheduledCleanup).chain((_) {
+      _scheduledBeforePub = null;
+      _scheduledAfterPub = null;
+      if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
+      return new Future.immediate(null);
+    });
   }
 
   String pathInSandbox(path) => join(getFullPath(createdSandboxDir), path);
@@ -107,7 +192,8 @@ void runPub([List<String> args, Pattern output, Pattern error,
     // environment var once #752 is done.
     args.add('--sdkdir=${pathInSandbox(sdkPath)}');
 
-    return _runPub(args, pathInSandbox(appPath));
+    return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
+        pipeStderr: error == null);
   }).chain((result) {
     _validateOutput(output, result.stdout);
     _validateOutput(error, result.stderr);
@@ -118,15 +204,13 @@ void runPub([List<String> args, Pattern output, Pattern error,
     return _runScheduled(createdSandboxDir, _scheduledAfterPub);
   });
 
-  future.then((_) {
-    deleteSandboxIfCreated(asyncDone);
-  });
+  future.chain((_) => cleanup()).then((_) => asyncDone());
 
   future.handleException((error) {
     // If an error occurs during testing, delete the sandbox, throw the error so
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
-    deleteSandboxIfCreated(() {
+    cleanup().then((_) {
       guardAsync(() { throw error; }, asyncDone);
     });
     return true;
@@ -155,12 +239,16 @@ Future<Directory> _setUpSandbox() {
 
 _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
-  var future = Futures.wait(scheduled.map((event) => event(parentDir)));
+  var future = Futures.wait(scheduled.map((event) {
+    var subFuture = event(parentDir);
+    return subFuture == null ? new Future.immediate(null) : subFuture;
+  }));
   scheduled.clear();
   return future;
 }
 
-Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
+Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir,
+    [bool pipeStdout=false, bool pipeStderr=false]) {
   // Find a dart executable we can use to run pub. Uses the one that the
   // test infrastructure uses. We are not using new Options.executable here
   // because that gets confused if you invoked Dart through a shell script.
@@ -174,7 +262,7 @@ Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir) {
   final args = ['--enable-type-checks', '--enable-asserts', pubPath];
   args.addAll(pubArgs);
 
-  return runProcess(dartBin, args, workingDir);
+  return runProcess(dartBin, args, workingDir, pipeStdout, pipeStderr);
 }
 
 /**
@@ -258,6 +346,12 @@ class Descriptor {
   abstract Future validate(String dir);
 
   /**
+   * Loads the file at [path] from within this descriptor. If [path] is empty,
+   * loads the contents of the descriptor itself.
+   */
+  abstract InputStream load(List<String> path);
+
+  /**
    * Schedules the directory to be created before Pub is run with [runPub]. The
    * directory will be created relative to the sandbox directory.
    */
@@ -308,6 +402,20 @@ class FileDescriptor extends Descriptor {
                     'but contained:\n\n$text');
       });
     });
+  }
+
+  /**
+   * Loads the contents of the file.
+   */
+  InputStream load(List<String> path) {
+    if (!path.isEmpty()) {
+      var joinedPath = Strings.join('/', path);
+      throw "Can't load $joinedPath from within $name: not a directory.";
+    }
+
+    var stream = new ListInputStream();
+    stream.write(contents.charCodes());
+    return stream;
   }
 }
 
@@ -362,6 +470,23 @@ class DirectoryDescriptor extends Descriptor {
     // If they are all valid, the directory is valid.
     return Futures.wait(entryFutures).transform((entries) => null);
   }
+
+  /**
+   * Loads [path] from within this directory.
+   */
+  InputStream load(List<String> path) {
+    if (path.isEmpty()) {
+      throw "Can't load the contents of $name: is a directory.";
+    }
+
+    for (var descriptor in contents) {
+      if (descriptor.name == path[0]) {
+        return descriptor.load(path.getRange(1, path.length - 1));
+      }
+    }
+
+    throw "Directory $name doesn't contain ${Strings.join('/', path)}.";
+  }
 }
 
 /**
@@ -394,6 +519,71 @@ class GitRepoDescriptor extends DirectoryDescriptor {
 }
 
 /**
+ * Describes a gzipped tar file and its contents.
+ */
+class TarFileDescriptor extends Descriptor {
+  final List<Descriptor> contents;
+
+  TarFileDescriptor(String name, this.contents)
+  : super(name);
+
+  /**
+   * Creates the files and directories within this tar file, then archives them,
+   * compresses them, and saves the result to [parentDir].
+   */
+  Future<File> create(parentDir) {
+    var tempDir;
+    return parentDir.createTemp().chain((_tempDir) {
+      tempDir = _tempDir;
+      return Futures.wait(contents.map((child) => child.create(tempDir)));
+    }).chain((_) {
+      var args = ["--directory", tempDir.path, "--create", "--gzip", "--file",
+          join(parentDir, name)];
+      args.addAll(contents.map((child) => child.name));
+      return runProcess("tar", args);
+    }).chain((result) {
+      if (!result.success) {
+        throw "Failed to create tar file $name.\n"
+            "STDERR: ${Strings.join(result.stderr, "\n")}";
+      }
+      return deleteDir(tempDir);
+    }).transform((_) {
+      return new File(join(parentDir, name));
+    });
+  }
+
+  /**
+   * Validates that the `.tar.gz` file at [path] contains the expected contents.
+   */
+  Future validate(String path) {
+    throw "TODO(nweiz): implement this";
+  }
+
+  /**
+   * Loads the contents of this tar file.
+   */
+  InputStream load(List<String> path) {
+    if (!path.isEmpty()) {
+      var joinedPath = Strings.join('/', path);
+      throw "Can't load $joinedPath from within $name: not a directory.";
+    }
+
+    var sinkStream = new ListInputStream();
+    var tempDir;
+    // TODO(nweiz): propagate any errors to the return value. See issue 3657.
+    createTempDir("pub-test-tmp-").chain((_tempDir) {
+      tempDir = _tempDir;
+      return create(tempDir);
+    }).then((tar) {
+      var sourceStream = tar.openInputStream();
+      pipeInputToInput(
+          sourceStream, sinkStream, onClosed: tempDir.deleteRecursively);
+    });
+    return sinkStream;
+  }
+}
+
+/**
  * Schedules a callback to be called before Pub is run with [runPub].
  */
 void _scheduleBeforePub(_ScheduledEvent event) {
@@ -407,4 +597,13 @@ void _scheduleBeforePub(_ScheduledEvent event) {
 void _scheduleAfterPub(_ScheduledEvent event) {
   if (_scheduledAfterPub == null) _scheduledAfterPub = [];
   _scheduledAfterPub.add(event);
+}
+
+/**
+ * Schedules a callback to be called after Pub is run with [runPub], even if it
+ * fails.
+ */
+void _scheduleCleanup(_ScheduledEvent event) {
+  if (_scheduledCleanup == null) _scheduledCleanup = [];
+  _scheduledCleanup.add(event);
 }

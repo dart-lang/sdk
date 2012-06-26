@@ -141,6 +141,6 @@ class Entrypoint {
     // once that's implemented. If the lockfile doesn't exist, it should
     // generate it. In the meantime, here's a dumb implementation:
     return new Future.immediate(
-        new PackageId(ref.source, Version.none, ref.description));
+        new PackageId(ref.source, ref.constraint, ref.description));
   }
 }
