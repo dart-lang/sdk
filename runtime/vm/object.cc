@@ -4692,6 +4692,32 @@ void ClassDictionaryIterator::MoveToNextClass() {
 }
 
 
+LibraryPrefixIterator::LibraryPrefixIterator(const Library& library)
+    : DictionaryIterator(library) {
+  MoveToNext();
+}
+
+
+RawLibraryPrefix* LibraryPrefixIterator::GetNext() {
+  ASSERT(HasNext());
+  int ix = next_ix_++;
+  Object& obj = Object::Handle(array_.At(ix));
+  MoveToNext();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  prefix ^= obj.raw();
+  return prefix.raw();
+}
+
+
+void LibraryPrefixIterator::MoveToNext() {
+  Object& obj = Object::Handle(array_.At(next_ix_));
+  while (!obj.IsLibraryPrefix() && HasNext()) {
+    next_ix_++;
+    obj = array_.At(next_ix_);
+  }
+}
+
+
 void Library::SetName(const String& name) const {
   // Only set name once.
   ASSERT(!Loaded());

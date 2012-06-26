@@ -564,16 +564,17 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     Dart_Handle func_name;
     Dart_Handle script_url;
     intptr_t line_number = 0;
+    intptr_t library_id = 0;
     res = Dart_ActivationFrameInfo(
-        frame, &func_name, &script_url, &line_number);
-
+        frame, &func_name, &script_url, &line_number, &library_id);
     ASSERT_NOT_ERROR(res);
     ASSERT(Dart_IsString(func_name));
     msg->Printf("%s{\"functionName\":", (i > 0) ? "," : "");
     FormatEncodedString(msg, func_name);
+    msg->Printf(",\"libraryId\": %d,", library_id);
 
     ASSERT(Dart_IsString(script_url));
-    msg->Printf(",\"location\": { \"url\":");
+    msg->Printf("\"location\": { \"url\":");
     FormatEncodedString(msg, script_url);
     msg->Printf(",\"lineNumber\":%d},", line_number);
 
@@ -698,15 +699,28 @@ void DebuggerConnectionHandler::HandleGetClassPropsCmd(const char* json_msg) {
 
 void DebuggerConnectionHandler::HandleGetLibPropsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
-  intptr_t cls_id = msgbuf_->GetIntParam("libraryId");
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
   dart::TextBuffer msg(64);
   msg.Printf("{\"id\":%d, \"result\":", msg_id);
-  const char* err = FormatLibraryProps(&msg, cls_id);
+  const char* err = FormatLibraryProps(&msg, lib_id);
   if (err != NULL) {
     SendError(msg_id, err);
     return;
   }
   msg.Printf("}");
+  SendMsg(&msg);
+}
+
+
+void DebuggerConnectionHandler::HandleGetGlobalsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\": { \"globals\":", msg_id);
+  Dart_Handle globals = Dart_GetGlobalVariables(lib_id);
+  ASSERT_NOT_ERROR(globals);
+  FormatFieldList(&msg, globals);
+  msg.Printf("}}");
   SendMsg(&msg);
 }
 
@@ -725,6 +739,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getClassProperties", HandleGetClassPropsCmd },
     { "getLibraryProperties", HandleGetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
+    { "getGlobalVariables", HandleGetGlobalsCmd },
     { "getScriptURLs", HandleGetScriptURLsCmd },
     { "getScriptSource", HandleGetSourceCmd },
     { "getStackTrace", HandleGetStackTraceCmd },

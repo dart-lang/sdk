@@ -173,7 +173,8 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
                             Dart_Handle* script_url,
-                            intptr_t* line_number) {
+                            intptr_t* line_number,
+                            intptr_t* library_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   CHECK_AND_CAST(ActivationFrame, frame, activation_frame);
@@ -185,6 +186,10 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
   }
   if (line_number != NULL) {
     *line_number = frame->LineNumber();
+  }
+  if (library_id != NULL) {
+    const Library& lib = Library::Handle(frame->Library());
+    *library_id = lib.index();
   }
   return Api::True(isolate);
 }
@@ -416,6 +421,19 @@ DART_EXPORT Dart_Handle Dart_GetLibraryFields(intptr_t library_id) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  return Api::NewHandle(isolate, isolate->debugger()->GetGlobalFields(lib));
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
@@ -587,24 +605,34 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
     return Api::NewError("%s: %d is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  String& prefix_name = String::Handle();
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
-  Library& imported = Library::Handle();
+  const GrowableObjectArray& import_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+
+  String& prefix_name = String::Handle(isolate);
+  Library& imported = Library::Handle(isolate);
   intptr_t num_imports = lib.num_imports();
-  const Array& import_list = Array::Handle(Array::New(2 * num_imports));
   for (int i = 0; i < num_imports; i++) {
-    prefix_name = String::null();
-    prefix = lib.ImportPrefixAt(i);
-    if (!prefix.IsNull()) {
-      prefix_name = prefix.name();
-    }
-    import_list.SetAt(2 * i, prefix_name);
+    import_list.Add(prefix_name);  // Null prefix name means no prefix.
     imported = lib.ImportAt(i);
     ASSERT(!imported.IsNull());
     ASSERT(Smi::IsValid(imported.index()));
-    import_list.SetAt(2 * i + 1, Smi::Handle(Smi::New(imported.index())));
+    import_list.Add(Smi::Handle(Smi::New(imported.index())));
   }
-  return Api::NewHandle(isolate, import_list.raw());
+  LibraryPrefixIterator it(lib);
+  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    prefix_name = prefix.name();
+    ASSERT(!prefix_name.IsNull());
+    prefix_name = String::Concat(prefix_name,
+                                 String::Handle(isolate, String::New(".")));
+    for (int i = 0; i < prefix.num_libs(); i++) {
+      imported = prefix.GetLibrary(i);
+      import_list.Add(prefix_name);
+      import_list.Add(Smi::Handle(Smi::New(imported.index())));
+    }
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(import_list));
 }
 
 

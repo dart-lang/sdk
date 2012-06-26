@@ -1778,6 +1778,7 @@ class DictionaryIterator : public ValueObject {
   int next_ix_;  // Index of next element.
 
   friend class ClassDictionaryIterator;
+  friend class LibraryPrefixIterator;
   DISALLOW_COPY_AND_ASSIGN(DictionaryIterator);
 };
 
@@ -1793,6 +1794,16 @@ class ClassDictionaryIterator : public DictionaryIterator {
   void MoveToNextClass();
 
   DISALLOW_COPY_AND_ASSIGN(ClassDictionaryIterator);
+};
+
+
+class LibraryPrefixIterator : public DictionaryIterator {
+ public:
+  explicit LibraryPrefixIterator(const Library& library);
+  RawLibraryPrefix* GetNext();
+ private:
+  void MoveToNext();
+  DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
 
 

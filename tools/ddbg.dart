@@ -38,7 +38,8 @@ void printHelp() {
   po <id> Print object info for given id
   pc <id> Print class info for given id
   ll  List loaded libraries
-  pl <id> Print dlibrary info for given id
+  pl <id> Print library info for given id
+  pg <id> Print global variables visible given library
   ls <libname> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
   epi <none|all|unhandled>  Set exception pause info
@@ -120,6 +121,10 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getLibraryProperties",
                 "params": {"libraryId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
+  } else if (command == "pg" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "getGlobalVariables",
+                "params": {"libraryId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGetGlobalVarsResponse(result));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum, "command":  "getScriptSource",
                 "params": { "libraryId": Math.parseInt(args[1]),
@@ -214,6 +219,14 @@ handleGetLibraryPropsResponse(response) {
 }
 
 
+handleGetGlobalVarsResponse(response) {
+  List globals = response["result"]["globals"];
+  for (int i = 0; i < globals.length; i++) {
+    printNamedObject(globals[i]);
+  }
+}
+
+
 handleGetSourceResponse(response) {
   Map result = response["result"];
   String source = result["text"];
@@ -267,9 +280,10 @@ void handleStackTraceResponse(response) {
 
 void printStackFrame(frame_num, Map frame) {
   var fname = frame["functionName"];
+  var libId = frame["libraryId"];
   var url = frame["location"]["url"];
   var line = frame["location"]["lineNumber"];
-  print("$frame_num  $fname ($url:$line)");
+  print("$frame_num  $fname ($url:$line) (lib $libId)");
   List locals = frame["locals"];
   for (int i = 0; i < locals.length; i++) {
     printNamedObject(locals[i]);

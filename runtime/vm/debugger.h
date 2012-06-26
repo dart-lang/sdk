@@ -114,8 +114,6 @@ class CodeBreakpoint {
 };
 
 
-
-
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
@@ -130,6 +128,7 @@ class ActivationFrame : public ZoneAllocated {
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
+  RawLibrary* Library();
   intptr_t TokenIndex();
   intptr_t LineNumber();
 
@@ -264,6 +263,7 @@ class Debugger {
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
   RawArray* GetLibraryFields(const Library& lib);
+  RawArray* GetGlobalFields(const Library& lib);
 
   intptr_t CacheObject(const Object& obj);
   RawObject* GetCachedObject(intptr_t obj_id);
@@ -316,6 +316,10 @@ class Debugger {
 
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                               const Object& exc);
+
+  void CollectLibraryFields(const GrowableObjectArray& field_list,
+                            const Library& lib,
+                            const String& prefix);
 
   Isolate* isolate_;
   bool initialized_;

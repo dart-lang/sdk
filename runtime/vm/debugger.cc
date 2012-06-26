@@ -173,6 +173,13 @@ RawScript* ActivationFrame::SourceScript() {
 }
 
 
+RawLibrary* ActivationFrame::Library() {
+  const Function& func = DartFunction();
+  const Class& cls = Class::Handle(func.owner());
+  return cls.library();
+}
+
+
 void ActivationFrame::GetPcDescriptors() {
   if (pc_desc_.IsNull()) {
     const Function& func = DartFunction();
@@ -1101,15 +1108,15 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
 }
 
 
-RawArray* Debugger::GetLibraryFields(const Library& lib) {
-  const GrowableObjectArray& field_list =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
+                                    const Library& lib,
+                                    const String& prefix) {
   DictionaryIterator it(lib);
-  Object& entry = Object::Handle();
-  Field& field = Field::Handle();
-  Class& cls = Class::Handle();
-  String& field_name = String::Handle();
-  Object& field_value = Object::Handle();
+  Object& entry = Object::Handle(isolate_);
+  Field& field = Field::Handle(isolate_);
+  Class& cls = Class::Handle(isolate_);
+  String& field_name = String::Handle(isolate_);
+  Object& field_value = Object::Handle(isolate_);
   while (it.HasNext()) {
     entry = it.GetNext();
     if (entry.IsField()) {
@@ -1118,8 +1125,47 @@ RawArray* Debugger::GetLibraryFields(const Library& lib) {
       ASSERT(field.is_static());
       field_name = field.name();
       field_value = GetStaticField(cls, field_name);
+      if (!prefix.IsNull()) {
+        field_name = String::Concat(prefix, field_name);
+      }
       field_list.Add(field_name);
       field_list.Add(field_value);
+    }
+  }
+}
+
+
+RawArray* Debugger::GetLibraryFields(const Library& lib) {
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+  CollectLibraryFields(field_list, lib, String::Handle(isolate_));
+  return Array::MakeArray(field_list);
+}
+
+
+RawArray* Debugger::GetGlobalFields(const Library& lib) {
+  const GrowableObjectArray& field_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(8));
+  String& prefix_name = String::Handle(isolate_);
+  CollectLibraryFields(field_list, lib, prefix_name);
+  Library& imported = Library::Handle(isolate_);
+  intptr_t num_imports = lib.num_imports();
+  for (int i = 0; i < num_imports; i++) {
+    imported = lib.ImportAt(i);
+    ASSERT(!imported.IsNull());
+    CollectLibraryFields(field_list, imported, prefix_name);
+  }
+  LibraryPrefix& prefix = LibraryPrefix::Handle(isolate_);
+  LibraryPrefixIterator it(lib);
+  while (it.HasNext()) {
+    prefix = it.GetNext();
+    prefix_name = prefix.name();
+    ASSERT(!prefix_name.IsNull());
+    prefix_name = String::Concat(prefix_name,
+                                 String::Handle(isolate_, String::New(".")));
+    for (int i = 0; i < prefix.num_libs(); i++) {
+      imported = prefix.GetLibrary(i);
+      CollectLibraryFields(field_list, imported, prefix_name);
     }
   }
   return Array::MakeArray(field_list);
