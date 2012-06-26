@@ -1256,7 +1256,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       ClassNodeElement element = node.getElement();
       InterfaceType type = element.getType();
       checkCyclicBounds(type.getArguments());
-      List<Element> unimplementedMembers = findUnimplementedMembers(element);
+      // remember unimplemented members
+      findUnimplementedMembers(element);
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
@@ -1267,21 +1268,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           validateTypeNode(interfaceNode, false);
         }
       }
-
       visit(node.getMembers());
       checkInterfaceConstructors(element);
-      // Report unimplemented members.
-      if (!node.isAbstract()) {
-        if (unimplementedMembers.size() > 0) {
-          StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
-          typeError(
-              node.getName(),
-              TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
-              element.getName(),
-              sb);
-        }
-      }
-
       try {
         checkClassDuplicateInterfaces(node, element, element.getAllSupertypes());
       } catch (CyclicDeclarationException ignored) {

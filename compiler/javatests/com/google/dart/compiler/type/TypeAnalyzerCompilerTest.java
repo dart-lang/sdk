@@ -106,7 +106,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.source.indexOf("call() => 42"),
         element.getNameLocation().getOffset());
   }
-  
+
   /**
    * It is a compile-time error if a typedef refers to itself via a chain of references that does
    * not include a class or interface type.
@@ -474,7 +474,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 8, 7, 1),
         errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 12, 16, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
@@ -511,7 +510,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 4, 7, 1),
         errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 16, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
@@ -662,8 +660,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  }",
                 "}"));
     assertErrors(
-        libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 1, 7, 1));
+        libraryResult.getTypeErrors());
   }
 
   /**
@@ -2252,7 +2249,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertInferredElementTypeString(libraryResult, "v", "Event");
   }
-  
+
   /**
    * We should infer closure parameter types even in {@link FunctionType} is specified directly,
    * without using {@link FunctionAliasType}.

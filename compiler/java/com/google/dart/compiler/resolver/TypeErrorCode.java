@@ -11,8 +11,6 @@ import com.google.dart.compiler.SubSystem;
  * {@link ErrorCode}s for type resolver.
  */
 public enum TypeErrorCode implements ErrorCode {
-  ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
-      "%s is an abstract class because it does not implement the inherited abstract members: %s"),
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
   ASSERT_NUMBER_ARGUMENTS(ErrorSeverity.ERROR, "assert requires exactly one argument"),
   ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
