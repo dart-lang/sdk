@@ -96,9 +96,6 @@ class Compiler extends leg.Compiler {
 
   void reportDiagnostic(leg.SourceSpan span, String message,
                         api.Diagnostic kind) {
-    if (kind === api.Diagnostic.ERROR || kind === api.Diagnostic.CRASH) {
-      compilationFailed = true;
-    }
     if (span === null) {
       handler(null, null, null, message, kind);
     } else {

@@ -216,8 +216,6 @@ class Element implements Hashable {
   bool _isNative = false;
   void setNative() { _isNative = true; }
   bool isNative() => _isNative;
-
-  FunctionElement asFunctionElement() => null;
 }
 
 class ContainerElement extends Element {
@@ -254,12 +252,12 @@ class ContainerElement extends Element {
       }
     } else {
       AbstractFieldElement field = new AbstractFieldElement(element.name, this);
+      addMember(field, listener);
       if (element.kind == ElementKind.GETTER) {
         field.getter = element;
       } else {
         field.setter = element;
       }
-      addMember(field, listener);
     }
   }
 }
@@ -504,9 +502,11 @@ class ForeignElement extends Element {
 class AbstractFieldElement extends Element {
   FunctionElement getter;
   FunctionElement setter;
+  Modifiers modifiers;
 
   AbstractFieldElement(SourceString name, Element enclosing)
-      : super(name, ElementKind.ABSTRACT_FIELD, enclosing);
+      : super(name, ElementKind.ABSTRACT_FIELD, enclosing),
+        modifiers = new Modifiers.empty();
 
   Type computeType(Compiler compiler) {
     throw "internal error: AbstractFieldElement has no type";
@@ -526,21 +526,9 @@ class AbstractFieldElement extends Element {
     // the compilation unit of the abstract element.
     if (getter !== null && getter.enclosingElement === enclosingElement) {
       return getter.position();
-    } else {
+    } else if (setter != null) {
+      // TODO(ahe): checking for null should not be necessary.
       return setter.position();
-    }
-  }
-
-  Modifiers get modifiers() {
-    // The resolver ensures that the flags match (ignoring abstract).
-    if (getter !== null) {
-      return new Modifiers.withFlags(
-          getter.modifiers.nodes,
-          getter.modifiers.flags | Modifiers.FLAG_ABSTRACT);
-    } else {
-      return new Modifiers.withFlags(
-          setter.modifiers.nodes,
-          setter.modifiers.flags | Modifiers.FLAG_ABSTRACT);
     }
   }
 }
@@ -654,8 +642,6 @@ class FunctionElement extends Element {
   Node parseNode(DiagnosticListener listener) => cachedNode;
 
   Token position() => cachedNode.getBeginToken();
-
-  FunctionElement asFunctionElement() => this;
 }
 
 class ConstructorBodyElement extends FunctionElement {
@@ -770,12 +756,11 @@ class ClassElement extends ContainerElement {
   Element lookupSuperMember(SourceString memberName) {
     for (ClassElement s = superclass; s != null; s = s.superclass) {
       Element e = s.lookupLocalMember(memberName);
-      if (e === null) continue;
-      // Private members from a different library are not visible.
-      if (memberName.isPrivate() && getLibrary() !== e.getLibrary()) continue;
-      // Static members are not inherited.
-      if (e.modifiers.isStatic()) continue;
-      return e;
+      if (e !== null) {
+        if (!memberName.isPrivate() || getLibrary() === e.getLibrary()) {
+          return e;
+        }
+      }
     }
     return null;
   }

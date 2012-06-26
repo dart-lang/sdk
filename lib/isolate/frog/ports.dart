@@ -9,7 +9,7 @@ class _BaseSendPort implements SendPort {
 
   const _BaseSendPort(this._isolateId);
 
-  void _checkReplyTo(SendPort replyTo) {
+  static void checkReplyTo(SendPort replyTo) {
     if (replyTo !== null
         && replyTo is! _NativeJsSendPort
         && replyTo is! _WorkerSendPort
@@ -46,7 +46,7 @@ class _NativeJsSendPort extends _BaseSendPort implements SendPort {
 
   void send(var message, [SendPort replyTo = null]) {
     _waitForPendingPorts([message, replyTo], () {
-      _checkReplyTo(replyTo);
+      checkReplyTo(replyTo);
       // Check that the isolate still runs and the port is still open
       final isolate = _globalState.isolates[_isolateId];
       if (isolate == null) return;
@@ -96,7 +96,7 @@ class _WorkerSendPort extends _BaseSendPort implements SendPort {
 
   void send(var message, [SendPort replyTo = null]) {
     _waitForPendingPorts([message, replyTo], () {
-      _checkReplyTo(replyTo);
+      checkReplyTo(replyTo);
       final workerMessage = _serializeMessage({
           'command': 'message',
           'port': this,

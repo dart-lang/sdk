@@ -58,9 +58,6 @@ cascade_precedence_test: Fail
 
 fauxverride_test/none: Fail # Issue 3778.
 
-bad_override_test/01: Fail # Issue 3859.
-bad_override_test/02: Fail # Issue 3859.
-
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
 *dartc_negative_test: Skip
@@ -113,8 +110,6 @@ throw7_negative_test: Fail     # Issue 3654
 # try_catch_syntax_test/08: Fail # Issue 3795
 type_variable_bounds_test/00: Fail # issue 3079
 fauxverride_test/none: Fail # Issue 3779.
-bad_override_test/01: Fail # Issue 3860.
-bad_override_test/02: Fail # Issue 3860.
 
 #
 # Add new dartc annotations above in alphabetical order

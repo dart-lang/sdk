@@ -40,6 +40,7 @@ arithmetic_test: Fail
 assertion_test: Fail, OK
 
 [ $compiler == dart2js ]
+fauxverride_test/05: Fail # TODO(ahe): I have a pending CL for this.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 static_initializer_type_error_test: Fail # Checked mode not supported.
 exception_test: Fail # "throw null" throws NullPointerException.
@@ -167,7 +168,13 @@ new_expression_type_args_frog_test/02: Fail, OK # Negative language test.
 non_const_super_negative_test: Fail, OK # Negative language test.
 number_identifier_negative_test: Fail, OK # Negative language test.
 operator1_negative_test: Fail, OK # Negative language test.
-override_field_test/04: Fail, OK # Broken test.
+override_field_method1_negative_test: Fail, OK # Negative language test.
+override_field_method2_negative_test: Fail, OK # Negative language test.
+override_field_method3_negative_test: Fail, OK # Negative language test.
+override_field_method6_negative_test: Fail, OK # Negative language test.
+override_field_test/01: Fail, OK # Negative language test.
+override_field_test/04: Fail, OK # Negative language test.
+override_method_with_field_test/01: Fail, OK # Negative language test.
 prefix16_test: Fail
 prefix18_negative_test: Fail, OK # Negative language test.
 prefix20_negative_test: Fail, OK # Negative language test.
@@ -226,6 +233,12 @@ assign_top_method_negative_test: Crash
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+
+[ $compiler == dart2js && ($runtime == ff || $runtime == safari || $runtime == d8 || $runtime == drt || $runtime == chrome) ]
+class_override_negative_test: Fail, OK # Negative language test.
+override_field_method4_negative_test: Fail, OK # Negative language test.
+override_field_method5_negative_test: Fail, OK # Negative language test.
 
 
 [ $compiler == dart2js && $runtime == ff ]

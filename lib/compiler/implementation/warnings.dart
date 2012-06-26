@@ -179,38 +179,6 @@ class MessageKind {
   static final MISSING_ARGUMENTS_TO_ASSERT = const MessageKind(
       "missing arguments to assert");
 
-  static final GETTER_MISMATCH = const MessageKind(
-      "Error: setter disagrees on: #{1}.");
-
-  static final SETTER_MISMATCH = const MessageKind(
-      "Error: getter disagrees on: #{1}.");
-
-  static final NO_STATIC_OVERRIDE = const MessageKind(
-      "Error: static member cannot override instance member '#{1}' of '#{2}'.");
-
-  static final NO_STATIC_OVERRIDE_CONT = const MessageKind(
-      "Info: this is the instance member that cannot be overridden "
-      "by a static member.");
-
-  static final CANNOT_OVERRIDE_FIELD_WITH_METHOD = const MessageKind(
-      "Error: method cannot override field '#{1}' of '#{2}'.");
-
-  static final CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT = const MessageKind(
-      "Info: this is the field that cannot be overridden by a method.");
-
-  static final CANNOT_OVERRIDE_METHOD_WITH_FIELD = const MessageKind(
-      "Error: field cannot override method '#{1}' of '#{2}'.");
-
-  static final CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT = const MessageKind(
-      "Info: this is the method that cannot be overridden by a field.");
-
-  static final BAD_ARITY_OVERRIDE = const MessageKind(
-      "Error: cannot override method '#{1}' in '#{2}'; "
-      "the parameters do not match.");
-
-  static final BAD_ARITY_OVERRIDE_CONT = const MessageKind(
-      "Info: this is the method whose parameters do not match.");
-
   static final COMPILER_CRASHED = const MessageKind(
       "Error: The compiler crashed when compiling this element.");
 
