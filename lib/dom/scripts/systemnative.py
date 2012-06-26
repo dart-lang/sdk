@@ -1060,7 +1060,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
 
 def _GenerateCPPIncludes(includes):
-  return ''.join(['#include %s\n' % include for include in includes])
+  return ''.join(['#include %s\n' % include for include in sorted(includes)])
 
 def _DOMWrapperType(database, interface):
   if interface.id == 'MessagePort':
