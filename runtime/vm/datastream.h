@@ -6,6 +6,7 @@
 #define VM_DATASTREAM_H_
 
 #include "platform/assert.h"
+#include "platform/utils.h"
 #include "vm/allocation.h"
 #include "vm/globals.h"
 
@@ -63,7 +64,7 @@ class ReadStream : public ValueObject {
   };
 
   void ReadBytes(uint8_t* addr, intptr_t len) {
-    ASSERT((current_ + len) < end_);
+    ASSERT((end_ - current_) >= len);
     memmove(addr, current_, len);
     current_ += len;
   }
@@ -102,7 +103,7 @@ class ReadStream : public ValueObject {
 // Stream for writing various types into a buffer.
 class WriteStream : public ValueObject {
  public:
-  static const int kBufferIncrementSize = 64 * KB;
+  static const intptr_t kBufferIncrementSize = 64 * KB;
 
   WriteStream(uint8_t** buffer, ReAlloc alloc) :
       buffer_(buffer),
@@ -161,6 +162,15 @@ class WriteStream : public ValueObject {
     }
   };
 
+  void WriteBytes(const uint8_t* addr, intptr_t len) {
+    if ((end_ - current_) < len) {
+      Resize(len);
+    }
+    ASSERT((end_ - current_) >= len);
+    memmove(current_, addr, len);
+    current_ += len;
+  }
+
  private:
   template<typename T>
   void Write(T value) {
@@ -175,17 +185,24 @@ class WriteStream : public ValueObject {
 
   void WriteByte(uint8_t value) {
     if (current_ >= end_) {
-      intptr_t new_size = (current_size_ + kBufferIncrementSize);
-      *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
-                                                   current_size_,
-                                                   new_size));
-      ASSERT(*buffer_ != NULL);
-      current_ = *buffer_ + current_size_;
-      current_size_ = new_size;
-      end_ = *buffer_ + new_size;
+      Resize(1);
     }
     ASSERT(current_ < end_);
     *current_++ = value;
+  }
+
+  void Resize(intptr_t size_needed) {
+    intptr_t position = current_ - *buffer_;
+    intptr_t new_size = current_size_ +
+        Utils::RoundUp(size_needed, kBufferIncrementSize);
+    *buffer_ = reinterpret_cast<uint8_t*>(alloc_(*buffer_,
+                                                 current_size_,
+                                                 new_size));
+    ASSERT(*buffer_ != NULL);
+    current_ = *buffer_ + position;
+    current_size_ = new_size;
+    end_ = *buffer_ + new_size;
+    ASSERT(end_ > *buffer_);
   }
 
  private:
