@@ -2545,7 +2545,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return;
       }
 
-      assert(node.isCheckedModeCheck);
+      assert(node.isCheckedModeCheck || node.isCastTypeCheck);
       if (element == compiler.stringClass) {
         helper = const SourceString('stringTypeCheck');
       } else if (element == compiler.doubleClass) {
