@@ -655,19 +655,31 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     self._webcore_setter_name = webcore_setter_name
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
-    arguments = [handle]
-    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
-      arguments.append('DartUtilities::ConvertNullToDefaultValue')
-    emitter.Emit(
-        '\n'
-        '        const ParameterAdapter<$TYPE> $NAME($ARGUMENTS);\n'
-        '        if (!$NAME.conversionSuccessful()) {\n'
-        '            exception = $NAME.exception();\n'
-        '            goto fail;\n'
-        '        }\n',
-        TYPE=self.native_type(),
-        NAME=name,
-        ARGUMENTS=', '.join(arguments))
+    if self.native_type() == 'String':
+      arguments = [handle]
+      if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
+        arguments.append('DartUtilities::ConvertNullToDefaultValue')
+      emitter.Emit(
+          '        const ParameterAdapter<String> $NAME($ARGUMENTS);\n'
+          '        if (!$NAME.conversionSuccessful()) {\n'
+          '            exception = $NAME.exception();\n'
+          '            goto fail;\n'
+          '        }\n',
+          NAME=name,
+          ARGUMENTS=', '.join(arguments))
+    else:
+      type = self.native_type()
+      if type == 'SerializedScriptValue':
+        type = 'RefPtr<%s>' % type
+      emitter.Emit(
+          '\n'
+          '        $TYPE $NAME = DartUtilities::dartTo$CAPITALIZED_TYPE($HANDLE, exception);\n'
+          '        if (exception)\n'
+          '            goto fail;\n',
+          TYPE=type,
+          NAME=name,
+          CAPITALIZED_TYPE=self._capitalized_native_type(),
+          HANDLE=handle)
     return name
 
   def parameter_type(self):
@@ -685,7 +697,7 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     conversion_arguments = [value]
     if attributes and 'TreatReturnedNullStringAs' in attributes:
       conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
-    function_name = re.sub(r' [a-z]', lambda x: x.group(0)[1:].upper(), self.native_type())
+    function_name = self._capitalized_native_type()
     function_name = function_name[0].lower() + function_name[1:]
     function_name = 'DartUtilities::%sToDart' % function_name
     return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
@@ -695,6 +707,10 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
 
   def webcore_setter_name(self):
     return self._webcore_setter_name
+
+  def _capitalized_native_type(self):
+    return re.sub(r'(^| )([a-z])', lambda x: x.group(2).upper(), self.native_type())
+
 
 class SVGTearOffIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, native_type=''):
