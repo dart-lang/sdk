@@ -255,20 +255,23 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if constructor_info:
       self._EmitFactoryProvider(self._interface.id, constructor_info)
 
-    if 'CustomConstructor' in self._interface.ext_attrs:
+    ext_attrs = self._interface.ext_attrs
+
+    if 'CustomConstructor' in ext_attrs:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
           '\n'
           'void constructorCallback(Dart_NativeArguments);\n')
       return
 
-    raises_dom_exceptions = 'ConstructorRaisesException' in self._interface.ext_attrs
+    raises_dom_exceptions = 'ConstructorRaisesException' in ext_attrs
     raises_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     arguments = []
     parameter_definitions_emitter = emitter.Emitter()
     create_function = 'create'
-    if 'NamedConstructor' in self._interface.ext_attrs:
+    if 'NamedConstructor' in ext_attrs:
       raises_exceptions = True
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       parameter_definitions_emitter.Emit(
             '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
             '        if (!domWindow) {\n'
@@ -276,11 +279,10 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
             '            goto fail;\n'
             '        }\n'
             '        Document* document = domWindow->document();\n')
-      self._cpp_impl_includes.add('"DOMWindow.h"')
       arguments.append('document')
       create_function = 'createForJSConstructor'
-    if 'CallWith' in self._interface.ext_attrs:
-      call_with = self._interface.ext_attrs['CallWith']
+    if 'CallWith' in ext_attrs:
+      call_with = ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
         raises_exceptions = True
         parameter_definitions_emitter.Emit(
@@ -301,11 +303,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
-        self._interface.id, self._interface.ext_attrs, raises_dom_exceptions)
+        self._interface.id, ext_attrs, raises_dom_exceptions)
 
     runtime_check = None
     database = self._system._database
-    if 'synthesizedV8EnabledPerContext' in self._interface.ext_attrs:
+    assert (not (
+      'synthesizedV8EnabledPerContext' in ext_attrs and
+      'synthesizedV8EnabledAtRuntime' in ext_attrs))
+    if 'synthesizedV8EnabledPerContext' in ext_attrs:
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
       runtime_check = emitter.Format(
@@ -313,7 +318,17 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
-          FEATURE=self._interface.ext_attrs['synthesizedV8EnabledPerContext'])
+          FEATURE=ext_attrs['synthesizedV8EnabledPerContext'])
+
+    if 'synthesizedV8EnabledAtRuntime' in ext_attrs:
+      raises_exceptions = True
+      self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
+      runtime_check = emitter.Format(
+          '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
+          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            goto fail;\n'
+          '        }',
+          FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
 
     self._GenerateNativeCallback(callback_name='constructorCallback',
         parameter_definitions=parameter_definitions_emitter.Fragments(),
@@ -611,12 +626,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
       else:
-        webcore_function_name = re.sub(r'^(HTML|URL|JS|XML|XSLT|\w)',
-                                       lambda s: s.group(1).lower(),
-                                       attr.id)
-        webcore_function_name = re.sub(r'^(create|exclusive)',
-                                       lambda s: 'is' + s.group(1).capitalize(),
-                                       webcore_function_name)
+        webcore_function_name = _ToWebKitName(attr.id)
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
@@ -1079,3 +1089,10 @@ def _FindParent(interface, database, callback):
 
 def _IsArgumentOptionalInWebCore(argument):
   return IsOptional(argument) and not 'Callback' in argument.ext_attrs
+
+def _ToWebKitName(name):
+  name = name[0].lower() + name[1:]
+  name = re.sub(r'^(hTML|uRL|jS|xML|xSLT)', lambda s: s.group(1).lower(),
+                name)
+  return re.sub(r'^(create|exclusive)', lambda s: 'is' + s.group(1).capitalize(),
+                name)

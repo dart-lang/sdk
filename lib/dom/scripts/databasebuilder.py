@@ -583,6 +583,8 @@ class DatabaseBuilder(object):
       # a lot so it's difficult to maintain necessary information on DOMWindow itself.
       interface = self._database.GetInterface(options.type_rename_map.get(type, type))
       if 'V8EnabledPerContext' in attr.ext_attrs:
-        interface.ext_attrs['synthesizedV8EnabledPerContext'] = attr.ext_attrs['V8EnabledPerContext']
+        interface.ext_attrs['synthesizedV8EnabledPerContext'] = \
+            attr.ext_attrs['V8EnabledPerContext']
       if 'V8EnabledAtRuntime' in attr.ext_attrs:
-        interface.ext_attrs['synthesizedV8EnabledAtRuntime'] = attr.ext_attrs['V8EnabledAtRuntime']
+        interface.ext_attrs['synthesizedV8EnabledAtRuntime'] = \
+            attr.ext_attrs['V8EnabledAtRuntime'] or attr.id
