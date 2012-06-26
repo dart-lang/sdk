@@ -819,6 +819,30 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
+   * Libraries "dart:io" and "dart:html" can not be used together in single application.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3839
+   */
+  public void test_consoleWebMix() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('dart:io');",
+            "#import('dart:html');",
+            ""));
+    // do compiled
+    compile();
+    // find expected error
+    boolean found = false;
+    for (DartCompilationError error : errors) {
+      found |= error.getErrorCode() == DartCompilerErrorCode.CONSOLE_WEB_MIX;
+    }
+    assertTrue(found);
+  }
+
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3531
    */

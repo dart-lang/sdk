@@ -637,12 +637,22 @@ public class DartCompiler {
           }
         }
 
-        // Validate import prefixes.
+        // Validate imports.
+        boolean hasIO = false;
+        boolean hasHTML = false;
         for (LibraryNode importNode : lib.getImportPaths()) {
           String prefix = importNode.getPrefix();
+          hasIO |= "dart:io".equals(importNode.getText());
+          hasHTML |= "dart:html".equals(importNode.getText());
+          // validate import prefix
           if (DartParser.PSEUDO_KEYWORDS_SET.contains(prefix)) {
             context.onError(new DartCompilationError(importNode.getSourceInfo(),
                 ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, prefix));
+          }
+          // validate console/web mix
+          if (hasIO && hasHTML) {
+            context.onError(new DartCompilationError(importNode.getSourceInfo(),
+                DartCompilerErrorCode.CONSOLE_WEB_MIX));
           }
         }
 
