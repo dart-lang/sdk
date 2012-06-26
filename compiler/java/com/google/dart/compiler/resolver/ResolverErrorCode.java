@@ -172,6 +172,7 @@ public enum ResolverErrorCode implements ErrorCode {
   THIS_ON_TOP_LEVEL("Cannot use 'this' in a top-level element"),
   THIS_OUTSIDE_OF_METHOD("Cannot use 'this' outside of a method"),
   THIS_IN_FACTORY_CONSTRUCTOR("Cannot use 'this' in a factory constructor"),
+  TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER("Too few arguments in implicit super() constructor invocation in '%s'"),
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
   TOPLEVEL_FINAL_REQUIRES_VALUE("Top-level final fields must have an initial value"),
   TYPE_ARGS_ONLY_ON_CONSTRUCTORS("Type arguments are only allowed on constructor methods"),

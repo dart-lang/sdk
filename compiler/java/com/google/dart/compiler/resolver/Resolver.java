@@ -1903,9 +1903,25 @@ public class Resolver {
         if (supertype != null) {
           superCall = Elements.lookupConstructor(supertype.getElement(), "");
         }
+        if (superCall != null) {
+
+          // Do positional parameters match?
+          List<VariableElement> superParameters = superCall.getParameters();
+          // Count the number of positional parameters required by super call
+          int superPositionalCount = 0;
+          for (; superPositionalCount < superParameters.size(); superPositionalCount++) {
+            if (superParameters.get(superPositionalCount).isNamed()) {
+              break;
+            }
+          }
+          if (superPositionalCount > 0) {
+            onError(node, ResolverErrorCode.TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER,
+                superCall.getType().toString());
+          }
+        }
       }
 
-      if ((superCall == null)
+      if (superCall == null
           && !currentClass.isObject()
           && !currentClass.isObjectChild()) {
         InterfaceType supertype = currentClass.getSupertype();
@@ -1919,7 +1935,7 @@ public class Resolver {
             }
           }
         }
-      } else if ((superCall != null)
+      } else if (superCall != null
           && node.getModifiers().isConstant()
           && !superCall.getModifiers().isConstant()) {
         onError(node.getName(),

@@ -5,7 +5,7 @@
 // expect no failures - Sub.A omits call to const super, but one will be added
 
 class Base {
-  const Base(a);
+  const Base([a]);
   Base.A(a,b) { }
 }
 
