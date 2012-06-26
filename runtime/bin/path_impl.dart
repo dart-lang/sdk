@@ -8,6 +8,8 @@ class _Path implements Path {
   const _Path(String source) : _path = source;
   _Path.fromNative(String source) : _path = _clean(source);
 
+  int hashCode() => _path.hashCode();
+
   static String _clean(String source) {
     switch (Platform.operatingSystem) {
       case 'windows':
@@ -179,7 +181,9 @@ class _Path implements Path {
   }
 
   Path append(String finalSegment) {
-    if (hasTrailingSeparator) {
+    if (isEmpty) {
+      return new Path(finalSegment);
+    } else if (hasTrailingSeparator) {
       return new Path('$_path$finalSegment');
     } else {
       return new Path('$_path/$finalSegment');
