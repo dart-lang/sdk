@@ -194,8 +194,7 @@ void compile(List<String> argv) {
     isAborting = kind === api.Diagnostic.CRASH;
     bool fatal = (kind.ordinal & FATAL) != 0;
     bool isInfo = (kind.ordinal & INFO) != 0;
-    if (isInfo) {
-      assert(uri === null);
+    if (isInfo && uri === null && kind !== api.Diagnostic.INFO) {
       info(message, kind);
       return;
     }
@@ -210,6 +209,8 @@ void compile(List<String> argv) {
       color = colors.magenta;
     } else if (kind === api.Diagnostic.CRASH) {
       color = colors.red;
+    } else if (kind === api.Diagnostic.INFO) {
+      color = colors.green;
     } else {
       throw 'Unknown kind: $kind (${kind.ordinal})';
     }

@@ -229,7 +229,98 @@ class ResolverTask extends CompilerTask {
         new ClassResolverVisitor(compiler, element.getLibrary(), element);
       visitor.visit(tree);
       element.isResolved = true;
+
+      while (!toResolve.isEmpty()) {
+        ClassElement classElement = toResolve.removeFirst();
+        classElement.ensureResolved(compiler);
+      }
+
+      checkMembers(element);
     });
+  }
+
+  checkMembers(ClassElement cls) {
+    if (cls === compiler.objectClass) return;
+    cls.forEachMember((holder, member) {
+      checkAbstractField(member);
+      checkValidOverride(member, cls.lookupSuperMember(member.name));
+    });
+  }
+
+  void checkAbstractField(Element member) {
+    if (member is !AbstractFieldElement) return;
+    if (member.getter === null) return;
+    if (member.setter === null) return;
+    int getterFlags = member.getter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    int setterFlags = member.setter.modifiers.flags | Modifiers.FLAG_ABSTRACT;
+    if (getterFlags !== setterFlags) {
+      final mismatchedFlags =
+        new Modifiers.withFlags(null, getterFlags ^ setterFlags);
+      compiler.reportMessage(
+          compiler.spanFromElement(member.getter),
+          MessageKind.GETTER_MISMATCH.error([mismatchedFlags]),
+          api.Diagnostic.ERROR);
+      compiler.reportMessage(
+          compiler.spanFromElement(member.setter),
+          MessageKind.SETTER_MISMATCH.error([mismatchedFlags]),
+          api.Diagnostic.ERROR);
+    }
+  }
+
+  reportErrorWithContext(Element errorneousElement,
+                         MessageKind errorMessage,
+                         Element contextElement,
+                         MessageKind contextMessage) {
+    compiler.reportMessage(
+        compiler.spanFromElement(errorneousElement),
+        errorMessage.error([contextElement.name,
+                            contextElement.getEnclosingClass().name]),
+        api.Diagnostic.ERROR);
+    compiler.reportMessage(
+        compiler.spanFromElement(contextElement),
+        contextMessage.error(),
+        api.Diagnostic.INFO);
+  }
+
+
+  void checkValidOverride(Element member, Element superMember) {
+    if (superMember === null) return;
+    if (member.modifiers.isStatic()) {
+      reportErrorWithContext(
+          member, MessageKind.NO_STATIC_OVERRIDE,
+          superMember, MessageKind.NO_STATIC_OVERRIDE_CONT);
+    } else {
+      FunctionElement superFunction = superMember.asFunctionElement();
+      FunctionElement function = member.asFunctionElement();
+      if (superFunction === null || superFunction.isAccessor()) {
+        // Field or accessor in super.
+        if (function !== null && !function.isAccessor()) {
+          // But a plain method in this class.
+          reportErrorWithContext(
+              member, MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD,
+              superMember, MessageKind.CANNOT_OVERRIDE_FIELD_WITH_METHOD_CONT);
+        }
+      } else {
+        // Instance method in super.
+        if (function === null || function.isAccessor()) {
+          // But a field (or accessor) in this class.
+          reportErrorWithContext(
+              member, MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD,
+              superMember, MessageKind.CANNOT_OVERRIDE_METHOD_WITH_FIELD_CONT);
+        } else {
+          // Both are plain instance methods.
+          if (superFunction.requiredParameterCount(compiler) !=
+              function.requiredParameterCount(compiler)) {
+          reportErrorWithContext(
+              member,
+              MessageKind.BAD_ARITY_OVERRIDE,
+              superMember,
+              MessageKind.BAD_ARITY_OVERRIDE_CONT);
+          }
+          // TODO(ahe): Check optional parameters.
+        }
+      }
+    }
   }
 
   FunctionSignature resolveSignature(FunctionElement element) {
