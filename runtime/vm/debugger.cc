@@ -834,7 +834,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   // nearest one to the beginning of the range, in terms of token position.
   intptr_t best_fit_index = -1;
   intptr_t best_fit = INT_MAX;
-  uword lowest_pc = INT_MAX;
+  uword lowest_pc = kUwordMax;
   intptr_t lowest_pc_index = -1;
   for (int i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenIndex(i);

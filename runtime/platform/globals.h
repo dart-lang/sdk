@@ -151,8 +151,10 @@ typedef uintptr_t uword;
 const int kWordSize = sizeof(word);
 #ifdef ARCH_IS_32_BIT
 const int kWordSizeLog2 = 2;
+const uword kUwordMax = kMaxUint32;
 #else
 const int kWordSizeLog2 = 3;
+const uword kUwordMax = kMaxUint64;
 #endif
 
 // Bit sizes.
