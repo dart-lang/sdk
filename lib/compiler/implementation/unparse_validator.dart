@@ -71,12 +71,14 @@ class UnparseValidator extends CompilerTask {
       assert(element is FunctionElement);
       // Generative constructors parse to very special function expressions.
       // Handle them when classes are properly handled.
-    } else if (element.isField()) {
-      assert(element is VariableElement);
+    } else if (element.isField() || element is AbstractFieldElement) {
+      assert(element is VariableElement || element is AbstractFieldElement);
       // Fields are just names with possible initialization expressions.
       // Nothing to care about for now.
+    } else if (element is VoidElement) {
+      // Nothing to do here.
     } else {
-      compiler.cancel('Cannot handle $element', element: element);
+      compiler.cancel('Cannot handle $element');
     }
   }
 }
