@@ -84,7 +84,11 @@ class Heap {
   void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
   void IterateCodePointers(ObjectPointerVisitor* visitor);
-  void IterateStubCodePointers(ObjectPointerVisitor* visitor);
+
+  // Visit all object in the space.
+  void IterateNewObjects(ObjectVisitor* visitor);
+  void IterateOldObjects(ObjectVisitor* visitor);
+  void IterateCodeObjects(ObjectVisitor* visitor);
 
   // Find an object by visiting all pointers in the specified heap space,
   // the 'visitor' is used to determine if an object is found or not.

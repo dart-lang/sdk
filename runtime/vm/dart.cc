@@ -29,6 +29,19 @@ ThreadPool* Dart::thread_pool_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
 FileWriterFunction Dart::flow_graph_writer_ = NULL;
 
+// An object visitor which will mark all visited objects. This is used to
+// premark all objects in the vm_isolate_ heap.
+class PremarkingVisitor : public ObjectVisitor {
+ public:
+  void VisitObject(RawObject* obj) {
+    // RawInstruction objects are premarked on allocation.
+    if (!obj->IsMarked()) {
+      obj->SetMarkBit();
+    }
+  }
+};
+
+
 // TODO(turnidge): We should add a corresponding Dart::Cleanup.
 bool Dart::InitOnce(Dart_IsolateCreateCallback create,
                     Dart_IsolateInterruptCallback interrupt) {
@@ -56,6 +69,8 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce();
     StubCode::InitOnce();
     Scanner::InitOnce();
+    PremarkingVisitor premarker;
+    vm_isolate_->heap()->IterateOldObjects(&premarker);
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);

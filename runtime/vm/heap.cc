@@ -130,6 +130,22 @@ void Heap::IterateCodePointers(ObjectPointerVisitor* visitor) {
 }
 
 
+void Heap::IterateNewObjects(ObjectVisitor* visitor) {
+  new_space_->VisitObjects(visitor);
+}
+
+
+void Heap::IterateOldObjects(ObjectVisitor* visitor) {
+  old_space_->VisitObjects(visitor);
+  code_space_->VisitObjects(visitor);
+}
+
+
+void Heap::IterateCodeObjects(ObjectVisitor* visitor) {
+  code_space_->VisitObjects(visitor);
+}
+
+
 RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
   // The code heap can only have RawInstructions objects.
   RawObject* raw_obj = code_space_->FindObject(visitor);
