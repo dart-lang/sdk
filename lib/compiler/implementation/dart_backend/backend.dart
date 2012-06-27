@@ -2,6 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class BailoutException {
+  final String reason;
+
+  const BailoutException(this.reason);
+}
+
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final UnparseValidator unparseValidator;
@@ -30,7 +36,23 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       unparseValidator.check(element);
     });
-    compiler.assembledCode = '';
+
+    // TODO(antonm): Eventually bailouts will be proper errors.
+    void bailout(String reason) {
+      throw new BailoutException(reason);
+    }
+
+    try {
+      resolvedElements.forEach((element, treeElements) {
+        bailout('I can do nothing right now.');
+      });
+    } catch (BailoutException e) {
+      compiler.assembledCode = '''
+main() {
+  final bailout_reason = "${e.reason}";
+}
+''';
+    }
   }
 
   log(String message) => compiler.log('[DartBackend] $message');

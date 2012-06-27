@@ -90,6 +90,11 @@ testNativeMethods() {
 
 testSimpleFileUnparse() {
   testDart2Dart('main() {}', (String s) {
+    Expect.equals(
+'''main() {
+  bailout_reason = "I can do nothing right now.";
+}
+''', s);
   });
 }
 
