@@ -125,7 +125,7 @@ public enum ResolverErrorCode implements ErrorCode {
   INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
-  INVALID_OVERRIDE_METADATA("Method marked with @override, but does not override any superclass element"),
+  INVALID_OVERRIDE_METADATA(ErrorSeverity.INFO, "Method marked with @override, but does not override any superclass element"),
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
   IS_A_CLASS("%s is a class and cannot be used as an expression"),
