@@ -2,9 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library('bidi_formatter');
+
+#import('bidi_utils.dart');
+
 /**
  * Bidi stands for Bi-directional text.
- * According to [Wikipedia](http://en.wikipedia.org/wiki/Bi-directional_text):
+ * According to http://en.wikipedia.org/wiki/Bi-directional_text:
  * Bi-directional text is text containing text in both text directionalities,
  * both right-to-left (RTL) and left-to-right (LTR). It generally involves text
  * containing different types of alphabets, but may also refer to boustrophedon,
@@ -52,6 +56,8 @@
  * specified, determine its directionality, and wrap it as necessary. It is
  * then up to the caller to insert the return value in the output.
  */
+
+#import('dart:web');
 
 class BidiFormatter {
 

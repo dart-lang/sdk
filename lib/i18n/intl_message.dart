@@ -7,10 +7,10 @@
  *
  *
  * _message example:
- *     '''I see ${Intl.plural(num_people,
- *               {'0': 'no one at all',
- *                '1': 'one other person',
- *                'other': '$num_people other people'})} in $place.''''
+ *    '''I see ${Intl.plural(num_people,
+ *             {'0': 'no one at all',
+ *              '1': 'one other person',
+ *              'other': '$num_people other people'})} in $place.''''
  *
  * Usage examples:
  *      today(date) => intl.message(
@@ -29,10 +29,13 @@
  *
  * Calling `msg({'num_people': 2, 'place': 'Athens'});` would
  * produce "I see 2 other people in Athens." as output.
+ * <!-- TODO(efortuna): documentation example involving the offset parameter.
+ * -->
  *
  * See tests/message_format_test.dart for more examples.
  */
- //TODO(efortuna): documentation example involving the offset parameter?
+
+#library('intl_message');
 
 class IntlMessage {
 

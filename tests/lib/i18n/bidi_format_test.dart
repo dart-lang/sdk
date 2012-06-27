@@ -5,7 +5,8 @@
 
 #library('bidi_format_test');
 
-#import('../../../lib/i18n/intl.dart');
+#import('../../../lib/i18n/bidi_formatter.dart');
+#import('../../../lib/i18n/bidi_utils.dart');
 #import('../../../lib/unittest/unittest.dart');
 
 /**
