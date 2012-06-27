@@ -992,7 +992,7 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
-  final bool isStatement = true;
+  bool get isStatement() => true;
   void prepareGvn() {
     assert(!hasSideEffects());
     setUseGvn();
@@ -1002,7 +1002,7 @@ abstract class HCheck extends HInstruction {
 class HTypeGuard extends HCheck {
   final int state;
   final HType guardedType;
-  bool isOn = false;
+  bool isEnabled = false;
   int checkedInputIndex = 0;
 
   HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
@@ -1011,12 +1011,14 @@ class HTypeGuard extends HCheck {
   HInstruction get checkedInput() => guarded;
 
   HType computeTypeFromInputTypes() {
-    return isOn ? guardedType : guarded.propagatedType;
+    return isEnabled ? guardedType : guarded.propagatedType;
   }
 
-  HType get guaranteedType() => isOn ? guardedType : HType.UNKNOWN;
+  HType get guaranteedType() => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
+
+  bool get isStatement() => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;

@@ -16,6 +16,11 @@ class SsaInstructionMerger extends HBaseVisitor {
   List<HInstruction> expectedInputs;
   Set<HInstruction> generateAtUseSite;
 
+  void markAsGenerateAtUseSite(HInstruction instruction) {
+    assert(!instruction.isStatement);
+    generateAtUseSite.add(instruction);
+  }
+
   SsaInstructionMerger(this.generateAtUseSite);
 
   void visitGraph(HGraph graph) {
@@ -60,7 +65,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked) {
-      generateAtUseSite.add(instruction);
+      markAsGenerateAtUseSite(instruction);
     } else if (instruction.isCheckedModeCheck) {
       // Checked mode checks compile to code that only use their input
       // once, so we can safely visit them and try to merge the input.
@@ -70,7 +75,7 @@ class SsaInstructionMerger extends HBaseVisitor {
 
   void tryGenerateAtUseSite(HInstruction instruction) {
     if (instruction.isControlFlow()) return;
-    generateAtUseSite.add(instruction);
+    markAsGenerateAtUseSite(instruction);
   }
 
   bool isBlockSinglePredecessor(HBasicBlock block) {
@@ -119,8 +124,11 @@ class SsaInstructionMerger extends HBaseVisitor {
         continue;
       }
       if (instruction.isCodeMotionInvariant()) {
-        generateAtUseSite.add(instruction);
+        markAsGenerateAtUseSite(instruction);
         continue;
+      }
+      if (instruction.isStatement) {
+        expectedInputs.clear();
       }
       // See if the current instruction is the next non-trivial
       // expected input.
@@ -150,6 +158,11 @@ class SsaInstructionMerger extends HBaseVisitor {
 class SsaConditionMerger extends HGraphVisitor {
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
+
+  void markAsGenerateAtUseSite(HInstruction instruction) {
+    assert(!instruction.isStatement);
+    generateAtUseSite.add(instruction);
+  }
 
   SsaConditionMerger(this.generateAtUseSite, this.controlFlowOperators);
 
@@ -222,6 +235,7 @@ class SsaConditionMerger extends HGraphVisitor {
     HPhi phi = end.phis.first;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
+    if (thenInput.isStatement || elseInput.isStatement) return;
 
     if (hasAnyStatement(elseBlock, elseInput)) return;
     assert(elseBlock.successors.length == 1);
@@ -251,24 +265,24 @@ class SsaConditionMerger extends HGraphVisitor {
     controlFlowOperators.add(startIf);
 
     // If the operation is only used by the first instruction
-    // of its block and is safe to be generated at use sute, mark it
+    // of its block and is safe to be generated at use site, mark it
     // so.
     if (phi.usedBy.length == 1
         && phi.usedBy[0] === phi.block.first
         && isSafeToGenerateAtUseSite(phi.usedBy[0], phi)) {
-      generateAtUseSite.add(phi);
+      markAsGenerateAtUseSite(phi);
     }
 
     if (elseInput.block === elseBlock) {
       assert(elseInput.usedBy.length == 1);
-      generateAtUseSite.add(elseInput);
+      markAsGenerateAtUseSite(elseInput);
     }
 
     // If [thenInput] is defined in the first predecessor, then it is only used
     // by [phi] and can be generated at use site.
     if (thenInput.block === end.predecessors[0]) {
       assert(thenInput.usedBy.length == 1);
-      generateAtUseSite.add(thenInput);
+      markAsGenerateAtUseSite(thenInput);
     }
   }
 }
