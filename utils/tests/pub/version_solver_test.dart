@@ -192,7 +192,14 @@ testResolve(description, packages, [result, error]) {
       var name = parts[0];
       var version = parts[1];
       var package = source.mockPackage(name, version, dependencies);
-      if (name == 'myapp') root = package;
+      if (name == 'myapp') {
+        // Don't add the root package to the server, so we can verify that Pub
+        // doesn't try to look up information about the local package on the
+        // remote server.
+        root = package;
+      } else {
+        source.addPackage(package);
+      }
     });
 
     // Clean up the expectation.
@@ -260,10 +267,12 @@ class MockSource extends Source {
     });
 
     var pubspec = new Pubspec(new Version.parse(version), dependencies);
-    var package = new Package.inMemory(name, pubspec);
+    return new Package.inMemory(name, pubspec);
+  }
 
-    _packages.putIfAbsent(name, () => new Map<Version, Package>());
-    _packages[name][package.version] = package;
+  void addPackage(Package package) {
+    _packages.putIfAbsent(package.name, () => new Map<Version, Package>());
+    _packages[package.name][package.version] = package;
     return package;
   }
 }

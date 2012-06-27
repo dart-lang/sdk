@@ -54,27 +54,29 @@
  */
 Future<Map<String, Version>> resolveVersions(
     SourceRegistry sources, Package root) {
-  return new VersionSolver(sources).solve(root);
+  return new VersionSolver(sources, root).solve();
 }
 
 class VersionSolver {
   final SourceRegistry _sources;
+  final Package _root;
   final PubspecCache _pubspecs;
   final Map<String, Dependency> _packages;
   final Queue<WorkItem> _work;
   int _numIterations = 0;
 
-  VersionSolver(SourceRegistry sources)
+  VersionSolver(SourceRegistry sources, Package root)
       : _sources = sources,
+        _root = root,
         _pubspecs = new PubspecCache(sources),
         _packages = <Dependency>{},
         _work = new Queue<WorkItem>();
 
-  Future<Map<String, Version>> solve(Package root) {
+  Future<Map<String, Version>> solve() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
-    _pubspecs.cache(root);
-    enqueue(new ChangeConstraint('(entrypoint)', root.name, root.version));
+    _pubspecs.cache(_root);
+    enqueue(new ChangeConstraint('(entrypoint)', _root.name, _root.version));
 
     Future processNextWorkItem(_) {
       while (true) {
@@ -266,6 +268,13 @@ class ChangeConstraint implements WorkItem {
     // If the dependency has been cut free from the graph, just remove it.
     if (!dependency.isDependedOn) {
       solver.enqueue(new ChangeVersion(dependent, null));
+      return null;
+    }
+
+    // If the dependency is on the root package, then we don't need to do
+    // anything since it's already at the best version.
+    if (dependent == solver._root.name) {
+      solver.enqueue(new ChangeVersion(dependent, solver._root.version));
       return null;
     }
 
