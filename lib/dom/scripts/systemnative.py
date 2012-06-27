@@ -393,7 +393,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
     for event_name in events_attributes:
       events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => _get(\'$DOM_NAME\');\n',
+          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
           HTML_NAME=DomToHtmlEvent(event_name),
           DOM_NAME=event_name)
 
