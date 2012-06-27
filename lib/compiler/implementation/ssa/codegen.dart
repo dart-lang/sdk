@@ -393,6 +393,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateExpression(HExpressionInformation expression) {
     // Currently we only handle sub-expression graphs.
     assert(expression is HSubExpressionBlockInformation);
+    // [visitSubGraph] will reset the [expectedPrecedence]. Make sure we don't
+    // need parenthesis. I.e., this only expects to be called for top-level
+    // expressions, not sub-expressions.
+    assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE
+        || expectedPrecedence == JSPrecedence.EXPRESSION_PRECEDENCE);
+
     HSubExpressionBlockInformation expressionSubGraph = expression;
 
     int oldState = generationState;
@@ -571,18 +577,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
+      assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE);
       addIndentation();
     }
     if (!instruction.isControlFlow() && variableNames.hasName(instruction)) {
       var name = variableNames.getName(instruction);
       if (!handleSimpleUpdateDefinition(instruction, name)
           && !handleTypeConversion(instruction, name)) {
-        declareInstruction(instruction);
-        buffer.add(" = ");
-        visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        withPrecedence(JSPrecedence.ASSIGNMENT_PRECEDENCE, () {
+          declareInstruction(instruction);
+          buffer.add(" = ");
+          visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        });
       }
     } else {
-      visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      visit(instruction, expectedPrecedence);
     }
     if (!isGeneratingExpression()) buffer.add(';\n');
   }
@@ -1111,6 +1120,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is HTypeGuard) {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
       } else if (!isGenerateAtUseSite(instruction)) {
+        expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
         define(instruction);
       }
       instruction = instruction.next;
@@ -1457,6 +1467,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       indent = oldIndent;
     }
 
+    void visitExpression(HStatementInformation toVisit) {
+      // [generateExpression] only works if the [expectedPrecedence] is a
+      // statement or an expression. We therefore have to duplicate some
+      // work here.
+      assert(toVisit.start == toVisit.end);
+      assert(toVisit.start.last is HGoto);
+      // Find the expression (there must only be one).
+      HInstruction expression = toVisit.start.first;
+      while (generateAtUseSite.contains(expression)) {
+        expression = expression.next;
+      }
+      assert(() {
+        HInstruction remaining = expression.next;
+        while (remaining is !HGoto) {
+          if (!generateAtUseSite.contains(remaining)) return false;
+          remaining = remaining.next;
+        }
+        return true;
+      });
+
+      int oldState = generationState;
+      generationState = STATE_FIRST_EXPRESSION;
+      define(expression);
+      generationState = oldState;
+    }
+
     void visitWithIndent(HStatementInformation toVisit) {
       buffer.add('{\n');
       indent++;
@@ -1475,13 +1511,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     void generateAnd(HStatementInformation toVisit, Function condition) {
       addIndentation();
       beginExpression(operatorPrecedence.precedence);
+      var oldPrecedence = expectedPrecedence;
+      expectedPrecedence = operatorPrecedence.left;
       condition();
       buffer.add(" && ");
-      var oldPrecedence = expectedPrecedence;
       expectedPrecedence = operatorPrecedence.right;
-      visitWithoutIndent(toVisit);
+      visitExpression(toVisit);
       expectedPrecedence = oldPrecedence;
       endExpression(operatorPrecedence.precedence);
+      buffer.add(";\n");
     }
 
     List<HBasicBlock> thenSuccessors = thenGraph.end.successors;
