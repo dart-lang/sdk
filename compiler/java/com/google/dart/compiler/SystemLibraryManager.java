@@ -48,12 +48,12 @@ public class SystemLibraryManager {
   
   public static final File DEFAULT_PACKAGE_ROOT = new File("packages");
 
+  public static final String PACKAGE_SCHEME = "package";
+  public static final String PACKAGE_SCHEME_SPEC = "package:";
+
   private static final String DART_SCHEME = "dart";
   private static final String DART_SCHEME_SPEC = "dart:";
   private static final String IMPORT_CONFIG = "import_%s.config";
-
-  private static final String PACKAGE_SCHEME = "package";
-  private static final String PACKAGE_SCHEME_SPEC = "package:";
 
   /**
    * Answer <code>true</code> if the string is a dart spec
@@ -222,6 +222,22 @@ public class SystemLibraryManager {
   }
 
   /**
+   * Given a package URI (package:foo/foo.dart), convert it into a file system URI.
+   * 
+   * @param relPath
+   * @return
+   */
+  public URI resolvePackageUri(String packageUriRef) {
+    if (packageUriRef.startsWith(PACKAGE_SCHEME_SPEC)) {
+      String relPath = packageUriRef.substring(PACKAGE_SCHEME_SPEC.length());
+      
+      return packageRootUri.resolve(relPath);
+    } else {
+      return null;
+    }
+  }
+
+  /**
    * Answer the original "dart:<libname>" URI for the specified resolved URI or <code>null</code> if
    * it does not map to a short URI.
    */
@@ -273,7 +289,7 @@ public class SystemLibraryManager {
    * @exception RuntimeException if the URI is a "dart" scheme,
    *     but does not map to a defined system library
    */
-  private URI translateDartUri(URI uri) {
+  public URI translateDartUri(URI uri) {
     if (isDartUri(uri)) {
       String host = uri.getHost();
       SystemLibrary library = hostMap.get(host);
@@ -294,7 +310,8 @@ public class SystemLibraryManager {
         fileUri = packageRootUri.resolve(uri.getAuthority() + uri.getPath());
       }
       File file  = new File(fileUri);
-        return file.toURI();
+      
+      return file.toURI();
     }
     return uri;
   }
