@@ -2,11 +2,41 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING:
-//   This file contains documentation that is merged into the real source.
-//   Do not make code changes here.
-
 /// @domName WebSocket
+/**
+ * Use the WebSocket interface to connect to a WebSocket,
+ * and to send and receive data on that WebSocket.
+ *
+ * To use a WebSocket in your web app, first create a WebSocket object,
+ * passing the WebSocket URL as an argument to the constructor.
+ *
+ *     var webSocket = new WebSocket('ws://127.0.0.1:1337/ws');
+ *
+ * To send data on the WebSocket, use the [send] method.
+ *
+ *     if (webSocket != null && webSocket.readyState == WebSocket.OPEN) {
+ *       webSocket.send(data);
+ *     } else {
+ *       print('WebSocket not connected, message $data not sent');
+ *     }
+ *
+ * To receive data on the WebSocket, register a listener for message events.
+ *
+ *     webSocket.on.message.add((MessageEvent e) {
+ *       receivedData(e.data);
+ *     });
+ *
+ * The message event handler receives a [MessageEvent] object
+ * as its sole argument.
+ * You can also define open, close, and error handlers,
+ * as specified by [WebSocketEvents].
+ *
+ * For more information, see the
+ * [WebSockets](http://www.dartlang.org/docs/library-tour/#html-websockets)
+ * section of the library tour and
+ * [Introducing WebSockets](http://www.html5rocks.com/en/tutorials/websockets/basics/),
+ * an HTML5Rocks.com tutorial.
+ */
 interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
   WebSocket(String url);
