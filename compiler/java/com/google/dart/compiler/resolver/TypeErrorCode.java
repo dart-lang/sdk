@@ -52,6 +52,7 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
+  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
   OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),

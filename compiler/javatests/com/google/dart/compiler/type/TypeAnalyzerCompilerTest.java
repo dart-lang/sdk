@@ -1489,7 +1489,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         result.getErrors(),
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
-  
+
   public void test_metadataOverride_OK_method() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1503,7 +1503,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(result.getErrors());
   }
-  
+
   public void test_metadataOverride_Bad_method() throws Exception {
     AnalyzeLibraryResult result = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1576,7 +1576,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 4, 14, 5),
         errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 8, 14, 5));
   }
-  
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=380
@@ -2912,6 +2912,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, 8, 7, 1),
         errEx(TypeErrorCode.INCOMPATIBLE_TYPES_IN_HIERARCHY, 7, 7, 1));
+  }
+
+  public void test_variableUsedAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var func;",
+        "func i;");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
   }
 
   private static <T extends DartNode> T findNode(
