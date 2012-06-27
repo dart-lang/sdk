@@ -3,6 +3,16 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables' : {
+    'script_suffix%': '',
+  },
+  'conditions' : [
+    ['OS=="win"', {
+      'variables' : {
+        'script_suffix': '.bat',
+      },
+    }],
+  ],
   'targets': [
     {
       'target_name': 'api_docs',
@@ -20,9 +30,9 @@
           'inputs': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             '<(PRODUCT_DIR)/dart2js',
+            '<(PRODUCT_DIR)/dart2js.bat',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../lib/dartdoc"])',
             '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib", "../../runtime/lib", "../../runtime/bin"])',
-            '<@(_sources)',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
@@ -33,8 +43,9 @@
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
             '--mode=live-nav',
-            '--compiler=<(PRODUCT_DIR)/dart2js',
+            '--compiler=<(PRODUCT_DIR)/dart2js<(script_suffix)',
           ],
+          'message': 'Running apidoc: <(_action)',
         },
       ],
     }
