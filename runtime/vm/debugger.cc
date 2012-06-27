@@ -821,29 +821,49 @@ void Debugger::SignalExceptionThrown(const Object& exc) {
 
 
 CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
-                                             intptr_t token_pos) {
+                                             intptr_t first_token_pos,
+                                             intptr_t last_token_pos) {
   ASSERT(func.HasCode());
   ASSERT(!func.HasOptimizedCode());
   Code& code = Code::Handle(func.unoptimized_code());
   ASSERT(!code.IsNull());
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
+  // We attempt to find the PC descriptor that is closest to the
+  // beginning of the token range, in terms of native code address. If we
+  // don't find a PC descriptor within the given range, we pick the
+  // nearest one to the beginning of the range, in terms of token position.
   intptr_t best_fit_index = -1;
   intptr_t best_fit = INT_MAX;
+  uword lowest_pc = UINTPTR_MAX;
+  intptr_t lowest_pc_index = -1;
   for (int i = 0; i < desc.Length(); i++) {
     intptr_t desc_token_pos = desc.TokenIndex(i);
-    if (desc_token_pos < token_pos) {
+    if (desc_token_pos < first_token_pos) {
       continue;
     }
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
     if ((kind == PcDescriptors::kIcCall) ||
         (kind == PcDescriptors::kFuncCall) ||
         (kind == PcDescriptors::kReturn)) {
-      if ((desc_token_pos - token_pos) < best_fit) {
-        best_fit = desc_token_pos - token_pos;
+      if ((desc_token_pos - first_token_pos) < best_fit) {
+        best_fit = desc_token_pos - first_token_pos;
         ASSERT(best_fit >= 0);
         best_fit_index = i;
       }
+      if ((first_token_pos <= desc_token_pos) &&
+          (desc_token_pos <= last_token_pos) &&
+          (desc.PC(i) < lowest_pc)) {
+        lowest_pc = desc.PC(i);
+        lowest_pc_index = i;
+      }
     }
+  }
+  if (lowest_pc_index >= 0) {
+    // We found the the pc descriptor within the given token range that
+    // has the lowest execution address. This is the first possible
+    // breakpoint on the line. We use this instead of the nearest
+    // PC descriptor measured in token index distance.
+    best_fit_index = lowest_pc_index;
   }
   if (best_fit_index >= 0) {
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
@@ -871,19 +891,20 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
 
 
 SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
-                                          intptr_t token_pos) {
-  if ((token_pos < target_function.token_pos()) ||
-      (target_function.end_token_pos() <= token_pos)) {
+                                          intptr_t first_token_pos,
+                                          intptr_t last_token_pos) {
+  if ((last_token_pos < target_function.token_pos()) ||
+      (target_function.end_token_pos() < first_token_pos)) {
     // The given token position is not within the target function.
     return NULL;
   }
   EnsureFunctionIsDeoptimized(target_function);
-  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, token_pos);
+  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, first_token_pos);
   if (bpt != NULL) {
     // A breakpoint for this location already exists, return it.
     return bpt;
   }
-  bpt = new SourceBreakpoint(nextId(), target_function, token_pos);
+  bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
   RegisterSourceBreakpoint(bpt);
   if (verbose && !target_function.HasCode()) {
     OS::Print("Registering breakpoint for "
@@ -893,7 +914,8 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
   }
 
   if (target_function.HasCode()) {
-    CodeBreakpoint* cbpt = MakeCodeBreakpoint(target_function, token_pos);
+    CodeBreakpoint* cbpt =
+        MakeCodeBreakpoint(target_function, first_token_pos, last_token_pos);
     if (cbpt != NULL) {
       ASSERT(cbpt->src_bpt() == NULL);
       cbpt->set_src_bpt(bpt);
@@ -931,7 +953,9 @@ void Debugger::SyncBreakpoint(SourceBreakpoint* bpt) {
 SourceBreakpoint* Debugger::SetBreakpointAtEntry(
       const Function& target_function) {
   ASSERT(!target_function.IsNull());
-  return SetBreakpoint(target_function, target_function.token_pos());
+  return SetBreakpoint(target_function,
+                       target_function.token_pos(),
+                       target_function.end_token_pos());
 }
 
 
@@ -955,8 +979,9 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
     return NULL;
   }
-  intptr_t token_pos_at_line = script.TokenIndexAtLine(line_number);
-  if (token_pos_at_line < 0) {
+  intptr_t first_token_idx, last_token_idx;
+  script.TokenRangeAtLine(line_number, &first_token_idx, &last_token_idx);
+  if (first_token_idx < 0) {
     // Script does not contain the given line number.
     if (verbose) {
       OS::Print("Script '%s' does not contain line number %d\n",
@@ -965,7 +990,7 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     return NULL;
   }
   const Function& func =
-      Function::Handle(lib.LookupFunctionInScript(script, token_pos_at_line));
+      Function::Handle(lib.LookupFunctionInScript(script, first_token_idx));
   if (func.IsNull()) {
     if (verbose) {
       OS::Print("No executable code at line %d in '%s'\n",
@@ -973,7 +998,12 @@ SourceBreakpoint* Debugger::SetBreakpointAtLine(const String& script_url,
     }
     return NULL;
   }
-  return SetBreakpoint(func, token_pos_at_line);
+  if (last_token_idx < 0) {
+    // The token at first_token_index is past the requested source line.
+    // Set the breakpoint at the closest position after that line.
+    last_token_idx = func.end_token_pos();
+  }
+  return SetBreakpoint(func, first_token_idx, last_token_idx);
 }
 
 
@@ -1392,7 +1422,8 @@ void Debugger::NotifyCompilation(const Function& func) {
                     String::Handle(lookup_function.name()).ToCString());
         }
         // Set breakpoint in newly compiled code of function func.
-        CodeBreakpoint* cbpt = MakeCodeBreakpoint(func, bpt->token_pos());
+        CodeBreakpoint* cbpt =
+            MakeCodeBreakpoint(func, bpt->token_pos(), func.end_token_pos());
         if (cbpt != NULL) {
           cbpt->set_src_bpt(bpt);
           SignalBpResolved(bpt);

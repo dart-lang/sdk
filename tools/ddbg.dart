@@ -38,8 +38,8 @@ void printHelp() {
   po <id> Print object info for given id
   pc <id> Print class info for given id
   ll  List loaded libraries
-  pl <id> Print library info for given id
-  pg <id> Print global variables visible given library
+  pl <id> Print library info for given library id
+  pg <id> Print all global variables visible within given library id
   ls <libname> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
   epi <none|all|unhandled>  Set exception pause info

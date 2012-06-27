@@ -1739,7 +1739,9 @@ class Script : public Object {
   void GetTokenLocation(intptr_t token_pos,
                         intptr_t* line, intptr_t* column) const;
 
-  intptr_t TokenIndexAtLine(intptr_t line_number) const;
+  void TokenRangeAtLine(intptr_t line_number,
+                        intptr_t* first_token_index,
+                        intptr_t* last_token_index) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawScript));
@@ -1802,7 +1804,7 @@ class LibraryPrefixIterator : public DictionaryIterator {
   explicit LibraryPrefixIterator(const Library& library);
   RawLibraryPrefix* GetNext();
  private:
-  void MoveToNext();
+  void Advance();
   DISALLOW_COPY_AND_ASSIGN(LibraryPrefixIterator);
 };
 

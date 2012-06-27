@@ -292,7 +292,8 @@ class Debugger {
   void EnsureFunctionIsDeoptimized(const Function& func);
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
-                                  intptr_t token_pos);
+                                  intptr_t first_token_pos,
+                                  intptr_t last_token_pos);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);
   void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
@@ -300,7 +301,8 @@ class Debugger {
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
                                         intptr_t token_pos);
   CodeBreakpoint* MakeCodeBreakpoint(const Function& func,
-                                     intptr_t token_pos);
+                                     intptr_t first_token_pos,
+                                     intptr_t last_token_pos);
 
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);

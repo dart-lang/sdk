@@ -4528,11 +4528,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
 }
 
 
-intptr_t Script::TokenIndexAtLine(intptr_t line_number) const {
+void Script::TokenRangeAtLine(intptr_t line_number,
+                              intptr_t* first_token_index,
+                              intptr_t* last_token_index) const {
   const String& src = String::Handle(source());
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(src, dummy_key);
-  return scanner.TokenIndexAtLine(line_number);
+  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
 }
 
 
@@ -4694,7 +4696,7 @@ void ClassDictionaryIterator::MoveToNextClass() {
 
 LibraryPrefixIterator::LibraryPrefixIterator(const Library& library)
     : DictionaryIterator(library) {
-  MoveToNext();
+  Advance();
 }
 
 
@@ -4702,14 +4704,14 @@ RawLibraryPrefix* LibraryPrefixIterator::GetNext() {
   ASSERT(HasNext());
   int ix = next_ix_++;
   Object& obj = Object::Handle(array_.At(ix));
-  MoveToNext();
+  Advance();
   LibraryPrefix& prefix = LibraryPrefix::Handle();
   prefix ^= obj.raw();
   return prefix.raw();
 }
 
 
-void LibraryPrefixIterator::MoveToNext() {
+void LibraryPrefixIterator::Advance() {
   Object& obj = Object::Handle(array_.At(next_ix_));
   while (!obj.IsLibraryPrefix() && HasNext()) {
     next_ix_++;
@@ -4926,13 +4928,13 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
   }
 
   // Determine token position at given line number.
-  intptr_t token_pos_at_line = script.TokenIndexAtLine(line_number);
-  if (token_pos_at_line < 0) {
+  intptr_t first_token_pos, last_token_pos;
+  script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
+  if (first_token_pos < 0) {
     // Script does not contain the given line number.
     return Function::null();
   }
-
-  return LookupFunctionInScript(script, token_pos_at_line);
+  return LookupFunctionInScript(script, first_token_pos);
 }
 
 
