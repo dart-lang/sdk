@@ -368,7 +368,7 @@ class Compiler implements DiagnosticListener {
                HInstruction instruction, Element element]) {
     assembledCode = null; // Compilation failed. Make sure that we
                           // don't return a bogus result.
-    SourceSpan span = const SourceSpan(null, null, null);
+    SourceSpan span = null;
     if (node !== null) {
       span = spanFromNode(node);
     } else if (token !== null) {
