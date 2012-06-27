@@ -56,9 +56,15 @@ interface Visitor<R> {
 }
 
 Token firstBeginToken(Node first, Node second) {
-  if (first !== null) return first.getBeginToken();
-  if (second !== null) return second.getBeginToken();
-  return null;
+  Token token = null;
+  if (first !== null) {
+    token = first.getBeginToken();
+  }
+  if (token === null && second !== null) {
+    // [token] might be null even when [first] is not, e.g. for empty Modifiers.
+    token = second.getBeginToken();
+  }
+  return token;
 }
 
 class NodeAssertionFailure implements Exception {
@@ -975,7 +981,11 @@ class VariableDefinitions extends Statement {
   }
 
   Token getBeginToken() {
-    return firstBeginToken(type, definitions);
+    var token = firstBeginToken(modifiers, type);
+    if (token === null) {
+      token = definitions.getBeginToken();
+    }
+    return token;
   }
 
   Token getEndToken() => endToken;

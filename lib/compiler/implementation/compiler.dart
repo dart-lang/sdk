@@ -791,12 +791,12 @@ class Compiler implements DiagnosticListener {
     if (uri === null) {
       uri = currentElement.getCompilationUnit().script.uri;
     }
-    return SourceSpan.withOffsets(begin, end, (beginOffset, endOffset) =>
-        new SourceSpan(uri, beginOffset, endOffset));
+    return SourceSpan.withCharacterOffsets(begin, end,
+      (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
   }
 
-  SourceSpan spanFromNode(Node node) {
-    return spanFromTokens(node.getBeginToken(), node.getEndToken());
+  SourceSpan spanFromNode(Node node, [Uri uri]) {
+    return spanFromTokens(node.getBeginToken(), node.getEndToken(), uri);
   }
 
   SourceSpan spanFromElement(Element element) {
@@ -890,18 +890,14 @@ class SourceSpan {
 
   const SourceSpan(this.uri, this.begin, this.end);
 
-  static withOffsets(Token begin, Token end,
+  static withCharacterOffsets(Token begin, Token end,
                      f(int beginOffset, int endOffset)) {
     final beginOffset = begin.charOffset;
-    // TODO(ahe): Compute proper end offset in token. Right now we use
-    // the position of the next token. We want to preserve the
-    // invariant that endOffset > beginOffset, but for EOF the
-    // charoffset of the next token may be [beginOffset]. This can
-    // also happen for synthetized tokens that are produced during
-    // error handling.
-    final endOffset =
-      Math.max((end.next !== null) ? end.next.charOffset : 0, beginOffset + 1);
-    assert(endOffset > beginOffset);
+    final endOffset = end.charOffset + end.slowCharLength;
+
+    // [begin] and [end] might be the same for the same empty token. This
+    // happens for instance when scanning '$$'.
+    assert(endOffset >= beginOffset);
     return f(beginOffset, endOffset);
   }
 }

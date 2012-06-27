@@ -205,6 +205,8 @@ class Element implements Hashable {
   }
 
   toString() {
+    // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
+    // invariant for all element types.
     if (!isTopLevel()) {
       String holderName = enclosingElement.name.slowToString();
       return '$kind($holderName#${name.slowToString()})';
@@ -361,6 +363,21 @@ class LibraryElement extends CompilationUnitElement {
   }
 
   bool hasLibraryName() => libraryTag !== null;
+
+  /**
+   * Returns the library name (as defined by the #library tag) or for script
+   * (which have no #library tag) the script file name. The latter case is used
+   * to private 'library name' for scripts to use for instance in dartdoc.
+   */
+  String getLibraryOrScriptName() {
+    if (libraryTag !== null) {
+      return libraryTag.argument.dartString.slowToString();
+    } else {
+      // Use the file name as script name.
+      var path = script.uri.path;
+      return path.substring(path.lastIndexOf('/') + 1);
+    }
+  }
 }
 
 class PrefixElement extends Element {

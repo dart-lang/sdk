@@ -9,7 +9,7 @@ class ValidatorListener implements DiagnosticListener {
 
   void cancel([String reason, node, token, instruction, element]) {
     assert(token !== null);
-    SourceSpan.withOffsets(token, token, (beginOffset, endOffset) {
+    SourceSpan.withCharacterOffsets(token, token, (beginOffset, endOffset) {
         String errorMessage =
             sourceFile.getLocationMessage(reason, beginOffset, endOffset, true,
                                           (s) => s /* no color */);
@@ -45,7 +45,7 @@ class UnparseValidator extends CompilerTask {
 
     // TODO(ahe): This is also too frigging complicated.
     Script originalScript = originalFunction.getCompilationUnit().script;
-    String name = SourceSpan.withOffsets(
+    String name = SourceSpan.withCharacterOffsets(
         originalFunction.beginToken, originalFunction.endToken,
         (beginOffset, endOffset) =>
             'synthesized:${originalScript.name}#$beginOffset:$endOffset');
