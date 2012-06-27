@@ -42,7 +42,7 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker nat
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
   _AbstractWorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 }
 
 class _AnchorElementImpl extends _ElementImpl implements AnchorElement native "*HTMLAnchorElement" {
@@ -331,7 +331,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 class _AudioContextEventsImpl extends _EventsImpl implements AudioContextEvents {
   _AudioContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get complete() => _get('complete');
+  EventListenerList get complete() => this['complete'];
 }
 
 class _AudioDestinationNodeImpl extends _AudioNodeImpl implements AudioDestinationNode native "*AudioDestinationNode" {
@@ -503,13 +503,13 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager nat
 class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
   _BatteryManagerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get chargingChange() => _get('chargingchange');
+  EventListenerList get chargingChange() => this['chargingchange'];
 
-  EventListenerList get chargingTimeChange() => _get('chargingtimechange');
+  EventListenerList get chargingTimeChange() => this['chargingtimechange'];
 
-  EventListenerList get dischargingTimeChange() => _get('dischargingtimechange');
+  EventListenerList get dischargingTimeChange() => this['dischargingtimechange'];
 
-  EventListenerList get levelChange() => _get('levelchange');
+  EventListenerList get levelChange() => this['levelchange'];
 }
 
 class _BeforeLoadEventImpl extends _EventImpl implements BeforeLoadEvent native "*BeforeLoadEvent" {
@@ -576,31 +576,31 @@ class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTML
 class _BodyElementEventsImpl extends _ElementEventsImpl implements BodyElementEvents {
   _BodyElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get beforeUnload() => this['beforeunload'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get hashChange() => this['hashchange'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get offline() => _get('offline');
+  EventListenerList get offline() => this['offline'];
 
-  EventListenerList get online() => _get('online');
+  EventListenerList get online() => this['online'];
 
-  EventListenerList get popState() => _get('popstate');
+  EventListenerList get popState() => this['popstate'];
 
-  EventListenerList get resize() => _get('resize');
+  EventListenerList get resize() => this['resize'];
 
-  EventListenerList get storage() => _get('storage');
+  EventListenerList get storage() => this['storage'];
 
-  EventListenerList get unload() => _get('unload');
+  EventListenerList get unload() => this['unload'];
 }
 
 class _ButtonElementImpl extends _ElementImpl implements ButtonElement native "*HTMLButtonElement" {
@@ -4166,21 +4166,21 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicationCacheEvents {
   _DOMApplicationCacheEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cached() => _get('cached');
+  EventListenerList get cached() => this['cached'];
 
-  EventListenerList get checking() => _get('checking');
+  EventListenerList get checking() => this['checking'];
 
-  EventListenerList get downloading() => _get('downloading');
+  EventListenerList get downloading() => this['downloading'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get noUpdate() => _get('noupdate');
+  EventListenerList get noUpdate() => this['noupdate'];
 
-  EventListenerList get obsolete() => _get('obsolete');
+  EventListenerList get obsolete() => this['obsolete'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 
-  EventListenerList get updateReady() => _get('updateready');
+  EventListenerList get updateReady() => this['updateready'];
 }
 
 class _DOMErrorImpl implements DOMError native "*DOMError" {
@@ -4599,7 +4599,7 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
   _DedicatedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 }
 
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayNode" {
@@ -4646,17 +4646,17 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
 class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
   _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addStream() => _get('addstream');
+  EventListenerList get addStream() => this['addstream'];
 
-  EventListenerList get connecting() => _get('connecting');
+  EventListenerList get connecting() => this['connecting'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get open() => _get('open');
+  EventListenerList get open() => this['open'];
 
-  EventListenerList get removeStream() => _get('removestream');
+  EventListenerList get removeStream() => this['removestream'];
 
-  EventListenerList get stateChange() => _get('statechange');
+  EventListenerList get stateChange() => this['statechange'];
 }
 
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement native "*HTMLDetailsElement" {
@@ -4873,103 +4873,103 @@ class _DocumentImpl extends _NodeImpl implements Document
 class _DocumentEventsImpl extends _ElementEventsImpl implements DocumentEvents {
   _DocumentEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCopy() => this['beforecopy'];
 
-  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforeCut() => this['beforecut'];
 
-  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get beforePaste() => this['beforepaste'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get change() => _get('change');
+  EventListenerList get change() => this['change'];
 
-  EventListenerList get click() => _get('click');
+  EventListenerList get click() => this['click'];
 
-  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get contextMenu() => this['contextmenu'];
 
-  EventListenerList get copy() => _get('copy');
+  EventListenerList get copy() => this['copy'];
 
-  EventListenerList get cut() => _get('cut');
+  EventListenerList get cut() => this['cut'];
 
-  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get doubleClick() => this['dblclick'];
 
-  EventListenerList get drag() => _get('drag');
+  EventListenerList get drag() => this['drag'];
 
-  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnd() => this['dragend'];
 
-  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragEnter() => this['dragenter'];
 
-  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragLeave() => this['dragleave'];
 
-  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragOver() => this['dragover'];
 
-  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get dragStart() => this['dragstart'];
 
-  EventListenerList get drop() => _get('drop');
+  EventListenerList get drop() => this['drop'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
+  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
+  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => _get('input');
+  EventListenerList get input() => this['input'];
 
-  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get invalid() => this['invalid'];
 
-  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyDown() => this['keydown'];
 
-  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyPress() => this['keypress'];
 
-  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get keyUp() => this['keyup'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseDown() => this['mousedown'];
 
-  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseMove() => this['mousemove'];
 
-  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOut() => this['mouseout'];
 
-  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseOver() => this['mouseover'];
 
-  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseUp() => this['mouseup'];
 
-  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get mouseWheel() => this['mousewheel'];
 
-  EventListenerList get paste() => _get('paste');
+  EventListenerList get paste() => this['paste'];
 
-  EventListenerList get pointerLockChange() => _get('webkitpointerlockchange');
+  EventListenerList get pointerLockChange() => this['webkitpointerlockchange'];
 
-  EventListenerList get pointerLockError() => _get('webkitpointerlockerror');
+  EventListenerList get pointerLockError() => this['webkitpointerlockerror'];
 
-  EventListenerList get readyStateChange() => _get('readystatechange');
+  EventListenerList get readyStateChange() => this['readystatechange'];
 
-  EventListenerList get reset() => _get('reset');
+  EventListenerList get reset() => this['reset'];
 
-  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get scroll() => this['scroll'];
 
-  EventListenerList get search() => _get('search');
+  EventListenerList get search() => this['search'];
 
-  EventListenerList get select() => _get('select');
+  EventListenerList get select() => this['select'];
 
-  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get selectStart() => this['selectstart'];
 
-  EventListenerList get selectionChange() => _get('selectionchange');
+  EventListenerList get selectionChange() => this['selectionchange'];
 
-  EventListenerList get submit() => _get('submit');
+  EventListenerList get submit() => this['submit'];
 
-  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchCancel() => this['touchcancel'];
 
-  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchEnd() => this['touchend'];
 
-  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchMove() => this['touchmove'];
 
-  EventListenerList get touchStart() => _get('touchstart');
+  EventListenerList get touchStart() => this['touchstart'];
 }
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6279,101 +6279,101 @@ class _ElementFactoryProvider {
 class _ElementEventsImpl extends _EventsImpl implements ElementEvents {
   _ElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCopy() => this['beforecopy'];
 
-  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforeCut() => this['beforecut'];
 
-  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get beforePaste() => this['beforepaste'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get change() => _get('change');
+  EventListenerList get change() => this['change'];
 
-  EventListenerList get click() => _get('click');
+  EventListenerList get click() => this['click'];
 
-  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get contextMenu() => this['contextmenu'];
 
-  EventListenerList get copy() => _get('copy');
+  EventListenerList get copy() => this['copy'];
 
-  EventListenerList get cut() => _get('cut');
+  EventListenerList get cut() => this['cut'];
 
-  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get doubleClick() => this['dblclick'];
 
-  EventListenerList get drag() => _get('drag');
+  EventListenerList get drag() => this['drag'];
 
-  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnd() => this['dragend'];
 
-  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragEnter() => this['dragenter'];
 
-  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragLeave() => this['dragleave'];
 
-  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragOver() => this['dragover'];
 
-  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get dragStart() => this['dragstart'];
 
-  EventListenerList get drop() => _get('drop');
+  EventListenerList get drop() => this['drop'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get fullscreenChange() => _get('webkitfullscreenchange');
+  EventListenerList get fullscreenChange() => this['webkitfullscreenchange'];
 
-  EventListenerList get fullscreenError() => _get('webkitfullscreenerror');
+  EventListenerList get fullscreenError() => this['webkitfullscreenerror'];
 
-  EventListenerList get input() => _get('input');
+  EventListenerList get input() => this['input'];
 
-  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get invalid() => this['invalid'];
 
-  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyDown() => this['keydown'];
 
-  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyPress() => this['keypress'];
 
-  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get keyUp() => this['keyup'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseDown() => this['mousedown'];
 
-  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseMove() => this['mousemove'];
 
-  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOut() => this['mouseout'];
 
-  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseOver() => this['mouseover'];
 
-  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseUp() => this['mouseup'];
 
-  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get mouseWheel() => this['mousewheel'];
 
-  EventListenerList get paste() => _get('paste');
+  EventListenerList get paste() => this['paste'];
 
-  EventListenerList get reset() => _get('reset');
+  EventListenerList get reset() => this['reset'];
 
-  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get scroll() => this['scroll'];
 
-  EventListenerList get search() => _get('search');
+  EventListenerList get search() => this['search'];
 
-  EventListenerList get select() => _get('select');
+  EventListenerList get select() => this['select'];
 
-  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get selectStart() => this['selectstart'];
 
-  EventListenerList get submit() => _get('submit');
+  EventListenerList get submit() => this['submit'];
 
-  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchCancel() => this['touchcancel'];
 
-  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchEnd() => this['touchend'];
 
-  EventListenerList get touchEnter() => _get('touchenter');
+  EventListenerList get touchEnter() => this['touchenter'];
 
-  EventListenerList get touchLeave() => _get('touchleave');
+  EventListenerList get touchLeave() => this['touchleave'];
 
-  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchMove() => this['touchmove'];
 
-  EventListenerList get touchStart() => _get('touchstart');
+  EventListenerList get touchStart() => this['touchstart'];
 
-  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
+  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
 }
 
 class _EmbedElementImpl extends _ElementImpl implements EmbedElement native "*HTMLEmbedElement" {
@@ -6595,11 +6595,11 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
   _EventSourceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get open() => _get('open');
+  EventListenerList get open() => this['open'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6613,9 +6613,7 @@ class _EventsImpl implements Events {
 
   _EventsImpl(this._ptr);
 
-  _EventListenerListImpl operator [](String type) => _get(type.toLowerCase());
-  
-  _EventListenerListImpl _get(String type) {
+  _EventListenerListImpl operator [](String type) {
     return new _EventListenerListImpl(_ptr, type);
   }
 }
@@ -6907,17 +6905,17 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*Fi
 class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
   _FileReaderEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadEnd() => this['loadend'];
 
-  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get loadStart() => this['loadstart'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 }
 
 class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
@@ -6968,17 +6966,17 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*Fi
 class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
   _FileWriterEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 
-  EventListenerList get write() => _get('write');
+  EventListenerList get write() => this['write'];
 
-  EventListenerList get writeEnd() => _get('writeend');
+  EventListenerList get writeEnd() => this['writeend'];
 
-  EventListenerList get writeStart() => _get('writestart');
+  EventListenerList get writeStart() => this['writestart'];
 }
 
 class _FileWriterSyncImpl implements FileWriterSync native "*FileWriterSync" {
@@ -7258,31 +7256,31 @@ class _FrameSetElementImpl extends _ElementImpl implements FrameSetElement nativ
 class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetElementEvents {
   _FrameSetElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get beforeUnload() => this['beforeunload'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get hashChange() => this['hashchange'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get offline() => _get('offline');
+  EventListenerList get offline() => this['offline'];
 
-  EventListenerList get online() => _get('online');
+  EventListenerList get online() => this['online'];
 
-  EventListenerList get popState() => _get('popstate');
+  EventListenerList get popState() => this['popstate'];
 
-  EventListenerList get resize() => _get('resize');
+  EventListenerList get resize() => this['resize'];
 
-  EventListenerList get storage() => _get('storage');
+  EventListenerList get storage() => this['storage'];
 
-  EventListenerList get unload() => _get('unload');
+  EventListenerList get unload() => this['unload'];
 }
 
 class _GeolocationImpl implements Geolocation native "*Geolocation" {
@@ -7577,11 +7575,11 @@ var _transaction_fn;  // Assigned one of the static methods.
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
   _IDBDatabaseEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get versionChange() => _get('versionchange');
+  EventListenerList get versionChange() => this['versionchange'];
 }
 
 class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBDatabaseException" {
@@ -7733,9 +7731,9 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
   _IDBRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get success() => _get('success');
+  EventListenerList get success() => this['success'];
 }
 
 class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction native "*IDBTransaction" {
@@ -7769,11 +7767,11 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction nat
 class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
   _IDBTransactionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get complete() => _get('complete');
+  EventListenerList get complete() => this['complete'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -7798,7 +7796,7 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
   _IDBVersionChangeRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get blocked() => _get('blocked');
+  EventListenerList get blocked() => this['blocked'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -8015,7 +8013,7 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
   _InputElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get speechChange() => _get('webkitSpeechChange');
+  EventListenerList get speechChange() => this['webkitSpeechChange'];
 }
 
 class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<int>, JavaScriptIndexingBehavior native "*Int16Array" {
@@ -8310,7 +8308,7 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
   _JavaScriptAudioNodeEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioProcess() => _get('audioprocess');
+  EventListenerList get audioProcess() => this['audioprocess'];
 }
 
 class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -8690,19 +8688,19 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElementEvents {
   _MediaElementEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get keyAdded() => _get('webkitkeyadded');
+  EventListenerList get keyAdded() => this['webkitkeyadded'];
 
-  EventListenerList get keyError() => _get('webkitkeyerror');
+  EventListenerList get keyError() => this['webkitkeyerror'];
 
-  EventListenerList get keyMessage() => _get('webkitkeymessage');
+  EventListenerList get keyMessage() => this['webkitkeymessage'];
 
-  EventListenerList get needKey() => _get('webkitneedkey');
+  EventListenerList get needKey() => this['webkitneedkey'];
 
-  EventListenerList get sourceClose() => _get('webkitsourceclose');
+  EventListenerList get sourceClose() => this['webkitsourceclose'];
 
-  EventListenerList get sourceEnded() => _get('webkitsourceended');
+  EventListenerList get sourceEnded() => this['webkitsourceended'];
 
-  EventListenerList get sourceOpen() => _get('webkitsourceopen');
+  EventListenerList get sourceOpen() => this['webkitsourceopen'];
 }
 
 class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -8892,7 +8890,7 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*
 class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
   _MediaStreamEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get ended() => _get('ended');
+  EventListenerList get ended() => this['ended'];
 }
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent native "*MediaStreamEvent" {
@@ -8984,7 +8982,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
 class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
   _MessagePortEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 }
 
 class _MetaElementImpl extends _ElementImpl implements MetaElement native "*HTMLMetaElement" {
@@ -9758,15 +9756,15 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
   _NotificationEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get click() => _get('click');
+  EventListenerList get click() => this['click'];
 
-  EventListenerList get close() => _get('close');
+  EventListenerList get close() => this['close'];
 
-  EventListenerList get display() => _get('display');
+  EventListenerList get display() => this['display'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get show() => _get('show');
+  EventListenerList get show() => this['show'];
 }
 
 class _NotificationCenterImpl implements NotificationCenter native "*NotificationCenter" {
@@ -10066,15 +10064,15 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
   _PeerConnection00EventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addStream() => _get('addstream');
+  EventListenerList get addStream() => this['addstream'];
 
-  EventListenerList get connecting() => _get('connecting');
+  EventListenerList get connecting() => this['connecting'];
 
-  EventListenerList get open() => _get('open');
+  EventListenerList get open() => this['open'];
 
-  EventListenerList get removeStream() => _get('removestream');
+  EventListenerList get removeStream() => this['removestream'];
 
-  EventListenerList get stateChange() => _get('statechange');
+  EventListenerList get stateChange() => this['statechange'];
 }
 
 class _PerformanceImpl implements Performance native "*Performance" {
@@ -11014,85 +11012,85 @@ class _SVGElementInstanceImpl implements SVGElementInstance native "*SVGElementI
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
   _SVGElementInstanceEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get beforeCopy() => _get('beforecopy');
+  EventListenerList get beforeCopy() => this['beforecopy'];
 
-  EventListenerList get beforeCut() => _get('beforecut');
+  EventListenerList get beforeCut() => this['beforecut'];
 
-  EventListenerList get beforePaste() => _get('beforepaste');
+  EventListenerList get beforePaste() => this['beforepaste'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get change() => _get('change');
+  EventListenerList get change() => this['change'];
 
-  EventListenerList get click() => _get('click');
+  EventListenerList get click() => this['click'];
 
-  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get contextMenu() => this['contextmenu'];
 
-  EventListenerList get copy() => _get('copy');
+  EventListenerList get copy() => this['copy'];
 
-  EventListenerList get cut() => _get('cut');
+  EventListenerList get cut() => this['cut'];
 
-  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get doubleClick() => this['dblclick'];
 
-  EventListenerList get drag() => _get('drag');
+  EventListenerList get drag() => this['drag'];
 
-  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnd() => this['dragend'];
 
-  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragEnter() => this['dragenter'];
 
-  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragLeave() => this['dragleave'];
 
-  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragOver() => this['dragover'];
 
-  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get dragStart() => this['dragstart'];
 
-  EventListenerList get drop() => _get('drop');
+  EventListenerList get drop() => this['drop'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get input() => _get('input');
+  EventListenerList get input() => this['input'];
 
-  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyDown() => this['keydown'];
 
-  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyPress() => this['keypress'];
 
-  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get keyUp() => this['keyup'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseDown() => this['mousedown'];
 
-  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseMove() => this['mousemove'];
 
-  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOut() => this['mouseout'];
 
-  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseOver() => this['mouseover'];
 
-  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseUp() => this['mouseup'];
 
-  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get mouseWheel() => this['mousewheel'];
 
-  EventListenerList get paste() => _get('paste');
+  EventListenerList get paste() => this['paste'];
 
-  EventListenerList get reset() => _get('reset');
+  EventListenerList get reset() => this['reset'];
 
-  EventListenerList get resize() => _get('resize');
+  EventListenerList get resize() => this['resize'];
 
-  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get scroll() => this['scroll'];
 
-  EventListenerList get search() => _get('search');
+  EventListenerList get search() => this['search'];
 
-  EventListenerList get select() => _get('select');
+  EventListenerList get select() => this['select'];
 
-  EventListenerList get selectStart() => _get('selectstart');
+  EventListenerList get selectStart() => this['selectstart'];
 
-  EventListenerList get submit() => _get('submit');
+  EventListenerList get submit() => this['submit'];
 
-  EventListenerList get unload() => _get('unload');
+  EventListenerList get unload() => this['unload'];
 }
 
 class _SVGElementInstanceListImpl implements SVGElementInstanceList native "*SVGElementInstanceList" {
@@ -13941,7 +13939,7 @@ class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorke
 class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements SharedWorkerContextEvents {
   _SharedWorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get connect() => _get('connect');
+  EventListenerList get connect() => this['connect'];
 }
 
 class _SourceElementImpl extends _ElementImpl implements SourceElement native "*HTMLSourceElement" {
@@ -14020,29 +14018,29 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognitionEvents {
   _SpeechRecognitionEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get audioEnd() => _get('audioend');
+  EventListenerList get audioEnd() => this['audioend'];
 
-  EventListenerList get audioStart() => _get('audiostart');
+  EventListenerList get audioStart() => this['audiostart'];
 
-  EventListenerList get end() => _get('end');
+  EventListenerList get end() => this['end'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get noMatch() => _get('nomatch');
+  EventListenerList get noMatch() => this['nomatch'];
 
-  EventListenerList get result() => _get('result');
+  EventListenerList get result() => this['result'];
 
-  EventListenerList get resultDeleted() => _get('resultdeleted');
+  EventListenerList get resultDeleted() => this['resultdeleted'];
 
-  EventListenerList get soundEnd() => _get('soundend');
+  EventListenerList get soundEnd() => this['soundend'];
 
-  EventListenerList get soundStart() => _get('soundstart');
+  EventListenerList get soundStart() => this['soundstart'];
 
-  EventListenerList get speechEnd() => _get('speechend');
+  EventListenerList get speechEnd() => this['speechend'];
 
-  EventListenerList get speechStart() => _get('speechstart');
+  EventListenerList get speechStart() => this['speechstart'];
 
-  EventListenerList get start() => _get('start');
+  EventListenerList get start() => this['start'];
 }
 
 class _SpeechRecognitionAlternativeImpl implements SpeechRecognitionAlternative native "*SpeechRecognitionAlternative" {
@@ -14564,7 +14562,7 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack native "*Text
 class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
   _TextTrackEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get cueChange() => _get('cuechange');
+  EventListenerList get cueChange() => this['cuechange'];
 }
 
 class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue native "*TextTrackCue" {
@@ -14608,9 +14606,9 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue native 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
   _TextTrackCueEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get enter() => _get('enter');
+  EventListenerList get enter() => this['enter'];
 
-  EventListenerList get exit() => _get('exit');
+  EventListenerList get exit() => this['exit'];
 }
 
 class _TextTrackCueListImpl implements TextTrackCueList native "*TextTrackCueList" {
@@ -14641,7 +14639,7 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList nativ
 class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
   _TextTrackListEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get addTrack() => _get('addtrack');
+  EventListenerList get addTrack() => this['addtrack'];
 }
 
 class _TimeRangesImpl implements TimeRanges native "*TimeRanges" {
@@ -16285,13 +16283,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
   _WebSocketEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get close() => _get('close');
+  EventListenerList get close() => this['close'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get open() => _get('open');
+  EventListenerList get open() => this['open'];
 }
 
 class _WheelEventImpl extends _UIEventImpl implements WheelEvent native "*WheelEvent" {
@@ -16639,153 +16637,153 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 class _WindowEventsImpl extends _EventsImpl implements WindowEvents {
   _WindowEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get animationEnd() => _get('webkitAnimationEnd');
+  EventListenerList get animationEnd() => this['webkitAnimationEnd'];
 
-  EventListenerList get animationIteration() => _get('webkitAnimationIteration');
+  EventListenerList get animationIteration() => this['webkitAnimationIteration'];
 
-  EventListenerList get animationStart() => _get('webkitAnimationStart');
+  EventListenerList get animationStart() => this['webkitAnimationStart'];
 
-  EventListenerList get beforeUnload() => _get('beforeunload');
+  EventListenerList get beforeUnload() => this['beforeunload'];
 
-  EventListenerList get blur() => _get('blur');
+  EventListenerList get blur() => this['blur'];
 
-  EventListenerList get canPlay() => _get('canplay');
+  EventListenerList get canPlay() => this['canplay'];
 
-  EventListenerList get canPlayThrough() => _get('canplaythrough');
+  EventListenerList get canPlayThrough() => this['canplaythrough'];
 
-  EventListenerList get change() => _get('change');
+  EventListenerList get change() => this['change'];
 
-  EventListenerList get click() => _get('click');
+  EventListenerList get click() => this['click'];
 
-  EventListenerList get contentLoaded() => _get('DOMContentLoaded');
+  EventListenerList get contentLoaded() => this['DOMContentLoaded'];
 
-  EventListenerList get contextMenu() => _get('contextmenu');
+  EventListenerList get contextMenu() => this['contextmenu'];
 
-  EventListenerList get deviceMotion() => _get('devicemotion');
+  EventListenerList get deviceMotion() => this['devicemotion'];
 
-  EventListenerList get deviceOrientation() => _get('deviceorientation');
+  EventListenerList get deviceOrientation() => this['deviceorientation'];
 
-  EventListenerList get doubleClick() => _get('dblclick');
+  EventListenerList get doubleClick() => this['dblclick'];
 
-  EventListenerList get drag() => _get('drag');
+  EventListenerList get drag() => this['drag'];
 
-  EventListenerList get dragEnd() => _get('dragend');
+  EventListenerList get dragEnd() => this['dragend'];
 
-  EventListenerList get dragEnter() => _get('dragenter');
+  EventListenerList get dragEnter() => this['dragenter'];
 
-  EventListenerList get dragLeave() => _get('dragleave');
+  EventListenerList get dragLeave() => this['dragleave'];
 
-  EventListenerList get dragOver() => _get('dragover');
+  EventListenerList get dragOver() => this['dragover'];
 
-  EventListenerList get dragStart() => _get('dragstart');
+  EventListenerList get dragStart() => this['dragstart'];
 
-  EventListenerList get drop() => _get('drop');
+  EventListenerList get drop() => this['drop'];
 
-  EventListenerList get durationChange() => _get('durationchange');
+  EventListenerList get durationChange() => this['durationchange'];
 
-  EventListenerList get emptied() => _get('emptied');
+  EventListenerList get emptied() => this['emptied'];
 
-  EventListenerList get ended() => _get('ended');
+  EventListenerList get ended() => this['ended'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get focus() => _get('focus');
+  EventListenerList get focus() => this['focus'];
 
-  EventListenerList get hashChange() => _get('hashchange');
+  EventListenerList get hashChange() => this['hashchange'];
 
-  EventListenerList get input() => _get('input');
+  EventListenerList get input() => this['input'];
 
-  EventListenerList get invalid() => _get('invalid');
+  EventListenerList get invalid() => this['invalid'];
 
-  EventListenerList get keyDown() => _get('keydown');
+  EventListenerList get keyDown() => this['keydown'];
 
-  EventListenerList get keyPress() => _get('keypress');
+  EventListenerList get keyPress() => this['keypress'];
 
-  EventListenerList get keyUp() => _get('keyup');
+  EventListenerList get keyUp() => this['keyup'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get loadStart() => this['loadstart'];
 
-  EventListenerList get loadedData() => _get('loadeddata');
+  EventListenerList get loadedData() => this['loadeddata'];
 
-  EventListenerList get loadedMetadata() => _get('loadedmetadata');
+  EventListenerList get loadedMetadata() => this['loadedmetadata'];
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 
-  EventListenerList get mouseDown() => _get('mousedown');
+  EventListenerList get mouseDown() => this['mousedown'];
 
-  EventListenerList get mouseMove() => _get('mousemove');
+  EventListenerList get mouseMove() => this['mousemove'];
 
-  EventListenerList get mouseOut() => _get('mouseout');
+  EventListenerList get mouseOut() => this['mouseout'];
 
-  EventListenerList get mouseOver() => _get('mouseover');
+  EventListenerList get mouseOver() => this['mouseover'];
 
-  EventListenerList get mouseUp() => _get('mouseup');
+  EventListenerList get mouseUp() => this['mouseup'];
 
-  EventListenerList get mouseWheel() => _get('mousewheel');
+  EventListenerList get mouseWheel() => this['mousewheel'];
 
-  EventListenerList get offline() => _get('offline');
+  EventListenerList get offline() => this['offline'];
 
-  EventListenerList get online() => _get('online');
+  EventListenerList get online() => this['online'];
 
-  EventListenerList get pageHide() => _get('pagehide');
+  EventListenerList get pageHide() => this['pagehide'];
 
-  EventListenerList get pageShow() => _get('pageshow');
+  EventListenerList get pageShow() => this['pageshow'];
 
-  EventListenerList get pause() => _get('pause');
+  EventListenerList get pause() => this['pause'];
 
-  EventListenerList get play() => _get('play');
+  EventListenerList get play() => this['play'];
 
-  EventListenerList get playing() => _get('playing');
+  EventListenerList get playing() => this['playing'];
 
-  EventListenerList get popState() => _get('popstate');
+  EventListenerList get popState() => this['popstate'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 
-  EventListenerList get rateChange() => _get('ratechange');
+  EventListenerList get rateChange() => this['ratechange'];
 
-  EventListenerList get reset() => _get('reset');
+  EventListenerList get reset() => this['reset'];
 
-  EventListenerList get resize() => _get('resize');
+  EventListenerList get resize() => this['resize'];
 
-  EventListenerList get scroll() => _get('scroll');
+  EventListenerList get scroll() => this['scroll'];
 
-  EventListenerList get search() => _get('search');
+  EventListenerList get search() => this['search'];
 
-  EventListenerList get seeked() => _get('seeked');
+  EventListenerList get seeked() => this['seeked'];
 
-  EventListenerList get seeking() => _get('seeking');
+  EventListenerList get seeking() => this['seeking'];
 
-  EventListenerList get select() => _get('select');
+  EventListenerList get select() => this['select'];
 
-  EventListenerList get stalled() => _get('stalled');
+  EventListenerList get stalled() => this['stalled'];
 
-  EventListenerList get storage() => _get('storage');
+  EventListenerList get storage() => this['storage'];
 
-  EventListenerList get submit() => _get('submit');
+  EventListenerList get submit() => this['submit'];
 
-  EventListenerList get suspend() => _get('suspend');
+  EventListenerList get suspend() => this['suspend'];
 
-  EventListenerList get timeUpdate() => _get('timeupdate');
+  EventListenerList get timeUpdate() => this['timeupdate'];
 
-  EventListenerList get touchCancel() => _get('touchcancel');
+  EventListenerList get touchCancel() => this['touchcancel'];
 
-  EventListenerList get touchEnd() => _get('touchend');
+  EventListenerList get touchEnd() => this['touchend'];
 
-  EventListenerList get touchMove() => _get('touchmove');
+  EventListenerList get touchMove() => this['touchmove'];
 
-  EventListenerList get touchStart() => _get('touchstart');
+  EventListenerList get touchStart() => this['touchstart'];
 
-  EventListenerList get transitionEnd() => _get('webkitTransitionEnd');
+  EventListenerList get transitionEnd() => this['webkitTransitionEnd'];
 
-  EventListenerList get unload() => _get('unload');
+  EventListenerList get unload() => this['unload'];
 
-  EventListenerList get volumeChange() => _get('volumechange');
+  EventListenerList get volumeChange() => this['volumechange'];
 
-  EventListenerList get waiting() => _get('waiting');
+  EventListenerList get waiting() => this['waiting'];
 }
 
 class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker" {
@@ -16803,7 +16801,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
   _WorkerEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get message() => _get('message');
+  EventListenerList get message() => this['message'];
 }
 
 class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext native "*WorkerContext" {
@@ -16859,7 +16857,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext nativ
 class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
   _WorkerContextEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 }
 
 class _WorkerLocationImpl implements WorkerLocation native "*WorkerLocation" {
@@ -16955,19 +16953,19 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
   _XMLHttpRequestEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadEnd() => this['loadend'];
 
-  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get loadStart() => this['loadstart'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 
-  EventListenerList get readyStateChange() => _get('readystatechange');
+  EventListenerList get readyStateChange() => this['readystatechange'];
 }
 
 class _XMLHttpRequestExceptionImpl implements XMLHttpRequestException native "*XMLHttpRequestException" {
@@ -17007,17 +17005,17 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
 class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
   _XMLHttpRequestUploadEventsImpl(_ptr) : super(_ptr);
 
-  EventListenerList get abort() => _get('abort');
+  EventListenerList get abort() => this['abort'];
 
-  EventListenerList get error() => _get('error');
+  EventListenerList get error() => this['error'];
 
-  EventListenerList get load() => _get('load');
+  EventListenerList get load() => this['load'];
 
-  EventListenerList get loadEnd() => _get('loadend');
+  EventListenerList get loadEnd() => this['loadend'];
 
-  EventListenerList get loadStart() => _get('loadstart');
+  EventListenerList get loadStart() => this['loadstart'];
 
-  EventListenerList get progress() => _get('progress');
+  EventListenerList get progress() => this['progress'];
 }
 
 class _XMLSerializerImpl implements XMLSerializer native "*XMLSerializer" {

@@ -1332,7 +1332,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       if event_name in _html_event_names:
         events_members.Emit(
             "\n"
-            "  EventListenerList get $NAME() => _get('$RAWNAME');\n",
+            "  EventListenerList get $NAME() => this['$RAWNAME'];\n",
             RAWNAME=event_name,
             NAME=_html_event_names[event_name])
       else:

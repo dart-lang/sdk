@@ -7555,10 +7555,6 @@ class _EventsImpl implements Events {
   _EventsImpl(this._ptr) : _listenerMap = <EventListenerList>{};
 
   EventListenerList operator [](String type) {
-    return _get(type.toLowerCase());
-  }
-
-  EventListenerList _get(String type) {
     return _listenerMap.putIfAbsent(type,
       () => new _EventListenerListImpl(_ptr, type));
   }
