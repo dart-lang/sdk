@@ -172,40 +172,44 @@ class DateFormat {
   /**
    * Constructors for dates/times that use a default format.
    */
-  DateFormat.Hm([this._locale]) : _formatDefinition = Hm;
-  DateFormat.Hms([this._locale]) : _formatDefinition = Hms;
-  DateFormat.M([this._locale]) : _formatDefinition = M;
-  DateFormat.MEd([this._locale]) : _formatDefinition = MEd;
-  DateFormat.MMM([this._locale]) : _formatDefinition = MMM;
-  DateFormat.MMMEd([this._locale]) : _formatDefinition = MMMEd;
-  DateFormat.MMMMEd([this._locale]) : _formatDefinition = MMMMEd;
-  DateFormat.MMMMd([this._locale]) : _formatDefinition = MMMMd;
-  DateFormat.MMMd([this._locale]) : _formatDefinition = MMMd;
-  DateFormat.Md([this._locale]) : _formatDefinition = Md;
-  DateFormat.d([this._locale]) : _formatDefinition = d;
-  DateFormat.hm([this._locale]) : _formatDefinition = hm;
-  DateFormat.ms([this._locale]) : _formatDefinition = ms;
-  DateFormat.y([this._locale]) : _formatDefinition = y;
-  DateFormat.yM([this._locale]) : _formatDefinition = yM;
-  DateFormat.yMEd([this._locale]) : _formatDefinition = yMEd;
-  DateFormat.yMMM([this._locale]) : _formatDefinition = yMMM;
-  DateFormat.yMMMEd([this._locale]) : _formatDefinition = yMMMEd;
-  DateFormat.yMMMM([this._locale]) : _formatDefinition = yMMMM;
-  DateFormat.yQ([this._locale]) : _formatDefinition = yQ;
-  DateFormat.yQQQ([this._locale]) : _formatDefinition = yQQQ;
+  DateFormat.Hm([locale=this._locale]) : _formatDefinition = Hm;
+  DateFormat.Hms([locale=this._locale]) : _formatDefinition = Hms;
+  DateFormat.M([locale=this._locale]) : _formatDefinition = M;
+  DateFormat.MEd([locale=this._locale]) : _formatDefinition = MEd;
+  DateFormat.MMM([locale=this._locale]) : _formatDefinition = MMM;
+  DateFormat.MMMEd([locale=this._locale]) : _formatDefinition = MMMEd;
+  DateFormat.MMMMEd([locale=this._locale]) : _formatDefinition = MMMMEd;
+  DateFormat.MMMMd([locale=this._locale]) : _formatDefinition = MMMMd;
+  DateFormat.MMMd([locale=this._locale]) : _formatDefinition = MMMd;
+  DateFormat.Md([locale=this._locale]) : _formatDefinition = Md;
+  DateFormat.d([locale=this._locale]) : _formatDefinition = d;
+  DateFormat.hm([locale=this._locale]) : _formatDefinition = hm;
+  DateFormat.ms([locale=this._locale]) : _formatDefinition = ms;
+  DateFormat.y([locale=this._locale]) : _formatDefinition = y;
+  DateFormat.yM([locale=this._locale]) : _formatDefinition = yM;
+  DateFormat.yMEd([locale=this._locale]) : _formatDefinition = yMEd;
+  DateFormat.yMMM([locale=this._locale]) : _formatDefinition = yMMM;
+  DateFormat.yMMMEd([locale=this._locale]) : _formatDefinition = yMMMEd;
+  DateFormat.yMMMM([locale=this._locale]) : _formatDefinition = yMMMM;
+  DateFormat.yQ([locale=this._locale]) : _formatDefinition = yQ;
+  DateFormat.yQQQ([locale=this._locale]) : _formatDefinition = yQQQ;
 
-  DateFormat.fullDate([this._locale]) : _formatDefinition = fullDate;
-  DateFormat.longDate([this._locale]) : _formatDefinition = longDate;
-  DateFormat.mediumDate([this._locale]) : _formatDefinition = mediumDate;
-  DateFormat.shortDate([this._locale]) : _formatDefinition = shortDate;
-  DateFormat.fullTime([this._locale]) : _formatDefinition = fullTime;
-  DateFormat.longTime([this._locale]) : _formatDefinition = longTime;
-  DateFormat.mediumTime([this._locale]) : _formatDefinition = mediumTime;
-  DateFormat.shortTime([this._locale]) : _formatDefinition = shortTime;
-  DateFormat.fullDateTime([this._locale]) : _formatDefinition = fullDateTime;
-  DateFormat.longDateTime([this._locale]) : _formatDefinition = longDateTime;
-  DateFormat.mediumDateTime([this._locale]) : _formatDefinition = mediumDateTime;
-  DateFormat.shortDateTime([this._locale]) : _formatDefinition = shortDateTime;
+  DateFormat.fullDate([locale=this._locale]) : _formatDefinition = fullDate;
+  DateFormat.longDate([locale=this._locale]) : _formatDefinition = longDate;
+  DateFormat.mediumDate([locale=this._locale]) : _formatDefinition = mediumDate;
+  DateFormat.shortDate([locale=this._locale]) : _formatDefinition = shortDate;
+  DateFormat.fullTime([locale=this._locale]) : _formatDefinition = fullTime;
+  DateFormat.longTime([locale=this._locale]) : _formatDefinition = longTime;
+  DateFormat.mediumTime([locale=this._locale]) : _formatDefinition = mediumTime;
+  DateFormat.shortTime([locale=this._locale]) : _formatDefinition = shortTime;
+  DateFormat.fullDateTime([locale=this._locale]) :
+      _formatDefinition = fullDateTime;
+  DateFormat.longDateTime([locale=this._locale]) :
+      _formatDefinition = longDateTime;
+  DateFormat.mediumDateTime([locale=this._locale]) :
+      _formatDefinition = mediumDateTime;
+  DateFormat.shortDateTime([locale=this._locale]) :
+      _formatDefinition = shortDateTime;
 
   /**
    * Constructor accepts a [formatDefinition], which can be a String, one of the
