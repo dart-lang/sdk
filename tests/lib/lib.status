@@ -27,6 +27,7 @@ crypto/sha256_test: Fail
 [ $compiler == dartc ]
 i18n/intl_message_test: Fail # Issue 3387
 i18n/date_time_format_test: Fail # Issue 3387
+unittest/unittest_test: Fail # Issue 3897
 
 [ $runtime == opera ]
 *: Skip
