@@ -781,9 +781,19 @@ public class Resolver {
       }
       MethodElement previousFunction = innermostFunction;
       innermostFunction = element;
-      DartFunction functionNode = x.getFunction();
-      resolveFunction(functionNode, element);
-      resolve(functionNode.getBody());
+      {
+        DartFunction functionNode = x.getFunction();
+        EnclosingElement previousEnclosingElement = enclosingElement;
+        enclosingElement = element;
+        getContext().pushFunctionScope(x);
+        try {
+          resolveFunction(functionNode, element);
+          resolve(functionNode.getBody());
+        } finally {
+          getContext().popScope();
+          enclosingElement = previousEnclosingElement;
+        }
+      }
       innermostFunction = previousFunction;
       getContext().popScope();
       if (x.getName() != null) {

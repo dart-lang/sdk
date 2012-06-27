@@ -36,7 +36,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   @VisibleForTesting
   MethodElementImplementation(DartFunctionExpression node, String name, Modifiers modifiers) {
     super(node, name);
-    this.hasBody = false;
+    this.hasBody = true;
     this.modifiers = modifiers;
     this.holder = findParentEnclosingElement(node);
     this.kind = ElementKind.FUNCTION_OBJECT;
