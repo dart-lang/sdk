@@ -655,31 +655,23 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     self._webcore_setter_name = webcore_setter_name
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
-    if self.native_type() == 'String':
-      arguments = [handle]
-      if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
-        arguments.append('DartUtilities::ConvertNullToDefaultValue')
-      emitter.Emit(
-          '        const ParameterAdapter<String> $NAME($ARGUMENTS);\n'
-          '        if (!$NAME.conversionSuccessful()) {\n'
-          '            exception = $NAME.exception();\n'
-          '            goto fail;\n'
-          '        }\n',
-          NAME=name,
-          ARGUMENTS=', '.join(arguments))
-    else:
-      type = self.native_type()
-      if type == 'SerializedScriptValue':
-        type = 'RefPtr<%s>' % type
-      emitter.Emit(
-          '\n'
-          '        $TYPE $NAME = DartUtilities::dartTo$CAPITALIZED_TYPE($HANDLE, exception);\n'
-          '        if (exception)\n'
-          '            goto fail;\n',
-          TYPE=type,
-          NAME=name,
-          CAPITALIZED_TYPE=self._capitalized_native_type(),
-          HANDLE=handle)
+    function_name = 'dartTo%s' % self._capitalized_native_type()
+    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
+      function_name += 'WithNullCheck'
+    type = self.native_type()
+    if type == 'SerializedScriptValue':
+      type = 'RefPtr<%s>' % type
+    if type == 'String':
+      type = 'DartStringAdapter'
+    emitter.Emit(
+        '\n'
+        '        $TYPE $NAME = DartUtilities::$FUNCTION_NAME($HANDLE, exception);\n'
+        '        if (exception)\n'
+        '            goto fail;\n',
+        TYPE=type,
+        NAME=name,
+        FUNCTION_NAME=function_name,
+        HANDLE=handle)
     return name
 
   def parameter_type(self):
