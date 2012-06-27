@@ -349,6 +349,16 @@ class SendSet extends Send {
     return new SendSet(newReceiver, selector, assignmentOperator,
                        argumentsNode);
   }
+
+  Token getBeginToken() {
+    if (isPrefix) return assignmentOperator.getBeginToken();
+    return super.getBeginToken();
+  }
+
+  Token getEndToken() {
+    if (isPrefix) return super.getEndToken();
+    return assignmentOperator.getEndToken();
+  }
 }
 
 class NewExpression extends Expression {
