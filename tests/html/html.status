@@ -33,6 +33,9 @@ history_test: Fail
 [ $runtime == chrome ]
 cssstyledeclaration_test: Fail
 
+[ $runtime == chrome && $system == macos ]
+cssstyledeclaration_test: Pass # Issue 3889.
+
 [ $runtime == ie ]
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
