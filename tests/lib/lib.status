@@ -28,9 +28,6 @@ crypto/sha256_test: Fail
 i18n/intl_message_test: Fail # Issue 3387
 i18n/date_time_format_test: Fail # Issue 3387
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium)]
-i18n/bidi_format_test: Skip # Issue 3885
-
 [ $runtime == opera ]
 *: Skip
 
