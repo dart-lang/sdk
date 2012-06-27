@@ -16,8 +16,10 @@
  *
  * If the assertion fails, then the default behavior is to throw an
  * [ExpectException], but this behavior can be changed by calling
- * [configureExpectHandler] and providing an alternative handler that
- * implements the [IFailureHandler] interface.
+ * [configureExpectFailureHandler] and providing an alternative handler that
+ * implements the [IFailureHandler] interface. It is also possible to
+ * pass a [failureHandler] to [expect] as a final parameter for fine-
+ * grained control.
  *
  * expect() is a 3rd generation assertion mechanism, drawing
  * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
@@ -27,7 +29,8 @@
  *     [Hamcrest] http://http://code.google.com/p/hamcrest/
  *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
-void expect(actual, [matcher = isTrue, String reason = null]) {
+void expect(actual, [matcher = isTrue, String reason = null,
+            failureHandler = null]) {
   matcher = wrapMatcher(matcher);
   var doesMatch;
   try {
@@ -39,9 +42,10 @@ void expect(actual, [matcher = isTrue, String reason = null]) {
     }
   }
   if (!doesMatch) {
-    // Make sure we have a failure handler configured.
-    configureExpectHandler(_assertFailureHandler);
-    _assertFailureHandler.failMatch(actual, matcher, reason);
+    if (failureHandler == null) {
+      failureHandler = getOrCreateExpectFailureHandler();
+    }
+    failureHandler.failMatch(actual, matcher, reason);
   }
 }
 
@@ -85,11 +89,18 @@ class DefaultFailureHandler implements FailureHandler {
  * or null then the failure handler is reset to the default, which
  * throws [ExpectExceptions] on [expect] assertion failures.
  */
-void configureExpectHandler([FailureHandler handler = null]) {
+void configureExpectFailureHandler([FailureHandler handler = null]) {
   if (handler == null) {
     handler = new DefaultFailureHandler();
   }
   _assertFailureHandler = handler;
+}
+
+FailureHandler getOrCreateExpectFailureHandler() {
+  if (_assertFailureHandler == null) {
+    configureExpectFailureHandler();
+  }
+  return _assertFailureHandler;
 }
 
 // The error message formatter for failed asserts.

@@ -147,6 +147,7 @@
 #source('interfaces.dart');
 #source('map_matchers.dart');
 #source('matcher.dart');
+#source('mock.dart');
 #source('numeric_matchers.dart');
 #source('operator_matchers.dart');
 #source('string_matchers.dart');
