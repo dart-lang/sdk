@@ -98,8 +98,9 @@ list_literal4_test: Fail       # Issue 1343
 map_literal4_test: Fail        # Issue 1343
 named_parameters_negative_test: Fail # Runtime only test, rewrite as multitest
 named_parameters_with_object_property_names_test: Fail # Issue 2137
-no_such_method_negative_test: Fail # Runtime only test, rewrite as multitest
-override_field_test/04: Fail # Issue 3656
+no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
+override_field_test/03: Fail # still a valid test? Issue 3894
+override_field_test/04: Fail # still a valid test? Issue 3656
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
@@ -108,11 +109,9 @@ static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrit
 switch7_negative_test: Fail    # Issue 3658
 switch_label_test: Fail        # Issue 3658
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
-third_test: Fail               # Issue 3659
 throw7_negative_test: Fail     # Issue 3654
 # try_catch_syntax_test/08: Fail # Issue 3795
 type_variable_bounds_test/00: Fail # issue 3079
-fauxverride_test/none: Fail # Issue 3779.
 
 #
 # Add new dartc annotations above in alphabetical order

@@ -356,7 +356,7 @@ public abstract class TypeAnalyzerTestCase extends TypeTestCase {
   }
 
   private DartUnit parseUnit(String string) {
-    DartSourceString source = new DartSourceString("<source string>", string);
+   // DartSourceString source = new DartSourceString("<source string>", string);
     return getParser(string).parseUnit();
   }
 
