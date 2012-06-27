@@ -341,7 +341,7 @@ intptr_t RawType::VisitTypePointers(
 
 intptr_t RawTypeParameter::VisitTypeParameterPointers(
     RawTypeParameter* raw_obj, ObjectPointerVisitor* visitor) {
-  visitor->VisitPointer(reinterpret_cast<RawObject**>(&raw_obj->ptr()->name_));
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return TypeParameter::InstanceSize();
 }
 

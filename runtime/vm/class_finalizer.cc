@@ -434,14 +434,10 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
         TypeArguments::Handle(factory_signature_class.type_parameters());
     const TypeArguments& actual_type_parameters =
         TypeArguments::Handle(factory_class.type_parameters());
-    const TypeArguments& expected_type_parameter_bounds =
-        TypeArguments::Handle(factory_signature_class.type_parameter_bounds());
-    const TypeArguments& actual_type_parameter_bounds =
-        TypeArguments::Handle(factory_class.type_parameter_bounds());
+    const bool check_type_parameter_bounds = true;
     if (!AbstractTypeArguments::AreIdentical(expected_type_parameters,
-                                             actual_type_parameters) ||
-        !AbstractTypeArguments::AreIdentical(expected_type_parameter_bounds,
-                                             actual_type_parameter_bounds)) {
+                                             actual_type_parameters,
+                                             check_type_parameter_bounds)) {
       const String& interface_name = String::Handle(interface.Name());
       const String& factory_name = String::Handle(factory_class.Name());
       const Script& script = Script::Handle(interface.script());
@@ -454,13 +450,15 @@ void ClassFinalizer::ResolveFactoryClass(const Class& interface) {
     }
   }
   // Verify that the type parameters of the factory class and of the interface
-  // have identical names.
+  // have identical names, but not necessarily identical bounds.
   const TypeArguments& interface_type_parameters =
       TypeArguments::Handle(interface.type_parameters());
   const TypeArguments& factory_type_parameters =
       TypeArguments::Handle(factory_class.type_parameters());
+  const bool check_type_parameter_bounds = false;
   if (!AbstractTypeArguments::AreIdentical(interface_type_parameters,
-                                           factory_type_parameters)) {
+                                           factory_type_parameters,
+                                           check_type_parameter_bounds)) {
     const String& interface_name = String::Handle(interface.Name());
     const String& factory_name = String::Handle(factory_class.Name());
     const Script& script = Script::Handle(interface.script());
@@ -638,7 +636,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     // parameterized class.
     const intptr_t offset = parameterized_class.NumTypeArguments() -
                             parameterized_class.NumTypeParameters();
-    type_parameter.set_index(type_parameter.Index() + offset);
+    type_parameter.set_index(type_parameter.index() + offset);
     type_parameter.set_is_finalized();
     // We do not canonicalize type parameters.
     return type_parameter.raw();
@@ -904,19 +902,21 @@ static RawClass* FindSuperOwnerOfFunction(const Class& cls,
 // Resolve and finalize the upper bounds of the type parameters of class cls.
 void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
   const intptr_t num_type_params = cls.NumTypeParameters();
+  TypeParameter& type_param = TypeParameter::Handle();
   AbstractType& bound = AbstractType::Handle();
-  const AbstractTypeArguments& bounds =
-      AbstractTypeArguments::Handle(cls.type_parameter_bounds());
-  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
-         (bounds.Length() == num_type_params));
+  const AbstractTypeArguments& type_params =
+      AbstractTypeArguments::Handle(cls.type_parameters());
+  ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
+         (type_params.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    bound = bounds.TypeAt(i);
+    type_param ^= type_params.TypeAt(i);
+    bound = type_param.bound();
     if (bound.IsFinalized()) {
       continue;
     }
     ResolveType(cls, bound, kFinalize);
     bound = FinalizeType(cls, bound, kFinalize);
-    bounds.SetTypeAt(i, bound);
+    type_param.set_bound(bound);
   }
 }
 

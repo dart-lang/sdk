@@ -504,7 +504,8 @@ class Class : public Object {
   RawLibrary* library() const { return raw_ptr()->library_; }
   void set_library(const Library& value) const;
 
-  // The type parameters are specified as an array of TypeParameter.
+  // The type parameters (and their bounds) are specified as an array of
+  // TypeParameter.
   RawTypeArguments* type_parameters() const {
       return raw_ptr()->type_parameters_;
   }
@@ -513,13 +514,6 @@ class Class : public Object {
   static intptr_t type_parameters_offset() {
     return OFFSET_OF(RawClass, type_parameters_);
   }
-
-  // Type parameter bounds (implicitly Dynamic if not explicitly specified) as
-  // an array of AbstractType.
-  RawTypeArguments* type_parameter_bounds() const {
-    return raw_ptr()->type_parameter_bounds_;
-  }
-  void set_type_parameter_bounds(const TypeArguments& value) const;
 
   // Return a TypeParameter if the type_name is a type parameter of this class.
   // Return null otherwise.
@@ -831,7 +825,8 @@ class AbstractType : public Object {
   virtual intptr_t token_pos() const;
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
 
   // Instantiate this type using the given type argument vector.
   // Return a new type, or return 'this' if it is already instantiated.
@@ -843,9 +838,6 @@ class AbstractType : public Object {
 
   // The name of this type, including the names of its type arguments, if any.
   virtual RawString* Name() const;
-
-  // The index of this type parameter. Fail if not a type parameter.
-  virtual intptr_t Index() const;
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
@@ -962,7 +954,8 @@ class Type : public AbstractType {
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const;
   virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const;
@@ -1023,12 +1016,15 @@ class Type : public AbstractType {
 
 
 // A TypeParameter represents a type parameter of a parameterized class.
-// It specifies its index (and its name for debugging purposes).
+// It specifies its index (and its name for debugging purposes), as well as its
+// upper bound.
 // For example, the type parameter 'V' is specified as index 1 in the context of
 // the class HashMap<K, V>. At compile time, the TypeParameter is not
 // instantiated yet, i.e. it is only a place holder.
 // Upon finalization, the TypeParameter index is changed to reflect its position
 // as type argument (rather than type parameter) of the parameterized class.
+// If the type parameter is declared without an extends clause, its bound is set
+// to the DynamicType.
 class TypeParameter : public AbstractType {
  public:
   virtual bool IsFinalized() const {
@@ -1044,12 +1040,15 @@ class TypeParameter : public AbstractType {
       return raw_ptr()->parameterized_class_;
   }
   virtual RawString* Name() const { return raw_ptr()->name_; }
-  virtual intptr_t Index() const { return raw_ptr()->index_; }
+  intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
+  RawAbstractType* bound() const { return raw_ptr()->bound_; }
+  void set_bound(const AbstractType& value) const;
   virtual intptr_t token_pos() const { return raw_ptr()->token_pos_; }
   virtual bool IsInstantiated() const { return false; }
   virtual bool Equals(const AbstractType& other) const;
-  virtual bool IsIdentical(const AbstractType& other) const;
+  virtual bool IsIdentical(const AbstractType& other,
+                           bool check_type_parameter_bound) const;
   virtual RawAbstractType* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
   virtual RawAbstractType* Canonicalize() const { return raw(); }
@@ -1061,6 +1060,7 @@ class TypeParameter : public AbstractType {
   static RawTypeParameter* New(const Class& parameterized_class,
                                intptr_t index,
                                const String& name,
+                               const AbstractType& bound,
                                intptr_t token_pos);
 
  private:
@@ -1087,7 +1087,8 @@ class AbstractTypeArguments : public Object {
   // Returns true if both arguments represent vectors of possibly still
   // unresolved identical types.
   static bool AreIdentical(const AbstractTypeArguments& arguments,
-                           const AbstractTypeArguments& other_arguments);
+                           const AbstractTypeArguments& other_arguments,
+                           bool check_type_parameter_bounds);
 
   // Return 'this' if this type argument vector is instantiated, i.e. if it does
   // not refer to type parameters. Otherwise, return a new type argument vector

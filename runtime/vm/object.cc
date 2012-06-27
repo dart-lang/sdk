@@ -1187,11 +1187,6 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-void Class::set_type_parameter_bounds(const TypeArguments& value) const {
-  StorePointer(&raw_ptr()->type_parameter_bounds_, value.raw());
-}
-
-
 intptr_t Class::NumTypeParameters() const {
   const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
   if (type_params.IsNull()) {
@@ -1292,19 +1287,21 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     intptr_t num_type_params = type_params.Length();
     TypeParameter& type_param = TypeParameter::Handle();
     String& type_param_name = String::Handle();
+    AbstractType& bound = AbstractType::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.Name();
       if (type_param_name.Equals(type_name)) {
-        intptr_t index = type_param.Index();
+        intptr_t index = type_param.index();
+        bound = type_param.bound();
         // Create a non-finalized new TypeParameter with the given token_pos.
         if (type_param.IsFinalized()) {
           // The index was adjusted during finalization. Revert.
           index -= NumTypeArguments() - num_type_params;
         } else {
-          ASSERT(type_param.Index() == i);
+          ASSERT(type_param.index() == i);
         }
-        return TypeParameter::New(*this, index, type_name, token_pos);
+        return TypeParameter::New(*this, index, type_name, bound, token_pos);
       }
     }
   }
@@ -1449,7 +1446,6 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Class& owner_class = Class::Handle(signature_function.owner());
   ASSERT(!owner_class.IsNull());
   TypeArguments& type_parameters = TypeArguments::Handle();
-  TypeArguments& type_parameter_bounds = TypeArguments::Handle();
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
@@ -1457,7 +1453,6 @@ RawClass* Class::NewSignatureClass(const String& name,
     if ((owner_class.NumTypeParameters() > 0) &&
         !signature_function.HasInstantiatedSignature()) {
       type_parameters = owner_class.type_parameters();
-      type_parameter_bounds = owner_class.type_parameter_bounds();
     }
   }
   const intptr_t token_pos = signature_function.token_pos();
@@ -1467,7 +1462,6 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.set_type_parameter_bounds(type_parameter_bounds);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
   result.set_type_arguments_instance_field_offset(
@@ -2275,7 +2269,8 @@ bool AbstractType::Equals(const AbstractType& other) const {
 }
 
 
-bool AbstractType::IsIdentical(const AbstractType& other) const {
+bool AbstractType::IsIdentical(const AbstractType& other,
+                               bool check_type_parameter_bound) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -2356,13 +2351,6 @@ RawString* AbstractType::Name() const {
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
   return String::NewSymbol(type_name);
-}
-
-
-intptr_t AbstractType::Index() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return -1;
 }
 
 
@@ -2454,12 +2442,21 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // a class B<T> will never require a run time bounds check, even it T is
   // uninstantiated at compile time.
   if (IsTypeParameter()) {
+    // TODO(regis): Introduce and use TypeParameter::Cast().
+    const TypeParameter* type_param =
+        reinterpret_cast<const TypeParameter*>(this);
     if (other.IsTypeParameter()) {
-      return Index() == other.Index();
-    } else {
-      // TODO(regis): In checked mode, if the other type is the upper bound of
-      // this type parameter, then return true.
-      // We would need to keep the upper bound associated to the type parameter.
+      const TypeParameter* other_type_param =
+          reinterpret_cast<const TypeParameter*>(&other);
+      return type_param->index() == other_type_param->index();
+    } else if (FLAG_enable_type_checks) {
+      // In checked mode, if the upper bound of this type is more specific than
+      // the other type, then this type is more specific than the other type.
+      const AbstractType& type_param_bound =
+          AbstractType::Handle(type_param->bound());
+      if (type_param_bound.IsMoreSpecificThan(other, malformed_error)) {
+        return true;
+      }
     }
     return false;
   }
@@ -2685,7 +2682,8 @@ bool Type::Equals(const AbstractType& other) const {
 }
 
 
-bool Type::IsIdentical(const AbstractType& other) const {
+bool Type::IsIdentical(const AbstractType& other,
+                       bool check_type_parameter_bounds) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -2702,7 +2700,8 @@ bool Type::IsIdentical(const AbstractType& other) const {
   }
   return AbstractTypeArguments::AreIdentical(
       AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other.arguments()));
+      AbstractTypeArguments::Handle(other.arguments()),
+      false);  // Bounds are only checked at the top level.
 }
 
 
@@ -2835,8 +2834,6 @@ const char* Type::ToCString() const {
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
-  // Field parameterized_class_ is not needed after finalization anymore.
-  set_parameterized_class(Class::Handle());
 }
 
 
@@ -2855,7 +2852,7 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (parameterized_class() != other_type_param.parameterized_class()) {
     return false;
   }
-  if (Index() != other_type_param.Index()) {
+  if (index() != other_type_param.index()) {
     return false;
   }
   const String& name = String::Handle(Name());
@@ -2864,7 +2861,8 @@ bool TypeParameter::Equals(const AbstractType& other) const {
 }
 
 
-bool TypeParameter::IsIdentical(const AbstractType& other) const {
+bool TypeParameter::IsIdentical(const AbstractType& other,
+                                bool check_type_parameter_bound) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -2876,10 +2874,23 @@ bool TypeParameter::IsIdentical(const AbstractType& other) const {
   // IsIdentical may be called on type parameters belonging to different
   // classes, e.g. to an interface and to its default factory class.
   // Therefore, both type parameters may have different parameterized classes
-  // and different indices. Compare the type parameter names only.
+  // and different indices. Compare the type parameter names only, and their
+  // bounds if requested.
   String& name = String::Handle(Name());
   String& other_name = String::Handle(other_type_param.Name());
-  return name.Equals(other_name);
+  if (!name.Equals(other_name)) {
+    return false;
+  }
+  if (check_type_parameter_bound) {
+    AbstractType& this_bound = AbstractType::Handle(bound());
+    AbstractType& other_bound = AbstractType::Handle(other_type_param.bound());
+    // Bounds are only checked at the top level.
+    const bool check_type_parameter_bounds = false;
+    if (!this_bound.IsIdentical(other_bound, check_type_parameter_bounds)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -2901,13 +2912,17 @@ void TypeParameter::set_name(const String& value) const {
 }
 
 
+void TypeParameter::set_bound(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->bound_, value.raw());
+}
+
 RawAbstractType* TypeParameter::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  return instantiator_type_arguments.TypeAt(Index());
+  return instantiator_type_arguments.TypeAt(index());
 }
 
 
@@ -2924,11 +2939,13 @@ RawTypeParameter* TypeParameter::New() {
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      intptr_t index,
                                      const String& name,
+                                     const AbstractType& bound,
                                      intptr_t token_pos) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_index(index);
   result.set_name(name);
+  result.set_bound(bound);
   result.set_token_pos(token_pos);
   result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
@@ -2952,10 +2969,10 @@ void TypeParameter::set_type_state(int8_t state) const {
 const char* TypeParameter::ToCString() const {
   const char* format = "TypeParameter: name %s; index: %d";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, Index()) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, format, name_cstr, Index());
+  OS::SNPrint(chars, len, format, name_cstr, index());
   return chars;
 }
 
@@ -3070,7 +3087,8 @@ bool AbstractTypeArguments::AreEqual(
 
 bool AbstractTypeArguments::AreIdentical(
     const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments) {
+    const AbstractTypeArguments& other_arguments,
+    bool check_type_parameter_bounds) {
   if (arguments.raw() == other_arguments.raw()) {
     return true;
   }
@@ -3087,7 +3105,7 @@ bool AbstractTypeArguments::AreIdentical(
     type ^= arguments.TypeAt(i);
     ASSERT(!type.IsNull());
     other_type ^= other_arguments.TypeAt(i);
-    if (!type.IsIdentical(other_type)) {
+    if (!type.IsIdentical(other_type, check_type_parameter_bounds)) {
       return false;
     }
   }
@@ -3156,13 +3174,15 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
   AbstractType& type = AbstractType::Handle();
+  TypeParameter& type_param = TypeParameter::Handle();
   AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& bounds =
-      TypeArguments::Handle(cls.type_parameter_bounds());
-  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
-         (bounds.Length() == num_type_params));
+  const TypeArguments& type_params =
+      TypeArguments::Handle(cls.type_parameters());
+  ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
+         (type_params.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    bound = bounds.TypeAt(i);
+    type_param ^= type_params.TypeAt(i);
+    bound = type_param.bound();
     if (!bound.IsDynamicType()) {
       type = TypeAt(offset + i);
       Error& malformed_bound_error = Error::Handle();
@@ -3290,7 +3310,12 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsTypeParameter() || (type.Index() != i)) {
+    if (!type.IsTypeParameter()) {
+      return false;
+    }
+    // TODO(regis): Introduce and use TypeParameter::Cast().
+    TypeParameter* type_param = reinterpret_cast<TypeParameter*>(&type);
+    if ((type_param->index() != i)) {
       return false;
     }
   }
@@ -4045,15 +4070,13 @@ RawString* Function::BuildSignature(
     if (!type_parameters.IsNull()) {
       intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(kLAngleBracket);
-      const TypeArguments& bounds = TypeArguments::Handle(
-          function_class.type_parameter_bounds());
-      AbstractType& type_parameter = AbstractType::Handle();
+      TypeParameter& type_parameter = TypeParameter::Handle();
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
         name = type_parameter.Name();
         pieces.Add(name);
-        bound = bounds.TypeAt(i);
+        bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsDynamicType()) {
           pieces.Add(kSpaceExtendsSpace);
           name = bound.Name();
@@ -7193,8 +7216,11 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       if (other_instantiator.IsNull()) {
         return true;  // Other type is uninstantiated, i.e. Dynamic.
       }
-      const AbstractType& instantiated_other =
-          AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
+      // TODO(regis): Introduce and use TypeParameter::Cast().
+      const TypeParameter* other_type_param =
+          reinterpret_cast<const TypeParameter*>(&other);
+      const AbstractType& instantiated_other = AbstractType::Handle(
+          other_instantiator.TypeAt(other_type_param->index()));
       ASSERT(instantiated_other.IsInstantiated());
       other_class = instantiated_other.type_class();
     } else {
@@ -7235,8 +7261,10 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       // An uninstantiated type parameter is equivalent to Dynamic.
       return true;
     }
+    const TypeParameter* other_type_param =
+        reinterpret_cast<const TypeParameter*>(&other);
     AbstractType& instantiated_other = AbstractType::Handle(
-        other_instantiator.TypeAt(other.Index()));
+        other_instantiator.TypeAt(other_type_param->index()));
     if (instantiated_other.IsDynamicType() ||
         instantiated_other.IsTypeParameter()) {
       return true;
