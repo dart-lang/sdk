@@ -1075,10 +1075,11 @@ class Modifiers extends Node {
   static final int FLAG_CONST = FLAG_VAR << 1;
   static final int FLAG_FACTORY = FLAG_CONST << 1;
 
-  Modifiers(NodeList nodes)
-    : this.nodes = nodes, flags = computeFlags(nodes.nodes);
+  Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
   Modifiers.empty() : this(new NodeList.empty());
+
+  Modifiers.withFlags(this.nodes, this.flags);
 
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;
@@ -1107,6 +1108,19 @@ class Modifiers extends Node {
   bool isVar() => (flags & FLAG_VAR) != 0;
   bool isConst() => (flags & FLAG_CONST) != 0;
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
+
+  String toString() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    if (isStatic()) builder.addLast('static');
+    if (isAbstract()) builder.addLast('abstract');
+    if (isFinal()) builder.addLast('final');
+    if (isVar()) builder.addLast('var');
+    if (isConst()) builder.addLast('const');
+    if (isFactory()) builder.addLast('factory');
+    StringBuffer buffer = new StringBuffer();
+    builder.toLink().printOn(buffer, ', ');
+    return buffer.toString();
+  }
 }
 
 class StringInterpolation extends StringNode {

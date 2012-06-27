@@ -303,6 +303,8 @@ class Compiler implements DiagnosticListener {
   static final int PHASE_RECOMPILING = 3;
   int phase;
 
+  bool compilationFailed = false;
+
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
@@ -548,6 +550,8 @@ class Compiler implements DiagnosticListener {
     processQueue(enqueuer.resolution, main);
     log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
 
+    if (compilationFailed) return;
+
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
@@ -556,6 +560,8 @@ class Compiler implements DiagnosticListener {
     phase = PHASE_RECOMPILING;
     processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
+
+    if (compilationFailed) return;
 
     backend.assembleProgram();
 
@@ -755,13 +761,21 @@ class Compiler implements DiagnosticListener {
     }
     SourceSpan span = spanFromNode(node);
 
-    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING );
+    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING);
   }
 
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
     reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
+  }
+
+  void reportMessage(SourceSpan span,
+                     Diagnostic message,
+                     api.Diagnostic kind) {
+    // TODO(ahe): The names Diagnostic and api.Diagnostic are in
+    // conflict. Fix it.
+    reportDiagnostic(span, "$message", kind);
   }
 
   abstract void reportDiagnostic(SourceSpan span, String message,
