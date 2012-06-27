@@ -1401,7 +1401,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     for (HInstruction instruction = start.first;
          instruction != start.last;
          instruction = instruction.next) {
-      if (instruction.isStatement()) {
+      if (instruction.isStatement) {
         if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
       } else if (!isGenerateAtUseSite(instruction)) {
         if (!updateKind(ONE_EXPRESSION)) return MULTIPLE_STATEMENTS;
@@ -1410,7 +1410,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     HInstruction last = start.last;
     if (last is !HGoto) {
-      if (!updateKind(last.isStatement() ? ONE_STATEMENT : ONE_EXPRESSION)) {
+      if (!updateKind(last.isStatement ? ONE_STATEMENT : ONE_EXPRESSION)) {
         return MULTIPLE_STATEMENTS;
       }
     }

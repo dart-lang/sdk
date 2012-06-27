@@ -292,9 +292,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
       }
     });
     LiteralString jsCode = nativeBody.asLiteralString();
-    builder.push(new HForeign(jsCode.dartString,
-                              const LiteralDartString('Object'),
-                              <HInstruction>[]));
+    builder.push(new HForeign.statement(jsCode.dartString, <HInstruction>[]));
   }
 }
 

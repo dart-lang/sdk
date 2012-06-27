@@ -964,7 +964,7 @@ class HInstruction implements Hashable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool isStatement() => false;
+  bool get isStatement() => false;
 }
 
 class HBoolify extends HInstruction {
@@ -992,7 +992,7 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
-  bool isStatement() => true;
+  final bool isStatement = true;
   void prepareGvn() {
     assert(!hasSideEffects());
     setUseGvn();
@@ -1082,7 +1082,7 @@ class HControlFlow extends HInstruction {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HInvoke extends HInstruction {
@@ -1287,7 +1287,7 @@ class HFieldSet extends HFieldAccess {
     setAllSideEffects();
   }
 
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HLocalGet extends HFieldGet {
@@ -1325,6 +1325,11 @@ class HForeign extends HInstruction {
   final HType foreignType;
   HForeign(this.code, DartString declaredType, List<HInstruction> inputs)
       : foreignType = computeTypeFromDeclaredType(declaredType),
+        isStatement = false,
+        super(inputs);
+  HForeign.statement(this.code, List<HInstruction> inputs)
+      : foreignType = HType.UNKNOWN,
+        isStatement = true,
         super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
@@ -1339,9 +1344,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType() => foreignType;
 
-  // Be conservative and treat all [HForeign] as statements, even
-  // though some are just expressions.
-  bool isStatement() => true;
+  final bool isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -2150,7 +2153,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => 26;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2225,7 +2228,7 @@ class HIndexAssign extends HInvokeStatic {
   }
 
   bool get builtin() => receiver.isMutableArray() && index.isInteger();
-  bool isStatement() => !builtin;
+  bool get isStatement() => !builtin;
 }
 
 class HIs extends HInstruction {
@@ -2280,7 +2283,7 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool isStatement() => kind == ARGUMENT_TYPE_CHECK;
+  bool get isStatement() => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => 28;
