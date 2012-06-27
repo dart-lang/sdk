@@ -46,7 +46,9 @@
  * Items marked with '#' work differently than in Java.
  *
  * The count of pattern letters determine the format.
- * **Text**: 
+ *
+ * **Text**:
+ *
  * * 4 or more pattern letters--use full form,
  * * less than 4--use short or abbreviated form if one exists.
  * In parsing, we will always try long format, then short.
@@ -106,8 +108,6 @@
  * that point, the parse of the run fails.
  */
 
-#library('date_format');
-
 class DateFormat {
 
   /** Definition of how this object formats dates. */
@@ -126,7 +126,8 @@ class DateFormat {
    * given the pattern.
    */
    // TODO(efortuna): Hear back from i18n about Time Zones and the "core set"
-   // of skeleton patterns.
+   // of skeleton patterns. When this is complete, also properly comment these
+   // so the documentation is available on api_docs.
                                           // Example of how this looks in the US
                                           // locale.
   static final String Hm = 'Hm';          // HH:mm

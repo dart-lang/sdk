@@ -6,7 +6,7 @@
 
 #library('date_time_format_test');
 
-#import('../../../lib/i18n/date_format.dart');
+#import('../../../lib/i18n/intl.dart');
 #import('../../../lib/unittest/unittest.dart');
 
 /**

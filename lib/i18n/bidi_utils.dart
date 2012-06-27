@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library('bidi_utils');
-
 /**
  * Bidi stands for Bi-directional text.
  * According to http://en.wikipedia.org/wiki/Bi-directional_text:
@@ -22,8 +20,6 @@
  * bidi functionality in the given directional context, instead of using
  * bidi_utils.dart directly.
  */
-
-/** Class containing constants to represent the directionality of text. */
 class TextDirection {
   static final LTR = const TextDirection._('LTR', 'ltr');
   static final RTL = const TextDirection._('RTL', 'rtl');
