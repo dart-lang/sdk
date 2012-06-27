@@ -214,6 +214,13 @@ RawLocalVarDescriptors* LocalScope::GetVarDescriptors(const Function& func) {
 }
 
 
+// The parser creates internal variables that start with ":"
+static bool IsInternalIdentifier(const String& str) {
+  ASSERT(str.Length() > 0);
+  return str.CharAt(0) == ':';
+}
+
+
 // Add variables that are declared in this scope to vars, then collect
 // variables of children, followed by siblings.
 void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
@@ -237,7 +244,7 @@ void LocalScope::CollectLocalVariables(GrowableArray<VarDesc>* vars,
   for (int i = 0; i < this->variables_.length(); i++) {
     LocalVariable* var = variables_[i];
     if (var->owner() == this) {
-      if (Scanner::IsIdent(var->name())) {
+      if (!IsInternalIdentifier(var->name())) {
         // This is a regular Dart variable, either stack-based or captured.
         VarDesc desc;
         desc.name = &var->name();
