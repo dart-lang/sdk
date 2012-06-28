@@ -686,8 +686,9 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
 
 
 DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt) {
-  return Dart::InitOnce(create, interrupt);
+                                 Dart_IsolateInterruptCallback interrupt,
+                                 Dart_IsolateShutdownCallback shutdown) {
+  return Dart::InitOnce(create, interrupt, shutdown);
 }
 
 DART_EXPORT bool Dart_SetVMFlags(int argc, const char** argv) {

@@ -5233,10 +5233,42 @@ TEST_CASE(IsolateInterrupt) {
   // We should have received the expected number of interrupts.
   EXPECT_EQ(kInterruptCount, interrupt_count);
 
-  // Give the spawned thread enough time to properly exit.
   Isolate::SetInterruptCallback(saved);
 }
 
+static void* saved_callback_data;
+static void IsolateShutdownTestCallback(void* callback_data) {
+  saved_callback_data = callback_data;
+}
+
+UNIT_TEST_CASE(IsolateShutdown) {
+  Dart_IsolateShutdownCallback saved = Isolate::ShutdownCallback();
+  Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
+
+  saved_callback_data = NULL;
+
+  void* my_data = reinterpret_cast<void*>(12345);
+
+  // Create an isolate.
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, my_data, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
+
+  // The shutdown callback has not been called.
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(saved_callback_data));
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
+
+  // The shutdown callback has been called.
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(saved_callback_data));
+
+  Isolate::SetShutdownCallback(saved);
+}
 
 static int64_t GetValue(Dart_Handle arg) {
   EXPECT(!Dart_IsError(arg));

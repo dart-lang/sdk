@@ -595,14 +595,28 @@ typedef bool (*Dart_IsolateCreateCallback)(const char* script_uri,
  * When the callback is called, Dart_CurrentIsolate can be used to
  * figure out which isolate is being interrupted.
  *
- * \param current_isolate The isolate being interrupted.
- *
  * \return The embedder returns true if the isolate should continue
  *   execution. If the embedder returns false, the isolate will be
  *   unwound (currently unimplemented).
  */
 typedef bool (*Dart_IsolateInterruptCallback)();
 // TODO(turnidge): Define and implement unwinding.
+
+/**
+ * An isolate shutdown callback function.
+ *
+ * This callback, provided by the embedder, is called after the vm
+ * shuts down an isolate.  Since the isolate has been shut down, it is
+ * not safe to enter the isolate or use it to run any Dart code.
+ *
+ * This function should be used to dispose of native resources that
+ * are allocated to an isolate in order to avoid leaks.
+ *
+ * \param callback_data The same callback data which was passed to the
+ *   isolate when it was created.
+ *
+ */
+typedef void (*Dart_IsolateShutdownCallback)(void* callback_data);
 
 /**
  * Initializes the VM.
@@ -615,7 +629,8 @@ typedef bool (*Dart_IsolateInterruptCallback)();
  * \return True if initialization is successful.
  */
 DART_EXPORT bool Dart_Initialize(Dart_IsolateCreateCallback create,
-                                 Dart_IsolateInterruptCallback interrupt);
+                                 Dart_IsolateInterruptCallback interrupt,
+                                 Dart_IsolateShutdownCallback shutdown);
 
 /**
  * Sets command line flags. Should be called before Dart_Initialize.
