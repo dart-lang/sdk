@@ -147,7 +147,7 @@ static Dart_NativeFunction bm_uda_lookup(Dart_Handle name, int argument_count) {
 
 
 BENCHMARK(UseDartApi) {
-  const int kNumIterations = 100000;
+  const int kNumIterations = 1000000;
   const char* kScriptChars =
       "class Class extends NativeFieldsWrapper{\n"
       "  int init() native 'init';\n"
