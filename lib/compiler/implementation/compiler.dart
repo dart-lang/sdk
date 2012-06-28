@@ -893,7 +893,7 @@ class SourceSpan {
   static withCharacterOffsets(Token begin, Token end,
                      f(int beginOffset, int endOffset)) {
     final beginOffset = begin.charOffset;
-    final endOffset = end.charOffset + end.slowCharLength;
+    final endOffset = end.charOffset + end.slowCharCount;
 
     // [begin] and [end] might be the same for the same empty token. This
     // happens for instance when scanning '$$'.

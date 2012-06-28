@@ -139,7 +139,7 @@ class Token {
   /**
    * The number of characters parsed by this token.
    */
-  int get slowCharLength() => slowToString().length;
+  int get slowCharCount() => slowToString().length;
 }
 
 /**

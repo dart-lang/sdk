@@ -10,10 +10,10 @@ Token scan(String text) => new StringScanner(text, true).tokenize();
 check(String text) {
   Token token = scan(text);
   while (token.kind != EOF_TOKEN) {
-    Expect.equals(token.slowToString().length, token.slowCharLength);
+    Expect.equals(token.slowToString().length, token.slowCharCount);
 
     var start = token.charOffset;
-    var end = token.charOffset+token.slowCharLength;
+    var end = token.charOffset + token.slowCharCount;
 
     Expect.isTrue(start < text.length,
         'start=$start < text.length=${text.length}: $text');

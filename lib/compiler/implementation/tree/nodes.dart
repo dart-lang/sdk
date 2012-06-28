@@ -356,8 +356,8 @@ class SendSet extends Send {
   }
 
   Token getEndToken() {
-    if (isPrefix) return super.getEndToken();
-    return assignmentOperator.getEndToken();
+    if (isPostfix) return assignmentOperator.getEndToken();
+    return super.getEndToken();
   }
 }
 

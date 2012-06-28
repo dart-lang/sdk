@@ -7,6 +7,9 @@ LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
 LibTest/core/Math/atan_A01_t01: Fail, OK
 
+[ $compiler == dart2js && $system == windows && $runtime == d8 ]
+Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail # Compile-time error: duplicate definition
+LibTest/core/double/operator_remainder_A01_t04: Fail
 
 [ $compiler == dart2js ]
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
@@ -208,7 +211,7 @@ LibTest/core/List/sort_A01_t02: Fail, OK # No method List.copyFrom.
 LibTest/core/List/sort_A01_t03: Fail, OK # No method List.copyFrom.
 LibTest/core/Match/pattern_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
 LibTest/core/Match/str_A01_t01: Fail, OK # Bad test, allMatches return an Iterable.
-LibTest/core/Math/exp_A01_t01: Fail, OK # TODO(floitsch): Review.
+LibTest/core/Math/exp_A01_t01: Fail, Pass, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A01_t01: Fail, OK # Bad test (uses x.pow(y), not Math.pow(x, y)).
 LibTest/core/Math/pow_A11_t01: Fail, OK # TODO(floitsch): Review.
 LibTest/core/Math/pow_A13_t01: Fail, OK # TODO(floitsch): Review.
