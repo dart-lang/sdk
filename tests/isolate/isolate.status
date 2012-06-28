@@ -8,9 +8,12 @@ serialization_test: Skip  # tests frog-specific serialization code
 v2_spawn_uri_test: Fail # test uses a ".js" suffix that is bogus on vm.
 v2_compute_this_script_browser_test: Skip # browser specific test
 
-[ ($compiler == none || $compiler == dart2js) && $runtime == drt ]
+[ $compiler == none && $runtime == drt ]
 serialization_test: Skip  # tests frog-specific serialization code
-v2*: Skip # new api for isolates not implemented in the VM yet.
+v2_spawn_uri_test: Skip # uses a .js extension (not for dartium)
+v2_spawn_uri_negative_test: Skip # ditto
+v2_spawn_uri_vm_test: Skip # not implemented in dartium yet.
+v2_spawn_uri_vm_negative_test: Skip
 
 [ $compiler == frog ]
 v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
@@ -64,12 +67,19 @@ v2*: Skip
 [ $arch == arm ]
 *: Skip
 
-[ $compiler == dart2js ]
-v2_spawn_function_custom_class_test: Skip # dart2js does not support APIv2
-v2_spawn_uri_test: Fail, OK # dart2js does not support APIv2
+[ $compiler == dart2js && $runtime == drt ]
+v2_spawn_uri_test: Skip # dart2js does not support spawnUri yet
+v2_spawn_uri_negative_test: Skip # ditto
 v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 v2_spawn_uri_vm_negative_test: Skip # ditto above.
 constructor_test: Fail, OK # dart2js does not support subclassing Isolate
+
+[ $compiler == dart2js && $runtime == d8 ]
+constructor_test: Fail, OK # dart2js does not support subclassing Isolate
+v2_spawn_uri_test: Skip # loading another file is not supported in d8
+v2_spawn_uri_negative_test: Skip # ditto
+v2_spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
+v2_spawn_uri_vm_negative_test: Skip # ditto above.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
