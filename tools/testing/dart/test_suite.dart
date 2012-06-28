@@ -329,7 +329,7 @@ class StandardTestSuite implements TestSuite {
         }
       }
       ReadTestExpectationsInto(testExpectations,
-                               dartDir.append(statusFilePath).toString(),
+                               dartDir.append(statusFilePath).toNativePath(),
                                configuration,
                                statusFileRead);
     }
