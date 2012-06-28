@@ -215,7 +215,9 @@ void DoMultitest(Path filePath,
   for (Path importPath in importsToCopy) {
     // Make sure the target directory exists.
     Path importDir = importPath.directoryPath;
-    TestUtils.mkdirRecursive(targetDir, importDir);
+    if (!importDir.isEmpty) {
+      TestUtils.mkdirRecursive(targetDir, importDir);
+    }
     // Copy file.
     futureCopies.add(TestUtils.copyFile(sourceDir.join(importPath),
                                         targetDir.join(importPath)));
