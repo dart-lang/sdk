@@ -9,10 +9,13 @@ import com.google.dart.compiler.ast.DartLabel;
 class LabelElementImplementation extends AbstractNodeElement implements LabelElement {
 
   private MethodElement enclosingFunction;
-
-  LabelElementImplementation(DartLabel node, String name, MethodElement enclosingFunction) {
+  private final LabeledStatementType statementType;
+  
+  LabelElementImplementation(DartLabel node, String name, MethodElement enclosingFunction, 
+      LabeledStatementType statementType) {
     super(node, name);
     this.enclosingFunction = enclosingFunction;
+    this.statementType = statementType;
   }
 
   @Override
@@ -23,5 +26,10 @@ class LabelElementImplementation extends AbstractNodeElement implements LabelEle
   @Override
   public MethodElement getEnclosingFunction() {
     return enclosingFunction;
+  }
+  
+  @Override
+  public LabeledStatementType getStatementType() {
+    return statementType;
   }
 }

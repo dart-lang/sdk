@@ -106,9 +106,6 @@ pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-switch5_negative_test: Fail    # Issue 3658
-switch7_negative_test: Fail    # Issue 3658
-switch_label_test: Fail        # Issue 3658
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
 # try_catch_syntax_test/08: Fail # Issue 3795

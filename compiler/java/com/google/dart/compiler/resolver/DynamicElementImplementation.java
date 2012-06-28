@@ -292,4 +292,9 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   public Set<Element> getOverridden() {
     return ImmutableSet.of();
   }
+
+  @Override
+  public LabeledStatementType getStatementType() {
+    return LabeledStatementType.STATEMENT;
+  }
 }

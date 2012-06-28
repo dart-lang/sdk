@@ -972,6 +972,54 @@ public class ResolverTest extends ResolverTestCase {
         ErrorExpectation.errEx(ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, 5, 3, 2));
   }
 
+  public void test_breakInSwitch() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    a: case 0:",
+        "       break a;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT, 5, 14, 1));
+  }
+
+  public void test_continueInSwitch1() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    a: case 0:",
+        "       continue a;",
+        "  }",
+        "}"));
+  }
+
+  public void test_continueInSwitch2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    case 0:",
+        "       continue a;",
+        "    a: case 1:",
+        "      break;",
+        "  }",
+        "}"));
+  }
+
+  public void test_continueInSwitch3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  a: switch(1) {",
+        "    case 0:",
+        "       continue a;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONTINUE_LABEL_RESOLVES_TO_SWITCH, 5, 17, 1));
+  }
+
   public void test_new_noSuchType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

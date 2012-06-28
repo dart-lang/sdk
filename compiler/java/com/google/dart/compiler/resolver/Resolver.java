@@ -18,6 +18,7 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
+import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -69,6 +70,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
+import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
@@ -753,17 +755,22 @@ public class Resolver {
 
     @Override
     public Element visitLabel(DartLabel x) {
-      LabelElement currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
-      recordElement(x.getLabel(), currentLabel);
-      recordElement(x, currentLabel);
-      x.visitChildren(this);
-      if (!labelsInScopes.contains(currentLabel)) {
-        // TODO(zundel): warning, not type error.
-        // topLevelContext.typeError(x, DartCompilerErrorCode.USELESS_LABEL, x.getName());
-      } else if (!referencedLabels.contains(currentLabel)) {
-        // TODO(zundel): warning, not type error.
-        // topLevelContext.typeError(x, DartCompilerErrorCode.UNREFERENCED_LABEL, x.getName());
+      DartNode parent = x.getParent();
+      if (!(parent instanceof DartSwitchMember)) {
+        LabelElement labelElement;
+        DartStatement childStatement = x.getStatement();
+        while (childStatement instanceof DartLabel) {
+          childStatement = ((DartLabel)childStatement).getStatement();
+        }
+        if (childStatement instanceof DartSwitchStatement) {
+          labelElement = Elements.switchLabelElement(x, x.getName(), innermostFunction);
+        } else {
+          labelElement = Elements.statementLabelElement(x, x.getName(), innermostFunction);
+        }
+        recordElement(x.getLabel(), labelElement);
+        recordElement(x, labelElement);
       }
+      x.visitChildren(this);
       return null;
     }
 
@@ -903,28 +910,16 @@ public class Resolver {
       return null;
     }
 
-    private void addLabelToStatement(DartStatement x) {
+    private void addLabelToStatement(DartNode x) {
       DartNode parent = x.getParent();
       while (parent instanceof DartLabel) {
-        LabelElement currentLabel = ((DartLabel) parent).getElement();
+        DartLabel label = (DartLabel) parent;
+        LabelElement currentLabel = label.getElement();
         getContext().getScope().addLabel(currentLabel);
         labelsInScopes.add(currentLabel);
         parent = parent.getParent();
       }
     }
-
-    private void addLabelToSwitchMember(DartSwitchMember x) {
-      DartLabel label = x.getLabel();
-      if (label != null) {
-        LabelElement currentLabel = label.getElement();  // TODO(zundel): Y U NO HAVE ELEMENT?
-        if (getContext().getScope().hasLocalLabel(label.getName())) {
-          onError(label, ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
-        }
-        getContext().getScope().addLabel(currentLabel);
-        labelsInScopes.add(currentLabel);
-      }
-    }
-
 
     @Override
     public Element visitForStatement(DartForStatement x) {
@@ -940,6 +935,11 @@ public class Resolver {
     public Element visitSwitchStatement(DartSwitchStatement x) {
       getContext().pushScope("<switch>");
       addLabelToStatement(x);
+      // The scope of a label on the case statement is the case statement itself. These labels
+      // need to be resolved before the continue <label>; statements can be resolved.
+      for (DartSwitchMember member : x.getMembers()) {
+        recordSwitchMamberLabel(member);
+      }
       x.visitChildren(this);
       getContext().popScope();
       return null;
@@ -950,9 +950,22 @@ public class Resolver {
       getContext().pushScope("<switch member>");
       x.visitChildren(this);
       getContext().popScope();
-      // The scope of a label on the case statement is the case statement itself.
-      addLabelToSwitchMember(x);
       return null;
+    }
+
+    private void recordSwitchMamberLabel(DartSwitchMember x) {
+      DartLabel label = x.getLabel();
+      if (label != null) {
+        LabelElement labelElement =  Elements.switchMemberLabelElement(label, label.getName(),
+            innermostFunction);
+        recordElement(label.getLabel(), labelElement);
+        recordElement(label, labelElement);
+        if (getContext().getScope().hasLocalLabel(label.getName())) {
+          onError(label, ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
+        }
+        getContext().getScope().addLabel(labelElement);
+        labelsInScopes.add(labelElement);
+      }
     }
 
     @Override
@@ -1568,6 +1581,16 @@ public class Resolver {
         Element element = getContext().getScope().findLabel(x.getTargetName(), innermostFunction);
         if (ElementKind.of(element).equals(ElementKind.LABEL)) {
           LabelElement labelElement = (LabelElement) element;
+          if (x instanceof DartBreakStatement
+              && labelElement.getStatementType() == LabeledStatementType.SWITCH_MEMBER_STATEMENT) {
+            onError(x.getLabel(), ResolverErrorCode.BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT);
+            return null;
+          }
+          if (x instanceof DartContinueStatement
+              && labelElement.getStatementType() == LabeledStatementType.SWITCH_STATEMENT) {
+            onError(x.getLabel(), ResolverErrorCode.CONTINUE_LABEL_RESOLVES_TO_SWITCH);
+            return null;
+          }
           MethodElement enclosingFunction = (labelElement).getEnclosingFunction();
           if (enclosingFunction == innermostFunction) {
             referencedLabels.add(labelElement);
@@ -1615,7 +1638,7 @@ public class Resolver {
 
         case CONSTRUCTOR:
           onError(errorNode, ResolverErrorCode.IS_A_CONSTRUCTOR, classOrLibrary.getName(),
-                          name);
+              name);
           break;
 
         case METHOD: {

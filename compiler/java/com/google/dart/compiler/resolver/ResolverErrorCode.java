@@ -13,6 +13,7 @@ import com.google.dart.compiler.SubSystem;
 public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
+  BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT("break label resolves to case or default statement"),
   BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Build-in identifier '%s' cannot be used as a import prefix"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Build-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
@@ -62,6 +63,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
   CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
+  CONTINUE_LABEL_RESOLVES_TO_SWITCH("continue label resolves to switch, must be loop or switch member"),
   CYCLIC_CLASS("%s causes a cycle in the supertype graph"),
   DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS(
       "default class must have the same type parameters as declared in the interface"),
