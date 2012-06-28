@@ -913,6 +913,19 @@ public class Resolver {
       }
     }
 
+    private void addLabelToSwitchMember(DartSwitchMember x) {
+      DartLabel label = x.getLabel();
+      if (label != null) {
+        LabelElement currentLabel = label.getElement();  // TODO(zundel): Y U NO HAVE ELEMENT?
+        if (getContext().getScope().hasLocalLabel(label.getName())) {
+          onError(label, ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
+        }
+        getContext().getScope().addLabel(currentLabel);
+        labelsInScopes.add(currentLabel);
+      }
+    }
+
+
     @Override
     public Element visitForStatement(DartForStatement x) {
       getContext().pushScope("<for>");
@@ -937,6 +950,8 @@ public class Resolver {
       getContext().pushScope("<switch member>");
       x.visitChildren(this);
       getContext().popScope();
+      // The scope of a label on the case statement is the case statement itself.
+      addLabelToSwitchMember(x);
       return null;
     }
 

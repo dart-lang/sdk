@@ -4,8 +4,6 @@
 
 package com.google.dart.compiler.resolver;
 
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ErrorCode;
@@ -15,6 +13,8 @@ import com.google.dart.compiler.type.DynamicType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.Types;
+
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import junit.framework.Assert;
 
@@ -960,6 +960,18 @@ public class ResolverTest extends ResolverTestCase {
         ErrorExpectation.errEx(ResolverErrorCode.CANNOT_RESOLVE_LABEL, 6, 32, 1));
   }
 
+  public void test_multipleLabelsSwitch() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "  a: case (0): break;",
+        "  a: case (1): break;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, 5, 3, 2));
+  }
+
   public void test_new_noSuchType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1347,7 +1359,7 @@ public class ResolverTest extends ResolverTestCase {
             ""),
         errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 5));
   }
-  
+
   /**
    * "this" is not accessible to initializers, so reference of instance method is error.
    * <p>

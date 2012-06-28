@@ -88,10 +88,21 @@ public class Scope {
       parent.findLabel(targetName, innermostFunction);
   }
 
+  public boolean hasLocalLabel(String labelName) {
+    if (labels != null) {
+      for (LabelElement label : labels) {
+        if (label.getName().equals(labelName)) {
+            return true;
+        }
+      }
+    }
+    return false;
+  }
+
   public Map<String, Element> getElements() {
     return elements;
   }
-  
+
   /**
    * @return <code>true</code> if local variable with given name is declared in the lexical context
    *         of {@link DartBlock}, but corresponding {@link DartVariableStatement} is not visited
@@ -100,14 +111,14 @@ public class Scope {
   public boolean isDeclaredButNotReachedVariable(String name) {
     return declaredButNotReachedVariables.contains(name);
   }
-  
+
   /**
    * @see #isDeclaredButNotReachedVariable(String)
    */
   public void addDeclaredButNotReachedVariable(String name) {
     declaredButNotReachedVariables.add(name);
   }
-  
+
   /**
    * @see #isDeclaredButNotReachedVariable(String)
    */

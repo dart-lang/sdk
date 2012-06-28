@@ -79,6 +79,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_FUNCTION_EXPRESSION("Duplicate function expression '%s'"),
   DUPLICATE_FUNCTION_EXPRESSION_WARNING(ErrorSeverity.WARNING,
       "Function expression '%s' is hiding '%s' at %s"),
+  DUPLICATE_LABEL_IN_SWITCH_STATEMENT("Duplicate label in switch statement"),
   DUPLICATE_LOCAL_VARIABLE_ERROR("Duplicate local variable '%s'"),
   DUPLICATE_LOCAL_VARIABLE_WARNING(ErrorSeverity.WARNING,
       "Local variable '%s' is hiding '%s' at %s"),
