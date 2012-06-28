@@ -134,7 +134,8 @@ htmloptionscollection_test: Fail # Issue 3813.
 
 [ $compiler == dart2js ]
 dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
-svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
+svgelement2_test: Fail, Timeout # Html library relies on mangling. Issue 3039.
+                                # Strange timeout happening (Issue 3917)
 transferables_test: Skip # until isInstance works in dart2js
 
 [ $compiler == dart2js && $runtime == d8 ]
