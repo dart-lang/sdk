@@ -312,9 +312,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   if (type.IsTypeParameter()) {
-    // TODO(regis): Introduce and use TypeParameter::Cast().
-    const TypeParameter* type_param =
-        reinterpret_cast<const TypeParameter*>(&type);
+    const TypeParameter& type_param = TypeParameter::Cast(type);
     // Load instantiator (or null) and instantiator type arguments on stack.
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     // EDX: instantiator type arguments.
@@ -327,7 +325,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     __ CompareClassId(EDX, kTypeArguments, EDI);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     __ movl(EDI,
-        FieldAddress(EDX, TypeArguments::type_at_offset(type_param->index())));
+        FieldAddress(EDX, TypeArguments::type_at_offset(type_param.index())));
     // EDI: concrete type of type.
     // Check if type argument is dynamic.
     __ CompareObject(EDI, Type::ZoneHandle(Type::DynamicType()));

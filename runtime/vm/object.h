@@ -92,6 +92,10 @@ class LocalScope;
   static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
     return CheckedZoneHandle(Isolate::Current(), raw_ptr);                     \
   }                                                                            \
+  static const object& Cast(const Object& obj) {                               \
+    ASSERT(obj.Is##object());                                                  \
+    return reinterpret_cast<const object&>(obj);                               \
+  }                                                                            \
   static Raw##object* null() {                                                 \
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \

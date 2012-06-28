@@ -2070,16 +2070,13 @@ RawField* Class::LookupField(const String& name) const {
 
 RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  LibraryPrefix& lib_prefix = LibraryPrefix::Handle(isolate,
-                                                    LibraryPrefix::null());
   const Library& lib = Library::Handle(isolate, library());
-  Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
-  if (!obj.IsNull()) {
-    if (obj.IsLibraryPrefix()) {
-      lib_prefix ^= obj.raw();
-    }
+  const Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
+  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+    const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(obj);
+    return lib_prefix.raw();
   }
-  return lib_prefix.raw();
+  return LibraryPrefix::null();
 }
 
 
@@ -2442,18 +2439,15 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // a class B<T> will never require a run time bounds check, even it T is
   // uninstantiated at compile time.
   if (IsTypeParameter()) {
-    // TODO(regis): Introduce and use TypeParameter::Cast().
-    const TypeParameter* type_param =
-        reinterpret_cast<const TypeParameter*>(this);
+    const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
-      const TypeParameter* other_type_param =
-          reinterpret_cast<const TypeParameter*>(&other);
-      return type_param->index() == other_type_param->index();
+      const TypeParameter& other_type_param = TypeParameter::Cast(other);
+      return type_param.index() == other_type_param.index();
     } else if (FLAG_enable_type_checks) {
       // In checked mode, if the upper bound of this type is more specific than
       // the other type, then this type is more specific than the other type.
       const AbstractType& type_param_bound =
-          AbstractType::Handle(type_param->bound());
+          AbstractType::Handle(type_param.bound());
       if (type_param_bound.IsMoreSpecificThan(other, malformed_error)) {
         return true;
       }
@@ -2844,8 +2838,7 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (!other.IsTypeParameter()) {
     return false;
   }
-  TypeParameter& other_type_param = TypeParameter::Handle();
-  other_type_param ^= other.raw();
+  const TypeParameter& other_type_param = TypeParameter::Cast(other);
   if (IsFinalized() != other_type_param.IsFinalized()) {
     return false;
   }
@@ -2869,8 +2862,7 @@ bool TypeParameter::IsIdentical(const AbstractType& other,
   if (!other.IsTypeParameter()) {
     return false;
   }
-  TypeParameter& other_type_param = TypeParameter::Handle();
-  other_type_param ^= other.raw();
+  const TypeParameter& other_type_param = TypeParameter::Cast(other);
   // IsIdentical may be called on type parameters belonging to different
   // classes, e.g. to an interface and to its default factory class.
   // Therefore, both type parameters may have different parameterized classes
@@ -3102,9 +3094,9 @@ bool AbstractTypeArguments::AreIdentical(
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
-    type ^= arguments.TypeAt(i);
+    type = arguments.TypeAt(i);
     ASSERT(!type.IsNull());
-    other_type ^= other_arguments.TypeAt(i);
+    other_type = other_arguments.TypeAt(i);
     if (!type.IsIdentical(other_type, check_type_parameter_bounds)) {
       return false;
     }
@@ -3173,18 +3165,19 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
   ASSERT(Length() >= cls.NumTypeArguments());
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-  AbstractType& type = AbstractType::Handle();
-  TypeParameter& type_param = TypeParameter::Handle();
+  AbstractType& this_type_arg = AbstractType::Handle();
+  AbstractType& cls_type_arg = AbstractType::Handle();
   AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& type_params =
+  const TypeArguments& cls_type_params =
       TypeArguments::Handle(cls.type_parameters());
-  ASSERT((type_params.IsNull() && (num_type_params == 0)) ||
-         (type_params.Length() == num_type_params));
+  ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
+         (cls_type_params.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    type_param ^= type_params.TypeAt(i);
-    bound = type_param.bound();
+    cls_type_arg = cls_type_params.TypeAt(i);
+    const TypeParameter& cls_type_param = TypeParameter::Cast(cls_type_arg);
+    bound = cls_type_param.bound();
     if (!bound.IsDynamicType()) {
-      type = TypeAt(offset + i);
+      this_type_arg = TypeAt(offset + i);
       Error& malformed_bound_error = Error::Handle();
       if (bound.IsMalformed()) {
         malformed_bound_error = bound.malformed_error();
@@ -3192,24 +3185,21 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
         bound = bound.InstantiateFrom(bounds_instantiator);
       }
       if (!malformed_bound_error.IsNull() ||
-          !type.IsSubtypeOf(bound, malformed_error)) {
+          !this_type_arg.IsSubtypeOf(bound, malformed_error)) {
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
         if (malformed_error->IsNull()) {
-          const String& type_argument_name = String::Handle(type.Name());
+          const String& type_arg_name = String::Handle(this_type_arg.Name());
           const String& class_name = String::Handle(cls.Name());
           const String& bound_name = String::Handle(bound.Name());
           const Script& script = Script::Handle(cls.script());
           // Since the bound was canonicalized, its token index was lost,
           // therefore, use the token index of the corresponding type parameter.
-          const TypeArguments& type_parameters =
-              TypeArguments::Handle(cls.type_parameters());
-          type = type_parameters.TypeAt(i);
           *malformed_error ^= FormatError(malformed_bound_error,
-                                          script, type.token_pos(),
+                                          script, cls_type_param.token_pos(),
                                           "type argument '%s' does not "
                                           "extend bound '%s' of '%s'\n",
-                                          type_argument_name.ToCString(),
+                                          type_arg_name.ToCString(),
                                           bound_name.ToCString(),
                                           class_name.ToCString());
         }
@@ -3313,9 +3303,8 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
     if (!type.IsTypeParameter()) {
       return false;
     }
-    // TODO(regis): Introduce and use TypeParameter::Cast().
-    TypeParameter* type_param = reinterpret_cast<TypeParameter*>(&type);
-    if ((type_param->index() != i)) {
+    const TypeParameter& type_param = TypeParameter::Cast(type);
+    if ((type_param.index() != i)) {
       return false;
     }
   }
@@ -7216,11 +7205,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       if (other_instantiator.IsNull()) {
         return true;  // Other type is uninstantiated, i.e. Dynamic.
       }
-      // TODO(regis): Introduce and use TypeParameter::Cast().
-      const TypeParameter* other_type_param =
-          reinterpret_cast<const TypeParameter*>(&other);
+      const TypeParameter& other_type_param = TypeParameter::Cast(other);
       const AbstractType& instantiated_other = AbstractType::Handle(
-          other_instantiator.TypeAt(other_type_param->index()));
+          other_instantiator.TypeAt(other_type_param.index()));
       ASSERT(instantiated_other.IsInstantiated());
       other_class = instantiated_other.type_class();
     } else {
@@ -7261,10 +7248,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       // An uninstantiated type parameter is equivalent to Dynamic.
       return true;
     }
-    const TypeParameter* other_type_param =
-        reinterpret_cast<const TypeParameter*>(&other);
+    const TypeParameter& other_type_param = TypeParameter::Cast(other);
     AbstractType& instantiated_other = AbstractType::Handle(
-        other_instantiator.TypeAt(other_type_param->index()));
+        other_instantiator.TypeAt(other_type_param.index()));
     if (instantiated_other.IsDynamicType() ||
         instantiated_other.IsTypeParameter()) {
       return true;
