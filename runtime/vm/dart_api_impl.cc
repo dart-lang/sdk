@@ -774,6 +774,13 @@ DART_EXPORT Dart_Isolate Dart_CurrentIsolate() {
 }
 
 
+DART_EXPORT void* Dart_CurrentIsolateData() {
+  Isolate* isolate = Isolate::Current();
+  CHECK_ISOLATE(isolate);
+  return isolate->init_callback_data();
+}
+
+
 DART_EXPORT Dart_Handle Dart_DebugName() {
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);

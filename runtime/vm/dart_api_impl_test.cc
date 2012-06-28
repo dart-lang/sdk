@@ -2266,6 +2266,19 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
+UNIT_TEST_CASE(CurrentIsolateData) {
+  intptr_t mydata = 12345;
+  char* err;
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(NULL, NULL, NULL,
+                         reinterpret_cast<void*>(mydata),
+                         &err);
+  EXPECT(isolate != NULL);
+  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
+  Dart_ShutdownIsolate();
+}
+
+
 TEST_CASE(DebugName) {
   Dart_Handle debug_name = Dart_DebugName();
   EXPECT_VALID(debug_name);

@@ -710,6 +710,12 @@ DART_EXPORT void Dart_ShutdownIsolate();
 DART_EXPORT Dart_Isolate Dart_CurrentIsolate();
 
 /**
+ * Returns the callback data which was passed to the isolate when it
+ * was created.
+ */
+DART_EXPORT void* Dart_CurrentIsolateData();
+
+/**
  * Returns the debugging name for the current isolate.
  *
  * This name is unique to each isolate and should only be used to make
