@@ -80,7 +80,7 @@ class Foo {
 }
 
 class FooSpy extends Mock implements Foo {
-  FooSpy real;
+  Foo real;
   FooSpy() {
     real = new Foo();
     this.when(callsTo('sum')).alwaysCall(real.sum);
