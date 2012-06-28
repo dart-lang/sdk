@@ -779,6 +779,12 @@ public class Resolver {
         getContext().pushFunctionScope(x);
         element = getContext().declareFunction(x);
       }
+      // record element
+      if (x.getName() != null) {
+        recordElement(x.getName(), element);
+      }
+      recordElement(x, element);
+      // visit function
       MethodElement previousFunction = innermostFunction;
       innermostFunction = element;
       {
@@ -796,10 +802,7 @@ public class Resolver {
       }
       innermostFunction = previousFunction;
       getContext().popScope();
-      if (x.getName() != null) {
-        recordElement(x.getName(), element);
-      }
-      return recordElement(x, element);
+      return element;
     }
 
     @Override

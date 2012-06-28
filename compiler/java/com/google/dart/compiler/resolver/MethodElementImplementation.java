@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartMethodDefinition;
@@ -162,7 +163,9 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   private static EnclosingElement findParentEnclosingElement(DartNode node) {
     while (node != null && node.getParent() != null) {
       node = node.getParent();
-      if (node.getElement() instanceof EnclosingElement) {
+      boolean isEnclosingNode = node instanceof DartClass || node instanceof DartMethodDefinition
+          || node instanceof DartFunctionExpression;
+      if (isEnclosingNode && node.getElement() instanceof EnclosingElement) {
         return (EnclosingElement) node.getElement();
       }
     }
