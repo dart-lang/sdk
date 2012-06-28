@@ -12,11 +12,6 @@
  * Tests the bidirectional text formatting library.
  */
 main() {
-  var LRM = BidiUtils.LRM;
-  var RLM = BidiUtils.RLM;
-  var LRE = BidiUtils.LRE;
-  var RLE = BidiUtils.RLE;
-  var PDF = BidiUtils.PDF;
   var LTR = TextDirection.LTR;
   var RTL = TextDirection.RTL;
   var UNKNOWN = TextDirection.UNKNOWN;
