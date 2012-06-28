@@ -42,3 +42,6 @@ dummy_compiler_test: Fail # Issue 3529.
 
 [ $runtime == vm ]
 *_layout_test: Skip
+
+[ $system == macos || $system == windows ]
+*_layout_test: Skip
