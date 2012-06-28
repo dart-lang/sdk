@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-String GetHtmlContents(String title,
+String getHtmlContents(String title,
                        String controllerScript,
                        String scriptType,
                        String sourceScript) =>
@@ -27,13 +27,29 @@ String GetHtmlContents(String title,
 </html>
 """;
 
-String WrapDartTestInLibrary(Path test) =>
+String getHtmlLayoutContents(String scriptType, String sourceScript) =>
+"""
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+<body>
+  <script type="text/javascript">
+    if (navigator.webkitStartDart) navigator.webkitStartDart();
+  </script>
+  <script type="$scriptType" src="$sourceScript"></script>
+</body>
+</html>
+""";
+
+String wrapDartTestInLibrary(Path test) =>
 """
 #library('libraryWrapper');
 #source('$test');
 """;
 
-String DartTestWrapper(Path dartHome, Path library) =>
+String dartTestWrapper(Path dartHome, Path library) =>
 """
 #library('test');
 

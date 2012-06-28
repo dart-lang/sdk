@@ -1,0 +1,11 @@
+Content-Type: text/plain
+layer at (0,0) size 800x600
+  RenderView at (0,0) size 800x600
+layer at (0,0) size 800x8
+  RenderBlock {HTML} at (0,0) size 800x8
+    RenderBody {BODY} at (8,8) size 784x0
+layer at (10,20) size 40x10
+  RenderBlock (positioned) {DIV} at (10,20) size 40x10 [bgcolor=#0000FF]
+layer at (30,25) size 40x10
+  RenderBlock (positioned) {DIV} at (30,25) size 40x10 [bgcolor=#FF0000]
+#EOF

@@ -12,9 +12,8 @@ markdown_test: Skip
 
 [ $compiler == frog ]
 dummy_compiler_test: Fail
-
-[ $compiler == frog ]
 utf8_test: Crash
+*_layout_test: Skip
 
 [ $compiler == dart2js ]
 utf8_test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
@@ -40,3 +39,6 @@ dummy_compiler_test: Fail # Issue 3529.
 
 [ $compiler == frog && $runtime == none ]
 *: Skip
+
+[ $runtime == vm ]
+*_layout_test: Skip

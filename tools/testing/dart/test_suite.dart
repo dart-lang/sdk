@@ -543,14 +543,14 @@ class StandardTestSuite implements TestSuite {
           dartLibraryFilename = new Path('test_as_library.dart');
           File file = new File('$tempDir/$dartLibraryFilename');
           RandomAccessFile dartLibrary = file.openSync(FileMode.WRITE);
-          dartLibrary.writeStringSync(WrapDartTestInLibrary(filePath));
+          dartLibrary.writeStringSync(wrapDartTestInLibrary(filePath));
           dartLibrary.closeSync();
         }
 
         File file = new File(dartWrapperFilename);
         RandomAccessFile dartWrapper = file.openSync(FileMode.WRITE);
         dartWrapper.writeStringSync(
-            DartTestWrapper(dartDir, dartLibraryFilename));
+            dartTestWrapper(dartDir, dartLibraryFilename));
         dartWrapper.closeSync();
       } else {
         dartWrapperFilename = filename;
@@ -578,11 +578,26 @@ class StandardTestSuite implements TestSuite {
         // with 'C:' adding 'file:///' solves the problem.
         filePrefix = 'file:///';
       }
-      htmlTest.writeStringSync(GetHtmlContents(
+      String content = null;
+      Path dir = filePath.directoryPath;
+      String nameNoExt = filePath.filenameWithoutExtension;
+      Path pngPath = dir.append('$nameNoExt.png');
+      Path txtPath = dir.append('$nameNoExt.txt');
+      Path expectedOutput = null;
+      if (new File.fromPath(pngPath).existsSync()) {
+        expectedOutput = pngPath;
+        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+      } else if (new File.fromPath(txtPath).existsSync()) {
+        expectedOutput = txtPath;
+        content = getHtmlLayoutContents(scriptType, '$filePrefix$scriptPath');
+      } else {
+        content = getHtmlContents(
           filename,
           '$filePrefix${dartDir.append("lib/unittest/test_controller.js")}',
           scriptType,
-          '$filePrefix$scriptPath'));
+          '$filePrefix$scriptPath');
+      }
+      htmlTest.writeStringSync(content);
       htmlTest.closeSync();
 
       // Construct the command(s) that compile all the inputs needed by the
@@ -633,6 +648,9 @@ class StandardTestSuite implements TestSuite {
           args.add('--dart-flags=${Strings.join(dartFlags, " ")}');
         }
         args.add(htmlPath);
+        if (expectedOutput != null) {
+          args.add('--out-expectation=$expectedOutput');
+        }
       }
       commands.add(new Command('python', args));
 
@@ -829,6 +847,59 @@ class StandardTestSuite implements TestSuite {
     return result;
   }
 
+  /**
+   * Special options for individual tests are currently specified in various
+   * ways: with comments directly in test files, by using certain imports, or by
+   * creating additional files in the test directories.
+   *
+   * Here is a list of options that are used by 'test.dart' today:
+   *   - Flags can be passed to the vm or dartium process that runs the test by
+   *   adding a comment to the test file:
+   *
+   *     // VMOptions=--flag1 --flag2
+   *
+   *   - Flags can be passed to the dart script that contains the test also
+   *   using comments, as follows:
+   *
+   *     // DartOptions=--flag1 --flag2
+   *
+   *   - For tests that depend on compiling other files with dart2js (e.g.
+   *   isolate tests that use multiple source scripts), you can specify
+   *   additional files to compile using a comment too, as follows:
+   *
+   *     // OtherScripts=file1.dart file2.dart
+   *
+   *   - You can indicate whether a test is treated as a web-only test by
+   *   using an explicit import to the dart:html library:
+   *
+   *     #import('dart:html');
+   *
+   *   Most tests are not web tests, but can (and will be) wrapped within
+   *   another script file to test them also on browser environments (e.g.
+   *   language and corelib tests are run this way). We deduce that if this
+   *   import is specified, the test was intended to be a web test and no
+   *   wrapping is necessary.
+   *
+   *   - You can convert DRT web-tests into layout-web-tests by specifying a
+   *   test expectation file. An expectation file is located in the same
+   *   location as the test, it has the same file name, except for the extension
+   *   (which can be either .txt or .png).
+   *
+   *   When there are no expectation files, 'test.dart' assumes tests fail if
+   *   the process return a non-zero exit code (in the case of web tests, we
+   *   check for PASS/FAIL indications in the test output).
+   *
+   *   When there is an expectation file, tests are run differently: the test
+   *   code is run to the end of the event loop and 'test.dart' takes a snapshot
+   *   of what is rendered in the page at that moment. This snapshot is
+   *   represented either in text form, if the expectation ends in .txt, or as
+   *   an image, if the expectation ends in .png. 'test.dart' will compare the
+   *   snapshot to the expectation file. When tests fail, 'test.dart' saves the
+   *   new snapshot into a file so it can be visualized or copied over.
+   *   Expectations can be recorded for the first time by creating an empty file
+   *   with the right name (touch test_name_test.png), running the test, and
+   *   executing the copy command printed by the test script.
+   */
   Map readOptionsFromFile(Path filePath) {
     RegExp testOptionsRegExp = const RegExp(@"// VMOptions=(.*)");
     RegExp dartOptionsRegExp = const RegExp(@"// DartOptions=(.*)");
