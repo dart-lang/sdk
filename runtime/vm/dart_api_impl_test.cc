@@ -4545,6 +4545,50 @@ TEST_CASE(LoadSource) {
 }
 
 
+TEST_CASE(LoadSource_LateLoad) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');\n"
+      "class OldClass {\n"
+      "  foo() => 'foo';\n"
+      "}\n";
+  const char* kSourceChars =
+      "class NewClass extends OldClass{\n"
+      "  bar() => 'bar';\n"
+      "}\n";
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  // Call a dynamic function on OldClass.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("OldClass"));
+  EXPECT_VALID(cls);
+  Dart_Handle recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  Dart_Handle result = Dart_Invoke(recv, Dart_NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  const char* result_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(result, &result_cstr));
+  EXPECT_STREQ("foo", result_cstr);
+
+  // Load a source file late.
+  url = Dart_NewString("source_url");
+  source = Dart_NewString(kSourceChars);
+  EXPECT_VALID(Dart_LoadSource(lib, url, source));
+
+  // Call a dynamic function on NewClass in the updated library.
+  cls = Dart_GetClass(lib, Dart_NewString("NewClass"));
+  EXPECT_VALID(cls);
+  recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  result = Dart_Invoke(recv, Dart_NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  result_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(result, &result_cstr));
+  EXPECT_STREQ("bar", result_cstr);
+}
+
 static void MyNativeFunction1(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewInteger(654321));
