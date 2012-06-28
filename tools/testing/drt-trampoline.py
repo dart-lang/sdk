@@ -49,19 +49,19 @@ def main(argv):
 
 
   p = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE)
-  p.wait()
+  output, error = p.communicate()
   if p.returncode != 0:
     raise Exception('Failed to run command. return code=%s' % p.returncode)
 
   if out_expected_file:
     # Compare output to the given expectation file.
-    output = None
     expectation = None
-    with p.stdout as res:
-      if is_png:
-        # DRT prints the image to STDOUT, but includes 5 header lines.
-        for i in range(4): res.readline()
-      output = res.read()
+    if is_png:
+      # DRT prints the image to STDOUT, but includes extra text that we trim:
+      # - 4 header lines
+      # - a '#EOF\n' at the end
+      output = output.replace('\n', '_', 3)
+      output = output[output.find('\n') + 1: -len('#EOF\n')]
     if os.path.exists(out_expected_file):
       with open(out_expected_file, 'r') as f:
         expectation = f.read()
@@ -87,7 +87,7 @@ def main(argv):
     print '#EOF'
   else:
     # Pipe through the output for non-layout tests.
-    sys.stdout.write(p.stdout.read())
+    print output
 
 if __name__ == '__main__':
   try:
