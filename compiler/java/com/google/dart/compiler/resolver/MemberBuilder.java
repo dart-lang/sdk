@@ -350,6 +350,9 @@ public class MemberBuilder {
         // types of constant expressions.
         modifiers = modifiers.makeConstant();
       }
+      if (fieldNode.getValue() != null) {
+        modifiers = modifiers.makeInitialized();
+      }
       FieldNodeElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
         fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);

@@ -1239,7 +1239,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 21, 7, 3));
   }
 
-  public void testFinalInit() {
+  public void testFinalInit1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -1247,7 +1247,7 @@ public class ResolverTest extends ResolverTestCase {
         "final f2;",  // error
         "class A {",
         "  final f3 = 1;",
-        "  final f4;",  // not really ok, should be initialized in constructor
+        "  final f4;",  // should be initialized in constructor
         "  static final f5 = 1;",
         "  static final f6;",    // error
         "  method() {",
@@ -1257,7 +1257,75 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE, 4, 7 , 2),
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
-        errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
+        errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 7, 9, 2));
+  }
+
+  public void testFinalInit2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() {}",   // explicit constructor does not initialize
+        "}"),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 3, 9, 1));
+  }
+
+  public void testFinalInit3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",  // implicit constructor does not initialize
+        "}"),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 3, 9, 1));
+  }
+
+  public void testFinalInit4() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C(this.a);", // no error if initialized in initializer list
+        "}"));
+  }
+
+  public void testFinalInit5() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() : this.named(1);",  // no error on redirect
+        "  C.named(this.a) {}",
+        "}"));
+  }
+
+  public void testFinalInit6() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface I1 {",
+        "  final a;",        // not initialized, but in an interface
+        "}",
+        "interface I2 {",
+        "  final a;",        // not initialized, but in an interface
+        "  C(arg);",
+        "}"));
+  }
+
+  public void testFinalInit7() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a = 1;",
+        "}"));
+  }
+
+  public void testFinalInit8() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() : this.a = 1;",
+        "}"));
   }
 
   public void test_const_requiresValue() {

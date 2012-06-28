@@ -86,7 +86,6 @@ constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, r
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
-field3a_negative_test: Fail # Issue 3655
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest

@@ -223,7 +223,7 @@ public class DartParser extends CompletionHooksParserBase {
   public static String read(Source source) throws IOException {
     return read(source.getSourceReader());
   }
-  
+
   public static String read(Reader reader) throws IOException {
     try {
       return CharStreams.toString(reader);
@@ -738,6 +738,7 @@ public class DartParser extends CompletionHooksParserBase {
       if (expect(Token.STRING)) {
         nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
       }
+      modifiers = modifiers.makeNative();
     }
 
     // Parse the members.
@@ -1684,6 +1685,9 @@ public class DartParser extends CompletionHooksParserBase {
       DartExpression value = null;
       if (optional(Token.ASSIGN)) {
         value = parseExpression();
+        if (value != null) {
+          modifiers = modifiers.makeInitialized();
+        }
       }
       fields.add(done(new DartField(name, modifiers, null, value)));
     } while (optional(Token.COMMA));

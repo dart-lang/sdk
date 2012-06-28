@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -339,6 +340,26 @@ public class Resolver {
         }
       }
 
+      if (!classElement.isInterface() && Elements.needsImplicitDefaultConstructor(classElement)) {
+        // Check to see that all final fields are initialized when no explicit
+        // generative constructor is declared
+        cls.accept(new ASTVisitor<DartNode>() {
+          @Override
+          public DartNode visitField(DartField node) {
+            FieldElement fieldElement = node.getElement();
+            if (fieldElement != null && fieldElement.getModifiers().isFinal()
+                && !fieldElement.isStatic()
+                && !fieldElement.getModifiers().isGetter()
+                && !fieldElement.getModifiers().isSetter()
+                && !fieldElement.getModifiers().isInitialized()) {
+              onError(node, ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
+                  fieldElement.getName());
+            }
+            return null;
+          }
+        });
+      }
+
       context = previousContext;
       currentHolder = previousHolder;
       enclosingElement = previousEnclosingElement;
@@ -637,15 +658,6 @@ public class Resolver {
       if (Elements.isNonFactoryConstructor(member)
           && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
-        // Test for missing final initialized fields
-        if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()) {
-          for (FieldElement finalField : this.finalsNeedingInitializing) {
-            if (!initializedFields.contains(finalField)) {
-              onError(node.getName(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
-                  finalField.getName());
-            }
-          }
-        }
       }
 
       context = previousContext;
@@ -2049,7 +2061,7 @@ public class Resolver {
       }
     }
 
-    private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> intializedFields) {
+    private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> initializedFields) {
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
@@ -2059,8 +2071,30 @@ public class Resolver {
           constructorElement = (ConstructorElement) element;
         } else if (initializer.getName() != null && initializer.getName().getElement() != null
             && initializer.getName().getElement().getModifiers() != null
-            && !intializedFields.add((FieldElement)initializer.getName().getElement())) {
+            && !initializedFields.add((FieldElement)initializer.getName().getElement())) {
           onError(initializer, ResolverErrorCode.DUPLICATE_INITIALIZATION, initializer.getName());
+        }
+      }
+
+      // Look for final fields that are not initialized
+      ClassElement classElement = (ClassElement)enclosingElement.getEnclosingElement();
+      Element methodElement = node.getElement();
+      if (classElement != null && methodElement != null
+          && !classElement.isInterface()
+          && !classElement.getModifiers().isNative()
+          && !methodElement.getModifiers().isRedirectedConstructor()) {
+        for (Element member : classElement.getMembers()) {
+          switch (ElementKind.of(member)) {
+            case FIELD:
+              FieldElement fieldMember = (FieldElement)member;
+              if (fieldMember.getModifiers().isFinal()
+                  && !fieldMember.getModifiers().isInitialized()
+                  && !initializedFields.contains(fieldMember)) {
+                FieldNodeElement n = (FieldNodeElement)fieldMember;
+                onError(n.getNode(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
+                    fieldMember.getName());
+              }
+          }
         }
       }
 
