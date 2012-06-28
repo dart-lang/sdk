@@ -4,6 +4,7 @@
 
 #library("co19_test_config");
 
+#import("dart:io");
 #import("../../tools/testing/dart/test_suite.dart");
 
 class Co19TestSuite extends StandardTestSuite {
@@ -12,7 +13,7 @@ class Co19TestSuite extends StandardTestSuite {
   Co19TestSuite(Map configuration)
       : super(configuration,
               "co19",
-              "tests/co19/src",
+              const Path("tests/co19/src"),
               ["tests/co19/co19-compiler.status",
                "tests/co19/co19-runtime.status",
                "tests/co19/co19-frog.status",

@@ -25,6 +25,7 @@
 
 #library("test");
 
+#import("dart:io");
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
@@ -42,26 +43,26 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
-  'frog/tests/await',
-  'frog/tests/frog',
-  'runtime/tests/vm',
-  'samples/tests/samples',
-  'tests/benchmark_smoke',
-  'tests/compiler/dart2js',
-  'tests/compiler/dart2js_extra',
-  'tests/compiler/dart2js_native',
-  'tests/corelib',
-  'tests/dom',
-  'tests/html',
-  'tests/isolate',
-  'tests/json',
-  'tests/language',
-  'tests/lib',
-  'tests/standalone',
-  'tests/utils',
-  'utils/tests/css',
-  'utils/tests/peg',
-  'utils/tests/pub',
+    const Path('frog/tests/await'),
+    const Path('frog/tests/frog'),
+    const Path('runtime/tests/vm'),
+    const Path('samples/tests/samples'),
+    const Path('tests/benchmark_smoke'),
+    const Path('tests/compiler/dart2js'),
+    const Path('tests/compiler/dart2js_extra'),
+    const Path('tests/compiler/dart2js_native'),
+    const Path('tests/corelib'),
+    const Path('tests/dom'),
+    const Path('tests/html'),
+    const Path('tests/isolate'),
+    const Path('tests/json'),
+    const Path('tests/language'),
+    const Path('tests/lib'),
+    const Path('tests/standalone'),
+    const Path('tests/utils'),
+    const Path('utils/tests/css'),
+    const Path('utils/tests/peg'),
+    const Path('utils/tests/pub'),
 ];
 
 main() {
@@ -115,7 +116,7 @@ main() {
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
-      final name = testSuiteDir.substring(testSuiteDir.lastIndexOf('/') + 1);
+      final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
         queue.addTestSuite(
             new StandardTestSuite.forDirectory(conf, testSuiteDir));

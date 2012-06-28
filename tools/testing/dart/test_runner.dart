@@ -403,7 +403,7 @@ class AnalysisTestOutputImpl extends TestOutputImpl {
     var isStaticClean = false;
     if (testCase.info != null) {
       var optionsFromFile = testCase.info.optionsFromFile;
-      hasFatalTypeErrors = optionsFromFile['hasFatalTypeErrors'];
+      hasFatalTypeErrors = testCase.info.hasFatalTypeErrors;
       for (Command c in testCase.commands) {
         for (String arg in c.arguments) {
           if (arg == '--fatal-type-errors') {

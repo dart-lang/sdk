@@ -51,13 +51,13 @@
 //   ddd /// 07: static type warning, dynamic type error
 //   eee
 
-void ExtractTestsFromMultitest(String filename,
+void ExtractTestsFromMultitest(Path filePath,
                                Map<String, String> tests,
                                Map<String, Set<String>> outcomes) {
   // Read the entire file into a byte buffer and transform it to a
   // String. This will treat the file as ascii but the only parts
   // we are interested in will be ascii in any case.
-  RandomAccessFile file = (new File(filename)).openSync(FileMode.READ);
+  RandomAccessFile file = new File.fromPath(filePath).openSync(FileMode.READ);
   List chars = new List(file.lengthSync());
   int offset = 0;
   while (offset != chars.length) {
@@ -79,7 +79,8 @@ void ExtractTestsFromMultitest(String filename,
        'static type warning', 'dynamic type error']);
 
   List<String> testTemplate = new List<String>();
-  testTemplate.add('// Test created from multitest named $filename.');
+  testTemplate.add(
+      '// Test created from multitest named ${filePath.toNativePath()}.');
   // Create the set of multitests, which will have a new test added each
   // time we see a multitest line with a new key.
   Map<String, List<String>> testsAsLines = new Map<String, List<String>>();
@@ -99,9 +100,9 @@ void ExtractTestsFromMultitest(String filename,
         for (String nextOutcome in annotation.outcomesList) {
           outcomes[annotation.key].add(nextOutcome);
           if (!validMultitestOutcomes.contains(nextOutcome)) {
-            // TODO(zundel): fix long line
             Expect.fail(
-              "Invalid test directive '$nextOutcome' on line ${lineCount}: ${annotation.rest} ");
+              "Invalid test directive '$nextOutcome' on line ${lineCount}:\n"
+              "${annotation.rest} ");
           }
         }
       }
@@ -114,8 +115,8 @@ void ExtractTestsFromMultitest(String filename,
   // Check that every key (other than the none case) has at least one outcome
   for (var outcomeKey in outcomes.getKeys()) {
     if (outcomeKey != 'none' && outcomes[outcomeKey].isEmpty()) {
-      // TODO(zundel): fix long line
-      Expect.fail("Test ${outcomeKey} has no valid annotated outcomes. Expected one of: ${validMultitestOutcomes.toString()}");
+      Expect.fail("Test ${outcomeKey} has no valid annotated outcomes.\n"
+                  "Expected one of: ${validMultitestOutcomes.toString()}");
     }
   }
 
@@ -152,37 +153,34 @@ class _Annotation {
 
 // Find all relative imports and copy them into the dir that contains
 // the generated tests.
-Set<String> _findAllRelativeImports(String topLibrary) {
-  Set<String> toSearch = new Set<String>.from([topLibrary]);
-  Set<String> foundImports = new HashSet<String>();
-  String pathSep = Platform.pathSeparator;
-  int end = topLibrary.lastIndexOf(pathSep);
-  String libraryDir = topLibrary.substring(0, end);
-
+Set<Path> _findAllRelativeImports(Path topLibrary) {
+  Set<String> toSearch = new Set<Path>.from([topLibrary]);
+  Set<String> foundImports = new HashSet<Path>();
+  Path libraryDir = topLibrary.directoryPath;
   // Matches #import( or #source( followed by " or ' followed by anything
   // except dart: or /, at the beginning of a line.
   RegExp relativeImportRegExp =
       const RegExp('^#(import|source)[(]["\'](?!(dart:|/))([^"\']*)["\']');
   while (!toSearch.isEmpty()) {
     var thisPass = toSearch;
-    toSearch = new HashSet<String>();
-    for (String filename in thisPass) {
-      File f = new File(filename);
+    toSearch = new HashSet<Path>();
+    for (Path filename in thisPass) {
+      File f = new File.fromPath(filename);
       for (String line in f.readAsLinesSync()) {
         Match match = relativeImportRegExp.firstMatch(line);
         if (match != null) {
-          String relativePath = match.group(3);
+          Path relativePath = new Path(match.group(3));
           if (foundImports.contains(relativePath)) {
             continue;
           }
-          if (relativePath.contains(@'\.\.')) {
+          if (relativePath.toString().contains('..')) {
             // This is just for safety reasons, we don't want
             // to unintentionally clobber files relative to the destination
             // dir when copying them ove.
             Expect.fail("relative paths containing .. are not allowed.");
           }
           foundImports.add(relativePath);
-          toSearch.add('$libraryDir/$relativePath');
+          toSearch.add(libraryDir.join(relativePath));
         }
       }
     }
@@ -190,12 +188,12 @@ Set<String> _findAllRelativeImports(String topLibrary) {
   return foundImports;
 }
 
-void DoMultitest(String filename,
+void DoMultitest(Path filePath,
                  String outputDir,
-                 String testDir,
+                 Path suiteDir,
                  // TODO(zundel): Are the boolean flags now redundant
                  // with the 'multitestOutcome' field?
-                 Function doTest(String filename,
+                 Function doTest(Path filePath,
                                  bool isNegative,
                                  [bool isNegativeIfChecked,
                                   bool hasFatalTypeErrors,
@@ -205,55 +203,56 @@ void DoMultitest(String filename,
   // Each new test is a single String value in the Map tests.
   Map<String, String> tests = new Map<String, String>();
   Map<String, Set<String>> outcomes = new Map<String, Set<String>>();
-  ExtractTestsFromMultitest(filename, tests, outcomes);
+  ExtractTestsFromMultitest(filePath, tests, outcomes);
 
-  String directory = CreateMultitestDirectory(outputDir, testDir);
-  Expect.isNotNull(directory);
-  String pathSep = Platform.pathSeparator;
-  int start = filename.lastIndexOf(pathSep) + 1;
-  int end = filename.indexOf('.dart', start);
-  String baseFilename = filename.substring(start, end);
-  String sourceDirectory = filename.substring(0, start - 1);
-  Set<String> importsToCopy = _findAllRelativeImports(filename);
-  Directory destDir = new Directory("directory");
-  for (String import in importsToCopy) {
-    File source = new File('$sourceDirectory/$import');
-    var dest = new File('$directory/$import');
-    var basenameStart = import.lastIndexOf('/');
-    if (basenameStart > 0) {
-      // make sure we have a dir for it
-      var importDir = import.substring(0, basenameStart);
-      TestUtils.mkdirRecursive(directory, importDir);
+  Path sourceDir = filePath.directoryPath;
+  Path targetDir = CreateMultitestDirectory(outputDir, suiteDir);
+  Expect.isNotNull(targetDir);
+
+  // Copy all the relative imports of the multitest.
+  Set<Path> importsToCopy = _findAllRelativeImports(filePath);
+  List<Future> futureCopies = [];
+  for (Path importPath in importsToCopy) {
+    // Make sure the target directory exists.
+    Path importDir = importPath.directoryPath;
+    TestUtils.mkdirRecursive(targetDir, importDir);
+    // Copy file.
+    futureCopies.add(TestUtils.copyFile(sourceDir.join(importPath),
+                                        targetDir.join(importPath)));
+  }
+
+  // Wait until all imports are copied before scheduling test cases.
+  Futures.wait(futureCopies).then((ignored) {
+    String baseFilename = filePath.filenameWithoutExtension;
+    for (String key in tests.getKeys()) {
+      final Path multitestFilename =
+          targetDir.append('${baseFilename}_$key.dart');
+      final File file = new File.fromPath(multitestFilename);
+
+      file.createSync();
+      RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
+      var bytes = tests[key].charCodes();
+      openedFile.writeListSync(bytes, 0, bytes.length);
+      openedFile.closeSync();
+      Set<String> outcome = outcomes[key];
+      bool enableFatalTypeErrors = outcome.contains('static type warning');
+      bool hasRuntimeErrors = outcome.contains('runtime error');
+      bool isNegative = hasRuntimeErrors
+          || outcome.contains('compile-time error');
+      bool isNegativeIfChecked = outcome.contains('dynamic type error');
+      doTest(multitestFilename,
+             isNegative,
+             isNegativeIfChecked,
+             enableFatalTypeErrors,
+             hasRuntimeErrors,
+             outcome);
     }
-    TestUtils.copyFile(source, dest);
-  }
-  for (String key in tests.getKeys()) {
-    final String multitestFilename = '$directory/${baseFilename}_$key.dart';
-    final File file = new File(multitestFilename);
-
-    file.createSync();
-    RandomAccessFile openedFile = file.openSync(FileMode.WRITE);
-    var bytes = tests[key].charCodes();
-    openedFile.writeListSync(bytes, 0, bytes.length);
-    openedFile.closeSync();
-    Set<String> outcome = outcomes[key];
-    bool enableFatalTypeErrors = outcome.contains('static type warning');
-    bool hasRuntimeErrors = outcome.contains('runtime error');
-    bool isNegative = hasRuntimeErrors
-        || outcome.contains('compile-time error');
-    bool isNegativeIfChecked = outcome.contains('dynamic type error');
-    doTest(multitestFilename,
-           isNegative,
-           isNegativeIfChecked,
-           enableFatalTypeErrors,
-           hasRuntimeErrors,
-           outcome);
-  }
-  multitestDone();
+    multitestDone();
+  });
 }
 
 
-String CreateMultitestDirectory(String outputDir, String testDir) {
+Path CreateMultitestDirectory(String outputDir, Path suiteDir) {
   final String generatedTestDirectory = 'generated_tests';
   Directory generatedTestDir = new Directory('$outputDir/generated_tests');
   if (!new Directory(outputDir).existsSync()) {
@@ -262,7 +261,7 @@ String CreateMultitestDirectory(String outputDir, String testDir) {
   if (!generatedTestDir.existsSync()) {
     generatedTestDir.createSync();
   }
-  var split = testDir.split('/');
+  var split = suiteDir.segments();
   if (split.last() == 'src') {
     // TODO(sigmund): remove this once all tests are migrated to use
     // TestSuite.forDirectory.
@@ -273,5 +272,5 @@ String CreateMultitestDirectory(String outputDir, String testDir) {
   if (!dir.existsSync()) {
     dir.createSync();
   }
-  return path;
+  return new Path.fromNative(new File(path).fullPathSync());
 }
