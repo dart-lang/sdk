@@ -72,6 +72,21 @@ class TestConfiguration extends Configuration {
   }
 }
 
+class MockList extends Mock implements List {
+}
+
+class Foo {
+  sum(a, b, c) => a + b + c;
+}
+
+class FooSpy extends Mock implements Foo {
+  FooSpy real;
+  FooSpy() {
+    real = new Foo();
+    this.when(callsTo('sum')).alwaysCall(real.sum);
+  }
+}
+
 runTest() {
   port.receive((testName, sendport) {
     configure(_testconfig = new TestConfiguration(sendport));
@@ -124,6 +139,77 @@ runTest() {
              () => (_testconfig.count == 10));
              _defer(_callback);
       });
+    } else if (testName == 'mock test 1 (Mock)') {
+      test(testName, () {
+        var m = new Mock();
+
+        m.when(callsTo('foo', 1, 2)).thenReturn('A').thenReturn('B');
+        m.when(callsTo('foo', 1, 1)).thenReturn('C');
+        m.when(callsTo('foo', 9, anything)).thenReturn('D');
+        m.when(callsTo('bar', anything, anything)).thenReturn('E');
+        m.when(callsTo('foobar')).thenReturn('F');
+
+        var s = '${m.foo(1,2)}${m.foo(1,1)}${m.foo(9,10)}'
+            '${m.bar(1,1)}${m.foo(1,2)}';
+        getLogs(m, callsTo('foo', anything, anything)).verify(calledExactly(4));
+        getLogs(m, callsTo('foo', 1, anything)).verify(calledExactly(3));
+        getLogs(m, callsTo('foo', 9, anything)).verify(calledOnce);
+        getLogs(m, callsTo('foo', anything, 2)).verify(calledExactly(2));
+        getLogs(m, callsTo('foobar')).verify(neverCalled);
+        getLogs(m, callsTo('foo', 10, anything)).verify(neverCalled);
+        expect(s, 'ACDEB');
+      });
+    } else if (testName == 'mock test 2 (MockList)') {
+      test(testName, () {
+        var l = new MockList();
+        l.when(callsTo('length')).thenReturn(1);
+        l.when(callsTo('add', anything)).alwaysReturn(0);
+        l.add('foo');
+        expect(l.length(), 1);
+
+        var m = new MockList();
+        m.when(callsTo('add', anything)).alwaysReturn(0);
+
+        m.add('foo');
+        m.add('bar');
+
+        getLogs(m, callsTo('add')).verify(calledExactly(2));
+        getLogs(m, callsTo('add', 'foo')).verify(calledOnce);
+      });
+    } else if (testName == 'mock test 3 (Spy)') {
+      test(testName, () {
+        var p = new FooSpy();
+        p.sum(1, 2, 3);
+        getLogs(p, callsTo('sum')).verify(calledOnce);
+        p.sum(2, 2, 2);
+        getLogs(p, callsTo('sum')).verify(calledExactly(2));
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(6));
+        getLogs(p, callsTo('sum')).verify(alwaysReturned(6));
+        getLogs(p, callsTo('sum')).verify(neverReturned(5));
+        p.sum(2, 2, 1);
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(5));
+      });
+    } else if (testName == 'mock test 4 (Excess calls)') {
+      test(testName, () {
+        var m = new Mock();
+        m.when(callsTo('foo')).alwaysReturn(null);
+        m.foo();
+        m.foo();
+        getLogs(m, callsTo('foo')).verify(calledOnce);
+      });
+    } else if (testName == 'mock test 5 (No behavior)') {
+      test(testName, () {
+        var m = new Mock();
+        m.when(callsTo('foo')).thenReturn(null);
+        m.foo();
+        m.foo();
+      });
+    } else if (testName == 'mock test 6 (No matching return)') {
+      test(testName, () {
+        var p = new FooSpy();
+        p.sum(1, 2, 3);
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(0));
+      });
     }
   });
 }
@@ -153,7 +239,13 @@ main() {
     'setup and teardown test',
     'correct callback test',
     'excess callback test',
-    'completion test'
+    'completion test',
+    'mock test 1 (Mock)',
+    'mock test 2 (MockList)',
+    'mock test 3 (Spy)',
+    'mock test 4 (Excess calls)',
+    'mock test 5 (No behavior)',
+    'mock test 6 (No matching return)'
   ];
 
   expected = [
@@ -168,7 +260,17 @@ main() {
     buildStatusString(1, 0, 0, tests[7], 1),
     buildStatusString(0, 0, 1, tests[8], 1,
         message: 'Callback called more times than expected (2 > 1)'),
-    buildStatusString(1, 0, 0, tests[9], 10)
+    buildStatusString(1, 0, 0, tests[9], 10),
+    buildStatusString(1, 0, 0, tests[10]),
+    buildStatusString(1, 0, 0, tests[11]),
+    buildStatusString(1, 0, 0, tests[12]),
+    buildStatusString(0, 1, 0, tests[13],
+        message: 'Expected foo() to be called 1 times but:'
+            ' was called 2 times'),
+    buildStatusString(0, 1, 0, tests[14],
+        message: 'Caught Exception: No behavior specified for method foo'),
+    buildStatusString(0, 1, 0, tests[15],
+        message: 'Expected sum() to sometimes return <0> but: never did')
   ];
 
   actual = [];
