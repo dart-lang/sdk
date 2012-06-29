@@ -19,8 +19,6 @@ io/directory_fuzz_test: Skip
 
 [ $runtime == vm]
 io/many_echo_server_test: Skip        # Bug 5103754
-# These tests fail, crash, and timeout to test the testing infrastructure.
-io/test_extension_test: Fail  # shared library in wrong place (issue 1817)
 # This test fails intermittently.
 io/http_basic_test: Pass, Fail     # Issue 3599
 
@@ -28,11 +26,9 @@ io/http_basic_test: Pass, Fail     # Issue 3599
 [ $runtime == vm && $system == macos]
 # This test fails with "Too many open files" on the Mac OS buildbot.
 io/socket_many_connections_test: Skip
-io/test_extension_test: Skip  # Extensions not implemented on MacOS
 io/http_server_handler_test: Skip # Issue 2637
 
 [ $runtime == vm && $system == windows]
-io/test_extension_test: Skip  # Extensions not implemented on Windows
 io/http_shutdown_test: Skip  # Currently times out on windows
 io/file_system_links_test: Skip  # No links on Windows.
 io/http_connection_header_test: Pass, Fail  # Issue 2959
@@ -61,7 +57,6 @@ medium_integer_test: Fail # Issue 1146.
 
 [ $compiler == dart2js ]
 medium_integer_test: Fail, OK # cannot resolve type Mint
-io/test_extension_test: Fail, OK # dart-ext:test_extension: Illegal argument(s): dart-ext:test_extension
 io/timer_cancel_test: Fail # Needs Timer to run.
 io/timer_cancel1_test: Fail # Needs Timer to run.
 io/timer_cancel2_test: Fail # Needs Timer to run.

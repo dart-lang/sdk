@@ -158,9 +158,9 @@ Set<Path> _findAllRelativeImports(Path topLibrary) {
   Set<String> foundImports = new HashSet<Path>();
   Path libraryDir = topLibrary.directoryPath;
   // Matches #import( or #source( followed by " or ' followed by anything
-  // except dart: or /, at the beginning of a line.
-  RegExp relativeImportRegExp =
-      const RegExp('^#(import|source)[(]["\'](?!(dart:|/))([^"\']*)["\']');
+  // except dart:, dart-ext: or /, at the beginning of a line.
+  RegExp relativeImportRegExp = const RegExp(
+      '^#(import|source)[(]["\'](?!(dart:|dart-ext:|/))([^"\']*)["\']');
   while (!toSearch.isEmpty()) {
     var thisPass = toSearch;
     toSearch = new HashSet<Path>();
