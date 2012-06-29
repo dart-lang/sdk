@@ -13,17 +13,27 @@ import com.google.dart.compiler.resolver.MethodNodeElement;
 public class DartArrayAccess extends DartExpression {
 
   private DartExpression target;
+  private boolean isCascade;
   private DartExpression key;
   private MethodNodeElement element;
 
   public DartArrayAccess(DartExpression target, DartExpression key) {
+    this(target, false, key);
+  }
+
+  public DartArrayAccess(DartExpression target, boolean isCascade, DartExpression key) {
     this.target = becomeParentOf(target);
+    this.isCascade = isCascade;
     this.key = becomeParentOf(key);
   }
 
   @Override
   public boolean isAssignable() {
     return true;
+  }
+
+  public boolean isCascade() {
+    return isCascade;
   }
 
   public DartExpression getKey() {

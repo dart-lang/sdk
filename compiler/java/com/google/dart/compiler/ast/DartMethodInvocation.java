@@ -25,14 +25,17 @@ import java.util.List;
 public class DartMethodInvocation extends DartInvocation {
 
   private DartExpression target;
+  private boolean isCascade;
   private DartIdentifier functionName;
 
   public DartMethodInvocation(DartExpression target,
+      boolean isCascade,
       DartIdentifier functionName,
       List<DartExpression> args) {
     super(args);
     functionName.getClass(); // Quick null-check.
     this.target = becomeParentOf(target);
+    this.isCascade = isCascade;
     this.functionName = becomeParentOf(functionName);
   }
 
@@ -43,6 +46,10 @@ public class DartMethodInvocation extends DartInvocation {
 
   public String getFunctionNameString() {
     return functionName.getName();
+  }
+
+  public boolean isCascade() {
+    return isCascade;
   }
 
   public DartIdentifier getFunctionName() {

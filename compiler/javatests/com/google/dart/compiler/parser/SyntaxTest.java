@@ -62,6 +62,14 @@ public class SyntaxTest extends AbstractParserTest {
         "}"));
   }
 
+  public void test_cascade() {
+    parseUnit("cascade.dart", Joiner.on("\n").join(
+        "class C {",
+        "  var f = g..m1()..m2()..f.a;",
+        "  var f = g..[3].x()..y()();",
+        "}"));
+  }
+
   public void test_const() {
     DartUnit unit = parseUnit(getName() + ".dart", makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",

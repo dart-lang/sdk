@@ -1958,6 +1958,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
+      if (node.isCascade()) {
+        return node.getQualifier().accept(this);
+      }
       if (node.getType() != null) {
         return node.getType();
       }
@@ -2297,6 +2300,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
         Type type) {
       List<DartExpression> argumentNodes = node.getArguments();
+      if (node instanceof DartMethodInvocation) {
+        DartMethodInvocation invocation = (DartMethodInvocation) node;
+        if (invocation.isCascade()) {
+          checkInvocation(argumentNodes, diagnosticNode, name, type);
+          DartExpression target = invocation.getTarget();
+          if (target == null) {
+            return getCurrentClass();
+          }
+          return target.accept(this);
+        }
+      }
       return checkInvocation(argumentNodes, diagnosticNode, name, type);
     }
 

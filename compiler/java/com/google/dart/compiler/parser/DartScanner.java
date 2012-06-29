@@ -1215,10 +1215,14 @@ public class DartScanner {
           return scanNumber();
         } else {
           advance();
-          if (lookahead(0) == '.' && lookahead(1) == '.') {
+          if (lookahead(0) == '.') {
+            if (lookahead(1) == '.') {
+              advance();
+              advance();
+              return Token.ELLIPSIS;
+            }
             advance();
-            advance();
-            return Token.ELLIPSIS;
+            return Token.CASCADE;
           }
           return Token.PERIOD;
         }

@@ -27,7 +27,9 @@ public class DartDoWhileStatement extends DartStatement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    condition.accept(visitor);
+    if (condition != null) {
+      condition.accept(visitor);
+    }
     body.accept(visitor);
   }
 
