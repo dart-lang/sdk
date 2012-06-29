@@ -13,13 +13,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BlobFactoryProvider {
-  factory Blob(List blobParts, [String type = null, String endings = null]) => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _DOMParserFactoryProvider {
   factory DOMParser() => _dummy();
 }
@@ -650,9 +643,7 @@ interface BiquadFilterNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-interface Blob default _BlobFactoryProvider {
-
-  Blob(List blobParts, [String type, String endings]);
+interface Blob {
 
   final int size;
 

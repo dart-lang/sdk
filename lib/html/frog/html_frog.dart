@@ -17130,30 +17130,6 @@ class _AudioElementFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _BlobFactoryProvider {
-  factory Blob(List blobParts = null, [String type, String endings]) {
-    // TODO: validate that blobParts is a JS Array and convert if not.
-    // TODO: any coercions on the elements of blobParts, e.g. coerce a typed
-    // array to ArrayBuffer if it is a total view.
-    if (type == null && endings == null) {
-      return _create_1(blobParts);
-    }
-    var bag = _create_bag();
-    if (type != null) _bag_set(bag, 'type', type);
-    if (endings != null) _bag_set(bag, 'endings', endings);
-    return _create_2(blobParts, bag);
-  }
-
-  static _create_1(parts) native 'return new Blob(parts);';
-  static _create_2(parts, bag) native 'return new Blob(parts, bag);';
-
-  static _create_bag() native 'return {}';
-  static _bag_set(bag, key, value) native 'bag[key] = value;';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _CSSMatrixFactoryProvider {
   factory CSSMatrix([String cssValue = '']) native
       'return new WebKitCSSMatrix(cssValue);';
@@ -18584,9 +18560,7 @@ interface BiquadFilterNode extends AudioNode {
 // WARNING: Do not edit - generated code.
 
 /// @domName Blob
-interface Blob default _BlobFactoryProvider {
-
-  Blob(List blobParts, [String type, String endings]);
+interface Blob {
 
   /** @domName Blob.size */
   final int size;

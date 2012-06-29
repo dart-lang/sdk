@@ -255,17 +255,6 @@ module storage {
   };
 };
 
-
-module html {
-  [Supplemental,
-   CustomConstructor,
-   Constructor(in Array blobParts,
-               [Optional] in DOMString type, [Optional] in DOMString endings)
-   ]
-  interface Blob {
-  };
-};
-
 module html {
   [Supplemental, Callback] // Add missing Callback attribute.
   interface VoidCallback {
