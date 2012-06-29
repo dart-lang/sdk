@@ -198,6 +198,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return generateAtUseSite.contains(instruction);
   }
 
+  bool isNonNegativeInt32Constant(HInstruction instruction) {
+    if (instruction.isConstantInteger()) {
+      int value = instruction.constant.value;
+      if (value >= 0 && value < (1 << 31)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // We want the outcome of bit-operations to be positive. However, if
+  // the result of a bit-operation is only used by other bit
+  // operations we do not have to convert to an unsigned
+  // integer. Also, if we are using & with a positive constant we know
+  // that the result is positive already and need no conversion.
+  bool requiresUintConversion(HInstruction instruction) {
+    if (instruction is HBitAnd &&
+        (isNonNegativeInt32Constant(instruction.left) ||
+         isNonNegativeInt32Constant(instruction.right))) {
+      return false;
+    }
+    bool result = false;
+    for (HInstruction use in instruction.usedBy) {
+      if (use is! HBitNot && use is! HBinaryBitOp) {
+        result = true;
+        break;
+      }
+    }
+    return result;
+  }
+
   SsaCodeGenerator(this.backend,
                    this.work,
                    this.parameters,
@@ -1148,7 +1179,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
-    if (node.builtin) {
+    if (node.builtin && requiresUintConversion(node)) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
@@ -1175,7 +1206,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
-    if (node.builtin){
+    if (node.builtin && requiresUintConversion(node)) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
