@@ -14,6 +14,7 @@ public enum TypeErrorCode implements ErrorCode {
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
   ASSERT_NUMBER_ARGUMENTS(ErrorSeverity.ERROR, "assert requires exactly one argument"),
   ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
+  CANNOT_ASSIGN_TO("cannot assign to '%s'"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),

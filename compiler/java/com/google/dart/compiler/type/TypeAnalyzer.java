@@ -357,6 +357,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (!hasInferredType(lhsNode)) {
             checkAssignable(rhsNode, lhs, rhs);
           }
+          checkAssignableElement(lhsNode);
           return rhs;
         }
 
@@ -371,6 +372,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Token basicOperator = getBasicOperator(node, operator);
           Type type = analyzeBinaryOperator(node, lhs, basicOperator, lhsNode, rhsNode);
           checkAssignable(node, lhs, type);
+          checkAssignableElement(lhsNode);
           return type;
         }
 
@@ -391,6 +393,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           // bit operations, we currently allow them to be used
           // if the left-hand-side is of type num.
           // TODO(karlklose) find a clean solution, i.e., without a special case for num.
+          checkAssignableElement(lhsNode);
           if (lhs.equals(numType)) {
             checkAssignable(rhsNode, numType, typeOf(rhsNode));
             return intType;
@@ -468,6 +471,30 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         default:
           throw new AssertionError("Unknown operator: " + operator);
+      }
+    }
+
+    private void checkAssignableElement(DartExpression lhsNode) {
+      Element lhsElement = lhsNode.getElement();
+      switch (ElementKind.of(lhsElement)) {
+        case DYNAMIC:
+        case VARIABLE:
+        case PARAMETER:
+        case FIELD:
+        case NONE:
+          // OK or unknown
+          break;
+
+        case METHOD:
+          if (lhsElement.getModifiers().isSetter()
+           || lhsElement.getModifiers().isGetter()
+           || lhsElement.getModifiers().isOperator()) {
+            // The check for methods with setters is elsewhere.
+            break;
+          }
+        default:
+          onError(lhsNode, TypeErrorCode.CANNOT_ASSIGN_TO, ElementKind.of(lhsElement));
+        break;
       }
     }
 

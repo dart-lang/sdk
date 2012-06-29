@@ -71,7 +71,7 @@ gc_test: Skip  # Takes too long.
 [ $compiler == dartc ]
 application_negative_test: Fail # Runtime only test, rewrite as multitest
 assert_keyword_negative_test: Fail # Runtime only test, rewrite as multitest
-assign_instance_method_negative_test: Fail  # Issue 3662
+assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as multitest
 body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
 call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason

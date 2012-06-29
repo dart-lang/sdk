@@ -2766,8 +2766,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 7, 7, 1),
         errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 8, 17, 1),
         errEx(TypeErrorCode.IS_STATIC_METHOD_IN, 9, 7, 1),
-        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1));
-
+        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1),
+        errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 10, 5, 3));
   }
 
   public void testExpectedPositionalArgument() throws Exception {
@@ -2922,6 +2922,62 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
+  }
+
+  public void test_assignMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  method() { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 5, 3, 14));
+  }
+
+  public void test_assignSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  set method(arg) { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+  }
+
+  public void test_assignGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  get method() { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 5, 11, 6));
+  }
+
+  public void test_assignArrayElement() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  get method() { }",
+        "  operator [](arg) {}",
+        "}",
+        "main () {",
+        "  new C()[0] = 1;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+
   }
 
   private static <T extends DartNode> T findNode(
