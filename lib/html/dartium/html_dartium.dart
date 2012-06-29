@@ -59,7 +59,7 @@ class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEve
 
 // WARNING: Do not edit - generated code.
 
-class _AbstractWorkerImpl extends _DOMWrapperBase implements AbstractWorker {
+class _AbstractWorkerImpl extends NativeFieldWrapperClass1 implements AbstractWorker {
   _EventsImpl _on;
 
   _AbstractWorkerEventsImpl get on() {
@@ -100,7 +100,7 @@ class _AbstractWorkerImpl extends _DOMWrapperBase implements AbstractWorker {
 
 // WARNING: Do not edit - generated code.
 
-class _ArrayBufferImpl extends _DOMWrapperBase implements ArrayBuffer {
+class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
 
   int get byteLength() native "ArrayBuffer_byteLength_Getter";
 
@@ -122,7 +122,7 @@ class _ArrayBufferImpl extends _DOMWrapperBase implements ArrayBuffer {
 
 // WARNING: Do not edit - generated code.
 
-class _ArrayBufferViewImpl extends _DOMWrapperBase implements ArrayBufferView {
+class _ArrayBufferViewImpl extends NativeFieldWrapperClass1 implements ArrayBufferView {
 
   ArrayBuffer get buffer() native "ArrayBufferView_buffer_Getter";
 
@@ -158,7 +158,7 @@ class _AttrImpl extends _NodeImpl implements Attr {
 
 // WARNING: Do not edit - generated code.
 
-class _AudioBufferImpl extends _DOMWrapperBase implements AudioBuffer {
+class _AudioBufferImpl extends NativeFieldWrapperClass1 implements AudioBuffer {
 
   num get duration() native "AudioBuffer_duration_Getter";
 
@@ -383,7 +383,7 @@ class _AudioGainNodeImpl extends _AudioNodeImpl implements AudioGainNode {
 
 // WARNING: Do not edit - generated code.
 
-class _AudioListenerImpl extends _DOMWrapperBase implements AudioListener {
+class _AudioListenerImpl extends NativeFieldWrapperClass1 implements AudioListener {
 
   num get dopplerFactor() native "AudioListener_dopplerFactor_Getter";
 
@@ -406,7 +406,7 @@ class _AudioListenerImpl extends _DOMWrapperBase implements AudioListener {
 
 // WARNING: Do not edit - generated code.
 
-class _AudioNodeImpl extends _DOMWrapperBase implements AudioNode {
+class _AudioNodeImpl extends NativeFieldWrapperClass1 implements AudioNode {
 
   AudioContext get context() native "AudioNode_context_Getter";
 
@@ -490,7 +490,7 @@ class _AudioPannerNodeImpl extends _AudioNodeImpl implements AudioPannerNode {
 
 // WARNING: Do not edit - generated code.
 
-class _AudioParamImpl extends _DOMWrapperBase implements AudioParam {
+class _AudioParamImpl extends NativeFieldWrapperClass1 implements AudioParam {
 
   num get defaultValue() native "AudioParam_defaultValue_Getter";
 
@@ -547,7 +547,7 @@ class _AudioSourceNodeImpl extends _AudioNodeImpl implements AudioSourceNode {
 
 // WARNING: Do not edit - generated code.
 
-class _BarInfoImpl extends _DOMWrapperBase implements BarInfo {
+class _BarInfoImpl extends NativeFieldWrapperClass1 implements BarInfo {
 
   bool get visible() native "BarInfo_visible_Getter";
 
@@ -567,7 +567,7 @@ class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEve
 
 // WARNING: Do not edit - generated code.
 
-class _BatteryManagerImpl extends _DOMWrapperBase implements BatteryManager {
+class _BatteryManagerImpl extends NativeFieldWrapperClass1 implements BatteryManager {
   _EventsImpl _on;
 
   _BatteryManagerEventsImpl get on() {
@@ -648,7 +648,7 @@ class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 
 // WARNING: Do not edit - generated code.
 
-class _BlobImpl extends _DOMWrapperBase implements Blob {
+class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
 
   int get size() native "Blob_size_Getter";
 
@@ -808,7 +808,7 @@ class _CSSPrimitiveValueImpl extends _CSSValueImpl implements CSSPrimitiveValue 
 
 // WARNING: Do not edit - generated code.
 
-class _CSSRuleImpl extends _DOMWrapperBase implements CSSRule {
+class _CSSRuleImpl extends NativeFieldWrapperClass1 implements CSSRule {
 
   String get cssText() native "CSSRule_cssText_Getter";
 
@@ -827,7 +827,7 @@ class _CSSRuleImpl extends _DOMWrapperBase implements CSSRule {
 
 // WARNING: Do not edit - generated code.
 
-class _CSSRuleListImpl extends _DOMWrapperBase implements CSSRuleList {
+class _CSSRuleListImpl extends NativeFieldWrapperClass1 implements CSSRuleList {
 
   int get length() native "CSSRuleList_length_Getter";
 
@@ -852,7 +852,7 @@ String get _browserPrefix() {
   return _cachedBrowserPrefix;
 }
 
-class _CSSStyleDeclarationImpl extends _DOMWrapperBase implements CSSStyleDeclaration {
+class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSStyleDeclaration {
 
 
   String get cssText() native "CSSStyleDeclaration_cssText_Getter";
@@ -3716,7 +3716,7 @@ class _CSSUnknownRuleImpl extends _CSSRuleImpl implements CSSUnknownRule {
 
 // WARNING: Do not edit - generated code.
 
-class _CSSValueImpl extends _DOMWrapperBase implements CSSValue {
+class _CSSValueImpl extends NativeFieldWrapperClass1 implements CSSValue {
 
   String get cssText() native "CSSValue_cssText_Getter";
 
@@ -3744,7 +3744,7 @@ class _CSSValueListImpl extends _CSSValueImpl implements CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-class _CanvasGradientImpl extends _DOMWrapperBase implements CanvasGradient {
+class _CanvasGradientImpl extends NativeFieldWrapperClass1 implements CanvasGradient {
 
   void addColorStop(num offset, String color) native "CanvasGradient_addColorStop_Callback";
 
@@ -3755,7 +3755,7 @@ class _CanvasGradientImpl extends _DOMWrapperBase implements CanvasGradient {
 
 // WARNING: Do not edit - generated code.
 
-class _CanvasPatternImpl extends _DOMWrapperBase implements CanvasPattern {
+class _CanvasPatternImpl extends NativeFieldWrapperClass1 implements CanvasPattern {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -4255,7 +4255,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
 // WARNING: Do not edit - generated code.
 
-class _CanvasRenderingContextImpl extends _DOMWrapperBase implements CanvasRenderingContext {
+class _CanvasRenderingContextImpl extends NativeFieldWrapperClass1 implements CanvasRenderingContext {
 
   CanvasElement get canvas() native "CanvasRenderingContext_canvas_Getter";
 
@@ -4291,7 +4291,7 @@ class _CharacterDataImpl extends _NodeImpl implements CharacterData {
 
 // WARNING: Do not edit - generated code.
 
-class _ClientRectImpl extends _DOMWrapperBase implements ClientRect {
+class _ClientRectImpl extends NativeFieldWrapperClass1 implements ClientRect {
 
   num get bottom() native "ClientRect_bottom_Getter";
 
@@ -4312,7 +4312,7 @@ class _ClientRectImpl extends _DOMWrapperBase implements ClientRect {
 
 // WARNING: Do not edit - generated code.
 
-class _ClientRectListImpl extends _DOMWrapperBase implements ClientRectList {
+class _ClientRectListImpl extends NativeFieldWrapperClass1 implements ClientRectList {
 
   int get length() native "ClientRectList_length_Getter";
 
@@ -4325,7 +4325,7 @@ class _ClientRectListImpl extends _DOMWrapperBase implements ClientRectList {
 
 // WARNING: Do not edit - generated code.
 
-class _ClipboardImpl extends _DOMWrapperBase implements Clipboard {
+class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 
   String get dropEffect() native "Clipboard_dropEffect_Getter";
 
@@ -4393,7 +4393,7 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _ConsoleImpl extends _DOMWrapperBase implements Console {
+class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   MemoryInfo get memory() native "Console_memory_Getter";
 
@@ -4459,7 +4459,7 @@ class _ConvolverNodeImpl extends _AudioNodeImpl implements ConvolverNode {
 
 // WARNING: Do not edit - generated code.
 
-class _CoordinatesImpl extends _DOMWrapperBase implements Coordinates {
+class _CoordinatesImpl extends NativeFieldWrapperClass1 implements Coordinates {
 
   num get accuracy() native "Coordinates_accuracy_Getter";
 
@@ -4482,7 +4482,7 @@ class _CoordinatesImpl extends _DOMWrapperBase implements Coordinates {
 
 // WARNING: Do not edit - generated code.
 
-class _CounterImpl extends _DOMWrapperBase implements Counter {
+class _CounterImpl extends NativeFieldWrapperClass1 implements Counter {
 
   String get identifier() native "Counter_identifier_Getter";
 
@@ -4497,7 +4497,7 @@ class _CounterImpl extends _DOMWrapperBase implements Counter {
 
 // WARNING: Do not edit - generated code.
 
-class _CryptoImpl extends _DOMWrapperBase implements Crypto {
+class _CryptoImpl extends NativeFieldWrapperClass1 implements Crypto {
 
   void getRandomValues(ArrayBufferView array) native "Crypto_getRandomValues_Callback";
 
@@ -4534,7 +4534,7 @@ class _DOMApplicationCacheEventsImpl extends _EventsImpl implements DOMApplicati
 
 // WARNING: Do not edit - generated code.
 
-class _DOMApplicationCacheImpl extends _DOMWrapperBase implements DOMApplicationCache {
+class _DOMApplicationCacheImpl extends NativeFieldWrapperClass1 implements DOMApplicationCache {
   _EventsImpl _on;
 
   _DOMApplicationCacheEventsImpl get on() {
@@ -4583,7 +4583,7 @@ class _DOMApplicationCacheImpl extends _DOMWrapperBase implements DOMApplication
 
 // WARNING: Do not edit - generated code.
 
-class _DOMErrorImpl extends _DOMWrapperBase implements DOMError {
+class _DOMErrorImpl extends NativeFieldWrapperClass1 implements DOMError {
 
   String get name() native "DOMError_name_Getter";
 
@@ -4594,7 +4594,7 @@ class _DOMErrorImpl extends _DOMWrapperBase implements DOMError {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMExceptionImpl extends _DOMWrapperBase implements DOMException {
+class _DOMExceptionImpl extends NativeFieldWrapperClass1 implements DOMException {
 
   int get code() native "DOMException_code_Getter";
 
@@ -4611,7 +4611,7 @@ class _DOMExceptionImpl extends _DOMWrapperBase implements DOMException {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFileSystemImpl extends _DOMWrapperBase implements DOMFileSystem {
+class _DOMFileSystemImpl extends NativeFieldWrapperClass1 implements DOMFileSystem {
 
   String get name() native "DOMFileSystem_name_Getter";
 
@@ -4624,7 +4624,7 @@ class _DOMFileSystemImpl extends _DOMWrapperBase implements DOMFileSystem {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFileSystemSyncImpl extends _DOMWrapperBase implements DOMFileSystemSync {
+class _DOMFileSystemSyncImpl extends NativeFieldWrapperClass1 implements DOMFileSystemSync {
 
   String get name() native "DOMFileSystemSync_name_Getter";
 
@@ -4637,7 +4637,7 @@ class _DOMFileSystemSyncImpl extends _DOMWrapperBase implements DOMFileSystemSyn
 
 // WARNING: Do not edit - generated code.
 
-class _DOMFormDataImpl extends _DOMWrapperBase implements DOMFormData {
+class _DOMFormDataImpl extends NativeFieldWrapperClass1 implements DOMFormData {
 
   void append(String name, String value, String filename) native "DOMFormData_append_Callback";
 
@@ -4648,7 +4648,7 @@ class _DOMFormDataImpl extends _DOMWrapperBase implements DOMFormData {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMImplementationImpl extends _DOMWrapperBase implements DOMImplementation {
+class _DOMImplementationImpl extends NativeFieldWrapperClass1 implements DOMImplementation {
 
   CSSStyleSheet createCSSStyleSheet(String title, String media) native "DOMImplementation_createCSSStyleSheet_Callback";
 
@@ -4667,7 +4667,7 @@ class _DOMImplementationImpl extends _DOMWrapperBase implements DOMImplementatio
 
 // WARNING: Do not edit - generated code.
 
-class _DOMMimeTypeArrayImpl extends _DOMWrapperBase implements DOMMimeTypeArray {
+class _DOMMimeTypeArrayImpl extends NativeFieldWrapperClass1 implements DOMMimeTypeArray {
 
   int get length() native "DOMMimeTypeArray_length_Getter";
 
@@ -4682,7 +4682,7 @@ class _DOMMimeTypeArrayImpl extends _DOMWrapperBase implements DOMMimeTypeArray 
 
 // WARNING: Do not edit - generated code.
 
-class _DOMMimeTypeImpl extends _DOMWrapperBase implements DOMMimeType {
+class _DOMMimeTypeImpl extends NativeFieldWrapperClass1 implements DOMMimeType {
 
   String get description() native "DOMMimeType_description_Getter";
 
@@ -4707,7 +4707,7 @@ class _DOMParserFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMParserImpl extends _DOMWrapperBase implements DOMParser {
+class _DOMParserImpl extends NativeFieldWrapperClass1 implements DOMParser {
 
   Document parseFromString(String str, String contentType) native "DOMParser_parseFromString_Callback";
 
@@ -4718,7 +4718,7 @@ class _DOMParserImpl extends _DOMWrapperBase implements DOMParser {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMPluginArrayImpl extends _DOMWrapperBase implements DOMPluginArray {
+class _DOMPluginArrayImpl extends NativeFieldWrapperClass1 implements DOMPluginArray {
 
   int get length() native "DOMPluginArray_length_Getter";
 
@@ -4735,7 +4735,7 @@ class _DOMPluginArrayImpl extends _DOMWrapperBase implements DOMPluginArray {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMPluginImpl extends _DOMWrapperBase implements DOMPlugin {
+class _DOMPluginImpl extends NativeFieldWrapperClass1 implements DOMPlugin {
 
   String get description() native "DOMPlugin_description_Getter";
 
@@ -4756,7 +4756,7 @@ class _DOMPluginImpl extends _DOMWrapperBase implements DOMPlugin {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMSelectionImpl extends _DOMWrapperBase implements DOMSelection {
+class _DOMSelectionImpl extends NativeFieldWrapperClass1 implements DOMSelection {
 
   Node get anchorNode() native "DOMSelection_anchorNode_Getter";
 
@@ -4830,7 +4830,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
 
 // WARNING: Do not edit - generated code.
 
-class _DOMStringListImpl extends _DOMWrapperBase implements DOMStringList {
+class _DOMStringListImpl extends NativeFieldWrapperClass1 implements DOMStringList {
 
   int get length() native "DOMStringList_length_Getter";
 
@@ -4927,7 +4927,7 @@ class _DOMStringListImpl extends _DOMWrapperBase implements DOMStringList {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMTokenListImpl extends _DOMWrapperBase implements DOMTokenList {
+class _DOMTokenListImpl extends NativeFieldWrapperClass1 implements DOMTokenList {
 
   int get length() native "DOMTokenList_length_Getter";
 
@@ -4958,7 +4958,7 @@ class _DOMURLFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _DOMURLImpl extends _DOMWrapperBase implements DOMURL {
+class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 
   static String createObjectURL(blob_OR_stream) {
     if ((blob_OR_stream is MediaStream || blob_OR_stream === null)) {
@@ -5059,7 +5059,7 @@ class _DOMWindowEventsImpl extends _EventsImpl implements WindowEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DOMWindowImpl extends _DOMWrapperBase implements Window {
+class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   void requestLayoutFrame(TimeoutHandler callback) {
     _addMeasurementFrameCallback(callback);
@@ -5280,7 +5280,7 @@ class _DOMWindowImpl extends _DOMWrapperBase implements Window {
 
 // WARNING: Do not edit - generated code.
 
-class _DataTransferItemImpl extends _DOMWrapperBase implements DataTransferItem {
+class _DataTransferItemImpl extends NativeFieldWrapperClass1 implements DataTransferItem {
 
   String get kind() native "DataTransferItem_kind_Getter";
 
@@ -5299,7 +5299,7 @@ class _DataTransferItemImpl extends _DOMWrapperBase implements DataTransferItem 
 
 // WARNING: Do not edit - generated code.
 
-class _DataTransferItemListImpl extends _DOMWrapperBase implements DataTransferItemList {
+class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements DataTransferItemList {
 
   int get length() native "DataTransferItemList_length_Getter";
 
@@ -5493,7 +5493,7 @@ class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
 // WARNING: Do not edit - generated code.
 
-class _DatabaseImpl extends _DOMWrapperBase implements Database {
+class _DatabaseImpl extends NativeFieldWrapperClass1 implements Database {
 
   String get version() native "Database_version_Getter";
 
@@ -5510,7 +5510,7 @@ class _DatabaseImpl extends _DOMWrapperBase implements Database {
 
 // WARNING: Do not edit - generated code.
 
-class _DatabaseSyncImpl extends _DOMWrapperBase implements DatabaseSync {
+class _DatabaseSyncImpl extends NativeFieldWrapperClass1 implements DatabaseSync {
 
   String get lastErrorMessage() native "DatabaseSync_lastErrorMessage_Getter";
 
@@ -5583,7 +5583,7 @@ class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements Depreca
 
 // WARNING: Do not edit - generated code.
 
-class _DeprecatedPeerConnectionImpl extends _DOMWrapperBase implements DeprecatedPeerConnection {
+class _DeprecatedPeerConnectionImpl extends NativeFieldWrapperClass1 implements DeprecatedPeerConnection {
   _EventsImpl _on;
 
   _DeprecatedPeerConnectionEventsImpl get on() {
@@ -5704,7 +5704,7 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
 // WARNING: Do not edit - generated code.
 
-class _DirectoryReaderImpl extends _DOMWrapperBase implements DirectoryReader {
+class _DirectoryReaderImpl extends NativeFieldWrapperClass1 implements DirectoryReader {
 
   void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native "DirectoryReader_readEntries_Callback";
 
@@ -5715,7 +5715,7 @@ class _DirectoryReaderImpl extends _DOMWrapperBase implements DirectoryReader {
 
 // WARNING: Do not edit - generated code.
 
-class _DirectoryReaderSyncImpl extends _DOMWrapperBase implements DirectoryReaderSync {
+class _DirectoryReaderSyncImpl extends NativeFieldWrapperClass1 implements DirectoryReaderSync {
 
   EntryArraySync readEntries() native "DirectoryReaderSync_readEntries_Callback";
 
@@ -6332,7 +6332,7 @@ class _DynamicsCompressorNodeImpl extends _AudioNodeImpl implements DynamicsComp
 
 // WARNING: Do not edit - generated code.
 
-class _EXTTextureFilterAnisotropicImpl extends _DOMWrapperBase implements EXTTextureFilterAnisotropic {
+class _EXTTextureFilterAnisotropicImpl extends NativeFieldWrapperClass1 implements EXTTextureFilterAnisotropic {
 
 }
 
@@ -7298,7 +7298,7 @@ class _EntityReferenceImpl extends _NodeImpl implements EntityReference {
 
 // WARNING: Do not edit - generated code.
 
-class _EntryArrayImpl extends _DOMWrapperBase implements EntryArray {
+class _EntryArrayImpl extends NativeFieldWrapperClass1 implements EntryArray {
 
   int get length() native "EntryArray_length_Getter";
 
@@ -7311,7 +7311,7 @@ class _EntryArrayImpl extends _DOMWrapperBase implements EntryArray {
 
 // WARNING: Do not edit - generated code.
 
-class _EntryArraySyncImpl extends _DOMWrapperBase implements EntryArraySync {
+class _EntryArraySyncImpl extends NativeFieldWrapperClass1 implements EntryArraySync {
 
   int get length() native "EntryArraySync_length_Getter";
 
@@ -7324,7 +7324,7 @@ class _EntryArraySyncImpl extends _DOMWrapperBase implements EntryArraySync {
 
 // WARNING: Do not edit - generated code.
 
-class _EntryImpl extends _DOMWrapperBase implements Entry {
+class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   DOMFileSystem get filesystem() native "Entry_filesystem_Getter";
 
@@ -7375,7 +7375,7 @@ class _EntryImpl extends _DOMWrapperBase implements Entry {
 
 // WARNING: Do not edit - generated code.
 
-class _EntrySyncImpl extends _DOMWrapperBase implements EntrySync {
+class _EntrySyncImpl extends NativeFieldWrapperClass1 implements EntrySync {
 
   DOMFileSystemSync get filesystem() native "EntrySync_filesystem_Getter";
 
@@ -7421,7 +7421,7 @@ class _ErrorEventImpl extends _EventImpl implements ErrorEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _EventExceptionImpl extends _DOMWrapperBase implements EventException {
+class _EventExceptionImpl extends NativeFieldWrapperClass1 implements EventException {
 
   int get code() native "EventException_code_Getter";
 
@@ -7438,7 +7438,7 @@ class _EventExceptionImpl extends _DOMWrapperBase implements EventException {
 
 // WARNING: Do not edit - generated code.
 
-class _EventImpl extends _DOMWrapperBase implements Event {
+class _EventImpl extends NativeFieldWrapperClass1 implements Event {
 
   bool get bubbles() native "Event_bubbles_Getter";
 
@@ -7499,7 +7499,7 @@ class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _EventSourceImpl extends _DOMWrapperBase implements EventSource {
+class _EventSourceImpl extends NativeFieldWrapperClass1 implements EventSource {
   _EventsImpl _on;
 
   _EventSourceEventsImpl get on() {
@@ -7643,7 +7643,7 @@ class _EventListenerListImpl implements EventListenerList {
   }
 }
 
-class _EventTargetImpl extends _DOMWrapperBase implements EventTarget {
+class _EventTargetImpl extends NativeFieldWrapperClass1 implements EventTarget {
 /*
 
   void $dom_addEventListener(type, listener, [useCapture = _null]) {
@@ -7706,7 +7706,7 @@ class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync {
 
 // WARNING: Do not edit - generated code.
 
-class _FileErrorImpl extends _DOMWrapperBase implements FileError {
+class _FileErrorImpl extends NativeFieldWrapperClass1 implements FileError {
 
   int get code() native "FileError_code_Getter";
 
@@ -7717,7 +7717,7 @@ class _FileErrorImpl extends _DOMWrapperBase implements FileError {
 
 // WARNING: Do not edit - generated code.
 
-class _FileExceptionImpl extends _DOMWrapperBase implements FileException {
+class _FileExceptionImpl extends NativeFieldWrapperClass1 implements FileException {
 
   int get code() native "FileException_code_Getter";
 
@@ -7749,7 +7749,7 @@ class _FileImpl extends _BlobImpl implements File {
 
 // WARNING: Do not edit - generated code.
 
-class _FileListImpl extends _DOMWrapperBase implements FileList {
+class _FileListImpl extends NativeFieldWrapperClass1 implements FileList {
 
   int get length() native "FileList_length_Getter";
 
@@ -7863,7 +7863,7 @@ class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _FileReaderImpl extends _DOMWrapperBase implements FileReader {
+class _FileReaderImpl extends NativeFieldWrapperClass1 implements FileReader {
   _EventsImpl _on;
 
   _FileReaderEventsImpl get on() {
@@ -7938,7 +7938,7 @@ class _FileReaderSyncFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _FileReaderSyncImpl extends _DOMWrapperBase implements FileReaderSync {
+class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReaderSync {
 
   ArrayBuffer readAsArrayBuffer(Blob blob) native "FileReaderSync_readAsArrayBuffer_Callback";
 
@@ -7975,7 +7975,7 @@ class _FileWriterEventsImpl extends _EventsImpl implements FileWriterEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _FileWriterImpl extends _DOMWrapperBase implements FileWriter {
+class _FileWriterImpl extends NativeFieldWrapperClass1 implements FileWriter {
   _EventsImpl _on;
 
   _FileWriterEventsImpl get on() {
@@ -8032,7 +8032,7 @@ class _FileWriterImpl extends _DOMWrapperBase implements FileWriter {
 
 // WARNING: Do not edit - generated code.
 
-class _FileWriterSyncImpl extends _DOMWrapperBase implements FileWriterSync {
+class _FileWriterSyncImpl extends NativeFieldWrapperClass1 implements FileWriterSync {
 
   int get length() native "FileWriterSync_length_Getter";
 
@@ -8259,7 +8259,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
 // WARNING: Do not edit - generated code.
 
-class _GeolocationImpl extends _DOMWrapperBase implements Geolocation {
+class _GeolocationImpl extends NativeFieldWrapperClass1 implements Geolocation {
 
   void clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
 
@@ -8274,7 +8274,7 @@ class _GeolocationImpl extends _DOMWrapperBase implements Geolocation {
 
 // WARNING: Do not edit - generated code.
 
-class _GeopositionImpl extends _DOMWrapperBase implements Geoposition {
+class _GeopositionImpl extends NativeFieldWrapperClass1 implements Geoposition {
 
   Coordinates get coords() native "Geoposition_coords_Getter";
 
@@ -8287,7 +8287,7 @@ class _GeopositionImpl extends _DOMWrapperBase implements Geoposition {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLAllCollectionImpl extends _DOMWrapperBase implements HTMLAllCollection {
+class _HTMLAllCollectionImpl extends NativeFieldWrapperClass1 implements HTMLAllCollection {
 
   int get length() native "HTMLAllCollection_length_Getter";
 
@@ -8701,7 +8701,7 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
 // WARNING: Do not edit - generated code.
 
-class _HTMLCollectionImpl extends _DOMWrapperBase implements HTMLCollection {
+class _HTMLCollectionImpl extends NativeFieldWrapperClass1 implements HTMLCollection {
 
   int get length() native "HTMLCollection_length_Getter";
 
@@ -11081,7 +11081,7 @@ class _HashChangeEventImpl extends _EventImpl implements HashChangeEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _HistoryImpl extends _DOMWrapperBase implements History {
+class _HistoryImpl extends NativeFieldWrapperClass1 implements History {
 
   int get length() native "History_length_Getter";
 
@@ -11104,7 +11104,7 @@ class _HistoryImpl extends _DOMWrapperBase implements History {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBAnyImpl extends _DOMWrapperBase implements IDBAny {
+class _IDBAnyImpl extends NativeFieldWrapperClass1 implements IDBAny {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11113,7 +11113,7 @@ class _IDBAnyImpl extends _DOMWrapperBase implements IDBAny {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBCursorImpl extends _DOMWrapperBase implements IDBCursor {
+class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
 
   String get direction() native "IDBCursor_direction_Getter";
 
@@ -11159,7 +11159,7 @@ class _IDBCursorWithValueImpl extends _IDBCursorImpl implements IDBCursorWithVal
 
 // WARNING: Do not edit - generated code.
 
-class _IDBDatabaseExceptionImpl extends _DOMWrapperBase implements IDBDatabaseException {
+class _IDBDatabaseExceptionImpl extends NativeFieldWrapperClass1 implements IDBDatabaseException {
 
   int get code() native "IDBDatabaseException_code_Getter";
 
@@ -11184,7 +11184,7 @@ class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
+class _IDBDatabaseImpl extends NativeFieldWrapperClass1 implements IDBDatabase {
   _EventsImpl _on;
 
   _IDBDatabaseEventsImpl get on() {
@@ -11267,7 +11267,7 @@ class _IDBDatabaseImpl extends _DOMWrapperBase implements IDBDatabase {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBFactoryImpl extends _DOMWrapperBase implements IDBFactory {
+class _IDBFactoryImpl extends NativeFieldWrapperClass1 implements IDBFactory {
 
   int cmp(first, second) native "IDBFactory_cmp_Callback";
 
@@ -11284,7 +11284,7 @@ class _IDBFactoryImpl extends _DOMWrapperBase implements IDBFactory {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
+class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 
   Dynamic get keyPath() native "IDBIndex_keyPath_Getter";
 
@@ -11428,7 +11428,7 @@ class _IDBIndexImpl extends _DOMWrapperBase implements IDBIndex {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBKeyImpl extends _DOMWrapperBase implements IDBKey {
+class _IDBKeyImpl extends NativeFieldWrapperClass1 implements IDBKey {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11437,7 +11437,7 @@ class _IDBKeyImpl extends _DOMWrapperBase implements IDBKey {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
+class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
 
   Dynamic get lower() native "IDBKeyRange_lower_Getter";
 
@@ -11494,7 +11494,7 @@ class _IDBKeyRangeImpl extends _DOMWrapperBase implements IDBKeyRange {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBObjectStoreImpl extends _DOMWrapperBase implements IDBObjectStore {
+class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectStore {
 
   bool get autoIncrement() native "IDBObjectStore_autoIncrement_Getter";
 
@@ -11658,7 +11658,7 @@ class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _IDBRequestImpl extends _DOMWrapperBase implements IDBRequest {
+class _IDBRequestImpl extends NativeFieldWrapperClass1 implements IDBRequest {
   _EventsImpl _on;
 
   _IDBRequestEventsImpl get on() {
@@ -11721,7 +11721,7 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
 
 // WARNING: Do not edit - generated code.
 
-class _IDBTransactionImpl extends _DOMWrapperBase implements IDBTransaction {
+class _IDBTransactionImpl extends NativeFieldWrapperClass1 implements IDBTransaction {
   _EventsImpl _on;
 
   _IDBTransactionEventsImpl get on() {
@@ -11837,7 +11837,7 @@ class _IceCandidateFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _IceCandidateImpl extends _DOMWrapperBase implements IceCandidate {
+class _IceCandidateImpl extends NativeFieldWrapperClass1 implements IceCandidate {
 
   String get label() native "IceCandidate_label_Getter";
 
@@ -11850,7 +11850,7 @@ class _IceCandidateImpl extends _DOMWrapperBase implements IceCandidate {
 
 // WARNING: Do not edit - generated code.
 
-class _ImageDataImpl extends _DOMWrapperBase implements ImageData {
+class _ImageDataImpl extends NativeFieldWrapperClass1 implements ImageData {
 
   Uint8ClampedArray get data() native "ImageData_data_Getter";
 
@@ -12226,7 +12226,7 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
 // WARNING: Do not edit - generated code.
 
-class _JavaScriptCallFrameImpl extends _DOMWrapperBase implements JavaScriptCallFrame {
+class _JavaScriptCallFrameImpl extends NativeFieldWrapperClass1 implements JavaScriptCallFrame {
 
   JavaScriptCallFrame get caller() native "JavaScriptCallFrame_caller_Getter";
 
@@ -12317,7 +12317,7 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
 // WARNING: Do not edit - generated code.
 
-class _LocationImpl extends _DOMWrapperBase implements Location {
+class _LocationImpl extends NativeFieldWrapperClass1 implements Location {
 
   List<String> get ancestorOrigins() native "Location_ancestorOrigins_Getter";
 
@@ -12378,7 +12378,7 @@ class _MediaControllerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaControllerImpl extends _DOMWrapperBase implements MediaController {
+class _MediaControllerImpl extends NativeFieldWrapperClass1 implements MediaController {
   _EventsImpl _on;
 
   _EventsImpl get on() {
@@ -12464,7 +12464,7 @@ class _MediaElementAudioSourceNodeImpl extends _AudioSourceNodeImpl implements M
 
 // WARNING: Do not edit - generated code.
 
-class _MediaErrorImpl extends _DOMWrapperBase implements MediaError {
+class _MediaErrorImpl extends NativeFieldWrapperClass1 implements MediaError {
 
   int get code() native "MediaError_code_Getter";
 
@@ -12475,7 +12475,7 @@ class _MediaErrorImpl extends _DOMWrapperBase implements MediaError {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaKeyErrorImpl extends _DOMWrapperBase implements MediaKeyError {
+class _MediaKeyErrorImpl extends NativeFieldWrapperClass1 implements MediaKeyError {
 
   int get code() native "MediaKeyError_code_Getter";
 
@@ -12509,7 +12509,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaListImpl extends _DOMWrapperBase implements MediaList {
+class _MediaListImpl extends NativeFieldWrapperClass1 implements MediaList {
 
   int get length() native "MediaList_length_Getter";
 
@@ -12612,7 +12612,7 @@ class _MediaListImpl extends _DOMWrapperBase implements MediaList {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaQueryListImpl extends _DOMWrapperBase implements MediaQueryList {
+class _MediaQueryListImpl extends NativeFieldWrapperClass1 implements MediaQueryList {
 
   bool get matches() native "MediaQueryList_matches_Getter";
 
@@ -12654,7 +12654,7 @@ class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamImpl extends _DOMWrapperBase implements MediaStream {
+class _MediaStreamImpl extends NativeFieldWrapperClass1 implements MediaStream {
   _EventsImpl _on;
 
   _MediaStreamEventsImpl get on() {
@@ -12703,7 +12703,7 @@ class _MediaStreamImpl extends _DOMWrapperBase implements MediaStream {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamListImpl extends _DOMWrapperBase implements MediaStreamList {
+class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStreamList {
 
   int get length() native "MediaStreamList_length_Getter";
 
@@ -12716,7 +12716,7 @@ class _MediaStreamListImpl extends _DOMWrapperBase implements MediaStreamList {
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamTrackImpl extends _DOMWrapperBase implements MediaStreamTrack {
+class _MediaStreamTrackImpl extends NativeFieldWrapperClass1 implements MediaStreamTrack {
 
   bool get enabled() native "MediaStreamTrack_enabled_Getter";
 
@@ -12733,7 +12733,7 @@ class _MediaStreamTrackImpl extends _DOMWrapperBase implements MediaStreamTrack 
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamTrackListImpl extends _DOMWrapperBase implements MediaStreamTrackList {
+class _MediaStreamTrackListImpl extends NativeFieldWrapperClass1 implements MediaStreamTrackList {
 
   int get length() native "MediaStreamTrackList_length_Getter";
 
@@ -12746,7 +12746,7 @@ class _MediaStreamTrackListImpl extends _DOMWrapperBase implements MediaStreamTr
 
 // WARNING: Do not edit - generated code.
 
-class _MemoryInfoImpl extends _DOMWrapperBase implements MemoryInfo {
+class _MemoryInfoImpl extends NativeFieldWrapperClass1 implements MemoryInfo {
 
   int get jsHeapSizeLimit() native "MemoryInfo_jsHeapSizeLimit_Getter";
 
@@ -12769,7 +12769,7 @@ class _MessageChannelFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _MessageChannelImpl extends _DOMWrapperBase implements MessageChannel {
+class _MessageChannelImpl extends NativeFieldWrapperClass1 implements MessageChannel {
 
   MessagePort get port1() native "MessageChannel_port1_Getter";
 
@@ -12811,7 +12811,7 @@ class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _MessagePortImpl extends _DOMWrapperBase implements MessagePort {
+class _MessagePortImpl extends NativeFieldWrapperClass1 implements MessagePort {
   _EventsImpl _on;
 
   _MessagePortEventsImpl get on() {
@@ -12860,7 +12860,7 @@ class _MessagePortImpl extends _DOMWrapperBase implements MessagePort {
 
 // WARNING: Do not edit - generated code.
 
-class _MetadataImpl extends _DOMWrapperBase implements Metadata {
+class _MetadataImpl extends NativeFieldWrapperClass1 implements Metadata {
 
   Date get modificationTime() native "Metadata_modificationTime_Getter";
 
@@ -12922,7 +12922,7 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _MutationCallbackImpl extends _DOMWrapperBase implements MutationCallback {
+class _MutationCallbackImpl extends NativeFieldWrapperClass1 implements MutationCallback {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12952,7 +12952,7 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _MutationRecordImpl extends _DOMWrapperBase implements MutationRecord {
+class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRecord {
 
   NodeList get addedNodes() native "MutationRecord_addedNodes_Getter";
 
@@ -12979,7 +12979,7 @@ class _MutationRecordImpl extends _DOMWrapperBase implements MutationRecord {
 
 // WARNING: Do not edit - generated code.
 
-class _NamedNodeMapImpl extends _DOMWrapperBase implements NamedNodeMap {
+class _NamedNodeMapImpl extends NativeFieldWrapperClass1 implements NamedNodeMap {
 
   int get length() native "NamedNodeMap_length_Getter";
 
@@ -13086,7 +13086,7 @@ class _NamedNodeMapImpl extends _DOMWrapperBase implements NamedNodeMap {
 
 // WARNING: Do not edit - generated code.
 
-class _NavigatorImpl extends _DOMWrapperBase implements Navigator {
+class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   String get appCodeName() native "Navigator_appCodeName_Getter";
 
@@ -13137,7 +13137,7 @@ class _NavigatorImpl extends _DOMWrapperBase implements Navigator {
 
 // WARNING: Do not edit - generated code.
 
-class _NavigatorUserMediaErrorImpl extends _DOMWrapperBase implements NavigatorUserMediaError {
+class _NavigatorUserMediaErrorImpl extends NativeFieldWrapperClass1 implements NavigatorUserMediaError {
 
   int get code() native "NavigatorUserMediaError_code_Getter";
 
@@ -13148,7 +13148,7 @@ class _NavigatorUserMediaErrorImpl extends _DOMWrapperBase implements NavigatorU
 
 // WARNING: Do not edit - generated code.
 
-class _NodeFilterImpl extends _DOMWrapperBase implements NodeFilter {
+class _NodeFilterImpl extends NativeFieldWrapperClass1 implements NodeFilter {
 
   int acceptNode(Node n) native "NodeFilter_acceptNode_Callback";
 
@@ -13258,7 +13258,7 @@ class _ChildNodeListLazy implements NodeList {
   _NodeImpl operator[](int index) => _this.$dom_childNodes[index];
 }
 
-class _NodeImpl extends _DOMWrapperBase implements Node {
+class _NodeImpl extends NativeFieldWrapperClass1 implements Node {
   _ChildNodeListLazy get nodes() {
     return new _ChildNodeListLazy(this);
   }
@@ -13368,7 +13368,7 @@ class _NodeImpl extends _DOMWrapperBase implements Node {
 
 // WARNING: Do not edit - generated code.
 
-class _NodeIteratorImpl extends _DOMWrapperBase implements NodeIterator {
+class _NodeIteratorImpl extends NativeFieldWrapperClass1 implements NodeIterator {
 
   bool get expandEntityReferences() native "NodeIterator_expandEntityReferences_Getter";
 
@@ -13470,7 +13470,7 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
-class _NodeListImpl extends _DOMWrapperBase implements NodeList {
+class _NodeListImpl extends NativeFieldWrapperClass1 implements NodeList {
   _NodeImpl _parent;
 
   // -- start List<Node> mixins.
@@ -13587,7 +13587,7 @@ class _NotationImpl extends _NodeImpl implements Notation {
 
 // WARNING: Do not edit - generated code.
 
-class _NotificationCenterImpl extends _DOMWrapperBase implements NotificationCenter {
+class _NotificationCenterImpl extends NativeFieldWrapperClass1 implements NotificationCenter {
 
   int checkPermission() native "NotificationCenter_checkPermission_Callback";
 
@@ -13622,7 +13622,7 @@ class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents 
 
 // WARNING: Do not edit - generated code.
 
-class _NotificationImpl extends _DOMWrapperBase implements Notification {
+class _NotificationImpl extends NativeFieldWrapperClass1 implements Notification {
   _EventsImpl _on;
 
   _NotificationEventsImpl get on() {
@@ -13685,7 +13685,7 @@ class _NotificationImpl extends _DOMWrapperBase implements Notification {
 
 // WARNING: Do not edit - generated code.
 
-class _OESStandardDerivativesImpl extends _DOMWrapperBase implements OESStandardDerivatives {
+class _OESStandardDerivativesImpl extends NativeFieldWrapperClass1 implements OESStandardDerivatives {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13694,7 +13694,7 @@ class _OESStandardDerivativesImpl extends _DOMWrapperBase implements OESStandard
 
 // WARNING: Do not edit - generated code.
 
-class _OESTextureFloatImpl extends _DOMWrapperBase implements OESTextureFloat {
+class _OESTextureFloatImpl extends NativeFieldWrapperClass1 implements OESTextureFloat {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13703,7 +13703,7 @@ class _OESTextureFloatImpl extends _DOMWrapperBase implements OESTextureFloat {
 
 // WARNING: Do not edit - generated code.
 
-class _OESVertexArrayObjectImpl extends _DOMWrapperBase implements OESVertexArrayObject {
+class _OESVertexArrayObjectImpl extends NativeFieldWrapperClass1 implements OESVertexArrayObject {
 
   void bindVertexArrayOES(WebGLVertexArrayObjectOES arrayObject) native "OESVertexArrayObject_bindVertexArrayOES_Callback";
 
@@ -13771,7 +13771,7 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _PagePopupControllerImpl extends _DOMWrapperBase implements PagePopupController {
+class _PagePopupControllerImpl extends NativeFieldWrapperClass1 implements PagePopupController {
 
   void setValueAndClosePopup(int numberValue, String stringValue) native "PagePopupController_setValueAndClosePopup_Callback";
 
@@ -13811,7 +13811,7 @@ class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection0
 
 // WARNING: Do not edit - generated code.
 
-class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 {
+class _PeerConnection00Impl extends NativeFieldWrapperClass1 implements PeerConnection00 {
   _EventsImpl _on;
 
   _PeerConnection00EventsImpl get on() {
@@ -13920,7 +13920,7 @@ class _PeerConnection00Impl extends _DOMWrapperBase implements PeerConnection00 
 
 // WARNING: Do not edit - generated code.
 
-class _PerformanceImpl extends _DOMWrapperBase implements Performance {
+class _PerformanceImpl extends NativeFieldWrapperClass1 implements Performance {
 
   MemoryInfo get memory() native "Performance_memory_Getter";
 
@@ -13937,7 +13937,7 @@ class _PerformanceImpl extends _DOMWrapperBase implements Performance {
 
 // WARNING: Do not edit - generated code.
 
-class _PerformanceNavigationImpl extends _DOMWrapperBase implements PerformanceNavigation {
+class _PerformanceNavigationImpl extends NativeFieldWrapperClass1 implements PerformanceNavigation {
 
   int get redirectCount() native "PerformanceNavigation_redirectCount_Getter";
 
@@ -13950,7 +13950,7 @@ class _PerformanceNavigationImpl extends _DOMWrapperBase implements PerformanceN
 
 // WARNING: Do not edit - generated code.
 
-class _PerformanceTimingImpl extends _DOMWrapperBase implements PerformanceTiming {
+class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements PerformanceTiming {
 
   int get connectEnd() native "PerformanceTiming_connectEnd_Getter";
 
@@ -14001,7 +14001,7 @@ class _PerformanceTimingImpl extends _DOMWrapperBase implements PerformanceTimin
 
 // WARNING: Do not edit - generated code.
 
-class _PointerLockImpl extends _DOMWrapperBase implements PointerLock {
+class _PointerLockImpl extends NativeFieldWrapperClass1 implements PointerLock {
 
   bool get isLocked() native "PointerLock_isLocked_Getter";
 
@@ -14027,7 +14027,7 @@ class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _PositionErrorImpl extends _DOMWrapperBase implements PositionError {
+class _PositionErrorImpl extends NativeFieldWrapperClass1 implements PositionError {
 
   int get code() native "PositionError_code_Getter";
 
@@ -14072,7 +14072,7 @@ class _ProgressEventImpl extends _EventImpl implements ProgressEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _RGBColorImpl extends _DOMWrapperBase implements RGBColor {
+class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
 
   CSSPrimitiveValue get blue() native "RGBColor_blue_Getter";
 
@@ -14100,7 +14100,7 @@ class _RadioNodeListImpl extends _NodeListImpl implements RadioNodeList {
 
 // WARNING: Do not edit - generated code.
 
-class _RangeExceptionImpl extends _DOMWrapperBase implements RangeException {
+class _RangeExceptionImpl extends NativeFieldWrapperClass1 implements RangeException {
 
   int get code() native "RangeException_code_Getter";
 
@@ -14117,7 +14117,7 @@ class _RangeExceptionImpl extends _DOMWrapperBase implements RangeException {
 
 // WARNING: Do not edit - generated code.
 
-class _RangeImpl extends _DOMWrapperBase implements Range {
+class _RangeImpl extends NativeFieldWrapperClass1 implements Range {
 
   bool get collapsed() native "Range_collapsed_Getter";
 
@@ -14221,7 +14221,7 @@ class _RealtimeAnalyserNodeImpl extends _AudioNodeImpl implements RealtimeAnalys
 
 // WARNING: Do not edit - generated code.
 
-class _RectImpl extends _DOMWrapperBase implements Rect {
+class _RectImpl extends NativeFieldWrapperClass1 implements Rect {
 
   CSSPrimitiveValue get bottom() native "Rect_bottom_Getter";
 
@@ -14238,7 +14238,7 @@ class _RectImpl extends _DOMWrapperBase implements Rect {
 
 // WARNING: Do not edit - generated code.
 
-class _SQLErrorImpl extends _DOMWrapperBase implements SQLError {
+class _SQLErrorImpl extends NativeFieldWrapperClass1 implements SQLError {
 
   int get code() native "SQLError_code_Getter";
 
@@ -14251,7 +14251,7 @@ class _SQLErrorImpl extends _DOMWrapperBase implements SQLError {
 
 // WARNING: Do not edit - generated code.
 
-class _SQLExceptionImpl extends _DOMWrapperBase implements SQLException {
+class _SQLExceptionImpl extends NativeFieldWrapperClass1 implements SQLException {
 
   int get code() native "SQLException_code_Getter";
 
@@ -14264,7 +14264,7 @@ class _SQLExceptionImpl extends _DOMWrapperBase implements SQLException {
 
 // WARNING: Do not edit - generated code.
 
-class _SQLResultSetImpl extends _DOMWrapperBase implements SQLResultSet {
+class _SQLResultSetImpl extends NativeFieldWrapperClass1 implements SQLResultSet {
 
   int get insertId() native "SQLResultSet_insertId_Getter";
 
@@ -14279,7 +14279,7 @@ class _SQLResultSetImpl extends _DOMWrapperBase implements SQLResultSet {
 
 // WARNING: Do not edit - generated code.
 
-class _SQLResultSetRowListImpl extends _DOMWrapperBase implements SQLResultSetRowList {
+class _SQLResultSetRowListImpl extends NativeFieldWrapperClass1 implements SQLResultSetRowList {
 
   int get length() native "SQLResultSetRowList_length_Getter";
 
@@ -14292,7 +14292,7 @@ class _SQLResultSetRowListImpl extends _DOMWrapperBase implements SQLResultSetRo
 
 // WARNING: Do not edit - generated code.
 
-class _SQLTransactionImpl extends _DOMWrapperBase implements SQLTransaction {
+class _SQLTransactionImpl extends NativeFieldWrapperClass1 implements SQLTransaction {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14301,7 +14301,7 @@ class _SQLTransactionImpl extends _DOMWrapperBase implements SQLTransaction {
 
 // WARNING: Do not edit - generated code.
 
-class _SQLTransactionSyncImpl extends _DOMWrapperBase implements SQLTransactionSync {
+class _SQLTransactionSyncImpl extends NativeFieldWrapperClass1 implements SQLTransactionSync {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14398,7 +14398,7 @@ class _SVGAltGlyphItemElementImpl extends _SVGElementImpl implements SVGAltGlyph
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAngleImpl extends _DOMWrapperBase implements SVGAngle {
+class _SVGAngleImpl extends NativeFieldWrapperClass1 implements SVGAngle {
 
   int get unitType() native "SVGAngle_unitType_Getter";
 
@@ -14461,7 +14461,7 @@ class _SVGAnimateTransformElementImpl extends _SVGAnimationElementImpl implement
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedAngleImpl extends _DOMWrapperBase implements SVGAnimatedAngle {
+class _SVGAnimatedAngleImpl extends NativeFieldWrapperClass1 implements SVGAnimatedAngle {
 
   SVGAngle get animVal() native "SVGAnimatedAngle_animVal_Getter";
 
@@ -14474,7 +14474,7 @@ class _SVGAnimatedAngleImpl extends _DOMWrapperBase implements SVGAnimatedAngle 
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedBooleanImpl extends _DOMWrapperBase implements SVGAnimatedBoolean {
+class _SVGAnimatedBooleanImpl extends NativeFieldWrapperClass1 implements SVGAnimatedBoolean {
 
   bool get animVal() native "SVGAnimatedBoolean_animVal_Getter";
 
@@ -14489,7 +14489,7 @@ class _SVGAnimatedBooleanImpl extends _DOMWrapperBase implements SVGAnimatedBool
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedEnumerationImpl extends _DOMWrapperBase implements SVGAnimatedEnumeration {
+class _SVGAnimatedEnumerationImpl extends NativeFieldWrapperClass1 implements SVGAnimatedEnumeration {
 
   int get animVal() native "SVGAnimatedEnumeration_animVal_Getter";
 
@@ -14504,7 +14504,7 @@ class _SVGAnimatedEnumerationImpl extends _DOMWrapperBase implements SVGAnimated
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedIntegerImpl extends _DOMWrapperBase implements SVGAnimatedInteger {
+class _SVGAnimatedIntegerImpl extends NativeFieldWrapperClass1 implements SVGAnimatedInteger {
 
   int get animVal() native "SVGAnimatedInteger_animVal_Getter";
 
@@ -14519,7 +14519,7 @@ class _SVGAnimatedIntegerImpl extends _DOMWrapperBase implements SVGAnimatedInte
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedLengthImpl extends _DOMWrapperBase implements SVGAnimatedLength {
+class _SVGAnimatedLengthImpl extends NativeFieldWrapperClass1 implements SVGAnimatedLength {
 
   SVGLength get animVal() native "SVGAnimatedLength_animVal_Getter";
 
@@ -14532,7 +14532,7 @@ class _SVGAnimatedLengthImpl extends _DOMWrapperBase implements SVGAnimatedLengt
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedLengthListImpl extends _DOMWrapperBase implements SVGAnimatedLengthList {
+class _SVGAnimatedLengthListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedLengthList {
 
   SVGLengthList get animVal() native "SVGAnimatedLengthList_animVal_Getter";
 
@@ -14545,7 +14545,7 @@ class _SVGAnimatedLengthListImpl extends _DOMWrapperBase implements SVGAnimatedL
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedNumberImpl extends _DOMWrapperBase implements SVGAnimatedNumber {
+class _SVGAnimatedNumberImpl extends NativeFieldWrapperClass1 implements SVGAnimatedNumber {
 
   num get animVal() native "SVGAnimatedNumber_animVal_Getter";
 
@@ -14560,7 +14560,7 @@ class _SVGAnimatedNumberImpl extends _DOMWrapperBase implements SVGAnimatedNumbe
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedNumberListImpl extends _DOMWrapperBase implements SVGAnimatedNumberList {
+class _SVGAnimatedNumberListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedNumberList {
 
   SVGNumberList get animVal() native "SVGAnimatedNumberList_animVal_Getter";
 
@@ -14573,7 +14573,7 @@ class _SVGAnimatedNumberListImpl extends _DOMWrapperBase implements SVGAnimatedN
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedPreserveAspectRatioImpl extends _DOMWrapperBase implements SVGAnimatedPreserveAspectRatio {
+class _SVGAnimatedPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SVGAnimatedPreserveAspectRatio {
 
   SVGPreserveAspectRatio get animVal() native "SVGAnimatedPreserveAspectRatio_animVal_Getter";
 
@@ -14586,7 +14586,7 @@ class _SVGAnimatedPreserveAspectRatioImpl extends _DOMWrapperBase implements SVG
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedRectImpl extends _DOMWrapperBase implements SVGAnimatedRect {
+class _SVGAnimatedRectImpl extends NativeFieldWrapperClass1 implements SVGAnimatedRect {
 
   SVGRect get animVal() native "SVGAnimatedRect_animVal_Getter";
 
@@ -14599,7 +14599,7 @@ class _SVGAnimatedRectImpl extends _DOMWrapperBase implements SVGAnimatedRect {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedStringImpl extends _DOMWrapperBase implements SVGAnimatedString {
+class _SVGAnimatedStringImpl extends NativeFieldWrapperClass1 implements SVGAnimatedString {
 
   String get animVal() native "SVGAnimatedString_animVal_Getter";
 
@@ -14614,7 +14614,7 @@ class _SVGAnimatedStringImpl extends _DOMWrapperBase implements SVGAnimatedStrin
 
 // WARNING: Do not edit - generated code.
 
-class _SVGAnimatedTransformListImpl extends _DOMWrapperBase implements SVGAnimatedTransformList {
+class _SVGAnimatedTransformListImpl extends NativeFieldWrapperClass1 implements SVGAnimatedTransformList {
 
   SVGTransformList get animVal() native "SVGAnimatedTransformList_animVal_Getter";
 
@@ -15025,7 +15025,7 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
 
 // WARNING: Do not edit - generated code.
 
-class _SVGElementInstanceImpl extends _DOMWrapperBase implements SVGElementInstance {
+class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGElementInstance {
   _EventsImpl _on;
 
   _SVGElementInstanceEventsImpl get on() {
@@ -15082,7 +15082,7 @@ class _SVGElementInstanceImpl extends _DOMWrapperBase implements SVGElementInsta
 
 // WARNING: Do not edit - generated code.
 
-class _SVGElementInstanceListImpl extends _DOMWrapperBase implements SVGElementInstanceList {
+class _SVGElementInstanceListImpl extends NativeFieldWrapperClass1 implements SVGElementInstanceList {
 
   int get length() native "SVGElementInstanceList_length_Getter";
 
@@ -15150,7 +15150,7 @@ class _SVGEllipseElementImpl extends _SVGElementImpl implements SVGEllipseElemen
 
 // WARNING: Do not edit - generated code.
 
-class _SVGExceptionImpl extends _DOMWrapperBase implements SVGException {
+class _SVGExceptionImpl extends NativeFieldWrapperClass1 implements SVGException {
 
   int get code() native "SVGException_code_Getter";
 
@@ -16180,7 +16180,7 @@ class _SVGImageElementImpl extends _SVGElementImpl implements SVGImageElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGLengthImpl extends _DOMWrapperBase implements SVGLength {
+class _SVGLengthImpl extends NativeFieldWrapperClass1 implements SVGLength {
 
   int get unitType() native "SVGLength_unitType_Getter";
 
@@ -16207,7 +16207,7 @@ class _SVGLengthImpl extends _DOMWrapperBase implements SVGLength {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGLengthListImpl extends _DOMWrapperBase implements SVGLengthList {
+class _SVGLengthListImpl extends NativeFieldWrapperClass1 implements SVGLengthList {
 
   int get numberOfItems() native "SVGLengthList_numberOfItems_Getter";
 
@@ -16409,7 +16409,7 @@ class _SVGMaskElementImpl extends _SVGElementImpl implements SVGMaskElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGMatrixImpl extends _DOMWrapperBase implements SVGMatrix {
+class _SVGMatrixImpl extends NativeFieldWrapperClass1 implements SVGMatrix {
 
   num get a() native "SVGMatrix_a_Getter";
 
@@ -16482,7 +16482,7 @@ class _SVGMissingGlyphElementImpl extends _SVGElementImpl implements SVGMissingG
 
 // WARNING: Do not edit - generated code.
 
-class _SVGNumberImpl extends _DOMWrapperBase implements SVGNumber {
+class _SVGNumberImpl extends NativeFieldWrapperClass1 implements SVGNumber {
 
   num get value() native "SVGNumber_value_Getter";
 
@@ -16495,7 +16495,7 @@ class _SVGNumberImpl extends _DOMWrapperBase implements SVGNumber {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGNumberListImpl extends _DOMWrapperBase implements SVGNumberList {
+class _SVGNumberListImpl extends NativeFieldWrapperClass1 implements SVGNumberList {
 
   int get numberOfItems() native "SVGNumberList_numberOfItems_Getter";
 
@@ -16921,7 +16921,7 @@ class _SVGPathSegCurvetoQuadraticSmoothRelImpl extends _SVGPathSegImpl implement
 
 // WARNING: Do not edit - generated code.
 
-class _SVGPathSegImpl extends _DOMWrapperBase implements SVGPathSeg {
+class _SVGPathSegImpl extends NativeFieldWrapperClass1 implements SVGPathSeg {
 
   int get pathSegType() native "SVGPathSeg_pathSegType_Getter";
 
@@ -17020,7 +17020,7 @@ class _SVGPathSegLinetoVerticalRelImpl extends _SVGPathSegImpl implements SVGPat
 
 // WARNING: Do not edit - generated code.
 
-class _SVGPathSegListImpl extends _DOMWrapperBase implements SVGPathSegList {
+class _SVGPathSegListImpl extends NativeFieldWrapperClass1 implements SVGPathSegList {
 
   int get numberOfItems() native "SVGPathSegList_numberOfItems_Getter";
 
@@ -17132,7 +17132,7 @@ class _SVGPatternElementImpl extends _SVGElementImpl implements SVGPatternElemen
 
 // WARNING: Do not edit - generated code.
 
-class _SVGPointImpl extends _DOMWrapperBase implements SVGPoint {
+class _SVGPointImpl extends NativeFieldWrapperClass1 implements SVGPoint {
 
   num get x() native "SVGPoint_x_Getter";
 
@@ -17151,7 +17151,7 @@ class _SVGPointImpl extends _DOMWrapperBase implements SVGPoint {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGPointListImpl extends _DOMWrapperBase implements SVGPointList {
+class _SVGPointListImpl extends NativeFieldWrapperClass1 implements SVGPointList {
 
   int get numberOfItems() native "SVGPointList_numberOfItems_Getter";
 
@@ -17278,7 +17278,7 @@ class _SVGPolylineElementImpl extends _SVGElementImpl implements SVGPolylineElem
 
 // WARNING: Do not edit - generated code.
 
-class _SVGPreserveAspectRatioImpl extends _DOMWrapperBase implements SVGPreserveAspectRatio {
+class _SVGPreserveAspectRatioImpl extends NativeFieldWrapperClass1 implements SVGPreserveAspectRatio {
 
   int get align() native "SVGPreserveAspectRatio_align_Getter";
 
@@ -17373,7 +17373,7 @@ class _SVGRectElementImpl extends _SVGElementImpl implements SVGRectElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGRectImpl extends _DOMWrapperBase implements SVGRect {
+class _SVGRectImpl extends NativeFieldWrapperClass1 implements SVGRect {
 
   num get height() native "SVGRect_height_Getter";
 
@@ -17398,7 +17398,7 @@ class _SVGRectImpl extends _DOMWrapperBase implements SVGRect {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGRenderingIntentImpl extends _DOMWrapperBase implements SVGRenderingIntent {
+class _SVGRenderingIntentImpl extends NativeFieldWrapperClass1 implements SVGRenderingIntent {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -17585,7 +17585,7 @@ class _SVGStopElementImpl extends _SVGElementImpl implements SVGStopElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGStringListImpl extends _DOMWrapperBase implements SVGStringList {
+class _SVGStringListImpl extends NativeFieldWrapperClass1 implements SVGStringList {
 
   int get numberOfItems() native "SVGStringList_numberOfItems_Getter";
 
@@ -17876,7 +17876,7 @@ class _SVGTitleElementImpl extends _SVGElementImpl implements SVGTitleElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGTransformImpl extends _DOMWrapperBase implements SVGTransform {
+class _SVGTransformImpl extends NativeFieldWrapperClass1 implements SVGTransform {
 
   num get angle() native "SVGTransform_angle_Getter";
 
@@ -17903,7 +17903,7 @@ class _SVGTransformImpl extends _DOMWrapperBase implements SVGTransform {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGTransformListImpl extends _DOMWrapperBase implements SVGTransformList {
+class _SVGTransformListImpl extends NativeFieldWrapperClass1 implements SVGTransformList {
 
   int get numberOfItems() native "SVGTransformList_numberOfItems_Getter";
 
@@ -17932,7 +17932,7 @@ class _SVGTransformListImpl extends _DOMWrapperBase implements SVGTransformList 
 
 // WARNING: Do not edit - generated code.
 
-class _SVGUnitTypesImpl extends _DOMWrapperBase implements SVGUnitTypes {
+class _SVGUnitTypesImpl extends NativeFieldWrapperClass1 implements SVGUnitTypes {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18032,7 +18032,7 @@ class _SVGViewElementImpl extends _SVGElementImpl implements SVGViewElement {
 
 // WARNING: Do not edit - generated code.
 
-class _SVGViewSpecImpl extends _DOMWrapperBase implements SVGViewSpec {
+class _SVGViewSpecImpl extends NativeFieldWrapperClass1 implements SVGViewSpec {
 
   SVGAnimatedPreserveAspectRatio get preserveAspectRatio() native "SVGViewSpec_preserveAspectRatio_Getter";
 
@@ -18080,7 +18080,7 @@ class _SVGZoomEventImpl extends _UIEventImpl implements SVGZoomEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _ScreenImpl extends _DOMWrapperBase implements Screen {
+class _ScreenImpl extends NativeFieldWrapperClass1 implements Screen {
 
   int get availHeight() native "Screen_availHeight_Getter";
 
@@ -18105,7 +18105,7 @@ class _ScreenImpl extends _DOMWrapperBase implements Screen {
 
 // WARNING: Do not edit - generated code.
 
-class _ScriptProfileImpl extends _DOMWrapperBase implements ScriptProfile {
+class _ScriptProfileImpl extends NativeFieldWrapperClass1 implements ScriptProfile {
 
   ScriptProfileNode get head() native "ScriptProfile_head_Getter";
 
@@ -18120,7 +18120,7 @@ class _ScriptProfileImpl extends _DOMWrapperBase implements ScriptProfile {
 
 // WARNING: Do not edit - generated code.
 
-class _ScriptProfileNodeImpl extends _DOMWrapperBase implements ScriptProfileNode {
+class _ScriptProfileNodeImpl extends NativeFieldWrapperClass1 implements ScriptProfileNode {
 
   int get callUID() native "ScriptProfileNode_callUID_Getter";
 
@@ -18155,7 +18155,7 @@ class _SessionDescriptionFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _SessionDescriptionImpl extends _DOMWrapperBase implements SessionDescription {
+class _SessionDescriptionImpl extends NativeFieldWrapperClass1 implements SessionDescription {
 
   void addCandidate(IceCandidate candidate) native "SessionDescription_addCandidate_Callback";
 
@@ -18260,7 +18260,7 @@ class _SpeechGrammarFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechGrammarImpl extends _DOMWrapperBase implements SpeechGrammar {
+class _SpeechGrammarImpl extends NativeFieldWrapperClass1 implements SpeechGrammar {
 
   String get src() native "SpeechGrammar_src_Getter";
 
@@ -18285,7 +18285,7 @@ class _SpeechGrammarListFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechGrammarListImpl extends _DOMWrapperBase implements SpeechGrammarList {
+class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechGrammarList {
 
   int get length() native "SpeechGrammarList_length_Getter";
 
@@ -18333,7 +18333,7 @@ class _SpeechInputEventImpl extends _EventImpl implements SpeechInputEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechInputResultImpl extends _DOMWrapperBase implements SpeechInputResult {
+class _SpeechInputResultImpl extends NativeFieldWrapperClass1 implements SpeechInputResult {
 
   num get confidence() native "SpeechInputResult_confidence_Getter";
 
@@ -18346,7 +18346,7 @@ class _SpeechInputResultImpl extends _DOMWrapperBase implements SpeechInputResul
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechInputResultListImpl extends _DOMWrapperBase implements SpeechInputResultList {
+class _SpeechInputResultListImpl extends NativeFieldWrapperClass1 implements SpeechInputResultList {
 
   int get length() native "SpeechInputResultList_length_Getter";
 
@@ -18359,7 +18359,7 @@ class _SpeechInputResultListImpl extends _DOMWrapperBase implements SpeechInputR
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechRecognitionAlternativeImpl extends _DOMWrapperBase implements SpeechRecognitionAlternative {
+class _SpeechRecognitionAlternativeImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionAlternative {
 
   num get confidence() native "SpeechRecognitionAlternative_confidence_Getter";
 
@@ -18425,7 +18425,7 @@ class _SpeechRecognitionEventsImpl extends _EventsImpl implements SpeechRecognit
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechRecognitionImpl extends _DOMWrapperBase implements SpeechRecognition {
+class _SpeechRecognitionImpl extends NativeFieldWrapperClass1 implements SpeechRecognition {
   _EventsImpl _on;
 
   _SpeechRecognitionEventsImpl get on() {
@@ -18484,7 +18484,7 @@ class _SpeechRecognitionImpl extends _DOMWrapperBase implements SpeechRecognitio
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechRecognitionResultImpl extends _DOMWrapperBase implements SpeechRecognitionResult {
+class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResult {
 
   bool get finalValue() native "SpeechRecognitionResult_final_Getter";
 
@@ -18499,7 +18499,7 @@ class _SpeechRecognitionResultImpl extends _DOMWrapperBase implements SpeechReco
 
 // WARNING: Do not edit - generated code.
 
-class _SpeechRecognitionResultListImpl extends _DOMWrapperBase implements SpeechRecognitionResultList {
+class _SpeechRecognitionResultListImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResultList {
 
   int get length() native "SpeechRecognitionResultList_length_Getter";
 
@@ -18531,7 +18531,7 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _StorageImpl extends _DOMWrapperBase implements Storage {
+class _StorageImpl extends NativeFieldWrapperClass1 implements Storage {
 
   // TODO(nweiz): update this when maps support lazy iteration
   bool containsValue(String value) => getValues().some((e) => e == value);
@@ -18599,7 +18599,7 @@ class _StorageImpl extends _DOMWrapperBase implements Storage {
 
 // WARNING: Do not edit - generated code.
 
-class _StyleMediaImpl extends _DOMWrapperBase implements StyleMedia {
+class _StyleMediaImpl extends NativeFieldWrapperClass1 implements StyleMedia {
 
   String get type() native "StyleMedia_type_Getter";
 
@@ -18612,7 +18612,7 @@ class _StyleMediaImpl extends _DOMWrapperBase implements StyleMedia {
 
 // WARNING: Do not edit - generated code.
 
-class _StyleSheetImpl extends _DOMWrapperBase implements StyleSheet {
+class _StyleSheetImpl extends NativeFieldWrapperClass1 implements StyleSheet {
 
   bool get disabled() native "StyleSheet_disabled_Getter";
 
@@ -18637,7 +18637,7 @@ class _StyleSheetImpl extends _DOMWrapperBase implements StyleSheet {
 
 // WARNING: Do not edit - generated code.
 
-class _StyleSheetListImpl extends _DOMWrapperBase implements StyleSheetList {
+class _StyleSheetListImpl extends NativeFieldWrapperClass1 implements StyleSheetList {
 
   int get length() native "StyleSheetList_length_Getter";
 
@@ -18760,7 +18760,7 @@ class _TextImpl extends _CharacterDataImpl implements Text {
 
 // WARNING: Do not edit - generated code.
 
-class _TextMetricsImpl extends _DOMWrapperBase implements TextMetrics {
+class _TextMetricsImpl extends NativeFieldWrapperClass1 implements TextMetrics {
 
   num get width() native "TextMetrics_width_Getter";
 
@@ -18786,7 +18786,7 @@ class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents 
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackCueImpl extends _DOMWrapperBase implements TextTrackCue {
+class _TextTrackCueImpl extends NativeFieldWrapperClass1 implements TextTrackCue {
   _EventsImpl _on;
 
   _TextTrackCueEventsImpl get on() {
@@ -18875,7 +18875,7 @@ class _TextTrackCueImpl extends _DOMWrapperBase implements TextTrackCue {
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackCueListImpl extends _DOMWrapperBase implements TextTrackCueList {
+class _TextTrackCueListImpl extends NativeFieldWrapperClass1 implements TextTrackCueList {
 
   int get length() native "TextTrackCueList_length_Getter";
 
@@ -18896,7 +18896,7 @@ class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackImpl extends _DOMWrapperBase implements TextTrack {
+class _TextTrackImpl extends NativeFieldWrapperClass1 implements TextTrack {
   _EventsImpl _on;
 
   _TextTrackEventsImpl get on() {
@@ -18961,7 +18961,7 @@ class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvent
 
 // WARNING: Do not edit - generated code.
 
-class _TextTrackListImpl extends _DOMWrapperBase implements TextTrackList {
+class _TextTrackListImpl extends NativeFieldWrapperClass1 implements TextTrackList {
   _EventsImpl _on;
 
   _TextTrackListEventsImpl get on() {
@@ -19006,7 +19006,7 @@ class _TextTrackListImpl extends _DOMWrapperBase implements TextTrackList {
 
 // WARNING: Do not edit - generated code.
 
-class _TimeRangesImpl extends _DOMWrapperBase implements TimeRanges {
+class _TimeRangesImpl extends NativeFieldWrapperClass1 implements TimeRanges {
 
   int get length() native "TimeRanges_length_Getter";
 
@@ -19046,7 +19046,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _TouchImpl extends _DOMWrapperBase implements Touch {
+class _TouchImpl extends NativeFieldWrapperClass1 implements Touch {
 
   int get clientX() native "Touch_clientX_Getter";
 
@@ -19079,7 +19079,7 @@ class _TouchImpl extends _DOMWrapperBase implements Touch {
 
 // WARNING: Do not edit - generated code.
 
-class _TouchListImpl extends _DOMWrapperBase implements TouchList {
+class _TouchListImpl extends NativeFieldWrapperClass1 implements TouchList {
 
   int get length() native "TouchList_length_Getter";
 
@@ -19185,7 +19185,7 @@ class _TrackEventImpl extends _EventImpl implements TrackEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _TreeWalkerImpl extends _DOMWrapperBase implements TreeWalker {
+class _TreeWalkerImpl extends NativeFieldWrapperClass1 implements TreeWalker {
 
   Node get currentNode() native "TreeWalker_currentNode_Getter";
 
@@ -19589,7 +19589,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
 // WARNING: Do not edit - generated code.
 
-class _ValidityStateImpl extends _DOMWrapperBase implements ValidityState {
+class _ValidityStateImpl extends NativeFieldWrapperClass1 implements ValidityState {
 
   bool get customError() native "ValidityState_customError_Getter";
 
@@ -19629,7 +19629,7 @@ class _WaveShaperNodeImpl extends _AudioNodeImpl implements WaveShaperNode {
 
 // WARNING: Do not edit - generated code.
 
-class _WaveTableImpl extends _DOMWrapperBase implements WaveTable {
+class _WaveTableImpl extends NativeFieldWrapperClass1 implements WaveTable {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19638,7 +19638,7 @@ class _WaveTableImpl extends _DOMWrapperBase implements WaveTable {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLActiveInfoImpl extends _DOMWrapperBase implements WebGLActiveInfo {
+class _WebGLActiveInfoImpl extends NativeFieldWrapperClass1 implements WebGLActiveInfo {
 
   String get name() native "WebGLActiveInfo_name_Getter";
 
@@ -19653,7 +19653,7 @@ class _WebGLActiveInfoImpl extends _DOMWrapperBase implements WebGLActiveInfo {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLBufferImpl extends _DOMWrapperBase implements WebGLBuffer {
+class _WebGLBufferImpl extends NativeFieldWrapperClass1 implements WebGLBuffer {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19662,7 +19662,7 @@ class _WebGLBufferImpl extends _DOMWrapperBase implements WebGLBuffer {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLCompressedTextureS3TCImpl extends _DOMWrapperBase implements WebGLCompressedTextureS3TC {
+class _WebGLCompressedTextureS3TCImpl extends NativeFieldWrapperClass1 implements WebGLCompressedTextureS3TC {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19671,7 +19671,7 @@ class _WebGLCompressedTextureS3TCImpl extends _DOMWrapperBase implements WebGLCo
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLContextAttributesImpl extends _DOMWrapperBase implements WebGLContextAttributes {
+class _WebGLContextAttributesImpl extends NativeFieldWrapperClass1 implements WebGLContextAttributes {
 
   bool get alpha() native "WebGLContextAttributes_alpha_Getter";
 
@@ -19715,7 +19715,7 @@ class _WebGLContextEventImpl extends _EventImpl implements WebGLContextEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLDebugRendererInfoImpl extends _DOMWrapperBase implements WebGLDebugRendererInfo {
+class _WebGLDebugRendererInfoImpl extends NativeFieldWrapperClass1 implements WebGLDebugRendererInfo {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19724,7 +19724,7 @@ class _WebGLDebugRendererInfoImpl extends _DOMWrapperBase implements WebGLDebugR
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLDebugShadersImpl extends _DOMWrapperBase implements WebGLDebugShaders {
+class _WebGLDebugShadersImpl extends NativeFieldWrapperClass1 implements WebGLDebugShaders {
 
   String getTranslatedShaderSource(WebGLShader shader) native "WebGLDebugShaders_getTranslatedShaderSource_Callback";
 
@@ -19735,7 +19735,7 @@ class _WebGLDebugShadersImpl extends _DOMWrapperBase implements WebGLDebugShader
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLDepthTextureImpl extends _DOMWrapperBase implements WebGLDepthTexture {
+class _WebGLDepthTextureImpl extends NativeFieldWrapperClass1 implements WebGLDepthTexture {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19744,7 +19744,7 @@ class _WebGLDepthTextureImpl extends _DOMWrapperBase implements WebGLDepthTextur
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLFramebufferImpl extends _DOMWrapperBase implements WebGLFramebuffer {
+class _WebGLFramebufferImpl extends NativeFieldWrapperClass1 implements WebGLFramebuffer {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19753,7 +19753,7 @@ class _WebGLFramebufferImpl extends _DOMWrapperBase implements WebGLFramebuffer 
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLLoseContextImpl extends _DOMWrapperBase implements WebGLLoseContext {
+class _WebGLLoseContextImpl extends NativeFieldWrapperClass1 implements WebGLLoseContext {
 
   void loseContext() native "WebGLLoseContext_loseContext_Callback";
 
@@ -19766,7 +19766,7 @@ class _WebGLLoseContextImpl extends _DOMWrapperBase implements WebGLLoseContext 
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLProgramImpl extends _DOMWrapperBase implements WebGLProgram {
+class _WebGLProgramImpl extends NativeFieldWrapperClass1 implements WebGLProgram {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19775,7 +19775,7 @@ class _WebGLProgramImpl extends _DOMWrapperBase implements WebGLProgram {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLRenderbufferImpl extends _DOMWrapperBase implements WebGLRenderbuffer {
+class _WebGLRenderbufferImpl extends NativeFieldWrapperClass1 implements WebGLRenderbuffer {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20169,7 +20169,7 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLShaderImpl extends _DOMWrapperBase implements WebGLShader {
+class _WebGLShaderImpl extends NativeFieldWrapperClass1 implements WebGLShader {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20178,7 +20178,7 @@ class _WebGLShaderImpl extends _DOMWrapperBase implements WebGLShader {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLShaderPrecisionFormatImpl extends _DOMWrapperBase implements WebGLShaderPrecisionFormat {
+class _WebGLShaderPrecisionFormatImpl extends NativeFieldWrapperClass1 implements WebGLShaderPrecisionFormat {
 
   int get precision() native "WebGLShaderPrecisionFormat_precision_Getter";
 
@@ -20193,7 +20193,7 @@ class _WebGLShaderPrecisionFormatImpl extends _DOMWrapperBase implements WebGLSh
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLTextureImpl extends _DOMWrapperBase implements WebGLTexture {
+class _WebGLTextureImpl extends NativeFieldWrapperClass1 implements WebGLTexture {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20202,7 +20202,7 @@ class _WebGLTextureImpl extends _DOMWrapperBase implements WebGLTexture {
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLUniformLocationImpl extends _DOMWrapperBase implements WebGLUniformLocation {
+class _WebGLUniformLocationImpl extends NativeFieldWrapperClass1 implements WebGLUniformLocation {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20211,7 +20211,7 @@ class _WebGLUniformLocationImpl extends _DOMWrapperBase implements WebGLUniformL
 
 // WARNING: Do not edit - generated code.
 
-class _WebGLVertexArrayObjectOESImpl extends _DOMWrapperBase implements WebGLVertexArrayObjectOES {
+class _WebGLVertexArrayObjectOESImpl extends NativeFieldWrapperClass1 implements WebGLVertexArrayObjectOES {
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20233,7 +20233,7 @@ class _WebKitAnimationEventImpl extends _EventImpl implements AnimationEvent {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationImpl extends _DOMWrapperBase implements Animation {
+class _WebKitAnimationImpl extends NativeFieldWrapperClass1 implements Animation {
 
   num get delay() native "WebKitAnimation_delay_Getter";
 
@@ -20266,7 +20266,7 @@ class _WebKitAnimationImpl extends _DOMWrapperBase implements Animation {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitAnimationListImpl extends _DOMWrapperBase implements AnimationList {
+class _WebKitAnimationListImpl extends NativeFieldWrapperClass1 implements AnimationList {
 
   int get length() native "WebKitAnimationList_length_Getter";
 
@@ -20334,7 +20334,7 @@ class _CSSMatrixFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitCSSMatrixImpl extends _DOMWrapperBase implements CSSMatrix {
+class _WebKitCSSMatrixImpl extends NativeFieldWrapperClass1 implements CSSMatrix {
 
   num get a() native "WebKitCSSMatrix_a_Getter";
 
@@ -20462,7 +20462,7 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitMutationObserverImpl extends _DOMWrapperBase implements WebKitMutationObserver {
+class _WebKitMutationObserverImpl extends NativeFieldWrapperClass1 implements WebKitMutationObserver {
 
   void disconnect() native "WebKitMutationObserver_disconnect_Callback";
 
@@ -20475,7 +20475,7 @@ class _WebKitMutationObserverImpl extends _DOMWrapperBase implements WebKitMutat
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitNamedFlowImpl extends _DOMWrapperBase implements WebKitNamedFlow {
+class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNamedFlow {
 
   NodeList get contentNodes() native "WebKitNamedFlow_contentNodes_Getter";
 
@@ -20492,7 +20492,7 @@ class _WebKitNamedFlowImpl extends _DOMWrapperBase implements WebKitNamedFlow {
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitPointImpl extends _DOMWrapperBase implements Point {
+class _WebKitPointImpl extends NativeFieldWrapperClass1 implements Point {
 
   num get x() native "WebKitPoint_x_Getter";
 
@@ -20531,7 +20531,7 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
 
 // WARNING: Do not edit - generated code.
 
-class _WebSocketImpl extends _DOMWrapperBase implements WebSocket {
+class _WebSocketImpl extends NativeFieldWrapperClass1 implements WebSocket {
   _EventsImpl _on;
 
   _WebSocketEventsImpl get on() {
@@ -20641,7 +20641,7 @@ class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvent
 
 // WARNING: Do not edit - generated code.
 
-class _WorkerContextImpl extends _DOMWrapperBase implements WorkerContext {
+class _WorkerContextImpl extends NativeFieldWrapperClass1 implements WorkerContext {
   _EventsImpl _on;
 
   _WorkerContextEventsImpl get on() {
@@ -20750,7 +20750,7 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
 
 // WARNING: Do not edit - generated code.
 
-class _WorkerLocationImpl extends _DOMWrapperBase implements WorkerLocation {
+class _WorkerLocationImpl extends NativeFieldWrapperClass1 implements WorkerLocation {
 
   String get hash() native "WorkerLocation_hash_Getter";
 
@@ -20777,7 +20777,7 @@ class _WorkerLocationImpl extends _DOMWrapperBase implements WorkerLocation {
 
 // WARNING: Do not edit - generated code.
 
-class _WorkerNavigatorImpl extends _DOMWrapperBase implements WorkerNavigator {
+class _WorkerNavigatorImpl extends NativeFieldWrapperClass1 implements WorkerNavigator {
 
   String get appName() native "WorkerNavigator_appName_Getter";
 
@@ -20796,7 +20796,7 @@ class _WorkerNavigatorImpl extends _DOMWrapperBase implements WorkerNavigator {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestExceptionImpl extends _DOMWrapperBase implements XMLHttpRequestException {
+class _XMLHttpRequestExceptionImpl extends NativeFieldWrapperClass1 implements XMLHttpRequestException {
 
   int get code() native "XMLHttpRequestException_code_Getter";
 
@@ -20837,7 +20837,7 @@ class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEve
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestImpl extends _DOMWrapperBase implements XMLHttpRequest {
+class _XMLHttpRequestImpl extends NativeFieldWrapperClass1 implements XMLHttpRequest {
   _EventsImpl _on;
 
   _XMLHttpRequestEventsImpl get on() {
@@ -20940,7 +20940,7 @@ class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequ
 
 // WARNING: Do not edit - generated code.
 
-class _XMLHttpRequestUploadImpl extends _DOMWrapperBase implements XMLHttpRequestUpload {
+class _XMLHttpRequestUploadImpl extends NativeFieldWrapperClass1 implements XMLHttpRequestUpload {
   _EventsImpl _on;
 
   _XMLHttpRequestUploadEventsImpl get on() {
@@ -20989,7 +20989,7 @@ class _XMLSerializerFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _XMLSerializerImpl extends _DOMWrapperBase implements XMLSerializer {
+class _XMLSerializerImpl extends NativeFieldWrapperClass1 implements XMLSerializer {
 
   String serializeToString(Node node) native "XMLSerializer_serializeToString_Callback";
 
@@ -21008,7 +21008,7 @@ class _XPathEvaluatorFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _XPathEvaluatorImpl extends _DOMWrapperBase implements XPathEvaluator {
+class _XPathEvaluatorImpl extends NativeFieldWrapperClass1 implements XPathEvaluator {
 
   XPathExpression createExpression(String expression, XPathNSResolver resolver) native "XPathEvaluator_createExpression_Callback";
 
@@ -21023,7 +21023,7 @@ class _XPathEvaluatorImpl extends _DOMWrapperBase implements XPathEvaluator {
 
 // WARNING: Do not edit - generated code.
 
-class _XPathExceptionImpl extends _DOMWrapperBase implements XPathException {
+class _XPathExceptionImpl extends NativeFieldWrapperClass1 implements XPathException {
 
   int get code() native "XPathException_code_Getter";
 
@@ -21040,7 +21040,7 @@ class _XPathExceptionImpl extends _DOMWrapperBase implements XPathException {
 
 // WARNING: Do not edit - generated code.
 
-class _XPathExpressionImpl extends _DOMWrapperBase implements XPathExpression {
+class _XPathExpressionImpl extends NativeFieldWrapperClass1 implements XPathExpression {
 
   XPathResult evaluate(Node contextNode, int type, XPathResult inResult) native "XPathExpression_evaluate_Callback";
 
@@ -21051,7 +21051,7 @@ class _XPathExpressionImpl extends _DOMWrapperBase implements XPathExpression {
 
 // WARNING: Do not edit - generated code.
 
-class _XPathNSResolverImpl extends _DOMWrapperBase implements XPathNSResolver {
+class _XPathNSResolverImpl extends NativeFieldWrapperClass1 implements XPathNSResolver {
 
   String lookupNamespaceURI(String prefix) native "XPathNSResolver_lookupNamespaceURI_Callback";
 
@@ -21062,7 +21062,7 @@ class _XPathNSResolverImpl extends _DOMWrapperBase implements XPathNSResolver {
 
 // WARNING: Do not edit - generated code.
 
-class _XPathResultImpl extends _DOMWrapperBase implements XPathResult {
+class _XPathResultImpl extends NativeFieldWrapperClass1 implements XPathResult {
 
   bool get booleanValue() native "XPathResult_booleanValue_Getter";
 
@@ -21097,7 +21097,7 @@ class _XSLTProcessorFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-class _XSLTProcessorImpl extends _DOMWrapperBase implements XSLTProcessor {
+class _XSLTProcessorImpl extends NativeFieldWrapperClass1 implements XSLTProcessor {
 
   void clearParameters() native "XSLTProcessor_clearParameters_Callback";
 
@@ -40767,27 +40767,6 @@ class Testing {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DOMTypeBase {
-  final _ptr;
-
-  _DOMTypeBase._wrap(this._ptr) {
-  	// We should never be creating duplicate wrappers.
-  	// TODO(jacobr): this boolean value is evaluated outside of the assert
-  	// to work around a mysterious and flaky bug in tip of trunk versions of
-  	// chrome.
-  	bool hasExistingWrapper = _ptr.dartObjectLocalStorage === null;
-  	assert(hasExistingWrapper);
-	  _ptr.dartObjectLocalStorage = this;
-  }
-}
-
-/** This function is provided for unittest purposes only. */
-unwrapDomObject(_DOMTypeBase wrapper) {
-  return wrapper._ptr;
-}// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // Iterator for arrays with fixed size.
 class _FixedSizeListIterator<T> extends _VariableSizeListIterator<T> {
   _FixedSizeListIterator(List<T> array)
@@ -40889,13 +40868,6 @@ class _Lists {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// FIXME: get rid of _DOMWrapperBase.
-class _DOMWrapperBase extends NativeFieldWrapperClass1 {
-}
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 // This API is exploratory.
 spawnDomIsolate(Window targetWindow, String entryPoint) {
   if (targetWindow is! _DOMWindowImpl && targetWindow is! _DOMWindowCrossFrameImpl) {
@@ -40968,14 +40940,14 @@ class _Utils {
 
 Utils_print(String message) native "Utils_print";
 
-class _NPObject extends _DOMWrapperBase {
+class _NPObject extends NativeFieldWrapperClass1 {
   _NPObject();
   static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrameImpl extends _DOMWrapperBase implements Window {
+class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Window {
   _DOMWindowCrossFrameImpl();
 
   // Fields.
@@ -40997,7 +40969,7 @@ class _DOMWindowCrossFrameImpl extends _DOMWrapperBase implements Window {
   String get typeName() => "DOMWindow";
 }
 
-class _HistoryCrossFrameImpl extends _DOMWrapperBase implements History {
+class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History {
   _HistoryCrossFrameImpl();
 
   // Methods.
@@ -41009,7 +40981,7 @@ class _HistoryCrossFrameImpl extends _DOMWrapperBase implements History {
   String get typeName() => "History";
 }
 
-class _LocationCrossFrameImpl extends _DOMWrapperBase implements Location {
+class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Location {
   _LocationCrossFrameImpl();
 
   // Fields.

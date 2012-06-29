@@ -414,13 +414,15 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return self._html_system.DartType(idl_type)
 
   def _BaseClassName(self):
+    root_class = 'NativeFieldWrapperClass1'
+
     if not self._interface.parents:
-      return '_DOMWrapperBase'
+      return root_class
 
     supertype = self._interface.parents[0].type.id
 
     if IsPureInterface(supertype):    # The class is a root.
-      return '_DOMWrapperBase'
+      return root_class
 
     # FIXME: We're currently injecting List<..> and EventTarget as
     # supertypes in dart.idl. We should annotate/preserve as
@@ -428,7 +430,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return '_DOMWrapperBase'
+      return root_class
 
     if supertype == 'EventTarget':
       # Most implementors of EventTarget specify the EventListener operations
@@ -438,7 +440,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       # Applies to MessagePort.
       if not [op for op in self._interface.operations if op.id == 'addEventListener']:
         return self._ImplClassName(supertype)
-      return '_DOMWrapperBase'
+      return root_class
 
     return self._ImplClassName(supertype)
 
