@@ -341,10 +341,6 @@ class JSPrecedence {
                                             SHIFT_PRECEDENCE),
     ">=" : const JSBinaryOperatorPrecedence(RELATIONAL_PRECEDENCE,
                                             SHIFT_PRECEDENCE),
-    "in": const JSBinaryOperatorPrecedence(RELATIONAL_PRECEDENCE,
-                                           SHIFT_PRECEDENCE),
-    "instanceof": const JSBinaryOperatorPrecedence(RELATIONAL_PRECEDENCE,
-                                                   SHIFT_PRECEDENCE),
     "<<" : const JSBinaryOperatorPrecedence(SHIFT_PRECEDENCE,
                                             ADDITIVE_PRECEDENCE),
     ">>" : const JSBinaryOperatorPrecedence(SHIFT_PRECEDENCE,
@@ -361,21 +357,6 @@ class JSPrecedence {
                                            PREFIX_PRECEDENCE),
     "%" : const JSBinaryOperatorPrecedence(MULTIPLICATIVE_PRECEDENCE,
                                            PREFIX_PRECEDENCE),
-    // TODO(lrn): Consider changing rhs to EXPRESSION_PRECEDENCE.
-    ",": const JSBinaryOperatorPrecedence(EXPRESSION_PRECEDENCE,
-                                          ASSIGNMENT_PRECEDENCE),
-    "=" : const JSAssignmentOperatorPrecedence(),
-    "+=" : const JSAssignmentOperatorPrecedence(),
-    "-=" : const JSAssignmentOperatorPrecedence(),
-    "*=" : const JSAssignmentOperatorPrecedence(),
-    "/=" : const JSAssignmentOperatorPrecedence(),
-    "%=" : const JSAssignmentOperatorPrecedence(),
-    "&=" : const JSAssignmentOperatorPrecedence(),
-    "|=" : const JSAssignmentOperatorPrecedence(),
-    "^=" : const JSAssignmentOperatorPrecedence(),
-    "<<=" : const JSAssignmentOperatorPrecedence(),
-    ">>=" : const JSAssignmentOperatorPrecedence(),
-    ">>>=" : const JSAssignmentOperatorPrecedence(),
   };
 }
 
@@ -383,16 +364,6 @@ class JSBinaryOperatorPrecedence {
   final int left;
   final int right;
   const JSBinaryOperatorPrecedence(this.left, this.right);
-  // All non-assignment binary operators are left associative.
+  // All binary operators (excluding assignment) are left associative.
   int get precedence() => left;
-}
-
-class JSAssignmentOperatorPrecedence implements JSBinaryOperatorPrecedence {
-  const JSAssignmentOperatorPrecedence();
-  // The actual left-hand-side of an assignment in JavaScript is the production
-  // 'LeftHandSideExpression ::= callExpression | newExpression'. We don't
-  // represent 'newExpression' at all.
-  int get left() => JSPrecedence.CALL_PRECEDENCE;
-  int get right() => JSPrecedence.ASSIGNMENT_PRECEDENCE;
-  int get precedence() => JSPrecedence.ASSIGNMENT_PRECEDENCE;
 }
