@@ -17,6 +17,7 @@ class MockSource extends Source {
   void validateDescription(description) {
     if (description != 'ok') throw new FormatException('Bad');
   }
+  String packageName(description) => 'foo';
 }
 
 main() {

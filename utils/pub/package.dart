@@ -116,7 +116,7 @@ class PackageId implements Comparable, Hashable {
    * The name of the package being identified. This will be the human-friendly
    * name like "uilib".
    */
-  String get name() => source.packageName(this);
+  String get name() => source.packageName(description);
 
   int hashCode() => name.hashCode() ^
                     source.name.hashCode() ^
@@ -145,6 +145,11 @@ class PackageId implements Comparable, Hashable {
 
     return version.compareTo(other.version);
   }
+
+  /**
+   * Returns the pubspec for this package.
+   */
+  Future<Pubspec> describe() => source.describe(this);
 }
 
 /**
@@ -153,11 +158,6 @@ class PackageId implements Comparable, Hashable {
  * packages.
  */
 class PackageRef {
-  /**
-   * The name of the package being referenced.
-   */
-  final String name;
-
   /**
    * The [Source] used to look up the package.
    */
@@ -174,7 +174,19 @@ class PackageRef {
    */
   final description;
 
-  PackageRef(this.name, this.source, this.constraint, this.description);
+  /**
+   * The name of the package being referenced.
+   */
+  String get name() => source.packageName(description);
+
+  PackageRef(this.source, this.constraint, this.description);
 
   String toString() => "$name $constraint from $source ($description)";
+
+  /**
+   * Returns a [PackageId] generated from this [PackageRef] with the given
+   * concrete version.
+   */
+  PackageId atVersion(Version version) =>
+    new PackageId(source, version, description);
 }

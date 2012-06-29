@@ -99,7 +99,7 @@ class Pubspec {
         source.validateDescription(description);
 
         dependencies.add(new PackageRef(
-            name, source, versionConstraint, description));
+            source, versionConstraint, description));
       });
     }
 

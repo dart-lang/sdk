@@ -60,7 +60,10 @@ class RepoSource extends Source {
     return join(parent, urlDir, "${parsed.first}-${id.version}");
   }
 
-  String packageName(PackageId id) => _parseDescription(id.description).first;
+  String packageName(description) => _parseDescription(description).first;
+
+  bool descriptionsEqual(description1, description2) =>
+    _parseDescription(description1) == _parseDescription(description2);
 
   /**
    * Ensures that [description] is a valid repo description.

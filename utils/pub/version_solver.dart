@@ -37,8 +37,10 @@
  */
 #library('version_solver');
 
+#import('dart:json');
 #import('package.dart');
 #import('pubspec.dart');
+#import('root_source.dart');
 #import('source.dart');
 #import('source_registry.dart');
 #import('utils.dart');
@@ -72,11 +74,12 @@ class VersionSolver {
         _packages = <Dependency>{},
         _work = new Queue<WorkItem>();
 
-  Future<Map<String, Version>> solve() {
+  Future<List<PackageId>> solve() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
-    _pubspecs.cache(_root);
-    enqueue(new ChangeConstraint('(entrypoint)', _root.name, _root.version));
+    var ref = new PackageRef(new RootSource(_root), _root.version, _root.name);
+    enqueue(new AddConstraint('(entrypoint)', ref));
+    _pubspecs.cache(ref.atVersion(_root.version), _root.pubspec);
 
     Future processNextWorkItem(_) {
       while (true) {
@@ -115,7 +118,7 @@ class VersionSolver {
   Dependency getDependency(String package) {
     // There can be unused dependencies in the graph, so just create an empty
     // one if needed.
-    _packages.putIfAbsent(package, () => new Dependency());
+    _packages.putIfAbsent(package, () => new Dependency(package));
     return _packages[package];
   }
 
@@ -154,25 +157,38 @@ interface WorkItem {
 }
 
 /**
- * The best selected version for [package] has changed to [version].
- * If the previous version of the package is `null`, that means the package is
- * being added to the graph. If [version] is `null`, it is being removed.
+ * The best selected version for a package has changed to [version]. If the
+ * previous version of the package is `null`, that means the package is being
+ * added to the graph. If [version] is `null`, it is being removed.
  */
 class ChangeVersion implements WorkItem {
   /**
-   * The package whose version is changing.
+   * The source of the package whose version is changing.
    */
-  final String package;
+  final Source source;
+
+  /**
+   * The description identifying the package whose version is changing.
+   */
+  final description;
 
   /**
    * The new selected version.
    */
   final Version version;
 
-  ChangeVersion(this.package, this.version);
+  /**
+   * The name of the package whose version is changing.
+   */
+  String get package() => source.packageName(description);
+
+  ChangeVersion(this.source, this.description, this.version) {
+    if (source == null) throw "null source";
+  }
 
   Future process(VersionSolver solver) {
-    var oldVersion = solver.getDependency(package).version;
+    var dependency = solver.getDependency(package);
+    var oldVersion = dependency.version;
     solver.setVersion(package, version);
 
     // The dependencies between the old and new version may be different. Walk
@@ -180,36 +196,32 @@ class ChangeVersion implements WorkItem {
     return Futures.wait([
         getDependencyRefs(solver, oldVersion),
         getDependencyRefs(solver, version)]).transform((list) {
-      var oldDependencies = list[0];
-      var newDependencies = list[1];
+      var oldDependencyRefs = list[0];
+      var newDependencyRefs = list[1];
 
-      for (var dependency in oldDependencies.getValues()) {
-        var constraint;
-        if (newDependencies.containsKey(dependency.name)) {
+      for (var oldRef in oldDependencyRefs.getValues()) {
+        if (newDependencyRefs.containsKey(oldRef.name)) {
           // The dependency is in both versions of this package, but its
           // constraint may have changed.
-          constraint = newDependencies.remove(dependency.name).constraint;
+          var newRef = newDependencyRefs.remove(oldRef.name);
+          solver.enqueue(new AddConstraint(package, newRef));
         } else {
           // The dependency is not in the new version of the package, so just
           // remove its constraint.
-          constraint = null;
+          solver.enqueue(new RemoveConstraint(package, oldRef.name));
         }
-
-        solver.enqueue(new ChangeConstraint(
-            package, dependency.name, constraint));
       }
 
       // Everything that's left is a depdendency that's only in the new
       // version of the package.
-      for (var dependency in newDependencies.getValues()) {
-        solver.enqueue(new ChangeConstraint(
-            package, dependency.name, dependency.constraint));
+      for (var newRef in newDependencyRefs.getValues()) {
+        solver.enqueue(new AddConstraint(package, newRef));
       }
     });
   }
 
   /**
-   * Get the dependencies that [package] has at [version].
+   * Get the dependencies at [version] of the package being changed.
    */
   Future<Map<String, PackageRef>> getDependencyRefs(VersionSolver solver,
       Version version) {
@@ -218,7 +230,8 @@ class ChangeVersion implements WorkItem {
       return new Future<Map<String, PackageRef>>.immediate(<PackageRef>{});
     }
 
-    return solver._pubspecs.load(package, version).transform((pubspec) {
+    var id = new PackageId(source, version, description);
+    return solver._pubspecs.load(id).transform((pubspec) {
       var dependencies = <PackageRef>{};
       for (var dependency in pubspec.dependencies) {
         dependencies[dependency.name] = dependency;
@@ -229,36 +242,25 @@ class ChangeVersion implements WorkItem {
 }
 
 /**
- * The [VersionConstraint] that [depender] places on [dependent] has changed.
+ * A constraint that a depending package places on a dependent package has
+ * changed.
+ *
+ * This is an abstract class that contains logic for updating the dependency
+ * graph once a dependency has changed. Changing the dependency is the
+ * responsibility of subclasses.
  */
 class ChangeConstraint implements WorkItem {
-  /**
-   * The package that has the dependency.
-   */
-  final String depender;
+  abstract Future process(VersionSolver solver);
 
-  /**
-   * The package being depended on.
-   */
-  final String dependent;
-
-  /**
-   * The constraint that [depender] places on [dependent]'s version.
-   */
-  final VersionConstraint constraint;
-
-  ChangeConstraint(this.depender, this.dependent, this.constraint);
-
-  Future process(VersionSolver solver) {
-    var dependency = solver.getDependency(dependent);
-    var oldConstraint = dependency.constraint;
-    dependency.placeConstraint(depender, constraint);
-    var newConstraint = dependency.constraint;
+  Future _processChange(VersionSolver solver, Source source, description,
+      Dependency dependency, VersionConstraint oldConstraint,
+      VersionConstraint newConstraint) {
+    var name = dependency.name;
 
     // If the package is over-constrained, i.e. the packages depending have
     // disjoint constraints, then stop.
     if (newConstraint != null && newConstraint.isEmpty) {
-      throw new DisjointConstraintException(dependent);
+      throw new DisjointConstraintException(name);
     }
 
     // If this constraint change didn't cause the overall constraint on the
@@ -267,22 +269,21 @@ class ChangeConstraint implements WorkItem {
 
     // If the dependency has been cut free from the graph, just remove it.
     if (!dependency.isDependedOn) {
-      solver.enqueue(new ChangeVersion(dependent, null));
+      solver.enqueue(new ChangeVersion(source, description, null));
       return null;
     }
 
     // If the dependency is on the root package, then we don't need to do
     // anything since it's already at the best version.
-    if (dependent == solver._root.name) {
-      solver.enqueue(new ChangeVersion(dependent, solver._root.version));
+    if (name == solver._root.name) {
+      solver.enqueue(new ChangeVersion(
+          source, description, solver._root.version));
       return null;
     }
 
     // The constraint has changed, so see what the best version of the package
     // that meets the new constraint is.
-    // TODO(rnystrom): Should this always be the default source?
-    var source = solver._sources.defaultSource;
-    return source.getVersions(dependent).transform((versions) {
+    return source.getVersions(description).transform((versions) {
       var best = null;
       for (var version in versions) {
         if (newConstraint.allows(version)) {
@@ -291,12 +292,68 @@ class ChangeConstraint implements WorkItem {
       }
 
       // TODO(rnystrom): Better exception.
-      if (best == null) throw new NoVersionException(dependent, newConstraint);
+      if (best == null) throw new NoVersionException(name, newConstraint);
 
       if (dependency.version != best) {
-        solver.enqueue(new ChangeVersion(dependent, best));
+        solver.enqueue(new ChangeVersion(source, description, best));
       }
     });
+  }
+}
+
+/**
+ * The constraint given by [ref] is being placed by [depender].
+ */
+class AddConstraint extends ChangeConstraint {
+  /**
+   * The package that has the dependency.
+   */
+  final String depender;
+
+  /**
+   * The package being depended on and the constraints being placed on it. The
+   * source, version, and description in this ref are all considered constraints
+   * on the dependent package.
+   */
+  final PackageRef ref;
+
+  AddConstraint(this.depender, this.ref);
+
+  Future process(VersionSolver solver) {
+    var dependency = solver.getDependency(ref.name);
+    var oldConstraint = dependency.constraint;
+    dependency.placeConstraint(depender, ref);
+    var newConstraint = dependency.constraint;
+    return _processChange(solver, ref.source, ref.description, dependency,
+        oldConstraint, newConstraint);
+  }
+}
+
+/**
+ * [depender] is no longer placing a constraint on [dependent].
+ */
+class RemoveConstraint extends ChangeConstraint {
+  /**
+   * The package that was placing a constraint on [dependent].
+   */
+  String depender;
+
+  /**
+   * The package that was being depended on.
+   */
+  String dependent;
+
+  RemoveConstraint(this.depender, this.dependent);
+
+  Future process(VersionSolver solver) {
+    var dependency = solver.getDependency(dependent);
+    var oldConstraint = dependency.constraint;
+    var source = dependency.source;
+    var description = dependency.description;
+    dependency.removeConstraint(depender);
+    var newConstraint = dependency.constraint;
+    return _processChange(solver, source, description, dependency,
+        oldConstraint, newConstraint);
   }
 }
 
@@ -309,36 +366,30 @@ class ChangeConstraint implements WorkItem {
  */
 class PubspecCache {
   final SourceRegistry _sources;
-  final Map<String, Map<Version, Pubspec>> _pubspecs;
+  final Map<PackageId, Pubspec> _pubspecs;
 
   PubspecCache(this._sources)
-      : _pubspecs = <Map<Version, Pubspec>>{};
+      : _pubspecs = new Map<PackageId, Pubspec>();
 
   /**
-   * Adds the already loaded [package] to the cache.
+   * Caches [pubspec] as the [Pubspec] for the package identified by [id].
    */
-  void cache(Package package) {
-    _pubspecs.putIfAbsent(package.name, () => new Map<Version, Pubspec>());
-    _pubspecs[package.name][package.version] = package.pubspec;
+  void cache(PackageId id, Pubspec pubspec) {
+    _pubspecs[id] = pubspec;
   }
 
   /**
-   * Loads the pubspec for [package] at [version].
+   * Loads the pubspec for the package identified by [id].
    */
-  Future<Pubspec> load(String package, Version version) {
+  Future<Pubspec> load(PackageId id) {
     // Complete immediately if it's already cached.
-    if (_pubspecs.containsKey(package) &&
-        _pubspecs[package].containsKey(version)) {
-      return new Future<Pubspec>.immediate(_pubspecs[package][version]);
+    if (_pubspecs.containsKey(id)) {
+      return new Future<Pubspec>.immediate(_pubspecs[id]);
     }
 
-    // TODO(rnystrom): Should this always be the default source?
-    var source = _sources.defaultSource;
-    return source.describe(package, version).transform((pubspec) {
+    return id.describe().transform((pubspec) {
       // Cache it.
-      _pubspecs.putIfAbsent(package, () => new Map<Version, Pubspec>());
-      _pubspecs[package][version] = pubspec;
-
+      _pubspecs[id] = pubspec;
       return pubspec;
     });
   }
@@ -346,25 +397,46 @@ class PubspecCache {
 
 /**
  * Describes one [Package] in the [DependencyGraph] and keeps track of which
- * packages depend on it and what [VersionConstraint]s they place on it.
+ * packages depend on it and what constraints they place on it.
  */
 class Dependency {
   /**
-   * The currently selected best version for this dependency.
+   * The name of the this dependency's package.
    */
-  Version version;
+  final String name;
 
   /**
-   * The constraints that depending packages have placed on this one.
+   * The [PackageRefs] that represent constraints that depending packages have
+   * placed on this one.
    */
-  final Map<String, VersionConstraint> _constraints;
+  final Map<String, PackageRef> _refs;
+
+  /**
+   * The source of this dependency's package.
+   *
+   * All constraints in [_refs] must have this as their source.
+   */
+  Source source;
+
+  /**
+   * The description of this dependency's package.
+   *
+   * All constraints in [_refs] must have a description equivalent to this one
+   * according to [source].
+   */
+  var description;
+
+  /**
+   * The currently-selected best version for this dependency.
+   */
+  Version version;
 
   /**
    * Gets whether or not any other packages are currently depending on this
    * one. If `false`, then it means this package is not part of the dependency
    * graph and should be omitted.
    */
-  bool get isDependedOn() => !_constraints.isEmpty();
+  bool get isDependedOn() => !_refs.isEmpty();
 
   /**
    * Gets the overall constraint that all packages are placing on this one.
@@ -372,21 +444,42 @@ class Dependency {
    * package is in the process of being added to the graph), returns `null`.
    */
   VersionConstraint get constraint() {
-    if (_constraints.isEmpty()) return null;
-    return new VersionConstraint.intersect(_constraints.getValues());
+    if (_refs.isEmpty()) return null;
+    return new VersionConstraint.intersect(
+        _refs.getValues().map((ref) => ref.constraint));
   }
 
-  Dependency()
-      : _constraints = <VersionConstraint>{};
+  Dependency(this.name)
+      : _refs = <PackageRef>{};
 
   /**
-   * Places [constraint] from [package] onto this.
+   * Places [ref] as a constraint from [package] onto this.
    */
-  void placeConstraint(String package, VersionConstraint constraint) {
-    if (constraint == null) {
-      _constraints.remove(package);
-    } else {
-      _constraints[package] = constraint;
+  void placeConstraint(String package, PackageRef ref) {
+    // If this isn't the first constraint placed on this package, make sure it
+    // matches the source and description of past constraints.
+    if (_refs.isEmpty()) {
+      source = ref.source;
+      description = ref.description;
+    } else if (source.name != ref.source.name) {
+      throw new SourceMismatchException(name, source, ref.source);
+    } else if (!source.descriptionsEqual(description, ref.description)) {
+      throw new DescriptionMismatchException(
+          name, description, ref.description);
+    }
+
+    _refs[package] = ref;
+  }
+
+  /**
+   * Removes the constraint from [package] onto this.
+   */
+  void removeConstraint(String package) {
+    _refs.remove(package);
+
+    if (_refs.isEmpty()) {
+      source = null;
+      description = null;
     }
   }
 }
@@ -431,4 +524,38 @@ class CouldNotSolveException implements Exception {
 
   String toString() =>
       "Could not find a solution that met all version constraints.";
+}
+
+/**
+ * Exception thrown when two packages with the same name but different sources
+ * are depended upon.
+ */
+class SourceMismatchException implements Exception {
+  final String package;
+  final Source source1;
+  final Source source2;
+
+  SourceMismatchException(this.package, this.source1, this.source2);
+
+  String toString() {
+    return "Package '$package' is depended on from both sources "
+    "'${source1.name}' and '${source2.name}'.";
+  }
+}
+
+/**
+ * Exception thrown when two packages with the same name and source but
+ * different descriptions are depended upon.
+ */
+class DescriptionMismatchException implements Exception {
+  final String package;
+  final description1;
+  final description2;
+
+  DescriptionMismatchException(this.package, this.description1,
+      this.description2);
+
+  // TODO(nweiz): Dump to YAML when that's supported
+  String toString() => "Package '$package' has conflicting descriptions "
+    "'${JSON.stringify(description1)}' and '${JSON.stringify(description2)}'";
 }

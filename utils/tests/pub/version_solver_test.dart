@@ -11,13 +11,19 @@
 #import('../../pub/pubspec.dart');
 #import('../../pub/source.dart');
 #import('../../pub/source_registry.dart');
+#import('../../pub/utils.dart');
 #import('../../pub/version.dart');
 #import('../../pub/version_solver.dart');
 #import('../../../lib/unittest/unittest.dart');
 
 final noVersion = 'no version';
 final disjointConstraint = 'disjoint';
+final sourceMismatch = 'source mismatch';
+final descriptionMismatch = 'description mismatch';
 final couldNotSolve = 'unsolved';
+
+Source source1;
+Source source2;
 
 main() {
   testResolve('no dependencies', {
@@ -104,20 +110,7 @@ main() {
     'foo 1.0.0': {
       'myapp': '>=1.0.0'
     }
-  }, result: {
-    'myapp': '1.0.0',
-    'foo': '1.0.0'
-  });
-
-  testResolve("dependency back onto root package that doesn't contain root's "
-              "version", {
-    'myapp 1.0.0': {
-      'foo': '1.0.0'
-    },
-    'foo 1.0.0': {
-      'myapp': '>=2.0.0'
-    }
-  }, error: disjointConstraint);
+  }, error: sourceMismatch);
 
   testResolve('no version that matches requirement', {
     'myapp 0.0.0': {
@@ -157,6 +150,36 @@ main() {
     'shared 4.0.0': {}
   }, error: disjointConstraint);
 
+  testResolve('mismatched descriptions', {
+    'myapp 0.0.0': {
+      'foo': '1.0.0',
+      'bar': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'shared-x': '1.0.0'
+    },
+    'bar 1.0.0': {
+      'shared-y': '1.0.0'
+    },
+    'shared-x 1.0.0': {},
+    'shared-y 1.0.0': {}
+  }, error: descriptionMismatch);
+
+  testResolve('mismatched sources', {
+    'myapp 0.0.0': {
+      'foo': '1.0.0',
+      'bar': '1.0.0'
+    },
+    'foo 1.0.0': {
+      'shared': '1.0.0'
+    },
+    'bar 1.0.0': {
+      'shared from mock2': '1.0.0'
+    },
+    'shared 1.0.0': {},
+    'shared 1.0.0 from mock2': {}
+  }, error: sourceMismatch);
+
   testResolve('unstable dependency graph', {
     'myapp 0.0.0': {
       'a': '>=1.0.0'
@@ -181,16 +204,23 @@ main() {
 testResolve(description, packages, [result, error]) {
   test(description, () {
     var sources = new SourceRegistry();
-    var source = new MockSource();
-    sources.register(source);
-    sources.setDefault(source.name);
+    source1 = new MockSource('mock1');
+    source2 = new MockSource('mock2');
+    sources.register(source1);
+    sources.register(source2);
+    sources.setDefault(source1.name);
 
     // Build the test package graph.
     var root;
     packages.forEach((nameVersion, dependencies) {
+      var parsed = parseSource(nameVersion);
+      nameVersion = parsed.first;
+      var source = parsed.last;
+
       var parts = nameVersion.split(' ');
       var name = parts[0];
       var version = parts[1];
+
       var package = source.mockPackage(name, version, dependencies);
       if (name == 'myapp') {
         // Don't add the root package to the server, so we can verify that Pub
@@ -218,6 +248,10 @@ testResolve(description, packages, [result, error]) {
       expect(future, throwsA(new isInstanceOf<NoVersionException>()));
     } else if (error == disjointConstraint) {
       expect(future, throwsA(new isInstanceOf<DisjointConstraintException>()));
+    } else if (error == sourceMismatch) {
+      expect(future, throwsA(new isInstanceOf<SourceMismatchException>()));
+    } else if (error == descriptionMismatch) {
+      expect(future, throwsA(new isInstanceOf<DescriptionMismatchException>()));
     } else if (error == couldNotSolve) {
       expect(future, throwsA(new isInstanceOf<CouldNotSolveException>()));
     } else {
@@ -235,22 +269,30 @@ testResolve(description, packages, [result, error]) {
   });
 }
 
+/**
+ * A source used for testing. This both creates mock package objects and acts as
+ * a source for them.
+ *
+ * In order to support testing packages that have the same name but different
+ * descriptions, a package's name is calculated by taking the description string
+ * and stripping off any trailing hyphen followed by non-hyphen characters.
+ */
 class MockSource extends Source {
   final Map<String, Map<Version, Package>> _packages;
 
-  String get name() => 'mock';
+  final String name;
   bool get shouldCache() => true;
 
-  MockSource()
+  MockSource(this.name)
       : _packages = <Map<Version, Package>>{};
 
   Future<List<Version>> getVersions(String name) {
     return fakeAsync(() => _packages[name].getKeys());
   }
 
-  Future<Pubspec> describe(String package, Version version) {
+  Future<Pubspec> describe(PackageId id) {
     return fakeAsync(() {
-      return _packages[package][version].pubspec;
+      return _packages[id.name][id.version].pubspec;
     });
   }
 
@@ -258,16 +300,18 @@ class MockSource extends Source {
     throw 'no';
   }
 
-  Package mockPackage(String name, String version, Map dependencyStrings) {
+  Package mockPackage(String description, String version,
+      Map dependencyStrings) {
     // Build the pubspec dependencies.
     var dependencies = <PackageRef>[];
     dependencyStrings.forEach((name, constraint) {
-      dependencies.add(new PackageRef(name, this,
-          new VersionConstraint.parse(constraint), name));
+      var parsed = parseSource(name);
+      dependencies.add(new PackageRef(
+          parsed.last, new VersionConstraint.parse(constraint), parsed.first));
     });
 
     var pubspec = new Pubspec(new Version.parse(version), dependencies);
-    return new Package.inMemory(name, pubspec);
+    return new Package.inMemory(description, pubspec);
   }
 
   void addPackage(Package package) {
@@ -275,6 +319,9 @@ class MockSource extends Source {
     _packages[package.name][package.version] = package;
     return package;
   }
+
+  String packageName(String description) =>
+    description.replaceFirst(new RegExp(@"-[^-]+$"), "");
 }
 
 Future fakeAsync(callback()) {
@@ -284,4 +331,13 @@ Future fakeAsync(callback()) {
   });
 
   return completer.future;
+}
+
+Pair<String, Source> parseSource(String name) {
+  var match = new RegExp(@"(.*) from (.*)").firstMatch(name);
+  if (match == null) return new Pair<String, Source>(name, source1);
+  switch (match[2]) {
+  case 'mock1': return new Pair<String, Source>(match[1], source1);
+  case 'mock2': return new Pair<String, Source>(match[1], source2);
+  }
 }

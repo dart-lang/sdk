@@ -24,6 +24,11 @@ class Pair<E, F> {
   Pair(this.first, this.last);
 
   String toString() => '($first, $last)';
+
+  bool operator==(other) {
+    if (other is! Pair) return false;
+    return other.first == first && other.last == last;
+  }
 }
 
 // TODO(rnystrom): Move into String?

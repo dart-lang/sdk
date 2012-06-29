@@ -32,23 +32,24 @@ class Source {
   abstract bool get shouldCache();
 
   /**
-   * Get the list of all versions that exist for package [name].
+   * Get the list of all versions that exist for the package described by
+   * [description].
    *
    * Note that this does *not* require the packages to be installed, which is
    * the point. This is used during version resolution to determine which
    * package versions are available to be installed (or already installed).
    */
-  Future<List<Version>> getVersions(String name) {
+  Future<List<Version>> getVersions(description) {
     // TODO(rnystrom): Do something better here.
     throw "Source $name doesn't support versioning.";
   }
 
   /**
-   * Loads the (possibly remote) pubspec for the desired [version] of the named
-   * [package]. This will be called for packages that have not yet been
-   * installed during the version resolution process.
+   * Loads the (possibly remote) pubspec for the package version identified by
+   * [id]. This will be called for packages that have not yet been installed
+   * during the version resolution process.
    */
-  Future<Pubspec> describe(String package, Version version) {
+  Future<Pubspec> describe(PackageId id) {
     // TODO(rnystrom): Figure out how non-default sources should handle this.
     throw "Source $name doesn't support versioning.";
   }
@@ -72,7 +73,7 @@ class Source {
    * This doesn't need to be implemented if [shouldCache] is false.
    */
   String systemCacheDirectory(PackageId id, String parent) =>
-    join(parent, packageName(id));
+    join(parent, packageName(id.description));
 
   /**
    * When a [Pubspec] is parsed, it reads in the description for each
@@ -84,12 +85,23 @@ class Source {
   void validateDescription(description) {}
 
   /**
-   * Returns a human-friendly name for the package identified by [id]. This
-   * method should be light-weight. It doesn't need to validate that the given
-   * package exists.
+   * Returns a human-friendly name for the package described by [description].
+   * This method should be light-weight. It doesn't need to validate that the
+   * given package exists.
    *
    * The package name should be lower-case and suitable for use in a filename.
    * It may contain forward slashes.
    */
-  String packageName(PackageId id) => id.description;
+  String packageName(description) => description;
+
+  /**
+   * Returns whether or not [description1] describes the same package as
+   * [description2] for this source. This method should be light-weight. It
+   * doesn't need to validate that either package exists.
+   *
+   * By default, this assumes both descriptions are strings and compares them
+   * for equality.
+   */
+  bool descriptionsEqual(description1, description2) =>
+    description1 == description2;
 }

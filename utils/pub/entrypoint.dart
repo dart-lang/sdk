@@ -140,7 +140,6 @@ class Entrypoint {
     // TODO(rnystrom): This should use the lockfile to select the right version
     // once that's implemented. If the lockfile doesn't exist, it should
     // generate it. In the meantime, here's a dumb implementation:
-    return new Future.immediate(
-        new PackageId(ref.source, ref.constraint, ref.description));
+    return new Future.immediate(ref.atVersion(ref.constraint));
   }
 }

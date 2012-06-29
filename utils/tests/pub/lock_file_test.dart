@@ -18,9 +18,9 @@ class MockSource extends Source {
 
   void validateDescription(String description) => description.endsWith(' desc');
 
-  String packageName(PackageId id) {
+  String packageName(String description) {
     // Strip off ' desc'.
-    return id.description.substring(0, id.description.length - 5);
+    return description.substring(0, description.length - 5);
   }
 }
 
