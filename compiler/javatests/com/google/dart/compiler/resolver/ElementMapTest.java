@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.dart.compiler.ast.DartMetadata;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
@@ -31,6 +32,11 @@ public class ElementMapTest extends TestCase {
     @Override
     public ElementKind getKind() {
       return kind;
+    }
+
+    @Override
+    public DartMetadata getMetadata() {
+      throw new RuntimeException();
     }
 
     @Override

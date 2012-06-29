@@ -20,6 +20,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartLabel;
+import com.google.dart.compiler.ast.DartMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
@@ -216,8 +217,9 @@ public class Elements {
 
 static FieldElementImplementation fieldFromNode(DartField node,
                                                   EnclosingElement holder,
+                                                  DartMetadata metadata,
                                                   Modifiers modifiers) {
-    return FieldElementImplementation.fromNode(node, holder, modifiers);
+    return FieldElementImplementation.fromNode(node, holder, metadata, modifiers);
   }
 
   static ClassElement classFromNode(DartClass node, LibraryElement library) {

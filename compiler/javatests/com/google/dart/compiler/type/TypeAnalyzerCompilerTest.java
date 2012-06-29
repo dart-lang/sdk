@@ -2923,6 +2923,56 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
   }
+  
+  public void test_metadata_deprecated_1() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// @deprecated",
+        "ttt() {}",
+        "class A {",
+        "  // @deprecated",
+        "  var fff;",
+        "  // @deprecated",
+        "  mmmm() {}",
+        "  // @deprecated",
+        "  operator + (other) {}",
+        "}",
+        "main() {",
+        "  ttt();",
+        "  A a = new A();",
+        "  a.fff = 0;",
+        "  a.mmmm();",
+        "  a + 0;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 13, 3, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 15, 5, 3),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 5, 4),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 17, 5, 1));
+  }
+  
+  public void test_metadata_deprecated_2() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "// @deprecated",
+        "class A {",
+        "  A.named() {}",
+        "  // @deprecated",
+        "  A.depreca() {}",
+        "}",
+        "main() {",
+        "  new A.named();",
+        "  new A.depreca();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 9, 7, 1),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 7, 1),
+        errEx(TypeErrorCode.DEPRECATED_ELEMENT, 10, 9, 7));
+  }
 
   public void test_assignMethod() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(

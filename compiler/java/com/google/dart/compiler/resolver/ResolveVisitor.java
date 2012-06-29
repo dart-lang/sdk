@@ -137,7 +137,11 @@ abstract class ResolveVisitor extends ASTVisitor<Element> {
       type = getTypeProvider().getDynamicType();
     }
     node.setType(type);
-    recordElement(node.getIdentifier(), type.getElement());
+    Element element = type.getElement();
+    recordElement(node.getIdentifier(), element);
+    if (element != null && element.getMetadata().isDeprecated()) {
+      getContext().onError(node.getIdentifier(), TypeErrorCode.DEPRECATED_ELEMENT, element.getName());
+    }
     return type;
   }
 
