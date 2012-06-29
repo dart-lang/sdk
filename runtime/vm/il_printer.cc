@@ -44,11 +44,6 @@ void FlowGraphPrinter::PrintBlocks() {
       PrintInstruction(current);
       current = current->StraightLineSuccessor();
     }
-    BlockEntryInstr* successor =
-        (current == NULL) ? NULL : current->AsBlockEntry();
-    if (successor != NULL) {
-      OS::Print(" goto %d", successor->block_id());
-    }
     OS::Print("\n");
   }
 }
@@ -412,6 +407,11 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void GotoInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    goto %d", successor_->block_id());
+}
+
+
 void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   UNIMPLEMENTED();
 }
@@ -531,11 +531,6 @@ void FlowGraphVisualizer::PrintFunction() {
           PrintInstruction(current);
           current = current->StraightLineSuccessor();
         }
-        BlockEntryInstr* successor =
-            (current == NULL) ? NULL : current->AsBlockEntry();
-        if (successor != NULL) {
-          Print("0 0 _ Goto B%d <|@\n", successor->block_id());
-        }
         END("HIR");
       }
       END("block");
@@ -641,6 +636,11 @@ void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());
+}
+
+
+void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ Goto (B%d)", successor_->block_id());
 }
 
 

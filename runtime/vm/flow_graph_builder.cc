@@ -51,7 +51,10 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
     entry_ = other_fragment.entry();
     exit_ = other_fragment.exit();
   } else {
-    exit()->SetSuccessor(other_fragment.entry());
+    Instruction* successor = other_fragment.entry();
+    exit()->SetSuccessor(successor->IsBlockEntry()
+                         ? new GotoInstr(successor->AsBlockEntry())
+                         : successor);
     exit_ = other_fragment.exit();
   }
   temp_index_ = other_fragment.temp_index();
@@ -60,6 +63,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
+  ASSERT(!instruction->IsBlockEntry());
   DeallocateTempIndex(instruction->InputCount());
   if (instruction->IsDefinition()) {
     instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
@@ -67,6 +71,19 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
+    exit()->SetSuccessor(instruction);
+    exit_ = instruction;
+  }
+}
+
+
+void EffectGraphVisitor::AddBlockEntry(BlockEntryInstr* instruction) {
+  ASSERT(is_open());
+  if (is_empty()) {
+    entry_ = exit_ = instruction;
+  } else {
+    ASSERT(exit()->IsGraphEntry() ||
+           exit()->IsGoto());
     exit()->SetSuccessor(instruction);
     exit_ = instruction;
   }
@@ -108,8 +125,8 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     temp_index_ = true_fragment.temp_index();
   } else {
     exit_ = new JoinEntryInstr();
-    true_exit->SetSuccessor(exit_);
-    false_exit->SetSuccessor(exit_);
+    true_exit->SetSuccessor(new GotoInstr(exit_->AsBlockEntry()));
+    false_exit->SetSuccessor(new GotoInstr(exit_->AsBlockEntry()));
     ASSERT(true_fragment.temp_index() == false_fragment.temp_index());
     temp_index_ = true_fragment.temp_index();
   }
@@ -138,9 +155,10 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
     Append(test_fragment);
   } else {
     JoinEntryInstr* join = new JoinEntryInstr();
-    AddInstruction(join);
+    AddInstruction(new GotoInstr(join));
+    AddBlockEntry(join);
     join->SetSuccessor(test_fragment.entry());
-    body_exit->SetSuccessor(join);
+    body_exit->SetSuccessor(new GotoInstr(join));
   }
 
   // 3. Set the exit to the graph to be the false successor of the test, a
@@ -963,7 +981,8 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
   Append(switch_body);
   if ((node->label() != NULL) && (node->label()->join_for_break() != NULL)) {
     if (is_open()) {
-      AddInstruction(node->label()->join_for_break());
+      AddInstruction(new GotoInstr(node->label()->join_for_break()));
+      AddBlockEntry(node->label()->join_for_break());
     } else {
       exit_ = node->label()->join_for_break();
     }
@@ -1015,7 +1034,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   } else {
     statement_start = new TargetEntryInstr();
   }
-  for_case_statements.AddInstruction(statement_start);
+  for_case_statements.AddBlockEntry(statement_start);
   node->statements()->Visit(&for_case_statements);
   if (is_open() && (len == 0)) {
     ASSERT(node->contains_default());
@@ -1042,7 +1061,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       TargetEntryInstr* case_entry_target = new TargetEntryInstr();
       case_entries.Add(case_entry_target);
-      for_case_expression.AddInstruction(case_entry_target);
+      for_case_expression.AddBlockEntry(case_entry_target);
       case_expr->Visit(&for_case_expression);
     }
     case_true_addresses.Add(for_case_expression.true_successor_address());
@@ -1058,7 +1077,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     *case_false_addresses[i] = case_entries[i + 1];
     TargetEntryInstr* true_target = new TargetEntryInstr();
     *case_true_addresses[i] = true_target;
-    true_target->SetSuccessor(statement_start);
+    true_target->SetSuccessor(new GotoInstr(statement_start));
   }
 
   BlockEntryInstr* exit_instruction = NULL;
@@ -1070,30 +1089,33 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       TargetEntryInstr* true_target = new TargetEntryInstr();
       *case_true_addresses[len - 1] = true_target;
-      true_target->SetSuccessor(statement_start);
+      true_target->SetSuccessor(new GotoInstr(statement_start));
     }
     TargetEntryInstr* false_target = new TargetEntryInstr();
     *case_false_addresses[len - 1] = false_target;
     if (node->contains_default()) {
       // True and false go to statement start.
-      false_target->SetSuccessor(statement_start);
+      false_target->SetSuccessor(new GotoInstr(statement_start));
       if (for_case_statements.is_open()) {
         exit_instruction = new TargetEntryInstr();
-        for_case_statements.exit()->SetSuccessor(exit_instruction);
+        for_case_statements.exit()->SetSuccessor(
+            new GotoInstr(exit_instruction));
       }
     } else {
       if (for_case_statements.is_open()) {
         exit_instruction = new JoinEntryInstr();
-        for_case_statements.exit()->SetSuccessor(exit_instruction);
+        for_case_statements.exit()->SetSuccessor(
+            new GotoInstr(exit_instruction));
       } else {
         exit_instruction = new TargetEntryInstr();
       }
-      false_target->SetSuccessor(exit_instruction);
+      false_target->SetSuccessor(new GotoInstr(exit_instruction));
     }
   } else {
     // A CaseNode without case expressions must contain default.
     ASSERT(node->contains_default());
-    AddInstruction(statement_start);
+    AddInstruction(new GotoInstr(statement_start));
+    AddBlockEntry(statement_start);
   }
 
   ASSERT(!is_open());
@@ -1129,11 +1151,13 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   SourceLabel* lbl = node->label();
   ASSERT(lbl != NULL);
   if (lbl->join_for_continue() != NULL) {
-    AddInstruction(lbl->join_for_continue());
+    AddInstruction(new GotoInstr(lbl->join_for_continue()));
+    AddBlockEntry(lbl->join_for_continue());
   }
   TieLoop(for_test, for_body);
   if (lbl->join_for_break() != NULL) {
-    AddInstruction(lbl->join_for_break());
+    AddInstruction(new GotoInstr(lbl->join_for_break()));
+    AddBlockEntry(lbl->join_for_break());
   }
 }
 
@@ -1162,7 +1186,8 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join = new JoinEntryInstr();
-  AddInstruction(body_entry_join);
+  AddInstruction(new GotoInstr(body_entry_join));
+  AddBlockEntry(body_entry_join);
   body_entry_join->SetSuccessor(for_body.entry());
   Instruction* body_exit =
       for_body.is_empty() ? body_entry_join : for_body.exit();
@@ -1176,19 +1201,20 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     }
     test_entry->SetSuccessor(for_test.entry());
     if (body_exit != NULL) {
-      body_exit->SetSuccessor(test_entry);
+      body_exit->SetSuccessor(new GotoInstr(test_entry));
     }
   }
 
   TargetEntryInstr* back_target_entry = new TargetEntryInstr();
   *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->SetSuccessor(body_entry_join);
+  back_target_entry->SetSuccessor(new GotoInstr(body_entry_join));
   TargetEntryInstr* loop_exit_target = new TargetEntryInstr();
   *for_test.false_successor_address() = loop_exit_target;
   if (node->label()->join_for_break() == NULL) {
     exit_ = loop_exit_target;
   } else {
-    loop_exit_target->SetSuccessor(node->label()->join_for_break());
+    loop_exit_target->SetSuccessor(
+        new GotoInstr(node->label()->join_for_break()));
     exit_ = node->label()->join_for_break();
   }
 }
@@ -1215,7 +1241,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
   TargetEntryInstr* body_entry = new TargetEntryInstr();
-  for_body.AddInstruction(body_entry);
+  for_body.AddBlockEntry(body_entry);
   CheckStackOverflowComp* comp =
       new CheckStackOverflowComp(node->token_pos(), owner()->try_index());
   for_body.AddInstruction(new DoInstr(comp));
@@ -1235,9 +1261,10 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   } else if (node->label()->join_for_continue() != NULL) {
     // Insert join between body and increment.
     if (for_body.is_open()) {
-      for_body.exit()->SetSuccessor(node->label()->join_for_continue());
+      for_body.exit()->SetSuccessor(
+          new GotoInstr(node->label()->join_for_continue()));
     }
-    for_increment.AddInstruction(node->label()->join_for_continue());
+    for_increment.AddBlockEntry(node->label()->join_for_continue());
     node->increment()->Visit(&for_increment);
     loop_increment_end = for_increment.exit();
     ASSERT(loop_increment_end != NULL);
@@ -1250,8 +1277,9 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   // body is not open, i.e., no backward branch exists.
   if (loop_increment_end != NULL) {
     JoinEntryInstr* loop_start = new JoinEntryInstr();
-    AddInstruction(loop_start);
-    loop_increment_end->SetSuccessor(loop_start);
+    AddInstruction(new GotoInstr(loop_start));
+    AddBlockEntry(loop_start);
+    loop_increment_end->SetSuccessor(new GotoInstr(loop_start));
   }
 
   if (node->condition() == NULL) {
@@ -1275,7 +1303,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     if (node->label()->join_for_break() == NULL) {
       exit_ = loop_exit;
     } else {
-      loop_exit->SetSuccessor(node->label()->join_for_break());
+      loop_exit->SetSuccessor(new GotoInstr(node->label()->join_for_break()));
       exit_ = node->label()->join_for_break();
     }
   }
@@ -1318,7 +1346,7 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
     UnchainContext();
   }
 
-  Instruction* jump_target = NULL;
+  BlockEntryInstr* jump_target = NULL;
   if (node->kind() == Token::kBREAK) {
     if (node->label()->join_for_break() == NULL) {
       node->label()->set_join_for_break(new JoinEntryInstr());
@@ -1330,7 +1358,8 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
     }
     jump_target = node->label()->join_for_continue();
   }
-  AddInstruction(jump_target);
+  AddInstruction(new GotoInstr(jump_target));
+  AddBlockEntry(jump_target);
   CloseFragment();
 }
 
@@ -2226,7 +2255,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   if ((node->label() != NULL) &&
       (node->label()->join_for_break() != NULL)) {
     if (is_open()) {
-      AddInstruction(node->label()->join_for_break());
+      AddInstruction(new GotoInstr(node->label()->join_for_break()));
+      AddBlockEntry(node->label()->join_for_break());
     } else {
       exit_ = node->label()->join_for_break();
     }
@@ -2277,14 +2307,16 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
     TargetEntryInstr* catch_entry = new TargetEntryInstr(try_index);
-    for_catch_block.AddInstruction(catch_entry);
+    for_catch_block.AddBlockEntry(catch_entry);
     catch_block->Visit(&for_catch_block);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
     if ((node->end_catch_label() != NULL) &&
         (node->end_catch_label()->join_for_continue() != NULL)) {
       if (is_open()) {
-        AddInstruction(node->end_catch_label()->join_for_continue());
+        AddInstruction(
+            new GotoInstr(node->end_catch_label()->join_for_continue()));
+        AddBlockEntry(node->end_catch_label()->join_for_continue());
       } else {
         exit_ = node->end_catch_label()->join_for_continue();
       }
@@ -2365,7 +2397,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   TargetEntryInstr* normal_entry = new TargetEntryInstr();
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  for_effect.AddInstruction(normal_entry);
+  for_effect.AddBlockEntry(normal_entry);
   parsed_function().node_sequence()->Visit(&for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());

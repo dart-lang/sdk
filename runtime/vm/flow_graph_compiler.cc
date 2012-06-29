@@ -99,9 +99,11 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
-      ASSERT(instr->locs() != NULL);
-      EmitInstructionPrologue(instr);
-      instr->EmitNativeCode(this);
+      ASSERT(instr->IsGoto() || instr->locs() != NULL);
+      if (instr->locs() != NULL) {
+        EmitInstructionPrologue(instr);
+        instr->EmitNativeCode(this);
+      }
       instr = instr->StraightLineSuccessor();
     }
     BlockEntryInstr* successor =
