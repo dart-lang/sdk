@@ -14,8 +14,6 @@
 namespace dart {
 
 void RawObject::Validate(Isolate* isolate) const {
-  // Validation only happens in DEBUG builds.
-#if defined(DEBUG)
   if (Object::null_class_ == reinterpret_cast<RawClass*>(kHeapObjectTag)) {
     // Validation relies on properly initialized class classes. Skip if the
     // VM is still being initialized.
@@ -27,8 +25,22 @@ void RawObject::Validate(Isolate* isolate) const {
   }
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
-  ASSERT((tags & 0x000000f0) == 0);
-#endif
+  uword reserved = 0;
+  reserved |= (1 << kReservedBit10K);
+  reserved |= (1 << kReservedBit100K);
+  reserved |= (1 << kReservedBit1M);
+  reserved |= (1 << kReservedBit10M);
+  if ((tags & reserved) != 0) {
+    FATAL1("Invalid tags field encountered %#lx\n", tags);
+  }
+  intptr_t class_id = ClassIdTag::decode(tags);
+  if (!isolate->class_table()->IsValidIndex(class_id)) {
+    FATAL1("Invalid class id encountered %d\n", class_id);
+  }
+  intptr_t size = SizeTag::decode(tags);
+  if (size != 0 && size != SizeFromClass()) {
+    FATAL1("Inconsistent class size encountered %d\n", size);
+  }
 }
 
 
