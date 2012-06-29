@@ -1461,7 +1461,8 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
       } else {
         prev_bpt->set_next(curr_bpt->next());
       }
-      // Remove references from code breakpoints to this source breakpoint.
+      // Remove references from code breakpoints to this source breakpoint,
+      // and disable the code breakpoints.
       UnlinkCodeBreakpoints(curr_bpt);
       delete curr_bpt;
       return;
@@ -1475,15 +1476,15 @@ void Debugger::RemoveBreakpoint(intptr_t bp_id) {
 
 // Turn code breakpoints associated with the given source breakpoint into
 // internal breakpoints. They will later be deleted when control
-// returns from the user-defined breakpoint callback.
-// Breakpoints can only be deleted by the user when we are stopped
-// at another breakpoint, so we are guaranteed to remove the unlinked
-// code breakpoints when returning from the handler.
+// returns from the user-defined breakpoint callback. Also, disable the
+// breakpoint so it no longer fires if it should be hit before it gets
+// deleted.
 void Debugger::UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt) {
   ASSERT(src_bpt != NULL);
   CodeBreakpoint* curr_bpt = code_breakpoints_;
   while (curr_bpt != NULL) {
     if (curr_bpt->src_bpt() == src_bpt) {
+      curr_bpt->Disable();
       curr_bpt->set_src_bpt(NULL);
     }
     curr_bpt = curr_bpt->next();
