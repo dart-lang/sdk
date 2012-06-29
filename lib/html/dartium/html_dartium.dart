@@ -40991,7 +40991,7 @@ class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Locati
   String get typeName() => "Location";
 }
 
-class _DOMStringMapImpl extends _DOMWrapperBase implements Map<String, String> {
+class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, String> {
   _DOMStringMapImpl();
 
   bool containsValue(String value) => Maps.containsValue(this, value);
