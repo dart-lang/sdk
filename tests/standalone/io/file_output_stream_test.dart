@@ -79,7 +79,6 @@ void testOutputStreamFlush() {
     done.close();
   });
 
-  tempDirectory.createTempSync();
   String fileName = "${tempDirectory.path}/test";
   File file = new File(fileName);
   file.createSync();

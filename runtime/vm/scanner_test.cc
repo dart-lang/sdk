@@ -417,10 +417,15 @@ void FindLineTest() {
   Scanner scanner(String::Handle(String::New(source)),
                   String::Handle(String::New("")));
 
-  intptr_t token_index = scanner.TokenIndexAtLine(3);
-  EXPECT_EQ(3, token_index);
-  token_index = scanner.TokenIndexAtLine(100);
-  EXPECT(token_index < 0);
+  intptr_t first_token_index, last_token_index;
+  scanner.TokenRangeAtLine(3, &first_token_index, &last_token_index);
+  EXPECT_EQ(3, first_token_index);
+  EXPECT_EQ(8, last_token_index);
+  scanner.TokenRangeAtLine(100, &first_token_index, &last_token_index);
+  EXPECT(first_token_index < 0);
+  scanner.TokenRangeAtLine(1, &first_token_index, &last_token_index);
+  EXPECT_EQ(0, first_token_index);
+  EXPECT(last_token_index < 0);
 }
 
 

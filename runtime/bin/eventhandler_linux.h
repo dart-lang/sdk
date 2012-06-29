@@ -93,7 +93,8 @@ class EventHandlerImplementation {
   // descriptor. Creates a new one if one is not found.
   SocketData* GetSocketData(intptr_t fd);
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
-  void StartEventHandler();
+  void Start();
+  void Shutdown();
 
  private:
   intptr_t GetTimeout();
@@ -111,6 +112,7 @@ class EventHandlerImplementation {
   HashMap socket_map_;
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;
+  bool shutdown_;
   int interrupt_fds_[2];
   int epoll_fd_;
 };

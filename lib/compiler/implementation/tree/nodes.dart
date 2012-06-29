@@ -56,9 +56,15 @@ interface Visitor<R> {
 }
 
 Token firstBeginToken(Node first, Node second) {
-  if (first !== null) return first.getBeginToken();
-  if (second !== null) return second.getBeginToken();
-  return null;
+  Token token = null;
+  if (first !== null) {
+    token = first.getBeginToken();
+  }
+  if (token === null && second !== null) {
+    // [token] might be null even when [first] is not, e.g. for empty Modifiers.
+    token = second.getBeginToken();
+  }
+  return token;
 }
 
 class NodeAssertionFailure implements Exception {
@@ -342,6 +348,16 @@ class SendSet extends Send {
     assert(receiver === null);
     return new SendSet(newReceiver, selector, assignmentOperator,
                        argumentsNode);
+  }
+
+  Token getBeginToken() {
+    if (isPrefix) return assignmentOperator.getBeginToken();
+    return super.getBeginToken();
+  }
+
+  Token getEndToken() {
+    if (isPostfix) return assignmentOperator.getEndToken();
+    return super.getEndToken();
   }
 }
 
@@ -975,7 +991,11 @@ class VariableDefinitions extends Statement {
   }
 
   Token getBeginToken() {
-    return firstBeginToken(type, definitions);
+    var token = firstBeginToken(modifiers, type);
+    if (token === null) {
+      token = definitions.getBeginToken();
+    }
+    return token;
   }
 
   Token getEndToken() => endToken;
@@ -1075,10 +1095,11 @@ class Modifiers extends Node {
   static final int FLAG_CONST = FLAG_VAR << 1;
   static final int FLAG_FACTORY = FLAG_CONST << 1;
 
-  Modifiers(NodeList nodes)
-    : this.nodes = nodes, flags = computeFlags(nodes.nodes);
+  Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
   Modifiers.empty() : this(new NodeList.empty());
+
+  Modifiers.withFlags(this.nodes, this.flags);
 
   static int computeFlags(Link<Node> nodes) {
     int flags = 0;
@@ -1107,6 +1128,19 @@ class Modifiers extends Node {
   bool isVar() => (flags & FLAG_VAR) != 0;
   bool isConst() => (flags & FLAG_CONST) != 0;
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
+
+  String toString() {
+    LinkBuilder<String> builder = new LinkBuilder<String>();
+    if (isStatic()) builder.addLast('static');
+    if (isAbstract()) builder.addLast('abstract');
+    if (isFinal()) builder.addLast('final');
+    if (isVar()) builder.addLast('var');
+    if (isConst()) builder.addLast('const');
+    if (isFactory()) builder.addLast('factory');
+    StringBuffer buffer = new StringBuffer();
+    builder.toLink().printOn(buffer, ', ');
+    return buffer.toString();
+  }
 }
 
 class StringInterpolation extends StringNode {

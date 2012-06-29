@@ -474,7 +474,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 8, 7, 1),
         errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 12, 16, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
@@ -511,7 +510,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "}"));
     assertErrors(
         libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 4, 7, 1),
         errEx(TypeErrorCode.INSTANTIATION_OF_CLASS_WITH_UNIMPLEMENTED_MEMBERS, 8, 16, 1));
     {
       DartCompilationError typeError = libraryResult.getTypeErrors().get(0);
@@ -662,8 +660,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
                 "  }",
                 "}"));
     assertErrors(
-        libraryResult.getTypeErrors(),
-        errEx(TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER, 1, 7, 1));
+        libraryResult.getTypeErrors());
   }
 
   /**
@@ -1493,6 +1490,35 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NAMED_PARAMS, 5, 3, 3));
   }
 
+  public void test_metadataOverride_OK_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  foo() {}",
+        "}",
+        "class B extends A {",
+        "  // @override",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
+
+  public void test_metadataOverride_Bad_method() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "}",
+        "class B extends A {",
+        "  // @override",
+        "  foo() {}",
+        "}",
+        "");
+    assertErrors(
+        result.getErrors(),
+        errEx(ResolverErrorCode.INVALID_OVERRIDE_METADATA, 6, 3, 3));
+  }
+
   /**
    * It is a compile-time error if an instance method m1 overrides an instance member m2 and m1 does
    * not declare all the named parameters declared by m2 in the same order.
@@ -1531,6 +1557,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3860
+   */
+  public void test_setterGetterDifferentStatic() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  static get field() => 0;",
+            "         set field(var v) {}",
+            "}",
+            "class B {",
+            "         get field() => 0;",
+            "  static set field(var v) {}",
+            "}",
+            "");
+    assertErrors(result.getErrors(),
+        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 4, 14, 5),
+        errEx(ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC, 8, 14, 5));
+  }
+
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=380
    */
   public void test_setterGetterDifferentType() throws Exception {
@@ -1552,7 +1600,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "  instance.field = new A();",
             "  B resultB = instance.field;",
             "}");
-
     assertErrors(result.getErrors());
   }
 
@@ -2232,6 +2279,28 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(libraryResult, "v", "Event");
   }
 
+  /**
+   * We should infer closure parameter types even in {@link FunctionType} is specified directly,
+   * without using {@link FunctionAliasType}.
+   */
+  public void test_typesPropagation_parameterOfClosure_functionType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Event {}",
+        "class Button<T> {",
+        "  onClick(listener(T e)) {",
+        "  }",
+        "}",
+        "main() {",
+        "  var button = new Button<Event>();",
+        "  button.onClick((e) {",
+        "    var v = e;",
+        "  });",
+        "}",
+        "");
+    assertInferredElementTypeString(libraryResult, "v", "Event");
+  }
+
   public void test_getType_binaryExpression() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "f(var arg) {",
@@ -2697,8 +2766,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 7, 7, 1),
         errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 8, 17, 1),
         errEx(TypeErrorCode.IS_STATIC_METHOD_IN, 9, 7, 1),
-        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1));
-
+        errEx(TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE, 10, 7, 1),
+        errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 10, 5, 3));
   }
 
   public void testExpectedPositionalArgument() throws Exception {
@@ -2843,6 +2912,72 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE, 8, 7, 1),
         errEx(TypeErrorCode.INCOMPATIBLE_TYPES_IN_HIERARCHY, 7, 7, 1));
+  }
+
+  public void test_variableUsedAsType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var func;",
+        "func i;");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
+  }
+
+  public void test_assignMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  method() { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_ASSIGN_TO, 5, 3, 14));
+  }
+
+  public void test_assignSetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  set method(arg) { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+  }
+
+  public void test_assignGetter() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  get method() { }",
+        "}",
+        "main () {",
+        "  new C().method = _() {};",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.FIELD_HAS_NO_SETTER, 5, 11, 6));
+  }
+
+  public void test_assignArrayElement() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {" +
+        "  get method() { }",
+        "  operator [](arg) {}",
+        "}",
+        "main () {",
+        "  new C()[0] = 1;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors());
+
   }
 
   private static <T extends DartNode> T findNode(

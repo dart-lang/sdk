@@ -181,7 +181,8 @@ class LiveEnvironment {
   }
 
   bool isEmpty() => liveInstructions.isEmpty() && loopMarkers.isEmpty();
-  bool contains(HInstruction instruction) => liveInstructions.containsKey(instruction);
+  bool contains(HInstruction instruction) =>
+      liveInstructions.containsKey(instruction);
   String toString() => liveInstructions.toString();
 }
 
@@ -192,6 +193,7 @@ class LiveEnvironment {
  */
 class SsaLiveIntervalBuilder extends HBaseVisitor {
   final Compiler compiler;
+  final Set<HInstruction> generateAtUseSite;
 
   /**
    * A counter to assign start and end ids to live ranges. The initial
@@ -211,7 +213,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
    */
   final Map<HInstruction, LiveInterval> liveIntervals;
 
-  SsaLiveIntervalBuilder(this.compiler)
+  SsaLiveIntervalBuilder(this.compiler, this.generateAtUseSite)
     : liveInstructions = new Map<HBasicBlock, LiveEnvironment>(),
       liveIntervals = new Map<HInstruction, LiveInterval>();
 
@@ -223,8 +225,26 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     }
   }
 
+  void markInputsAsLiveInEnvironment(HInstruction instruction,
+                                     LiveEnvironment environment) {
+    for (int i = 0, len = instruction.inputs.length; i < len; i++) {
+      markAsLiveInEnvironment(instruction.inputs[i], environment);
+    }
+  }
+
+  void markAsLiveInEnvironment(HInstruction instruction,
+                               LiveEnvironment environment) {
+    if (environment.contains(instruction)) return;
+    environment.add(instruction, instructionId);
+    // HPhis are treated specially.
+    if (generateAtUseSite.contains(instruction) && instruction is !HPhi) {
+      markInputsAsLiveInEnvironment(instruction, environment);
+    }
+  }
+
   void visitBasicBlock(HBasicBlock block) {
-    LiveEnvironment environment = new LiveEnvironment(liveIntervals, instructionId);
+    LiveEnvironment environment =
+        new LiveEnvironment(liveIntervals, instructionId);
 
     // Add to the environment the liveIn of its successor, as well as
     // the inputs of the phis of the successor that flow from this block.
@@ -239,7 +259,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
 
       int index = successor.predecessors.indexOf(block);
       for (HPhi phi = successor.phis.first; phi != null; phi = phi.next) {
-        environment.add(phi.inputs[index], instructionId);
+        markAsLiveInEnvironment(phi.inputs[index], environment);
       }
     }
 
@@ -248,9 +268,7 @@ class SsaLiveIntervalBuilder extends HBaseVisitor {
     HInstruction instruction = block.last;
     while (instruction != null) {
       environment.remove(instruction, instructionId);
-      for (int i = 0, len = instruction.inputs.length; i < len; i++) {
-        environment.add(instruction.inputs[i], instructionId);
-      }
+      markInputsAsLiveInEnvironment(instruction, environment);
       instruction = instruction.previous;
       instructionId--;
     }

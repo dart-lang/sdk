@@ -10,6 +10,7 @@ import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationPhase;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ErrorCode;
+import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBlock;
@@ -18,6 +19,7 @@ import com.google.dart.compiler.ast.DartBreakStatement;
 import com.google.dart.compiler.ast.DartCatchBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartClassMember;
+import com.google.dart.compiler.ast.DartContinueStatement;
 import com.google.dart.compiler.ast.DartDoWhileStatement;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
 import com.google.dart.compiler.ast.DartExpression;
@@ -69,6 +71,7 @@ import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
+import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.InterfaceType.Member;
 import com.google.dart.compiler.type.Type;
@@ -335,6 +338,26 @@ public class Resolver {
           onError(interfaceConstructor.getNameLocation(),
                   ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE);
         }
+      }
+
+      if (!classElement.isInterface() && Elements.needsImplicitDefaultConstructor(classElement)) {
+        // Check to see that all final fields are initialized when no explicit
+        // generative constructor is declared
+        cls.accept(new ASTVisitor<DartNode>() {
+          @Override
+          public DartNode visitField(DartField node) {
+            FieldElement fieldElement = node.getElement();
+            if (fieldElement != null && fieldElement.getModifiers().isFinal()
+                && !fieldElement.isStatic()
+                && !fieldElement.getModifiers().isGetter()
+                && !fieldElement.getModifiers().isSetter()
+                && !fieldElement.getModifiers().isInitialized()) {
+              onError(node, ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
+                  fieldElement.getName());
+            }
+            return null;
+          }
+        });
       }
 
       context = previousContext;
@@ -635,15 +658,6 @@ public class Resolver {
       if (Elements.isNonFactoryConstructor(member)
           && !(body instanceof DartNativeBlock)) {
         resolveInitializers(node, initializedFields);
-        // Test for missing final initialized fields
-        if (!this.currentHolder.isInterface() && !member.getModifiers().isRedirectedConstructor()) {
-          for (FieldElement finalField : this.finalsNeedingInitializing) {
-            if (!initializedFields.contains(finalField)) {
-              onError(node.getName(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
-                  finalField.getName());
-            }
-          }
-        }
       }
 
       context = previousContext;
@@ -753,17 +767,22 @@ public class Resolver {
 
     @Override
     public Element visitLabel(DartLabel x) {
-      LabelElement currentLabel = Elements.labelElement(x, x.getName(), innermostFunction);
-      recordElement(x.getLabel(), currentLabel);
-      recordElement(x, currentLabel);
-      x.visitChildren(this);
-      if (!labelsInScopes.contains(currentLabel)) {
-        // TODO(zundel): warning, not type error.
-        // topLevelContext.typeError(x, DartCompilerErrorCode.USELESS_LABEL, x.getName());
-      } else if (!referencedLabels.contains(currentLabel)) {
-        // TODO(zundel): warning, not type error.
-        // topLevelContext.typeError(x, DartCompilerErrorCode.UNREFERENCED_LABEL, x.getName());
+      DartNode parent = x.getParent();
+      if (!(parent instanceof DartSwitchMember)) {
+        LabelElement labelElement;
+        DartStatement childStatement = x.getStatement();
+        while (childStatement instanceof DartLabel) {
+          childStatement = ((DartLabel)childStatement).getStatement();
+        }
+        if (childStatement instanceof DartSwitchStatement) {
+          labelElement = Elements.switchLabelElement(x, x.getName(), innermostFunction);
+        } else {
+          labelElement = Elements.statementLabelElement(x, x.getName(), innermostFunction);
+        }
+        recordElement(x.getLabel(), labelElement);
+        recordElement(x, labelElement);
       }
+      x.visitChildren(this);
       return null;
     }
 
@@ -779,17 +798,30 @@ public class Resolver {
         getContext().pushFunctionScope(x);
         element = getContext().declareFunction(x);
       }
-      MethodElement previousFunction = innermostFunction;
-      innermostFunction = element;
-      DartFunction functionNode = x.getFunction();
-      resolveFunction(functionNode, element);
-      resolve(functionNode.getBody());
-      innermostFunction = previousFunction;
-      getContext().popScope();
+      // record element
       if (x.getName() != null) {
         recordElement(x.getName(), element);
       }
-      return recordElement(x, element);
+      recordElement(x, element);
+      // visit function
+      MethodElement previousFunction = innermostFunction;
+      innermostFunction = element;
+      {
+        DartFunction functionNode = x.getFunction();
+        EnclosingElement previousEnclosingElement = enclosingElement;
+        enclosingElement = element;
+        getContext().pushFunctionScope(x);
+        try {
+          resolveFunction(functionNode, element);
+          resolve(functionNode.getBody());
+        } finally {
+          getContext().popScope();
+          enclosingElement = previousEnclosingElement;
+        }
+      }
+      innermostFunction = previousFunction;
+      getContext().popScope();
+      return element;
     }
 
     @Override
@@ -890,10 +922,11 @@ public class Resolver {
       return null;
     }
 
-    private void addLabelToStatement(DartStatement x) {
+    private void addLabelToStatement(DartNode x) {
       DartNode parent = x.getParent();
       while (parent instanceof DartLabel) {
-        LabelElement currentLabel = ((DartLabel) parent).getElement();
+        DartLabel label = (DartLabel) parent;
+        LabelElement currentLabel = label.getElement();
         getContext().getScope().addLabel(currentLabel);
         labelsInScopes.add(currentLabel);
         parent = parent.getParent();
@@ -914,6 +947,11 @@ public class Resolver {
     public Element visitSwitchStatement(DartSwitchStatement x) {
       getContext().pushScope("<switch>");
       addLabelToStatement(x);
+      // The scope of a label on the case statement is the case statement itself. These labels
+      // need to be resolved before the continue <label>; statements can be resolved.
+      for (DartSwitchMember member : x.getMembers()) {
+        recordSwitchMamberLabel(member);
+      }
       x.visitChildren(this);
       getContext().popScope();
       return null;
@@ -925,6 +963,21 @@ public class Resolver {
       x.visitChildren(this);
       getContext().popScope();
       return null;
+    }
+
+    private void recordSwitchMamberLabel(DartSwitchMember x) {
+      DartLabel label = x.getLabel();
+      if (label != null) {
+        LabelElement labelElement =  Elements.switchMemberLabelElement(label, label.getName(),
+            innermostFunction);
+        recordElement(label.getLabel(), labelElement);
+        recordElement(label, labelElement);
+        if (getContext().getScope().hasLocalLabel(label.getName())) {
+          onError(label, ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT);
+        }
+        getContext().getScope().addLabel(labelElement);
+        labelsInScopes.add(labelElement);
+      }
     }
 
     @Override
@@ -1073,6 +1126,11 @@ public class Resolver {
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;
           }
+          if (!element.getModifiers().isStatic() && !Elements.isTopLevel(element)) {
+            if (referencedFromInitializer(x)) {
+              onError(x, ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER);
+            }
+          }
           break;
         case CLASS:
           if (!isQualifier) {
@@ -1216,7 +1274,9 @@ public class Resolver {
           // Library prefix, lookup the element in the referenced library.
           Scope scope = ((LibraryPrefixElement) qualifier).getScope();
           element = scope.findElement(scope.getLibrary(), x.getPropertyName());
-          if (element == null) {
+          if (element != null) {
+            recordElement(x.getQualifier(), element.getEnclosingElement());
+          } else {
             onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED_LIBRARY,
                 x.getPropertyName(), qualifier.getName());
           }
@@ -1320,6 +1380,7 @@ public class Resolver {
           if (element == null) {
             diagnoseErrorInMethodInvocation(x, library, null);
           } else {
+            recordElement(x.getTarget(), element.getEnclosingElement());
             name.setElement(element);
           }
           break;
@@ -1532,6 +1593,16 @@ public class Resolver {
         Element element = getContext().getScope().findLabel(x.getTargetName(), innermostFunction);
         if (ElementKind.of(element).equals(ElementKind.LABEL)) {
           LabelElement labelElement = (LabelElement) element;
+          if (x instanceof DartBreakStatement
+              && labelElement.getStatementType() == LabeledStatementType.SWITCH_MEMBER_STATEMENT) {
+            onError(x.getLabel(), ResolverErrorCode.BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT);
+            return null;
+          }
+          if (x instanceof DartContinueStatement
+              && labelElement.getStatementType() == LabeledStatementType.SWITCH_STATEMENT) {
+            onError(x.getLabel(), ResolverErrorCode.CONTINUE_LABEL_RESOLVES_TO_SWITCH);
+            return null;
+          }
           MethodElement enclosingFunction = (labelElement).getEnclosingFunction();
           if (enclosingFunction == innermostFunction) {
             referencedLabels.add(labelElement);
@@ -1579,7 +1650,7 @@ public class Resolver {
 
         case CONSTRUCTOR:
           onError(errorNode, ResolverErrorCode.IS_A_CONSTRUCTOR, classOrLibrary.getName(),
-                          name);
+              name);
           break;
 
         case METHOD: {
@@ -1895,9 +1966,25 @@ public class Resolver {
         if (supertype != null) {
           superCall = Elements.lookupConstructor(supertype.getElement(), "");
         }
+        if (superCall != null) {
+
+          // Do positional parameters match?
+          List<VariableElement> superParameters = superCall.getParameters();
+          // Count the number of positional parameters required by super call
+          int superPositionalCount = 0;
+          for (; superPositionalCount < superParameters.size(); superPositionalCount++) {
+            if (superParameters.get(superPositionalCount).isNamed()) {
+              break;
+            }
+          }
+          if (superPositionalCount > 0) {
+            onError(node, ResolverErrorCode.TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER,
+                superCall.getType().toString());
+          }
+        }
       }
 
-      if ((superCall == null)
+      if (superCall == null
           && !currentClass.isObject()
           && !currentClass.isObjectChild()) {
         InterfaceType supertype = currentClass.getSupertype();
@@ -1911,7 +1998,7 @@ public class Resolver {
             }
           }
         }
-      } else if ((superCall != null)
+      } else if (superCall != null
           && node.getModifiers().isConstant()
           && !superCall.getModifiers().isConstant()) {
         onError(node.getName(),
@@ -1928,15 +2015,27 @@ public class Resolver {
           if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
             onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC);
           }
-        if (calledFromRedirectConstructor(node)) {
-          if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+        if (!target.getModifiers().isStatic() && !Elements.isTopLevel(target)) {
+          if (referencedFromRedirectConstructor(node)) {
             onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT);
+          } else if (referencedFromInitializer(node)) {
+            onError(node, ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER);
           }
         }
       }
     }
 
-    private boolean calledFromRedirectConstructor(DartNode node) {
+    private boolean referencedFromInitializer(DartNode node) {
+      do {
+        if (node instanceof DartInitializer) {
+          return true;
+        }
+        node = node.getParent();
+      } while (node != null);
+      return false;
+    }
+
+    private boolean referencedFromRedirectConstructor(DartNode node) {
       do {
         if (node instanceof DartRedirectConstructorInvocation) {
           return true;
@@ -1962,7 +2061,7 @@ public class Resolver {
       }
     }
 
-    private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> intializedFields) {
+    private void resolveInitializers(DartMethodDefinition node, Set<FieldElement> initializedFields) {
       Iterator<DartInitializer> initializers = node.getInitializers().iterator();
       ConstructorElement constructorElement = null;
       while (initializers.hasNext()) {
@@ -1972,8 +2071,30 @@ public class Resolver {
           constructorElement = (ConstructorElement) element;
         } else if (initializer.getName() != null && initializer.getName().getElement() != null
             && initializer.getName().getElement().getModifiers() != null
-            && !intializedFields.add((FieldElement)initializer.getName().getElement())) {
+            && !initializedFields.add((FieldElement)initializer.getName().getElement())) {
           onError(initializer, ResolverErrorCode.DUPLICATE_INITIALIZATION, initializer.getName());
+        }
+      }
+
+      // Look for final fields that are not initialized
+      ClassElement classElement = (ClassElement)enclosingElement.getEnclosingElement();
+      Element methodElement = node.getElement();
+      if (classElement != null && methodElement != null
+          && !classElement.isInterface()
+          && !classElement.getModifiers().isNative()
+          && !methodElement.getModifiers().isRedirectedConstructor()) {
+        for (Element member : classElement.getMembers()) {
+          switch (ElementKind.of(member)) {
+            case FIELD:
+              FieldElement fieldMember = (FieldElement)member;
+              if (fieldMember.getModifiers().isFinal()
+                  && !fieldMember.getModifiers().isInitialized()
+                  && !initializedFields.contains(fieldMember)) {
+                FieldNodeElement n = (FieldNodeElement)fieldMember;
+                onError(n.getNode(), ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED,
+                    fieldMember.getName());
+              }
+          }
         }
       }
 

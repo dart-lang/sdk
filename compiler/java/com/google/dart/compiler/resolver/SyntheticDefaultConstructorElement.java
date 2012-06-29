@@ -1,8 +1,9 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.type.FunctionType;
 import com.google.dart.compiler.type.Type;
@@ -10,6 +11,7 @@ import com.google.dart.compiler.type.Types;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Set;
 
 /**
  * {@link ConstructorElement} for implicit default constructor.
@@ -121,5 +123,10 @@ public class SyntheticDefaultConstructorElement extends AbstractNodeElement
   @Override
   public Element lookupLocalElement(String name) {
     return null;
+  }
+
+  @Override
+  public Set<Element> getOverridden() {
+    return ImmutableSet.of();
   }
 }

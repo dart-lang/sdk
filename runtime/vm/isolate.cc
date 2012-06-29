@@ -401,26 +401,7 @@ void Isolate::Shutdown() {
 
 Dart_IsolateCreateCallback Isolate::create_callback_ = NULL;
 Dart_IsolateInterruptCallback Isolate::interrupt_callback_ = NULL;
-
-
-void Isolate::SetCreateCallback(Dart_IsolateCreateCallback cb) {
-  create_callback_ = cb;
-}
-
-
-Dart_IsolateCreateCallback Isolate::CreateCallback() {
-  return create_callback_;
-}
-
-
-void Isolate::SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
-  interrupt_callback_ = cb;
-}
-
-
-Dart_IsolateInterruptCallback Isolate::InterruptCallback() {
-  return interrupt_callback_;
-}
+Dart_IsolateShutdownCallback Isolate::shutdown_callback_ = NULL;
 
 
 void Isolate::VisitObjectPointers(ObjectPointerVisitor* visitor,

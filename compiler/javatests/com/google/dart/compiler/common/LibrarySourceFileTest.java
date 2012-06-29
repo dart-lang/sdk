@@ -1,9 +1,10 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.common;
 
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.AbstractSourceFileTest;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerListener;
@@ -107,7 +108,13 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
       };
 
       try {
-        libUnit = DartParser.getSourceParser(lib, listener).preProcessLibraryDirectives(lib);
+        libUnit = new DartParser(
+            lib,
+            DartParser.read(lib),
+            false,
+            Sets.<String>newHashSet(),
+            listener,
+            null).preProcessLibraryDirectives(lib);
       } catch (IOException ioEx) {
         libUnit = null;
       }

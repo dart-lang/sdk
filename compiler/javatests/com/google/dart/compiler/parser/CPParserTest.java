@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,7 +27,13 @@ public class CPParserTest extends CompilerTestCase {
   private static String[] EXPECTED002 = {"/*\n*\n //comment\nX Y"};
 
   private String source;
-  private CommentPreservingParser parser;
+
+  
+  @Override
+  protected DartParser makeParser(Source src, String sourceCode, DartCompilerListener listener) {
+    source = sourceCode;
+    return super.makeParser(src, sourceCode, listener);
+  }
 
   public void test001() {
     DartUnit unit = parseUnit("Comments.dart");
@@ -40,25 +46,11 @@ public class CPParserTest extends CompilerTestCase {
     compareComments(unit.getComments(), EXPECTED002);
   }
 
-  @Override
-  protected DartParser makeParser(ParserContext context) {
-    parser = new CommentPreservingParser(context, false);
-    return parser;
-  }
-
-  @Override
-  protected ParserContext makeParserContext(Source src, String sourceCode,
-      DartCompilerListener listener) {
-    this.source = sourceCode;
-    return CommentPreservingParser.createContext(src, sourceCode, listener);
-  }
-
   private List<String> extractComments(List<DartComment> cms) {
     List<String> comments = new ArrayList<String>();
     for (DartComment cm : cms) {
       SourceInfo sourceInfo = cm.getSourceInfo();
-      comments.add(source.substring(sourceInfo.getOffset(), sourceInfo.getOffset()
-          + sourceInfo.getLength()));
+      comments.add(source.substring(sourceInfo.getOffset(), sourceInfo.getEnd()));
     }
     return comments;
   }

@@ -874,20 +874,39 @@ void Scanner::ScanTo(intptr_t token_index) {
 }
 
 
-intptr_t Scanner::TokenIndexAtLine(intptr_t line_number) {
+void Scanner::TokenRangeAtLine(intptr_t line_number,
+                               intptr_t* first_token_index,
+                               intptr_t* last_token_index) {
   ASSERT(line_number >= 0);
+  ASSERT((first_token_index != NULL) && (last_token_index != NULL));
   Reset();
+  *first_token_index = -1;
+  *last_token_index = -1;
   int token_index = 0;
   do {
     Scan();
     if (current_token_.position.line >= line_number) {
-      return token_index;
+      *first_token_index = token_index;
+      break;
     }
     token_index++;
   } while (current_token_.kind != Token::kEOS);
-  return -1;
+  if (current_token_.kind == Token::kEOS) {
+    return;
+  }
+  if (current_token_.position.line > line_number) {
+    // *last_token_index is -1 to signal that the first token is past
+    // the requested line.
+    return;
+  }
+  ASSERT(current_token_.position.line == line_number);
+  while ((current_token_.kind != Token::kEOS) &&
+      (current_token_.position.line == line_number)) {
+    *last_token_index = token_index;
+    Scan();
+    token_index++;
+  }
 }
-
 
 
 const Scanner::GrowableTokenStream& Scanner::GetStream() {

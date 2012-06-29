@@ -136,7 +136,7 @@ static int Main(int argc, const char** argv) {
   bool set_vm_flags_success = Flags::ProcessCommandLineFlags(dart_argc,
                                                              dart_argv);
   ASSERT(set_vm_flags_success);
-  bool init_success = Dart::InitOnce(NULL, NULL);
+  bool init_success = Dart::InitOnce(NULL, NULL, NULL);
   ASSERT(init_success);
   // Apply the filter to all registered tests.
   TestCaseBase::RunAll();

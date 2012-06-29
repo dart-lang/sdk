@@ -157,6 +157,8 @@ void testJoinAppend() {
   testAppend('a/b/', 'cd', 'a/b/cd');
   testAppend('.', '..', './..');
   testAppend('a/b', '/c/d', 'a/b//c/d');
+  testAppend('', 'foo/bar', 'foo/bar');
+  testAppend('/foo', '', '/foo/');
 
   // .join can only join a relative path to a path.
   // It cannot join an absolute path to a path.

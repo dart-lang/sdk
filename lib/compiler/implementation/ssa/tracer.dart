@@ -9,11 +9,13 @@
 #import('../leg.dart');
 
 final bool GENERATE_SSA_TRACE = false;
+final String SSA_TRACE_FILTER = null;
 
 class HTracer extends HGraphVisitor implements Tracer {
   int indent = 0;
   final RandomAccessFile output;
   final bool enabled = GENERATE_SSA_TRACE;
+  bool traceActive = false;
 
   HTracer([String path = "dart.cfg"])
       : output = GENERATE_SSA_TRACE ? new File(path).openSync(FileMode.WRITE)
@@ -24,6 +26,10 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void traceCompilation(String methodName) {
+    if (!enabled) return;
+    traceActive =
+        SSA_TRACE_FILTER == null || methodName.contains(SSA_TRACE_FILTER);
+    if (!traceActive) return;
     tag("compilation", () {
       printProperty("name", methodName);
       printProperty("method", methodName);
@@ -32,7 +38,7 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void traceGraph(String name, HGraph graph) {
-    if (!enabled) return;
+    if (!traceActive) return;
     tag("cfg", () {
       printProperty("name", name);
       visitDominatorTree(graph);
@@ -243,12 +249,14 @@ class HInstructionStringifier implements HVisitor<String> {
   String visitExit(HExit node) => "exit";
 
   String visitFieldGet(HFieldGet node) {
-    return 'get ${temporaryId(node.receiver)}';
+    String fieldName = node.element.name.slowToString();
+    return 'get ${temporaryId(node.receiver)}.$fieldName';
   }
 
   String visitFieldSet(HFieldSet node) {
     String valueId = temporaryId(node.value);
-    return 'set ${temporaryId(node.receiver)} to $valueId';
+    String fieldName = node.element.name.slowToString();
+    return 'set ${temporaryId(node.receiver)}.$fieldName to $valueId';
   }
 
   String visitLocalGet(HLocalGet node) => visitFieldGet(node);
@@ -478,7 +486,7 @@ class HInstructionStringifier implements HVisitor<String> {
         envBuffer.add(" ${temporaryId(inputs[i])}");
       }
     }
-    String on = node.isOn ? "on" : "off";
+    String on = node.isEnabled ? "enabled" : "disabled";
     String id = temporaryId(node.guarded);
     return "TypeGuard($on): $id is $type env: $envBuffer";
   }

@@ -11,20 +11,8 @@
 
 namespace dart {
 
-void FlowGraphCompiler::Bailout(const char* reason) {
-  const char* kFormat = "FlowGraphCompiler Bailout: %s.";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, reason) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, reason);
-  const Error& error = Error::Handle(
-      LanguageError::New(String::Handle(String::New(chars))));
-  Isolate::Current()->long_jump_base()->Jump(1, error);
-}
-
-
 void FlowGraphCompiler::CompileGraph() {
-  Bailout("CompileGraph");
+  UNIMPLEMENTED();
 }
 
 
@@ -51,7 +39,6 @@ void FlowGraphCompiler::FinalizeExceptionHandlers(const Code& code) {
 void FlowGraphCompiler::FinalizeComments(const Code& code) {
   UNIMPLEMENTED();
 }
-
 
 }  // namespace dart
 

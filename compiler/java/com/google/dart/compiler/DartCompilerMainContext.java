@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6,6 +6,7 @@ package com.google.dart.compiler;
 
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -90,8 +91,8 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
       synchronized (this) {
         if (appLibraryUnit == null) {
           try {
-            appLibraryUnit =
-                DartParser.getSourceParser(lib, listener).preProcessLibraryDirectives(lib);
+            appLibraryUnit = new DartParser(lib, DartParser.read(lib), false,
+                Sets.<String> newHashSet(), listener, null).preProcessLibraryDirectives(lib);
           } catch (IOException e) {
             onError(new DartCompilationError(lib, DartCompilerErrorCode.IO, e.getMessage()));
             return null;
@@ -148,7 +149,8 @@ final class DartCompilerMainContext implements DartCompilerListener, DartCompile
       return getApplicationUnit();
     }
     try {
-      return DartParser.getSourceParser(libSrc, listener).preProcessLibraryDirectives(libSrc);
+      return new DartParser(libSrc, DartParser.read(libSrc), false,
+          Sets.<String> newHashSet(), listener, null).preProcessLibraryDirectives(libSrc);
     } catch (IOException e) {
       onError(new DartCompilationError(libSrc, DartCompilerErrorCode.IO, e.getMessage()));
       return null;

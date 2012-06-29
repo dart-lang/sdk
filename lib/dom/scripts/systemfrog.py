@@ -29,11 +29,7 @@ class FrogSystem(System):
         templates, database, emitters, output_dir)
     self._impl_file_paths = []
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     """."""
     if IsPureInterface(interface.id):
       return
@@ -43,15 +39,13 @@ class FrogSystem(System):
       template = self._templates.Load('frog_impl.darttemplate')
 
     dart_code = self._ImplFileEmitter(interface.id)
-    return FrogInterfaceGenerator(self, interface, template,
-                                  super_interface_name, dart_code)
+    FrogInterfaceGenerator(self, interface, template, dart_code).Generate()
 
   def GenerateLibraries(self):
     self._GenerateLibFile(
         'frog_dom.darttemplate',
         os.path.join(self._output_dir, 'dom_frog.dart'),
         (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
          self._impl_file_paths))
 
   def Finish(self):
@@ -68,7 +62,7 @@ class FrogSystem(System):
 class FrogInterfaceGenerator(BaseGenerator):
   """Generates a Frog class for a DOM IDL interface."""
 
-  def __init__(self, system, interface, template, super_interface, dart_code):
+  def __init__(self, system, interface, template, dart_code):
     """Generates Dart code for the given interface.
 
     Args:
@@ -77,16 +71,13 @@ class FrogInterfaceGenerator(BaseGenerator):
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
       template: A string template.
-      super_interface: A string or None, the name of the common interface that
-          this interface implements, if any.
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
-    super(FrogInterfaceGenerator, self).__init__(system._database)
+    super(FrogInterfaceGenerator, self).__init__(system._database, interface)
     self._system = system
     self._interface = interface
     self._template = template
-    self._super_interface = super_interface
     self._dart_code = dart_code
     self._current_secondary_parent = None
 

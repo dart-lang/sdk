@@ -217,7 +217,8 @@ public class ResolutionContext implements ResolutionErrorListener {
   }
 
   Type resolveType(DartNode diagnosticNode, DartNode identifier, List<DartTypeNode> typeArguments,
-                   boolean isStatic, boolean isFactory, ErrorCode errorCode, ErrorCode wrongNumberErrorCode) {
+                   boolean isStatic, boolean isFactory, ErrorCode errorCode,
+                   ErrorCode wrongNumberErrorCode) {
     // Built-in identifier can not be used as a type annotation.
     if (identifier instanceof DartIdentifier) {
       String name = ((DartIdentifier) identifier).getName();
@@ -261,7 +262,11 @@ public class ResolutionContext implements ResolutionErrorListener {
               return typeProvider.getDynamicType();
 
             default:
-              onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
+              if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
+                onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
+              } else {
+                onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+              }
               return typeProvider.getDynamicType();
           }
         }
@@ -288,7 +293,11 @@ public class ResolutionContext implements ResolutionErrorListener {
         return typeProvider.getDynamicType();
       default:
         if (!(identifier instanceof DartSyntheticErrorIdentifier)) {
-          onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
+          if (errorCode.getSubSystem().equals(SubSystem.RESOLVER)) {
+            onError(identifier, ResolverErrorCode.NOT_A_TYPE, identifier, elementKind);
+          } else {
+            onError(identifier, TypeErrorCode.NOT_A_TYPE, identifier, elementKind);
+          }
         }
         return typeProvider.getDynamicType();
     }

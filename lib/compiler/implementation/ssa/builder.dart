@@ -1092,13 +1092,22 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   HInstruction potentiallyCheckType(HInstruction original,
                                     Element sourceElement) {
     if (!compiler.enableTypeAssertions) return original;
+    return convertType(original, sourceElement,
+                       HTypeConversion.CHECKED_MODE_CHECK);
+  }
 
+  HInstruction convertType(HInstruction original,
+                           Element sourceElement,
+                           int kind) {
     Type type = sourceElement.computeType(compiler);
     if (type === null) return original;
     if (type.element === compiler.dynamicClass) return original;
     if (type.element === compiler.objectClass) return original;
 
-    HType convertedType = new HType.fromBoundedType(type, compiler, true);
+    // If the original can't be null, type conversion also can't produce null.
+    bool canBeNull = original.guaranteedType.canBeNull();
+    HType convertedType =
+        new HType.fromBoundedType(type, compiler, canBeNull);
 
     // No need to convert if we know the instruction has
     // [convertedType] as a bound.
@@ -1107,7 +1116,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HInstruction instruction =
-        new HTypeConversion.checkedModeCheck(convertedType, original);
+        new HTypeConversion(convertedType, original, kind);
     add(instruction);
     return instruction;
   }
@@ -1978,6 +1987,15 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         }
         push(instruction);
       }
+    } else if (const SourceString("as") == op.source) {
+      visit(node.receiver);
+      HInstruction expression = pop();
+      Node argument = node.arguments.head;
+      TypeAnnotation typeAnnotation = argument.asTypeAnnotation();
+      Type type = elements.getType(typeAnnotation);
+      HInstruction converted = convertType(expression, type.element,
+                                           HTypeConversion.CAST_TYPE_CHECK);
+      stack.add(converted);
     } else {
       visit(node.receiver);
       visit(node.argumentsNode);
@@ -2701,46 +2719,42 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    HBasicBlock conditionStartBlock = openNewBlock();
-    visit(node.condition);
-    HIf condition = new HIf(popBoolified(), true);
-    SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, current);
-    HBasicBlock conditionBlock = close(condition);
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    HInstruction thenInstruction;
+    HBasicBlock thenEndBlock;
+    HInstruction elseInstruction;
+    HBasicBlock elseEndBlock;
 
-    HBasicBlock thenBlock = addNewBlock();
-    conditionBlock.addSuccessor(thenBlock);
-    open(thenBlock);
-    visit(node.thenExpression);
-    HInstruction thenInstruction = pop();
-    SubGraph thenGraph = new SubGraph(thenBlock, current);
-    thenBlock = close(new HGoto());
-    LocalsHandler thenLocals = localsHandler;
-    localsHandler = savedLocals;
+    void buildThen() {
+      visit(node.thenExpression);
+      if (isAborted()) {
+        // Currently expressions cannot abort. Guard against future changes.
+        compiler.internalError("aborted expression", node: node.thenExpression);
+      }
+      thenInstruction = pop();
+      thenEndBlock = current;
+    }
+    void buildElse() {
+      visit(node.elseExpression);
+      if (isAborted()) {
+        // Currently expressions cannot abort. Guard against future changes.
+        compiler.internalError("aborted expression", node: node.elseExpression);
+      }
+      elseInstruction = pop();
+      elseEndBlock = current;
+    }
 
-    HBasicBlock elseBlock = addNewBlock();
-    conditionBlock.addSuccessor(elseBlock);
-    open(elseBlock);
-    visit(node.elseExpression);
-    HInstruction elseInstruction = pop();
-    SubGraph elseGraph = new SubGraph(elseBlock, current);
-    elseBlock = close(new HGoto());
+    handleIf(() => visit(node.condition), buildThen, buildElse);
 
-    HBasicBlock joinBlock = addNewBlock();
-    thenBlock.addSuccessor(joinBlock);
-    elseBlock.addSuccessor(joinBlock);
-
-    // TODO(lrn): Handle expressions better.
-    condition.blockInformation = new HBlockFlow(
-        new HIfBlockInformation(
-          new HSubExpressionBlockInformation(conditionGraph),
-          new HSubGraphBlockInformation(thenGraph),
-          new HSubGraphBlockInformation(elseGraph)),
-        joinBlock);
-    open(joinBlock);
-
-    localsHandler.mergeWith(thenLocals, joinBlock);
+    HBasicBlock joinBlock = current;
+    if (joinBlock.predecessors.length != 2 ||
+        joinBlock.predecessors[0] != thenEndBlock ||
+        joinBlock.predecessors[1] != elseEndBlock) {
+      // This is simply a sanity check that [handleIf] returns with the join
+      // block set as [current]. In the current version of [handleIf] this is
+      // always the case.
+      compiler.internalError("handleIf not returning joinblock.",
+                             node: node);
+    }
     HPhi phi = new HPhi.manyInputs(null,
         <HInstruction>[thenInstruction, elseInstruction]);
     joinBlock.addPhi(phi);

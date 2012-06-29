@@ -8,6 +8,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Joiner;
 import com.google.common.base.Objects;
 import com.google.common.collect.ArrayListMultimap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedListMultimap;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
@@ -356,6 +357,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           if (!hasInferredType(lhsNode)) {
             checkAssignable(rhsNode, lhs, rhs);
           }
+          checkAssignableElement(lhsNode);
           return rhs;
         }
 
@@ -370,6 +372,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Token basicOperator = getBasicOperator(node, operator);
           Type type = analyzeBinaryOperator(node, lhs, basicOperator, lhsNode, rhsNode);
           checkAssignable(node, lhs, type);
+          checkAssignableElement(lhsNode);
           return type;
         }
 
@@ -390,6 +393,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           // bit operations, we currently allow them to be used
           // if the left-hand-side is of type num.
           // TODO(karlklose) find a clean solution, i.e., without a special case for num.
+          checkAssignableElement(lhsNode);
           if (lhs.equals(numType)) {
             checkAssignable(rhsNode, numType, typeOf(rhsNode));
             return intType;
@@ -467,6 +471,30 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
         default:
           throw new AssertionError("Unknown operator: " + operator);
+      }
+    }
+
+    private void checkAssignableElement(DartExpression lhsNode) {
+      Element lhsElement = lhsNode.getElement();
+      switch (ElementKind.of(lhsElement)) {
+        case DYNAMIC:
+        case VARIABLE:
+        case PARAMETER:
+        case FIELD:
+        case NONE:
+          // OK or unknown
+          break;
+
+        case METHOD:
+          if (lhsElement.getModifiers().isSetter()
+           || lhsElement.getModifiers().isGetter()
+           || lhsElement.getModifiers().isOperator()) {
+            // The check for methods with setters is elsewhere.
+            break;
+          }
+        default:
+          onError(lhsNode, TypeErrorCode.CANNOT_ASSIGN_TO, ElementKind.of(lhsElement));
+        break;
       }
     }
 
@@ -780,21 +808,28 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * {@link FunctionAliasType}.
      */
     private static void inferFunctionLiteralParametersTypes(DartExpression mayBeLiteral,
-        Type mayBeFunctionAliasType) {
-      if (mayBeLiteral instanceof DartFunctionExpression
-          && TypeKind.of(mayBeFunctionAliasType) == TypeKind.FUNCTION_ALIAS) {
-        // prepare required function literal type
-        FunctionAliasType functionAliasType = (FunctionAliasType) mayBeFunctionAliasType;
-        FunctionType requiredType = Types.asFunctionType(functionAliasType);
-        // prepare actual function literal
-        DartFunctionExpression literal = (DartFunctionExpression) mayBeLiteral;
-        List<DartParameter> parameterNodes = literal.getFunction().getParameters();
-        // try to infer types of "normal" parameters
-        List<Type> requiredNormalParameterTypes = requiredType.getParameterTypes();
-        for (int i = 0; i < requiredNormalParameterTypes.size(); i++) {
-          DartParameter parameterNode = parameterNodes.get(i);
-          Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
-          inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
+        Type mayBeFunctionType) {
+      if (mayBeLiteral instanceof DartFunctionExpression) {
+        // prepare required type of function literal
+        FunctionType requiredType = null;
+        if (TypeKind.of(mayBeFunctionType) == TypeKind.FUNCTION) {
+          requiredType = (FunctionType) mayBeFunctionType;
+        }
+        if (TypeKind.of(mayBeFunctionType) == TypeKind.FUNCTION_ALIAS) {
+          FunctionAliasType functionAliasType = (FunctionAliasType) mayBeFunctionType;
+          requiredType = Types.asFunctionType(functionAliasType);
+        }
+        // OK, we can try to infer parameter types
+        if (requiredType != null) {
+          DartFunctionExpression literal = (DartFunctionExpression) mayBeLiteral;
+          List<DartParameter> parameterNodes = literal.getFunction().getParameters();
+          // try to infer types of "normal" parameters
+          List<Type> requiredNormalParameterTypes = requiredType.getParameterTypes();
+          for (int i = 0; i < requiredNormalParameterTypes.size(); i++) {
+            DartParameter parameterNode = parameterNodes.get(i);
+            Type requiredNormalParameterType = requiredNormalParameterTypes.get(i);
+            inferVariableDeclarationType(parameterNode, requiredNormalParameterType);
+          }
         }
       }
     }
@@ -1248,7 +1283,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       ClassNodeElement element = node.getElement();
       InterfaceType type = element.getType();
       checkCyclicBounds(type.getArguments());
-      List<Element> unimplementedMembers = findUnimplementedMembers(element);
+      // remember unimplemented members
+      findUnimplementedMembers(element);
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
@@ -1259,21 +1295,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           validateTypeNode(interfaceNode, false);
         }
       }
-
       visit(node.getMembers());
       checkInterfaceConstructors(element);
-      // Report unimplemented members.
-      if (!node.isAbstract()) {
-        if (unimplementedMembers.size() > 0) {
-          StringBuilder sb = getUnimplementedMembersMessage(element, unimplementedMembers);
-          typeError(
-              node.getName(),
-              TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
-              element.getName(),
-              sb);
-        }
-      }
-
       try {
         checkClassDuplicateInterfaces(node, element, element.getAllSupertypes());
       } catch (CyclicDeclarationException ignored) {
@@ -1708,6 +1731,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (!types.isAssignable(setterType, getterType)) {
               typeError(parameterElement, TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE,
                   setterType.getElement().getName(), getterType.getElement().getName());
+            }
+
+            // getter and setter should have same "static" flag
+            if (modifiers.isStatic() != getterElement.getModifiers().isStatic()) {
+              onError(node.getName(), ResolverErrorCode.FIELD_GETTER_SETTER_SAME_STATIC);
             }
           }
         }
@@ -2658,20 +2686,23 @@ public class TypeAnalyzer implements DartCompilationPhase {
           FieldElement field = node.getElement();
           String name = field.getName();
           Collection<Element> overridden = superMembers.removeAll(name);
-          for (Element element : overridden) {
-            if (canOverride(node.getName(), field.getModifiers(), element)) {
-              switch (element.getKind()) {
-                case FIELD:
-                  checkOverride(node.getName(), field, element);
-                  break;
-                case METHOD:
-                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
-                            element.getEnclosingElement().getName());
-                  break;
+          for (Element superElement : overridden) {
+            if (!(field.isStatic() && superElement.getModifiers().isStatic())) {
+              if (canOverride(node.getName(), field.getModifiers(), superElement)
+                  && !superElement.getModifiers().isStatic()) {
+                switch (superElement.getKind()) {
+                  case FIELD:
+                    checkOverride(node.getName(), field, superElement);
+                    break;
+                  case METHOD:
+                    typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_METHOD, name,
+                        superElement.getEnclosingElement().getName());
+                    break;
 
-                default:
-                  typeError(node, TypeErrorCode.INTERNAL_ERROR, element);
-                  break;
+                  default:
+                    typeError(node, TypeErrorCode.INTERNAL_ERROR, superElement);
+                    break;
+                }
               }
             }
           }
@@ -2685,21 +2716,31 @@ public class TypeAnalyzer implements DartCompilationPhase {
         String name = method.getName();
         if (superMembers != null && !method.isConstructor()) {
           Collection<Element> overridden = superMembers.removeAll(name);
-          for (Element element : overridden) {
-            if (canOverride(node.getName(), method.getModifiers(), element)) {
-              switch (element.getKind()) {
-                case METHOD:
-                  checkOverride(node.getName(), method, element);
-                  break;
+          Elements.setOverridden(method, ImmutableSet.copyOf(overridden));
+          // Check for invalid @override metadata.
+          if (overridden.isEmpty() && node.getMetadata().isOverride()) {
+            typeError(node.getName(), ResolverErrorCode.INVALID_OVERRIDE_METADATA);
+          }
+          // Check that override is valid.
+          for (Element superElement : overridden) {
+            if (!(method.isStatic() && superElement.getModifiers().isStatic())) {
+              if (canOverride(node.getName(), method.getModifiers(), superElement)
+                  && !superElement.getModifiers().isStatic()) {
+                switch (superElement.getKind()) {
+                  case METHOD:
+                    checkOverride(node.getName(), method, superElement);
+                    break;
 
-                case FIELD:
-                  typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, element.getName(),
-                            element.getEnclosingElement().getName());
-                  break;
+                  case FIELD:
+                    typeError(node.getName(), TypeErrorCode.SUPERTYPE_HAS_FIELD, superElement.getName(),
+                        superElement.getEnclosingElement().getName());
 
-                default:
-                  typeError(node, TypeErrorCode.INTERNAL_ERROR, element);
-                  break;
+                    break;
+
+                  default:
+                    typeError(node, TypeErrorCode.INTERNAL_ERROR, superElement);
+                    break;
+                }
               }
             }
           }
@@ -2708,18 +2749,20 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
 
       /**
-       * Report a compile-time error if either modifiers or elements.getModifiers() is static.
+       * Report a compile-time error if a static member tries to override an instance member
        * @returns true if no compile-time error was reported
        */
-      private boolean canOverride(HasSourceInfo errorTarget, Modifiers modifiers, Element element) {
-        if (element.getModifiers().isStatic()) {
-          onError(errorTarget, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
-                          element.getName(), element.getEnclosingElement().getName());
-          return false;
-        } else if (modifiers.isStatic()) {
+      private boolean canOverride(HasSourceInfo errorTarget, Modifiers modifiers,
+          Element superElement) {
+        if (!superElement.getModifiers().isStatic() && modifiers.isStatic()) {
           onError(errorTarget, ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER,
-                          element.getName(), element.getEnclosingElement().getName());
+                          superElement.getName(), superElement.getEnclosingElement().getName());
           return false;
+        } else if (superElement.getModifiers().isStatic() && !modifiers.isStatic()) {
+            onError(errorTarget, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
+                superElement.getName(), superElement.getEnclosingElement().getName());
+          // Although a warning, override is allowed anyway
+          return true;
         }
         return true;
       }

@@ -179,11 +179,26 @@ class Isolate : public BaseIsolate {
 
   Debugger* debugger() const { return debugger_; }
 
-  static void SetCreateCallback(Dart_IsolateCreateCallback cback);
-  static Dart_IsolateCreateCallback CreateCallback();
+  static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
+    create_callback_ = cb;
+  }
+  static Dart_IsolateCreateCallback CreateCallback() {
+    return create_callback_;
+  }
 
-  static void SetInterruptCallback(Dart_IsolateInterruptCallback cback);
-  static Dart_IsolateInterruptCallback InterruptCallback();
+  static void SetInterruptCallback(Dart_IsolateInterruptCallback cb) {
+    interrupt_callback_ = cb;
+  }
+  static Dart_IsolateInterruptCallback InterruptCallback() {
+    return interrupt_callback_;
+  }
+
+  static void SetShutdownCallback(Dart_IsolateShutdownCallback cb) {
+    shutdown_callback_ = cb;
+  }
+  static Dart_IsolateShutdownCallback ShutdownCallback() {
+    return shutdown_callback_;
+  }
 
   GcPrologueCallbacks& gc_prologue_callbacks() {
     return gc_prologue_callbacks_;
@@ -234,6 +249,7 @@ class Isolate : public BaseIsolate {
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;
+  static Dart_IsolateShutdownCallback shutdown_callback_;
 
   DISALLOW_COPY_AND_ASSIGN(Isolate);
 };

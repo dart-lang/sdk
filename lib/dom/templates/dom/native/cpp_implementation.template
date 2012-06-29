@@ -16,7 +16,7 @@ $CALLBACKS
 
 Dart_NativeFunction Dart$(INTERFACE)::resolver(Dart_Handle nameHandle, int argumentCount)
 {
-    String name = DartUtilities::dartStringToString(nameHandle);
+    String name = DartUtilities::toString(nameHandle);
 
 $RESOLVER
     return 0;

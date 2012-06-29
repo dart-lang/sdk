@@ -13,7 +13,6 @@ namespace dart {
 
 class Code;
 class DeoptimizationStub;
-class ExceptionHandlerList;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
@@ -29,7 +28,8 @@ class FlowGraphCompiler : public ValueObject {
   FlowGraphCompiler(Assembler* assembler,
                     const ParsedFunction& parsed_function,
                     const GrowableArray<BlockEntryInstr*>& block_order,
-                    bool is_optimizing);
+                    bool is_optimizing,
+                    bool is_leaf);
 
   ~FlowGraphCompiler();
 
@@ -46,6 +46,7 @@ class FlowGraphCompiler : public ValueObject {
   void set_current_block(BlockEntryInstr* value) {
     current_block_ = value;
   }
+  static bool CanOptimize();
   bool is_optimizing() const { return is_optimizing_; }
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
 
@@ -74,7 +75,6 @@ class FlowGraphCompiler : public ValueObject {
                            intptr_t try_index,
                            const RuntimeEntry& entry);
 
-  // Infrastructure copied from class CodeGenerator.
   void GenerateCall(intptr_t token_pos,
                     intptr_t try_index,
                     const ExternalLabel* label,
@@ -264,6 +264,10 @@ class FlowGraphCompiler : public ValueObject {
     return block_order_.length() - index - 1;
   }
 
+  // Returns true if the generated code does not call other Dart code or
+  // runtime. Only deoptimization is allowed to occur. Closures are not leaf.
+  bool IsLeaf() const;
+
   class Assembler* assembler_;
   const ParsedFunction& parsed_function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
@@ -278,6 +282,7 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+  const bool is_dart_leaf_;
 
   const Bool& bool_true_;
   const Bool& bool_false_;

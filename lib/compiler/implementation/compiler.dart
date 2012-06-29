@@ -281,7 +281,6 @@ class Compiler implements DiagnosticListener {
   DietParserTask dietParser;
   ParserTask parser;
   TreeValidatorTask validator;
-  UnparseValidator unparseValidator;
   ResolverTask resolver;
   TypeCheckerTask checker;
   Backend backend;
@@ -304,6 +303,8 @@ class Compiler implements DiagnosticListener {
   static final int PHASE_RECOMPILING = 3;
   int phase;
 
+  bool compilationFailed = false;
+
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
@@ -319,15 +320,14 @@ class Compiler implements DiagnosticListener {
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
     validator = new TreeValidatorTask(this);
-    unparseValidator = new UnparseValidator(this, validateUnparse);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
     backend = emitJavascript ?
         new JavaScriptBackend(this, generateSourceMap) :
-        new dart_backend.DartBackend(this);
+        new dart_backend.DartBackend(this, validateUnparse);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             unparseValidator, constantHandler, enqueuer];
+             constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 
@@ -370,7 +370,7 @@ class Compiler implements DiagnosticListener {
                HInstruction instruction, Element element]) {
     assembledCode = null; // Compilation failed. Make sure that we
                           // don't return a bogus result.
-    SourceSpan span = const SourceSpan(null, null, null);
+    SourceSpan span = null;
     if (node !== null) {
       span = spanFromNode(node);
     } else if (token !== null) {
@@ -550,6 +550,8 @@ class Compiler implements DiagnosticListener {
     processQueue(enqueuer.resolution, main);
     log('Resolved ${enqueuer.resolution.resolvedElements.length} elements.');
 
+    if (compilationFailed) return;
+
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
@@ -558,6 +560,8 @@ class Compiler implements DiagnosticListener {
     phase = PHASE_RECOMPILING;
     processRecompilationQueue(enqueuer.codegen);
     log('Compiled ${codegenWorld.generatedCode.length} methods.');
+
+    if (compilationFailed) return;
 
     backend.assembleProgram();
 
@@ -655,7 +659,6 @@ class Compiler implements DiagnosticListener {
     assert(parser !== null);
     Node tree = parser.parse(element);
     validator.validate(tree);
-    unparseValidator.check(element);
     elements = resolver.resolve(element);
     checker.check(tree, elements);
     return elements;
@@ -758,13 +761,21 @@ class Compiler implements DiagnosticListener {
     }
     SourceSpan span = spanFromNode(node);
 
-    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING );
+    reportDiagnostic(span, 'Warning: $message', api.Diagnostic.WARNING);
   }
 
   reportError(Node node, var message) {
     SourceSpan span = spanFromNode(node);
     reportDiagnostic(span, 'Error: $message', api.Diagnostic.ERROR);
     throw new CompilerCancelledException(message.toString());
+  }
+
+  void reportMessage(SourceSpan span,
+                     Diagnostic message,
+                     api.Diagnostic kind) {
+    // TODO(ahe): The names Diagnostic and api.Diagnostic are in
+    // conflict. Fix it.
+    reportDiagnostic(span, "$message", kind);
   }
 
   abstract void reportDiagnostic(SourceSpan span, String message,
@@ -780,12 +791,12 @@ class Compiler implements DiagnosticListener {
     if (uri === null) {
       uri = currentElement.getCompilationUnit().script.uri;
     }
-    return SourceSpan.withOffsets(begin, end, (beginOffset, endOffset) =>
-        new SourceSpan(uri, beginOffset, endOffset));
+    return SourceSpan.withCharacterOffsets(begin, end,
+      (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
   }
 
-  SourceSpan spanFromNode(Node node) {
-    return spanFromTokens(node.getBeginToken(), node.getEndToken());
+  SourceSpan spanFromNode(Node node, [Uri uri]) {
+    return spanFromTokens(node.getBeginToken(), node.getEndToken(), uri);
   }
 
   SourceSpan spanFromElement(Element element) {
@@ -879,18 +890,14 @@ class SourceSpan {
 
   const SourceSpan(this.uri, this.begin, this.end);
 
-  static withOffsets(Token begin, Token end,
+  static withCharacterOffsets(Token begin, Token end,
                      f(int beginOffset, int endOffset)) {
     final beginOffset = begin.charOffset;
-    // TODO(ahe): Compute proper end offset in token. Right now we use
-    // the position of the next token. We want to preserve the
-    // invariant that endOffset > beginOffset, but for EOF the
-    // charoffset of the next token may be [beginOffset]. This can
-    // also happen for synthetized tokens that are produced during
-    // error handling.
-    final endOffset =
-      Math.max((end.next !== null) ? end.next.charOffset : 0, beginOffset + 1);
-    assert(endOffset > beginOffset);
+    final endOffset = end.charOffset + end.slowCharCount;
+
+    // [begin] and [end] might be the same for the same empty token. This
+    // happens for instance when scanning '$$'.
+    assert(endOffset >= beginOffset);
     return f(beginOffset, endOffset);
   }
 }

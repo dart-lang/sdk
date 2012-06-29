@@ -6,6 +6,7 @@
 
 #include "vm/flow_graph_compiler.h"
 
+#include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
@@ -17,6 +18,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, print_scopes, false, "Print scopes of local variables.");
+DEFINE_FLAG(bool, trace_functions, false, "Trace entry of each function.");
 DECLARE_FLAG(bool, code_comments);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, intrinsify);
@@ -29,7 +32,8 @@ FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
     const ParsedFunction& parsed_function,
     const GrowableArray<BlockEntryInstr*>& block_order,
-    bool is_optimizing)
+    bool is_optimizing,
+    bool is_leaf)
     : assembler_(assembler),
       parsed_function_(parsed_function),
       block_order_(block_order),
@@ -40,6 +44,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       block_info_(block_order.length()),
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
+      is_dart_leaf_(is_leaf),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
@@ -59,6 +64,13 @@ FlowGraphCompiler::~FlowGraphCompiler() {
 }
 
 
+bool FlowGraphCompiler::IsLeaf() const {
+  return is_dart_leaf_ &&
+         !parsed_function_.function().IsClosureFunction() &&
+         (parsed_function().copied_parameter_count() == 0);
+}
+
+
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new DescriptorList();
   exception_handlers_list_ = new ExceptionHandlerList();
@@ -66,6 +78,13 @@ void FlowGraphCompiler::InitCompiler() {
   for (int i = 0; i < block_order_.length(); ++i) {
     block_info_.Add(new BlockInfo());
   }
+}
+
+
+bool FlowGraphCompiler::CanOptimize() {
+  return !FLAG_report_usage_count &&
+         (FLAG_optimization_counter_threshold >= 0) &&
+         !Isolate::Current()->debugger()->IsActive();
 }
 
 
@@ -220,13 +239,6 @@ void FlowGraphCompiler::FinalizeComments(const Code& code) {
 }
 
 
-static bool CanOptimize() {
-  return !FLAG_report_usage_count &&
-         (FLAG_optimization_counter_threshold >= 0) &&
-         !Isolate::Current()->debugger()->IsActive();
-}
-
-
 // Returns 'true' if code generation for this function is complete, i.e.,
 // no fall-through to regular code is needed.
 bool FlowGraphCompiler::TryIntrinsify() {
@@ -276,6 +288,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
     intptr_t argument_count,
     const Array& argument_names,
     intptr_t checked_argument_count) {
+  ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
@@ -283,7 +296,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
                                      cid,
                                      checked_argument_count));
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   uword label_address = 0;
   switch (checked_argument_count) {
     case 1:
@@ -318,7 +331,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
   ASSERT(frame_register_allocator()->IsSpilled());
 
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count, argument_names);
+      DartEntry::ArgumentsDescriptor(argument_count, argument_names);
   const intptr_t descr_offset = EmitStaticCall(function,
                                                arguments_descriptor,
                                                argument_count);

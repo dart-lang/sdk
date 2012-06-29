@@ -598,12 +598,12 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  void bar();",
         "}",
         // Abstract class not reported until first instantiation.
-        "class Class implements Interface {", // ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER
+        "class Class implements Interface {",
         "  Class() {}",
         "  String bar() { return null; }",
         "}",
         // Abstract class not reported until first instantiation.
-        "class SubClass extends Class {", // ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER
+        "class SubClass extends Class {",
         "  SubClass() : super() {}",
         "  Object bar() { return null; }",
         "}",
@@ -615,8 +615,6 @@ public class TypeAnalyzerTest extends TypeAnalyzerTestCase {
         "  m() {",
         "  }",
         "}"),
-        TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
-        TypeErrorCode.ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER,
         TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE,
         TypeErrorCode.CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE);
   }

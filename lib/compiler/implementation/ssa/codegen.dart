@@ -198,6 +198,37 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return generateAtUseSite.contains(instruction);
   }
 
+  bool isNonNegativeInt32Constant(HInstruction instruction) {
+    if (instruction.isConstantInteger()) {
+      int value = instruction.constant.value;
+      if (value >= 0 && value < (1 << 31)) {
+        return true;
+      }
+    }
+    return false;
+  }
+
+  // We want the outcome of bit-operations to be positive. However, if
+  // the result of a bit-operation is only used by other bit
+  // operations we do not have to convert to an unsigned
+  // integer. Also, if we are using & with a positive constant we know
+  // that the result is positive already and need no conversion.
+  bool requiresUintConversion(HInstruction instruction) {
+    if (instruction is HBitAnd &&
+        (isNonNegativeInt32Constant(instruction.left) ||
+         isNonNegativeInt32Constant(instruction.right))) {
+      return false;
+    }
+    bool result = false;
+    for (HInstruction use in instruction.usedBy) {
+      if (use is! HBitNot && use is! HBinaryBitOp) {
+        result = true;
+        break;
+      }
+    }
+    return result;
+  }
+
   SsaCodeGenerator(this.backend,
                    this.work,
                    this.parameters,
@@ -256,7 +287,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     new SsaConditionMerger(generateAtUseSite,
                            controlFlowOperators).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
-        new SsaLiveIntervalBuilder(compiler);
+        new SsaLiveIntervalBuilder(compiler, generateAtUseSite);
     intervalBuilder.visitGraph(graph);
     SsaVariableAllocator allocator = new SsaVariableAllocator(
         compiler,
@@ -393,6 +424,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void generateExpression(HExpressionInformation expression) {
     // Currently we only handle sub-expression graphs.
     assert(expression is HSubExpressionBlockInformation);
+    // [visitSubGraph] will reset the [expectedPrecedence]. Make sure we don't
+    // need parenthesis. I.e., this only expects to be called for top-level
+    // expressions, not sub-expressions.
+    assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE
+        || expectedPrecedence == JSPrecedence.EXPRESSION_PRECEDENCE);
+
     HSubExpressionBlockInformation expressionSubGraph = expression;
 
     int oldState = generationState;
@@ -571,18 +608,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (isGeneratingExpression()) {
       addExpressionSeparator();
     } else {
+      assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE);
       addIndentation();
     }
     if (!instruction.isControlFlow() && variableNames.hasName(instruction)) {
       var name = variableNames.getName(instruction);
       if (!handleSimpleUpdateDefinition(instruction, name)
           && !handleTypeConversion(instruction, name)) {
-        declareInstruction(instruction);
-        buffer.add(" = ");
-        visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        withPrecedence(JSPrecedence.ASSIGNMENT_PRECEDENCE, () {
+          declareInstruction(instruction);
+          buffer.add(" = ");
+          visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        });
       }
     } else {
-      visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+      visit(instruction, expectedPrecedence);
     }
     if (!isGeneratingExpression()) buffer.add(';\n');
   }
@@ -1111,6 +1151,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (instruction is HTypeGuard) {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
       } else if (!isGenerateAtUseSite(instruction)) {
+        expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
         define(instruction);
       }
       instruction = instruction.next;
@@ -1138,7 +1179,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
-    if (node.builtin) {
+    if (node.builtin && requiresUintConversion(node)) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
@@ -1165,7 +1206,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
-    if (node.builtin){
+    if (node.builtin && requiresUintConversion(node)) {
       beginExpression(unsignedShiftPrecedences.precedence);
       int oldPrecedence = this.expectedPrecedence;
       this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
@@ -1391,7 +1432,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     for (HInstruction instruction = start.first;
          instruction != start.last;
          instruction = instruction.next) {
-      if (instruction.isStatement()) {
+      if (instruction.isStatement) {
         if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
       } else if (!isGenerateAtUseSite(instruction)) {
         if (!updateKind(ONE_EXPRESSION)) return MULTIPLE_STATEMENTS;
@@ -1400,7 +1441,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
     HInstruction last = start.last;
     if (last is !HGoto) {
-      if (!updateKind(last.isStatement() ? ONE_STATEMENT : ONE_EXPRESSION)) {
+      if (!updateKind(last.isStatement ? ONE_STATEMENT : ONE_EXPRESSION)) {
         return MULTIPLE_STATEMENTS;
       }
     }
@@ -1457,6 +1498,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       indent = oldIndent;
     }
 
+    void visitExpression(HStatementInformation toVisit) {
+      // [generateExpression] only works if the [expectedPrecedence] is a
+      // statement or an expression. We therefore have to duplicate some
+      // work here.
+      assert(toVisit.start == toVisit.end);
+      assert(toVisit.start.last is HGoto);
+      // Find the expression (there must only be one).
+      HInstruction expression = toVisit.start.first;
+      while (generateAtUseSite.contains(expression)) {
+        expression = expression.next;
+      }
+      assert(() {
+        HInstruction remaining = expression.next;
+        while (remaining is !HGoto) {
+          if (!generateAtUseSite.contains(remaining)) return false;
+          remaining = remaining.next;
+        }
+        return true;
+      });
+
+      int oldState = generationState;
+      generationState = STATE_FIRST_EXPRESSION;
+      define(expression);
+      generationState = oldState;
+    }
+
     void visitWithIndent(HStatementInformation toVisit) {
       buffer.add('{\n');
       indent++;
@@ -1475,13 +1542,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     void generateAnd(HStatementInformation toVisit, Function condition) {
       addIndentation();
       beginExpression(operatorPrecedence.precedence);
+      var oldPrecedence = expectedPrecedence;
+      expectedPrecedence = operatorPrecedence.left;
       condition();
       buffer.add(" && ");
-      var oldPrecedence = expectedPrecedence;
       expectedPrecedence = operatorPrecedence.right;
-      visitWithoutIndent(toVisit);
+      visitExpression(toVisit);
       expectedPrecedence = oldPrecedence;
       endExpression(operatorPrecedence.precedence);
+      buffer.add(";\n");
     }
 
     List<HBasicBlock> thenSuccessors = thenGraph.end.successors;
@@ -2494,7 +2563,36 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    if (node.isChecked()) {
+    Map<String, SourceString> castNames = const <SourceString> {
+      "stringTypeCheck":
+          const SourceString("stringTypeCast"),
+      "doubleTypeCheck":
+          const SourceString("doubleTypeCast"),
+      "numTypeCheck":
+          const SourceString("numTypeCast"),
+      "boolTypeCheck":
+          const SourceString("boolTypeCast"),
+      "functionTypeCheck":
+          const SourceString("functionTypeCast"),
+      "intTypeCheck":
+          const SourceString("intTypeCast"),
+      "stringSuperNativeTypeCheck":
+          const SourceString("stringSuperNativeTypeCast"),
+      "stringSuperTypeCheck":
+          const SourceString("stringSuperTypeCast"),
+      "listTypeCheck":
+          const SourceString("listTypeCast"),
+      "listSuperNativeTypeCheck":
+          const SourceString("listSuperNativeTypeCast"),
+      "listSuperTypeCheck":
+          const SourceString("listSuperTypeCast"),
+      "callTypeCheck":
+          const SourceString("callTypeCast"),
+      "propertyTypeCheck":
+          const SourceString("propertyTypeCast")
+    };
+
+    if (node.isChecked) {
       Element element = node.type.computeType(compiler).element;
       world.registerIsCheck(element);
       SourceString helper;
@@ -2503,7 +2601,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
       beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
-      if (node.isArgumentTypeCheck()) {
+      if (node.isArgumentTypeCheck) {
         buffer.add('if (');
         if (element == compiler.intClass) {
           checkInt(node.checkedInput, '!==');
@@ -2516,7 +2614,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         return;
       }
 
-      assert(node.isCheckedModeCheck());
+      assert(node.isCheckedModeCheck || node.isCastTypeCheck);
       if (element == compiler.stringClass) {
         helper = const SourceString('stringTypeCheck');
       } else if (element == compiler.doubleClass) {
@@ -2551,6 +2649,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         } else {
           helper = const SourceString('propertyTypeCheck');
         }
+      }
+      if (node.isCastTypeCheck) {
+        helper = castNames[helper.stringValue];
       }
       Element helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);

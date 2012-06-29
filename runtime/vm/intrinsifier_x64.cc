@@ -9,6 +9,7 @@
 
 #include "vm/assembler.h"
 #include "vm/instructions.h"
+#include "vm/object_store.h"
 
 namespace dart {
 
@@ -23,7 +24,105 @@ DECLARE_FLAG(bool, enable_type_checks);
 
 #define __ assembler->
 
+
 bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
+  // This snippet of inlined code uses the following registers:
+  // RAX, RCX, RDI, R13
+  // and the newly allocated object is returned in RAX.
+  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+  const intptr_t kArrayLengthOffset = 1 * kWordSize;
+  Label fall_through;
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
+  __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
+  // Assert that length is a Smi.
+  __ testq(RDI, Immediate(kSmiTagSize));
+  __ j(NOT_ZERO, &fall_through);
+  __ cmpq(RDI, Immediate(0));
+  __ j(LESS, &fall_through);
+  intptr_t fixed_size = sizeof(RawArray) + kObjectAlignment - 1;
+  __ leaq(RDI, Address(RDI, TIMES_4, fixed_size));  // RDI is a Smi.
+  ASSERT(kSmiTagShift == 1);
+  __ andq(RDI, Immediate(-kObjectAlignment));
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  // RDI: allocation size.
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+  __ leaq(RCX, Address(RAX, RDI, TIMES_1, 0));
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new object start.
+  // RCX: potential next object start.
+  // RDI: allocation size.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, &fall_through);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+
+  // Initialize the tags.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: allocation size.
+  {
+    Label size_tag_overflow, done;
+    __ cmpl(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
+    __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
+    __ jmp(&done, Assembler::kNearJump);
+
+    __ Bind(&size_tag_overflow);
+    __ movq(RDI, Immediate(0));
+    __ Bind(&done);
+
+    // Get the class index and insert it into the tags.
+    const Class& cls = Class::Handle(isolate->object_store()->array_class());
+    __ orq(RDI, Immediate(RawObject::ClassIdTag::encode(cls.id())));
+    __ movq(FieldAddress(RAX, Array::tags_offset()), RDI);  // Tags.
+  }
+
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // Store the type argument field.
+  __ movl(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::type_arguments_offset()),
+                              RDI);
+
+  // Set the length field.
+  __ movq(RDI, Address(RSP, kArrayLengthOffset));  // Array Length.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, Array::length_offset()),
+                              RDI);
+
+  // Initialize all array elements to raw_null.
+  // RAX: new object start as a tagged pointer.
+  // RCX: new object end address.
+  // RDI: iterator which initially points to the start of the variable
+  // data area to be initialized.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  __ leaq(RDI, FieldAddress(RAX, sizeof(RawArray)));
+  Label done;
+  Label init_loop;
+  __ Bind(&init_loop);
+  __ cmpq(RDI, RCX);
+  __ j(ABOVE_EQUAL, &done, Assembler::kNearJump);
+  __ movq(Address(RDI, 0), raw_null);
+  __ addq(RDI, Immediate(kWordSize));
+  __ jmp(&init_loop, Assembler::kNearJump);
+  __ Bind(&done);
+  __ ret();  // returns the newly allocated object in RAX.
+
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -92,7 +191,71 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 }
 
 
+// Allocate a GrowableObjectArray using the backing array specified.
+// On stack: type argument (+2), data (+1), return-address (+0).
 bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
+  // This snippet of inlined code uses the following registers:
+  // RAX, RCX, R13
+  // and the newly allocated object is returned in RAX.
+  const intptr_t kTypeArgumentsOffset = 2 * kWordSize;
+  const intptr_t kArrayOffset = 1 * kWordSize;
+  Label fall_through;
+
+  // Compute the size to be allocated, it is based on the array length
+  // and is computed as:
+  // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
+  intptr_t fixed_size = GrowableObjectArray::InstanceSize();
+
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
+
+  __ movq(RAX, Immediate(heap->TopAddress()));
+  __ movq(RAX, Address(RAX, 0));
+  __ leaq(RCX, Address(RAX, fixed_size));
+
+  // Check if the allocation fits into the remaining space.
+  // RAX: potential new backing array object start.
+  // RCX: potential next object start.
+  __ movq(R13, Immediate(heap->EndAddress()));
+  __ cmpq(RCX, Address(R13, 0));
+  __ j(ABOVE_EQUAL, &fall_through);
+
+  // Successfully allocated the object(s), now update top to point to
+  // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(Address(R13, 0), RCX);
+  __ addq(RAX, Immediate(kHeapObjectTag));
+
+  // Initialize the tags.
+  // EAX: new growable array object start as a tagged pointer.
+  const Class& cls = Class::Handle(
+      isolate->object_store()->growable_object_array_class());
+  uword tags = 0;
+  tags = RawObject::SizeTag::update(fixed_size, tags);
+  tags = RawObject::ClassIdTag::update(cls.id(), tags);
+  __ movq(FieldAddress(RAX, GrowableObjectArray::tags_offset()),
+          Immediate(tags));
+
+  // Store backing array object in growable array object.
+  __ movq(RCX, Address(RSP, kArrayOffset));  // data argument.
+  __ StoreIntoObject(RAX,
+                     FieldAddress(RAX, GrowableObjectArray::data_offset()),
+                     RCX);
+
+  // RAX: new growable array object start as a tagged pointer.
+  // Store the type argument field in the growable array object.
+  __ movq(RCX, Address(RSP, kTypeArgumentsOffset));  // type argument.
+  __ StoreIntoObjectNoBarrier(
+      RAX,
+      FieldAddress(RAX, GrowableObjectArray::type_arguments_offset()),
+      RCX);
+
+  // Set the length field in the growable array object to 0.
+  __ movq(FieldAddress(RAX, GrowableObjectArray::length_offset()),
+          Immediate(0));
+  __ ret();  // returns the newly allocated object in RAX.
+
+  __ Bind(&fall_through);
   return false;
 }
 

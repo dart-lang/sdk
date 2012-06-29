@@ -2266,6 +2266,19 @@ UNIT_TEST_CASE(Isolates) {
 }
 
 
+UNIT_TEST_CASE(CurrentIsolateData) {
+  intptr_t mydata = 12345;
+  char* err;
+  Dart_Isolate isolate =
+      Dart_CreateIsolate(NULL, NULL, NULL,
+                         reinterpret_cast<void*>(mydata),
+                         &err);
+  EXPECT(isolate != NULL);
+  EXPECT_EQ(mydata, reinterpret_cast<intptr_t>(Dart_CurrentIsolateData()));
+  Dart_ShutdownIsolate();
+}
+
+
 TEST_CASE(DebugName) {
   Dart_Handle debug_name = Dart_DebugName();
   EXPECT_VALID(debug_name);
@@ -4545,6 +4558,50 @@ TEST_CASE(LoadSource) {
 }
 
 
+TEST_CASE(LoadSource_LateLoad) {
+  const char* kLibrary1Chars =
+      "#library('library1_name');\n"
+      "class OldClass {\n"
+      "  foo() => 'foo';\n"
+      "}\n";
+  const char* kSourceChars =
+      "class NewClass extends OldClass{\n"
+      "  bar() => 'bar';\n"
+      "}\n";
+  Dart_Handle url = Dart_NewString("library1_url");
+  Dart_Handle source = Dart_NewString(kLibrary1Chars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+  EXPECT(Dart_IsLibrary(lib));
+
+  // Call a dynamic function on OldClass.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("OldClass"));
+  EXPECT_VALID(cls);
+  Dart_Handle recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  Dart_Handle result = Dart_Invoke(recv, Dart_NewString("foo"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  const char* result_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(result, &result_cstr));
+  EXPECT_STREQ("foo", result_cstr);
+
+  // Load a source file late.
+  url = Dart_NewString("source_url");
+  source = Dart_NewString(kSourceChars);
+  EXPECT_VALID(Dart_LoadSource(lib, url, source));
+
+  // Call a dynamic function on NewClass in the updated library.
+  cls = Dart_GetClass(lib, Dart_NewString("NewClass"));
+  EXPECT_VALID(cls);
+  recv = Dart_New(cls, Dart_Null(), 0, NULL);
+  result = Dart_Invoke(recv, Dart_NewString("bar"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsString(result));
+  result_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(result, &result_cstr));
+  EXPECT_STREQ("bar", result_cstr);
+}
+
 static void MyNativeFunction1(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewInteger(654321));
@@ -5189,10 +5246,42 @@ TEST_CASE(IsolateInterrupt) {
   // We should have received the expected number of interrupts.
   EXPECT_EQ(kInterruptCount, interrupt_count);
 
-  // Give the spawned thread enough time to properly exit.
   Isolate::SetInterruptCallback(saved);
 }
 
+static void* saved_callback_data;
+static void IsolateShutdownTestCallback(void* callback_data) {
+  saved_callback_data = callback_data;
+}
+
+UNIT_TEST_CASE(IsolateShutdown) {
+  Dart_IsolateShutdownCallback saved = Isolate::ShutdownCallback();
+  Isolate::SetShutdownCallback(IsolateShutdownTestCallback);
+
+  saved_callback_data = NULL;
+
+  void* my_data = reinterpret_cast<void*>(12345);
+
+  // Create an isolate.
+  char* err;
+  Dart_Isolate isolate = Dart_CreateIsolate(NULL, NULL, NULL, my_data, &err);
+  if (isolate == NULL) {
+    OS::Print("Creation of isolate failed '%s'\n", err);
+    free(err);
+  }
+  EXPECT(isolate != NULL);
+
+  // The shutdown callback has not been called.
+  EXPECT_EQ(0, reinterpret_cast<intptr_t>(saved_callback_data));
+
+  // Shutdown the isolate.
+  Dart_ShutdownIsolate();
+
+  // The shutdown callback has been called.
+  EXPECT_EQ(12345, reinterpret_cast<intptr_t>(saved_callback_data));
+
+  Isolate::SetShutdownCallback(saved);
+}
 
 static int64_t GetValue(Dart_Handle arg) {
   EXPECT(!Dart_IsError(arg));

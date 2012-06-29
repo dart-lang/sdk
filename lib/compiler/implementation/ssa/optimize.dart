@@ -70,7 +70,7 @@ class SsaOptimizerTask extends CompilerTask {
       // In order to generate correct code for the bailout version, we did not
       // propagate types from the instruction to the type guard. We do it
       // now to be able to optimize further.
-      work.guards.forEach((HTypeGuard guard) { guard.isOn = true; });
+      work.guards.forEach((HTypeGuard guard) { guard.isEnabled = true; });
       // We also need to insert range and integer checks for the type
       // guards. Now that they claim to have a certain type, some
       // depending instructions might become builtin (like native array

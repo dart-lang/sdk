@@ -383,7 +383,6 @@ class RawClass : public RawObject {
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
-  RawTypeArguments* type_parameter_bounds_;  // DynamicType if no bound.
   RawType* super_type_;
   RawObject* factory_class_;  // UnresolvedClass (until finalization) or Class.
   RawFunction* signature_function_;  // Associated function for signature class.
@@ -473,7 +472,8 @@ class RawTypeParameter : public RawAbstractType {
   }
   RawClass* parameterized_class_;
   RawString* name_;
-  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
+  RawAbstractType* bound_;  // DynamicType if no explicit bound specified.
+  RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->bound_); }
   intptr_t index_;
   intptr_t token_pos_;
   int8_t type_state_;

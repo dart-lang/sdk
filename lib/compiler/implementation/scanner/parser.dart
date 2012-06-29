@@ -934,6 +934,8 @@ class Parser {
           }
         } else if (info === IS_INFO) {
           token = parseIsOperatorRest(token);
+        } else if (info === AS_INFO) {
+          token = parseAsOperatorRest(token);
         } else if (info === QUESTION_INFO) {
           token = parseConditionalExpressionRest(token);
         } else {
@@ -1376,9 +1378,23 @@ class Parser {
     }
     token = parseType(token.next);
     listener.handleIsOperator(operator, not, token);
-    if (optional('is', token)) {
-      // The is-operator cannot be chained, but it can take part of
+    String value = token.stringValue;
+    if (value === 'is' || value === 'as') {
+      // The is- and as-operators cannot be chained, but they can take part of
       // expressions like: foo is Foo || foo is Bar.
+      listener.unexpected(token);
+    }
+    return token;
+  }
+
+  Token parseAsOperatorRest(Token token) {
+    assert(optional('as', token));
+    Token operator = token;
+    token = parseType(token.next);
+    listener.handleAsOperator(operator, token);
+    String value = token.stringValue;
+    if (value === 'is' || value === 'as') {
+      // The is- and as-operators cannot be chained.
       listener.unexpected(token);
     }
     return token;

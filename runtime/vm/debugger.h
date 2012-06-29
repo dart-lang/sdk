@@ -114,8 +114,6 @@ class CodeBreakpoint {
 };
 
 
-
-
 // ActivationFrame represents one dart function activation frame
 // on the call stack.
 class ActivationFrame : public ZoneAllocated {
@@ -130,6 +128,7 @@ class ActivationFrame : public ZoneAllocated {
   RawString* QualifiedFunctionName();
   RawString* SourceUrl();
   RawScript* SourceScript();
+  RawLibrary* Library();
   intptr_t TokenIndex();
   intptr_t LineNumber();
 
@@ -264,6 +263,7 @@ class Debugger {
   RawArray* GetInstanceFields(const Instance& obj);
   RawArray* GetStaticFields(const Class& cls);
   RawArray* GetLibraryFields(const Library& lib);
+  RawArray* GetGlobalFields(const Library& lib);
 
   intptr_t CacheObject(const Object& obj);
   RawObject* GetCachedObject(intptr_t obj_id);
@@ -292,7 +292,8 @@ class Debugger {
   void EnsureFunctionIsDeoptimized(const Function& func);
   void InstrumentForStepping(const Function& target_function);
   SourceBreakpoint* SetBreakpoint(const Function& target_function,
-                                  intptr_t token_pos);
+                                  intptr_t first_token_pos,
+                                  intptr_t last_token_pos);
   void RemoveInternalBreakpoints();
   void UnlinkCodeBreakpoints(SourceBreakpoint* src_bpt);
   void RegisterSourceBreakpoint(SourceBreakpoint* bpt);
@@ -300,7 +301,8 @@ class Debugger {
   SourceBreakpoint* GetSourceBreakpoint(const Function& func,
                                         intptr_t token_pos);
   CodeBreakpoint* MakeCodeBreakpoint(const Function& func,
-                                     intptr_t token_pos);
+                                     intptr_t first_token_pos,
+                                     intptr_t last_token_pos);
 
   // Returns NULL if no breakpoint exists for the given address.
   CodeBreakpoint* GetCodeBreakpoint(uword breakpoint_address);
@@ -316,6 +318,10 @@ class Debugger {
 
   bool ShouldPauseOnException(DebuggerStackTrace* stack_trace,
                               const Object& exc);
+
+  void CollectLibraryFields(const GrowableObjectArray& field_list,
+                            const Library& lib,
+                            const String& prefix);
 
   Isolate* isolate_;
   bool initialized_;

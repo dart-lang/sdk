@@ -327,6 +327,8 @@ DART_EXPORT Dart_Handle Dart_GetActivationFrame(
  * \script_url receives a string handle with the url of the
  *    source script that contains the frame's function.
  * \line_number receives the line number in the script.
+ * \library_id receives the id of the library in which the
+ *    function in this frame is defined.
  *
  * Any or all of the out parameters above may be NULL.
  *
@@ -338,7 +340,8 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
                             Dart_ActivationFrame activation_frame,
                             Dart_Handle* function_name,
                             Dart_Handle* script_url,
-                            intptr_t* line_number);
+                            intptr_t* line_number,
+                            intptr_t* library_id);
 
 
 /**
@@ -354,6 +357,19 @@ DART_EXPORT Dart_Handle Dart_ActivationFrameInfo(
  */
 DART_EXPORT Dart_Handle Dart_GetLocalVariables(
                             Dart_ActivationFrame activation_frame);
+
+
+/**
+ * Returns an array containing all the global variable names and values of
+ * the library with given \library_id.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to an array containing variable names and
+ * corresponding values. Variable names are at array offsets 2*n,
+ * values at offset 2*n+1.
+ */
+DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id);
 
 
 /**

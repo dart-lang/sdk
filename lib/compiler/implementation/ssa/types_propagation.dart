@@ -209,6 +209,13 @@ class SsaSpeculativeTypePropagator extends SsaTypePropagator {
     HType desiredType = HType.UNKNOWN;
     for (final user in instruction.usedBy) {
       HType userType = user.computeDesiredTypeForInput(instruction);
+      // Mainly due to the "if (true)" added by hackAroundPossiblyAbortingBody
+      // in builder.dart uninitialized variables will propagate a type of null
+      // which will result in a conflicting type when combined with a primitive
+      // type. Avoid this to improve generated code.
+      // TODO(sgjesse): Reconcider this when hackAroundPossiblyAbortingBody
+      // has been removed.
+      if (desiredType.isPrimitive() && userType == HType.NULL) continue;
       desiredType = desiredType.intersection(userType);
       // No need to continue if two users disagree on the type.
       if (desiredType.isConflicting()) break;

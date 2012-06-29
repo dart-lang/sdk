@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -27,6 +27,7 @@ public class Modifiers {
   private static final int FLAG_REDIRECTEDCONSTRUCTOR = FLAG_ABSTRACTFIELD << 1;
   private static final int FLAG_FINAL = FLAG_REDIRECTEDCONSTRUCTOR << 1;
   private static final int FLAG_NAMED = FLAG_FINAL << 1;
+  private static final int FLAG_INITIALIZED = FLAG_NAMED << 1;
 
   private final int value;
 
@@ -43,6 +44,7 @@ public class Modifiers {
   public boolean isRedirectedConstructor() { return is(FLAG_REDIRECTEDCONSTRUCTOR); }
   public boolean isFinal() { return is(FLAG_FINAL); }
   public boolean isNamed() { return is(FLAG_NAMED); }
+  public boolean isInitialized() { return is(FLAG_INITIALIZED); }
 
   public Modifiers makeStatic() { return make(FLAG_STATIC); }
   public Modifiers makeConstant() { return make(FLAG_CONSTANT); }
@@ -57,6 +59,7 @@ public class Modifiers {
   public Modifiers makeRedirectedConstructor() { return make(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers makeFinal() { return make(FLAG_FINAL); }
   public Modifiers makeNamed() { return make(FLAG_NAMED); }
+  public Modifiers makeInitialized() { return make(FLAG_INITIALIZED); }
 
   public Modifiers removeStatic() { return remove(FLAG_STATIC); }
   public Modifiers removeConstant() { return remove(FLAG_CONSTANT); }
@@ -71,6 +74,7 @@ public class Modifiers {
   public Modifiers removeRedirectedConstructor() { return remove(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers removeFinal() { return remove(FLAG_FINAL); }
   public Modifiers removeNamed() { return remove(FLAG_NAMED); }
+  public Modifiers removeIniitalized() { return remove(FLAG_INITIALIZED); }
 
   public boolean is(int flag) {
     return (value & flag) != 0;

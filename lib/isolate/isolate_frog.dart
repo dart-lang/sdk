@@ -45,4 +45,6 @@
 #source("frog/isolateimpl.dart");
 #source("frog/ports.dart");
 #source("frog/messages.dart");
+#source("timer.dart");
+#source("timer_hook.dart");
 #native("frog/natives.js");

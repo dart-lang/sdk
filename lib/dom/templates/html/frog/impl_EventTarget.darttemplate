@@ -10,9 +10,7 @@ class _EventsImpl implements Events {
 
   _EventsImpl(this._ptr);
 
-  _EventListenerListImpl operator [](String type) => _get(type.toLowerCase());
-  
-  _EventListenerListImpl _get(String type) {
+  _EventListenerListImpl operator [](String type) {
     return new _EventListenerListImpl(_ptr, type);
   }
 }

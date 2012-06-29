@@ -1187,11 +1187,6 @@ void Class::set_type_parameters(const TypeArguments& value) const {
 }
 
 
-void Class::set_type_parameter_bounds(const TypeArguments& value) const {
-  StorePointer(&raw_ptr()->type_parameter_bounds_, value.raw());
-}
-
-
 intptr_t Class::NumTypeParameters() const {
   const TypeArguments& type_params = TypeArguments::Handle(type_parameters());
   if (type_params.IsNull()) {
@@ -1292,19 +1287,21 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     intptr_t num_type_params = type_params.Length();
     TypeParameter& type_param = TypeParameter::Handle();
     String& type_param_name = String::Handle();
+    AbstractType& bound = AbstractType::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
       type_param_name = type_param.Name();
       if (type_param_name.Equals(type_name)) {
-        intptr_t index = type_param.Index();
+        intptr_t index = type_param.index();
+        bound = type_param.bound();
         // Create a non-finalized new TypeParameter with the given token_pos.
         if (type_param.IsFinalized()) {
           // The index was adjusted during finalization. Revert.
           index -= NumTypeArguments() - num_type_params;
         } else {
-          ASSERT(type_param.Index() == i);
+          ASSERT(type_param.index() == i);
         }
-        return TypeParameter::New(*this, index, type_name, token_pos);
+        return TypeParameter::New(*this, index, type_name, bound, token_pos);
       }
     }
   }
@@ -1449,7 +1446,6 @@ RawClass* Class::NewSignatureClass(const String& name,
   const Class& owner_class = Class::Handle(signature_function.owner());
   ASSERT(!owner_class.IsNull());
   TypeArguments& type_parameters = TypeArguments::Handle();
-  TypeArguments& type_parameter_bounds = TypeArguments::Handle();
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
@@ -1457,7 +1453,6 @@ RawClass* Class::NewSignatureClass(const String& name,
     if ((owner_class.NumTypeParameters() > 0) &&
         !signature_function.HasInstantiatedSignature()) {
       type_parameters = owner_class.type_parameters();
-      type_parameter_bounds = owner_class.type_parameter_bounds();
     }
   }
   const intptr_t token_pos = signature_function.token_pos();
@@ -1467,7 +1462,6 @@ RawClass* Class::NewSignatureClass(const String& name,
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.set_type_parameter_bounds(type_parameter_bounds);
   result.SetFields(Array::Handle(Array::Empty()));
   result.SetFunctions(Array::Handle(Array::Empty()));
   result.set_type_arguments_instance_field_offset(
@@ -2076,16 +2070,13 @@ RawField* Class::LookupField(const String& name) const {
 
 RawLibraryPrefix* Class::LookupLibraryPrefix(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  LibraryPrefix& lib_prefix = LibraryPrefix::Handle(isolate,
-                                                    LibraryPrefix::null());
   const Library& lib = Library::Handle(isolate, library());
-  Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
-  if (!obj.IsNull()) {
-    if (obj.IsLibraryPrefix()) {
-      lib_prefix ^= obj.raw();
-    }
+  const Object& obj = Object::Handle(isolate, lib.LookupLocalObject(name));
+  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
+    const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(obj);
+    return lib_prefix.raw();
   }
-  return lib_prefix.raw();
+  return LibraryPrefix::null();
 }
 
 
@@ -2275,7 +2266,8 @@ bool AbstractType::Equals(const AbstractType& other) const {
 }
 
 
-bool AbstractType::IsIdentical(const AbstractType& other) const {
+bool AbstractType::IsIdentical(const AbstractType& other,
+                               bool check_type_parameter_bound) const {
   // AbstractType is an abstract class.
   UNREACHABLE();
   return false;
@@ -2356,13 +2348,6 @@ RawString* AbstractType::Name() const {
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
   return String::NewSymbol(type_name);
-}
-
-
-intptr_t AbstractType::Index() const {
-  // AbstractType is an abstract class.
-  UNREACHABLE();
-  return -1;
 }
 
 
@@ -2454,12 +2439,18 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // a class B<T> will never require a run time bounds check, even it T is
   // uninstantiated at compile time.
   if (IsTypeParameter()) {
+    const TypeParameter& type_param = TypeParameter::Cast(*this);
     if (other.IsTypeParameter()) {
-      return Index() == other.Index();
-    } else {
-      // TODO(regis): In checked mode, if the other type is the upper bound of
-      // this type parameter, then return true.
-      // We would need to keep the upper bound associated to the type parameter.
+      const TypeParameter& other_type_param = TypeParameter::Cast(other);
+      return type_param.index() == other_type_param.index();
+    } else if (FLAG_enable_type_checks) {
+      // In checked mode, if the upper bound of this type is more specific than
+      // the other type, then this type is more specific than the other type.
+      const AbstractType& type_param_bound =
+          AbstractType::Handle(type_param.bound());
+      if (type_param_bound.IsMoreSpecificThan(other, malformed_error)) {
+        return true;
+      }
     }
     return false;
   }
@@ -2685,7 +2676,8 @@ bool Type::Equals(const AbstractType& other) const {
 }
 
 
-bool Type::IsIdentical(const AbstractType& other) const {
+bool Type::IsIdentical(const AbstractType& other,
+                       bool check_type_parameter_bounds) const {
   if (raw() == other.raw()) {
     return true;
   }
@@ -2702,7 +2694,8 @@ bool Type::IsIdentical(const AbstractType& other) const {
   }
   return AbstractTypeArguments::AreIdentical(
       AbstractTypeArguments::Handle(arguments()),
-      AbstractTypeArguments::Handle(other.arguments()));
+      AbstractTypeArguments::Handle(other.arguments()),
+      false);  // Bounds are only checked at the top level.
 }
 
 
@@ -2835,8 +2828,6 @@ const char* Type::ToCString() const {
 void TypeParameter::set_is_finalized() const {
   ASSERT(!IsFinalized());
   set_type_state(RawTypeParameter::kFinalizedUninstantiated);
-  // Field parameterized_class_ is not needed after finalization anymore.
-  set_parameterized_class(Class::Handle());
 }
 
 
@@ -2847,15 +2838,14 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (!other.IsTypeParameter()) {
     return false;
   }
-  TypeParameter& other_type_param = TypeParameter::Handle();
-  other_type_param ^= other.raw();
+  const TypeParameter& other_type_param = TypeParameter::Cast(other);
   if (IsFinalized() != other_type_param.IsFinalized()) {
     return false;
   }
   if (parameterized_class() != other_type_param.parameterized_class()) {
     return false;
   }
-  if (Index() != other_type_param.Index()) {
+  if (index() != other_type_param.index()) {
     return false;
   }
   const String& name = String::Handle(Name());
@@ -2864,22 +2854,35 @@ bool TypeParameter::Equals(const AbstractType& other) const {
 }
 
 
-bool TypeParameter::IsIdentical(const AbstractType& other) const {
+bool TypeParameter::IsIdentical(const AbstractType& other,
+                                bool check_type_parameter_bound) const {
   if (raw() == other.raw()) {
     return true;
   }
   if (!other.IsTypeParameter()) {
     return false;
   }
-  TypeParameter& other_type_param = TypeParameter::Handle();
-  other_type_param ^= other.raw();
+  const TypeParameter& other_type_param = TypeParameter::Cast(other);
   // IsIdentical may be called on type parameters belonging to different
   // classes, e.g. to an interface and to its default factory class.
   // Therefore, both type parameters may have different parameterized classes
-  // and different indices. Compare the type parameter names only.
+  // and different indices. Compare the type parameter names only, and their
+  // bounds if requested.
   String& name = String::Handle(Name());
   String& other_name = String::Handle(other_type_param.Name());
-  return name.Equals(other_name);
+  if (!name.Equals(other_name)) {
+    return false;
+  }
+  if (check_type_parameter_bound) {
+    AbstractType& this_bound = AbstractType::Handle(bound());
+    AbstractType& other_bound = AbstractType::Handle(other_type_param.bound());
+    // Bounds are only checked at the top level.
+    const bool check_type_parameter_bounds = false;
+    if (!this_bound.IsIdentical(other_bound, check_type_parameter_bounds)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -2901,13 +2904,17 @@ void TypeParameter::set_name(const String& value) const {
 }
 
 
+void TypeParameter::set_bound(const AbstractType& value) const {
+  StorePointer(&raw_ptr()->bound_, value.raw());
+}
+
 RawAbstractType* TypeParameter::InstantiateFrom(
     const AbstractTypeArguments& instantiator_type_arguments) const {
   ASSERT(IsFinalized());
   if (instantiator_type_arguments.IsNull()) {
     return Type::DynamicType();
   }
-  return instantiator_type_arguments.TypeAt(Index());
+  return instantiator_type_arguments.TypeAt(index());
 }
 
 
@@ -2924,11 +2931,13 @@ RawTypeParameter* TypeParameter::New() {
 RawTypeParameter* TypeParameter::New(const Class& parameterized_class,
                                      intptr_t index,
                                      const String& name,
+                                     const AbstractType& bound,
                                      intptr_t token_pos) {
   const TypeParameter& result = TypeParameter::Handle(TypeParameter::New());
   result.set_parameterized_class(parameterized_class);
   result.set_index(index);
   result.set_name(name);
+  result.set_bound(bound);
   result.set_token_pos(token_pos);
   result.raw_ptr()->type_state_ = RawTypeParameter::kAllocated;
   return result.raw();
@@ -2952,10 +2961,10 @@ void TypeParameter::set_type_state(int8_t state) const {
 const char* TypeParameter::ToCString() const {
   const char* format = "TypeParameter: name %s; index: %d";
   const char* name_cstr = String::Handle(Name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, Index()) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, format, name_cstr, Index());
+  OS::SNPrint(chars, len, format, name_cstr, index());
   return chars;
 }
 
@@ -3070,7 +3079,8 @@ bool AbstractTypeArguments::AreEqual(
 
 bool AbstractTypeArguments::AreIdentical(
     const AbstractTypeArguments& arguments,
-    const AbstractTypeArguments& other_arguments) {
+    const AbstractTypeArguments& other_arguments,
+    bool check_type_parameter_bounds) {
   if (arguments.raw() == other_arguments.raw()) {
     return true;
   }
@@ -3084,10 +3094,10 @@ bool AbstractTypeArguments::AreIdentical(
   AbstractType& type = AbstractType::Handle();
   AbstractType& other_type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
-    type ^= arguments.TypeAt(i);
+    type = arguments.TypeAt(i);
     ASSERT(!type.IsNull());
-    other_type ^= other_arguments.TypeAt(i);
-    if (!type.IsIdentical(other_type)) {
+    other_type = other_arguments.TypeAt(i);
+    if (!type.IsIdentical(other_type, check_type_parameter_bounds)) {
       return false;
     }
   }
@@ -3155,16 +3165,19 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
   ASSERT(Length() >= cls.NumTypeArguments());
   const intptr_t num_type_params = cls.NumTypeParameters();
   const intptr_t offset = cls.NumTypeArguments() - num_type_params;
-  AbstractType& type = AbstractType::Handle();
+  AbstractType& this_type_arg = AbstractType::Handle();
+  AbstractType& cls_type_arg = AbstractType::Handle();
   AbstractType& bound = AbstractType::Handle();
-  const TypeArguments& bounds =
-      TypeArguments::Handle(cls.type_parameter_bounds());
-  ASSERT((bounds.IsNull() && (num_type_params == 0)) ||
-         (bounds.Length() == num_type_params));
+  const TypeArguments& cls_type_params =
+      TypeArguments::Handle(cls.type_parameters());
+  ASSERT((cls_type_params.IsNull() && (num_type_params == 0)) ||
+         (cls_type_params.Length() == num_type_params));
   for (intptr_t i = 0; i < num_type_params; i++) {
-    bound = bounds.TypeAt(i);
+    cls_type_arg = cls_type_params.TypeAt(i);
+    const TypeParameter& cls_type_param = TypeParameter::Cast(cls_type_arg);
+    bound = cls_type_param.bound();
     if (!bound.IsDynamicType()) {
-      type = TypeAt(offset + i);
+      this_type_arg = TypeAt(offset + i);
       Error& malformed_bound_error = Error::Handle();
       if (bound.IsMalformed()) {
         malformed_bound_error = bound.malformed_error();
@@ -3172,24 +3185,21 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
         bound = bound.InstantiateFrom(bounds_instantiator);
       }
       if (!malformed_bound_error.IsNull() ||
-          !type.IsSubtypeOf(bound, malformed_error)) {
+          !this_type_arg.IsSubtypeOf(bound, malformed_error)) {
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
         if (malformed_error->IsNull()) {
-          const String& type_argument_name = String::Handle(type.Name());
+          const String& type_arg_name = String::Handle(this_type_arg.Name());
           const String& class_name = String::Handle(cls.Name());
           const String& bound_name = String::Handle(bound.Name());
           const Script& script = Script::Handle(cls.script());
           // Since the bound was canonicalized, its token index was lost,
           // therefore, use the token index of the corresponding type parameter.
-          const TypeArguments& type_parameters =
-              TypeArguments::Handle(cls.type_parameters());
-          type = type_parameters.TypeAt(i);
           *malformed_error ^= FormatError(malformed_bound_error,
-                                          script, type.token_pos(),
+                                          script, cls_type_param.token_pos(),
                                           "type argument '%s' does not "
                                           "extend bound '%s' of '%s'\n",
-                                          type_argument_name.ToCString(),
+                                          type_arg_name.ToCString(),
                                           bound_name.ToCString(),
                                           class_name.ToCString());
         }
@@ -3290,7 +3300,11 @@ bool TypeArguments::IsUninstantiatedIdentity() const {
   intptr_t num_types = Length();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
-    if (!type.IsTypeParameter() || (type.Index() != i)) {
+    if (!type.IsTypeParameter()) {
+      return false;
+    }
+    const TypeParameter& type_param = TypeParameter::Cast(type);
+    if ((type_param.index() != i)) {
       return false;
     }
   }
@@ -4045,15 +4059,13 @@ RawString* Function::BuildSignature(
     if (!type_parameters.IsNull()) {
       intptr_t num_type_parameters = type_parameters.Length();
       pieces.Add(kLAngleBracket);
-      const TypeArguments& bounds = TypeArguments::Handle(
-          function_class.type_parameter_bounds());
-      AbstractType& type_parameter = AbstractType::Handle();
+      TypeParameter& type_parameter = TypeParameter::Handle();
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
         name = type_parameter.Name();
         pieces.Add(name);
-        bound = bounds.TypeAt(i);
+        bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsDynamicType()) {
           pieces.Add(kSpaceExtendsSpace);
           name = bound.Name();
@@ -4528,11 +4540,13 @@ void Script::GetTokenLocation(intptr_t token_pos,
 }
 
 
-intptr_t Script::TokenIndexAtLine(intptr_t line_number) const {
+void Script::TokenRangeAtLine(intptr_t line_number,
+                              intptr_t* first_token_index,
+                              intptr_t* last_token_index) const {
   const String& src = String::Handle(source());
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(src, dummy_key);
-  return scanner.TokenIndexAtLine(line_number);
+  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
 }
 
 
@@ -4686,6 +4700,32 @@ RawClass* ClassDictionaryIterator::GetNextClass() {
 void ClassDictionaryIterator::MoveToNextClass() {
   Object& obj = Object::Handle(array_.At(next_ix_));
   while (!obj.IsClass() && HasNext()) {
+    next_ix_++;
+    obj = array_.At(next_ix_);
+  }
+}
+
+
+LibraryPrefixIterator::LibraryPrefixIterator(const Library& library)
+    : DictionaryIterator(library) {
+  Advance();
+}
+
+
+RawLibraryPrefix* LibraryPrefixIterator::GetNext() {
+  ASSERT(HasNext());
+  int ix = next_ix_++;
+  Object& obj = Object::Handle(array_.At(ix));
+  Advance();
+  LibraryPrefix& prefix = LibraryPrefix::Handle();
+  prefix ^= obj.raw();
+  return prefix.raw();
+}
+
+
+void LibraryPrefixIterator::Advance() {
+  Object& obj = Object::Handle(array_.At(next_ix_));
+  while (!obj.IsLibraryPrefix() && HasNext()) {
     next_ix_++;
     obj = array_.At(next_ix_);
   }
@@ -4900,13 +4940,13 @@ RawFunction* Library::LookupFunctionInSource(const String& script_url,
   }
 
   // Determine token position at given line number.
-  intptr_t token_pos_at_line = script.TokenIndexAtLine(line_number);
-  if (token_pos_at_line < 0) {
+  intptr_t first_token_pos, last_token_pos;
+  script.TokenRangeAtLine(line_number, &first_token_pos, &last_token_pos);
+  if (first_token_pos < 0) {
     // Script does not contain the given line number.
     return Function::null();
   }
-
-  return LookupFunctionInScript(script, token_pos_at_line);
+  return LookupFunctionInScript(script, first_token_pos);
 }
 
 
@@ -7165,8 +7205,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       if (other_instantiator.IsNull()) {
         return true;  // Other type is uninstantiated, i.e. Dynamic.
       }
-      const AbstractType& instantiated_other =
-          AbstractType::Handle(other_instantiator.TypeAt(other.Index()));
+      const TypeParameter& other_type_param = TypeParameter::Cast(other);
+      const AbstractType& instantiated_other = AbstractType::Handle(
+          other_instantiator.TypeAt(other_type_param.index()));
       ASSERT(instantiated_other.IsInstantiated());
       other_class = instantiated_other.type_class();
     } else {
@@ -7207,8 +7248,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       // An uninstantiated type parameter is equivalent to Dynamic.
       return true;
     }
+    const TypeParameter& other_type_param = TypeParameter::Cast(other);
     AbstractType& instantiated_other = AbstractType::Handle(
-        other_instantiator.TypeAt(other.Index()));
+        other_instantiator.TypeAt(other_type_param.index()));
     if (instantiated_other.IsDynamicType() ||
         instantiated_other.IsTypeParameter()) {
       return true;

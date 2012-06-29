@@ -18,7 +18,6 @@ FlowGraphAllocator::FlowGraphAllocator(
   intptr_t max_ssa_temp_index)
   : live_out_(postorder.length()),
     kill_(postorder.length()),
-    gen_(postorder.length()),
     live_in_(postorder.length()),
     postorder_(postorder),
     vreg_count_(max_ssa_temp_index) {
@@ -32,12 +31,11 @@ void FlowGraphAllocator::ResolveConstraints() {
 
 static intptr_t ToVirtualRegister(Instruction* instr) {
   const Definition* def = instr->AsDefinition();
-  if (def == NULL) return -1;
-  return def->ssa_temp_index();
+  return (def == NULL) ? -1 : def->ssa_temp_index();
 }
 
 
-void FlowGraphAllocator::ComputeKillAndGenSets() {
+void FlowGraphAllocator::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
     BlockEntryInstr* block = postorder_[i];
@@ -83,8 +81,12 @@ void FlowGraphAllocator::ComputeKillAndGenSets() {
 
       current = current->StraightLineSuccessor();
     }
+  }
 
-    UpdateLiveIn(block);
+  // Update initial live_in sets to match live_out sets. Has to be
+  // done in a separate path because of backwards branches.
+  for (intptr_t i = 0; i < block_count; i++) {
+    UpdateLiveIn(postorder_[i]);
   }
 }
 
@@ -93,8 +95,10 @@ bool FlowGraphAllocator::UpdateLiveOut(BlockEntryInstr* instr) {
   BitVector* live_out = live_out_[instr->postorder_number()];
   bool changed = false;
   Instruction* last = instr->last_instruction();
+  ASSERT(last != NULL);
   for (intptr_t i = 0; i < last->SuccessorCount(); i++) {
     BlockEntryInstr* succ = last->SuccessorAt(i);
+    ASSERT(succ != NULL);
     if (live_out->AddAll(live_in_[succ->postorder_number()])) {
       changed = true;
     }
@@ -119,6 +123,11 @@ void FlowGraphAllocator::ComputeLiveInAndLiveOutSets() {
 
     for (intptr_t i = 0; i < block_count; i++) {
       BlockEntryInstr* block = postorder_[i];
+
+      // Live-in set depends only on kill set which does not
+      // change in this loop and live-out set.  If live-out
+      // set does not change there is no need to recompute
+      // live-in set.
       if (UpdateLiveOut(block) && UpdateLiveIn(block)) {
         changed = true;
       }
@@ -135,7 +144,7 @@ void FlowGraphAllocator::AnalyzeLiveness() {
     live_in_.Add(new BitVector(vreg_count_));
   }
 
-  ComputeKillAndGenSets();
+  ComputeInitialSets();
   ComputeLiveInAndLiveOutSets();
 
   if (FLAG_print_ssa_liveness) {

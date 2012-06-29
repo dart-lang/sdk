@@ -322,6 +322,11 @@ class BaseWriter {
     WriteIntptrValue(value);
   }
 
+  // Write out a buffer of bytes.
+  void WriteBytes(const uint8_t* addr, intptr_t len) {
+    stream_.WriteBytes(addr, len);
+  }
+
   // Finalize the serialized buffer by filling in the header information
   // which comprises of a flag(snaphot kind) and the length of
   // serialzed bytes.

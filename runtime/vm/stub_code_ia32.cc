@@ -7,8 +7,8 @@
 
 #include "vm/assembler.h"
 #include "vm/assembler_macros.h"
-#include "vm/code_generator.h"
 #include "vm/compiler.h"
+#include "vm/flow_graph_compiler.h"
 #include "vm/object_store.h"
 #include "vm/pages.h"
 #include "vm/resolver.h"
@@ -615,7 +615,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
 
   if (FLAG_inline_alloc) {
     // Compute the size to be allocated, it is based on the array length
-    // and it computed as:
+    // and is computed as:
     // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
     // Assert that length is a Smi.
     __ testl(EDX, Immediate(kSmiTagSize));
@@ -1563,7 +1563,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
 
   __ movl(EBX, FieldAddress(ECX, ICData::function_offset()));
   __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
-  if (CodeGenerator::CanOptimize()) {
+  if (FlowGraphCompiler::CanOptimize()) {
     __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
     Label not_yet_hot;

@@ -11,15 +11,15 @@
  */
 class JSON {
   /**
-   * Parses [:json:] and build the corresponding object.
+   * Parses [json] and build the corresponding object.
    */
   static parse(String json) {
     return _JsonParser.parse(json);
   }
 
   /**
-   * Checks validity of JSON source in [:str:] and returns its text
-   * length. Returns 0 if [:str:] does not begin with a valid JSON
+   * Checks validity of JSON source in [str] and returns its text
+   * length. Returns 0 if [str] does not begin with a valid JSON
    * object.
    */
   static int length(String str) {
@@ -27,14 +27,14 @@ class JSON {
   }
 
   /**
-   * Serializes [:object:] into JSON string.
+   * Serializes [object] into JSON string.
    */
   static String stringify(Object object) {
     return JsonStringifier.stringify(object);
   }
 
   /**
-   * Serializes [:object:] into [:output:] stream.
+   * Serializes [object] into [output] stream.
    */
   static void printOn(Object object, StringBuffer output) {
     return JsonStringifier.printOn(object, output);

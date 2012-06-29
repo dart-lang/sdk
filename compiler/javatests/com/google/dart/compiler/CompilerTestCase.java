@@ -4,8 +4,11 @@
 
 package com.google.dart.compiler;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+
 import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartExpression;
@@ -14,12 +17,9 @@ import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
+import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
-import com.google.dart.compiler.parser.DartScannerParserContext;
-import com.google.dart.compiler.parser.ParserContext;
-
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 
 import junit.framework.TestCase;
 
@@ -196,9 +196,8 @@ public abstract class CompilerTestCase extends TestCase {
     // Prepare unit.
     Map<URI, DartUnit> testUnits =  Maps.newHashMap();
     {
-      DartSourceTest src = new DartSourceTest(name, code, lib);
-      ParserContext context = makeParserContext(src, code, result);
-      DartUnit unit = makeParser(context).parseUnit(src);
+      DartSource src = new DartSourceTest(name, code, lib);
+      DartUnit unit = makeParser(src, code, result).parseUnit();
       // Remember unit.
       lib.addSource(src);
       testUnits.put(src.getUri(), unit);
@@ -256,8 +255,7 @@ public abstract class CompilerTestCase extends TestCase {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
     DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
-    ParserContext context = makeParserContext(src, sourceCode, listener);
-    DartUnit unit = makeParser(context).parseUnit(src);
+    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
     listener.checkAllErrorsReported();
     return unit;
   }
@@ -276,8 +274,7 @@ public abstract class CompilerTestCase extends TestCase {
         errorsEncountered.add(event);
       }
     };
-    ParserContext context = makeParserContext(src, sourceCode, listener);
-    DartUnit unit = makeParser(context).parseUnit(src);
+    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
     assertTrue("Expected some compilation errors, got none.", errorsEncountered.size() > 0);
     return unit;
     }
@@ -291,8 +288,7 @@ public abstract class CompilerTestCase extends TestCase {
       }
     };
     DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
-    ParserContext context = makeParserContext(src, sourceCode, listener);
-    DartUnit unit = makeParser(context).parseUnit(src);
+    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
     listener.checkAllErrorsReported();
     return unit;
   }
@@ -309,8 +305,7 @@ public abstract class CompilerTestCase extends TestCase {
     String srcName = "Test.dart";
     DartSourceTest src = new DartSourceTest(srcName, sourceCode, null);
     DartCompilerListenerTest listener = new DartCompilerListenerTest(srcName, errors);
-    ParserContext context = makeParserContext(src, sourceCode, listener);
-    DartUnit unit = makeParser(context).parseUnit(src);
+    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
     listener.checkAllErrorsReported();
     return unit;
   }
@@ -329,8 +324,7 @@ public abstract class CompilerTestCase extends TestCase {
     // TODO(jgw): We'll need to fill in the library parameter when testing multiple units.
     DartSourceTest src = new DartSourceTest(path, sourceCode, null);
     DartCompilerListenerTest listener = new DartCompilerListenerTest(path, errors);
-    ParserContext context = makeParserContext(src, sourceCode, listener);
-    DartUnit unit = makeParser(context).parseUnit(src);
+    DartUnit unit = makeParser(src, sourceCode, listener).parseUnit();
     listener.checkAllErrorsReported();
     return unit;
   }
@@ -338,16 +332,9 @@ public abstract class CompilerTestCase extends TestCase {
   /**
    * Override this method to provide an alternate {@link DartParser}.
    */
-  protected DartParser makeParser(ParserContext context) {
-    return new DartParser(context);
-  }
-
-  /**
-   * Override this method to provide an alternate {@link ParserContext}.
-   */
-  protected ParserContext makeParserContext(Source src, String sourceCode,
+  protected DartParser makeParser(Source src, String sourceCode,
       DartCompilerListener listener) {
-    return new DartScannerParserContext(src, sourceCode, listener);
+    return new DartParser(src, sourceCode, false, Sets.<String>newHashSet(), listener, null);
   }
 
   /**
@@ -408,5 +395,10 @@ public abstract class CompilerTestCase extends TestCase {
       }
     });
     return result[0];
+  }
+
+  public static String getNodeSource(String code, DartNode node) {
+    SourceInfo sourceInfo = node.getSourceInfo();
+    return code.substring(sourceInfo.getOffset(), sourceInfo.getEnd());
   }
 }

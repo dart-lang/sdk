@@ -5,22 +5,25 @@
 // Test that spawn works even when there are many script files in the page.
 // This requires computing correctly the URL to the orignal script, so we can
 // pass it to the web worker APIs.
-#library('spawn_tests');
+#library('compute_this_script');
 
-#import('dart:dom_deprecated');
+#import('dart:html');
 #import('dart:isolate');
 
 #import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/dom_config.dart');
+#import('../../lib/unittest/html_config.dart');
 
 child() {
-  port.receive((msg, reply) => reply.send('re: $msg'));
+  port.receive((msg, reply) {
+    reply.send('re: $msg');
+    port.close();
+  });
 }
 
 main() {
-  useDomConfiguration();
-  var script = document.createElement('script');
-  document.body.appendChild(script);
+  useHtmlConfiguration();
+  var script = document.$dom_createElement('script');
+  document.body.$dom_appendChild(script);
   test('spawn with other script tags in page', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {

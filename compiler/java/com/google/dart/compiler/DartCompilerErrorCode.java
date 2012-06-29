@@ -8,6 +8,8 @@ package com.google.dart.compiler;
  * Valid error codes for the errors produced by the Dart compiler.
  */
 public enum DartCompilerErrorCode implements ErrorCode {
+  CONSOLE_WEB_MIX(ErrorSeverity.INFO,
+      "Libraries 'dart:io' (console apps only) and 'dart:html' (web apps only) cannot be used together"),
   ENTRY_POINT_METHOD_CANNOT_HAVE_PARAMETERS(ErrorSeverity.WARNING, 
       "Main entry point method cannot have parameters"),
   ENTRY_POINT_METHOD_MAY_NOT_BE_GETTER(ErrorSeverity.WARNING,

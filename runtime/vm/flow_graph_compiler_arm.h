@@ -33,9 +33,10 @@ class FlowGraphCompiler : public FlowGraphVisitor {
 
   virtual ~FlowGraphCompiler() { }
 
+  static bool CanOptimize();
+
   void CompileGraph();
 
-  // Infrastructure copied from class CodeGenerator or stubbed out.
   void FinalizePcDescriptors(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);

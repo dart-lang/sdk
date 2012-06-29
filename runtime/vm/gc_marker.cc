@@ -168,13 +168,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
       return;
     }
 
-    uword raw_addr = RawObject::ToAddr(raw_obj);
-    // TODO(iposva): Premark vm_isolate objects, to avoid this extra check here.
-    if (vm_heap_->Contains(raw_addr)) {
-      return;
-    }
     // TODO(iposva): merge old and code spaces.
-    ASSERT(page_space_->Contains(raw_addr));
+    ASSERT(page_space_->Contains(RawObject::ToAddr(raw_obj)));
     MarkAndPush(raw_obj);
   }
 
@@ -190,6 +185,9 @@ class MarkingVisitor : public ObjectPointerVisitor {
 bool IsUnreachable(const RawObject* raw_obj) {
   if (!raw_obj->IsHeapObject()) {
     return false;
+  }
+  if (raw_obj == Object::null()) {
+    return true;
   }
   if (!raw_obj->IsOldObject()) {
     return false;

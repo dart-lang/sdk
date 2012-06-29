@@ -21,7 +21,6 @@ final List<String> argv = const <String>[
 '../lib/dom/src/dummy_GlobalProperties.dart',
 '../lib/dom/src/frog_DOMType.dart',
 '../lib/dom/src/native_DOMPublic.dart',
-'../lib/dom/src/native_DOMWrapperBase.dart',
 '../lib/dom/src/native_FactoryProviders.dart',
 '../lib/dom/src/native_GlobalProperties.dart',
 '../lib/html/benchmarks/common/BenchUtil.dart',

@@ -5,8 +5,17 @@
 package com.google.dart.compiler.resolver;
 
 public interface LabelElement extends Element {
+  
+  public enum LabeledStatementType {
+    STATEMENT,
+    SWITCH_MEMBER_STATEMENT,
+    SWITCH_STATEMENT,
+  }
+  
   /**
    * Returns the innermost function where this label is defined.
    */
   public MethodElement getEnclosingFunction();
+  
+  public LabeledStatementType getStatementType();
 }

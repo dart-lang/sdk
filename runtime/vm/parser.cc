@@ -3173,11 +3173,13 @@ void Parser::ParseInterfaceDefinition(
     interface.set_factory_class(unresolved_factory_class);
     // If a type parameter list is included in the default factory clause (it
     // can be omitted), verify that it matches the list of type parameters of
-    // the interface in number and names.
+    // the interface in number and names, but not necessarily in bounds.
     if (factory_class.NumTypeParameters() > 0) {
+      const bool check_type_parameter_bounds = false;
       if (!AbstractTypeArguments::AreIdentical(
           AbstractTypeArguments::Handle(interface.type_parameters()),
-          AbstractTypeArguments::Handle(factory_class.type_parameters()))) {
+          AbstractTypeArguments::Handle(factory_class.type_parameters()),
+          check_type_parameter_bounds)) {
         const String& interface_name = String::Handle(interface.Name());
         ErrorMsg(factory_name.ident_pos,
                  "mismatch in number or names of type parameters between "
@@ -3267,23 +3269,18 @@ void Parser::ParseTypeParameters(const Class& cls) {
   if (CurrentToken() == Token::kLT) {
     const GrowableObjectArray& type_parameters_array =
         GrowableObjectArray::Handle(GrowableObjectArray::New());
-    const GrowableObjectArray& bounds_array =
-        GrowableObjectArray::Handle(GrowableObjectArray::New());
     intptr_t index = 0;
     TypeParameter& type_parameter = TypeParameter::Handle();
     TypeParameter& existing_type_parameter = TypeParameter::Handle();
     String& existing_type_parameter_name = String::Handle();
-    AbstractType& bound = Type::Handle();
+    AbstractType& type_parameter_bound = Type::Handle();
     do {
       ConsumeToken();
       if (CurrentToken() != Token::kIDENT) {
         ErrorMsg("type parameter name expected");
       }
       String& type_parameter_name = *CurrentLiteral();
-      type_parameter = TypeParameter::New(cls,
-                                          index,
-                                          type_parameter_name,
-                                          TokenPos());
+      const intptr_t type_parameter_pos = TokenPos();
       // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
         existing_type_parameter ^= type_parameters_array.At(i);
@@ -3294,17 +3291,22 @@ void Parser::ParseTypeParameters(const Class& cls) {
         }
       }
       ConsumeToken();
-      bound = Type::DynamicType();
       if (CurrentToken() == Token::kEXTENDS) {
         ConsumeToken();
         // A bound may refer to the owner of the type parameter it applies to,
         // i.e. to the class or interface currently being parsed.
         // Postpone resolution in order to avoid resolving the class and its
         // type parameters, as they are not fully parsed yet.
-        bound = ParseType(ClassFinalizer::kDoNotResolve);
+        type_parameter_bound = ParseType(ClassFinalizer::kDoNotResolve);
+      } else {
+        type_parameter_bound = Type::DynamicType();
       }
+      type_parameter = TypeParameter::New(cls,
+                                          index,
+                                          type_parameter_name,
+                                          type_parameter_bound,
+                                          type_parameter_pos);
       type_parameters_array.Add(type_parameter);
-      bounds_array.Add(bound);
       index++;
     } while (CurrentToken() == Token::kCOMMA);
     Token::Kind token = CurrentToken();
@@ -3315,17 +3317,17 @@ void Parser::ParseTypeParameters(const Class& cls) {
     }
     const TypeArguments& type_parameters =
         TypeArguments::Handle(NewTypeArguments(type_parameters_array));
-    const TypeArguments& bounds =
-        TypeArguments::Handle(NewTypeArguments(bounds_array));
     cls.set_type_parameters(type_parameters);
-    cls.set_type_parameter_bounds(bounds);
     // Try to resolve the upper bounds, which will at least resolve the
     // referenced type parameters.
-    const intptr_t num_types = bounds.Length();
+    const intptr_t num_types = type_parameters.Length();
     for (intptr_t i = 0; i < num_types; i++) {
-      bound = bounds.TypeAt(i);
-      ResolveTypeFromClass(cls, ClassFinalizer::kTryResolve, &bound);
-      bounds.SetTypeAt(i, bound);
+      type_parameter ^= type_parameters.TypeAt(i);
+      type_parameter_bound = type_parameter.bound();
+      ResolveTypeFromClass(cls,
+                           ClassFinalizer::kTryResolve,
+                           &type_parameter_bound);
+      type_parameter.set_bound(type_parameter_bound);
     }
   }
 }

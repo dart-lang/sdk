@@ -21,7 +21,7 @@ class LinkFactory<T> {
 }
 
 // Does not implement all of Iterable
-class AbstractLink<T> implements Link<T> {  /// static type warning
+class AbstractLink<T> implements Link<T> {  
   const AbstractLink();
   Link<T> prepend(T element) {
     return new Link<T>(element, this);
@@ -29,13 +29,13 @@ class AbstractLink<T> implements Link<T> {  /// static type warning
 }
 
 // Does not implement all of Iterable
-class LinkTail<T> extends AbstractLink<T>    /// static type warning
+class LinkTail<T> extends AbstractLink<T>   
     implements EmptyLink<T> {
   const LinkTail();
 }
 
 // Does not implement all of Iterable
-class LinkEntry<T> extends AbstractLink<T> {  /// static type warning
+class LinkEntry<T> extends AbstractLink<T> {
   LinkEntry(T head, Link<T> realTail);
 }
 

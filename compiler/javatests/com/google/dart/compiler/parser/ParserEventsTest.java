@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -67,8 +67,14 @@ import static com.google.dart.compiler.parser.ParserEventsTest.Mark.VarDeclarati
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.VariableDeclaration;
 import static com.google.dart.compiler.parser.ParserEventsTest.Mark.WhileStatement;
 
+import com.google.common.collect.Sets;
+import com.google.dart.compiler.DartCompilerListener;
+import com.google.dart.compiler.Source;
+import com.google.dart.compiler.metrics.CompilerMetrics;
+
 import java.util.HashSet;
 import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class ParserEventsTest extends AbstractParserTest {
 
@@ -187,8 +193,13 @@ public class ParserEventsTest extends AbstractParserTest {
       }
     }
 
-    public ParserEventRecorder(ParserContext ctx) {
-      super(ctx);
+    public ParserEventRecorder(Source source,
+        String sourceCode,
+        boolean isDietParse,
+        Set<String> prefixes,
+        DartCompilerListener listener,
+        CompilerMetrics compilerMetrics) {
+      super(source, sourceCode, isDietParse, prefixes, listener, compilerMetrics);
       marks = new LinkedHashSet<Mark>();
     }
 
@@ -752,10 +763,10 @@ public class ParserEventsTest extends AbstractParserTest {
         QualifiedIdentifier, ConditionalExpression, BinaryExpression, VariableDeclaration,
         FormalParameterList);
   }
-
+  
   @Override
-  protected DartParser makeParser(ParserContext context) {
-    recorder = new ParserEventRecorder(context);
+  protected DartParser makeParser(Source src, String sourceCode, DartCompilerListener listener) {
+    recorder = new ParserEventRecorder(src, sourceCode, false, Sets.<String>newHashSet(), listener, null);
     return recorder;
   }
 

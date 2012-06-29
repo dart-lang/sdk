@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-String GetHtmlContents(String title,
+String getHtmlContents(String title,
                        String controllerScript,
                        String scriptType,
                        String sourceScript) =>
@@ -27,35 +27,35 @@ String GetHtmlContents(String title,
 </html>
 """;
 
-/**
- * Returns the native [path] converted for use in a URI.
- */
-nativePathToUri(String path) {
-  // This regexp matches Windows-like file names. Strictly speaking,
-  // this prevents us from having a file named a:something on Linux,
-  // but since this wrapping is a hack in the first place, it seems
-  // better to exercise this path on all architectures.
-  final re = const RegExp('^[a-z]:', ignoreCase: true);
-  if (re.hasMatch(path)) {
-    path = '/$path';
-  }
-  return path.replaceAll('\\', '/');
-}
-
-String WrapDartTestInLibrary(String test) =>
+String getHtmlLayoutContents(String scriptType, String sourceScript) =>
 """
-#library('libraryWrapper');
-#source('${nativePathToUri(test)}');
+<!DOCTYPE html>
+<html>
+<head>
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+</head>
+<body>
+  <script type="text/javascript">
+    if (navigator.webkitStartDart) navigator.webkitStartDart();
+  </script>
+  <script type="$scriptType" src="$sourceScript"></script>
+</body>
+</html>
 """;
 
-String DartTestWrapper(String dartHome, String library) {
-  dartHome = nativePathToUri(dartHome);
-  library = nativePathToUri(library);
-return """
+String wrapDartTestInLibrary(Path test) =>
+"""
+#library('libraryWrapper');
+#source('$test');
+""";
+
+String dartTestWrapper(Path dartHome, Path library) =>
+"""
 #library('test');
 
-#import('${dartHome}/lib/unittest/unittest.dart', prefix: 'unittest');
-#import('${dartHome}/lib/unittest/html_config.dart', prefix: 'config');
+#import('${dartHome.append('lib/unittest/unittest.dart')}', prefix: 'unittest');
+#import('${dartHome.append('lib/unittest/html_config.dart')}',
+        prefix: 'config');
 
 #import('${library}', prefix: "Test");
 
@@ -70,4 +70,4 @@ main() {
   }
 }
 """;
-}
+

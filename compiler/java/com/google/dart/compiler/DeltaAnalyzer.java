@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler;
 
+import com.google.common.collect.Sets;
 import com.google.common.io.CharStreams;
 import com.google.common.io.Closeables;
 import com.google.dart.compiler.ast.DartNode;
@@ -12,7 +13,6 @@ import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartParser;
-import com.google.dart.compiler.parser.DartScannerParserContext;
 import com.google.dart.compiler.resolver.CoreTypeProvider;
 import com.google.dart.compiler.resolver.CoreTypeProviderImplementation;
 import com.google.dart.compiler.resolver.Element;
@@ -58,7 +58,7 @@ class DeltaAnalyzer {
     DartUnit unit = delta.getUnitAfter();
     if (unit == null) {
       DartSource source = delta.getSourceAfter();
-      unit = getParser(source).parseUnit(source);
+      unit = getParser(source).parseUnit();
     }
     Scope scope = deltaLibraryScope(originalSource, unit);
     // We have to create supertypes and member elements for the entire unit. For example, if you're
@@ -150,7 +150,7 @@ class DeltaAnalyzer {
     Reader r = source.getSourceReader();
     String sourceString = CharStreams.toString(r);
     Closeables.close(r, false);
-    return new DartParser(new DartScannerParserContext(source, sourceString, listener), false);
+    return new DartParser(source, sourceString, false, Sets.<String>newHashSet(), listener, null);
   }
 
   private class Context implements DartCompilerListener, DartCompilerContext {

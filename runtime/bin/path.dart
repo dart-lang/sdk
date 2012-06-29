@@ -9,7 +9,7 @@
  * useful path manipulations and queries.  Joining of paths and normalization
  * interpret '.' and '..' in the usual way.
  */
-interface Path default _Path {
+interface Path extends Hashable default _Path {
   /**
    * Creates a Path from the String [source].  [source] is used as-is, so if
    * the string does not consist of segments separated by forward slashes, the

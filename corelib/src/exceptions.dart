@@ -38,8 +38,8 @@ class NoSuchMethodException implements Exception {
   const NoSuchMethodException(Object this._receiver,
                               String this._functionName,
                               List this._arguments,
-                              [List existingArgumentNames = null]) : 
-                                this._existingArgumentNames = existingArgumentNames;
+                              [List existingArgumentNames = null])
+      : this._existingArgumentNames = existingArgumentNames;
 
   String toString() {
     StringBuffer sb = new StringBuffer();

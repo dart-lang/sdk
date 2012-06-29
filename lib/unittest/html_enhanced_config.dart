@@ -133,14 +133,14 @@ class HtmlEnhancedConfiguration extends Configuration {
           }
         );
 
+      var nonAlphanumeric = new RegExp('[^a-z0-9A-Z]');
+
       // output group headers and test rows
       for (final test_ in flattened) {
 
         // replace everything but numbers and letters from the group name with
         // '_' so we can use in id and class properties.
-        var safeGroup = test_.currentGroup
-                              .replaceAll("(?:[^a-z0-9 ]|(?<=['\"])s)",'_')
-                              .replaceAll(' ','_');
+        var safeGroup = test_.currentGroup.replaceAll(nonAlphanumeric,'_');
 
         if (test_.currentGroup != previousGroup){
 

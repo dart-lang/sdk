@@ -16,21 +16,17 @@ from systemhtml import EmitHtmlElementFactoryConstructors
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, templates, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir, auxiliary_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
-
+    self._auxiliary_dir = auxiliary_dir
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
     self._html_system = HtmlSystemShared(database)
     self._factory_provider_emitters = {}
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     interface_name = interface.id
 
     if IsPureInterface(interface_name):
@@ -45,12 +41,12 @@ class NativeImplementationSystem(systembase.System):
     cpp_impl_path = self._FilePathForCppImplementation(interface_name)
     self._cpp_impl_files.append(cpp_impl_path)
 
-    return NativeImplementationGenerator(self, interface,
+    NativeImplementationGenerator(self, interface,
         self._emitters.FileEmitter(dart_impl_path),
         self._emitters.FileEmitter(cpp_header_path),
         self._emitters.FileEmitter(cpp_impl_path),
         self._BaseDefines(interface),
-        self._templates)
+        self._templates).Generate()
 
   def ProcessCallback(self, interface, info):
     self._interface = interface
@@ -123,7 +119,15 @@ class NativeImplementationSystem(systembase.System):
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
-  def GenerateLibraries(self):
+  def GenerateLibraries(self, interface_files):
+    # Generate dart:html library.
+    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
+    self._GenerateLibFile(
+        'html_dartium.darttemplate',
+        os.path.join(self._output_dir, 'html_dartium.dart'),
+        interface_files + self._dom_impl_files,
+        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
+
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
     sources_count = len(self._cpp_impl_files)
@@ -186,9 +190,6 @@ class NativeImplementationSystem(systembase.System):
       self._factory_provider_emitters[name] = file_emitter.Emit(template)
     return self._factory_provider_emitters[name]
 
-  def DartImplementationFiles(self):
-    return self._dom_impl_files
-
 
 class NativeImplementationGenerator(systembase.BaseGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
@@ -211,9 +212,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
-    super(NativeImplementationGenerator, self).__init__(system._database)
+    super(NativeImplementationGenerator, self).__init__(
+        system._database, interface)
     self._system = system
-    self._interface = interface
     self._dart_impl_emitter = dart_impl_emitter
     self._cpp_header_emitter = cpp_header_emitter
     self._cpp_impl_emitter = cpp_impl_emitter
@@ -255,20 +256,23 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if constructor_info:
       self._EmitFactoryProvider(self._interface.id, constructor_info)
 
-    if 'CustomConstructor' in self._interface.ext_attrs:
+    ext_attrs = self._interface.ext_attrs
+
+    if 'CustomConstructor' in ext_attrs:
       # We have a custom implementation for it.
       self._cpp_declarations_emitter.Emit(
           '\n'
           'void constructorCallback(Dart_NativeArguments);\n')
       return
 
-    raises_dom_exceptions = 'ConstructorRaisesException' in self._interface.ext_attrs
+    raises_dom_exceptions = 'ConstructorRaisesException' in ext_attrs
     raises_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
     arguments = []
     parameter_definitions_emitter = emitter.Emitter()
     create_function = 'create'
-    if 'NamedConstructor' in self._interface.ext_attrs:
+    if 'NamedConstructor' in ext_attrs:
       raises_exceptions = True
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       parameter_definitions_emitter.Emit(
             '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
             '        if (!domWindow) {\n'
@@ -276,11 +280,10 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
             '            goto fail;\n'
             '        }\n'
             '        Document* document = domWindow->document();\n')
-      self._cpp_impl_includes.add('"DOMWindow.h"')
       arguments.append('document')
       create_function = 'createForJSConstructor'
-    if 'CallWith' in self._interface.ext_attrs:
-      call_with = self._interface.ext_attrs['CallWith']
+    if 'CallWith' in ext_attrs:
+      call_with = ext_attrs['CallWith']
       if call_with == 'ScriptExecutionContext':
         raises_exceptions = True
         parameter_definitions_emitter.Emit(
@@ -301,19 +304,32 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
     invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
-        self._interface.id, self._interface.ext_attrs, raises_dom_exceptions)
+        self._interface.id, ext_attrs, raises_dom_exceptions)
 
     runtime_check = None
-    database = self._system._database
-    if 'synthesizedV8EnabledPerContext' in self._interface.ext_attrs:
+    database = self._database
+    assert (not (
+      'synthesizedV8EnabledPerContext' in ext_attrs and
+      'synthesizedV8EnabledAtRuntime' in ext_attrs))
+    if 'synthesizedV8EnabledPerContext' in ext_attrs:
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
       runtime_check = emitter.Format(
-          '        if (ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
+          '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
           '            goto fail;\n'
           '        }',
-          FEATURE=self._interface.ext_attrs['synthesizedV8EnabledPerContext'])
+          FEATURE=ext_attrs['synthesizedV8EnabledPerContext'])
+
+    if 'synthesizedV8EnabledAtRuntime' in ext_attrs:
+      raises_exceptions = True
+      self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
+      runtime_check = emitter.Format(
+          '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
+          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            goto fail;\n'
+          '        }',
+          FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
 
     self._GenerateNativeCallback(callback_name='constructorCallback',
         parameter_definitions=parameter_definitions_emitter.Fragments(),
@@ -344,7 +360,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     def IsEventTarget(interface):
       return ('EventTarget' in interface.ext_attrs and
               interface.id != 'EventTarget')
-    is_root = not _FindParent(self._interface, self._system._database, IsEventTarget)
+    is_root = not _FindParent(self._interface, self._database, IsEventTarget)
     if is_root:
       self._members_emitter.Emit('  _EventsImpl _on;\n')
 
@@ -358,7 +374,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     def HasEventAttributes(interface):
       return any([a.type.id == 'EventListener' for a in interface.attributes])
-    parent = _FindParent(self._interface, self._system._database, HasEventAttributes)
+    parent = _FindParent(self._interface, self._database, HasEventAttributes)
     if parent:
       parent_events_class = '_%sEventsImpl' % parent.id
     else:
@@ -378,7 +394,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
     for event_name in events_attributes:
       events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => _get(\'$DOM_NAME\');\n',
+          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
           HTML_NAME=DomToHtmlEvent(event_name),
           DOM_NAME=event_name)
 
@@ -398,13 +414,15 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return self._html_system.DartType(idl_type)
 
   def _BaseClassName(self):
+    root_class = 'NativeFieldWrapperClass1'
+
     if not self._interface.parents:
-      return '_DOMWrapperBase'
+      return root_class
 
     supertype = self._interface.parents[0].type.id
 
     if IsPureInterface(supertype):    # The class is a root.
-      return '_DOMWrapperBase'
+      return root_class
 
     # FIXME: We're currently injecting List<..> and EventTarget as
     # supertypes in dart.idl. We should annotate/preserve as
@@ -412,7 +430,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return '_DOMWrapperBase'
+      return root_class
 
     if supertype == 'EventTarget':
       # Most implementors of EventTarget specify the EventListener operations
@@ -422,7 +440,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       # Applies to MessagePort.
       if not [op for op in self._interface.operations if op.id == 'addEventListener']:
         return self._ImplClassName(supertype)
-      return '_DOMWrapperBase'
+      return root_class
 
     return self._ImplClassName(supertype)
 
@@ -457,7 +475,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def FinishInterface(self):
     html_interface_name = self._HTMLInterfaceName(self._interface.id)
     template = None
-    if html_interface_name == self._interface.id or not self._system._database.HasInterface(html_interface_name):
+    if html_interface_name == self._interface.id or not self._database.HasInterface(html_interface_name):
       template_file = 'impl_%s.darttemplate' % html_interface_name
       template = self._templates.TryLoad(template_file)
     if not template:
@@ -512,7 +530,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INTERFACE=self._interface.id)
 
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
-    wrapper_type = _DOMWrapperType(self._system._database, self._interface)
+    wrapper_type = _DOMWrapperType(self._database, self._interface)
     self._cpp_header_emitter.Emit(
         self._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
@@ -611,12 +629,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       elif attr.id == 'target' and attr.type.id == 'SVGAnimatedString':
         webcore_function_name = 'svgTarget'
       else:
-        webcore_function_name = re.sub(r'^(HTML|URL|JS|XML|XSLT|\w)',
-                                       lambda s: s.group(1).lower(),
-                                       attr.id)
-        webcore_function_name = re.sub(r'^(create|exclusive)',
-                                       lambda s: 'is' + s.group(1).capitalize(),
-                                       webcore_function_name)
+        webcore_function_name = _ToWebKitName(attr.id)
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
@@ -1050,7 +1063,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
 
 def _GenerateCPPIncludes(includes):
-  return ''.join(['#include %s\n' % include for include in includes])
+  return ''.join(['#include %s\n' % include for include in sorted(includes)])
 
 def _DOMWrapperType(database, interface):
   if interface.id == 'MessagePort':
@@ -1079,3 +1092,10 @@ def _FindParent(interface, database, callback):
 
 def _IsArgumentOptionalInWebCore(argument):
   return IsOptional(argument) and not 'Callback' in argument.ext_attrs
+
+def _ToWebKitName(name):
+  name = name[0].lower() + name[1:]
+  name = re.sub(r'^(hTML|uRL|jS|xML|xSLT)', lambda s: s.group(1).lower(),
+                name)
+  return re.sub(r'^(create|exclusive)', lambda s: 'is' + s.group(1).capitalize(),
+                name)

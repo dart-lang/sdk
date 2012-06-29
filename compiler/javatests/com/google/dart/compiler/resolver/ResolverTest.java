@@ -960,6 +960,66 @@ public class ResolverTest extends ResolverTestCase {
         ErrorExpectation.errEx(ResolverErrorCode.CANNOT_RESOLVE_LABEL, 6, 32, 1));
   }
 
+  public void test_multipleLabelsSwitch() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "  a: case (0): break;",
+        "  a: case (1): break;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.DUPLICATE_LABEL_IN_SWITCH_STATEMENT, 5, 3, 2));
+  }
+
+  public void test_breakInSwitch() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    a: case 0:",
+        "       break a;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT, 5, 14, 1));
+  }
+
+  public void test_continueInSwitch1() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    a: case 0:",
+        "       continue a;",
+        "  }",
+        "}"));
+  }
+
+  public void test_continueInSwitch2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  switch(1) {",
+        "    case 0:",
+        "       continue a;",
+        "    a: case 1:",
+        "      break;",
+        "  }",
+        "}"));
+  }
+
+  public void test_continueInSwitch3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "foo() {",
+        "  a: switch(1) {",
+        "    case 0:",
+        "       continue a;",
+        "  }",
+        "}"),
+        ErrorExpectation.errEx(ResolverErrorCode.CONTINUE_LABEL_RESOLVES_TO_SWITCH, 5, 17, 1));
+  }
+
   public void test_new_noSuchType() throws Exception {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
@@ -1179,7 +1239,7 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 21, 7, 3));
   }
 
-  public void testFinalInit() {
+  public void testFinalInit1() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -1187,7 +1247,7 @@ public class ResolverTest extends ResolverTestCase {
         "final f2;",  // error
         "class A {",
         "  final f3 = 1;",
-        "  final f4;",  // not really ok, should be initialized in constructor
+        "  final f4;",  // should be initialized in constructor
         "  static final f5 = 1;",
         "  static final f6;",    // error
         "  method() {",
@@ -1197,7 +1257,75 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.TOPLEVEL_FINAL_REQUIRES_VALUE, 4, 7 , 2),
         errEx(ResolverErrorCode.STATIC_FINAL_REQUIRES_VALUE, 9, 16, 2),
-        errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2));
+        errEx(ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED, 12, 11, 2),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 7, 9, 2));
+  }
+
+  public void testFinalInit2() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() {}",   // explicit constructor does not initialize
+        "}"),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 3, 9, 1));
+  }
+
+  public void testFinalInit3() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",  // implicit constructor does not initialize
+        "}"),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 3, 9, 1));
+  }
+
+  public void testFinalInit4() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C(this.a);", // no error if initialized in initializer list
+        "}"));
+  }
+
+  public void testFinalInit5() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() : this.named(1);",  // no error on redirect
+        "  C.named(this.a) {}",
+        "}"));
+  }
+
+  public void testFinalInit6() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface I1 {",
+        "  final a;",        // not initialized, but in an interface
+        "}",
+        "interface I2 {",
+        "  final a;",        // not initialized, but in an interface
+        "  C(arg);",
+        "}"));
+  }
+
+  public void testFinalInit7() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a = 1;",
+        "}"));
+  }
+
+  public void testFinalInit8() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C {",
+        "  final a;",
+        "  C() : this.a = 1;",
+        "}"));
   }
 
   public void test_const_requiresValue() {
@@ -1327,6 +1455,44 @@ public class ResolverTest extends ResolverTestCase {
         "class Object {}",
         "typedef Object func([_foo]);"),
         errEx(ResolverErrorCode.NAMED_PARAMETERS_CANNOT_START_WITH_UNDER, 2, 22, 4));
+  }
+
+  /**
+   * "this" is not accessible to initializers, so invocation of instance method is error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2477
+   */
+  public void test_callInstanceMethod_fromInitializer() throws Exception {
+    resolveAndTest(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  var x;",
+            "  A() : x = foo() {}",
+            "  foo() {}",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 5));
+  }
+
+  /**
+   * "this" is not accessible to initializers, so reference of instance method is error.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2477
+   */
+  public void test_referenceInstanceMethod_fromInitializer() throws Exception {
+    resolveAndTest(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  var x;",
+            "  A() : x = foo {}",
+            "  foo() {}",
+            "}",
+            ""),
+            errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 3));
   }
 
   public void testRedirectConstructor() {

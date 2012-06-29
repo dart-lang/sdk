@@ -36,7 +36,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   Label fall_through;
 
   // Compute the size to be allocated, it is based on the array length
-  // and it computed as:
+  // and is computed as:
   // RoundedAllocationSize((array_length * kwordSize) + sizeof(RawArray)).
   __ movl(EDI, Address(ESP, kArrayLengthOffset));  // Array Length.
   // Assert that length is a Smi.
@@ -262,7 +262,7 @@ bool Intrinsifier::GArray_Allocate(Assembler* assembler) {
   Label fall_through;
 
   // Compute the size to be allocated, it is based on the array length
-  // and it computed as:
+  // and is computed as:
   // RoundedAllocationSize(sizeof(RawGrowableObjectArray)) +
   intptr_t fixed_size = GrowableObjectArray::InstanceSize();
 

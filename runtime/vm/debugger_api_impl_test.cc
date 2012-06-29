@@ -68,7 +68,9 @@ static char const* BreakpointInfo(Dart_StackTrace trace) {
   Dart_Handle func_name;
   Dart_Handle url;
   intptr_t line_number = 0;
-  res = Dart_ActivationFrameInfo(frame, &func_name, &url, &line_number);
+  intptr_t library_id = 0;
+  res = Dart_ActivationFrameInfo(
+            frame, &func_name, &url, &line_number, &library_id);
   EXPECT_NOT_ERROR(res);
   OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%d)",
               ToCString(func_name), ToCString(url), line_number);
@@ -136,7 +138,7 @@ static void PrintValue(Dart_Handle value, bool expand) {
 static void PrintActivationFrame(Dart_ActivationFrame frame) {
   Dart_Handle func_name;
   Dart_Handle res;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
   EXPECT_NOT_ERROR(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
@@ -184,7 +186,7 @@ static void VerifyStackTrace(Dart_StackTrace trace,
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_NOT_ERROR(res);
-    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
     EXPECT_NOT_ERROR(res);
     EXPECT(Dart_IsString(func_name));
     const char* func_name_chars;
@@ -214,7 +216,7 @@ void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_NOT_ERROR(res);
     Dart_Handle func_name;
-    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
     EXPECT_NOT_ERROR(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;
@@ -259,7 +261,7 @@ void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   res = Dart_GetActivationFrame(trace, 0, &frame);
   EXPECT_NOT_ERROR(res);
   Dart_Handle func_name;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
   EXPECT_NOT_ERROR(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
@@ -317,15 +319,9 @@ void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
           "f1",
         "foo",
           "X.X.",
-            "Object.Object.",
-          "X.X.",
         "foo",
           "X.kvmk",
             "f2",
-          "X.kvmk",
-            "IntegerImplementation.+",
-              "IntegerImplementation.addFromInteger",
-            "IntegerImplementation.+",
           "X.kvmk",
         "foo",
       "main"
@@ -339,7 +335,7 @@ void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   res = Dart_GetActivationFrame(trace, 0, &frame);
   EXPECT_NOT_ERROR(res);
   Dart_Handle func_name;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
   EXPECT_NOT_ERROR(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
@@ -490,7 +486,7 @@ void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   res = Dart_GetActivationFrame(trace, 0, &frame);
   EXPECT_NOT_ERROR(res);
   Dart_Handle func_name;
-  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
   EXPECT_NOT_ERROR(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
@@ -548,7 +544,7 @@ static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_NOT_ERROR(res);
     Dart_Handle func_name;
-    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
     EXPECT_NOT_ERROR(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;
@@ -642,7 +638,7 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_NOT_ERROR(res);
     Dart_Handle func_name;
-    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL);
+    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
     EXPECT_NOT_ERROR(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;

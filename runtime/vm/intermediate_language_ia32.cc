@@ -64,7 +64,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
           Function::ZoneHandle(compiler->parsed_function().function().raw());
     __ LoadObject(temp, function);
     __ incl(FieldAddress(temp, Function::usage_counter_offset()));
-    if (CodeGenerator::CanOptimize()) {
+    if (FlowGraphCompiler::CanOptimize()) {
       // Do not optimize if usage count must be reported.
       __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
@@ -157,7 +157,11 @@ void ConstantVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
-  LocationSummary* summary = new LocationSummary(3, 0);
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));  // Value.
   summary->set_in(1, Location::RegisterLocation(ECX));  // Instantiator.
   summary->set_in(2, Location::RegisterLocation(EDX));  // Type arguments.
@@ -975,7 +979,11 @@ void LoadStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* InstanceOfComp::MakeLocationSummary() const {
-  LocationSummary* summary = new LocationSummary(3, 0);
+  const intptr_t kNumInputs = 3;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
   summary->set_in(0, Location::RegisterLocation(EAX));
   summary->set_in(1, Location::RegisterLocation(ECX));
   summary->set_in(2, Location::RegisterLocation(EDX));

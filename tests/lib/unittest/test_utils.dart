@@ -20,11 +20,11 @@ void initUtils() {
 }
 
 void shouldFail(value, Matcher matcher, expected) {
-  configureExpectHandler(_testHandler);
+  configureExpectFailureHandler(_testHandler);
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  configureExpectHandler(null);
+  configureExpectFailureHandler(null);
   expect(errorCount, equals(1));
   if (expected is String) {
     expect(errorString, equalsIgnoringWhitespace(expected));
@@ -34,11 +34,11 @@ void shouldFail(value, Matcher matcher, expected) {
 }
 
 void shouldPass(value, Matcher matcher) {
-  configureExpectHandler(_testHandler);
+  configureExpectFailureHandler(_testHandler);
   errorCount = 0;
   errorString = '';
   expect(value, matcher);
-  configureExpectHandler(null);
+  configureExpectFailureHandler(null);
   expect(errorCount, equals(0));
 }
 

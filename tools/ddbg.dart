@@ -36,9 +36,11 @@ void printHelp() {
   sbp [<file>] <line> Set breakpoint
   rbp <id> Remove breakpoint with given id
   po <id> Print object info for given id
+  pl <id> <idx> [<len>] Print list element/slice
   pc <id> Print class info for given id
   ll  List loaded libraries
-  pl <id> Print dlibrary info for given id
+  plib <id> Print library info for given library id
+  pg <id> Print all global variables visible within given library id
   ls <libname> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
   epi <none|all|unhandled>  Set exception pause info
@@ -112,14 +114,31 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getObjectProperties",
                 "params": {"objectId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetObjPropsResponse(result));
+  } else if (command == "pl" && args.length >= 3) {
+     var cmd;
+     if (args.length == 3) {
+       cmd = { "id": seqNum, "command": "getListElements",
+                "params": {"objectId": Math.parseInt(args[1]),
+                            "index": Math.parseInt(args[2]) }};
+    } else {
+       cmd = { "id": seqNum, "command": "getListElements",
+                "params": {"objectId": Math.parseInt(args[1]),
+                            "index": Math.parseInt(args[2]),
+                            "length": Math.parseInt(args[3]) }};
+    }
+    sendCmd(cmd).then((result) => handleGetListResponse(result));
   } else if (command == "pc" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getClassProperties",
                 "params": {"classId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetClassPropsResponse(result));
-  } else if (command == "pl" && args.length == 2) {
+  } else if (command == "plib" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getLibraryProperties",
                 "params": {"libraryId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
+  } else if (command == "pg" && args.length == 2) {
+    var cmd = { "id": seqNum, "command": "getGlobalVariables",
+                "params": {"libraryId": Math.parseInt(args[1]) }};
+    sendCmd(cmd).then((result) => handleGetGlobalVarsResponse(result));
   } else if (command == "gs" && args.length == 3) {
     var cmd = { "id": seqNum, "command":  "getScriptSource",
                 "params": { "libraryId": Math.parseInt(args[1]),
@@ -139,14 +158,17 @@ void processCommand(String cmdLine) {
 }
 
 
-String remoteValue(value) {
+String remoteObject(value) {
   var kind = value["kind"];
   var text = value["text"];
   var id = value["objectId"];
   if (kind == "string") {
-    return "'$text'";
+    return "(string, id $id) '$text'";
+  } else if (kind == "list") {
+    var len = value["length"];
+    return "(list, id $id, len $len) $text";
   } else if (kind == "object") {
-    return "(obj id: $id) = $text";
+    return "(obj, id $id) $text";
   } else {
     return "$text";
   }
@@ -156,7 +178,7 @@ String remoteValue(value) {
 printNamedObject(obj) {
   var name = obj["name"];
   var value = obj["value"];
-  print("  $name = ${remoteValue(value)}");
+  print("  $name = ${remoteObject(value)}");
 }
 
 
@@ -171,6 +193,26 @@ handleGetObjPropsResponse(response) {
   print("  class id: $class_id");
   for (int i = 0; i < fields.length; i++) {
     printNamedObject(fields[i]);
+  }
+}
+
+handleGetListResponse(response) {
+  Map result = response["result"];
+  if (result["elements"] != null) {
+    // List slice.
+    var index = result["index"];
+    var length = result["length"];
+    List elements = result["elements"];
+    assert(length == elements.length);
+    for (int i = 0; i < length; i++) {
+      var kind = elements[i]["kind"];
+      var text = elements[i]["text"];
+      print("  ${index + i}: ($kind) $text");
+    }
+  } else {
+    // One element, a remote object.
+    print(result);
+    print("  ${remoteObject(result)}");
   }
 }
 
@@ -210,6 +252,14 @@ handleGetLibraryPropsResponse(response) {
     for (int i = 0; i < globals.length; i++) {
       printNamedObject(globals[i]);
     }
+  }
+}
+
+
+handleGetGlobalVarsResponse(response) {
+  List globals = response["result"]["globals"];
+  for (int i = 0; i < globals.length; i++) {
+    printNamedObject(globals[i]);
   }
 }
 
@@ -267,9 +317,10 @@ void handleStackTraceResponse(response) {
 
 void printStackFrame(frame_num, Map frame) {
   var fname = frame["functionName"];
+  var libId = frame["libraryId"];
   var url = frame["location"]["url"];
   var line = frame["location"]["lineNumber"];
-  print("$frame_num  $fname ($url:$line)");
+  print("$frame_num  $fname ($url:$line) (lib $libId)");
   List locals = frame["locals"];
   for (int i = 0; i < locals.length; i++) {
     printNamedObject(locals[i]);
@@ -297,7 +348,7 @@ void handlePausedEvent(msg) {
     assert(reason == "exception");
     var excObj = msg["params"]["exception"];
     print("VM paused on exception");
-    print(remoteValue(excObj));
+    print(remoteObject(excObj));
   }
   print("Stack trace:");
   printStackTrace(stackTrace);

@@ -6,12 +6,9 @@
 #library('intl_message_test');
 
 #import('../../../lib/i18n/intl.dart');
-#import('../../../lib/i18n/intl_message.dart');
 #import('../../../lib/unittest/unittest.dart');
 
-/**
- * Tests the MessageFormat library in dart.
- */
+/** Tests the MessageFormat library in dart. */
 
 class Person {
   String firstName, lastName;

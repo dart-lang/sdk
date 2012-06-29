@@ -5,6 +5,7 @@
 #include "vm/intermediate_language.h"
 
 #include "vm/bit_vector.h"
+#include "vm/dart_entry.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
@@ -1122,7 +1123,7 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp_reg = locs()->temp(0).reg();
   int argument_count = ArgumentCount();
   const Array& arguments_descriptor =
-      CodeGenerator::ArgumentsDescriptor(argument_count - 1,
+      DartEntry::ArgumentsDescriptor(argument_count - 1,
                                          argument_names());
   __ LoadObject(temp_reg, arguments_descriptor);
 

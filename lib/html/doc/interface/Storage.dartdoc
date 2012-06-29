@@ -3,6 +3,32 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /// @domName Storage
+/**
+ * The type used by the
+ * [Window.localStorage] and [Window.sessionStorage] properties.
+ * Storage is implemented as a Map&lt;String, String>.
+ *
+ * To store and get values, use Dart's built-in map syntax:
+ *
+ *     window.localStorage['key1'] = 'val1';
+ *     window.localStorage['key2'] = 'val2';
+ *     window.localStorage['key3'] = 'val3';
+ *     assert(window.localStorage['key3'] == 'val3');
+ * 
+ * You can use [Map](http://api.dartlang.org/dart_core/Map.html) APIs
+ * such as containsValue(), clear(), and length:
+ *
+ *     assert(window.localStorage.containsValue('does not exist') == false);
+ *     window.localStorage.clear();
+ *     assert(window.localStorage.length == 0);
+ *
+ * For more examples of using this API, see
+ * [localstorage_test.dart](http://code.google.com/p/dart/source/browse/branches/bleeding_edge/dart/tests/html/localstorage_test.dart).
+ * For details on using the Map API, see the
+ * [Maps](http://www.dartlang.org/docs/library-tour/#maps-aka-dictionaries-or-hashes)
+ * section of the library tour.
+ *
+ */
 interface Storage extends Map<String, String> {
 
   /** @domName Storage.length */

@@ -69,7 +69,8 @@ void main() {
   final frogPath = joinPaths(doc.scriptDir, '../../lib/dartdoc/frog/');
 
   if (compilerPath === null) {
-    compilerPath = 'dart2js';
+    compilerPath
+        = Platform.operatingSystem == 'windows' ? 'dart2js.bat' : 'dart2js';
   }
 
   doc.cleanOutputDirectory(outputDir);
@@ -129,6 +130,7 @@ void main() {
   world.getOrAddLibrary('dart:json');
   world.getOrAddLibrary('${doc.scriptDir}/../../lib/math/math.dart');
   world.getOrAddLibrary('${doc.scriptDir}/../../lib/unittest/unittest.dart');
+  world.getOrAddLibrary('${doc.scriptDir}/../../lib/i18n/intl.dart');
   world.getOrAddLibrary('dart:uri');
   world.getOrAddLibrary('dart:utf');
   world.getOrAddLibrary('dart:web');

@@ -144,6 +144,9 @@ def start_browser(browser, executable_path, html_out):
     dartium_dir = os.path.join(script_dir, '..', '..', 'client', 'tests',
                                'dartium')
     options = selenium.webdriver.chrome.options.Options()
+    # enable ShadowDOM and style scoped for Dartium
+    options.add_argument('--enable-shadow-dom')
+    options.add_argument('--enable-style-scoped')
     if executable_path is not None:
       options.binary_location = executable_path
     elif platform.system() == 'Windows':

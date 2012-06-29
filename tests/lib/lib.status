@@ -25,7 +25,6 @@ crypto/sha1_test: Fail
 crypto/sha256_test: Fail
 
 [ $compiler == dartc ]
-i18n/*: Fail # Issue 3387
 
 [ $runtime == opera ]
 *: Skip

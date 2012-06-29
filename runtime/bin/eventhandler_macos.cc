@@ -32,6 +32,7 @@ int64_t GetCurrentTimeMilliseconds() {
 static const int kInterruptMessageSize = sizeof(InterruptMessage);
 static const int kInfinityTimeout = -1;
 static const int kTimerId = -1;
+static const int kShutdownId = -2;
 
 
 bool SocketData::HasReadEvent() {
@@ -123,6 +124,7 @@ EventHandlerImplementation::EventHandlerImplementation()
   FDUtils::SetNonBlocking(interrupt_fds_[0]);
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
+  shutdown_ = false;
 
   kqueue_fd_ = TEMP_FAILURE_RETRY(kqueue());
   if (kqueue_fd_ == -1) {
@@ -205,6 +207,8 @@ void EventHandlerImplementation::HandleInterruptFd() {
     if (msg.id == kTimerId) {
       timeout_ = msg.data;
       timeout_port_ = msg.dart_port;
+    } else if (msg.id == kShutdownId) {
+      shutdown_ = true;
     } else {
       SocketData* sd = GetSocketData(msg.id);
       if ((msg.data & (1 << kShutdownReadCommand)) != 0) {
@@ -357,7 +361,7 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandlerImplementation* handler =
       reinterpret_cast<EventHandlerImplementation*>(args);
   ASSERT(handler != NULL);
-  while (1) {
+  while (!handler->shutdown_) {
     intptr_t millis = handler->GetTimeout();
     // NULL pointer timespec for infinite timeout.
     ASSERT(kInfinityTimeout < 0);
@@ -384,13 +388,18 @@ void EventHandlerImplementation::EventHandlerEntry(uword args) {
 }
 
 
-void EventHandlerImplementation::StartEventHandler() {
+void EventHandlerImplementation::Start() {
   int result =
       dart::Thread::Start(&EventHandlerImplementation::EventHandlerEntry,
                           reinterpret_cast<uword>(this));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
   }
+}
+
+
+void EventHandlerImplementation::Shutdown() {
+  SendData(kShutdownId, 0, 0);
 }
 
 

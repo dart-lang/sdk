@@ -11,11 +11,10 @@ import com.google.dart.compiler.SubSystem;
  * {@link ErrorCode}s for type resolver.
  */
 public enum TypeErrorCode implements ErrorCode {
-  ABSTRACT_CLASS_WITHOUT_ABSTRACT_MODIFIER(
-      "%s is an abstract class because it does not implement the inherited abstract members: %s"),
   ASSERT_BOOL("assert requires  'bool' expression or '() -> bool' function"),
   ASSERT_NUMBER_ARGUMENTS(ErrorSeverity.ERROR, "assert requires exactly one argument"),
   ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
+  CANNOT_ASSIGN_TO("cannot assign to '%s'"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
@@ -54,6 +53,7 @@ public enum TypeErrorCode implements ErrorCode {
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
+  NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
   OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),

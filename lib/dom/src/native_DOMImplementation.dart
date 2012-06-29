@@ -37,14 +37,14 @@ class _Utils {
 
 Utils_print(String message) native "Utils_print";
 
-class _NPObject extends _DOMWrapperBase {
+class _NPObject extends NativeFieldWrapperClass1 {
   _NPObject();
   static _NPObject retrieve(String key) native "NPObject_retrieve";
   property(String propertyName) native "NPObject_property";
   invoke(String methodName, [ObjectArray args = null]) native "NPObject_invoke";
 }
 
-class _DOMWindowCrossFrameImpl extends _DOMWrapperBase implements Window {
+class _DOMWindowCrossFrameImpl extends NativeFieldWrapperClass1 implements Window {
   _DOMWindowCrossFrameImpl();
 
   // Fields.
@@ -66,7 +66,7 @@ class _DOMWindowCrossFrameImpl extends _DOMWrapperBase implements Window {
   String get typeName() => "DOMWindow";
 }
 
-class _HistoryCrossFrameImpl extends _DOMWrapperBase implements History {
+class _HistoryCrossFrameImpl extends NativeFieldWrapperClass1 implements History {
   _HistoryCrossFrameImpl();
 
   // Methods.
@@ -78,7 +78,7 @@ class _HistoryCrossFrameImpl extends _DOMWrapperBase implements History {
   String get typeName() => "History";
 }
 
-class _LocationCrossFrameImpl extends _DOMWrapperBase implements Location {
+class _LocationCrossFrameImpl extends NativeFieldWrapperClass1 implements Location {
   _LocationCrossFrameImpl();
 
   // Fields.
@@ -86,4 +86,21 @@ class _LocationCrossFrameImpl extends _DOMWrapperBase implements Location {
 
   // Implementation support.
   String get typeName() => "Location";
+}
+
+class _DOMStringMapImpl extends NativeFieldWrapperClass1 implements Map<String, String> {
+  _DOMStringMapImpl();
+
+  bool containsValue(String value) => Maps.containsValue(this, value);
+  bool containsKey(String key) native "DOMStringMap_containsKey_Callback";
+  String operator [](String key) native "DOMStringMap_item_Callback";
+  void operator []=(String key, String value) native "DOMStringMap_setItem_Callback";
+  String putIfAbsent(String key, String ifAbsent()) => Maps.putIfAbsent(this, key, ifAbsent);
+  String remove(String key) native "DOMStringMap_remove_Callback";
+  void clear() => Maps.clear(this);
+  void forEach(void f(String key, String value)) => Maps.forEach(this, f);
+  Collection<String> getKeys() native "DOMStringMap_getKeys_Callback";
+  Collection<String> getValues() => Maps.getValues(this);
+  int get length() => Maps.length(this);
+  bool isEmpty() => Maps.isEmpty(this);
 }

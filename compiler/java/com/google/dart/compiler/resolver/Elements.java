@@ -32,6 +32,7 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
+import com.google.dart.compiler.resolver.LabelElement.LabeledStatementType;
 import com.google.dart.compiler.type.InterfaceType;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
@@ -78,8 +79,22 @@ public class Elements {
     ((ClassElementImplementation) classElement).addInterface(type);
   }
 
-  static LabelElement labelElement(DartLabel node, String name, MethodElement enclosingFunction) {
-    return new LabelElementImplementation(node, name, enclosingFunction);
+  static LabelElement statementLabelElement(DartLabel node, String name,
+      MethodElement enclosingFunction) {
+    return new LabelElementImplementation(node, name, enclosingFunction,
+        LabeledStatementType.STATEMENT);
+  }
+
+  static LabelElement switchMemberLabelElement(DartLabel node, String name,
+      MethodElement enclosingFunction) {
+    return new LabelElementImplementation(node, name, enclosingFunction,
+        LabeledStatementType.SWITCH_MEMBER_STATEMENT);
+  }
+
+  static LabelElement switchLabelElement(DartLabel node, String name,
+      MethodElement enclosingFunction) {
+    return new LabelElementImplementation(node, name, enclosingFunction,
+        LabeledStatementType.SWITCH_STATEMENT);
   }
 
   public static LibraryElement libraryElement(LibraryUnit libraryUnit) {
@@ -191,9 +206,12 @@ public class Elements {
                                                            constructorType);
   }
 
-  @VisibleForTesting
   public static void setType(Element element, Type type) {
     ((AbstractNodeElement) element).setType(type);
+  }
+
+  public static void setOverridden(MethodElement methodElement, Set<Element> overridden) {
+    ((MethodElementImplementation) methodElement).setOverridden(overridden);
   }
 
 static FieldElementImplementation fieldFromNode(DartField node,

@@ -10,6 +10,7 @@
 
 #library("test");
 
+#import("dart:io");
 #import("testing/dart/test_runner.dart");
 #import("testing/dart/test_options.dart");
 #import("testing/dart/test_suite.dart");
@@ -25,13 +26,13 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
-  'runtime/tests/vm',
-  'tests/corelib',
-  'tests/isolate',
-  'tests/language',
-  'tests/lib',
-  'tests/standalone',
-  'tests/utils',
+  const Path('runtime/tests/vm'),
+  const Path('tests/corelib'),
+  const Path('tests/isolate'),
+  const Path('tests/language'),
+  const Path('tests/lib'),
+  const Path('tests/standalone'),
+  const Path('tests/utils'),
 ];
 
 main() {
@@ -81,7 +82,7 @@ main() {
     }
 
     for (final testSuiteDir in TEST_SUITE_DIRECTORIES) {
-      final name = testSuiteDir.substring(testSuiteDir.lastIndexOf('/') + 1);
+      final name = testSuiteDir.filename;
       if (selectors.containsKey(name)) {
         queue.addTestSuite(
             new StandardTestSuite.forDirectory(conf, testSuiteDir));

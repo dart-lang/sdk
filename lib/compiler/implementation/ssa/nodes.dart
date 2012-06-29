@@ -964,7 +964,7 @@ class HInstruction implements Hashable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool isStatement() => false;
+  bool get isStatement() => false;
 }
 
 class HBoolify extends HInstruction {
@@ -992,7 +992,7 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
-  bool isStatement() => true;
+  bool get isStatement() => true;
   void prepareGvn() {
     assert(!hasSideEffects());
     setUseGvn();
@@ -1002,7 +1002,7 @@ abstract class HCheck extends HInstruction {
 class HTypeGuard extends HCheck {
   final int state;
   final HType guardedType;
-  bool isOn = false;
+  bool isEnabled = false;
   int checkedInputIndex = 0;
 
   HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
@@ -1011,12 +1011,14 @@ class HTypeGuard extends HCheck {
   HInstruction get checkedInput() => guarded;
 
   HType computeTypeFromInputTypes() {
-    return isOn ? guardedType : guarded.propagatedType;
+    return isEnabled ? guardedType : guarded.propagatedType;
   }
 
-  HType get guaranteedType() => isOn ? guardedType : HType.UNKNOWN;
+  HType get guaranteedType() => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
+
+  bool get isStatement() => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
@@ -1082,7 +1084,7 @@ class HControlFlow extends HInstruction {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HInvoke extends HInstruction {
@@ -1287,7 +1289,7 @@ class HFieldSet extends HFieldAccess {
     setAllSideEffects();
   }
 
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HLocalGet extends HFieldGet {
@@ -1325,6 +1327,11 @@ class HForeign extends HInstruction {
   final HType foreignType;
   HForeign(this.code, DartString declaredType, List<HInstruction> inputs)
       : foreignType = computeTypeFromDeclaredType(declaredType),
+        isStatement = false,
+        super(inputs);
+  HForeign.statement(this.code, List<HInstruction> inputs)
+      : foreignType = HType.UNKNOWN,
+        isStatement = true,
         super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
@@ -1339,9 +1346,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType() => foreignType;
 
-  // Be conservative and treat all [HForeign] as statements, even
-  // though some are just expressions.
-  bool isStatement() => true;
+  final bool isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -1490,8 +1495,6 @@ class HSubtract extends HBinaryArithmetic {
  * An [HSwitch] instruction has one input for the incoming
  * value, and one input per constant that it can switch on.
  * Its block has one successor per constant, and one for the default.
- * If the switch didn't have a default case, the last successor is
- * the join block.
  */
 class HSwitch extends HControlFlow {
   HSwitch(List<HInstruction> inputs) : super(inputs);
@@ -1499,6 +1502,11 @@ class HSwitch extends HControlFlow {
   HConstant constant(int index) => inputs[index + 1];
   HInstruction get expression() => inputs[0];
 
+  /**
+   * Provides the target to jump to if none of the constants match
+   * the expression. If the switch had no default case, this is the
+   * following join-block.
+   */
   HBasicBlock get defaultTarget() => block.successors.last();
 
   accept(HVisitor visitor) => visitor.visitSwitch(this);
@@ -1832,7 +1840,7 @@ class HNot extends HInstruction {
   * value from the start, whereas [HLocalValue]s need to be initialized first.
   */
 class HLocalValue extends HInstruction {
-  HLocalValue(element) : super(<HInstruction>[]) {
+  HLocalValue(Element element) : super(<HInstruction>[]) {
     sourceElement = element;
   }
 
@@ -1845,7 +1853,7 @@ class HLocalValue extends HInstruction {
 }
 
 class HParameterValue extends HLocalValue {
-  HParameterValue(element) : super(element);
+  HParameterValue(Element element) : super(element);
 
   toString() => 'parameter ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
@@ -2147,7 +2155,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => 26;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  bool isStatement() => true;
+  final bool isStatement = true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2222,7 +2230,7 @@ class HIndexAssign extends HInvokeStatic {
   }
 
   bool get builtin() => receiver.isMutableArray() && index.isInteger();
-  bool isStatement() => !builtin;
+  bool get isStatement() => !builtin;
 }
 
 class HIs extends HInstruction {
@@ -2254,28 +2262,30 @@ class HTypeConversion extends HCheck {
   static final int NO_CHECK = 0;
   static final int CHECKED_MODE_CHECK = 1;
   static final int ARGUMENT_TYPE_CHECK = 2;
+  static final int CAST_TYPE_CHECK = 3;
 
-  HTypeConversion(HType type, HInstruction input)
-      : this.internal(type, input, NO_CHECK);
-  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
-      : this.internal(type, input, CHECKED_MODE_CHECK);
-  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
-      : this.internal(type, input, ARGUMENT_TYPE_CHECK);
-
-  HTypeConversion.internal(this.type, HInstruction input, this.kind)
+  HTypeConversion(this.type, HInstruction input, [this.kind = NO_CHECK])
       : super(<HInstruction>[input]) {
     sourceElement = input.sourceElement;
   }
+  HTypeConversion.checkedModeCheck(HType type, HInstruction input)
+      : this(type, input, CHECKED_MODE_CHECK);
+  HTypeConversion.argumentTypeCheck(HType type, HInstruction input)
+      : this(type, input, ARGUMENT_TYPE_CHECK);
+  HTypeConversion.castCheck(HType type, HInstruction input)
+      : this(type, input, CAST_TYPE_CHECK);
 
-  bool isChecked() => kind != NO_CHECK;
-  bool isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
-  bool isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
+
+  bool get isChecked() => kind != NO_CHECK;
+  bool get isCheckedModeCheck() => kind == CHECKED_MODE_CHECK;
+  bool get isArgumentTypeCheck() => kind == ARGUMENT_TYPE_CHECK;
+  bool get isCastTypeCheck() => kind == CAST_TYPE_CHECK;
 
   HType get guaranteedType() => type;
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool isStatement() => kind == ARGUMENT_TYPE_CHECK;
+  bool get isStatement() => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => 28;

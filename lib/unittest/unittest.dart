@@ -147,6 +147,7 @@
 #source('interfaces.dart');
 #source('map_matchers.dart');
 #source('matcher.dart');
+#source('mock.dart');
 #source('numeric_matchers.dart');
 #source('operator_matchers.dart');
 #source('string_matchers.dart');
@@ -240,6 +241,13 @@ void expectThrow(function, [bool callback(exception)]) {
 
   if (threw != true) _fail('An expected exception was not thrown.');
 }
+
+/**
+ * The regexp pattern filter which constrains which tests to run
+ * based on their descriptions.
+ */
+
+String filter = null;
 
 /**
  * Creates a new test case with the given description and body. The
@@ -640,6 +648,10 @@ _runTests() {
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
     _tests = _tests.filter((t) => t == _soloTest);
+  }
+  if (filter != null) {
+    RegExp re = new RegExp(filter);
+    _tests = _tests.filter((t) => re.hasMatch(t.description));
   }
 
   _config.onStart();

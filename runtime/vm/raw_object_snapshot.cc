@@ -1278,9 +1278,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   } else {
     writer->WriteIntptrValue(len - 2);
   }
-  for (intptr_t i = 2; i < len; i++) {
-    writer->Write<uint8_t>(str[i]);
-  }
+  writer->WriteBytes(reinterpret_cast<const uint8_t*>(&(str[2])), (len - 2));
 }
 
 
@@ -1488,8 +1486,14 @@ static void StringWriteTo(SnapshotWriter* writer,
   writer->Write<RawObject*>(hash);
 
   // Write out the string.
-  for (intptr_t i = 0; i < len; i++) {
-    writer->Write(data[i]);
+  if (len > 0) {
+    if (class_id == ObjectStore::kOneByteStringClass) {
+      writer->WriteBytes(reinterpret_cast<const uint8_t*>(data), len);
+    } else {
+      for (intptr_t i = 0; i < len; i++) {
+        writer->Write(data[i]);
+      }
+    }
   }
 }
 

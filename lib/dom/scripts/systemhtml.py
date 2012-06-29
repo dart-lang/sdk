@@ -767,20 +767,20 @@ class HtmlSystem(System):
 
 class HtmlInterfacesSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir, backend):
     super(HtmlInterfacesSystem, self).__init__(
         templates, database, emitters, output_dir)
+    self._backend = backend
     self._dart_interface_file_paths = []
     self._factory_provider_emitters = {}
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     """."""
+
+    self._backend.ProcessInterface(interface)
+
     if interface.id in _merged_html_interfaces:
-      return None
+      return
 
     html_interface_name = self._shared._HTMLInterfaceName(interface.id)
     dart_interface_file_path = self._FilePathForDartInterface(
@@ -795,21 +795,19 @@ class HtmlInterfacesSystem(HtmlSystem):
     if not template:
       template = self._templates.Load('interface.darttemplate')
 
-    return HtmlDartInterfaceGenerator(
+    HtmlDartInterfaceGenerator(
         self, interface, dart_interface_code,
-        template,
-        common_prefix, super_interface_name,
-        source_filter, self._shared)
+        template, self._shared).Generate()
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
     interface_name = interface.id
     file_path = self._FilePathForDartInterface(interface_name)
     self._ProcessCallback(interface, info, file_path)
+    self._backend.ProcessCallback(interface, info)
 
   def GenerateLibraries(self):
-    pass
-
+    self._backend.GenerateLibraries(self._dart_interface_file_paths)
 
   def _FilePathForDartInterface(self, interface_name):
     """Returns the file path of the Dart interface definition."""
@@ -824,10 +822,9 @@ class HtmlInterfacesSystem(HtmlSystem):
 class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
-  def __init__(self, system, interface, emitter, template,
-               common_prefix, super_interface, source_filter, shared):
+  def __init__(self, system, interface, emitter, template, shared):
     super(HtmlDartInterfaceGenerator, self).__init__(system, interface,
-      emitter, template, common_prefix, super_interface, source_filter)
+      emitter, template)
     self._shared = shared
     self._html_interface_name = self._shared._HTMLInterfaceName(
         self._interface.id)
@@ -840,7 +837,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
 
     for parent in self._interface.parents:
       # TODO(vsm): Remove source_filter.
-      if MatchSourceFilter(self._source_filter, parent):
+      if MatchSourceFilter(parent):
         # Parent is a DOM type.
         extends.append(self._shared.DartType(parent.type.id))
       elif '<' in parent.type.id:
@@ -1023,10 +1020,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   interface.
   """
 
-  def __init__(self, system, interface, template, super_interface, dart_code,
+  def __init__(self, system, interface, template, dart_code,
       shared):
     super(HtmlFrogClassGenerator, self).__init__(
-        system, interface, template, super_interface, dart_code)
+        system, interface, template, dart_code)
     self._shared = shared
     self._html_interface_name = self._shared._HTMLInterfaceName(
         self._interface.id)
@@ -1332,7 +1329,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       if event_name in _html_event_names:
         events_members.Emit(
             "\n"
-            "  EventListenerList get $NAME() => _get('$RAWNAME');\n",
+            "  EventListenerList get $NAME() => this['$RAWNAME'];\n",
             RAWNAME=event_name,
             NAME=_html_event_names[event_name])
       else:
@@ -1353,11 +1350,7 @@ class HtmlFrogSystem(HtmlSystem):
     self._dart_frog_file_paths = []
     self._factory_provider_emitters = {}
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     """."""
     if interface.id in _merged_html_interfaces:
       return None
@@ -1372,16 +1365,15 @@ class HtmlFrogSystem(HtmlSystem):
       template = self._templates.Load('frog_impl.darttemplate')
 
     dart_code = self._ImplFileEmitter(html_interface_name)
-    return HtmlFrogClassGenerator(self, interface, template,
-                                  super_interface_name, dart_code, self._shared)
+    generator = HtmlFrogClassGenerator(self, interface, template,
+                                       dart_code, self._shared)
+    generator.Generate()
 
-  def GenerateLibraries(self):
+  def GenerateLibraries(self, interface_files):
     self._GenerateLibFile(
         'html_frog.darttemplate',
         os.path.join(self._output_dir, 'html_frog.dart'),
-        (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
-         self._dart_frog_file_paths))
+        interface_files + self._dart_frog_file_paths)
 
   def Finish(self):
     pass
@@ -1400,47 +1392,6 @@ class HtmlFrogSystem(HtmlSystem):
     return self._factory_provider_emitters[name]
 
 # -----------------------------------------------------------------------------
-
-class HtmlDartiumSystem(HtmlSystem):
-
-  def __init__(self, templates, database, emitters, auxiliary_dir,
-               dom_implementation_classes, output_dir):
-    """Prepared for generating wrapping implementation.
-
-    - Creates emitter for Dart code.
-    """
-    super(HtmlDartiumSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._auxiliary_dir = auxiliary_dir
-    self._dom_implementation_classes = dom_implementation_classes
-
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    # Implementation classes are generated by NativeImplementationSystem.
-    # FIXME: merge HtmlDartiumSystem into NativeImplementationSystem.
-    return None
-
-  def ProcessCallback(self, interface, info):
-    pass
-
-  def GenerateLibraries(self):
-    # Library generated for implementation.
-    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
-
-    self._GenerateLibFile(
-        'html_dartium.darttemplate',
-        os.path.join(self._output_dir, 'html_dartium.dart'),
-        (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
-         self._dom_implementation_classes),
-        AUXILIARY_DIR=MassagePath(auxiliary_dir))
-
-  def Finish(self):
-    pass
-
 
 def _ComputeInheritanceClosure(database):
   def Collect(interface, seen, collected):

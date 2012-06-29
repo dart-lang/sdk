@@ -90,9 +90,11 @@ import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
+import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.util.Lists;
@@ -112,6 +114,8 @@ import java.util.Set;
  */
 public class DartParser extends CompletionHooksParserBase {
 
+  private final Source source;
+  private final String sourceCode;
   private final boolean isDietParse;
   private final Set<String> prefixes;
   private final boolean corelibParse;
@@ -135,8 +139,10 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
+  //private static final String EXPORT_KEYWORD = "export";
   private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
+  //private static final String HIDE_KEYWORD = "hide";
   private static final String IMPLEMENTS_KEYWORD = "implements";
   private static final String INTERFACE_KEYWORD = "interface";
   private static final String NATIVE_KEYWORD = "native";
@@ -145,6 +151,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String OPERATOR_KEYWORD = "operator";
   private static final String PREFIX_KEYWORD = "prefix";
   private static final String SETTER_KEYWORD = "set";
+  //private static final String SHOW_KEYWORD = "show";
   private static final String STATIC_KEYWORD = "static";
   private static final String TYPEDEF_KEYWORD = "typedef";
 
@@ -201,48 +208,23 @@ public class DartParser extends CompletionHooksParserBase {
 
   public DartParser(Source source,
                     String sourceCode,
-                    DartCompilerListener listener) {
-    this(new DartScannerParserContext(source, sourceCode, listener));
-  }
-
-  public DartParser(ParserContext ctx) {
-    this(ctx, false);
-  }
-
-  public DartParser(ParserContext ctx, Set<String> prefixes, boolean isDietParse) {
-    this(ctx, isDietParse, prefixes);
-  }
-
-  public DartParser(ParserContext ctx, boolean isDietParse) {
-    this(ctx, isDietParse, Collections.<String>emptySet());
-  }
-
-  public DartParser(ParserContext ctx, boolean isDietParse, Set<String> prefixes) {
-    super(ctx);
+                    boolean isDietParse,
+                    Set<String> prefixes,
+                    DartCompilerListener listener,
+                    CompilerMetrics compilerMetrics) {
+    super(new DartParserCommentsHelper.CommentParserContext(source, sourceCode, listener, compilerMetrics));
+    this.source = source;
+    this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    {
-      Source source = ctx.getSource();
-      this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
-    }
+    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
   }
 
-  private DartParser(Source source, DartCompilerListener listener) throws IOException {
-    this(source, source.getSourceReader(), listener);
+  public static String read(Source source) throws IOException {
+    return read(source.getSourceReader());
   }
 
-  private DartParser(Source source,
-                    Reader sourceReader,
-                    DartCompilerListener listener) throws IOException {
-    this(new DartScannerParserContext(source, read(sourceReader), listener));
-  }
-
-  public static DartParser getSourceParser(Source source, DartCompilerListener listener)
-      throws IOException {
-    return new DartParser(source, listener);
-  }
-
-  private static String read(Reader reader) throws IOException {
+  public static String read(Reader reader) throws IOException {
     try {
       return CharStreams.toString(reader);
     } finally {
@@ -302,11 +284,12 @@ public class DartParser extends CompletionHooksParserBase {
    */
   @Terminals(tokens={Token.EOS, Token.CLASS, Token.LIBRARY, Token.IMPORT, Token.SOURCE,
       Token.RESOURCE, Token.NATIVE})
-  public DartUnit parseUnit(DartSource source) {
+  public DartUnit parseUnit() {
+    DartSource dartSource = (DartSource) source;
     try {
       beginCompilationUnit();
-      ctx.unitAboutToCompile(source, isDietParse);
-      DartUnit unit = new DartUnit(source, isDietParse);
+      ctx.unitAboutToCompile(dartSource, isDietParse);
+      DartUnit unit = new DartUnit(dartSource, isDietParse);
 
       // parse any directives at the beginning of the source
       parseDirectives(unit);
@@ -353,6 +336,12 @@ public class DartParser extends CompletionHooksParserBase {
         }
       }
       expect(Token.EOS);
+      // add comments
+      {
+        List<int[]> commentLocs = ((DartParserCommentsHelper.CommentParserContext) ctx).getCommentLocs();
+        DartParserCommentsHelper.addComments(unit, source, sourceCode, commentLocs);
+      }
+      // done
       return done(unit);
     } catch (StringInterpolationParseError exception) {
       throw new InternalCompilerException("Failed to parse " + source.getUri(), exception);
@@ -496,24 +485,58 @@ public class DartParser extends CompletionHooksParserBase {
     beginLiteral();
     expect(Token.STRING);
     DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    DartBooleanLiteral export = null;
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     DartStringLiteral prefix = null;
+    // To add support for the new import syntax, change "if" to "while" and uncomment the following code.
     if (optional(Token.COMMA)) {
-      if (!optionalPseudoKeyword(PREFIX_KEYWORD)) {
+//      if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
+//        expect(Token.COLON);
+//        if (peek(0) == Token.TRUE_LITERAL) {
+//          beginLiteral();
+//          consume(Token.TRUE_LITERAL);
+//          export = done(DartBooleanLiteral.get(true));
+//        } else if (peek(0) == Token.FALSE_LITERAL) {
+//          beginLiteral();
+//          consume(Token.FALSE_LITERAL);
+//          export = done(DartBooleanLiteral.get(false));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_BOOLEAN_LITERAL);
+//        }
+//      } else if (optionalPseudoKeyword(HIDE_KEYWORD)) {
+//        expect(Token.COLON);
+//        DartExpression expression = parseExpression();
+//        if (expression instanceof DartArrayLiteral) {
+//          combinators.add(new ImportHideCombinator((DartArrayLiteral) expression));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
+//        }
+//      } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
+//        expect(Token.COLON);
+//        DartExpression expression = parseExpression();
+//        if (expression instanceof DartArrayLiteral) {
+//          combinators.add(new ImportShowCombinator((DartArrayLiteral) expression));
+//        } else {
+//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
+//        }
+//      } else
+      if (optionalPseudoKeyword(PREFIX_KEYWORD)) {
+        expect(Token.COLON);
+        beginLiteral();
+        expect(Token.STRING);
+        String id = ctx.getTokenString();
+        // The specification requires the value of this string be a valid identifier
+        if(id == null || !id.matches("[_a-zA-Z]([_A-Za-z0-9]*)")) {
+          reportError(position(), ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER);
+        }
+        prefix = done(DartStringLiteral.get(ctx.getTokenString()));
+      } else {
         reportError(position(), ParserErrorCode.EXPECTED_PREFIX_KEYWORD);
       }
-      expect(Token.COLON);
-      beginLiteral();
-      expect(Token.STRING);
-      String id = ctx.getTokenString();
-      // The specification requires the value of this string be a valid identifier
-      if(id == null || !id.matches("[_a-zA-Z]([_A-Za-z0-9]*)")) {
-        reportError(position(), ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER);
-      }
-      prefix = done(DartStringLiteral.get(ctx.getTokenString()));
     }
     expectCloseParen();
     expect(Token.SEMICOLON);
-    return new DartImportDirective(libUri, prefix);
+    return new DartImportDirective(libUri, export, combinators, prefix);
   }
 
   private DartSourceDirective parseSourceDirective() {
@@ -715,6 +738,7 @@ public class DartParser extends CompletionHooksParserBase {
       if (expect(Token.STRING)) {
         nativeName = done(DartStringLiteral.get(ctx.getTokenString()));
       }
+      modifiers = modifiers.makeNative();
     }
 
     // Parse the members.
@@ -1661,6 +1685,9 @@ public class DartParser extends CompletionHooksParserBase {
       DartExpression value = null;
       if (optional(Token.ASSIGN)) {
         value = parseExpression();
+        if (value != null) {
+          modifiers = modifiers.makeInitialized();
+        }
       }
       fields.add(done(new DartField(name, modifiers, null, value)));
     } while (optional(Token.COMMA));
@@ -4406,6 +4433,10 @@ public class DartParser extends CompletionHooksParserBase {
 
   private DartIdentifier parseIdentifier() {
     beginIdentifier();
+    if (peek(0) == Token.AS) {
+      next();
+      return done(new DartIdentifier("as"));
+    }
     if (looksLikeTopLevelKeyword()) {
       reportErrorWithoutAdvancing(ParserErrorCode.EXPECTED_IDENTIFIER);
       return done(new DartSyntheticErrorIdentifier());

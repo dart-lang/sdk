@@ -750,12 +750,46 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  }",
             "}",
             ""));
-    // do compile, no errors expected
+    // do compile, check errors
     compile();
     assertErrors(
         errors,
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 6, 5, 7),
         errEx(ResolverErrorCode.CANNOT_ACCESS_METHOD, 9, 11, 7));
+  }
+  
+  /**
+   * When we resolve factory constructors, we should check if "lib" is library prefix, it is not
+   * always have to be name of type.  
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=2478
+   */
+  public void test_factoryClass_fromPrefixImportedLibrary() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "#import('" + APP + "');",
+            "interface I default A {",
+            "  I();",
+            "  I.named();",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart', prefix: 'lib');",
+            "class A {",
+            "  factory lib.I() {}",
+            "  factory lib.I.named() {}",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
   }
 
   /**
@@ -782,6 +816,30 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // do compile, no errors expected
     compile();
     assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
+  }
+
+  /**
+   * Libraries "dart:io" and "dart:html" can not be used together in single application.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3839
+   */
+  public void test_consoleWebMix() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('dart:io');",
+            "#import('dart:html');",
+            ""));
+    // do compiled
+    compile();
+    // find expected error
+    boolean found = false;
+    for (DartCompilationError error : errors) {
+      found |= error.getErrorCode() == DartCompilerErrorCode.CONSOLE_WEB_MIX;
+    }
+    assertTrue(found);
   }
 
   /**

@@ -3,9 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.resolver;
 
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
-
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
@@ -15,6 +12,9 @@ import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.testing.TestCompilerContext;
 import com.google.dart.compiler.type.Type;
+
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,13 +30,13 @@ public class NegativeResolverTest extends CompilerTestCase {
     resolve(unit);
     assertErrors(errors, expectedErrors);
   }
-  
+
   public void checkSourceErrorsAsSystemLibrary(String source, ErrorExpectation... expectedErrors) {
     DartUnit unit = parseUnitAsSystemLibrary("Test.dart", source);
     resolve(unit);
     assertErrors(errors, expectedErrors);
-  }  
-  
+  }
+
 
   /**
    * Parses given Dart file, runs {@link Resolver} and checks that expected errors were generated.
@@ -443,7 +443,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         "duplicate top-level declaration 'FIELD foo' at Test.dart::2:5",
         errors.get(1).getMessage());
   }
-  
+
   /**
    * Shadowing top-level element with local variable.
    * <p>
@@ -475,7 +475,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         "Local variable 'foo' is hiding 'FIELD foo' at Test.dart::4:5",
         errors.get(2).getMessage());
   }
-  
+
   /**
    * Shadowing top-level element with local variable.
    * <p>
@@ -1112,7 +1112,8 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  var x;",
             "}"),
         errEx(ResolverErrorCode.CONST_CLASS_WITH_NONFINAL_FIELDS, 3, 7, 1),
-        errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3));
+        errEx(ResolverErrorCode.CONST_CLASS_WITH_INHERITED_NONFINAL_FIELDS, 9, 7, 3),
+        errEx(ResolverErrorCode.FINAL_FIELD_MUST_BE_INITIALIZED, 8, 9, 3));
   }
 
   private TestCompilerContext getContext() {
@@ -1300,7 +1301,7 @@ public class NegativeResolverTest extends CompilerTestCase {
     Type boundType = typeParameter.getBound().getType();
     assertEquals("A", boundType.getElement().getName());
   }
-  
+
   public void test_methodCannotBeResolved() throws Exception {
     checkSourceErrors(
         makeCode(

@@ -67,8 +67,10 @@ class ScavengerVisitor : public ObjectPointerVisitor {
   void ScavengePointer(RawObject** p) {
     RawObject* raw_obj = *p;
 
-    // Fast exit if the raw object is a Smi.
-    if (!raw_obj->IsHeapObject()) return;
+    // Fast exit if the raw object is a Smi or an old object.
+    if (!raw_obj->IsHeapObject() || raw_obj->IsOldObject()) {
+      return;
+    }
 
     uword raw_addr = RawObject::ToAddr(raw_obj);
     // Objects should be contained in the heap.
