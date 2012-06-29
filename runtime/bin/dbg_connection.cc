@@ -55,6 +55,7 @@ class MessageBuffer {
   int MessageId() const;
   const char* Params() const;
   intptr_t GetIntParam(const char* name) const;
+  intptr_t GetOptIntParam(const char* name, intptr_t default_val) const;
   // GetStringParam mallocs the buffer that it returns. Caller must free.
   char* GetStringParam(const char* name) const;
   char* buf() const { return buf_; }
@@ -134,6 +135,21 @@ intptr_t MessageBuffer::GetIntParam(const char* name) const {
   ASSERT(r.Type() == dart::JSONReader::kInteger);
   return strtol(r.ValueChars(), NULL, 10);
 }
+
+
+intptr_t MessageBuffer::GetOptIntParam(const char* name,
+                                       intptr_t default_val) const {
+  const char* params = Params();
+  ASSERT(params != NULL);
+  dart::JSONReader r(params);
+  r.Seek(name);
+  if (r.Type() == dart::JSONReader::kInteger) {
+    return strtol(r.ValueChars(), NULL, 10);
+  } else {
+    return default_val;
+  }
+}
+
 
 char* MessageBuffer::GetStringParam(const char* name) const {
   const char* params = Params();
@@ -409,26 +425,14 @@ void DebuggerConnectionHandler::HandleGetLibrariesCmd(const char* json_msg) {
 }
 
 
-static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
-  intptr_t obj_id = Dart_CacheObject(object);
-  ASSERT(obj_id >= 0);
-  buf->Printf("{\"objectId\":%d,", obj_id);
-  const char* kind = "object";
-  if (Dart_IsInteger(object)) {
-    kind = "integer";
-  } else if (Dart_IsString(object)) {
-    kind = "string";
-  } else if (Dart_IsBoolean(object)) {
-    kind = "boolean";
-  }
-  buf->Printf("\"kind\":\"%s\",", kind);
-  buf->Printf("\"text\":");
+static void FormatTextualValue(dart::TextBuffer* buf, Dart_Handle object) {
   Dart_Handle text;
   if (Dart_IsNull(object)) {
     text = Dart_Null();
   } else {
     text = Dart_ToString(object);
   }
+  buf->Printf("\"text\":");
   if (Dart_IsNull(text)) {
     buf->Printf("null");
   } else if (Dart_IsError(text)) {
@@ -436,13 +440,47 @@ static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
   } else {
     FormatEncodedString(buf, text);
   }
+}
+
+
+static void FormatValue(dart::TextBuffer* buf, Dart_Handle object) {
+  if (Dart_IsInteger(object)) {
+    buf->Printf("\"kind\":\"integer\",");
+  } else if (Dart_IsString(object)) {
+    buf->Printf("\"kind\":\"string\",");
+  } else if (Dart_IsBoolean(object)) {
+    buf->Printf("\"kind\":\"boolean\",");
+  } else if (Dart_IsList(object)) {
+    intptr_t len = 0;
+    Dart_Handle res = Dart_ListLength(object, &len);
+    ASSERT_NOT_ERROR(res);
+    buf->Printf("\"kind\":\"list\",\"length\":%d,", len);
+  } else {
+    buf->Printf("\"kind\":\"object\",");
+  }
+  FormatTextualValue(buf, object);
+}
+
+
+static void FormatValueObj(dart::TextBuffer* buf, Dart_Handle object) {
+  buf->Printf("{");
+  FormatValue(buf, object);
   buf->Printf("}");
 }
 
 
-static void FormatField(dart::TextBuffer* buf,
-                        Dart_Handle object_name,
-                        Dart_Handle object) {
+static void FormatRemoteObj(dart::TextBuffer* buf, Dart_Handle object) {
+  intptr_t obj_id = Dart_CacheObject(object);
+  ASSERT(obj_id >= 0);
+  buf->Printf("{\"objectId\":%d,", obj_id);
+  FormatValue(buf, object);
+  buf->Printf("}");
+}
+
+
+static void FormatNamedValue(dart::TextBuffer* buf,
+                             Dart_Handle object_name,
+                             Dart_Handle object) {
   ASSERT(Dart_IsString(object_name));
   buf->Printf("{\"name\":\"%s\",", GetStringChars(object_name));
   buf->Printf("\"value\":");
@@ -451,8 +489,8 @@ static void FormatField(dart::TextBuffer* buf,
 }
 
 
-static void FormatFieldList(dart::TextBuffer* buf,
-                            Dart_Handle obj_list) {
+static void FormatNamedValueList(dart::TextBuffer* buf,
+                                 Dart_Handle obj_list) {
   ASSERT(Dart_IsList(obj_list));
   intptr_t list_length = 0;
   Dart_Handle res = Dart_ListLength(obj_list, &list_length);
@@ -467,7 +505,7 @@ static void FormatFieldList(dart::TextBuffer* buf,
     if (i > 0) {
       buf->Printf(",");
     }
-    FormatField(buf, name_handle, value_handle);
+    FormatNamedValue(buf, name_handle, value_handle);
   }
   buf->Printf("]");
 }
@@ -489,7 +527,7 @@ static const char* FormatClassProps(dart::TextBuffer* buf,
   buf->Printf("\"libraryId\":%d,", library_id);
   RETURN_IF_ERROR(static_fields);
   buf->Printf("\"fields\":");
-  FormatFieldList(buf, static_fields);
+  FormatNamedValueList(buf, static_fields);
   buf->Printf("}");
   return NULL;
 }
@@ -528,7 +566,7 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
   Dart_Handle global_vars = Dart_GetLibraryFields(lib_id);
   RETURN_IF_ERROR(global_vars);
   buf->Printf("\"globals\":");
-  FormatFieldList(buf, global_vars);
+  FormatNamedValueList(buf, global_vars);
   buf->Printf("}");
   return NULL;
 }
@@ -543,11 +581,34 @@ static const char* FormatObjProps(dart::TextBuffer* buf,
   }
   Dart_Handle res = Dart_GetObjClassId(object, &class_id);
   RETURN_IF_ERROR(res);
-  buf->Printf("{\"classId\": %d, \"fields\":", class_id);
+  buf->Printf("{\"classId\": %d,", class_id);
+  buf->Printf("\"kind\":\"object\",\"fields\":");
   Dart_Handle fields = Dart_GetInstanceFields(object);
   RETURN_IF_ERROR(fields);
-  FormatFieldList(buf, fields);
+  FormatNamedValueList(buf, fields);
   buf->Printf("}");
+  return NULL;
+}
+
+
+static const char* FormatListSlice(dart::TextBuffer* buf,
+                                   Dart_Handle list,
+                                   intptr_t list_length,
+                                   intptr_t index,
+                                   intptr_t slice_length) {
+  intptr_t end_index = index + slice_length;
+  ASSERT(end_index <= list_length);
+  buf->Printf("{\"index\":%d,", index);
+  buf->Printf("\"length\":%d,", slice_length);
+  buf->Printf("\"elements\":[");
+  for (intptr_t i = index; i < end_index; i++) {
+    Dart_Handle value = Dart_ListGetAt(list, i);
+    if (i > index) {
+      buf->Printf(",");
+    }
+    FormatValueObj(buf, value);
+  }
+  buf->Printf("]}");
   return NULL;
 }
 
@@ -581,7 +642,7 @@ static void FormatCallFrames(dart::TextBuffer* msg, Dart_StackTrace trace) {
     Dart_Handle locals = Dart_GetLocalVariables(frame);
     ASSERT_NOT_ERROR(locals);
     msg->Printf("\"locals\":");
-    FormatFieldList(msg, locals);
+    FormatNamedValueList(msg, locals);
     msg->Printf("}");
   }
   msg->Printf("]");
@@ -682,6 +743,59 @@ void DebuggerConnectionHandler::HandleGetObjPropsCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleGetListCmd(const char* json_msg) {
+  const intptr_t kDefaultSliceLength = 100;
+  int msg_id = msgbuf_->MessageId();
+  intptr_t obj_id = msgbuf_->GetIntParam("objectId");
+  Dart_Handle list = Dart_GetCachedObject(obj_id);
+  if (Dart_IsError(list)) {
+    SendError(msg_id, Dart_GetError(list));
+    return;
+  }
+  if (!Dart_IsList(list)) {
+    SendError(msg_id, "object is not a list");
+    return;
+  }
+  intptr_t list_length = 0;
+  Dart_Handle res = Dart_ListLength(list, &list_length);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+
+  intptr_t index = msgbuf_->GetIntParam("index");
+  if (index < 0) {
+    index = 0;
+  } else if (index > list_length) {
+    index = list_length;
+  }
+
+  // If no slice length is given, get only one element. If slice length
+  // is given as 0, get entire list.
+  intptr_t slice_length = msgbuf_->GetOptIntParam("length", 1);
+  if (slice_length == 0) {
+    slice_length = list_length - index;
+  }
+  if ((index + slice_length) > list_length) {
+    slice_length = list_length - index;
+  }
+  ASSERT(slice_length >= 0);
+  if (slice_length > kDefaultSliceLength) {
+    slice_length = kDefaultSliceLength;
+  }
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\":", msg_id);
+  if (slice_length == 1) {
+    Dart_Handle value = Dart_ListGetAt(list, index);
+    FormatRemoteObj(&msg, value);
+  } else {
+    FormatListSlice(&msg, list, list_length, index, slice_length);
+  }
+  msg.Printf("}");
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleGetClassPropsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   intptr_t cls_id = msgbuf_->GetIntParam("classId");
@@ -719,7 +833,7 @@ void DebuggerConnectionHandler::HandleGetGlobalsCmd(const char* json_msg) {
   msg.Printf("{\"id\":%d, \"result\": { \"globals\":", msg_id);
   Dart_Handle globals = Dart_GetGlobalVariables(lib_id);
   ASSERT_NOT_ERROR(globals);
-  FormatFieldList(&msg, globals);
+  FormatNamedValueList(&msg, globals);
   msg.Printf("}}");
   SendMsg(&msg);
 }
@@ -739,6 +853,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getClassProperties", HandleGetClassPropsCmd },
     { "getLibraryProperties", HandleGetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
+    { "getListElements", HandleGetListCmd },
     { "getGlobalVariables", HandleGetGlobalsCmd },
     { "getScriptURLs", HandleGetScriptURLsCmd },
     { "getScriptSource", HandleGetSourceCmd },

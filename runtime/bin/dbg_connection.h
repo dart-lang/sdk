@@ -64,6 +64,7 @@ class DebuggerConnectionHandler {
   static void HandleGetLibPropsCmd(const char* json_msg);
   static void HandleGetGlobalsCmd(const char* json_msg);
   static void HandleGetObjPropsCmd(const char* json_msg);
+  static void HandleGetListCmd(const char* json_msg);
   static void HandleGetScriptURLsCmd(const char* json_msg);
   static void HandleGetSourceCmd(const char* json_msg);
   static void HandleGetStackTraceCmd(const char* json_msg);
