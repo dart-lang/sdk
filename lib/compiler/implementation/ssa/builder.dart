@@ -2719,46 +2719,42 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    HBasicBlock conditionStartBlock = openNewBlock();
-    visit(node.condition);
-    HIf condition = new HIf(popBoolified(), true);
-    SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, current);
-    HBasicBlock conditionBlock = close(condition);
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
+    HInstruction thenInstruction;
+    HBasicBlock thenEndBlock;
+    HInstruction elseInstruction;
+    HBasicBlock elseEndBlock;
 
-    HBasicBlock thenBlock = addNewBlock();
-    conditionBlock.addSuccessor(thenBlock);
-    open(thenBlock);
-    visit(node.thenExpression);
-    HInstruction thenInstruction = pop();
-    SubGraph thenGraph = new SubGraph(thenBlock, current);
-    thenBlock = close(new HGoto());
-    LocalsHandler thenLocals = localsHandler;
-    localsHandler = savedLocals;
+    void buildThen() {
+      visit(node.thenExpression);
+      if (isAborted()) {
+        // Currently expressions cannot abort. Guard against future changes.
+        compiler.internalError("aborted expression", node: node.thenExpression);
+      }
+      thenInstruction = pop();
+      thenEndBlock = current;
+    }
+    void buildElse() {
+      visit(node.elseExpression);
+      if (isAborted()) {
+        // Currently expressions cannot abort. Guard against future changes.
+        compiler.internalError("aborted expression", node: node.elseExpression);
+      }
+      elseInstruction = pop();
+      elseEndBlock = current;
+    }
 
-    HBasicBlock elseBlock = addNewBlock();
-    conditionBlock.addSuccessor(elseBlock);
-    open(elseBlock);
-    visit(node.elseExpression);
-    HInstruction elseInstruction = pop();
-    SubGraph elseGraph = new SubGraph(elseBlock, current);
-    elseBlock = close(new HGoto());
+    handleIf(() => visit(node.condition), buildThen, buildElse);
 
-    HBasicBlock joinBlock = addNewBlock();
-    thenBlock.addSuccessor(joinBlock);
-    elseBlock.addSuccessor(joinBlock);
-
-    // TODO(lrn): Handle expressions better.
-    condition.blockInformation = new HBlockFlow(
-        new HIfBlockInformation(
-          new HSubExpressionBlockInformation(conditionGraph),
-          new HSubGraphBlockInformation(thenGraph),
-          new HSubGraphBlockInformation(elseGraph)),
-        joinBlock);
-    open(joinBlock);
-
-    localsHandler.mergeWith(thenLocals, joinBlock);
+    HBasicBlock joinBlock = current;
+    if (joinBlock.predecessors.length != 2 ||
+        joinBlock.predecessors[0] != thenEndBlock ||
+        joinBlock.predecessors[1] != elseEndBlock) {
+      // This is simply a sanity check that [handleIf] returns with the join
+      // block set as [current]. In the current version of [handleIf] this is
+      // always the case.
+      compiler.internalError("handleIf not returning joinblock.",
+                             node: node);
+    }
     HPhi phi = new HPhi.manyInputs(null,
         <HInstruction>[thenInstruction, elseInstruction]);
     joinBlock.addPhi(phi);
