@@ -161,11 +161,8 @@ def MakeNativeSpec(javascript_binding_name):
     return '*' + javascript_binding_name
 
 
-def MatchSourceFilter(filter, thing):
-  if not filter:
-    return True
-  else:
-    return any(token in thing.annotations for token in filter)
+def MatchSourceFilter(thing):
+  return 'WebKit' in thing.annotations or 'Dart' in thing.annotations
 
 
 def DartType(idl_type_name):

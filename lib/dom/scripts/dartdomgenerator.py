@@ -97,9 +97,7 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
                          {'DARTIUM': True, 'FROG': False}),
           webkit_database, emitters, output_dir)
       generator.Generate(webkit_database, native_system,
-                         source_filter=['WebKit', 'Dart'],
                          super_database=common_database,
-                         common_prefix='common',
                          webkit_renames=_webkit_renames)
       dom_implementation_classes = native_system.DartImplementationFiles()
       implementation_system = HtmlDartiumSystem(
@@ -117,9 +115,7 @@ def Generate(systems, database_dir, use_database_cache, dom_output_dir,
 
     for system in [interface_system, implementation_system]:
       generator.Generate(webkit_database, system,
-                         source_filter=['WebKit', 'Dart'],
                          super_database=common_database,
-                         common_prefix='common',
                          webkit_renames=_webkit_renames)
 
   _logger.info('Flush...')

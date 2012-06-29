@@ -31,16 +31,9 @@ class System(object):
     self._output_dir = output_dir
     self._dart_callback_file_paths = []
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    """Returns an interface generator for |interface|.
-
-    Called once for each interface that is not a callback function.
-    """
-    return None
+  def ProcessInterface(self, interface):
+    """Processes an interface that is not a callback function."""
+    pass
 
   def ProcessCallback(self, interface, info):
     """Processes an interface that is a callback function."""
@@ -110,8 +103,15 @@ class System(object):
     return result;
 
 class BaseGenerator(object):
-  def __init__(self, database):
+  def __init__(self, database, interface):
     self._database = database
+    self._interface = interface
+
+  def Generate(self):
+    self.StartInterface()
+    self.AddMembers(self._interface)
+    self.AddSecondaryMembers(self._interface)
+    self.FinishInterface()
 
   def AddMembers(self, interface):
     for const in sorted(interface.constants, ConstantOutputOrder):
@@ -147,12 +147,12 @@ class BaseGenerator(object):
       else:
         self.AddOperation(info)
 
-  def AddSecondaryMembers(self, interface, secondary_parents):
+  def AddSecondaryMembers(self, interface):
     # With multiple inheritance, attributes and operations of non-first
     # interfaces need to be added.  Sometimes the attribute or operation is
     # defined in the current interface as well as a parent.  In that case we
     # avoid making a duplicate definition and pray that the signatures match.
-
+    secondary_parents = self._TransitiveSecondaryParents(interface)
     for parent_interface in secondary_parents:
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
@@ -198,6 +198,31 @@ class BaseGenerator(object):
 
   def AddSecondaryOperation(self, interface, attr):
     pass
+
+  def _TransitiveSecondaryParents(self, interface):
+    """Returns a list of all non-primary parents.
+
+    The list contains the interface objects for interfaces defined in the
+    database, and the name for undefined interfaces.
+    """
+    def walk(parents):
+      for parent in parents:
+        if IsDartCollectionType(parent.type.id):
+          result.append(parent.type.id)
+          continue
+        if self._database.HasInterface(parent.type.id):
+          parent_interface = self._database.GetInterface(parent.type.id)
+          result.append(parent_interface)
+          walk(parent_interface.parents)
+
+    result = []
+    if interface.parents:
+      parent = interface.parents[0]
+      if IsPureInterface(parent.type.id):
+        walk(interface.parents)
+      else:
+        walk(interface.parents[1:])
+    return result;
 
 
 def _PairUpAttributes(attributes):

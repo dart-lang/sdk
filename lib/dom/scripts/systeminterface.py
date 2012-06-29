@@ -18,11 +18,7 @@ class InterfacesSystem(systembase.System):
     self._dart_interface_file_paths = []
 
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     """."""
     interface_name = interface.id
     dart_interface_file_path = self._FilePathForDartInterface(interface_name)
@@ -36,11 +32,8 @@ class InterfacesSystem(systembase.System):
     if not template:
       template = self._templates.Load('interface.darttemplate')
 
-    return DartInterfaceGenerator(
-        self, interface, dart_interface_code,
-        template,
-        common_prefix, super_interface_name,
-        source_filter)
+    DartInterfaceGenerator(
+        self, interface, dart_interface_code, template).Generate()
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
@@ -62,29 +55,22 @@ class InterfacesSystem(systembase.System):
 class DartInterfaceGenerator(systembase.BaseGenerator):
   """Generates Dart Interface definition for one DOM IDL interface."""
 
-  def __init__(self, system, interface, emitter, template,
-               common_prefix, super_interface, source_filter):
+  def __init__(self, system, interface, emitter, template):
     """Generates Dart code for the given interface.
 
     Args:
       interface -- an IDLInterface instance. It is assumed that all types have
         been converted to Dart types (e.g. int, String), unless they are in the
         same package as the interface.
-      common_prefix -- the prefix for the common library, if any.
       super_interface -- the name of the common interface that this interface
         implements, if any.
-      source_filter -- if specified, rewrites the names of any superinterfaces
-        that are not from these sources to use the common prefix.
     """
-    super(DartInterfaceGenerator, self).__init__(system._database)
+    super(DartInterfaceGenerator, self).__init__(system._database, interface)
     self._system = system
-    self._interface = interface
     self._emitter = emitter
     self._template = template
-    self._common_prefix = common_prefix
-    self._super_interface = super_interface
-    self._source_filter = source_filter
-
+    self._super_interface = interface.ext_attrs.get(
+        'synthesizedSuperInterfaceName', None)
 
   def StartInterface(self):
     if self._super_interface:
@@ -98,7 +84,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
 
     for parent in self._interface.parents:
       # TODO(vsm): Remove source_filter.
-      if MatchSourceFilter(self._source_filter, parent):
+      if MatchSourceFilter(parent):
         # Parent is a DOM type.
         extends.append(DartType(parent.type.id))
       elif '<' in parent.type.id:

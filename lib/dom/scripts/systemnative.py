@@ -26,11 +26,7 @@ class NativeImplementationSystem(systembase.System):
     self._html_system = HtmlSystemShared(database)
     self._factory_provider_emitters = {}
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
+  def ProcessInterface(self, interface):
     interface_name = interface.id
 
     if IsPureInterface(interface_name):
@@ -45,12 +41,12 @@ class NativeImplementationSystem(systembase.System):
     cpp_impl_path = self._FilePathForCppImplementation(interface_name)
     self._cpp_impl_files.append(cpp_impl_path)
 
-    return NativeImplementationGenerator(self, interface,
+    NativeImplementationGenerator(self, interface,
         self._emitters.FileEmitter(dart_impl_path),
         self._emitters.FileEmitter(cpp_header_path),
         self._emitters.FileEmitter(cpp_impl_path),
         self._BaseDefines(interface),
-        self._templates)
+        self._templates).Generate()
 
   def ProcessCallback(self, interface, info):
     self._interface = interface
@@ -211,9 +207,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       base_members: a set of names of members defined in a base class.  This is
           used to avoid static member 'overriding' in the generated Dart code.
     """
-    super(NativeImplementationGenerator, self).__init__(system._database)
+    super(NativeImplementationGenerator, self).__init__(
+        system._database, interface)
     self._system = system
-    self._interface = interface
     self._dart_impl_emitter = dart_impl_emitter
     self._cpp_header_emitter = cpp_header_emitter
     self._cpp_impl_emitter = cpp_impl_emitter
@@ -306,7 +302,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         self._interface.id, ext_attrs, raises_dom_exceptions)
 
     runtime_check = None
-    database = self._system._database
+    database = self._database
     assert (not (
       'synthesizedV8EnabledPerContext' in ext_attrs and
       'synthesizedV8EnabledAtRuntime' in ext_attrs))
@@ -359,7 +355,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     def IsEventTarget(interface):
       return ('EventTarget' in interface.ext_attrs and
               interface.id != 'EventTarget')
-    is_root = not _FindParent(self._interface, self._system._database, IsEventTarget)
+    is_root = not _FindParent(self._interface, self._database, IsEventTarget)
     if is_root:
       self._members_emitter.Emit('  _EventsImpl _on;\n')
 
@@ -373,7 +369,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     def HasEventAttributes(interface):
       return any([a.type.id == 'EventListener' for a in interface.attributes])
-    parent = _FindParent(self._interface, self._system._database, HasEventAttributes)
+    parent = _FindParent(self._interface, self._database, HasEventAttributes)
     if parent:
       parent_events_class = '_%sEventsImpl' % parent.id
     else:
@@ -472,7 +468,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def FinishInterface(self):
     html_interface_name = self._HTMLInterfaceName(self._interface.id)
     template = None
-    if html_interface_name == self._interface.id or not self._system._database.HasInterface(html_interface_name):
+    if html_interface_name == self._interface.id or not self._database.HasInterface(html_interface_name):
       template_file = 'impl_%s.darttemplate' % html_interface_name
       template = self._templates.TryLoad(template_file)
     if not template:
@@ -527,7 +523,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INTERFACE=self._interface.id)
 
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
-    wrapper_type = _DOMWrapperType(self._system._database, self._interface)
+    wrapper_type = _DOMWrapperType(self._database, self._interface)
     self._cpp_header_emitter.Emit(
         self._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,

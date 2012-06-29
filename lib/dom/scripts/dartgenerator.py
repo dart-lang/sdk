@@ -186,14 +186,13 @@ class DartGenerator(object):
 
     self.FilterMembersWithUnidentifiedTypes(database)
 
-  def Generate(self, database, system, source_filter=None, super_database=None,
-      common_prefix=None, webkit_renames={}):
+  def Generate(self, database, system, super_database=None, webkit_renames={}):
     self._database = database
 
     # Collect interfaces
     interfaces = []
     for interface in database.GetInterfaces():
-      if not MatchSourceFilter(source_filter, interface):
+      if not MatchSourceFilter(interface):
         # Skip this interface since it's not present in the required source
         _logger.info('Omitting interface - %s' % interface.id)
         continue
@@ -208,7 +207,6 @@ class DartGenerator(object):
     # Render all interfaces into Dart and save them in files.
     for interface in self._PreOrderInterfaces(interfaces):
 
-      super_interface = None
       super_name = interface.id
 
       if super_name in super_map:
@@ -216,7 +214,7 @@ class DartGenerator(object):
 
       if (super_database is not None and
           super_database.HasInterface(super_name)):
-        super_interface = super_name
+        interface.ext_attrs['synthesizedSuperInterfaceName'] = super_name
 
       interface_name = interface.id
       auxiliary_file = self._auxiliary_files.get(interface_name)
@@ -231,8 +229,8 @@ class DartGenerator(object):
       else:
         if 'Callback' in interface.ext_attrs:
           _logger.info('Malformed callback: %s' % interface.id)
-        self._ProcessInterface(system, interface, super_interface,
-                               source_filter, common_prefix)
+        _logger.info('Generating %s' % interface.id)
+        system.ProcessInterface(interface)
 
     system.GenerateLibraries()
     system.Finish()
@@ -256,52 +254,6 @@ class DartGenerator(object):
     for interface in interfaces:
       visit(interface)
     return ordered
-
-
-  def _ProcessInterface(self, system, interface, super_interface_name,
-                        source_filter,
-                        common_prefix):
-    """."""
-    _logger.info('Generating %s' % interface.id)
-
-    generator = system.InterfaceGenerator(interface,
-                                          common_prefix,
-                                          super_interface_name,
-                                          source_filter)
-    if not generator:
-      return
-
-    generator.StartInterface()
-    generator.AddMembers(interface)
-    secondary_parents = self._TransitiveSecondaryParents(interface)
-    generator.AddSecondaryMembers(interface, secondary_parents)
-    generator.FinishInterface()
-
-  def _TransitiveSecondaryParents(self, interface):
-    """Returns a list of all non-primary parents.
-
-    The list contains the interface objects for interfaces defined in the
-    database, and the name for undefined interfaces.
-    """
-    def walk(parents):
-      for parent in parents:
-        if IsDartCollectionType(parent.type.id):
-          result.append(parent.type.id)
-          continue
-        if self._database.HasInterface(parent.type.id):
-          parent_interface = self._database.GetInterface(parent.type.id)
-          result.append(parent_interface)
-          walk(parent_interface.parents)
-
-    result = []
-    if interface.parents:
-      parent = interface.parents[0]
-      if IsPureInterface(parent.type.id):
-        walk(interface.parents)
-      else:
-        walk(interface.parents[1:])
-    return result;
-
 
   def _CollectExceptions(self, interfaces):
     """Returns the names of all exception classes raised."""
@@ -344,12 +296,8 @@ class DummyImplementationSystem(systembase.System):
         factory_providers_file)
     self._impl_file_paths = [factory_providers_file]
 
-  def InterfaceGenerator(self,
-                         interface,
-                         common_prefix,
-                         super_interface_name,
-                         source_filter):
-    return DummyInterfaceGenerator(self, interface)
+  def ProcessInterface(self, interface):
+    DummyInterfaceGenerator(self, interface).Generate()
 
   def ProcessCallback(self, interface, info):
     pass
@@ -370,9 +318,8 @@ class DummyInterfaceGenerator(systembase.BaseGenerator):
   """Generates dummy implementation."""
 
   def __init__(self, system, interface):
-    super(DummyInterfaceGenerator, self).__init__(system._database)
+    super(DummyInterfaceGenerator, self).__init__(system._database, interface)
     self._system = system
-    self._interface = interface
 
   def StartInterface(self):
     # There is no implementation to match the interface, but there might be a
