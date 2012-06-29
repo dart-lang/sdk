@@ -16,6 +16,8 @@
 
 
 static const int kInfinityTimeout = -1;
+static const int kTimeoutId = -1;
+static const int kShutdownId = -2;
 
 
 int64_t GetCurrentTimeMilliseconds() {
@@ -615,11 +617,13 @@ bool ClientSocket::IsClosed() {
 
 
 void EventHandlerImplementation::HandleInterrupt(InterruptMessage* msg) {
-  if (msg->id == -1) {
+  if (msg->id == kTimeoutId) {
     // Change of timeout request. Just set the new timeout and port as the
     // completion thread will use the new timeout value for its next wait.
     timeout_ = msg->data;
     timeout_port_ = msg->dart_port;
+  } else if (msg->id == kShutdownId) {
+    shutdown_ = true;
   } else {
     bool delete_handle = false;
     Handle* handle = reinterpret_cast<Handle*>(msg->id);
@@ -827,6 +831,7 @@ EventHandlerImplementation::EventHandlerImplementation() {
   }
   timeout_ = kInfinityTimeout;
   timeout_port_ = 0;
+  shutdown_ = false;
 }
 
 
@@ -854,11 +859,11 @@ void EventHandlerImplementation::SendData(intptr_t id,
 }
 
 
-static void EventHandlerThread(uword args) {
+void EventHandlerImplementation::EventHandlerEntry(uword args) {
   EventHandlerImplementation* handler =
       reinterpret_cast<EventHandlerImplementation*>(args);
   ASSERT(handler != NULL);
-  while (true) {
+  while (!handler->shutdown_) {
     DWORD bytes;
     ULONG_PTR key;
     OVERLAPPED* overlapped;
@@ -906,8 +911,8 @@ static void EventHandlerThread(uword args) {
 }
 
 
-void EventHandlerImplementation::StartEventHandler() {
-  int result = dart::Thread::Start(EventHandlerThread,
+void EventHandlerImplementation::Start() {
+  int result = dart::Thread::Start(EventHandlerEntry,
                                    reinterpret_cast<uword>(this));
   if (result != 0) {
     FATAL1("Failed to start event handler thread %d", result);
@@ -917,4 +922,9 @@ void EventHandlerImplementation::StartEventHandler() {
   if (!Socket::Initialize()) {
     FATAL("Failed to initialized Windows sockets");
   }
+}
+
+
+void EventHandlerImplementation::Shutdown() {
+  SendData(kShutdownId, 0, 0);
 }

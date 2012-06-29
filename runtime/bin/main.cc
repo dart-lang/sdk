@@ -16,6 +16,7 @@
 #include "bin/eventhandler.h"
 #include "bin/extensions.h"
 #include "bin/file.h"
+#include "bin/isolate_data.h"
 #include "bin/platform.h"
 #include "bin/process.h"
 #include "platform/globals.h"
@@ -612,7 +613,7 @@ static bool CreateIsolateAndSetup(const char* script_uri,
   return CreateIsolateAndSetupHelper(script_uri,
                                      main,
                                      false,  // script_uri already canonical.
-                                     data,
+                                     new IsolateData(),
                                      error);
 }
 
@@ -692,6 +693,14 @@ static int ErrorExit(const char* format, ...) {
 }
 
 
+static void ShutdownIsolate(void* callback_data) {
+  IsolateData* isolate_data = reinterpret_cast<IsolateData*>(callback_data);
+  EventHandler* handler = isolate_data->event_handler;
+  if (handler != NULL) handler->Shutdown();
+  delete isolate_data;
+}
+
+
 int main(int argc, char** argv) {
   char* executable_name;
   char* script_name;
@@ -728,7 +737,9 @@ int main(int argc, char** argv) {
   Dart_SetVMFlags(vm_options.count(), vm_options.arguments());
 
   // Initialize the Dart VM.
-  Dart_Initialize(CreateIsolateAndSetup, NULL, NULL);
+  Dart_Initialize(CreateIsolateAndSetup,
+                  NULL,
+                  ShutdownIsolate);
 
   original_working_directory = Directory::Current();
 
@@ -739,7 +750,7 @@ int main(int argc, char** argv) {
   if (!CreateIsolateAndSetupHelper(script_name,
                                    "main",
                                    true,  // Canonicalize the script name.
-                                   NULL,
+                                   new IsolateData(),
                                    &error)) {
     fprintf(stderr, "%s\n", error);
     free(const_cast<char*>(original_working_directory));

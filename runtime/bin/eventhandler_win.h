@@ -347,7 +347,10 @@ class EventHandlerImplementation {
   virtual ~EventHandlerImplementation() {}
 
   void SendData(intptr_t id, Dart_Port dart_port, intptr_t data);
-  void StartEventHandler();
+  void Start();
+  void Shutdown();
+
+  static void EventHandlerEntry(uword args);
 
   DWORD GetTimeout();
   void HandleInterrupt(InterruptMessage* msg);
@@ -367,6 +370,7 @@ class EventHandlerImplementation {
 
   int64_t timeout_;  // Time for next timeout.
   Dart_Port timeout_port_;
+  bool shutdown_;
   HANDLE completion_port_;
 };
 

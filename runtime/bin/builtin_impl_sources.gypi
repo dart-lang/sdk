@@ -45,6 +45,7 @@
     'hashmap.cc',
     'hashmap.h',
     'hashmap_test.cc',
+    'isolate_data.h',
     'platform.cc',
     'platform.h',
     'platform_linux.cc',

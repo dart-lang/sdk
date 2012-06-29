@@ -6,6 +6,7 @@
 #define BIN_EVENTHANDLER_H_
 
 #include "bin/builtin.h"
+#include "bin/isolate_data.h"
 
 // Flags used to provide information and actions to the eventhandler
 // when sending a message about a file descriptor. These flags should
@@ -41,9 +42,16 @@ class EventHandler {
     delegate_.SendData(id, dart_port, data);
   }
 
-  static EventHandler* StartEventHandler() {
+  void Shutdown() {
+    delegate_.Shutdown();
+  }
+
+  static EventHandler* Start() {
     EventHandler* handler = new EventHandler();
-    handler->delegate_.StartEventHandler();
+    handler->delegate_.Start();
+    IsolateData* isolate_data =
+        reinterpret_cast<IsolateData*>(Dart_CurrentIsolateData());
+    isolate_data->event_handler = handler;
     return handler;
   }
 

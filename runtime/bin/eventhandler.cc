@@ -44,7 +44,7 @@ static void SetEventHandler(Dart_Handle handle, EventHandler* event_handler) {
 void FUNCTION_NAME(EventHandler_Start)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_Handle handle = Dart_GetNativeArgument(args, 0);
-  EventHandler* event_handler = EventHandler::StartEventHandler();
+  EventHandler* event_handler = EventHandler::Start();
   SetEventHandler(handle, event_handler);
   Dart_ExitScope();
 }
