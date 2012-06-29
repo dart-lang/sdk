@@ -1486,10 +1486,6 @@ class PartialFunctionElement extends FunctionElement {
 
   FunctionExpression parseNode(DiagnosticListener listener) {
     if (cachedNode != null) return cachedNode;
-    if (patch !== null) {
-      cachedNode = patch.parseNode(listener);
-      return cachedNode;
-    }
     parseFunction(Parser p) {
       if (isMember() && p.optional('factory', beginToken)) {
         p.parseFactoryMethod(beginToken);
@@ -1501,10 +1497,7 @@ class PartialFunctionElement extends FunctionElement {
     return cachedNode;
   }
 
-  Token position() {
-    if (patch !== null) return patch.position();
-    return findMyName(beginToken);
-  }
+  Token position() => findMyName(beginToken);
 }
 
 class PartialFieldListElement extends VariableListElement {

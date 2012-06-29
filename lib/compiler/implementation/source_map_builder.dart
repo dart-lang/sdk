@@ -105,9 +105,8 @@ class SourceMapBuilder {
     encodeVLQ(output, targetColumn - previousTargetColumn);
     previousTargetColumn = targetColumn;
 
-    if (sourceUrl === null) {
+    if (sourceUrl === null)
       return;
-    }
 
     int sourceUrlIndex = indexOf(sourceUrlList, sourceUrl, sourceUrlMap);
     encodeVLQ(output, sourceUrlIndex - previousSourceUrlIndex);
@@ -118,9 +117,8 @@ class SourceMapBuilder {
     encodeVLQ(output, sourceColumn - previousSourceColumn);
     previousSourceColumn = sourceColumn;
 
-    if (sourceName === null) {
+    if (sourceName === null)
       return;
-    }
 
     int sourceNameIndex = indexOf(sourceNameList, sourceName, sourceNameMap);
     encodeVLQ(output, sourceNameIndex - previousSourceNameIndex);

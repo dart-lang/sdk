@@ -33,7 +33,7 @@ class Compiler extends leg.Compiler {
           validateUnparse: options.indexOf('--unparse-validation') !== -1);
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
-    Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path].libraryPath);
+    Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path]);
     elements.LibraryElement library = scanner.loadLibrary(uri, null);
     return library;
   }
@@ -70,7 +70,7 @@ class Compiler extends leg.Compiler {
   }
 
   Uri translateDartUri(Uri uri, tree.Node node) {
-    String path = DART2JS_LIBRARY_MAP[uri.path].libraryPath;
+    String path = DART2JS_LIBRARY_MAP[uri.path];
     if (path === null || uri.path.startsWith('_')) {
       reportError(node, 'library not found ${uri}');
       return null;
@@ -82,12 +82,6 @@ class Compiler extends leg.Compiler {
       mockableLibraryUsed = true;
     }
     return libraryRoot.resolve(path);
-  }
-
-  Uri resolvePatchUri(String dartLibraryPath) {
-    String patchPath = DART2JS_LIBRARY_MAP[dartLibraryPath].patchPath;
-    if (patchPath === null) return null;
-    return libraryRoot.resolve(patchPath);
   }
 
   translatePackageUri(Uri uri, tree.Node node) => packageRoot.resolve(uri.path);

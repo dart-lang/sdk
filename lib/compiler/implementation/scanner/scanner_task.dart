@@ -80,11 +80,7 @@ class ScannerTask extends CompilerTask {
       if (resolved.toString() == "dart:core") {
         implicitlyImportCoreLibrary = false;
       }
-      LibraryElement importedLibrary = loadLibrary(resolved, argument);
-      importLibrary(library, importedLibrary, tag);
-      if (resolved.scheme == "dart") {
-        compiler.patchDartLibrary(importedLibrary, resolved.path);
-      }
+      importLibrary(library, loadLibrary(resolved, argument), tag);
     }
     if (implicitlyImportCoreLibrary) {
       importLibrary(library, compiler.coreLibrary, null);

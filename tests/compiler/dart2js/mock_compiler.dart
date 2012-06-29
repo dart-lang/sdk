@@ -156,9 +156,6 @@ class MockCompiler extends Compiler {
     // Do nothing. The mock core library is already handled in the constructor.
   }
 
-  // The mock library doesn't need any patches.
-  Uri resolvePatchUri(String dartLibraryName) => null;
-
   Script readScript(Uri uri, [ScriptTag node]) {
     String code = sources[uri.toString()];
     if (code === null) throw new IllegalArgumentException(uri);
