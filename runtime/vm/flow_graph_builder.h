@@ -114,12 +114,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);
-  // Append a single instruction.  Assumes this graph is open. Can not be a
-  // block entry instruction.
+  // Append a single instruction.  Assumes this graph is open.
   void AddInstruction(Instruction* instruction);
-
-  // Append a new block entry to the graph.
-  void AddBlockEntry(BlockEntryInstr* successor);
 
   // Append a 'diamond' branch and join to this graph, depending on which
   // parts are reachable.  Assumes this graph is open.

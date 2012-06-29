@@ -1707,7 +1707,6 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
   M(Branch)                                                                    \
-  M(Goto)                                                                      \
   M(ParallelMove)
 
 
@@ -1819,7 +1818,12 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
-  virtual LocationSummary* locs()  = 0;
+  virtual LocationSummary* locs() {
+    // TODO(vegorov): This should be pure virtual method.
+    // However we are temporary using NULL for instructions that
+    // were not converted to the location based code generation yet.
+    return NULL;
+  }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
     UNIMPLEMENTED();
@@ -1886,7 +1890,7 @@ class BlockEntryInstr : public Instruction {
     dominated_blocks_.Add(block);
   }
 
-  inline Instruction* last_instruction() const;
+  Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
   virtual void DiscoverBlocks(
@@ -1896,8 +1900,6 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count);
-
-  virtual LocationSummary* locs()  { return NULL; }
 
  protected:
   BlockEntryInstr()
@@ -1991,7 +1993,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
     successor_ = instr;
   }
 
@@ -2046,7 +2047,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     return successor_;
   }
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
     successor_ = instr;
   }
 
@@ -2088,7 +2088,6 @@ class DoInstr : public Instruction {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
     successor_ = instr;
   }
 
@@ -2150,7 +2149,6 @@ class BindInstr : public Definition {
   }
 
   virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(instr == NULL || !instr->IsBlockEntry());
     successor_ = instr;
   }
 
@@ -2187,8 +2185,6 @@ class PhiInstr: public Definition {
 
   virtual Instruction* StraightLineSuccessor() const { return NULL; }
   virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
-  virtual LocationSummary* locs()  { return NULL; }
 
  private:
   GrowableArray<Value*> inputs_;
@@ -2370,27 +2366,6 @@ class BranchInstr : public InstructionWithInputs {
 };
 
 
-class GotoInstr : public Instruction {
- public:
-  explicit GotoInstr(BlockEntryInstr* successor)
-      : successor_(successor) {
-        ASSERT(successor != NULL);
-      }
-
-  DECLARE_INSTRUCTION(Goto)
-
-  virtual Instruction* StraightLineSuccessor() const { return successor_; }
-  virtual void SetSuccessor(Instruction* instr) {
-    successor_ = instr->AsBlockEntry();
-  }
-
-  virtual LocationSummary* locs() { return NULL; }
-
- private:
-  BlockEntryInstr* successor_;
-};
-
-
 class MoveOperands : public ValueObject {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
@@ -2424,17 +2399,6 @@ class ParallelMoveInstr : public Instruction {
 
 #undef DECLARE_INSTRUCTION
 
-
-// Definition of inline functions.
-Instruction* BlockEntryInstr::last_instruction() const {
-  ASSERT(last_instruction_->IsGraphEntry() ||
-         last_instruction_->IsGoto() ||
-         last_instruction_->IsReturn() ||
-         last_instruction_->IsBranch() ||
-         last_instruction_->IsThrow() ||
-         last_instruction_->IsReThrow());
-  return last_instruction_;
-}
 
 // Visitor base class to visit each instruction and computation in a flow
 // graph as defined by a reversed list of basic blocks.

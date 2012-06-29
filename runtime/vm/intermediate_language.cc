@@ -171,22 +171,6 @@ void BranchInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
-intptr_t GotoInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* GotoInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void GotoInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
 intptr_t ParallelMoveInstr::InputCount() const {
   UNREACHABLE();
   return 0;
