@@ -6,22 +6,46 @@
 // executable code to define the locations of libraries.
 
 #library('library_map');
+/**
+ * Simple struct holding the path to a library and an optional path
+ * to a patch file for the library.
+ */
+class LibraryPatchPath {
+  final String libraryPath;
+  final String patchPath;
+  const LibraryPatchPath(this.libraryPath, this.patchPath);
+}
 
 /**
  * Specifies the location of Dart platform libraries.
  */
-final Map<String,String> DART2JS_LIBRARY_MAP = const <String> {
-  "core": "lib/compiler/implementation/lib/core.dart",
-  "coreimpl": "lib/compiler/implementation/lib/coreimpl.dart",
-  "_js_helper": "lib/compiler/implementation/lib/js_helper.dart",
-  "_interceptors": "lib/compiler/implementation/lib/interceptors.dart",
-  "crypto": "lib/crypto/crypto.dart",
-  "dom_deprecated": "lib/dom/frog/dom_frog.dart",
-  "html": "lib/html/frog/html_frog.dart",
-  "io": "lib/compiler/implementation/lib/io.dart",
-  "isolate": "lib/isolate/isolate_leg.dart",
-  "json": "lib/json/json.dart",
-  "uri": "lib/uri/uri.dart",
-  "utf": "lib/utf/utf.dart",
-  "web": "lib/web/web.dart",
+final Map<String,LibraryPatchPath> DART2JS_LIBRARY_MAP
+    = const <LibraryPatchPath> {
+  "core": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/core.dart", null),
+  "coreimpl": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/coreimpl.dart", null),
+  "_js_helper": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/js_helper.dart", null),
+  "_interceptors": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/interceptors.dart", null),
+  "crypto": const LibraryPatchPath(
+      "lib/crypto/crypto.dart", null),
+  "dom_deprecated": const LibraryPatchPath(
+      "lib/dom/frog/dom_frog.dart", null),
+  "html": const LibraryPatchPath(
+      "lib/html/frog/html_frog.dart", null),
+  "io": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/io.dart", null),
+  "isolate": const LibraryPatchPath(
+      "lib/isolate/isolate_leg.dart", null),
+  "json": const LibraryPatchPath(
+      "lib/json/json.dart", null),
+  "uri": const LibraryPatchPath(
+      "lib/uri/uri.dart", null),
+  "utf": const LibraryPatchPath(
+      "lib/utf/utf.dart", null),
+  "web": const LibraryPatchPath(
+      "lib/compiler/implementation/lib/web.dart",
+      "lib/compiler/implementation/lib/web.dartp"),
 };

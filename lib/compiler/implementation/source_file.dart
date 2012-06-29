@@ -42,7 +42,8 @@ class SourceFile {
     for (int i=0; i < starts.length; i++) {
       if (starts[i] > position) return i-1;
     }
-    throw 'bad position';
+    throw 'bad position #$position in file $filename with '
+          'length ${text.length}.';
   }
 
   int getColumn(int line, int position) {
