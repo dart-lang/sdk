@@ -308,7 +308,6 @@ class DummyImplementationSystem(systembase.System):
         'dom_dummy.darttemplate',
         os.path.join(self._output_dir, 'dom_dummy.dart'),
         (self._interface_system._dart_interface_file_paths +
-         self._interface_system._dart_callback_file_paths +
          self._impl_file_paths))
 
 

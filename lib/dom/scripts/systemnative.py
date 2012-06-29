@@ -16,10 +16,10 @@ from systemhtml import EmitHtmlElementFactoryConstructors
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, templates, database, emitters, output_dir):
+  def __init__(self, templates, database, emitters, output_dir, auxiliary_dir):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
-
+    self._auxiliary_dir = auxiliary_dir
     self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
@@ -119,7 +119,15 @@ class NativeImplementationSystem(systembase.System):
         INTERFACE=self._interface.id,
         HANDLERS=cpp_impl_handlers_emitter.Fragments())
 
-  def GenerateLibraries(self):
+  def GenerateLibraries(self, interface_files):
+    # Generate dart:html library.
+    auxiliary_dir = os.path.relpath(self._auxiliary_dir, self._output_dir)
+    self._GenerateLibFile(
+        'html_dartium.darttemplate',
+        os.path.join(self._output_dir, 'html_dartium.dart'),
+        interface_files + self._dom_impl_files,
+        AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
+
     # Generate DartDerivedSourcesXX.cpp.
     partitions = 20 # FIXME: this should be configurable.
     sources_count = len(self._cpp_impl_files)
@@ -181,9 +189,6 @@ class NativeImplementationSystem(systembase.System):
       file_emitter = self._emitters.FileEmitter(file_name)
       self._factory_provider_emitters[name] = file_emitter.Emit(template)
     return self._factory_provider_emitters[name]
-
-  def DartImplementationFiles(self):
-    return self._dom_impl_files
 
 
 class NativeImplementationGenerator(systembase.BaseGenerator):

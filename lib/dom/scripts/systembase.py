@@ -29,7 +29,6 @@ class System(object):
     self._database = database
     self._emitters = emitters
     self._output_dir = output_dir
-    self._dart_callback_file_paths = []
 
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
@@ -50,7 +49,7 @@ class System(object):
 
   def _ProcessCallback(self, interface, info, file_path):
     """Generates a typedef for the callback interface."""
-    self._dart_callback_file_paths.append(file_path)
+    self._dart_interface_file_paths.append(file_path)
     code = self._emitters.FileEmitter(file_path)
 
     code.Emit(self._templates.Load('callback.darttemplate'))
