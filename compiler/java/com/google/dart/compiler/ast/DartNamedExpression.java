@@ -27,12 +27,8 @@ public class DartNamedExpression extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    if (name != null) {
-      name.accept(visitor);
-    }
-    if (expression != null) {
-      expression.accept(visitor);
-    }
+    safelyVisitChild(name, visitor);
+    safelyVisitChild(expression, visitor);
   }
 
   @Override

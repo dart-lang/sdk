@@ -27,6 +27,7 @@ import com.google.dart.compiler.ast.DartForInStatement;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartInvocation;
+import com.google.dart.compiler.ast.DartMapLiteralEntry;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
@@ -3028,6 +3029,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors());
 
+  }
+
+  /**
+   * Missing value in {@link DartMapLiteralEntry} is parsing error, but should not cause exception.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3931
+   */
+  public void test_mapLiteralEntry_noValue() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  var v = {'key' : /*no value*/};",
+        "}",
+        "");
+    // has some errors
+    assertTrue(libraryResult.getErrors().size() != 0);
   }
 
   private static <T extends DartNode> T findNode(

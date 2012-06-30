@@ -49,8 +49,8 @@ public class DartBinaryExpression extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    arg1.accept(visitor);
-    arg2.accept(visitor);
+    safelyVisitChild(arg1, visitor);
+    safelyVisitChild(arg2, visitor);
   }
 
   @Override

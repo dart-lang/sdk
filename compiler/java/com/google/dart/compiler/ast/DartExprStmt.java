@@ -21,9 +21,7 @@ public class DartExprStmt extends DartStatement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    if (expr != null) {
-      expr.accept(visitor);
-    }
+    safelyVisitChild(expr, visitor);
   }
 
   @Override

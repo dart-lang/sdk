@@ -25,9 +25,7 @@ public class DartTypeParameter extends DartDeclaration<DartIdentifier> {
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     super.visitChildren(visitor);
-    if (bound != null) {
-      bound.accept(visitor);
-    }
+    safelyVisitChild(bound, visitor);
   }
 
   @Override

@@ -63,8 +63,8 @@ public class DartPropertyAccess extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    qualifier.accept(visitor);
-    name.accept(visitor);
+    safelyVisitChild(qualifier, visitor);
+    safelyVisitChild(name, visitor);
   }
 
   @Override
