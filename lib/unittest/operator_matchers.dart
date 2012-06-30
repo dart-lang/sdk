@@ -46,25 +46,25 @@ Matcher allOf(arg0,
   } else {
     List matchers = new List();
     if (arg0 != null) {
-      matchers.add(wrapMatcher(arg0));
+      matchers.add(arg0);
     }
     if (arg1 != null) {
-      matchers.add(wrapMatcher(arg1));
+      matchers.add(arg1);
     }
     if (arg2 != null) {
-      matchers.add(wrapMatcher(arg2));
+      matchers.add(arg2);
     }
     if (arg3 != null) {
-      matchers.add(wrapMatcher(arg3));
+      matchers.add(arg3);
     }
     if (arg4 != null) {
-      matchers.add(wrapMatcher(arg4));
+      matchers.add(arg4);
     }
     if (arg5 != null) {
-      matchers.add(wrapMatcher(arg5));
+      matchers.add(arg5);
     }
     if (arg6 != null) {
-      matchers.add(wrapMatcher(arg6));
+      matchers.add(arg6);
     }
     return new _AllOf(matchers);
   }
@@ -132,25 +132,25 @@ Matcher anyOf(arg0,
   } else {
     List matchers = new List();
     if (arg0 != null) {
-      matchers.add(wrapMatcher(arg0));
+      matchers.add(arg0);
     }
     if (arg1 != null) {
-      matchers.add(wrapMatcher(arg1));
+      matchers.add(arg1);
     }
     if (arg2 != null) {
-      matchers.add(wrapMatcher(arg2));
+      matchers.add(arg2);
     }
     if (arg3 != null) {
-      matchers.add(wrapMatcher(arg3));
+      matchers.add(arg3);
     }
     if (arg4 != null) {
-      matchers.add(wrapMatcher(arg4));
+      matchers.add(arg4);
     }
     if (arg5 != null) {
-      matchers.add(wrapMatcher(arg5));
+      matchers.add(arg5);
     }
     if (arg6 != null) {
-      matchers.add(wrapMatcher(arg6));
+      matchers.add(arg6);
     }
     return new _AnyOf(matchers);
   }

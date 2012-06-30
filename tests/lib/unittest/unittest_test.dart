@@ -142,8 +142,6 @@ runTest() {
     } else if (testName == 'mock test 1 (Mock)') {
       test(testName, () {
         var m = new Mock();
-        print(m.length);
-        m.getLogs(callsTo('get length')).verify(happenedOnce);
 
         m.when(callsTo('foo', 1, 2)).thenReturn('A').thenReturn('B');
         m.when(callsTo('foo', 1, 1)).thenReturn('C');
@@ -153,16 +151,13 @@ runTest() {
 
         var s = '${m.foo(1,2)}${m.foo(1,1)}${m.foo(9,10)}'
             '${m.bar(1,1)}${m.foo(1,2)}';
-        m.getLogs(callsTo('foo', anything, anything)).verify(happenedExactly(4));
-        m.getLogs(callsTo('foo', 1, anything)).verify(happenedExactly(3));
-        m.getLogs(callsTo('foo', 9, anything)).verify(happenedOnce);
-        m.getLogs(callsTo('foo', anything, 2)).verify(happenedExactly(2));
-        m.getLogs(callsTo('foobar')).verify(neverHappened);
-        m.getLogs(callsTo('foo', 10, anything)).verify(neverHappened);
-        m.getLogs(callsTo('foo'), returning(anyOf('A', 'C'))).
-            verify(happenedExactly(2));
+        getLogs(m, callsTo('foo', anything, anything)).verify(calledExactly(4));
+        getLogs(m, callsTo('foo', 1, anything)).verify(calledExactly(3));
+        getLogs(m, callsTo('foo', 9, anything)).verify(calledOnce);
+        getLogs(m, callsTo('foo', anything, 2)).verify(calledExactly(2));
+        getLogs(m, callsTo('foobar')).verify(neverCalled);
+        getLogs(m, callsTo('foo', 10, anything)).verify(neverCalled);
         expect(s, 'ACDEB');
-
       });
     } else if (testName == 'mock test 2 (MockList)') {
       test(testName, () {
@@ -178,21 +173,21 @@ runTest() {
         m.add('foo');
         m.add('bar');
 
-        m.getLogs(callsTo('add')).verify(happenedExactly(2));
-        m.getLogs(callsTo('add', 'foo')).verify(happenedOnce);
+        getLogs(m, callsTo('add')).verify(calledExactly(2));
+        getLogs(m, callsTo('add', 'foo')).verify(calledOnce);
       });
     } else if (testName == 'mock test 3 (Spy)') {
       test(testName, () {
         var p = new FooSpy();
         p.sum(1, 2, 3);
-        p.getLogs(callsTo('sum')).verify(happenedOnce);
+        getLogs(p, callsTo('sum')).verify(calledOnce);
         p.sum(2, 2, 2);
-        p.getLogs(callsTo('sum')).verify(happenedExactly(2));
-        p.getLogs(callsTo('sum')).verify(sometimeReturned(6));
-        p.getLogs(callsTo('sum')).verify(alwaysReturned(6));
-        p.getLogs(callsTo('sum')).verify(neverReturned(5));
+        getLogs(p, callsTo('sum')).verify(calledExactly(2));
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(6));
+        getLogs(p, callsTo('sum')).verify(alwaysReturned(6));
+        getLogs(p, callsTo('sum')).verify(neverReturned(5));
         p.sum(2, 2, 1);
-        p.getLogs(callsTo('sum')).verify(sometimeReturned(5));
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(5));
       });
     } else if (testName == 'mock test 4 (Excess calls)') {
       test(testName, () {
@@ -200,9 +195,9 @@ runTest() {
         m.when(callsTo('foo')).alwaysReturn(null);
         m.foo();
         m.foo();
-        m.getLogs(callsTo('foo')).verify(happenedOnce);
+        getLogs(m, callsTo('foo')).verify(calledOnce);
       });
-    } else if (testName == 'mock test 5 (No action)') {
+    } else if (testName == 'mock test 5 (No behavior)') {
       test(testName, () {
         var m = new Mock();
         m.when(callsTo('foo')).thenReturn(null);
@@ -213,14 +208,7 @@ runTest() {
       test(testName, () {
         var p = new FooSpy();
         p.sum(1, 2, 3);
-        p.getLogs(callsTo('sum')).verify(sometimeReturned(0));
-      });
-    } else if (testName == 'mock test 7 (No behavior)') {
-      test(testName, () {
-        var m = new Mock(throwIfNoBehavior:true);
-        m.when(callsTo('foo')).thenReturn(null);
-        m.foo();
-        m.bar();
+        getLogs(p, callsTo('sum')).verify(sometimeReturned(0));
       });
     }
   });
@@ -256,9 +244,8 @@ main() {
     'mock test 2 (MockList)',
     'mock test 3 (Spy)',
     'mock test 4 (Excess calls)',
-    'mock test 5 (No action)',
-    'mock test 6 (No matching return)',
-    'mock test 7 (No behavior)'
+    'mock test 5 (No behavior)',
+    'mock test 6 (No matching return)'
   ];
 
   expected = [
@@ -281,11 +268,9 @@ main() {
         message: 'Expected foo() to be called 1 times but:'
             ' was called 2 times'),
     buildStatusString(0, 1, 0, tests[14],
-        message: 'Caught Exception: No more actions for method foo'),
+        message: 'Caught Exception: No behavior specified for method foo'),
     buildStatusString(0, 1, 0, tests[15],
-        message: 'Expected sum() to sometimes return <0> but: never did'),
-    buildStatusString(0, 1, 0, tests[16],
-        message: 'Caught Exception: No behavior specified for method bar'),
+        message: 'Expected sum() to sometimes return <0> but: never did')
   ];
 
   actual = [];
