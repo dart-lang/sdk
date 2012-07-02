@@ -440,8 +440,8 @@ void Object::RegisterPrivateClass(const Class& cls,
                                   const Script& script,
                                   const Library& lib) {
   String& str = String::Handle();
-  str ^= String::NewSymbol(public_class_name);
-  str ^= lib.PrivateName(str);
+  str = String::NewSymbol(public_class_name);
+  str = lib.PrivateName(str);
   cls.set_name(str);
   cls.set_script(script);
   lib.AddClass(cls);
@@ -2684,11 +2684,9 @@ bool Type::IsIdentical(const AbstractType& other,
   if (!other.IsType()) {
     return false;
   }
-  Type& other_type = Type::Handle();
-  other_type ^= other.raw();
   // Both type classes may not be resolved yet.
   String& name = String::Handle(TypeClassName());
-  String& other_name = String::Handle(other_type.TypeClassName());
+  String& other_name = String::Handle(Type::Cast(other).TypeClassName());
   if (!name.Equals(other_name)) {
     return false;
   }
@@ -4413,9 +4411,8 @@ RawString* TokenStream::LiteralAt(intptr_t index) const {
     }
     return String::NewSymbol(Token::Str(kind));
   } else {
-    LiteralToken& token = LiteralToken::Handle();
-    token ^= obj.raw();  // Must be a literal token.
-    return token.literal();
+    // Must be a literal token.
+    return LiteralToken::Cast(obj).literal();
   }
 }
 
@@ -4691,9 +4688,7 @@ RawClass* ClassDictionaryIterator::GetNextClass() {
   int ix = next_ix_++;
   Object& obj = Object::Handle(array_.At(ix));
   MoveToNextClass();
-  Class& cls = Class::Handle();
-  cls ^= obj.raw();
-  return cls.raw();
+  return Class::Cast(obj).raw();
 }
 
 
@@ -4717,9 +4712,7 @@ RawLibraryPrefix* LibraryPrefixIterator::GetNext() {
   int ix = next_ix_++;
   Object& obj = Object::Handle(array_.At(ix));
   Advance();
-  LibraryPrefix& prefix = LibraryPrefix::Handle();
-  prefix ^= obj.raw();
-  return prefix.raw();
+  return LibraryPrefix::Cast(obj).raw();
 }
 
 
@@ -5119,18 +5112,14 @@ RawFunction* Library::LookupFunctionAllowPrivate(const String& name) const {
 
 RawFunction* Library::LookupLocalFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
-  Function& function = Function::Handle(isolate, Function::null());
   Object& obj = Object::Handle(isolate, Object::null());
   obj = LookupLocalObject(name);
   if (obj.IsNull() && ShouldBePrivate(name)) {
     String& private_name = String::Handle(isolate, PrivateName(name));
     obj = LookupLocalObject(private_name);
   }
-  if (!obj.IsNull()) {
-    if (obj.IsFunction()) {
-      function ^= obj.raw();
-      return function.raw();
-    }
+  if (obj.IsFunction()) {
+    return Function::Cast(obj).raw();
   }
 
   // No function found.
@@ -5297,8 +5286,7 @@ RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   // See if the class is available in this library or in the top level
   // scope of any imported library.
   Isolate* isolate = Isolate::Current();
-  Class& cls = Class::Handle(isolate);
-  cls = LookupClass(name);
+  const Class& cls = Class::Handle(isolate, LookupClass(name));
   if (!cls.IsNull()) {
     return cls.raw();
   }
@@ -5308,11 +5296,8 @@ RawClass* Library::LookupClassAllowPrivate(const String& name) const {
   if (ShouldBePrivate(name)) {
     String& private_name = String::Handle(isolate, PrivateName(name));
     const Object& obj = Object::Handle(LookupLocalObject(private_name));
-    if (!obj.IsNull()) {
-      if (obj.IsClass()) {
-        cls ^= obj.raw();
-        return cls.raw();
-      }
+    if (obj.IsClass()) {
+      return Class::Cast(obj).raw();
     }
   }
 
@@ -5321,9 +5306,9 @@ RawClass* Library::LookupClassAllowPrivate(const String& name) const {
 
 
 RawLibraryPrefix* Library::LookupLocalLibraryPrefix(const String& name) const {
-  Object& obj = Object::Handle(LookupLocalObject(name));
-  if (!obj.IsNull() && obj.IsLibraryPrefix()) {
-    return LibraryPrefix::CheckedHandle(obj.raw()).raw();
+  const Object& obj = Object::Handle(LookupLocalObject(name));
+  if (obj.IsLibraryPrefix()) {
+    return LibraryPrefix::Cast(obj).raw();
   }
   return LibraryPrefix::null();
 }
@@ -5377,12 +5362,11 @@ RawLibraryPrefix* Library::ImportPrefixAt(intptr_t index) const {
     return LibraryPrefix::null();
   }
   DictionaryIterator it(*this);
-  LibraryPrefix& lib_prefix = LibraryPrefix::Handle();
   Object& obj = Object::Handle();
   while (it.HasNext()) {
     obj = it.GetNext();
     if (obj.IsLibraryPrefix()) {
-      lib_prefix ^= obj.raw();
+      const LibraryPrefix& lib_prefix = LibraryPrefix::Cast(obj);
       if (lib_prefix.ContainsLibrary(imported)) {
         return lib_prefix.raw();
       }
@@ -7391,10 +7375,7 @@ bool Smi::Equals(const Instance& other) const {
   if (other.IsNull() || !other.IsSmi()) {
     return false;
   }
-
-  Smi& other_smi = Smi::Handle();
-  other_smi ^= other.raw();
-  return (this->Value() == other_smi.Value());
+  return (this->Value() == Smi::Cast(other).Value());
 }
 
 
@@ -7417,9 +7398,7 @@ static bool FitsIntoSmi(const Integer& integer) {
     return Smi::IsValid64(mint_value);
   }
   if (integer.IsBigint()) {
-    Bigint& big = Bigint::Handle();
-    big ^= integer.raw();
-    return BigintOperations::FitsIntoSmi(big);
+    return BigintOperations::FitsIntoSmi(Bigint::Cast(integer));
   }
   UNREACHABLE();
   return false;
@@ -7428,11 +7407,10 @@ static bool FitsIntoSmi(const Integer& integer) {
 
 int Smi::CompareWith(const Integer& other) const {
   if (other.IsSmi()) {
-    Smi& smi = Smi::Handle();
-    smi ^= other.raw();
-    if (this->Value() < smi.Value()) {
+    const Smi& other_smi = Smi::Cast(other);
+    if (this->Value() < other_smi.Value()) {
       return -1;
-    } else if (this->Value() > smi.Value()) {
+    } else if (this->Value() > other_smi.Value()) {
       return 1;
     } else {
       return 0;
@@ -7523,15 +7501,10 @@ bool Mint::Equals(const Instance& other) const {
     // Both handles point to the same raw instance.
     return true;
   }
-
   if (!other.IsMint() || other.IsNull()) {
     return false;
   }
-
-  Mint& other_mint = Mint::Handle();
-  other_mint ^= other.raw();
-
-  return value() == other_mint.value();
+  return value() == Mint::Cast(other).value();
 }
 
 
@@ -7559,9 +7532,7 @@ int Mint::CompareWith(const Integer& other) const {
     }
   }
   if (other.IsBigint()) {
-    Bigint& bigi = Bigint::Handle();
-    bigi ^= other.raw();
-    ASSERT(!BigintOperations::FitsIntoMint(bigi));
+    ASSERT(!BigintOperations::FitsIntoMint(Bigint::Cast(other)));
     if (this->IsNegative() == other.IsNegative()) {
       return this->IsNegative() ? 1 : -1;
     }
@@ -7604,9 +7575,7 @@ bool Double::Equals(const Instance& other) const {
   if (other.IsNull() || !other.IsDouble()) {
     return false;
   }
-  Double& other_dbl = Double::Handle();
-  other_dbl ^= other.raw();
-  return EqualsToDouble(other_dbl.value());
+  return EqualsToDouble(Double::Cast(other).value());
 }
 
 
@@ -7717,8 +7686,7 @@ bool Bigint::Equals(const Instance& other) const {
     return false;
   }
 
-  Bigint& other_bgi = Bigint::Handle();
-  other_bgi ^= other.raw();
+  const Bigint& other_bgi = Bigint::Cast(other);
 
   intptr_t len = this->Length();
   if (len != other_bgi.Length()) {
@@ -7762,9 +7730,7 @@ int Bigint::CompareWith(const Integer& other) const {
   ASSERT(!FitsIntoSmi(*this));
   ASSERT(!BigintOperations::FitsIntoMint(*this));
   if (other.IsBigint()) {
-    Bigint& big = Bigint::Handle();
-    big ^= other.raw();
-    return BigintOperations::Compare(*this, big);
+    return BigintOperations::Compare(*this, Bigint::Cast(other));
   }
   if (this->IsNegative() == other.IsNegative()) {
     return this->IsNegative() ? -1 : 1;
@@ -7896,8 +7862,7 @@ bool String::Equals(const Instance& other) const {
     return false;
   }
 
-  String& other_string = String::Handle();
-  other_string ^= other.raw();
+  const String& other_string = String::Cast(other);
   if (this->HasHash() && other_string.HasHash() &&
       (this->Hash() != other_string.Hash())) {
     // Both sides have a hash code and it does not match.
@@ -8173,23 +8138,20 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len >= 0);
   ASSERT(len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    OneByteString& onestr = OneByteString::Handle();
-    onestr ^= dst.raw();
+    const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
     if (len > 0) {
       memmove(onestr.CharAddr(dst_offset), characters, len);
     }
   } else if (dst.IsTwoByteString()) {
-    TwoByteString& twostr = TwoByteString::Handle();
-    twostr ^= dst.raw();
+    const TwoByteString& twostr = TwoByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       *twostr.CharAddr(i + dst_offset) = characters[i];
     }
   } else {
     ASSERT(dst.IsFourByteString());
-    FourByteString& fourstr = FourByteString::Handle();
-    fourstr ^= dst.raw();
+    const FourByteString& fourstr = FourByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       *fourstr.CharAddr(i + dst_offset) = characters[i];
@@ -8205,24 +8167,21 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len >= 0);
   ASSERT(len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    OneByteString& onestr = OneByteString::Handle();
-    onestr ^= dst.raw();
+    const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       ASSERT(characters[i] <= 0xFF);
       *onestr.CharAddr(i + dst_offset) = characters[i];
     }
   } else if (dst.IsTwoByteString()) {
-    TwoByteString& twostr = TwoByteString::Handle();
-    twostr ^= dst.raw();
+    const TwoByteString& twostr = TwoByteString::Cast(dst);
     NoGCScope no_gc;
     if (len > 0) {
       memmove(twostr.CharAddr(dst_offset), characters, len * 2);
     }
   } else {
     ASSERT(dst.IsFourByteString());
-    FourByteString& fourstr = FourByteString::Handle();
-    fourstr ^= dst.raw();
+    const FourByteString& fourstr = FourByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       *fourstr.CharAddr(i + dst_offset) = characters[i];
@@ -8238,16 +8197,14 @@ void String::Copy(const String& dst, intptr_t dst_offset,
   ASSERT(len >= 0);
   ASSERT(len <= (dst.Length() - dst_offset));
   if (dst.IsOneByteString()) {
-    OneByteString& onestr = OneByteString::Handle();
-    onestr ^= dst.raw();
+    const OneByteString& onestr = OneByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       ASSERT(characters[i] <= 0xFF);
       *onestr.CharAddr(i + dst_offset) = characters[i];
     }
   } else if (dst.IsTwoByteString()) {
-    TwoByteString& twostr = TwoByteString::Handle();
-    twostr ^= dst.raw();
+    const TwoByteString& twostr = TwoByteString::Cast(dst);
     NoGCScope no_gc;
     for (intptr_t i = 0; i < len; ++i) {
       ASSERT(characters[i] <= 0xFFFF);
@@ -8255,8 +8212,7 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     }
   } else {
     ASSERT(dst.IsFourByteString());
-    FourByteString& fourstr = FourByteString::Handle();
-    fourstr ^= dst.raw();
+    const FourByteString& fourstr = FourByteString::Cast(dst);
     NoGCScope no_gc;
     if (len > 0) {
       memmove(fourstr.CharAddr(dst_offset), characters, len * 4);
@@ -8277,41 +8233,36 @@ void String::Copy(const String& dst, intptr_t dst_offset,
     intptr_t char_size = src.CharSize();
     if (char_size == kOneByteChar) {
       if (src.IsOneByteString()) {
-        OneByteString& onestr = OneByteString::Handle();
-        onestr ^= src.raw();
+        const OneByteString& onestr = OneByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
       } else {
         ASSERT(src.IsExternalOneByteString());
-        ExternalOneByteString& onestr = ExternalOneByteString::Handle();
-        onestr ^= src.raw();
+        const ExternalOneByteString& onestr = ExternalOneByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, onestr.CharAddr(0) + src_offset, len);
       }
     } else if (char_size == kTwoByteChar) {
       if (src.IsTwoByteString()) {
-        TwoByteString& twostr = TwoByteString::Handle();
-        twostr ^= src.raw();
+        const TwoByteString& twostr = TwoByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
       } else {
         ASSERT(src.IsExternalTwoByteString());
-        ExternalTwoByteString& twostr = ExternalTwoByteString::Handle();
-        twostr ^= src.raw();
+        const ExternalTwoByteString& twostr = ExternalTwoByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, twostr.CharAddr(0) + src_offset, len);
       }
     } else {
       ASSERT(char_size == kFourByteChar);
       if (src.IsFourByteString()) {
-        FourByteString& fourstr = FourByteString::Handle();
-        fourstr ^= src.raw();
+        const FourByteString& fourstr = FourByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
       } else {
         ASSERT(src.IsExternalFourByteString());
-        ExternalFourByteString& fourstr = ExternalFourByteString::Handle();
-        fourstr ^= src.raw();
+        const ExternalFourByteString& fourstr =
+            ExternalFourByteString::Cast(src);
         NoGCScope no_gc;
         String::Copy(dst, dst_offset, fourstr.CharAddr(0) + src_offset, len);
       }
@@ -9134,8 +9085,7 @@ bool Array::Equals(const Instance& other) const {
     return false;
   }
 
-  Array& other_arr = Array::Handle();
-  other_arr ^= other.raw();
+  const Array& other_arr = Array::Cast(other);
 
   intptr_t len = this->Length();
   if (len != other_arr.Length()) {
@@ -9349,8 +9299,7 @@ bool GrowableObjectArray::Equals(const Instance& other) const {
     return false;
   }
 
-  GrowableObjectArray& other_arr = GrowableObjectArray::Handle();
-  other_arr ^= other.raw();
+  const GrowableObjectArray& other_arr = GrowableObjectArray::Cast(other);
 
   // The capacity and length of both objects must be equal.
   if (Capacity() != other_arr.Capacity() || Length() != other_arr.Length()) {
@@ -10236,8 +10185,7 @@ bool JSRegExp::Equals(const Instance& other) const {
   if (other.IsNull() || !other.IsJSRegExp()) {
     return false;
   }
-  JSRegExp& other_js = JSRegExp::Handle();
-  other_js ^= other.raw();
+  const JSRegExp& other_js = JSRegExp::Cast(other);
   // Match the pattern.
   const String& str1 = String::Handle(pattern());
   const String& str2 = String::Handle(other_js.pattern());

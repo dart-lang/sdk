@@ -83,15 +83,13 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kSUB) {
     if (literal().IsSmi()) {
-      Smi& smi = Smi::Handle();
-      smi ^= literal().raw();
+      const Smi& smi = Smi::Cast(literal());
       const Instance& literal =
           Instance::ZoneHandle(Integer::New(-smi.Value()));
       return new LiteralNode(this->token_pos(), literal);
     }
     if (literal().IsDouble()) {
-      Double& dbl = Double::Handle();
-      dbl ^= literal().raw();
+      const Double& dbl = Double::Cast(literal());
       // Preserve negative zero.
       double new_value = (dbl.value() == 0.0) ? -0.0 : (0.0 - dbl.value());
       Double& double_instance =
@@ -376,9 +374,7 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
     // replumbing all of the EvalConstExpr methods.
     return NULL;
   }
-  Instance& field_value = Instance::ZoneHandle();
-  field_value ^= result.raw();
-  return &field_value;
+  return &Instance::ZoneHandle(Instance::Cast(result).raw());
 }
 
 }  // namespace dart

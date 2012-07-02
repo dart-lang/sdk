@@ -56,16 +56,13 @@ typedef void (*NativeFunction)(NativeArguments* arguments);
 // Natives should throw an exception if an illegal argument is passed.
 // type name = value.
 #define GET_NATIVE_ARGUMENT(type, name, value)                                 \
-  type& name = type::Handle();                                                 \
-  {                                                                            \
-    const Instance& __instance__ = Instance::CheckedHandle(value);             \
-    if (!__instance__.Is##type()) {                                            \
-      GrowableArray<const Object*> __args__;                                   \
-      __args__.Add(&__instance__);                                             \
-      Exceptions::ThrowByType(Exceptions::kIllegalArgument, __args__);         \
-    }                                                                          \
-    name ^= __instance__.raw();                                                \
-  }
+  const Instance& __##name##_instance__ = Instance::CheckedHandle(value);      \
+  if (!__##name##_instance__.Is##type()) {                                     \
+    GrowableArray<const Object*> __args__;                                     \
+    __args__.Add(&__##name##_instance__);                                      \
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, __args__);           \
+  }                                                                            \
+  const type& name = type::Cast(__##name##_instance__);
 
 
 

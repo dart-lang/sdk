@@ -312,9 +312,7 @@ class LiteralNode : public AstNode {
     ASSERT(literal.IsZoneHandle());
 #if defined(DEBUG)
     if (literal.IsString()) {
-      String& str = String::Handle();
-      str ^= literal.raw();
-      ASSERT(str.IsSymbol());
+      ASSERT(String::Cast(literal).IsSymbol());
     }
 #endif  // defined(DEBUG)
     ASSERT(literal.IsNull() ||

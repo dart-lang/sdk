@@ -21,7 +21,7 @@ DEFINE_NATIVE_ENTRY(Mirrors_isLocalPort, 1) {
   // Get the port id from the SendPort instance.
   const Object& id_obj = Object::Handle(DartLibraryCalls::PortGetId(port));
   if (id_obj.IsError()) {
-    Exceptions::PropagateError(id_obj);
+    Exceptions::PropagateError(Error::Cast(id_obj));
     UNREACHABLE();
   }
   ASSERT(id_obj.IsSmi() || id_obj.IsMint());

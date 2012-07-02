@@ -68,9 +68,7 @@ TEST_CASE(InvokeStatic_CompileError) {
   const Object& retval = Object::Handle(
       DartEntry::InvokeStatic(function, arguments, kNoArgumentNames));
   EXPECT(retval.IsError());
-  Error& error = Error::Handle();
-  error ^= retval.raw();
-  EXPECT_SUBSTRING("++++", error.ToErrorCString());
+  EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
 
 
@@ -110,9 +108,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
       DartEntry::InvokeDynamic(
           instance, function, arguments, kNoArgumentNames));
   EXPECT(retval.IsError());
-  Error& error = Error::Handle();
-  error ^= retval.raw();
-  EXPECT_SUBSTRING("++++", error.ToErrorCString());
+  EXPECT_SUBSTRING("++++", Error::Cast(retval).ToErrorCString());
 }
 
 #endif  // TARGET_ARCH_IA32 || TARGET_ARCH_X64.

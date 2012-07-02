@@ -377,9 +377,8 @@ static bool OptimizeTypeArguments(const Instance& instance,
   }
   if (type_arguments.IsInstantiatedTypeArguments()) {
     do {
-      InstantiatedTypeArguments& instantiated_type_arguments =
-          InstantiatedTypeArguments::Handle();
-      instantiated_type_arguments ^= type_arguments.raw();
+      const InstantiatedTypeArguments& instantiated_type_arguments =
+          InstantiatedTypeArguments::Cast(type_arguments);
       const AbstractTypeArguments& uninstantiated =
           AbstractTypeArguments::Handle(
               instantiated_type_arguments.uninstantiated_type_arguments());
@@ -388,15 +387,13 @@ static bool OptimizeTypeArguments(const Instance& instance,
               instantiated_type_arguments.instantiator_type_arguments());
       type_arguments = uninstantiated.InstantiateFrom(instantiator);
     } while (type_arguments.IsInstantiatedTypeArguments());
-    TypeArguments& new_type_arguments = TypeArguments::Handle();
-    new_type_arguments ^= type_arguments.raw();
-    new_type_arguments ^= new_type_arguments.Canonicalize();
+    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
+    new_type_arguments = type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
     *type_arguments_replaced = true;
   } else if (!type_arguments.IsCanonical()) {
-    AbstractTypeArguments& new_type_arguments =
-        AbstractTypeArguments::Handle();
-    new_type_arguments ^= type_arguments.Canonicalize();
+    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
+    new_type_arguments = type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
     *type_arguments_replaced = true;
   }
@@ -458,7 +455,7 @@ static void UpdateTypeTestCache(
     if (replaced) {
       type_arguments_replaced = true;
     }
-    instantiator_type_arguments ^= instantiator.GetTypeArguments();
+    instantiator_type_arguments = instantiator.GetTypeArguments();
   }
 
   Class& last_instance_class = Class::Handle();
@@ -789,7 +786,7 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
 // rethrow it.
 static void CheckResultError(const Object& result) {
   if (result.IsError()) {
-    Exceptions::PropagateError(result);
+    Exceptions::PropagateError(Error::Cast(result));
   }
 }
 
@@ -1005,8 +1002,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
     arguments.SetReturn(closure);
     return;
   }
-  Class& receiver_class = Class::Handle();
-  receiver_class ^= receiver.clazz();
+  const Class& receiver_class = Class::Handle(receiver.clazz());
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
   func_name = String::SubString(original_function_name, getter_prefix.Length());
@@ -1074,7 +1070,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
       arguments.SetReturn(code);
       return;
     } else {
-      Exceptions::PropagateError(result);
+      Exceptions::PropagateError(Error::Cast(result));
     }
   }
   if (!result.IsSmi()) {

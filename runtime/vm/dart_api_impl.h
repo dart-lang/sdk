@@ -20,47 +20,47 @@ const char* CanonicalFunction(const char* func);
 #define CURRENT_FUNC CanonicalFunction(__FUNCTION__)
 
 // Checks that the current isolate is not NULL.
-#define CHECK_ISOLATE(isolate)                                                \
-  do {                                                                        \
-    if ((isolate) == NULL) {                                                  \
-      FATAL1("%s expects there to be a current isolate. Did you "             \
-             "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",       \
-            CURRENT_FUNC);                                                    \
-    }                                                                         \
+#define CHECK_ISOLATE(isolate)                                                 \
+  do {                                                                         \
+    if ((isolate) == NULL) {                                                   \
+      FATAL1("%s expects there to be a current isolate. Did you "              \
+             "forget to call Dart_CreateIsolate or Dart_EnterIsolate?",        \
+             CURRENT_FUNC);                                                    \
+    }                                                                          \
   } while (0)
 
 // Checks that the current isolate is NULL.
-#define CHECK_NO_ISOLATE(isolate)                                             \
-  do {                                                                        \
-    if ((isolate) != NULL) {                                                  \
-      FATAL1("%s expects there to be no current isolate. Did you "            \
-             "forget to call Dart_ExitIsolate?", CURRENT_FUNC);               \
-    }                                                                         \
+#define CHECK_NO_ISOLATE(isolate)                                              \
+  do {                                                                         \
+    if ((isolate) != NULL) {                                                   \
+      FATAL1("%s expects there to be no current isolate. Did you "             \
+             "forget to call Dart_ExitIsolate?", CURRENT_FUNC);                \
+    }                                                                          \
   } while (0)
 
 // Checks that the current isolate is not NULL and that it has an API scope.
-#define CHECK_ISOLATE_SCOPE(isolate)                                          \
-  do {                                                                        \
-    Isolate* tmp = (isolate);                                                 \
-    CHECK_ISOLATE(tmp);                                                       \
-    ApiState* state = tmp->api_state();                                       \
-    ASSERT(state);                                                            \
-    if (state->top_scope() == NULL) {                                         \
-      FATAL1("%s expects to find a current scope. Did you forget to call "    \
-           "Dart_EnterScope?", CURRENT_FUNC);                                 \
-    }                                                                         \
+#define CHECK_ISOLATE_SCOPE(isolate)                                           \
+  do {                                                                         \
+    Isolate* tmp = (isolate);                                                  \
+    CHECK_ISOLATE(tmp);                                                        \
+    ApiState* state = tmp->api_state();                                        \
+    ASSERT(state);                                                             \
+    if (state->top_scope() == NULL) {                                          \
+      FATAL1("%s expects to find a current scope. Did you forget to call "     \
+           "Dart_EnterScope?", CURRENT_FUNC);                                  \
+    }                                                                          \
   } while (0)
 
-#define DARTSCOPE_NOCHECKS(isolate)                                           \
-  Isolate* __temp_isolate__ = (isolate);                                      \
-  ASSERT(__temp_isolate__ != NULL);                                           \
-  Zone zone(__temp_isolate__);                                                \
+#define DARTSCOPE_NOCHECKS(isolate)                                            \
+  Isolate* __temp_isolate__ = (isolate);                                       \
+  ASSERT(__temp_isolate__ != NULL);                                            \
+  Zone zone(__temp_isolate__);                                                 \
   HANDLESCOPE(__temp_isolate__);
 
-#define DARTSCOPE(isolate)                                                    \
-  Isolate* __temp_isolate__ = (isolate);                                      \
-  CHECK_ISOLATE_SCOPE(__temp_isolate__);                                      \
-  Zone zone(__temp_isolate__);                                                \
+#define DARTSCOPE(isolate)                                                     \
+  Isolate* __temp_isolate__ = (isolate);                                       \
+  CHECK_ISOLATE_SCOPE(__temp_isolate__);                                       \
+  Zone zone(__temp_isolate__);                                                 \
   HANDLESCOPE(__temp_isolate__);
 
 
@@ -80,8 +80,8 @@ class Api : AllStatic {
 
   // Unwraps a raw Type from the handle.  The handle will be null if
   // the object was not of the requested Type.
-#define DECLARE_UNWRAP(Type)                                                  \
-  static const Type& Unwrap##Type##Handle(Isolate* isolate,                   \
+#define DECLARE_UNWRAP(Type)                                                   \
+  static const Type& Unwrap##Type##Handle(Isolate* isolate,                    \
                                           Dart_Handle object);
   CLASS_LIST_NO_OBJECT(DECLARE_UNWRAP)
 #undef DECLARE_UNWRAP

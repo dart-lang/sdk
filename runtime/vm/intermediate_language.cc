@@ -589,9 +589,7 @@ BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
 // ==== Support for propagating static type.
 RawAbstractType* ConstantVal::StaticType() const {
   if (value().IsInstance()) {
-    Instance& instance = Instance::Handle();
-    instance ^= value().raw();
-    return instance.GetType();
+    return Instance::Cast(value()).GetType();
   } else {
     UNREACHABLE();
     return AbstractType::null();

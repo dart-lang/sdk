@@ -102,8 +102,7 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 
 
 static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
-  UnhandledException& excp = UnhandledException::Handle();
-  excp ^= obj.raw();
+  const UnhandledException& excp = UnhandledException::Cast(obj);
   const Instance& exception = Instance::ZoneHandle(excp.exception());
   const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
   return new ThrowNode(token_pos,
@@ -6077,13 +6076,11 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
   if ((lhs_literal != NULL) && (rhs_literal != NULL)) {
     if (lhs_literal->literal().IsDouble() &&
         rhs_literal->literal().IsDouble()) {
-      Double& dbl_obj = Double::ZoneHandle();
-      dbl_obj ^= lhs_literal->literal().raw();
-      double left_double = dbl_obj.value();
-      dbl_obj ^= rhs_literal->literal().raw();
-      double right_double = dbl_obj.value();
+      double left_double = Double::Cast(lhs_literal->literal()).value();
+      double right_double = Double::Cast(rhs_literal->literal()).value();
       if (binary_op == Token::kDIV) {
-        dbl_obj = Double::NewCanonical((left_double / right_double));
+        const Double& dbl_obj = Double::ZoneHandle(
+            Double::NewCanonical((left_double / right_double)));
         return new LiteralNode(op_pos, dbl_obj);
       }
     }
@@ -6868,9 +6865,8 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
     Type& parameterized_type = Type::Handle();
     parameterized_type ^= type->raw();
     if (!resolved_type_class.IsNull()) {
-      Object& type_class = Object::Handle(resolved_type_class.raw());
       // Replace unresolved class with resolved type class.
-      parameterized_type.set_type_class(type_class);
+      parameterized_type.set_type_class(resolved_type_class);
     } else if (finalization >= ClassFinalizer::kFinalize) {
       // The type is malformed.
       ClassFinalizer::FinalizeMalformedType(
@@ -6995,9 +6991,8 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       Object& const_value = Object::Handle(
           DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
       if (const_value.IsError()) {
-        Error& error = Error::Handle();
-        error ^= const_value.raw();
-        if (const_value.IsUnhandledException()) {
+        const Error& error = Error::Cast(const_value);
+        if (error.IsUnhandledException()) {
           field.set_value(Instance::Handle());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
@@ -7062,9 +7057,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
-        Error& error = Error::Handle();
-        error ^= result.raw();
-        Isolate::Current()->long_jump_base()->Jump(1, error);
+        Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
         UNREACHABLE();
         return Object::null();
       }
@@ -7198,19 +7191,16 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     obj = lib.LookupObject(*qual_ident.ident);
   }
   if (obj.IsClass()) {
-    Class& cls = Class::Handle();
-    cls ^= obj.raw();
+    const Class& cls = Class::Cast(obj);
     return new PrimaryNode(qual_ident.ident_pos, Class::ZoneHandle(cls.raw()));
   }
   if (obj.IsField()) {
-    Field& field = Field::Handle();
-    field ^= obj.raw();
+    const Field& field = Field::Cast(obj);
     ASSERT(field.is_static());
     return GenerateStaticFieldLookup(field, qual_ident.ident_pos);
   }
-  Function& func = Function::Handle();
   if (obj.IsFunction()) {
-    func ^= obj.raw();
+    const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     return new PrimaryNode(qual_ident.ident_pos,
                            Function::ZoneHandle(func.raw()));
@@ -7239,7 +7229,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
   }
   if (!obj.IsNull()) {
     ASSERT(obj.IsFunction());
-    func ^= obj.raw();
+    const Function& func = Function::Cast(obj);
     ASSERT(func.is_static());
     ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
@@ -7766,9 +7756,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (constructor_result.IsUnhandledException()) {
       return GenerateRethrow(literal_pos, constructor_result);
     } else {
-      Instance& const_instance = Instance::ZoneHandle();
-      const_instance ^= constructor_result.raw();
-      return new LiteralNode(literal_pos, const_instance);
+      const Instance& const_instance = Instance::Cast(constructor_result);
+      return new LiteralNode(literal_pos,
+                             Instance::ZoneHandle(const_instance.raw()));
     }
   } else {
     // Factory call at runtime.
@@ -8044,9 +8034,9 @@ AstNode* Parser::ParseNewOperator() {
     if (constructor_result.IsUnhandledException()) {
       new_object = GenerateRethrow(new_pos, constructor_result);
     } else {
-      Instance& const_instance = Instance::ZoneHandle();
-      const_instance ^= constructor_result.raw();
-      new_object = new LiteralNode(new_pos, const_instance);
+      const Instance& const_instance = Instance::Cast(constructor_result);
+      new_object = new LiteralNode(new_pos,
+                                   Instance::ZoneHandle(const_instance.raw()));
     }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
@@ -8098,7 +8088,6 @@ String& Parser::Interpolate(ArrayNode* values) {
                                           interpolate_arg,
                                           kNoArgumentNames);
   if (concatenated.IsUnhandledException()) {
-    // TODO(regis): Report
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
   concatenated = String::NewSymbol(concatenated);
@@ -8373,15 +8362,13 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
     Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
       // Propagate the compilation error.
-      Error& error = Error::Handle();
-      error ^= result.raw();
-      Isolate::Current()->long_jump_base()->Jump(1, error);
+      Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
       UNREACHABLE();
     }
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle();
     value ^= result.raw();
-    if (value.IsNull()) {
+    if (!value.IsNull()) {
       value ^= value.Canonicalize();
     }
     return value;

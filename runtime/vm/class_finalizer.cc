@@ -496,9 +496,7 @@ void ClassFinalizer::ResolveType(const Class& cls,
         Class::Handle(ResolveClass(cls, unresolved_class));
 
     // Replace unresolved class with resolved type class.
-    ASSERT(type.IsType());
-    Type& parameterized_type = Type::Handle();
-    parameterized_type ^= type.raw();
+    const Type& parameterized_type = Type::Cast(type);
     if (!type_class.IsNull()) {
       parameterized_type.set_type_class(Object::Handle(type_class.raw()));
     } else {
@@ -624,8 +622,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   }
 
   if (type.IsTypeParameter()) {
-    TypeParameter& type_parameter = TypeParameter::Handle();
-    type_parameter ^= type.raw();
+    const TypeParameter& type_parameter = TypeParameter::Cast(type);
     const Class& parameterized_class =
         Class::Handle(type_parameter.parameterized_class());
     ASSERT(!parameterized_class.IsNull());
@@ -643,8 +640,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
   }
 
   // At this point, we can only have a parameterized_type.
-  Type& parameterized_type = Type::Handle();
-  parameterized_type ^= type.raw();
+  const Type& parameterized_type = Type::Cast(type);
 
   if (parameterized_type.IsBeingFinalized()) {
     // Self reference detected. The type is malformed.
