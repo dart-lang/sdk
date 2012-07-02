@@ -1662,6 +1662,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.SETTER_TYPE_MUST_BE_ASSIGNABLE, 12, 18, 5));
   }
 
+  public void test_setterInvokedAsMethod() throws Exception {
+    AnalyzeLibraryResult result =
+        analyzeLibrary(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class C {",
+            "  void set foo(String arg) {}",
+            "} ",
+            "method() {",
+            " C c = new C();",
+            " c.foo(1);",
+            "}");
+    /* This could probably use a better error message.  The user likely intends
+     * to set the property foo, but it is invoking foo as a getter and
+     * invoking the result.
+     */
+    assertErrors(result.getErrors(),
+        errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 7, 4, 3));
+  }
+
   /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3221
@@ -2924,7 +2943,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.NOT_A_TYPE, 3, 1, 4));
   }
-  
+
   public void test_metadata_deprecated_1() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2938,7 +2957,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  // @deprecated",
         "  operator + (other) {}",
         "}",
-        "main() {",
+        "method() {",
         "  ttt();",
         "  A a = new A();",
         "  a.fff = 0;",
@@ -2953,7 +2972,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 16, 5, 4),
         errEx(TypeErrorCode.DEPRECATED_ELEMENT, 17, 5, 1));
   }
-  
+
   public void test_metadata_deprecated_2() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -2963,7 +2982,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  // @deprecated",
         "  A.depreca() {}",
         "}",
-        "main() {",
+        "method() {",
         "  new A.named();",
         "  new A.depreca();",
         "}",
@@ -3028,7 +3047,60 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}");
     assertErrors(
         libraryResult.getErrors());
+  }
 
+  public void test_invokeStaticFieldAsMethod() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {",
+        "  static foo() { }",
+        "}",
+        "main () {",
+        "  var a = new C().foo();",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.IS_STATIC_METHOD_IN, 6, 19, 3));
+  }
+
+  public void test_invokeNonFunction() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {",
+        "  String foo;",
+        "  method() {",
+        "    foo();",
+        "  }",
+        "}",
+        "method() {",
+        "  String foo;",
+        "  foo();",
+        "  (1 + 5)();",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.NOT_A_METHOD_IN, 5, 5, 3),
+        errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 10, 3, 3),
+        errEx(TypeErrorCode.NOT_A_FUNCTION_TYPE, 11, 3, 9));
+  }
+
+  public void test_wrongOperandTypeForUnaryExpression() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {",
+        "  operator -(String arg) {}",
+        "  operator +(String arg) {}",
+        "}",
+        "method1(arg) {}",
+        "method2() {",
+        "  C foo = new C();",
+        "  method1(++foo);",
+        "  method1(--foo);",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE, 9, 11, 5),
+        errEx(TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE, 10, 11, 5));
   }
 
   /**
@@ -3045,6 +3117,37 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     // has some errors
     assertTrue(libraryResult.getErrors().size() != 0);
+  }
+
+  public void test_fieldOverrideWrongType() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int foo;",
+        "}",
+        "class B extends A {",
+        "  String foo;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, 6, 10, 3));
+  }
+
+  public void test_overrideStaticMember() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  static var foo;",
+        "  static bar() {}",
+        "}",
+        "class B extends A {",
+        "  var foo;",
+        "  bar() {}",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 7, 7, 3),
+        errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 8, 3, 3));
   }
 
   private static <T extends DartNode> T findNode(

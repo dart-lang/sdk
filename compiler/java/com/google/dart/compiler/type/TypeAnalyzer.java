@@ -2224,9 +2224,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // For INC and DEC, "operator +" and "operator -" are used to add and subtract one,
             // respectively. Check that the resolved operator has a compatible parameter type.
             Iterator<VariableElement> it = element.getParameters().iterator();
-            if  (!types.isAssignable(numType, it.next().getType())) {
+            Type operandType = it.next().getType();
+            if  (!types.isAssignable(numType, operandType)) {
               typeError(node, TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE,
-                  operatorMethodName, numType.toString());
+                  operatorMethodName, numType.toString(), operandType.toString());
             }
             // Check that the return type of the operator is compatible with the receiver.
             checkAssignable(node, type, returnType);
@@ -2337,8 +2338,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (types.isAssignable(functionType, type)) {
               // A subtype of interface Function.
               return dynamicType;
-            } else if (name == null) {
-              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION, type);
+            } else if (name == null || currentClass == null) {
+              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
             } else {
               return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
             }
@@ -2584,7 +2585,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       DartNode constructor = node.getConstructor();
       return getConstructorNameNode(constructor);
     }
-    
+
     /**
      * @return the {@link DartIdentifier} corresponding to the name of constructor.
      */
@@ -2819,7 +2820,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                           superElement.getName(), superElement.getEnclosingElement().getName());
           return false;
         } else if (superElement.getModifiers().isStatic() && !modifiers.isStatic()) {
-            onError(errorTarget, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
+            onError(errorTarget, TypeErrorCode.OVERRIDING_STATIC_MEMBER,
                 superElement.getName(), superElement.getEnclosingElement().getName());
           // Although a warning, override is allowed anyway
           return true;
