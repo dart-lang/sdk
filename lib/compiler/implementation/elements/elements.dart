@@ -204,7 +204,7 @@ class Element implements Hashable {
     return null;
   }
 
-  toString() {
+  String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
     // invariant for all element types.
     if (!isTopLevel()) {
@@ -306,10 +306,13 @@ class LibraryElement extends CompilationUnitElement {
   ScriptTag libraryTag;
   Map<SourceString, Element> elements;
   bool canUseNative = false;
+  LibraryElement patch = null;
 
   LibraryElement(Script script)
       : elements = new Map<SourceString, Element>(),
         super.library(script);
+
+  bool get isPatched() => patch !== null;
 
   void addCompilationUnit(CompilationUnitElement element) {
     compilationUnits = compilationUnits.prepend(element);
@@ -598,6 +601,14 @@ class FunctionElement extends Element {
   FunctionSignature functionSignature;
 
   /**
+   * A function declaration that should be parsed instead of the current one.
+   * The patch should be parsed as if it was in the current scope. Its
+   * signature must match this function's signature.
+   */
+  // TODO(lrn): Consider using [defaultImplementation] to store the patch.
+  FunctionElement patch = null;
+
+  /**
    * If this is an interface constructor, [defaultImplementation] will
    * changed by the resolver to point to the default
    * implementation. Otherwise, [:defaultImplementation === this:].
@@ -608,21 +619,21 @@ class FunctionElement extends Element {
                   ElementKind kind,
                   Modifiers modifiers,
                   Element enclosing)
-    : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
+      : this.tooMuchOverloading(name, null, kind, modifiers, enclosing, null);
 
   FunctionElement.node(SourceString name,
                        FunctionExpression node,
                        ElementKind kind,
                        Modifiers modifiers,
                        Element enclosing)
-    : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
+      : this.tooMuchOverloading(name, node, kind, modifiers, enclosing, null);
 
   FunctionElement.from(SourceString name,
                        FunctionElement other,
                        Element enclosing)
-    : this.tooMuchOverloading(name, other.cachedNode, other.kind,
-                              other.modifiers, enclosing,
-                              other.functionSignature);
+      : this.tooMuchOverloading(name, other.cachedNode, other.kind,
+                                other.modifiers, enclosing,
+                                other.functionSignature);
 
   FunctionElement.tooMuchOverloading(SourceString name,
                                      FunctionExpression this.cachedNode,
@@ -630,9 +641,29 @@ class FunctionElement extends Element {
                                      Modifiers this.modifiers,
                                      Element enclosing,
                                      FunctionSignature this.functionSignature)
-    : super(name, kind, enclosing)
-  {
+      : super(name, kind, enclosing) {
     defaultImplementation = this;
+  }
+
+  CompilationUnitElement getCompilationUnit() {
+    if (patch !== null) return patch.getCompilationUnit();
+    return super.getCompilationUnit();
+  }
+
+  bool get isPatched() => patch !== null;
+
+  /**
+   * Applies a patch function to this function. The patch function's body
+   * is used as replacement when parsing this function's body.
+   * This method must not be called after the function has been parsed,
+   * and it must be called at most once.
+   */
+  void setPatch(FunctionElement patchElement) {
+    // Sanity checks. The caller must check these things before calling.
+    assert(patch === null);
+    assert(cachedNode === null);
+    this.patch = patchElement;
+    cachedNode = patchElement.cachedNode;
   }
 
   bool isInstanceMember() {
@@ -668,7 +699,13 @@ class FunctionElement extends Element {
     return type;
   }
 
-  Node parseNode(DiagnosticListener listener) => cachedNode;
+  Node parseNode(DiagnosticListener listener) {
+    if (cachedNode !== null) return cachedNode;
+    if (patch !== null) {
+      cachedNode = patch.parseNode(listener);
+    }
+    return cachedNode;
+  }
 
   Token position() => cachedNode.getBeginToken();
 
@@ -738,6 +775,7 @@ class ClassElement extends ContainerElement {
   Link<Element> backendMembers = const EmptyLink<Element>();
 
   Link<Type> allSupertypes;
+  ClassElement patch = null;
 
   ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
