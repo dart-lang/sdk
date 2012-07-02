@@ -21132,120 +21132,120 @@ class _Elements {
 
 
   factory AnchorElement([String href]) {
-    AnchorElement _e = _document.$dom_createElement("a");
+    _HTMLAnchorElementImpl _e = _document.$dom_createElement("a");
     if (href != null) _e.href = href;
     return _e;
   }
 
   factory AreaElement() {
-    AreaElement _e = _document.$dom_createElement("area");
+    _HTMLAreaElementImpl _e = _document.$dom_createElement("area");
     return _e;
   }
 
   factory BRElement() {
-    BRElement _e = _document.$dom_createElement("br");
+    _HTMLBRElementImpl _e = _document.$dom_createElement("br");
     return _e;
   }
 
   factory BaseElement() {
-    BaseElement _e = _document.$dom_createElement("base");
+    _HTMLBaseElementImpl _e = _document.$dom_createElement("base");
     return _e;
   }
 
   factory BodyElement() {
-    BodyElement _e = _document.$dom_createElement("body");
+    _HTMLBodyElementImpl _e = _document.$dom_createElement("body");
     return _e;
   }
 
   factory ButtonElement() {
-    ButtonElement _e = _document.$dom_createElement("button");
+    _HTMLButtonElementImpl _e = _document.$dom_createElement("button");
     return _e;
   }
 
   factory CanvasElement([int width, int height]) {
-    CanvasElement _e = _document.$dom_createElement("canvas");
+    _HTMLCanvasElementImpl _e = _document.$dom_createElement("canvas");
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
     return _e;
   }
 
   factory DListElement() {
-    DListElement _e = _document.$dom_createElement("dl");
+    _HTMLDListElementImpl _e = _document.$dom_createElement("dl");
     return _e;
   }
 
   factory DetailsElement() {
-    DetailsElement _e = _document.$dom_createElement("details");
+    _HTMLDetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
   }
 
   factory DivElement() {
-    DivElement _e = _document.$dom_createElement("div");
+    _HTMLDivElementImpl _e = _document.$dom_createElement("div");
     return _e;
   }
 
   factory EmbedElement() {
-    EmbedElement _e = _document.$dom_createElement("embed");
+    _HTMLEmbedElementImpl _e = _document.$dom_createElement("embed");
     return _e;
   }
 
   factory FieldSetElement() {
-    FieldSetElement _e = _document.$dom_createElement("fieldset");
+    _HTMLFieldSetElementImpl _e = _document.$dom_createElement("fieldset");
     return _e;
   }
 
   factory HRElement() {
-    HRElement _e = _document.$dom_createElement("hr");
+    _HTMLHRElementImpl _e = _document.$dom_createElement("hr");
     return _e;
   }
 
   factory HeadElement() {
-    HeadElement _e = _document.$dom_createElement("head");
+    _HTMLHeadElementImpl _e = _document.$dom_createElement("head");
     return _e;
   }
 
   factory HeadingElement.h1() {
-    HeadingElement _e = _document.$dom_createElement("h1");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h1");
     return _e;
   }
 
   factory HeadingElement.h2() {
-    HeadingElement _e = _document.$dom_createElement("h2");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h2");
     return _e;
   }
 
   factory HeadingElement.h3() {
-    HeadingElement _e = _document.$dom_createElement("h3");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h3");
     return _e;
   }
 
   factory HeadingElement.h4() {
-    HeadingElement _e = _document.$dom_createElement("h4");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h4");
     return _e;
   }
 
   factory HeadingElement.h5() {
-    HeadingElement _e = _document.$dom_createElement("h5");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h5");
     return _e;
   }
 
   factory HeadingElement.h6() {
-    HeadingElement _e = _document.$dom_createElement("h6");
+    _HTMLHeadingElementImpl _e = _document.$dom_createElement("h6");
     return _e;
   }
 
   factory HtmlElement() {
-    HtmlElement _e = _document.$dom_createElement("html");
+    _HTMLHtmlElementImpl _e = _document.$dom_createElement("html");
     return _e;
   }
 
   factory IFrameElement() {
-    IFrameElement _e = _document.$dom_createElement("iframe");
+    _HTMLIFrameElementImpl _e = _document.$dom_createElement("iframe");
     return _e;
   }
 
   factory ImageElement([String src, int width, int height]) {
-    ImageElement _e = _document.$dom_createElement("img");
+    _HTMLImageElementImpl _e = _document.$dom_createElement("img");
     if (src != null) _e.src = src;
     if (width != null) _e.width = width;
     if (height != null) _e.height = height;
@@ -21253,158 +21253,158 @@ class _Elements {
   }
 
   factory InputElement([String type]) {
-    InputElement _e = _document.$dom_createElement("input");
+    _HTMLInputElementImpl _e = _document.$dom_createElement("input");
     if (type != null) _e.type = type;
     return _e;
   }
 
   factory KeygenElement() {
-    KeygenElement _e = _document.$dom_createElement("keygen");
+    _HTMLKeygenElementImpl _e = _document.$dom_createElement("keygen");
     return _e;
   }
 
   factory LIElement() {
-    LIElement _e = _document.$dom_createElement("li");
+    _HTMLLIElementImpl _e = _document.$dom_createElement("li");
     return _e;
   }
 
   factory LabelElement() {
-    LabelElement _e = _document.$dom_createElement("label");
+    _HTMLLabelElementImpl _e = _document.$dom_createElement("label");
     return _e;
   }
 
   factory LegendElement() {
-    LegendElement _e = _document.$dom_createElement("legend");
+    _HTMLLegendElementImpl _e = _document.$dom_createElement("legend");
     return _e;
   }
 
   factory LinkElement() {
-    LinkElement _e = _document.$dom_createElement("link");
+    _HTMLLinkElementImpl _e = _document.$dom_createElement("link");
     return _e;
   }
 
   factory MapElement() {
-    MapElement _e = _document.$dom_createElement("map");
+    _HTMLMapElementImpl _e = _document.$dom_createElement("map");
     return _e;
   }
 
   factory MenuElement() {
-    MenuElement _e = _document.$dom_createElement("menu");
+    _HTMLMenuElementImpl _e = _document.$dom_createElement("menu");
     return _e;
   }
 
   factory MeterElement() {
-    MeterElement _e = _document.$dom_createElement("meter");
+    _HTMLMeterElementImpl _e = _document.$dom_createElement("meter");
     return _e;
   }
 
   factory OListElement() {
-    OListElement _e = _document.$dom_createElement("ol");
+    _HTMLOListElementImpl _e = _document.$dom_createElement("ol");
     return _e;
   }
 
   factory ObjectElement() {
-    ObjectElement _e = _document.$dom_createElement("object");
+    _HTMLObjectElementImpl _e = _document.$dom_createElement("object");
     return _e;
   }
 
   factory OptGroupElement() {
-    OptGroupElement _e = _document.$dom_createElement("optgroup");
+    _HTMLOptGroupElementImpl _e = _document.$dom_createElement("optgroup");
     return _e;
   }
 
   factory OutputElement() {
-    OutputElement _e = _document.$dom_createElement("output");
+    _HTMLOutputElementImpl _e = _document.$dom_createElement("output");
     return _e;
   }
 
   factory ParagraphElement() {
-    ParagraphElement _e = _document.$dom_createElement("p");
+    _HTMLParagraphElementImpl _e = _document.$dom_createElement("p");
     return _e;
   }
 
   factory ParamElement() {
-    ParamElement _e = _document.$dom_createElement("param");
+    _HTMLParamElementImpl _e = _document.$dom_createElement("param");
     return _e;
   }
 
   factory PreElement() {
-    PreElement _e = _document.$dom_createElement("pre");
+    _HTMLPreElementImpl _e = _document.$dom_createElement("pre");
     return _e;
   }
 
   factory ProgressElement() {
-    ProgressElement _e = _document.$dom_createElement("progress");
+    _HTMLProgressElementImpl _e = _document.$dom_createElement("progress");
     return _e;
   }
 
   factory ScriptElement() {
-    ScriptElement _e = _document.$dom_createElement("script");
+    _HTMLScriptElementImpl _e = _document.$dom_createElement("script");
     return _e;
   }
 
   factory SourceElement() {
-    SourceElement _e = _document.$dom_createElement("source");
+    _HTMLSourceElementImpl _e = _document.$dom_createElement("source");
     return _e;
   }
 
   factory SpanElement() {
-    SpanElement _e = _document.$dom_createElement("span");
+    _HTMLSpanElementImpl _e = _document.$dom_createElement("span");
     return _e;
   }
 
   factory StyleElement() {
-    StyleElement _e = _document.$dom_createElement("style");
+    _HTMLStyleElementImpl _e = _document.$dom_createElement("style");
     return _e;
   }
 
   factory TableCaptionElement() {
-    TableCaptionElement _e = _document.$dom_createElement("caption");
+    _HTMLTableCaptionElementImpl _e = _document.$dom_createElement("caption");
     return _e;
   }
 
   factory TableCellElement() {
-    TableCellElement _e = _document.$dom_createElement("td");
+    _HTMLTableCellElementImpl _e = _document.$dom_createElement("td");
     return _e;
   }
 
   factory TableColElement() {
-    TableColElement _e = _document.$dom_createElement("col");
+    _HTMLTableColElementImpl _e = _document.$dom_createElement("col");
     return _e;
   }
 
   factory TableElement() {
-    TableElement _e = _document.$dom_createElement("table");
+    _HTMLTableElementImpl _e = _document.$dom_createElement("table");
     return _e;
   }
 
   factory TableRowElement() {
-    TableRowElement _e = _document.$dom_createElement("tr");
+    _HTMLTableRowElementImpl _e = _document.$dom_createElement("tr");
     return _e;
   }
 
   factory TextAreaElement() {
-    TextAreaElement _e = _document.$dom_createElement("textarea");
+    _HTMLTextAreaElementImpl _e = _document.$dom_createElement("textarea");
     return _e;
   }
 
   factory TitleElement() {
-    TitleElement _e = _document.$dom_createElement("title");
+    _HTMLTitleElementImpl _e = _document.$dom_createElement("title");
     return _e;
   }
 
   factory TrackElement() {
-    TrackElement _e = _document.$dom_createElement("track");
+    _HTMLTrackElementImpl _e = _document.$dom_createElement("track");
     return _e;
   }
 
   factory UListElement() {
-    UListElement _e = _document.$dom_createElement("ul");
+    _HTMLUListElementImpl _e = _document.$dom_createElement("ul");
     return _e;
   }
 
   factory VideoElement() {
-    VideoElement _e = _document.$dom_createElement("video");
+    _HTMLVideoElementImpl _e = _document.$dom_createElement("video");
     return _e;
   }
 }

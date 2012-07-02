@@ -887,6 +887,14 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           PARAMS=constructor_info.ParametersInterfaceDeclaration(
                      self._shared.DartType));
 
+    if infos:
+      EmitHtmlElementFactoryConstructors(
+          self._system._backend._EmitterForFactoryProviderBody(
+              infos[0].factory_provider_name),
+          infos,
+          self._html_interface_name,
+          self._backend.ImplementationClassName())
+
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
     if element_type:
@@ -1035,6 +1043,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     return not (IsPureInterface(self._interface.id) or
                 self._interface.id in _merged_html_interfaces)
 
+  def ImplementationClassName(self):
+    return self._ImplClassName(self._html_interface_name)
+
   def FilePathForDartImplementation(self):
     return os.path.join(self._system._output_dir, 'html', 'frog',
                         '%s.dart' % self._html_interface_name)
@@ -1099,10 +1110,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if constructor_info:
       self._EmitFactoryProvider(constructor_info)
 
-    infos = HtmlElementConstructorInfos(self._html_interface_name)
-    if infos:
-      self._EmitHtmlElementFactoryConstructors(infos)
-
     emit_events, events = self._shared.GetEventAttributes(self._interface)
     if not emit_events:
       return
@@ -1132,13 +1139,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
         NAMED_CONSTRUCTOR=constructor_info.name or self._html_interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
-
-  def _EmitHtmlElementFactoryConstructors(self, infos):
-    EmitHtmlElementFactoryConstructors(
-        self._system._EmitterForFactoryProviderBody(
-            infos[0].factory_provider_name),
-        infos,
-        self._html_interface_name, self._class_name)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""

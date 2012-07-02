@@ -190,6 +190,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
 
+  def ImplementationClassName(self):
+    return self._ImplClassName(self._interface.id)
+
   def FilePathForDartImplementation(self):
     return os.path.join(self._system._output_dir, 'dart',
                         '%sImplementation.dart' % self._interface.id)
@@ -222,9 +225,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def _GenerateConstructors(self):
     html_interface_name = self._HTMLInterfaceName(self._interface.id)
-    infos = HtmlElementConstructorInfos(html_interface_name)
-    if infos:
-      self._EmitHtmlElementFactoryConstructors(infos, html_interface_name)
 
     if not self._IsConstructable():
       return
@@ -321,14 +321,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         needs_receiver=False, invocation=invocation,
         raises_exceptions=raises_exceptions,
         runtime_check=runtime_check)
-
-  def _EmitHtmlElementFactoryConstructors(self, infos, html_interface_name):
-    EmitHtmlElementFactoryConstructors(
-        self._system._EmitterForFactoryProviderBody(
-            infos[0].factory_provider_name),
-        infos,
-        html_interface_name,
-        html_interface_name)
 
   def _GenerateEvents(self):
     if self._interface.id == 'DocumentFragment':
