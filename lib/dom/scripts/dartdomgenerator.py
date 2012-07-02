@@ -116,19 +116,19 @@ def GenerateSingleFile(systems):
     _logger.info('Copy dom_frog to frog/')
     subprocess.call(['cd ../generated ; '
                      '../../../tools/copy_dart.py ../frog dom_frog.dart'],
-                    shell=True);
+                    shell=True)
 
   if 'htmlfrog' in systems:
     _logger.info('Copy html_frog to ../html/frog/')
     subprocess.call(['cd ../../html/generated ; '
                      '../../../tools/copy_dart.py ../frog html_frog.dart'],
-                    shell=True);
+                    shell=True)
 
   if 'htmldartium' in systems:
     _logger.info('Copy html_dartium to ../html/dartium/')
     subprocess.call(['cd ../../html/generated ; '
                      '../../../tools/copy_dart.py ../dartium html_dartium.dart'],
-                    shell=True);
+                    shell=True)
 
   # Copy dummy DOM where dartc build expects it.
   if 'dummy' in systems:
@@ -136,7 +136,7 @@ def GenerateSingleFile(systems):
     subprocess.call(['cd ../generated ; '
                      '../../../tools/copy_dart.py dummy dom_dummy.dart ;'
                      'cp dummy/dom_dummy.dart ../dom.dart'],
-                    shell=True);
+                    shell=True)
 
 def main():
   parser = optparse.OptionParser()

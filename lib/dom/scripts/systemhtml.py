@@ -855,7 +855,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
       constructors.append(constructor_info)
-      factory_provider = '_' + typename + 'FactoryProvider';
+      factory_provider = '_' + typename + 'FactoryProvider'
 
     infos = HtmlElementConstructorInfos(typename)
     for info in infos:
@@ -885,7 +885,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           '  $CTOR($PARAMS);\n',
           CTOR=self._shared.DartType(constructor_info.ConstructorFullName()),
           PARAMS=constructor_info.ParametersInterfaceDeclaration(
-                     self._shared.DartType));
+                     self._shared.DartType))
 
     if infos:
       EmitHtmlElementFactoryConstructors(
@@ -955,12 +955,12 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         getter.type.id == setter.type.id):
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=html_getter_name,
-                                 TYPE=self._shared.DartType(getter.type.id));
+                                 TYPE=self._shared.DartType(getter.type.id))
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
                                  NAME=html_getter_name,
-                                 TYPE=self._shared.DartType(getter.type.id));
+                                 TYPE=self._shared.DartType(getter.type.id))
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
                     (getter, setter))

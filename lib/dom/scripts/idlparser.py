@@ -408,7 +408,7 @@ class IDLParser(object):
     """
     # FIXME: Handle gcc not found, or any other processing errors
     gcc = 'gcc'
-    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++'];
+    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++']
     for define in defines:
       cmd.append('-D%s' % define)
     cmd.append('-')

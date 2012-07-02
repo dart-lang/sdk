@@ -99,7 +99,7 @@ class System(object):
 
     result = set()
     WalkParentChain(interface)
-    return result;
+    return result
 
 class BaseGenerator(object):
   def __init__(self, database, interface):
@@ -221,7 +221,7 @@ class BaseGenerator(object):
         walk(interface.parents)
       else:
         walk(interface.parents[1:])
-    return result;
+    return result
 
 
 def _PairUpAttributes(attributes):
