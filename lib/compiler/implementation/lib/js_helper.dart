@@ -757,6 +757,7 @@ class MathNatives {
  * an exception.
  */
 captureStackTrace(ex) {
+  if (ex === null) ex = const NullPointerException();
   var jsError = JS('Object', @'new Error()');
   JS('void', @'#.dartException = #', jsError, ex);
   JS('void', @'''#.toString = #''', jsError,
