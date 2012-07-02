@@ -24,7 +24,11 @@ DEFINE_FLAG(bool, eliminate_type_checks, true,
             "Eliminate type checks when allowed by static type analysis");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+#if defined(TARGET_ARCH_X64)
+DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
+#else
 DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
+#endif
 DECLARE_FLAG(bool, enable_type_checks);
 
 
