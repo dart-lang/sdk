@@ -32,11 +32,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker nat
   _AbstractWorkerEventsImpl get on() =>
     new _AbstractWorkerEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _AbstractWorkerEventsImpl extends _EventsImpl implements AbstractWorkerEvents {
@@ -201,7 +201,7 @@ class _ArrayBufferImpl implements ArrayBuffer native "*ArrayBuffer" {
 
   final int byteLength;
 
-  _ArrayBufferImpl slice(int begin, [int end = null]) native;
+  _ArrayBufferImpl slice(int begin, [int end]) native;
 }
 
 class _ArrayBufferViewImpl implements ArrayBufferView native "*ArrayBufferView" {
@@ -295,23 +295,23 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _BiquadFilterNodeImpl createBiquadFilter() native;
 
-  _AudioBufferImpl createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  _AudioBufferImpl createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
   _AudioBufferSourceNodeImpl createBufferSource() native;
 
-  _AudioChannelMergerImpl createChannelMerger([int numberOfInputs = null]) native;
+  _AudioChannelMergerImpl createChannelMerger([int numberOfInputs]) native;
 
-  _AudioChannelSplitterImpl createChannelSplitter([int numberOfOutputs = null]) native;
+  _AudioChannelSplitterImpl createChannelSplitter([int numberOfOutputs]) native;
 
   _ConvolverNodeImpl createConvolver() native;
 
-  _DelayNodeImpl createDelayNode([num maxDelayTime = null]) native;
+  _DelayNodeImpl createDelayNode([num maxDelayTime]) native;
 
   _DynamicsCompressorNodeImpl createDynamicsCompressor() native;
 
   _AudioGainNodeImpl createGainNode() native;
 
-  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) native;
+  _JavaScriptAudioNodeImpl createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   _MediaElementAudioSourceNodeImpl createMediaElementSource(_MediaElementImpl mediaElement) native;
 
@@ -323,7 +323,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext native 
 
   _WaveTableImpl createWaveTable(_Float32ArrayImpl real, _Float32ArrayImpl imag) native;
 
-  void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+  void decodeAudioData(_ArrayBufferImpl audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   void startRendering() native;
 }
@@ -371,7 +371,7 @@ class _AudioNodeImpl implements AudioNode native "*AudioNode" {
 
   final int numberOfOutputs;
 
-  void connect(destination, int output, [int input = null]) native;
+  void connect(destination, int output, [int input]) native;
 
   void disconnect(int output) native;
 }
@@ -493,11 +493,11 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager nat
 
   final num level;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _BatteryManagerEventsImpl extends _EventsImpl implements BatteryManagerEvents {
@@ -552,9 +552,9 @@ class _BlobImpl implements Blob native "*Blob" {
 
   final String type;
 
-  _BlobImpl slice([int start = null, int end = null, String contentType = null]) native;
+  _BlobImpl slice([int start, int end, String contentType]) native;
 
-  _BlobImpl webkitSlice([int start = null, int end = null, String contentType = null]) native;
+  _BlobImpl webkitSlice([int start, int end, String contentType]) native;
 }
 
 class _BodyElementImpl extends _ElementImpl implements BodyElement native "*HTMLBodyElement" {
@@ -920,7 +920,7 @@ class _CSSStyleDeclarationImpl implements CSSStyleDeclaration native "*CSSStyleD
 
   String removeProperty(String propertyName) native;
 
-  void setProperty(String propertyName, String value, [String priority = null]) native;
+  void setProperty(String propertyName, String value, [String priority]) native;
 
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -3703,7 +3703,7 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet native
 
   final _CSSRuleListImpl rules;
 
-  int addRule(String selector, String style, [int index = null]) native;
+  int addRule(String selector, String style, [int index]) native;
 
   void deleteRule(int index) native;
 
@@ -3870,7 +3870,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void closePath() native;
 
-  _ImageDataImpl createImageData(imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataImpl createImageData(imagedata_OR_sw, [num sh]) native;
 
   _CanvasGradientImpl createLinearGradient(num x0, num y0, num x1, num y1) native;
 
@@ -3878,15 +3878,15 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   _CanvasGradientImpl createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  void drawImageFromRect(_ImageElementImpl image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
+  void drawImageFromRect(_ImageElementImpl image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
 
   void fill() native;
 
   void fillRect(num x, num y, num width, num height) native;
 
-  void fillText(String text, num x, num y, [num maxWidth = null]) native;
+  void fillText(String text, num x, num y, [num maxWidth]) native;
 
   _ImageDataImpl getImageData(num sx, num sy, num sw, num sh) native;
 
@@ -3898,7 +3898,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void moveTo(num x, num y) native;
 
-  void putImageData(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void putImageData(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
@@ -3916,7 +3916,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setCompositeOperation(String compositeOperation) native;
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   void setLineCap(String cap) native;
 
@@ -3926,17 +3926,17 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   void setMiterLimit(num limit) native;
 
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
   void stroke() native;
 
-  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) native;
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth = null]) native;
+  void strokeText(String text, num x, num y, [num maxWidth]) native;
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -3944,7 +3944,7 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
 
   _ImageDataImpl webkitGetImageDataHD(num sx, num sy, num sw, num sh) native;
 
-  void webkitPutImageDataHD(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void webkitPutImageDataHD(_ImageDataImpl imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
 }
 
 class _CharacterDataImpl extends _NodeImpl implements CharacterData native "*CharacterData" {
@@ -3998,7 +3998,7 @@ class _ClipboardImpl implements Clipboard native "*Clipboard" {
 
   final List types;
 
-  void clearData([String type = null]) native;
+  void clearData([String type]) native;
 
   String getData(String type) native;
 
@@ -4152,11 +4152,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void swapCache() native;
 
@@ -4511,7 +4511,7 @@ class _DataTransferItemImpl implements DataTransferItem native "*DataTransferIte
 
   _BlobImpl getAsFile() native;
 
-  void getAsString([StringCallback callback = null]) native;
+  void getAsString([StringCallback callback]) native;
 
   _EntryImpl webkitGetAsEntry() native;
 }
@@ -4520,7 +4520,7 @@ class _DataTransferItemListImpl implements DataTransferItemList native "*DataTra
 
   final int length;
 
-  void add(data_OR_file, [String type = null]) native;
+  void add(data_OR_file, [String type]) native;
 
   void clear() native;
 
@@ -4529,35 +4529,35 @@ class _DataTransferItemListImpl implements DataTransferItemList native "*DataTra
 
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView native "*DataView" {
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) native;
+  num getFloat32(int byteOffset, [bool littleEndian]) native;
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) native;
+  num getFloat64(int byteOffset, [bool littleEndian]) native;
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) native;
+  int getInt16(int byteOffset, [bool littleEndian]) native;
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) native;
+  int getInt32(int byteOffset, [bool littleEndian]) native;
 
   int getInt8(int byteOffset) native;
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) native;
+  int getUint16(int byteOffset, [bool littleEndian]) native;
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) native;
+  int getUint32(int byteOffset, [bool littleEndian]) native;
 
   int getUint8(int byteOffset) native;
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) native;
+  void setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) native;
+  void setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
   void setInt8(int byteOffset, int value) native;
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
   void setUint8(int byteOffset, int value) native;
 }
@@ -4566,11 +4566,11 @@ class _DatabaseImpl implements Database native "*Database" {
 
   final String version;
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 
 class _DatabaseSyncImpl implements DatabaseSync native "*DatabaseSync" {
@@ -4579,7 +4579,7 @@ class _DatabaseSyncImpl implements DatabaseSync native "*DatabaseSync" {
 
   final String version;
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
 
   void readTransaction(SQLTransactionSyncCallback callback) native;
 
@@ -4591,9 +4591,9 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
   _DedicatedWorkerContextEventsImpl get on() =>
     new _DedicatedWorkerContextEventsImpl(this);
 
-  void postMessage(Object message, [List messagePorts = null]) native;
+  void postMessage(Object message, [List messagePorts]) native;
 
-  void webkitPostMessage(Object message, [List transferList = null]) native;
+  void webkitPostMessage(Object message, [List transferList]) native;
 }
 
 class _DedicatedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements DedicatedWorkerContextEvents {
@@ -4626,7 +4626,7 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
 
   final _MediaStreamListImpl remoteStreams;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void addStream(_MediaStreamImpl stream) native;
 
@@ -4636,7 +4636,7 @@ class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements Deprecat
 
   void processSignalingMessage(String message) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void removeStream(_MediaStreamImpl stream) native;
 
@@ -4691,11 +4691,11 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySync native "*DirectoryEntrySync" {
@@ -4711,7 +4711,7 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
 class _DirectoryReaderImpl implements DirectoryReader native "*DirectoryReader" {
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _DirectoryReaderSyncImpl implements DirectoryReaderSync native "*DirectoryReaderSync" {
@@ -6204,7 +6204,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   void scrollByPages(int pages) native;
 
-  void scrollIntoView([bool centerIfNeeded = null]) native "scrollIntoViewIfNeeded";
+  void scrollIntoView([bool centerIfNeeded]) native "scrollIntoViewIfNeeded";
 
   void $dom_setAttribute(String name, String value) native "setAttribute";
 
@@ -6415,15 +6415,15 @@ class _EntryImpl implements Entry native "*Entry" {
 
   final String name;
 
-  void copyTo(_DirectoryEntryImpl parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void copyTo(_DirectoryEntryImpl parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void moveTo(_DirectoryEntryImpl parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void moveTo(_DirectoryEntryImpl parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   String toURL() native;
 }
@@ -6583,13 +6583,13 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource native "*
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void close() native;
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _EventSourceEventsImpl extends _EventsImpl implements EventSourceEvents {
@@ -6661,11 +6661,11 @@ class _EventTargetImpl implements EventTarget native "*EventTarget" {
 
   Events get on() => new _EventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
 }
 
@@ -6703,9 +6703,9 @@ class _FileImpl extends _BlobImpl implements File native "*File" {
 
 class _FileEntryImpl extends _EntryImpl implements FileEntry native "*FileEntry" {
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _FileEntrySyncImpl extends _EntrySyncImpl implements FileEntrySync native "*FileEntrySync" {
@@ -6887,7 +6887,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*Fi
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
@@ -6897,9 +6897,9 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader native "*Fi
 
   void readAsDataURL(_BlobImpl blob) native;
 
-  void readAsText(_BlobImpl blob, [String encoding = null]) native;
+  void readAsText(_BlobImpl blob, [String encoding]) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _FileReaderEventsImpl extends _EventsImpl implements FileReaderEvents {
@@ -6926,7 +6926,7 @@ class _FileReaderSyncImpl implements FileReaderSync native "*FileReaderSync" {
 
   String readAsDataURL(_BlobImpl blob) native;
 
-  String readAsText(_BlobImpl blob, [String encoding = null]) native;
+  String readAsText(_BlobImpl blob, [String encoding]) native;
 }
 
 class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*FileWriter" {
@@ -6950,11 +6950,11 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter native "*Fi
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void seek(int position) native;
 
@@ -7078,9 +7078,9 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Float32ArrayImpl subarray(int start, [int end = null]) native;
+  _Float32ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, List<num>, JavaScriptIndexingBehavior native "*Float64Array" {
@@ -7169,9 +7169,9 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array, Li
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Float64ArrayImpl subarray(int start, [int end = null]) native;
+  _Float64ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _FontElementImpl extends _ElementImpl implements FontElement native "*HTMLFontElement" {
@@ -7287,9 +7287,9 @@ class _GeolocationImpl implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 
 class _GeopositionImpl implements Geoposition native "*Geoposition" {
@@ -7455,9 +7455,9 @@ class _HistoryImpl implements History native "*History" {
 
   void go(int distance) native;
 
-  void pushState(Object data, String title, [String url = null]) native;
+  void pushState(Object data, String title, [String url]) native;
 
-  void replaceState(Object data, String title, [String url = null]) native;
+  void replaceState(Object data, String title, [String url]) native;
 }
 
 class _HtmlElementImpl extends _ElementImpl implements HtmlElement native "*HTMLHtmlElement" {
@@ -7486,7 +7486,7 @@ class _IDBCursorImpl implements IDBCursor native "*IDBCursor" {
 
   void advance(int count) native;
 
-  void continueFunction([key = null]) native "continue";
+  void continueFunction([key]) native "continue";
 
   _IDBRequestImpl delete() native;
 
@@ -7553,17 +7553,17 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final String version;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void close() native;
 
-  _IDBObjectStoreImpl createObjectStore(String name, [Map options = null]) native;
+  _IDBObjectStoreImpl createObjectStore(String name, [Map options]) native;
 
   void deleteObjectStore(String name) native;
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 }
@@ -7644,15 +7644,15 @@ class _IDBIndexImpl implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestImpl count([key_OR_range = null]) native;
+  _IDBRequestImpl count([key_OR_range]) native;
 
   _IDBRequestImpl get(key) native;
 
   _IDBRequestImpl getKey(key) native;
 
-  _IDBRequestImpl openCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range, direction]) native;
 
-  _IDBRequestImpl openKeyCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestImpl openKeyCursor([key_OR_range, direction]) native;
 }
 
 class _IDBKeyImpl implements IDBKey native "*IDBKey" {
@@ -7681,13 +7681,13 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   final _IDBTransactionImpl transaction;
 
-  _IDBRequestImpl add(value, [key = null]) native;
+  _IDBRequestImpl add(value, [key]) native;
 
   _IDBRequestImpl clear() native;
 
-  _IDBRequestImpl count([key_OR_range = null]) native;
+  _IDBRequestImpl count([key_OR_range]) native;
 
-  _IDBIndexImpl createIndex(String name, keyPath, [Map options = null]) native;
+  _IDBIndexImpl createIndex(String name, keyPath, [Map options]) native;
 
   _IDBRequestImpl delete(key_OR_keyRange) native;
 
@@ -7697,9 +7697,9 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
 
   _IDBIndexImpl index(String name) native;
 
-  _IDBRequestImpl openCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestImpl openCursor([key_OR_range, direction]) native;
 
-  _IDBRequestImpl put(value, [key = null]) native;
+  _IDBRequestImpl put(value, [key]) native;
 }
 
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*IDBRequest" {
@@ -7721,11 +7721,11 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*ID
 
   final String webkitErrorMessage;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBRequestEventsImpl extends _EventsImpl implements IDBRequestEvents {
@@ -7755,13 +7755,13 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction nat
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   _IDBObjectStoreImpl objectStore(String name) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEvents {
@@ -7786,11 +7786,11 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _IDBVersionChangeRequestEventsImpl extends _IDBRequestEventsImpl implements IDBVersionChangeRequestEvents {
@@ -8003,11 +8003,11 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
 
   void setCustomValidity(String error) native;
 
-  void setSelectionRange(int start, int end, [String direction = null]) native;
+  void setSelectionRange(int start, int end, [String direction]) native;
 
-  void stepDown([int n = null]) native;
+  void stepDown([int n]) native;
 
-  void stepUp([int n = null]) native;
+  void stepUp([int n]) native;
 }
 
 class _InputElementEventsImpl extends _ElementEventsImpl implements InputElementEvents {
@@ -8102,9 +8102,9 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Int16ArrayImpl subarray(int start, [int end = null]) native;
+  _Int16ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<int>, JavaScriptIndexingBehavior native "*Int32Array" {
@@ -8193,9 +8193,9 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Int32ArrayImpl subarray(int start, [int end = null]) native;
+  _Int32ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int>, JavaScriptIndexingBehavior native "*Int8Array" {
@@ -8284,9 +8284,9 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Int8ArrayImpl subarray(int start, [int end = null]) native;
+  _Int8ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
@@ -8298,11 +8298,11 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _JavaScriptAudioNodeEventsImpl extends _EventsImpl implements JavaScriptAudioNodeEvents {
@@ -8446,11 +8446,11 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
   // From EventTarget
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _LocationImpl implements Location native "*Location" {
@@ -8542,7 +8542,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController n
 
   num volume;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
@@ -8550,7 +8550,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController n
 
   void play() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HTMLMediaElement" {
@@ -8656,7 +8656,7 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackImpl addTextTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackImpl addTextTrack(String kind, [String label, String language]) native;
 
   String canPlayType(String type, String keySystem) native;
 
@@ -8666,11 +8666,11 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
 
   void play() native;
 
-  void webkitAddKey(String keySystem, _Uint8ArrayImpl key, [_Uint8ArrayImpl initData = null, String sessionId = null]) native;
+  void webkitAddKey(String keySystem, _Uint8ArrayImpl key, [_Uint8ArrayImpl initData, String sessionId]) native;
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData = null]) native;
+  void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayImpl initData]) native;
 
   void webkitSourceAbort(String id) native;
 
@@ -8880,11 +8880,11 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream native "*
 
   final _MediaStreamTrackListImpl videoTracks;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _MediaStreamEventsImpl extends _EventsImpl implements MediaStreamEvents {
@@ -8964,19 +8964,19 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort native "*
   _MessagePortEventsImpl get on() =>
     new _MessagePortEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void close() native;
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void postMessage(String message, [List messagePorts = null]) native;
+  void postMessage(String message, [List messagePorts]) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void start() native;
 
-  void webkitPostMessage(String message, [List transfer = null]) native;
+  void webkitPostMessage(String message, [List transfer]) native;
 }
 
 class _MessagePortEventsImpl extends _EventsImpl implements MessagePortEvents {
@@ -9258,7 +9258,7 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
 
 class _NavigatorUserMediaErrorImpl implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -9465,7 +9465,7 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   void set text(String value) native "this.textContent = value;";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   _NodeImpl $dom_appendChild(_NodeImpl newChild) native "appendChild";
 
@@ -9481,7 +9481,7 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
 
   _NodeImpl $dom_removeChild(_NodeImpl oldChild) native "removeChild";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   _NodeImpl $dom_replaceChild(_NodeImpl newChild, _NodeImpl oldChild) native "replaceChild";
 
@@ -9740,7 +9740,7 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   String tag;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void cancel() native;
 
@@ -9748,7 +9748,7 @@ class _NotificationImpl extends _EventTargetImpl implements Notification native 
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void show() native;
 }
@@ -10036,21 +10036,21 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   final _MediaStreamListImpl remoteStreams;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  void addStream(_MediaStreamImpl stream, [Map mediaStreamHints = null]) native;
+  void addStream(_MediaStreamImpl stream, [Map mediaStreamHints]) native;
 
   void close() native;
 
-  _SessionDescriptionImpl createAnswer(String offer, [Map mediaHints = null]) native;
+  _SessionDescriptionImpl createAnswer(String offer, [Map mediaHints]) native;
 
-  _SessionDescriptionImpl createOffer([Map mediaHints = null]) native;
+  _SessionDescriptionImpl createOffer([Map mediaHints]) native;
 
   bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
 
   void processIceMessage(_IceCandidateImpl candidate) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void removeStream(_MediaStreamImpl stream) native;
 
@@ -10058,7 +10058,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void setRemoteDescription(int action, _SessionDescriptionImpl desc) native;
 
-  void startIce([Map iceOptions = null]) native;
+  void startIce([Map iceOptions]) native;
 }
 
 class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection00Events {
@@ -10157,7 +10157,7 @@ class _PointerLockImpl implements PointerLock native "*PointerLock" {
 
   final bool isLocked;
 
-  void lock(_ElementImpl target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+  void lock(_ElementImpl target, [VoidCallback successCallback, VoidCallback failureCallback]) native;
 
   void unlock() native;
 }
@@ -11002,11 +11002,11 @@ class _SVGElementInstanceImpl implements SVGElementInstance native "*SVGElementI
 
   final _SVGElementInstanceImpl previousSibling;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventImpl event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementInstanceEvents {
@@ -13965,9 +13965,9 @@ class _SpeechGrammarListImpl implements SpeechGrammarList native "*SpeechGrammar
 
   final int length;
 
-  void addFromString(String string, [num weight = null]) native;
+  void addFromString(String string, [num weight]) native;
 
-  void addFromUri(String src, [num weight = null]) native;
+  void addFromUri(String src, [num weight]) native;
 
   _SpeechGrammarImpl item(int index) native;
 }
@@ -14004,11 +14004,11 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void start() native;
 
@@ -14510,7 +14510,7 @@ class _TextAreaElementImpl extends _ElementImpl implements TextAreaElement nativ
 
   void setCustomValidity(String error) native;
 
-  void setSelectionRange(int start, int end, [String direction = null]) native;
+  void setSelectionRange(int start, int end, [String direction]) native;
 }
 
 class _TextEventImpl extends _UIEventImpl implements TextEvent native "*TextEvent" {
@@ -14550,13 +14550,13 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack native "*Text
 
   void addCue(_TextTrackCueImpl cue) native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   void removeCue(_TextTrackCueImpl cue) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _TextTrackEventsImpl extends _EventsImpl implements TextTrackEvents {
@@ -14594,13 +14594,13 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue native 
 
   String vertical;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   _DocumentFragmentImpl getCueAsHTML() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
@@ -14627,13 +14627,13 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList nativ
 
   final int length;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
   _TextTrackImpl item(int index) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _TextTrackListEventsImpl extends _EventsImpl implements TextTrackListEvents {
@@ -14971,9 +14971,9 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Uint16ArrayImpl subarray(int start, [int end = null]) native;
+  _Uint16ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List<int>, JavaScriptIndexingBehavior native "*Uint32Array" {
@@ -15062,9 +15062,9 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array, List
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Uint32ArrayImpl subarray(int start, [int end = null]) native;
+  _Uint32ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<int>, JavaScriptIndexingBehavior native "*Uint8Array" {
@@ -15153,9 +15153,9 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array, List<i
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Uint8ArrayImpl subarray(int start, [int end = null]) native;
+  _Uint8ArrayImpl subarray(int start, [int end]) native;
 }
 
 class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArray native "*Uint8ClampedArray" {
@@ -15163,9 +15163,9 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
   // Use implementation from Uint8Array.
   // final int length;
 
-  void setElements(Object array, [int offset = null]) native "set";
+  void setElements(Object array, [int offset]) native "set";
 
-  _Uint8ClampedArrayImpl subarray(int start, [int end = null]) native;
+  _Uint8ClampedArrayImpl subarray(int start, [int end]) native;
 }
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
@@ -16103,13 +16103,13 @@ class _WebGLRenderingContextImpl extends _CanvasRenderingContextImpl implements 
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewImpl pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, _ArrayBufferViewImpl pixels]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewImpl pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, _ArrayBufferViewImpl pixels]) native;
 
   void uniform1f(_WebGLUniformLocationImpl location, num x) native;
 
@@ -16269,13 +16269,13 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebS
 
   final String url;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
-  void close([int code = null, String reason = null]) native;
+  void close([int code, String reason]) native;
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   bool send(String data) native;
 }
@@ -16548,7 +16548,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   final _WindowImpl window;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void alert(String message) native;
 
@@ -16586,9 +16586,9 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void moveTo(num x, num y) native;
 
-  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void postMessage(message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(message, String targetOrigin, [List messagePorts]) native;
 
   void print() native;
 
@@ -16596,7 +16596,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   void releaseEvents() native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   void resizeBy(num x, num y) native;
 
@@ -16612,7 +16612,7 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) native;
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
   void stop() native;
 
@@ -16624,13 +16624,13 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _PointImpl webkitConvertPointFromPageToNode(_NodeImpl node, _PointImpl p) native;
 
-  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(message, String targetOrigin, [List transferList]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
 }
 
@@ -16791,11 +16791,11 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker native "*Worker"
   _WorkerEventsImpl get on() =>
     new _WorkerEventsImpl(this);
 
-  void postMessage(message, [List messagePorts = null]) native;
+  void postMessage(message, [List messagePorts]) native;
 
   void terminate() native;
 
-  void webkitPostMessage(message, [List messagePorts = null]) native;
+  void webkitPostMessage(message, [List messagePorts]) native;
 }
 
 class _WorkerEventsImpl extends _AbstractWorkerEventsImpl implements WorkerEvents {
@@ -16823,7 +16823,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext nativ
 
   final _NotificationCenterImpl webkitNotifications;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   void clearInterval(int handle) native;
 
@@ -16835,23 +16835,23 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext nativ
 
   void importScripts() native;
 
-  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseImpl openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  _DatabaseSyncImpl openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseSyncImpl openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
   int setInterval(TimeoutHandler handler, int timeout) native;
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   _DOMFileSystemSyncImpl webkitRequestFileSystemSync(int type, int size) native;
 
   _EntrySyncImpl webkitResolveLocalFileSystemSyncURL(String url) native;
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native;
 }
 
 class _WorkerContextEventsImpl extends _EventsImpl implements WorkerContextEvents {
@@ -16931,7 +16931,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   void abort() native;
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
@@ -16939,13 +16939,13 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
 
   String getResponseHeader(String header) native;
 
-  void open(String method, String url, [bool async = null, String user = null, String password = null]) native;
+  void open(String method, String url, [bool async, String user, String password]) native;
 
   void overrideMimeType(String override) native;
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 
-  void send([data = null]) native;
+  void send([data]) native;
 
   void setRequestHeader(String header, String value) native;
 }
@@ -16995,11 +16995,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
   _XMLHttpRequestUploadEventsImpl get on() =>
     new _XMLHttpRequestUploadEventsImpl(this);
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "addEventListener";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
   bool $dom_dispatchEvent(_EventImpl evt) native "dispatchEvent";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "removeEventListener";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
 }
 
 class _XMLHttpRequestUploadEventsImpl extends _EventsImpl implements XMLHttpRequestUploadEvents {
@@ -17540,7 +17540,7 @@ class _MessageChannelFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  factory Notification(String title, [Map options = null]) native
+  factory Notification(String title, [Map options]) native
       '''return new Notification(title, options);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

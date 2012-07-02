@@ -14,7 +14,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class _BlobFactoryProvider {
-  factory Blob(List blobParts, [String type = null, String endings = null]) => _dummy();
+  factory Blob(List blobParts, [String type, String endings]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35,7 +35,7 @@ class _DOMURLFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _DataViewFactoryProvider {
-  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) => _dummy();
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -70,14 +70,14 @@ class _FileReaderSyncFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _HTMLAudioElementFactoryProvider {
-  factory HTMLAudioElement([String src = null]) => _dummy();
+  factory HTMLAudioElement([String src]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _HTMLOptionElementFactoryProvider {
-  factory HTMLOptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) => _dummy();
+  factory HTMLOptionElement([String data, String value, bool defaultSelected, bool selected]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -112,7 +112,7 @@ class _MessageChannelFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  factory Notification(String title, [Map options = null]) => _dummy();
+  factory Notification(String title, [Map options]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -140,7 +140,7 @@ class _ShadowRootFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _SharedWorkerFactoryProvider {
-  factory SharedWorker(String scriptURL, [String name = null]) => _dummy();
+  factory SharedWorker(String scriptURL, [String name]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -168,14 +168,14 @@ class _SpeechRecognitionFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _TextTrackCueFactoryProvider {
-  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) => _dummy();
+  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 class _WebKitCSSMatrixFactoryProvider {
-  factory WebKitCSSMatrix([String cssValue = null]) => _dummy();
+  factory WebKitCSSMatrix([String cssValue]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

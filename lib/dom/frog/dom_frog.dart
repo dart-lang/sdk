@@ -26,18 +26,18 @@ spawnDomIsolate(Window targetWindow, String entryPoint) {
 
 class _AbstractWorkerJs extends _EventTargetJs implements AbstractWorker native "*AbstractWorker" {
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _ArrayBufferJs extends _DOMTypeJs implements ArrayBuffer native "*ArrayBuffer" {
 
   final int byteLength;
 
-  _ArrayBufferJs slice(int begin, [int end = null]) native;
+  _ArrayBufferJs slice(int begin, [int end]) native;
 }
 
 class _ArrayBufferViewJs extends _DOMTypeJs implements ArrayBufferView native "*ArrayBufferView" {
@@ -128,23 +128,23 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _BiquadFilterNodeJs createBiquadFilter() native;
 
-  _AudioBufferJs createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate = null]) native;
+  _AudioBufferJs createBuffer(buffer_OR_numberOfChannels, mixToMono_OR_numberOfFrames, [num sampleRate]) native;
 
   _AudioBufferSourceNodeJs createBufferSource() native;
 
-  _AudioChannelMergerJs createChannelMerger([int numberOfInputs = null]) native;
+  _AudioChannelMergerJs createChannelMerger([int numberOfInputs]) native;
 
-  _AudioChannelSplitterJs createChannelSplitter([int numberOfOutputs = null]) native;
+  _AudioChannelSplitterJs createChannelSplitter([int numberOfOutputs]) native;
 
   _ConvolverNodeJs createConvolver() native;
 
-  _DelayNodeJs createDelayNode([num maxDelayTime = null]) native;
+  _DelayNodeJs createDelayNode([num maxDelayTime]) native;
 
   _DynamicsCompressorNodeJs createDynamicsCompressor() native;
 
   _AudioGainNodeJs createGainNode() native;
 
-  _JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize, [int numberOfInputChannels = null, int numberOfOutputChannels = null]) native;
+  _JavaScriptAudioNodeJs createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]) native;
 
   _MediaElementAudioSourceNodeJs createMediaElementSource(_HTMLMediaElementJs mediaElement) native;
 
@@ -156,7 +156,7 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _WaveTableJs createWaveTable(_Float32ArrayJs real, _Float32ArrayJs imag) native;
 
-  void decodeAudioData(_ArrayBufferJs audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native;
+  void decodeAudioData(_ArrayBufferJs audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native;
 
   void startRendering() native;
 }
@@ -195,7 +195,7 @@ class _AudioNodeJs extends _DOMTypeJs implements AudioNode native "*AudioNode" {
 
   final int numberOfOutputs;
 
-  void connect(destination, int output, [int input = null]) native;
+  void connect(destination, int output, [int input]) native;
 
   void disconnect(int output) native;
 }
@@ -293,11 +293,11 @@ class _BatteryManagerJs extends _EventTargetJs implements BatteryManager native 
 
   final num level;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _BeforeLoadEventJs extends _EventJs implements BeforeLoadEvent native "*BeforeLoadEvent" {
@@ -340,9 +340,9 @@ class _BlobJs extends _DOMTypeJs implements Blob native "*Blob" {
 
   final String type;
 
-  _BlobJs slice([int start = null, int end = null, String contentType = null]) native;
+  _BlobJs slice([int start, int end, String contentType]) native;
 
-  _BlobJs webkitSlice([int start = null, int end = null, String contentType = null]) native;
+  _BlobJs webkitSlice([int start, int end, String contentType]) native;
 }
 
 class _CDATASectionJs extends _TextJs implements CDATASection native "*CDATASection" {
@@ -520,7 +520,7 @@ class _CSSStyleDeclarationJs extends _DOMTypeJs implements CSSStyleDeclaration n
 
   String removeProperty(String propertyName) native;
 
-  void setProperty(String propertyName, String value, [String priority = null]) native;
+  void setProperty(String propertyName, String value, [String priority]) native;
 }
 
 class _CSSStyleRuleJs extends _CSSRuleJs implements CSSStyleRule native "*CSSStyleRule" {
@@ -538,7 +538,7 @@ class _CSSStyleSheetJs extends _StyleSheetJs implements CSSStyleSheet native "*C
 
   final _CSSRuleListJs rules;
 
-  int addRule(String selector, String style, [int index = null]) native;
+  int addRule(String selector, String style, [int index]) native;
 
   void deleteRule(int index) native;
 
@@ -641,7 +641,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void closePath() native;
 
-  _ImageDataJs createImageData(imagedata_OR_sw, [num sh = null]) native;
+  _ImageDataJs createImageData(imagedata_OR_sw, [num sh]) native;
 
   _CanvasGradientJs createLinearGradient(num x0, num y0, num x1, num y1) native;
 
@@ -649,15 +649,15 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   _CanvasGradientJs createRadialGradient(num x0, num y0, num r0, num x1, num y1, num r1) native;
 
-  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width = null, num height_OR_sh = null, num dx = null, num dy = null, num dw = null, num dh = null]) native;
+  void drawImage(canvas_OR_image_OR_video, num sx_OR_x, num sy_OR_y, [num sw_OR_width, num height_OR_sh, num dx, num dy, num dw, num dh]) native;
 
-  void drawImageFromRect(_HTMLImageElementJs image, [num sx = null, num sy = null, num sw = null, num sh = null, num dx = null, num dy = null, num dw = null, num dh = null, String compositeOperation = null]) native;
+  void drawImageFromRect(_HTMLImageElementJs image, [num sx, num sy, num sw, num sh, num dx, num dy, num dw, num dh, String compositeOperation]) native;
 
   void fill() native;
 
   void fillRect(num x, num y, num width, num height) native;
 
-  void fillText(String text, num x, num y, [num maxWidth = null]) native;
+  void fillText(String text, num x, num y, [num maxWidth]) native;
 
   _ImageDataJs getImageData(num sx, num sy, num sw, num sh) native;
 
@@ -669,7 +669,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void moveTo(num x, num y) native;
 
-  void putImageData(_ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void putImageData(_ImageDataJs imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
 
   void quadraticCurveTo(num cpx, num cpy, num x, num y) native;
 
@@ -687,7 +687,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void setCompositeOperation(String compositeOperation) native;
 
-  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setFillColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   void setLineCap(String cap) native;
 
@@ -697,17 +697,17 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   void setMiterLimit(num limit) native;
 
-  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r = null, num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setShadow(num width, num height, num blur, [c_OR_color_OR_grayLevel_OR_r, num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
-  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m = null, num b_OR_y = null, num a_OR_k = null, num a = null]) native;
+  void setStrokeColor(c_OR_color_OR_grayLevel_OR_r, [num alpha_OR_g_OR_m, num b_OR_y, num a_OR_k, num a]) native;
 
   void setTransform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
   void stroke() native;
 
-  void strokeRect(num x, num y, num width, num height, [num lineWidth = null]) native;
+  void strokeRect(num x, num y, num width, num height, [num lineWidth]) native;
 
-  void strokeText(String text, num x, num y, [num maxWidth = null]) native;
+  void strokeText(String text, num x, num y, [num maxWidth]) native;
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native;
 
@@ -715,7 +715,7 @@ class _CanvasRenderingContext2DJs extends _CanvasRenderingContextJs implements C
 
   _ImageDataJs webkitGetImageDataHD(num sx, num sy, num sw, num sh) native;
 
-  void webkitPutImageDataHD(_ImageDataJs imagedata, num dx, num dy, [num dirtyX = null, num dirtyY = null, num dirtyWidth = null, num dirtyHeight = null]) native;
+  void webkitPutImageDataHD(_ImageDataJs imagedata, num dx, num dy, [num dirtyX, num dirtyY, num dirtyWidth, num dirtyHeight]) native;
 }
 
 class _CharacterDataJs extends _NodeJs implements CharacterData native "*CharacterData" {
@@ -769,7 +769,7 @@ class _ClipboardJs extends _DOMTypeJs implements Clipboard native "*Clipboard" {
 
   final List types;
 
-  void clearData([String type = null]) native;
+  void clearData([String type]) native;
 
   String getData(String type) native;
 
@@ -916,11 +916,11 @@ class _DOMApplicationCacheJs extends _EventTargetJs implements DOMApplicationCac
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void swapCache() native;
 
@@ -1375,7 +1375,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   final _DOMWindowJs window;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void alert(String message) native;
 
@@ -1413,11 +1413,11 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   void moveTo(num x, num y) native;
 
-  _DOMWindowJs open(String url, String name, [String options = null]) native;
+  _DOMWindowJs open(String url, String name, [String options]) native;
 
-  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void postMessage(message, String targetOrigin, [List messagePorts = null]) native;
+  void postMessage(message, String targetOrigin, [List messagePorts]) native;
 
   void print() native;
 
@@ -1425,7 +1425,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   void releaseEvents() native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void resizeBy(num x, num y) native;
 
@@ -1441,7 +1441,7 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) native;
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native;
 
   void stop() native;
 
@@ -1453,13 +1453,13 @@ class _DOMWindowJs extends _EventTargetJs implements DOMWindow native "@*DOMWind
 
   _WebKitPointJs webkitConvertPointFromPageToNode(_NodeJs node, _WebKitPointJs p) native;
 
-  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native;
+  void webkitPostMessage(message, String targetOrigin, [List transferList]) native;
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native;
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
 }
 
@@ -1471,7 +1471,7 @@ class _DataTransferItemJs extends _DOMTypeJs implements DataTransferItem native 
 
   _BlobJs getAsFile() native;
 
-  void getAsString([StringCallback callback = null]) native;
+  void getAsString([StringCallback callback]) native;
 
   _EntryJs webkitGetAsEntry() native;
 }
@@ -1480,7 +1480,7 @@ class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList
 
   final int length;
 
-  void add(data_OR_file, [String type = null]) native;
+  void add(data_OR_file, [String type]) native;
 
   void clear() native;
 
@@ -1489,35 +1489,35 @@ class _DataTransferItemListJs extends _DOMTypeJs implements DataTransferItemList
 
 class _DataViewJs extends _ArrayBufferViewJs implements DataView native "*DataView" {
 
-  num getFloat32(int byteOffset, [bool littleEndian = null]) native;
+  num getFloat32(int byteOffset, [bool littleEndian]) native;
 
-  num getFloat64(int byteOffset, [bool littleEndian = null]) native;
+  num getFloat64(int byteOffset, [bool littleEndian]) native;
 
-  int getInt16(int byteOffset, [bool littleEndian = null]) native;
+  int getInt16(int byteOffset, [bool littleEndian]) native;
 
-  int getInt32(int byteOffset, [bool littleEndian = null]) native;
+  int getInt32(int byteOffset, [bool littleEndian]) native;
 
   int getInt8(int byteOffset) native;
 
-  int getUint16(int byteOffset, [bool littleEndian = null]) native;
+  int getUint16(int byteOffset, [bool littleEndian]) native;
 
-  int getUint32(int byteOffset, [bool littleEndian = null]) native;
+  int getUint32(int byteOffset, [bool littleEndian]) native;
 
   int getUint8(int byteOffset) native;
 
-  void setFloat32(int byteOffset, num value, [bool littleEndian = null]) native;
+  void setFloat32(int byteOffset, num value, [bool littleEndian]) native;
 
-  void setFloat64(int byteOffset, num value, [bool littleEndian = null]) native;
+  void setFloat64(int byteOffset, num value, [bool littleEndian]) native;
 
-  void setInt16(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setInt16(int byteOffset, int value, [bool littleEndian]) native;
 
-  void setInt32(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setInt32(int byteOffset, int value, [bool littleEndian]) native;
 
   void setInt8(int byteOffset, int value) native;
 
-  void setUint16(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setUint16(int byteOffset, int value, [bool littleEndian]) native;
 
-  void setUint32(int byteOffset, int value, [bool littleEndian = null]) native;
+  void setUint32(int byteOffset, int value, [bool littleEndian]) native;
 
   void setUint8(int byteOffset, int value) native;
 }
@@ -1526,11 +1526,11 @@ class _DatabaseJs extends _DOMTypeJs implements Database native "*Database" {
 
   final String version;
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native;
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native;
 }
 
 class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*DatabaseSync" {
@@ -1539,7 +1539,7 @@ class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*Databa
 
   final String version;
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native;
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native;
 
   void readTransaction(SQLTransactionSyncCallback callback) native;
 
@@ -1548,9 +1548,9 @@ class _DatabaseSyncJs extends _DOMTypeJs implements DatabaseSync native "*Databa
 
 class _DedicatedWorkerContextJs extends _WorkerContextJs implements DedicatedWorkerContext native "*DedicatedWorkerContext" {
 
-  void postMessage(Object message, [List messagePorts = null]) native;
+  void postMessage(Object message, [List messagePorts]) native;
 
-  void webkitPostMessage(Object message, [List transferList = null]) native;
+  void webkitPostMessage(Object message, [List transferList]) native;
 }
 
 class _DelayNodeJs extends _AudioNodeJs implements DelayNode native "*DelayNode" {
@@ -1574,7 +1574,7 @@ class _DeprecatedPeerConnectionJs extends _EventTargetJs implements DeprecatedPe
 
   final _MediaStreamListJs remoteStreams;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void addStream(_MediaStreamJs stream) native;
 
@@ -1584,7 +1584,7 @@ class _DeprecatedPeerConnectionJs extends _EventTargetJs implements DeprecatedPe
 
   void processSignalingMessage(String message) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void removeStream(_MediaStreamJs stream) native;
 
@@ -1613,11 +1613,11 @@ class _DirectoryEntryJs extends _EntryJs implements DirectoryEntry native "*Dire
 
   _DirectoryReaderJs createReader() native;
 
-  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _DirectoryEntrySyncJs extends _EntrySyncJs implements DirectoryEntrySync native "*DirectoryEntrySync" {
@@ -1633,7 +1633,7 @@ class _DirectoryEntrySyncJs extends _EntrySyncJs implements DirectoryEntrySync n
 
 class _DirectoryReaderJs extends _DOMTypeJs implements DirectoryReader native "*DirectoryReader" {
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _DirectoryReaderSyncJs extends _DOMTypeJs implements DirectoryReaderSync native "*DirectoryReaderSync" {
@@ -1783,7 +1783,7 @@ class _DocumentJs extends _NodeJs implements Document native "*Document" {
 
   _DOMSelectionJs getSelection() native;
 
-  _NodeJs importNode(_NodeJs importedNode, [bool deep = null]) native;
+  _NodeJs importNode(_NodeJs importedNode, [bool deep]) native;
 
   bool queryCommandEnabled(String command) native;
 
@@ -1938,9 +1938,9 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   void scrollByPages(int pages) native;
 
-  void scrollIntoView([bool alignWithTop = null]) native;
+  void scrollIntoView([bool alignWithTop]) native;
 
-  void scrollIntoViewIfNeeded([bool centerIfNeeded = null]) native;
+  void scrollIntoViewIfNeeded([bool centerIfNeeded]) native;
 
   void setAttribute(String name, String value) native;
 
@@ -1983,15 +1983,15 @@ class _EntryJs extends _DOMTypeJs implements Entry native "*Entry" {
 
   final String name;
 
-  void copyTo(_DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void copyTo(_DirectoryEntryJs parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void moveTo(_DirectoryEntryJs parent, [String name = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void moveTo(_DirectoryEntryJs parent, [String name, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 
   String toURL() native;
 }
@@ -2148,22 +2148,22 @@ class _EventSourceJs extends _EventTargetJs implements EventSource native "*Even
 
   final String url;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void close() native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _EventTargetJs extends _DOMTypeJs implements EventTarget native "*EventTarget" {
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _FileJs extends _BlobJs implements File native "*File" {
@@ -2177,9 +2177,9 @@ class _FileJs extends _BlobJs implements File native "*File" {
 
 class _FileEntryJs extends _EntryJs implements FileEntry native "*FileEntry" {
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native;
 
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native;
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native;
 }
 
 class _FileEntrySyncJs extends _EntrySyncJs implements FileEntrySync native "*FileEntrySync" {
@@ -2358,7 +2358,7 @@ class _FileReaderJs extends _EventTargetJs implements FileReader native "*FileRe
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
@@ -2368,9 +2368,9 @@ class _FileReaderJs extends _EventTargetJs implements FileReader native "*FileRe
 
   void readAsDataURL(_BlobJs blob) native;
 
-  void readAsText(_BlobJs blob, [String encoding = null]) native;
+  void readAsText(_BlobJs blob, [String encoding]) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _FileReaderSyncJs extends _DOMTypeJs implements FileReaderSync native "*FileReaderSync" {
@@ -2381,7 +2381,7 @@ class _FileReaderSyncJs extends _DOMTypeJs implements FileReaderSync native "*Fi
 
   String readAsDataURL(_BlobJs blob) native;
 
-  String readAsText(_BlobJs blob, [String encoding = null]) native;
+  String readAsText(_BlobJs blob, [String encoding]) native;
 }
 
 class _FileWriterJs extends _EventTargetJs implements FileWriter native "*FileWriter" {
@@ -2402,11 +2402,11 @@ class _FileWriterJs extends _EventTargetJs implements FileWriter native "*FileWr
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void seek(int position) native;
 
@@ -2514,9 +2514,9 @@ class _Float32ArrayJs extends _ArrayBufferViewJs implements Float32Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Float32ArrayJs subarray(int start, [int end = null]) native;
+  _Float32ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<num> native "*Float64Array" {
@@ -2605,18 +2605,18 @@ class _Float64ArrayJs extends _ArrayBufferViewJs implements Float64Array, List<n
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Float64ArrayJs subarray(int start, [int end = null]) native;
+  _Float64ArrayJs subarray(int start, [int end]) native;
 }
 
 class _GeolocationJs extends _DOMTypeJs implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native;
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native;
 }
 
 class _GeopositionJs extends _DOMTypeJs implements Geoposition native "*Geoposition" {
@@ -3377,11 +3377,11 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
 
   void setCustomValidity(String error) native;
 
-  void setSelectionRange(int start, int end, [String direction = null]) native;
+  void setSelectionRange(int start, int end, [String direction]) native;
 
-  void stepDown([int n = null]) native;
+  void stepDown([int n]) native;
 
-  void stepUp([int n = null]) native;
+  void stepUp([int n]) native;
 }
 
 class _HTMLKeygenElementJs extends _HTMLElementJs implements HTMLKeygenElement native "*HTMLKeygenElement" {
@@ -3597,7 +3597,7 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   final int webkitVideoDecodedByteCount;
 
-  _TextTrackJs addTextTrack(String kind, [String label = null, String language = null]) native;
+  _TextTrackJs addTextTrack(String kind, [String label, String language]) native;
 
   String canPlayType(String type, String keySystem) native;
 
@@ -3607,11 +3607,11 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   void play() native;
 
-  void webkitAddKey(String keySystem, _Uint8ArrayJs key, [_Uint8ArrayJs initData = null, String sessionId = null]) native;
+  void webkitAddKey(String keySystem, _Uint8ArrayJs key, [_Uint8ArrayJs initData, String sessionId]) native;
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
-  void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData = null]) native;
+  void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData]) native;
 
   void webkitSourceAbort(String id) native;
 
@@ -4123,7 +4123,7 @@ class _HTMLTextAreaElementJs extends _HTMLElementJs implements HTMLTextAreaEleme
 
   void setCustomValidity(String error) native;
 
-  void setSelectionRange(int start, int end, [String direction = null]) native;
+  void setSelectionRange(int start, int end, [String direction]) native;
 }
 
 class _HTMLTitleElementJs extends _HTMLElementJs implements HTMLTitleElement native "*HTMLTitleElement" {
@@ -4217,9 +4217,9 @@ class _HistoryJs extends _DOMTypeJs implements History native "*History" {
 
   void go(int distance) native;
 
-  void pushState(Object data, String title, [String url = null]) native;
+  void pushState(Object data, String title, [String url]) native;
 
-  void replaceState(Object data, String title, [String url = null]) native;
+  void replaceState(Object data, String title, [String url]) native;
 }
 
 class _IDBAnyJs extends _DOMTypeJs implements IDBAny native "*IDBAny" {
@@ -4245,7 +4245,7 @@ class _IDBCursorJs extends _DOMTypeJs implements IDBCursor native "*IDBCursor" {
 
   void advance(int count) native;
 
-  void continueFunction([key = null]) native '''
+  void continueFunction([key]) native '''
         if (key == null) return this['continue']();
         return this['continue'](key);
       ''';
@@ -4268,17 +4268,17 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
   final String version;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void close() native;
 
-  _IDBObjectStoreJs createObjectStore(String name, [Map options = null]) native;
+  _IDBObjectStoreJs createObjectStore(String name, [Map options]) native;
 
   void deleteObjectStore(String name) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   _IDBVersionChangeRequestJs setVersion(String version) native;
 
@@ -4347,15 +4347,15 @@ class _IDBIndexJs extends _DOMTypeJs implements IDBIndex native "*IDBIndex" {
 
   final bool unique;
 
-  _IDBRequestJs count([key_OR_range = null]) native;
+  _IDBRequestJs count([key_OR_range]) native;
 
   _IDBRequestJs get(key) native;
 
   _IDBRequestJs getKey(key) native;
 
-  _IDBRequestJs openCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range, direction]) native;
 
-  _IDBRequestJs openKeyCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestJs openKeyCursor([key_OR_range, direction]) native;
 }
 
 class _IDBKeyJs extends _DOMTypeJs implements IDBKey native "*IDBKey" {
@@ -4384,13 +4384,13 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   final _IDBTransactionJs transaction;
 
-  _IDBRequestJs add(value, [key = null]) native;
+  _IDBRequestJs add(value, [key]) native;
 
   _IDBRequestJs clear() native;
 
-  _IDBRequestJs count([key_OR_range = null]) native;
+  _IDBRequestJs count([key_OR_range]) native;
 
-  _IDBIndexJs createIndex(String name, keyPath, [Map options = null]) native;
+  _IDBIndexJs createIndex(String name, keyPath, [Map options]) native;
 
   _IDBRequestJs delete(key_OR_keyRange) native;
 
@@ -4400,9 +4400,9 @@ class _IDBObjectStoreJs extends _DOMTypeJs implements IDBObjectStore native "*ID
 
   _IDBIndexJs index(String name) native;
 
-  _IDBRequestJs openCursor([key_OR_range = null, direction = null]) native;
+  _IDBRequestJs openCursor([key_OR_range, direction]) native;
 
-  _IDBRequestJs put(value, [key = null]) native;
+  _IDBRequestJs put(value, [key]) native;
 }
 
 class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBRequest" {
@@ -4421,11 +4421,11 @@ class _IDBRequestJs extends _EventTargetJs implements IDBRequest native "*IDBReq
 
   final String webkitErrorMessage;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _IDBTransactionJs extends _EventTargetJs implements IDBTransaction native "*IDBTransaction" {
@@ -4444,13 +4444,13 @@ class _IDBTransactionJs extends _EventTargetJs implements IDBTransaction native 
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
   _IDBObjectStoreJs objectStore(String name) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _IDBVersionChangeEventJs extends _EventJs implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -4462,11 +4462,11 @@ class _IDBVersionChangeRequestJs extends _IDBRequestJs implements IDBVersionChan
 
   // From EventTarget
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _IceCandidateJs extends _DOMTypeJs implements IceCandidate native "*IceCandidate" {
@@ -4571,9 +4571,9 @@ class _Int16ArrayJs extends _ArrayBufferViewJs implements Int16Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Int16ArrayJs subarray(int start, [int end = null]) native;
+  _Int16ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> native "*Int32Array" {
@@ -4662,9 +4662,9 @@ class _Int32ArrayJs extends _ArrayBufferViewJs implements Int32Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Int32ArrayJs subarray(int start, [int end = null]) native;
+  _Int32ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> native "*Int8Array" {
@@ -4753,9 +4753,9 @@ class _Int8ArrayJs extends _ArrayBufferViewJs implements Int8Array, List<int> na
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Int8ArrayJs subarray(int start, [int end = null]) native;
+  _Int8ArrayJs subarray(int start, [int end]) native;
 }
 
 class _JavaScriptAudioNodeJs extends _AudioNodeJs implements JavaScriptAudioNode native "*JavaScriptAudioNode" {
@@ -4764,11 +4764,11 @@ class _JavaScriptAudioNodeJs extends _AudioNodeJs implements JavaScriptAudioNode
 
   // From EventTarget
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _JavaScriptCallFrameJs extends _DOMTypeJs implements JavaScriptCallFrame native "*JavaScriptCallFrame" {
@@ -4829,11 +4829,11 @@ class _LocalMediaStreamJs extends _MediaStreamJs implements LocalMediaStream nat
 
   // From EventTarget
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _LocationJs extends _DOMTypeJs implements Location native "*Location" {
@@ -4889,7 +4889,7 @@ class _MediaControllerJs extends _EventTargetJs implements MediaController nativ
 
   num volume;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
@@ -4897,7 +4897,7 @@ class _MediaControllerJs extends _EventTargetJs implements MediaController nativ
 
   void play() native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _MediaElementAudioSourceNodeJs extends _AudioSourceNodeJs implements MediaElementAudioSourceNode native "*MediaElementAudioSourceNode" {
@@ -5074,11 +5074,11 @@ class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*Medi
 
   final _MediaStreamTrackListJs videoTracks;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _MediaStreamEventJs extends _EventJs implements MediaStreamEvent native "*MediaStreamEvent" {
@@ -5144,19 +5144,19 @@ class _MessageEventJs extends _EventJs implements MessageEvent native "*MessageE
 
 class _MessagePortJs extends _EventTargetJs implements MessagePort native "*MessagePort" {
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void close() native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void postMessage(String message, [List messagePorts = null]) native;
+  void postMessage(String message, [List messagePorts]) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void start() native;
 
-  void webkitPostMessage(String message, [List transfer = null]) native;
+  void webkitPostMessage(String message, [List transfer]) native;
 }
 
 class _MetadataJs extends _DOMTypeJs implements Metadata native "*Metadata" {
@@ -5397,7 +5397,7 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   void registerProtocolHandler(String scheme, String url, String title) native;
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native;
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
 
 class _NavigatorUserMediaErrorJs extends _DOMTypeJs implements NavigatorUserMediaError native "*NavigatorUserMediaError" {
@@ -5479,7 +5479,7 @@ class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
   String textContent;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   _NodeJs appendChild(_NodeJs newChild) native;
 
@@ -5513,7 +5513,7 @@ class _NodeJs extends _EventTargetJs implements Node native "*Node" {
 
   _NodeJs removeChild(_NodeJs oldChild) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   _NodeJs replaceChild(_NodeJs newChild, _NodeJs oldChild) native;
 }
@@ -5680,7 +5680,7 @@ class _NotificationJs extends _EventTargetJs implements Notification native "*No
 
   String tag;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void cancel() native;
 
@@ -5688,7 +5688,7 @@ class _NotificationJs extends _EventTargetJs implements Notification native "*No
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void show() native;
 }
@@ -5832,21 +5832,21 @@ class _PeerConnection00Js extends _EventTargetJs implements PeerConnection00 nat
 
   final _MediaStreamListJs remoteStreams;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  void addStream(_MediaStreamJs stream, [Map mediaStreamHints = null]) native;
+  void addStream(_MediaStreamJs stream, [Map mediaStreamHints]) native;
 
   void close() native;
 
-  _SessionDescriptionJs createAnswer(String offer, [Map mediaHints = null]) native;
+  _SessionDescriptionJs createAnswer(String offer, [Map mediaHints]) native;
 
-  _SessionDescriptionJs createOffer([Map mediaHints = null]) native;
+  _SessionDescriptionJs createOffer([Map mediaHints]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
   void processIceMessage(_IceCandidateJs candidate) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void removeStream(_MediaStreamJs stream) native;
 
@@ -5854,7 +5854,7 @@ class _PeerConnection00Js extends _EventTargetJs implements PeerConnection00 nat
 
   void setRemoteDescription(int action, _SessionDescriptionJs desc) native;
 
-  void startIce([Map iceOptions = null]) native;
+  void startIce([Map iceOptions]) native;
 }
 
 class _PerformanceJs extends _DOMTypeJs implements Performance native "*Performance" {
@@ -5932,7 +5932,7 @@ class _PointerLockJs extends _DOMTypeJs implements PointerLock native "*PointerL
 
   final bool isLocked;
 
-  void lock(_ElementJs target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native;
+  void lock(_ElementJs target, [VoidCallback successCallback, VoidCallback failureCallback]) native;
 
   void unlock() native;
 }
@@ -6697,11 +6697,11 @@ class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance nat
 
   final _SVGElementInstanceJs previousSibling;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs event) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _SVGElementInstanceListJs extends _DOMTypeJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
@@ -9485,9 +9485,9 @@ class _SpeechGrammarListJs extends _DOMTypeJs implements SpeechGrammarList nativ
 
   final int length;
 
-  void addFromString(String string, [num weight = null]) native;
+  void addFromString(String string, [num weight]) native;
 
-  void addFromUri(String src, [num weight = null]) native;
+  void addFromUri(String src, [num weight]) native;
 
   _SpeechGrammarJs item(int index) native;
 }
@@ -9521,11 +9521,11 @@ class _SpeechRecognitionJs extends _EventTargetJs implements SpeechRecognition n
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void start() native;
 
@@ -9801,13 +9801,13 @@ class _TextTrackJs extends _EventTargetJs implements TextTrack native "*TextTrac
 
   void addCue(_TextTrackCueJs cue) native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
   void removeCue(_TextTrackCueJs cue) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _TextTrackCueJs extends _EventTargetJs implements TextTrackCue native "*TextTrackCue" {
@@ -9836,13 +9836,13 @@ class _TextTrackCueJs extends _EventTargetJs implements TextTrackCue native "*Te
 
   String vertical;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
   _DocumentFragmentJs getCueAsHTML() native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _TextTrackCueListJs extends _DOMTypeJs implements TextTrackCueList native "*TextTrackCueList" {
@@ -9858,13 +9858,13 @@ class _TextTrackListJs extends _EventTargetJs implements TextTrackList native "*
 
   final int length;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
   _TextTrackJs item(int index) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _TimeRangesJs extends _DOMTypeJs implements TimeRanges native "*TimeRanges" {
@@ -10152,9 +10152,9 @@ class _Uint16ArrayJs extends _ArrayBufferViewJs implements Uint16Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Uint16ArrayJs subarray(int start, [int end = null]) native;
+  _Uint16ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int> native "*Uint32Array" {
@@ -10243,9 +10243,9 @@ class _Uint32ArrayJs extends _ArrayBufferViewJs implements Uint32Array, List<int
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Uint32ArrayJs subarray(int start, [int end = null]) native;
+  _Uint32ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> native "*Uint8Array" {
@@ -10334,9 +10334,9 @@ class _Uint8ArrayJs extends _ArrayBufferViewJs implements Uint8Array, List<int> 
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Uint8ArrayJs subarray(int start, [int end = null]) native;
+  _Uint8ArrayJs subarray(int start, [int end]) native;
 }
 
 class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray native "*Uint8ClampedArray" {
@@ -10344,9 +10344,9 @@ class _Uint8ClampedArrayJs extends _Uint8ArrayJs implements Uint8ClampedArray na
   // Use implementation from Uint8Array.
   // final int length;
 
-  void setElements(Object array, [int offset = null]) native 'set';
+  void setElements(Object array, [int offset]) native 'set';
 
-  _Uint8ClampedArrayJs subarray(int start, [int end = null]) native;
+  _Uint8ClampedArrayJs subarray(int start, [int end]) native;
 }
 
 class _ValidityStateJs extends _DOMTypeJs implements ValidityState native "*ValidityState" {
@@ -11252,13 +11252,13 @@ class _WebGLRenderingContextJs extends _CanvasRenderingContextJs implements WebG
 
   void stencilOpSeparate(int face, int fail, int zfail, int zpass) native;
 
-  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format = null, int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texImage2D(int target, int level, int internalformat, int format_OR_width, int height_OR_type, border_OR_canvas_OR_image_OR_pixels_OR_video, [int format, int type, _ArrayBufferViewJs pixels]) native;
 
   void texParameterf(int target, int pname, num param) native;
 
   void texParameteri(int target, int pname, int param) native;
 
-  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type = null, _ArrayBufferViewJs pixels = null]) native;
+  void texSubImage2D(int target, int level, int xoffset, int yoffset, int format_OR_width, int height_OR_type, canvas_OR_format_OR_image_OR_pixels_OR_video, [int type, _ArrayBufferViewJs pixels]) native;
 
   void uniform1f(_WebGLUniformLocationJs location, num x) native;
 
@@ -11614,13 +11614,13 @@ class _WebSocketJs extends _EventTargetJs implements WebSocket native "*WebSocke
 
   final String url;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  void close([int code = null, String reason = null]) native;
+  void close([int code, String reason]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool send(String data) native;
 }
@@ -11664,11 +11664,11 @@ class _WheelEventJs extends _UIEventJs implements WheelEvent native "*WheelEvent
 
 class _WorkerJs extends _AbstractWorkerJs implements Worker native "*Worker" {
 
-  void postMessage(message, [List messagePorts = null]) native;
+  void postMessage(message, [List messagePorts]) native;
 
   void terminate() native;
 
-  void webkitPostMessage(message, [List messagePorts = null]) native;
+  void webkitPostMessage(message, [List messagePorts]) native;
 }
 
 class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*WorkerContext" {
@@ -11687,7 +11687,7 @@ class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*
 
   final _NotificationCenterJs webkitNotifications;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   void clearInterval(int handle) native;
 
@@ -11699,23 +11699,23 @@ class _WorkerContextJs extends _EventTargetJs implements WorkerContext native "*
 
   void importScripts() native;
 
-  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseJs openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  _DatabaseSyncJs openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native;
+  _DatabaseSyncJs openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   int setInterval(TimeoutHandler handler, int timeout) native;
 
   int setTimeout(TimeoutHandler handler, int timeout) native;
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native;
 
   _DOMFileSystemSyncJs webkitRequestFileSystemSync(int type, int size) native;
 
   _EntrySyncJs webkitResolveLocalFileSystemSyncURL(String url) native;
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native;
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native;
 }
 
 class _WorkerLocationJs extends _DOMTypeJs implements WorkerLocation native "*WorkerLocation" {
@@ -11786,7 +11786,7 @@ class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native 
 
   void abort() native;
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
@@ -11794,13 +11794,13 @@ class _XMLHttpRequestJs extends _EventTargetJs implements XMLHttpRequest native 
 
   String getResponseHeader(String header) native;
 
-  void open(String method, String url, [bool async = null, String user = null, String password = null]) native;
+  void open(String method, String url, [bool async, String user, String password]) native;
 
   void overrideMimeType(String override) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 
-  void send([data = null]) native;
+  void send([data]) native;
 
   void setRequestHeader(String header, String value) native;
 }
@@ -11829,11 +11829,11 @@ class _XMLHttpRequestProgressEventJs extends _ProgressEventJs implements XMLHttp
 
 class _XMLHttpRequestUploadJs extends _EventTargetJs implements XMLHttpRequestUpload native "*XMLHttpRequestUpload" {
 
-  void addEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
   bool dispatchEvent(_EventJs evt) native;
 
-  void removeEventListener(String type, EventListener listener, [bool useCapture = null]) native;
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _XMLSerializerJs extends _DOMTypeJs implements XMLSerializer native "*XMLSerializer" {
@@ -11939,7 +11939,7 @@ class _XSLTProcessorJs extends _DOMTypeJs implements XSLTProcessor native "*XSLT
 // BSD-style license that can be found in the LICENSE file.
 
 class _BlobFactoryProvider {
-  factory Blob(List blobParts, [String type = null, String endings = null]) native
+  factory Blob(List blobParts, [String type, String endings]) native
       '''return new Blob(blobParts, type, endings);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11963,7 +11963,7 @@ class _DOMURLFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _DataViewFactoryProvider {
-  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) native
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native
       '''return new DataView(buffer, byteOffset, byteLength);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12062,7 +12062,7 @@ class _MessageChannelFactoryProvider {
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  factory Notification(String title, [Map options = null]) native
+  factory Notification(String title, [Map options]) native
       '''return new Notification(title, options);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file

@@ -341,7 +341,7 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   WaveTable createWaveTable(Float32Array real, Float32Array imag) native "AudioContext_createWaveTable_Callback";
 
-  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback = null]) native "AudioContext_decodeAudioData_Callback";
+  void decodeAudioData(ArrayBuffer audioData, AudioBufferCallback successCallback, [AudioBufferCallback errorCallback]) native "AudioContext_decodeAudioData_Callback";
 
   void startRendering() native "AudioContext_startRendering_Callback";
 
@@ -647,8 +647,8 @@ class _BiquadFilterNodeImpl extends _AudioNodeImpl implements BiquadFilterNode {
 // BSD-style license that can be found in the LICENSE file.
 
 class _BlobFactoryProvider {
-  factory Blob(List blobParts, [String type = null, String endings = null]) => _createBlob(blobParts, type, endings);
-  static Blob _createBlob(List blobParts, [String type = null, String endings = null]) native "Blob_constructor_Callback";
+  factory Blob(List blobParts, [String type, String endings]) => _createBlob(blobParts, type, endings);
+  static Blob _createBlob(List blobParts, [String type, String endings]) native "Blob_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -4349,7 +4349,7 @@ class _ClipboardImpl extends NativeFieldWrapperClass1 implements Clipboard {
 
   List get types() native "Clipboard_types_Getter";
 
-  void clearData([String type = null]) native "Clipboard_clearData_Callback";
+  void clearData([String type]) native "Clipboard_clearData_Callback";
 
   String getData(String type) native "Clipboard_getData_Callback";
 
@@ -5195,7 +5195,7 @@ class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   Window get window() native "DOMWindow_window_Getter";
 
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_addEventListener_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_addEventListener_Callback";
 
   void alert(String message) native "DOMWindow_alert_Callback";
 
@@ -5233,11 +5233,11 @@ class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   void moveTo(num x, num y) native "DOMWindow_moveTo_Callback";
 
-  Window open(String url, String name, [String options = null]) native "DOMWindow_open_Callback";
+  Window open(String url, String name, [String options]) native "DOMWindow_open_Callback";
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "DOMWindow_openDatabase_Callback";
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "DOMWindow_openDatabase_Callback";
 
-  void postMessage(message, String targetOrigin, [List messagePorts = null]) native "DOMWindow_postMessage_Callback";
+  void postMessage(message, String targetOrigin, [List messagePorts]) native "DOMWindow_postMessage_Callback";
 
   void print() native "DOMWindow_print_Callback";
 
@@ -5245,7 +5245,7 @@ class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   void releaseEvents() native "DOMWindow_releaseEvents_Callback";
 
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture = null]) native "DOMWindow_removeEventListener_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMWindow_removeEventListener_Callback";
 
   void resizeBy(num x, num y) native "DOMWindow_resizeBy_Callback";
 
@@ -5261,7 +5261,7 @@ class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   int setTimeout(TimeoutHandler handler, int timeout) native "DOMWindow_setTimeout_Callback";
 
-  Object showModalDialog(String url, [Object dialogArgs = null, String featureArgs = null]) native "DOMWindow_showModalDialog_Callback";
+  Object showModalDialog(String url, [Object dialogArgs, String featureArgs]) native "DOMWindow_showModalDialog_Callback";
 
   void stop() native "DOMWindow_stop_Callback";
 
@@ -5273,13 +5273,13 @@ class _DOMWindowImpl extends NativeFieldWrapperClass1 implements Window {
 
   Point webkitConvertPointFromPageToNode(Node node, Point p) native "DOMWindow_webkitConvertPointFromPageToNode_Callback";
 
-  void webkitPostMessage(message, String targetOrigin, [List transferList = null]) native "DOMWindow_webkitPostMessage_Callback";
+  void webkitPostMessage(message, String targetOrigin, [List transferList]) native "DOMWindow_webkitPostMessage_Callback";
 
   int webkitRequestAnimationFrame(RequestAnimationFrameCallback callback) native "DOMWindow_webkitRequestAnimationFrame_Callback";
 
-  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback = null]) native "DOMWindow_webkitRequestFileSystem_Callback";
+  void webkitRequestFileSystem(int type, int size, FileSystemCallback successCallback, [ErrorCallback errorCallback]) native "DOMWindow_webkitRequestFileSystem_Callback";
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native "DOMWindow_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5296,7 +5296,7 @@ class _DataTransferItemImpl extends NativeFieldWrapperClass1 implements DataTran
 
   Blob getAsFile() native "DataTransferItem_getAsFile_Callback";
 
-  void getAsString([StringCallback callback = null]) native "DataTransferItem_getAsString_Callback";
+  void getAsString([StringCallback callback]) native "DataTransferItem_getAsString_Callback";
 
   Entry webkitGetAsEntry() native "DataTransferItem_webkitGetAsEntry_Callback";
 
@@ -5337,8 +5337,8 @@ class _DataTransferItemListImpl extends NativeFieldWrapperClass1 implements Data
 // BSD-style license that can be found in the LICENSE file.
 
 class _DataViewFactoryProvider {
-  factory DataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) => _createDataView(buffer, byteOffset, byteLength);
-  static DataView _createDataView(ArrayBuffer buffer, [int byteOffset = null, int byteLength = null]) native "DataView_constructor_Callback";
+  factory DataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) => _createDataView(buffer, byteOffset, byteLength);
+  static DataView _createDataView(ArrayBuffer buffer, [int byteOffset, int byteLength]) native "DataView_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5505,11 +5505,11 @@ class _DatabaseImpl extends NativeFieldWrapperClass1 implements Database {
 
   String get version() native "Database_version_Getter";
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback = null, SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_changeVersion_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionCallback callback, SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_changeVersion_Callback";
 
-  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_readTransaction_Callback";
+  void readTransaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_readTransaction_Callback";
 
-  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback = null, VoidCallback successCallback = null]) native "Database_transaction_Callback";
+  void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]) native "Database_transaction_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5524,7 +5524,7 @@ class _DatabaseSyncImpl extends NativeFieldWrapperClass1 implements DatabaseSync
 
   String get version() native "DatabaseSync_version_Getter";
 
-  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback = null]) native "DatabaseSync_changeVersion_Callback";
+  void changeVersion(String oldVersion, String newVersion, [SQLTransactionSyncCallback callback]) native "DatabaseSync_changeVersion_Callback";
 
   void readTransaction(SQLTransactionSyncCallback callback) native "DatabaseSync_readTransaction_Callback";
 
@@ -5550,9 +5550,9 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
     return _on;
   }
 
-  void postMessage(Object message, [List messagePorts = null]) native "DedicatedWorkerContext_postMessage_Callback";
+  void postMessage(Object message, [List messagePorts]) native "DedicatedWorkerContext_postMessage_Callback";
 
-  void webkitPostMessage(Object message, [List transferList = null]) native "DedicatedWorkerContext_webkitPostMessage_Callback";
+  void webkitPostMessage(Object message, [List transferList]) native "DedicatedWorkerContext_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5682,11 +5682,11 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry {
 
   DirectoryReader createReader() native "DirectoryEntry_createReader_Callback";
 
-  void getDirectory(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DirectoryEntry_getDirectory_Callback";
+  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native "DirectoryEntry_getDirectory_Callback";
 
-  void getFile(String path, [Object flags = null, EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "DirectoryEntry_getFile_Callback";
+  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native "DirectoryEntry_getFile_Callback";
 
-  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native "DirectoryEntry_removeRecursively_Callback";
+  void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryEntry_removeRecursively_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -5714,7 +5714,7 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
 class _DirectoryReaderImpl extends NativeFieldWrapperClass1 implements DirectoryReader {
 
-  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback = null]) native "DirectoryReader_readEntries_Callback";
+  void readEntries(EntriesCallback successCallback, [ErrorCallback errorCallback]) native "DirectoryReader_readEntries_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7356,9 +7356,9 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   void _copyTo_2(parent, name, successCallback, errorCallback) native "Entry_copyTo_2_Callback";
 
-  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback = null]) native "Entry_getMetadata_Callback";
+  void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
 
-  void getParent([EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "Entry_getParent_Callback";
+  void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
   void moveTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
     if (name === _null) {
@@ -7372,7 +7372,7 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
 
   void _moveTo_2(parent, name, successCallback, errorCallback) native "Entry_moveTo_2_Callback";
 
-  void remove(VoidCallback successCallback, [ErrorCallback errorCallback = null]) native "Entry_remove_Callback";
+  void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
 
   String toURL() native "Entry_toURL_Callback";
 
@@ -7690,9 +7690,9 @@ class _EventTargetImpl extends NativeFieldWrapperClass1 implements EventTarget {
 
 class _FileEntryImpl extends _EntryImpl implements FileEntry {
 
-  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback = null]) native "FileEntry_createWriter_Callback";
+  void createWriter(FileWriterCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_createWriter_Callback";
 
-  void file(FileCallback successCallback, [ErrorCallback errorCallback = null]) native "FileEntry_file_Callback";
+  void file(FileCallback successCallback, [ErrorCallback errorCallback]) native "FileEntry_file_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8143,7 +8143,7 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Float32Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
   Float32Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -8247,7 +8247,7 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
 
   // -- end List<num> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Float64Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
   Float64Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -8271,9 +8271,9 @@ class _GeolocationImpl extends NativeFieldWrapperClass1 implements Geolocation {
 
   void clearWatch(int watchId) native "Geolocation_clearWatch_Callback";
 
-  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native "Geolocation_getCurrentPosition_Callback";
+  void getCurrentPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_getCurrentPosition_Callback";
 
-  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback = null, Object options = null]) native "Geolocation_watchPosition_Callback";
+  int watchPosition(PositionCallback successCallback, [PositionErrorCallback errorCallback, Object options]) native "Geolocation_watchPosition_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8504,8 +8504,8 @@ class _HTMLAreaElementImpl extends _HTMLElementImpl implements AreaElement {
 // BSD-style license that can be found in the LICENSE file.
 
 class _AudioElementFactoryProvider {
-  factory AudioElement([String src = null]) => _createAudioElement(src);
-  static AudioElement _createAudioElement([String src = null]) native "HTMLAudioElement_constructor_Callback";
+  factory AudioElement([String src]) => _createAudioElement(src);
+  static AudioElement _createAudioElement([String src]) native "HTMLAudioElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9581,7 +9581,7 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
 
   void setCustomValidity(String error) native "HTMLInputElement_setCustomValidity_Callback";
 
-  void setSelectionRange(int start, int end, [String direction = null]) native "HTMLInputElement_setSelectionRange_Callback";
+  void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
   void stepDown([n = _null]) {
     if (n === _null) {
@@ -10233,8 +10233,8 @@ class _HTMLOptGroupElementImpl extends _HTMLElementImpl implements OptGroupEleme
 // BSD-style license that can be found in the LICENSE file.
 
 class _OptionElementFactoryProvider {
-  factory OptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) => _createOptionElement(data, value, defaultSelected, selected);
-  static OptionElement _createOptionElement([String data = null, String value = null, bool defaultSelected = null, bool selected = null]) native "HTMLOptionElement_constructor_Callback";
+  factory OptionElement([String data, String value, bool defaultSelected, bool selected]) => _createOptionElement(data, value, defaultSelected, selected);
+  static OptionElement _createOptionElement([String data, String value, bool defaultSelected, bool selected]) native "HTMLOptionElement_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11101,9 +11101,9 @@ class _HistoryImpl extends NativeFieldWrapperClass1 implements History {
 
   void go(int distance) native "History_go_Callback";
 
-  void pushState(Object data, String title, [String url = null]) native "History_pushState_Callback";
+  void pushState(Object data, String title, [String url]) native "History_pushState_Callback";
 
-  void replaceState(Object data, String title, [String url = null]) native "History_replaceState_Callback";
+  void replaceState(Object data, String title, [String url]) native "History_replaceState_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11957,7 +11957,7 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Int16Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
   Int16Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -12061,7 +12061,7 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Int32Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
   Int32Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -12165,7 +12165,7 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Int8Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
   Int8Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -12843,7 +12843,7 @@ class _MessagePortImpl extends NativeFieldWrapperClass1 implements MessagePort {
 
   bool $dom_dispatchEvent(Event evt) native "MessagePort_dispatchEvent_Callback";
 
-  void postMessage(String message, [List messagePorts = null]) native "MessagePort_postMessage_Callback";
+  void postMessage(String message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
   void $dom_removeEventListener(type, listener, [useCapture = _null]) {
     if (useCapture === _null) {
@@ -12859,7 +12859,7 @@ class _MessagePortImpl extends NativeFieldWrapperClass1 implements MessagePort {
 
   void start() native "MessagePort_start_Callback";
 
-  void webkitPostMessage(String message, [List transfer = null]) native "MessagePort_webkitPostMessage_Callback";
+  void webkitPostMessage(String message, [List transfer]) native "MessagePort_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13136,7 +13136,7 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   void registerProtocolHandler(String scheme, String url, String title) native "Navigator_registerProtocolHandler_Callback";
 
-  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback = null]) native "Navigator_webkitGetUserMedia_Callback";
+  void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13611,8 +13611,8 @@ class _NotificationCenterImpl extends NativeFieldWrapperClass1 implements Notifi
 // BSD-style license that can be found in the LICENSE file.
 
 class _NotificationFactoryProvider {
-  factory Notification(String title, [Map options = null]) => _createNotification(title, options);
-  static Notification _createNotification(String title, [Map options = null]) native "Notification_constructor_Callback";
+  factory Notification(String title, [Map options]) => _createNotification(title, options);
+  static Notification _createNotification(String title, [Map options]) native "Notification_constructor_Callback";
 }
 
 class _NotificationEventsImpl extends _EventsImpl implements NotificationEvents {
@@ -14013,7 +14013,7 @@ class _PointerLockImpl extends NativeFieldWrapperClass1 implements PointerLock {
 
   bool get isLocked() native "PointerLock_isLocked_Getter";
 
-  void lock(Element target, [VoidCallback successCallback = null, VoidCallback failureCallback = null]) native "PointerLock_lock_Callback";
+  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]) native "PointerLock_lock_Callback";
 
   void unlock() native "PointerLock_unlock_Callback";
 
@@ -18240,8 +18240,8 @@ class _SharedWorkerContextImpl extends _WorkerContextImpl implements SharedWorke
 // BSD-style license that can be found in the LICENSE file.
 
 class _SharedWorkerFactoryProvider {
-  factory SharedWorker(String scriptURL, [String name = null]) => _createSharedWorker(scriptURL, name);
-  static SharedWorker _createSharedWorker(String scriptURL, [String name = null]) native "SharedWorker_constructor_Callback";
+  factory SharedWorker(String scriptURL, [String name]) => _createSharedWorker(scriptURL, name);
+  static SharedWorker _createSharedWorker(String scriptURL, [String name]) native "SharedWorker_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18778,8 +18778,8 @@ class _TextMetricsImpl extends NativeFieldWrapperClass1 implements TextMetrics {
 // BSD-style license that can be found in the LICENSE file.
 
 class _TextTrackCueFactoryProvider {
-  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) => _createTextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
-  static TextTrackCue _createTextTrackCue(String id, num startTime, num endTime, String text, [String settings = null, bool pauseOnExit = null]) native "TextTrackCue_constructor_Callback";
+  factory TextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]) => _createTextTrackCue(id, startTime, endTime, text, settings, pauseOnExit);
+  static TextTrackCue _createTextTrackCue(String id, num startTime, num endTime, String text, [String settings, bool pauseOnExit]) native "TextTrackCue_constructor_Callback";
 }
 
 class _TextTrackCueEventsImpl extends _EventsImpl implements TextTrackCueEvents {
@@ -19341,7 +19341,7 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Uint16Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
   Uint16Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -19445,7 +19445,7 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Uint32Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
   Uint32Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -19549,7 +19549,7 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
 
   // -- end List<int> mixins.
 
-  void setElements(Object array, [int offset = null]) native "Uint8Array_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
   Uint8Array subarray(start, [end = _null]) {
     if (end === _null) {
@@ -19577,7 +19577,7 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   void operator[]=(int index, int value) native "Uint8ClampedArray_numericIndexSetter_Callback";
 
-  void setElements(Object array, [int offset = null]) native "Uint8ClampedArray_setElements_Callback";
+  void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
   Uint8ClampedArray subarray(start, [end = _null]) {
     if (end === _null) {
@@ -20333,8 +20333,8 @@ class _WebKitCSSKeyframesRuleImpl extends _CSSRuleImpl implements CSSKeyframesRu
 // BSD-style license that can be found in the LICENSE file.
 
 class _CSSMatrixFactoryProvider {
-  factory CSSMatrix([String cssValue = null]) => _createCSSMatrix(cssValue);
-  static CSSMatrix _createCSSMatrix([String cssValue = null]) native "WebKitCSSMatrix_constructor_Callback";
+  factory CSSMatrix([String cssValue]) => _createCSSMatrix(cssValue);
+  static CSSMatrix _createCSSMatrix([String cssValue]) native "WebKitCSSMatrix_constructor_Callback";
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -20575,7 +20575,7 @@ class _WebSocketImpl extends NativeFieldWrapperClass1 implements WebSocket {
 
   void _addEventListener_2(type, listener, useCapture) native "WebSocket_addEventListener_2_Callback";
 
-  void close([int code = null, String reason = null]) native "WebSocket_close_Callback";
+  void close([int code, String reason]) native "WebSocket_close_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
@@ -20689,9 +20689,9 @@ class _WorkerContextImpl extends NativeFieldWrapperClass1 implements WorkerConte
 
   void importScripts() native "WorkerContext_importScripts_Callback";
 
-  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "WorkerContext_openDatabase_Callback";
+  Database openDatabase(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabase_Callback";
 
-  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback = null]) native "WorkerContext_openDatabaseSync_Callback";
+  DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
   void $dom_removeEventListener(type, listener, [useCapture = _null]) {
     if (useCapture === _null) {
@@ -20709,13 +20709,13 @@ class _WorkerContextImpl extends NativeFieldWrapperClass1 implements WorkerConte
 
   int setTimeout(TimeoutHandler handler, int timeout) native "WorkerContext_setTimeout_Callback";
 
-  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback = null, ErrorCallback errorCallback = null]) native "WorkerContext_webkitRequestFileSystem_Callback";
+  void webkitRequestFileSystem(int type, int size, [FileSystemCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitRequestFileSystem_Callback";
 
   DOMFileSystemSync webkitRequestFileSystemSync(int type, int size) native "WorkerContext_webkitRequestFileSystemSync_Callback";
 
   EntrySync webkitResolveLocalFileSystemSyncURL(String url) native "WorkerContext_webkitResolveLocalFileSystemSyncURL_Callback";
 
-  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback = null, ErrorCallback errorCallback = null]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
+  void webkitResolveLocalFileSystemURL(String url, [EntryCallback successCallback, ErrorCallback errorCallback]) native "WorkerContext_webkitResolveLocalFileSystemURL_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20745,11 +20745,11 @@ class _WorkerImpl extends _AbstractWorkerImpl implements Worker {
     return _on;
   }
 
-  void postMessage(message, [List messagePorts = null]) native "Worker_postMessage_Callback";
+  void postMessage(message, [List messagePorts]) native "Worker_postMessage_Callback";
 
   void terminate() native "Worker_terminate_Callback";
 
-  void webkitPostMessage(message, [List messagePorts = null]) native "Worker_webkitPostMessage_Callback";
+  void webkitPostMessage(message, [List messagePorts]) native "Worker_webkitPostMessage_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20897,7 +20897,7 @@ class _XMLHttpRequestImpl extends NativeFieldWrapperClass1 implements XMLHttpReq
 
   String getResponseHeader(String header) native "XMLHttpRequest_getResponseHeader_Callback";
 
-  void open(String method, String url, [bool async = null, String user = null, String password = null]) native "XMLHttpRequest_open_Callback";
+  void open(String method, String url, [bool async, String user, String password]) native "XMLHttpRequest_open_Callback";
 
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
@@ -20913,7 +20913,7 @@ class _XMLHttpRequestImpl extends NativeFieldWrapperClass1 implements XMLHttpReq
 
   void _removeEventListener_2(type, listener, useCapture) native "XMLHttpRequest_removeEventListener_2_Callback";
 
-  void send([data = null]) native "XMLHttpRequest_send_Callback";
+  void send([data]) native "XMLHttpRequest_send_Callback";
 
   void setRequestHeader(String header, String value) native "XMLHttpRequest_setRequestHeader_Callback";
 
