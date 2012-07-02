@@ -21,7 +21,7 @@ audiocontext_test: Skip
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
 
-[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[  $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
 dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
@@ -29,25 +29,25 @@ htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 
-[ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
+[ $runtime == dartium || $runtime == chrome || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
 
 [ $runtime == ie ]
-typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
-typed_arrays_2_test: Skip
-typed_arrays_3_test: Skip
-typed_arrays_4_test: Skip
-typed_arrays_dataview_test: Skip
-canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
-canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
-cssstyledeclaration_test: Fail
-documentfragment_test: Fail
-element_test: Fail
-localstorage_test: Fail
-node_test: Fail
-svgelement_test: Fail
-svgelement2_test: Fail
-xhr_test: Fail
+#typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
+#typed_arrays_2_test: Skip
+#typed_arrays_3_test: Skip
+#typed_arrays_4_test: Skip
+#typed_arrays_dataview_test: Skip
+#canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
+#canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
+#cssstyledeclaration_test: Fail
+#documentfragment_test: Fail
+#element_test: Fail
+#localstorage_test: Fail
+#node_test: Fail
+#svgelement_test: Fail
+#svgelement2_test: Fail
+#xhr_test: Fail
 
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
@@ -98,7 +98,7 @@ xhr_test: Fail
 
 [ $runtime == ie ]
 # TODO(vsm): Triage DOM failures.
-*: Skip
+#*: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
