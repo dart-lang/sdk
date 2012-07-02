@@ -26,27 +26,8 @@ class NativeImplementationSystem(systembase.System):
     self._html_system = HtmlSystemShared(database)
     self._factory_provider_emitters = {}
 
-  def ProcessInterface(self, interface):
-    interface_name = interface.id
-
-    if IsPureInterface(interface_name):
-      return None
-
-    dart_impl_path = self._FilePathForDartImplementation(interface_name)
-    self._dom_impl_files.append(dart_impl_path)
-
-    cpp_header_path = self._FilePathForCppHeader(interface_name)
-    self._cpp_header_files.append(cpp_header_path)
-
-    cpp_impl_path = self._FilePathForCppImplementation(interface_name)
-    self._cpp_impl_files.append(cpp_impl_path)
-
-    NativeImplementationGenerator(self, interface,
-        self._emitters.FileEmitter(dart_impl_path),
-        self._emitters.FileEmitter(cpp_header_path),
-        self._emitters.FileEmitter(cpp_impl_path),
-        self._BaseDefines(interface),
-        self._templates).Generate()
+  def ImplementationGenerator(self, interface):
+    return NativeImplementationGenerator(self, interface)
 
   def ProcessCallback(self, interface, info):
     self._interface = interface
@@ -167,10 +148,6 @@ class NativeImplementationSystem(systembase.System):
   def Finish(self):
     pass
 
-  def _FilePathForDartImplementation(self, interface_name):
-    return os.path.join(self._output_dir, 'dart',
-                        '%sImplementation.dart' % interface_name)
-
   def _FilePathForDartFactoryProviderImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'dart',
                         '%sFactoryProviderImplementation.dart' % interface_name)
@@ -194,9 +171,7 @@ class NativeImplementationSystem(systembase.System):
 class NativeImplementationGenerator(systembase.BaseGenerator):
   """Generates Dart implementation for one DOM IDL interface."""
 
-  def __init__(self, system, interface,
-               dart_impl_emitter, cpp_header_emitter, cpp_impl_emitter,
-               base_members, templates):
+  def __init__(self, system, interface):
     """Generates Dart and C++ code for the given interface.
 
     Args:
@@ -204,27 +179,37 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       interface: an IDLInterface instance. It is assumed that all types have
           been converted to Dart types (e.g. int, String), unless they are in
           the same package as the interface.
-      dart_impl_emitter: an Emitter for the file containing the Dart
-         implementation class.
-      cpp_header_emitter: an Emitter for the file containing the C++ header.
-      cpp_impl_emitter: an Emitter for the file containing the C++
-         implementation.
-      base_members: a set of names of members defined in a base class.  This is
-          used to avoid static member 'overriding' in the generated Dart code.
     """
     super(NativeImplementationGenerator, self).__init__(
         system._database, interface)
     self._system = system
-    self._dart_impl_emitter = dart_impl_emitter
-    self._cpp_header_emitter = cpp_header_emitter
-    self._cpp_impl_emitter = cpp_impl_emitter
-    self._base_members = base_members
-    self._templates = templates
     self._current_secondary_parent = None
     self._html_system = self._system._html_system
     self._html_renames = self._html_system._html_renames
 
+  def HasImplementation(self):
+    return not IsPureInterface(self._interface.id)
+
+  def FilePathForDartImplementation(self):
+    return os.path.join(self._system._output_dir, 'dart',
+                        '%sImplementation.dart' % self._interface.id)
+
+  def SetImplementationEmitter(self, implementation_emitter):
+    self._dart_impl_emitter = implementation_emitter
+
   def StartInterface(self):
+    # Create emitters for c++ implementation.
+    if self.HasImplementation():
+      cpp_header_path = self._system._FilePathForCppHeader(self._interface.id)
+      self._system._cpp_header_files.append(cpp_header_path)
+      self._cpp_header_emitter = self._system._emitters.FileEmitter(cpp_header_path)
+      cpp_impl_path = self._system._FilePathForCppImplementation(self._interface.id)
+      self._system._cpp_impl_files.append(cpp_impl_path)
+      self._cpp_impl_emitter = self._system._emitters.FileEmitter(cpp_impl_path)
+    else:
+      self._cpp_header_emitter = emitter.Emitter()
+      self._cpp_impl_emitter = emitter.Emitter()
+
     self._interface_type_info = GetIDLTypeInfo(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
@@ -477,9 +462,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     template = None
     if html_interface_name == self._interface.id or not self._database.HasInterface(html_interface_name):
       template_file = 'impl_%s.darttemplate' % html_interface_name
-      template = self._templates.TryLoad(template_file)
+      template = self._system._templates.TryLoad(template_file)
     if not template:
-      template = self._templates.Load('dart_implementation.darttemplate')
+      template = self._system._templates.Load('dart_implementation.darttemplate')
 
     class_name = self._ImplClassName(self._interface.id)
     members_emitter = self._dart_impl_emitter.Emit(
@@ -493,7 +478,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateCppHeader()
 
     self._cpp_impl_emitter.Emit(
-        self._templates.Load('cpp_implementation.template'),
+        self._system._templates.Load('cpp_implementation.template'),
         INTERFACE=self._interface.id,
         INCLUDES=_GenerateCPPIncludes(self._cpp_impl_includes),
         CALLBACKS=self._cpp_definitions_emitter.Fragments(),
@@ -532,7 +517,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
     wrapper_type = _DOMWrapperType(self._database, self._interface)
     self._cpp_header_emitter.Emit(
-        self._templates.Load('cpp_header.template'),
+        self._system._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),

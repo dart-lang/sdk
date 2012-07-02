@@ -6,6 +6,8 @@
 """This module provides shared functionality for the system to generate
 Dart:html APIs from the IDL database."""
 
+import emitter
+
 from systemfrog import *
 from systeminterface import *
 
@@ -775,29 +777,7 @@ class HtmlInterfacesSystem(HtmlSystem):
     self._factory_provider_emitters = {}
 
   def ProcessInterface(self, interface):
-    """."""
-
-    self._backend.ProcessInterface(interface)
-
-    if interface.id in _merged_html_interfaces:
-      return
-
-    html_interface_name = self._shared._HTMLInterfaceName(interface.id)
-    dart_interface_file_path = self._FilePathForDartInterface(
-        html_interface_name)
-
-    self._dart_interface_file_paths.append(dart_interface_file_path)
-
-    dart_interface_code = self._emitters.FileEmitter(dart_interface_file_path)
-
-    template_file = 'interface_%s.darttemplate' % html_interface_name
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('interface.darttemplate')
-
-    HtmlDartInterfaceGenerator(
-        self, interface, dart_interface_code,
-        template, self._shared).Generate()
+    HtmlDartInterfaceGenerator(self, interface).Generate()
 
   def ProcessCallback(self, interface, info):
     """Generates a typedef for the callback interface."""
@@ -817,19 +797,30 @@ class HtmlInterfacesSystem(HtmlSystem):
 
 # ------------------------------------------------------------------------------
 
-# TODO(jmesserly): inheritance is probably not the right way to factor this long
-# term, but it makes merging better for now.
-class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
-  """Generates Dart Interface definition for one DOM IDL interface."""
+class HtmlDartInterfaceGenerator(BaseGenerator):
+  """Generates dart interface and implementation for the DOM IDL interface."""
 
-  def __init__(self, system, interface, emitter, template, shared):
-    super(HtmlDartInterfaceGenerator, self).__init__(system, interface,
-      emitter, template)
-    self._shared = shared
+  def __init__(self, system, interface):
+    super(HtmlDartInterfaceGenerator, self).__init__(
+        system._database, interface)
+    self._system = system
+    self._shared = system._shared
     self._html_interface_name = self._shared._HTMLInterfaceName(
         self._interface.id)
+    self._backend = system._backend.ImplementationGenerator(self._interface)
 
   def StartInterface(self):
+    if not self._interface.id in _merged_html_interfaces:
+      path = self._system._FilePathForDartInterface(self._html_interface_name)
+      self._system._dart_interface_file_paths.append(path)
+      self._interface_emitter = self._system._emitters.FileEmitter(path)
+    else:
+      self._interface_emitter = emitter.Emitter()
+
+    template_file = 'interface_%s.darttemplate' % self._html_interface_name
+    interface_template = (self._system._templates.TryLoad(template_file) or
+                          self._system._templates.Load('interface.darttemplate'))
+
     typename = self._html_interface_name
 
     extends = []
@@ -880,8 +871,8 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     # TODO(vsm): Add appropriate package / namespace syntax.
     (self._type_comment_emitter,
      self._members_emitter,
-     self._top_level_emitter) = self._emitter.Emit(
-         self._template + '$!TOP_LEVEL',
+     self._top_level_emitter) = self._interface_emitter.Emit(
+         interface_template + '$!TOP_LEVEL',
          ID=typename,
          EXTENDS=extends_str)
 
@@ -911,16 +902,25 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
         TYPE=self._shared.DartType(element_type))
 
     emit_events, events = self._shared.GetEventAttributes(self._interface)
-    if not emit_events:
-      return
-    elif events:
-      self.AddEventAttributes(events)
-    else:
-      self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+    if emit_events:
+      if events:
+        self.AddEventAttributes(events)
+      else:
+        self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
 
     for merged_interface in _merged_html_interfaces:
       if _merged_html_interfaces[merged_interface] == self._interface.id:
         self.AddMembers(self._database.GetInterface(merged_interface))
+
+    # Generate implementation.
+    if self._backend.HasImplementation():
+      path = self._backend.FilePathForDartImplementation()
+      self._system._dart_interface_file_paths.append(path)
+      implementation_emitter = self._system._emitters.FileEmitter(path)
+    else:
+      implementation_emitter = emitter.Emitter()
+    self._backend.SetImplementationEmitter(implementation_emitter)
+    self._backend.Generate()
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
@@ -981,7 +981,11 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     pass
 
   def AddConstant(self, constant):
-    self._EmitConstant(self._members_emitter, constant)
+    type = TypeOrNothing(DartType(constant.type.id), constant.type.id)
+    self._members_emitter.Emit('\n  static final $TYPE$NAME = $VALUE;\n',
+                               NAME=constant.id,
+                               TYPE=type,
+                               VALUE=constant.value)
 
   def AddEventAttributes(self, event_attrs):
     event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
@@ -989,7 +993,7 @@ class HtmlDartInterfaceGenerator(DartInterfaceGenerator):
     events_interface = self._html_interface_name + 'Events'
     self._EmitEventGetter(events_interface)
 
-    events_members = self._emitter.Emit(
+    events_members = self._interface_emitter.Emit(
         '\ninterface $INTERFACE extends $PARENTS {\n$!MEMBERS}\n',
         INTERFACE=events_interface,
         PARENTS=', '.join(
@@ -1020,13 +1024,23 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   interface.
   """
 
-  def __init__(self, system, interface, template, dart_code,
-      shared):
+  def __init__(self, system, interface):
     super(HtmlFrogClassGenerator, self).__init__(
-        system, interface, template, dart_code)
-    self._shared = shared
+        system, interface, None, None)
+    self._shared = self._system._shared
     self._html_interface_name = self._shared._HTMLInterfaceName(
         self._interface.id)
+
+  def HasImplementation(self):
+    return not (IsPureInterface(self._interface.id) or
+                self._interface.id in _merged_html_interfaces)
+
+  def FilePathForDartImplementation(self):
+    return os.path.join(self._system._output_dir, 'html', 'frog',
+                        '%s.dart' % self._html_interface_name)
+
+  def SetImplementationEmitter(self, implementation_emitter):
+    self._dart_code = implementation_emitter
 
   def _ImplClassName(self, type_name):
     return self._shared._ImplClassName(type_name)
@@ -1064,8 +1078,11 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       implements.append('List<%s>' % self._shared.DartType(element_type))
       implements.append('JavaScriptIndexingBehavior')
 
+    template_file = 'impl_%s.darttemplate' % self._html_interface_name
+    template = (self._system._templates.TryLoad(template_file) or
+                self._system._templates.Load('frog_impl.darttemplate'))
     self._members_emitter = self._dart_code.Emit(
-        self._template,
+        template,
         #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
         #$!MEMBERS
         #}
@@ -1350,24 +1367,8 @@ class HtmlFrogSystem(HtmlSystem):
     self._dart_frog_file_paths = []
     self._factory_provider_emitters = {}
 
-  def ProcessInterface(self, interface):
-    """."""
-    if interface.id in _merged_html_interfaces:
-      return None
-
-    if IsPureInterface(interface.id):
-      return
-
-    html_interface_name = self._shared._HTMLInterfaceName(interface.id)
-    template_file = 'impl_%s.darttemplate' % html_interface_name
-    template = self._templates.TryLoad(template_file)
-    if not template:
-      template = self._templates.Load('frog_impl.darttemplate')
-
-    dart_code = self._ImplFileEmitter(html_interface_name)
-    generator = HtmlFrogClassGenerator(self, interface, template,
-                                       dart_code, self._shared)
-    generator.Generate()
+  def ImplementationGenerator(self, interface):
+    return HtmlFrogClassGenerator(self, interface)
 
   def GenerateLibraries(self, interface_files):
     self._GenerateLibFile(
