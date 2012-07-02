@@ -1168,15 +1168,7 @@ class SsaTypeConversionInserter extends HBaseVisitor
     }
 
     for (HIf ifUser in notIfUsers) {
-      if (ifUser.hasElse) {
-        changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
-      } else if (ifUser.joinBlock.predecessors.length == 1) {
-        // If the join block has only one predecessor, then we know
-        // the if block terminates. So any use of the instruction
-        // after the join block should be changed to the new
-        // instruction.
-        changeUsesDominatedBy(ifUser.joinBlock, input, convertedType);
-      }
+      changeUsesDominatedBy(ifUser.elseBlock, input, convertedType);
       // TODO(ngeoffray): Also change uses for the then block on a HType
       // that knows it is not of a specific Type.
     }

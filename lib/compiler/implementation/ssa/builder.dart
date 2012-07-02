@@ -1578,7 +1578,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     SubExpression conditionGraph =
         new SubExpression(conditionStartBlock, lastOpenedBlock);
     HInstruction condition = popBoolified();
-    HIf branch = new HIf(condition, true);
+    HIf branch = new HIf(condition);
     HBasicBlock conditionBlock = close(branch);
 
     LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
