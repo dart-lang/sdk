@@ -22,9 +22,7 @@ class FileHandle {
  private:
   int fd_;
 
-  // DISALLOW_COPY_AND_ASSIGN(FileHandle).
-  FileHandle(const FileHandle&);
-  void operator=(const FileHandle&);
+  DISALLOW_COPY_AND_ASSIGN(FileHandle);
 };
 
 

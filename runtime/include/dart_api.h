@@ -906,6 +906,7 @@ typedef struct _Dart_CObject {
     kString,
     kArray,
     kUint8Array,
+    kExternalUint8Array,
     kUnsupported,
     kNumberOfTypes
   } type;
@@ -924,6 +925,12 @@ typedef struct _Dart_CObject {
       int length;
       uint8_t* values;
     } as_byte_array;
+    struct {
+      int length;
+      uint8_t* data;
+      void* peer;
+      Dart_PeerFinalizer callback;
+    } as_external_byte_array;
   } value;
 } Dart_CObject;
 

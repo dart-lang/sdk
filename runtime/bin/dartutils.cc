@@ -433,6 +433,19 @@ Dart_CObject* CObject::NewUint8Array(int length) {
 }
 
 
+Dart_CObject* CObject::NewExternalUint8Array(int length,
+                                             uint8_t* data,
+                                             void* peer,
+                                             Dart_PeerFinalizer callback) {
+  Dart_CObject* cobject = New(Dart_CObject::kExternalUint8Array);
+  cobject->value.as_external_byte_array.length = length;
+  cobject->value.as_external_byte_array.data = data;
+  cobject->value.as_external_byte_array.peer = peer;
+  cobject->value.as_external_byte_array.callback = callback;
+  return cobject;
+}
+
+
 static int kIllegalArgumentError = 1;
 static int kOSError = 2;
 static int kFileClosedError = 3;

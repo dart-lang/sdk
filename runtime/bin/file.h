@@ -148,14 +148,12 @@ class File {
   // FileHandle is an OS specific class which stores data about the file.
   FileHandle* handle_;  // OS specific handle for the file.
 
-  // DISALLOW_COPY_AND_ASSIGN(File).
-  File(const File&);
-  void operator=(const File&);
-
   static dart::Mutex mutex_;
   static int service_ports_size_;
   static Dart_Port* service_ports_;
   static int service_ports_index_;
+
+  DISALLOW_COPY_AND_ASSIGN(File);
 };
 
 #endif  // BIN_FILE_H_
