@@ -17,7 +17,6 @@ native_gc_test: Skip  # Issue 2538. Too slow in debug.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
-shadow_dom_layout_test: Skip # Wrong absolute path in windows, Issue 3942
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
