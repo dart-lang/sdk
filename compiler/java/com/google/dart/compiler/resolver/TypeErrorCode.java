@@ -16,6 +16,7 @@ public enum TypeErrorCode implements ErrorCode {
   ASSERT_IS_STATEMENT(ErrorSeverity.ERROR, "assert is a statement, it cannot be used as an expression"),
   CANNOT_ASSIGN_TO("cannot assign to '%s'"),
   CANNOT_BE_RESOLVED("cannot resolve %s", true),
+  // TODO(zundel): error message needs JUnit test
   CANNOT_OVERRIDE_TYPED_MEMBER("cannot override %s of %s because %s is not assignable to %s"),
   CANNOT_OVERRIDE_METHOD_DEFAULT_VALUE("cannot override method '%s', default value doesn't match '%s'"),
   CANNOT_OVERRIDE_METHOD_NOT_SUBTYPE("cannot override %s of %s because %s is not a subtype of %s"),
@@ -51,14 +52,18 @@ public enum TypeErrorCode implements ErrorCode {
   MISSING_RETURN_VALUE("no return value; expected a value of type %s"),
   NO_SUCH_NAMED_PARAMETER("no such named parameter \"%s\" defined"),
   NO_SUCH_TYPE("no such type \"%s\"", true),
+  // TODO(zundel): Needs JUnit test
   NOT_A_FUNCTION("\"%s\" is not a function"),
   NOT_A_MEMBER_OF("\"%s\" is not a member of %s"),
+  // TODO(zundel): Needs JUnit test
   NOT_A_METHOD_IN("\"%s\" is not a method in %s"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
   OPERATOR_EQUALS_BOOL_RETURN_TYPE("operator 'equals' should return bool type"),
   OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE("operator '[]=' must have a return type of 'void'"),
   OPERATOR_NEGATE_NUM_RETURN_TYPE("operator 'negate' should return numeric type"),
+  // TODO(zundel): Needs JUnit test
   OPERATOR_WRONG_OPERAND_TYPE("operand of \"%s\" must be assignable to \"%s\""),
+  // TODO(zundel): Needs JUnit test - still valid?
   OVERRIDING_INHERITED_STATIC_MEMBER("overriding inherited static member %s of %s"),
   PLUS_CANNOT_BE_USED_FOR_STRING_CONCAT("'%s' cannot be used for string concatentation, use string interpolation or a StringBuffer instead"),
   SETTER_RETURN_TYPE("Specified return type of setter '%s' is non-void"),
@@ -71,6 +76,7 @@ public enum TypeErrorCode implements ErrorCode {
       "Type alias cannot reference itself directly of via other typedefs"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
+  // TODO(zundel): Needs JUnit test - still valid?
   USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");
