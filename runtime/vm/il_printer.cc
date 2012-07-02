@@ -37,12 +37,12 @@ void FlowGraphPrinter::PrintBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
     PrintInstruction(block_order_[i]);
-    Instruction* current = block_order_[i]->StraightLineSuccessor();
+    Instruction* current = block_order_[i]->successor();
     // And all the successors until an exit, branch, or a block entry.
     while ((current != NULL) && !current->IsBlockEntry()) {
       OS::Print("\n");
       PrintInstruction(current);
-      current = current->StraightLineSuccessor();
+      current = current->successor();
     }
     BlockEntryInstr* successor =
         (current == NULL) ? NULL : current->AsBlockEntry();
@@ -524,12 +524,12 @@ void FlowGraphVisualizer::PrintFunction() {
         Print("0 0 ");  // Required fields "bci" and "use". Unused.
         Instruction* current = block_order_[i];
         PrintInstruction(current);
-        current = current->StraightLineSuccessor();
+        current = current->successor();
         // And all the successors until an exit, branch, or a block entry.
         while ((current != NULL) && !current->IsBlockEntry()) {
           Print("0 0 ");
           PrintInstruction(current);
-          current = current->StraightLineSuccessor();
+          current = current->successor();
         }
         BlockEntryInstr* successor =
             (current == NULL) ? NULL : current->AsBlockEntry();

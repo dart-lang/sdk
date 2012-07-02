@@ -55,7 +55,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
     entry_ = other_fragment.entry();
     exit_ = other_fragment.exit();
   } else {
-    exit()->SetSuccessor(other_fragment.entry());
+    exit()->set_successor(other_fragment.entry());
     exit_ = other_fragment.exit();
   }
   temp_index_ = other_fragment.temp_index();
@@ -71,9 +71,19 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
-    exit()->SetSuccessor(instruction);
+    exit()->set_successor(instruction);
     exit_ = instruction;
   }
+}
+
+
+// Appends a graph fragment to a block entry instruction and returns the exit
+// of the resulting graph fragment.
+static Instruction* AppendFragment(BlockEntryInstr* entry,
+                                   const EffectGraphVisitor& fragment) {
+  if (fragment.is_empty()) return entry;
+  entry->set_successor(fragment.entry());
+  return fragment.exit();
 }
 
 
@@ -91,17 +101,13 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
 
   // 2. Connect the true and false bodies to the test and record their exits
   // (if any).
-  Instruction* true_exit = NULL;
-  Instruction* false_exit = NULL;
   TargetEntryInstr* true_entry = new TargetEntryInstr();
   *test_fragment.true_successor_address() = true_entry;
-  true_entry->SetSuccessor(true_fragment.entry());
-  true_exit = true_fragment.is_empty() ? true_entry : true_fragment.exit();
+  Instruction* true_exit = AppendFragment(true_entry, true_fragment);
 
   TargetEntryInstr* false_entry = new TargetEntryInstr();
   *test_fragment.false_successor_address() = false_entry;
-  false_entry->SetSuccessor(false_fragment.entry());
-  false_exit = false_fragment.is_empty() ? false_entry : false_fragment.exit();
+  Instruction* false_exit = AppendFragment(false_entry, false_fragment);
 
   // 3. Add a join or select one (or neither) of the arms as exit.
   if (true_exit == NULL) {
@@ -112,8 +118,8 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     temp_index_ = true_fragment.temp_index();
   } else {
     exit_ = new JoinEntryInstr();
-    true_exit->SetSuccessor(exit_);
-    false_exit->SetSuccessor(exit_);
+    true_exit->set_successor(exit_);
+    false_exit->set_successor(exit_);
     ASSERT(true_fragment.temp_index() == false_fragment.temp_index());
     temp_index_ = true_fragment.temp_index();
   }
@@ -130,11 +136,9 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
 
   // 1. Connect the body to the test if it is reachable, and if so record
   // its exit (if any).
-  Instruction* body_exit = NULL;
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   *test_fragment.true_successor_address() = body_entry;
-  body_entry->SetSuccessor(body_fragment.entry());
-  body_exit = body_fragment.is_empty() ? body_entry : body_fragment.exit();
+  Instruction* body_exit = AppendFragment(body_entry, body_fragment);
 
   // 2. Connect the test to this graph, including the body if reachable and
   // using a fresh join node if the body is reachable and has an open exit.
@@ -143,8 +147,8 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   } else {
     JoinEntryInstr* join = new JoinEntryInstr();
     AddInstruction(join);
-    join->SetSuccessor(test_fragment.entry());
-    body_exit->SetSuccessor(join);
+    join->set_successor(test_fragment.entry());
+    body_exit->set_successor(join);
   }
 
   // 3. Set the exit to the graph to be the false successor of the test, a
@@ -1062,7 +1066,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     *case_false_addresses[i] = case_entries[i + 1];
     TargetEntryInstr* true_target = new TargetEntryInstr();
     *case_true_addresses[i] = true_target;
-    true_target->SetSuccessor(statement_start);
+    true_target->set_successor(statement_start);
   }
 
   BlockEntryInstr* exit_instruction = NULL;
@@ -1074,25 +1078,25 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       TargetEntryInstr* true_target = new TargetEntryInstr();
       *case_true_addresses[len - 1] = true_target;
-      true_target->SetSuccessor(statement_start);
+      true_target->set_successor(statement_start);
     }
     TargetEntryInstr* false_target = new TargetEntryInstr();
     *case_false_addresses[len - 1] = false_target;
     if (node->contains_default()) {
       // True and false go to statement start.
-      false_target->SetSuccessor(statement_start);
+      false_target->set_successor(statement_start);
       if (for_case_statements.is_open()) {
         exit_instruction = new TargetEntryInstr();
-        for_case_statements.exit()->SetSuccessor(exit_instruction);
+        for_case_statements.exit()->set_successor(exit_instruction);
       }
     } else {
       if (for_case_statements.is_open()) {
         exit_instruction = new JoinEntryInstr();
-        for_case_statements.exit()->SetSuccessor(exit_instruction);
+        for_case_statements.exit()->set_successor(exit_instruction);
       } else {
         exit_instruction = new TargetEntryInstr();
       }
-      false_target->SetSuccessor(exit_instruction);
+      false_target->set_successor(exit_instruction);
     }
   } else {
     // A CaseNode without case expressions must contain default.
@@ -1167,9 +1171,7 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join = new JoinEntryInstr();
   AddInstruction(body_entry_join);
-  body_entry_join->SetSuccessor(for_body.entry());
-  Instruction* body_exit =
-      for_body.is_empty() ? body_entry_join : for_body.exit();
+  Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
   if (for_body.is_open() || (node->label()->join_for_continue() != NULL)) {
     BlockEntryInstr* test_entry = NULL;
@@ -1178,21 +1180,21 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     } else {
       test_entry = node->label()->join_for_continue();
     }
-    test_entry->SetSuccessor(for_test.entry());
+    test_entry->set_successor(for_test.entry());
     if (body_exit != NULL) {
-      body_exit->SetSuccessor(test_entry);
+      body_exit->set_successor(test_entry);
     }
   }
 
   TargetEntryInstr* back_target_entry = new TargetEntryInstr();
   *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->SetSuccessor(body_entry_join);
+  back_target_entry->set_successor(body_entry_join);
   TargetEntryInstr* loop_exit_target = new TargetEntryInstr();
   *for_test.false_successor_address() = loop_exit_target;
   if (node->label()->join_for_break() == NULL) {
     exit_ = loop_exit_target;
   } else {
-    loop_exit_target->SetSuccessor(node->label()->join_for_break());
+    loop_exit_target->set_successor(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
 }
@@ -1239,7 +1241,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   } else if (node->label()->join_for_continue() != NULL) {
     // Insert join between body and increment.
     if (for_body.is_open()) {
-      for_body.exit()->SetSuccessor(node->label()->join_for_continue());
+      for_body.exit()->set_successor(node->label()->join_for_continue());
     }
     for_increment.AddInstruction(node->label()->join_for_continue());
     node->increment()->Visit(&for_increment);
@@ -1255,7 +1257,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   if (loop_increment_end != NULL) {
     JoinEntryInstr* loop_start = new JoinEntryInstr();
     AddInstruction(loop_start);
-    loop_increment_end->SetSuccessor(loop_start);
+    loop_increment_end->set_successor(loop_start);
   }
 
   if (node->condition() == NULL) {
@@ -1279,7 +1281,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     if (node->label()->join_for_break() == NULL) {
       exit_ = loop_exit;
     } else {
-      loop_exit->SetSuccessor(node->label()->join_for_break());
+      loop_exit->set_successor(node->label()->join_for_break());
       exit_ = node->label()->join_for_break();
     }
   }
@@ -2392,6 +2394,16 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
   if (for_optimized && use_ssa) {
+    // Link instructions backwards for optimized compilation.
+    for (intptr_t i = 0; i < block_count; ++i) {
+      Instruction* prev = postorder_block_entries_[i];
+      Instruction* current = prev->successor();
+      while (current != NULL && !current->IsBlockEntry()) {
+        current->set_previous(prev);
+        prev = current;
+        current = current->successor();
+      }
+    }
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,
@@ -2659,8 +2671,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   }
 
   // 2. Process normal instructions.
-  Instruction* current = block_entry->StraightLineSuccessor();
-  Instruction* prev = block_entry;
+  Instruction* current = block_entry->successor();
   while ((current != NULL) && !current->IsBlockEntry()) {
     // 2a. Handle uses of LoadLocal / StoreLocal
     // For each use of a LoadLocal or StoreLocal: Replace it with the value
@@ -2716,20 +2727,16 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
 
     if (load != NULL) {
       // Remove instruction.
-      prev->SetSuccessor(current->StraightLineSuccessor());
+      current->RemoveFromGraph();
     } else if (store != NULL) {
       // Remove instruction and update renaming environment.
-      prev->SetSuccessor(current->StraightLineSuccessor());
+      current->RemoveFromGraph();
       (*env)[store->local().BitIndexIn(var_count)] = store->value();
-    } else {
+    } else if (current->IsBind()) {
       // Assign new SSA temporary.
-      if (current->IsBind()) {
-        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
-      }
-      // Update previous only if no instruction was removed from the graph.
-      prev = current;
+      current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
     }
-    current = current->StraightLineSuccessor();
+    current = current->successor();
   }
 
   // 3. Process dominated blocks.

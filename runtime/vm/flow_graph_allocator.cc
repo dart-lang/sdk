@@ -66,7 +66,7 @@ void FlowGraphAllocator::ComputeInitialSets() {
       }
     }
 
-    Instruction* current = block->StraightLineSuccessor();
+    Instruction* current = block->successor();
     // TODO(vegorov): iterate backwards.
     while ((current != NULL) && !current->IsBlockEntry()) {
       for (intptr_t j = 0; j < current->InputCount(); j++) {
@@ -79,7 +79,7 @@ void FlowGraphAllocator::ComputeInitialSets() {
       const intptr_t def = ToVirtualRegister(current);
       if (def >= 0) kill->Add(def);
 
-      current = current->StraightLineSuccessor();
+      current = current->successor();
     }
   }
 
