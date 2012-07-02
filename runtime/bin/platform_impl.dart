@@ -37,7 +37,17 @@ class _Platform {
     } else {
       var result = new Map();
       for (var str in env) {
+        // When running on Windows through cmd.exe there are strange
+        // environment variables that are used to record the current
+        // working directory for each drive and the exit code for the
+        // last command. As an example: '=A:=A:\subdir' records the
+        // current working directory on the 'A' drive.  In order to
+        // handle these correctly we search for a second occurrence of
+        // of '=' in the string if the first occurrence is at index 0.
         var equalsIndex = str.indexOf('=');
+        if (equalsIndex == 0) {
+          equalsIndex = str.indexOf('=', 1);
+        }
         assert(equalsIndex != -1);
         result[str.substring(0, equalsIndex)] = str.substring(equalsIndex + 1);
       }

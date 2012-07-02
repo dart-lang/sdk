@@ -64,10 +64,6 @@ class _Process extends Process {
           throw new IllegalArgumentException(
               "Environment key or value is not a string: ($key, $value)");
         }
-        if (key.contains('=')) {
-          throw new IllegalArgumentException(
-              "Environment keys may not contain '=': $key");
-        }
         _environment.add('$key=$value');
       });
     }
