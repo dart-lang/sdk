@@ -1698,10 +1698,6 @@ public class Resolver {
           onError(node, ResolverErrorCode.DID_YOU_MEAN_NEW, name, "type variable");
           break;
 
-        case LABEL:
-          onError(node, ResolverErrorCode.CANNOT_CALL_LABEL);
-          break;
-
         case FUNCTION_TYPE_ALIAS:
           onError(node, ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS);
           break;
@@ -2056,9 +2052,7 @@ public class Resolver {
       if (modifiers.isFinal()) {
         if (!isImplicitlyInitialized && (variable.getValue() == null)) {
           onError(variable.getName(), ResolverErrorCode.CONSTANTS_MUST_BE_INITIALIZED);
-        } else if (isImplicitlyInitialized && (variable.getValue() != null)) {
-          onError(variable.getName(), ResolverErrorCode.CANNOT_BE_INITIALIZED);
-        } else if (modifiers.isStatic() && modifiers.isFinal() && variable.getValue() != null) {
+        } else if (modifiers.isStatic() && variable.getValue() != null) {
           resolve(variable.getValue());
           node.setType(variable.getValue().getType());
         }

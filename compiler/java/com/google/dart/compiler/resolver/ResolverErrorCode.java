@@ -16,21 +16,14 @@ public enum ResolverErrorCode implements ErrorCode {
   BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT("break label resolves to case or default statement"),
   BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Build-in identifier '%s' cannot be used as a import prefix"),
   BUILT_IN_IDENTIFIER_AS_TYPE("Build-in identifier '%s' cannot be used as a type annotation"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
   CANNOT_ASSIGN_TO_FINAL("cannot assign value to final variable \"%s\"."),
   CANNOT_ASSIGN_TO_METHOD("cannot assign value to method '%s'."),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_BE_RESOLVED("cannot resolve %s"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
-  // TODO(zundel): error message needs JUnit test
-  CANNOT_BE_INITIALIZED("cannot be initialized"),
-  // TODO(zundel): error message needs JUnit test
-  CANNOT_CALL_LABEL("Labels cannot be called"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
   // TODO(zundel): error message needs JUnit test
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
@@ -53,6 +46,8 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_METHOD_IN_CLASS("cannot resolve method '%s' in class '%s'"),
   // TODO(zundel): error message needs JUnit test
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
+  // TODO(zundel): To exercise this requires simulating a corrupted SDK?
+  CANNOT_RESOLVE_SDK_TYPE("cannot resolve SDK type %s"),
   // TODO(zundel): error message needs JUnit test
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(

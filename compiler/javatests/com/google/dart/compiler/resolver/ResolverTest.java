@@ -19,7 +19,6 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import junit.framework.Assert;
 
 import java.util.List;
-import java.util.Map;
 
 /**
  * Basic tests of the resolver.
@@ -1507,7 +1506,7 @@ public class ResolverTest extends ResolverTestCase {
             errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 3));
   }
 
-  public void testRedirectConstructor() {
+  public void test_redirectConstructor() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -1523,5 +1522,39 @@ public class ResolverTest extends ResolverTestCase {
         "  method() {}",
         "}"),
         errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT, 10, 21, 8));
+  }
+
+  public void test_fieldAccessInInitializer() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  var f1;",
+        "  var f2;",
+        "  A() : this.f2 = f1;",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT, 5, 19, 2));
+  }
+
+  public void test_cannotBeResolved() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  static var field = B;",
+        " }",
+        "method() {",
+        "  A.noField = 1;",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
+  }
+
+  public void test_invokeTypeAlias() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "typedef Object func();",
+        "method() {",
+        "  func();",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 4, 3, 6));
   }
 }
