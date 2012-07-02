@@ -1776,19 +1776,19 @@ RawT* ByteArray::ReadFromImpl(SnapshotReader* reader,
 
 
 #define BYTEARRAY_TYPE_LIST(V)                                                 \
-  V(Int8, int8_t)                                                              \
-  V(Uint8, uint8_t)                                                            \
-  V(Int16, int16_t)                                                            \
-  V(Uint16, uint16_t)                                                          \
-  V(Int32, int32_t)                                                            \
-  V(Uint32, uint32_t)                                                          \
-  V(Int64, int64_t)                                                            \
-  V(Uint64, uint64_t)                                                          \
-  V(Float32, float)                                                            \
-  V(Float64, double)                                                           \
+  V(Int8, int8, int8_t)                                                        \
+  V(Uint8, uint8, uint8_t)                                                     \
+  V(Int16, int16, int16_t)                                                     \
+  V(Uint16, uint16, uint16_t)                                                  \
+  V(Int32, int32, int32_t)                                                     \
+  V(Uint32, uint32, uint32_t)                                                  \
+  V(Int64, int64, int64_t)                                                     \
+  V(Uint64, uint64, uint64_t)                                                  \
+  V(Float32, float32, float)                                                   \
+  V(Float64, float64, double)                                                  \
 
 
-#define BYTEARRAY_READ_FROM(name, type)                                        \
+#define BYTEARRAY_READ_FROM(name, lname, type)                                 \
 Raw##name##Array* name##Array::ReadFrom(SnapshotReader* reader,                \
                                           intptr_t object_id,                  \
                                           intptr_t tags,                       \
@@ -1804,14 +1804,22 @@ BYTEARRAY_TYPE_LIST(BYTEARRAY_READ_FROM)
 #undef BYTEARRAY_READ_FROM
 
 
-#define EXTERNALARRAY_READ_FROM(name, type)                                    \
+#define EXTERNALARRAY_READ_FROM(name, lname, type)                             \
 RawExternal##name##Array* External##name##Array::ReadFrom(                     \
     SnapshotReader* reader,                                                    \
     intptr_t object_id,                                                        \
     intptr_t tags,                                                             \
     Snapshot::Kind kind) {                                                     \
-  UNREACHABLE();                                                               \
-  return External##name##Array::null();                                        \
+  ASSERT(kind != Snapshot::kFull);                                             \
+  intptr_t length = reader->ReadSmiValue();                                    \
+  type* data = reinterpret_cast<type*>(reader->ReadIntptrValue());             \
+  void* peer = reinterpret_cast<void*>(reader->ReadIntptrValue());             \
+  Dart_PeerFinalizer callback =                                                \
+      reinterpret_cast<Dart_PeerFinalizer>(reader->ReadIntptrValue());         \
+  const Class& cls = Class::Handle(                                            \
+      reader->isolate()->object_store()->external_##lname##_array_class());    \
+  return NewExternalImpl<External##name##Array, RawExternal##name##Array>(     \
+      cls, data, length, peer, callback, Heap::kNew);                          \
 }                                                                              \
 
 
@@ -1852,7 +1860,7 @@ void RawByteArray::WriteTo(SnapshotWriter* writer,
 }
 
 
-#define BYTEARRAY_WRITE_TO(name, type)                                         \
+#define BYTEARRAY_WRITE_TO(name, lname, type)                                  \
 void Raw##name##Array::WriteTo(SnapshotWriter* writer,                         \
                                intptr_t object_id,                             \
                                Snapshot::Kind kind) {                          \
@@ -1870,7 +1878,7 @@ BYTEARRAY_TYPE_LIST(BYTEARRAY_WRITE_TO)
 #undef BYTEARRAY_WRITE_TO
 
 
-#define EXTERNALARRAY_WRITE_TO(name, type)                                     \
+#define EXTERNALARRAY_WRITE_TO(name, lname, type)                              \
 void RawExternal##name##Array::WriteTo(SnapshotWriter* writer,                 \
                                        intptr_t object_id,                     \
                                        Snapshot::Kind kind) {                  \

@@ -5,8 +5,7 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.dart.compiler.ast.DartField;
-import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartMethodDefinition;
+import com.google.dart.compiler.ast.DartMetadata;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
@@ -15,6 +14,7 @@ import com.google.dart.compiler.type.Type;
 class FieldElementImplementation extends AbstractNodeElement implements FieldElement, FieldNodeElement {
   private final EnclosingElement holder;
   private final SourceInfo nameLocation;
+  private DartMetadata metadata;
   private Modifiers modifiers;
   private Type type;
   private MethodNodeElement getter;
@@ -25,9 +25,11 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
       SourceInfo nameLocation,
       String name,
       EnclosingElement holder,
+      DartMetadata metadata,
       Modifiers modifiers) {
     super(node, name);
     this.holder = holder;
+    this.metadata = metadata;
     this.modifiers = modifiers;
     this.nameLocation = nameLocation;
   }
@@ -58,6 +60,11 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
   }
 
   @Override
+  public DartMetadata getMetadata() {
+    return metadata;
+  }
+
+  @Override
   public Modifiers getModifiers() {
     return modifiers;
   }
@@ -69,21 +76,13 @@ class FieldElementImplementation extends AbstractNodeElement implements FieldEle
 
   public static FieldElementImplementation fromNode(DartField node,
       EnclosingElement holder,
+      DartMetadata metadata,
       Modifiers modifiers) {
     return new FieldElementImplementation(node,
         node.getName().getSourceInfo(),
         node.getName().getName(),
         holder,
-        modifiers);
-  }
-
-  public static FieldElementImplementation fromNode(DartMethodDefinition node,
-      EnclosingElement holder,
-      Modifiers modifiers) {
-    return new FieldElementImplementation(node,
-        node.getName().getSourceInfo(),
-        ((DartIdentifier) node.getName()).getName(),
-        holder,
+        metadata,
         modifiers);
   }
 

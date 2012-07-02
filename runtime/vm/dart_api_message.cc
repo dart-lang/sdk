@@ -715,6 +715,27 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       }
       break;
     }
+    case Dart_CObject::kExternalUint8Array: {
+      // TODO(ager): we are writing C pointers into the message in
+      // order to post external arrays through ports. We need to make
+      // sure that messages containing pointers can never be posted
+      // to other processes.
+
+      // Write out serialization header value for this object.
+      WriteInlinedHeader(object);
+      // Write out the class and tag information.
+      WriteObjectHeader(ObjectStore::kExternalUint8ArrayClass, 0);
+      int length = object->value.as_external_byte_array.length;
+      uint8_t* data = object->value.as_external_byte_array.data;
+      void* peer = object->value.as_external_byte_array.peer;
+      Dart_PeerFinalizer callback =
+          object->value.as_external_byte_array.callback;
+      WriteSmi(length);
+      WriteIntptrValue(reinterpret_cast<intptr_t>(data));
+      WriteIntptrValue(reinterpret_cast<intptr_t>(peer));
+      WriteIntptrValue(reinterpret_cast<intptr_t>(callback));
+      break;
+    }
     default:
       UNREACHABLE();
   }

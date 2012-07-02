@@ -66,7 +66,7 @@ FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
 #define DEFINE_ACCEPT(ShortName)                                               \
 Instruction* ShortName##Instr::Accept(FlowGraphVisitor* visitor) {             \
   visitor->Visit##ShortName(this);                                             \
-  return StraightLineSuccessor();                                              \
+  return successor();                                                          \
 }
 
 FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
@@ -459,15 +459,15 @@ void BlockEntryInstr::DiscoverBlocks(
 
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
-  ASSERT(StraightLineSuccessor() != NULL);
-  Instruction* next = StraightLineSuccessor();
+  ASSERT(successor() != NULL);
+  Instruction* next = successor();
   if (next->IsBlockEntry()) {
     set_last_instruction(this);
   } else {
     while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
       if (vars != NULL) next->RecordAssignedVars(vars);
       set_last_instruction(next);
-      next = next->StraightLineSuccessor();
+      next = next->successor();
     }
   }
   if (next != NULL) {
@@ -521,14 +521,44 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 intptr_t Instruction::SuccessorCount() const {
   ASSERT(!IsBranch());
   ASSERT(!IsGraphEntry());
-  ASSERT(StraightLineSuccessor() == NULL ||
-         StraightLineSuccessor()->IsBlockEntry());
-  return StraightLineSuccessor() != NULL ? 1 : 0;
+  ASSERT(successor() == NULL ||
+         successor()->IsBlockEntry());
+  return successor() != NULL ? 1 : 0;
 }
 
 
 BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
-  return StraightLineSuccessor()->AsBlockEntry();
+  return successor()->AsBlockEntry();
+}
+
+
+void Instruction::RemoveFromGraph() {
+  ASSERT(!IsBlockEntry());
+  ASSERT(!IsBranch());
+  ASSERT(!IsThrow());
+  ASSERT(!IsReturn());
+  ASSERT(!IsReThrow());
+  ASSERT(previous() != NULL);
+  Instruction* next = successor();
+  previous()->set_successor(next);
+  if (next != NULL) {
+    if (!next->IsBlockEntry()) {
+      next->set_previous(previous());
+    } else {
+      // Removing the last instruction of a block.
+      // Update last_instruction of the current basic block.
+      Instruction* current = this;
+      while (!current->IsBlockEntry()) {
+        current = current->previous();
+      }
+      ASSERT(current->AsBlockEntry()->last_instruction() == this);
+      current->AsBlockEntry()->set_last_instruction(previous());
+    }
+  }
+  // Reset successor and previous instruction to indicate
+  // that the instruction is removed from the graph.
+  set_successor(NULL);
+  set_previous(NULL);
 }
 
 

@@ -774,6 +774,11 @@ static CObject* FileWriteByteRequest(const CObjectArray& request) {
 }
 
 
+static void FinalizeExternalByteArray(void* peer) {
+  delete[] reinterpret_cast<uint8_t*>(peer);
+}
+
+
 static CObject* FileReadListRequest(const CObjectArray& request) {
   if (request.Length() == 3 &&
       request[1]->IsIntptr() &&
@@ -782,15 +787,20 @@ static CObject* FileReadListRequest(const CObjectArray& request) {
     ASSERT(file != NULL);
     if (!file->IsClosed()) {
       int64_t length = CObjectInt32OrInt64ToInt64(request[2]);
-      CObjectUint8Array* byte_array =
-          new CObjectUint8Array(CObject::NewUint8Array(length));
-      void* buffer = reinterpret_cast<void*>(byte_array->Buffer());
-      int bytes_read = file->Read(buffer, byte_array->Length());
+      uint8_t* buffer = new uint8_t[length];
+      int bytes_read = file->Read(buffer, length);
       if (bytes_read >= 0) {
+        void* peer = reinterpret_cast<void*>(buffer);
+        CObject* external_array =
+            new CObjectExternalUint8Array(
+                CObject::NewExternalUint8Array(length,
+                                               buffer,
+                                               peer,
+                                               FinalizeExternalByteArray));
         CObjectArray* result = new CObjectArray(CObject::NewArray(3));
         result->SetAt(0, new CObjectIntptr(CObject::NewInt32(0)));
         result->SetAt(1, new CObjectIntptr(CObject::NewIntptr(bytes_read)));
-        result->SetAt(2, byte_array);
+        result->SetAt(2, external_array);
         return result;
       } else {
         return CObject::NewOSError();

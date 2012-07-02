@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -40,16 +40,10 @@ public class DartForStatement extends DartStatement {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    if (init != null) {
-      init.accept(visitor);
-    }
-    if (condition != null) {
-      condition.accept(visitor);
-    }
-    if (increment != null) {
-      increment.accept(visitor);
-    }
-    body.accept(visitor);
+    safelyVisitChild(init, visitor);
+    safelyVisitChild(condition, visitor);
+    safelyVisitChild(increment, visitor);
+    safelyVisitChild(body, visitor);
   }
 
   @Override

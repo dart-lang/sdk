@@ -268,6 +268,10 @@ static RawError* CompileFunctionHelper(const Function& function,
                                      optimized,
                                      FLAG_use_ssa)) {
       // Compile again using non-ssa code generation.
+      // Re-parse because of side-effects to the AST during compilation.
+      ParsedFunction parsed_function(function);
+      Parser::ParseFunction(&parsed_function);
+      parsed_function.AllocateVariables();
       CompileParsedFunctionHelper(parsed_function, optimized, false);
     }
 

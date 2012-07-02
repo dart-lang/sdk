@@ -45,7 +45,7 @@ public class DartUnaryExpression extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    arg.accept(visitor);
+    safelyVisitChild(arg, visitor);
   }
 
   @Override

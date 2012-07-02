@@ -719,7 +719,9 @@ void Debugger::InstrumentForStepping(const Function& target_function) {
   for (int i = 0; i < desc.Length(); i++) {
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(i));
     if (bpt != NULL) {
-      // There is already a breakpoint for this address. Leave it alone.
+      // There is already a breakpoint for this address. Make sure
+      // it is enabled.
+      bpt->Enable();
       continue;
     }
     PcDescriptors::Kind kind = desc.DescriptorKind(i);
@@ -869,9 +871,11 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
     // We should only ever have one code breakpoint at the same address.
     // If we find an existing breakpoint, it must be an internal one which
-    // is used for stepping.
+    // is used for stepping, or one that was left over from previously
+    // deleting a source breakpoint. Make sure it's enabled.
     if (bpt != NULL) {
       ASSERT(bpt->src_bpt() == NULL);
+      bpt->Enable();
       return bpt;
     }
 

@@ -13,16 +13,26 @@ import com.google.dart.compiler.resolver.NodeElement;
 public class DartPropertyAccess extends DartExpression {
 
   private DartNode qualifier;
+  private boolean isCascade;
   private DartIdentifier name;
 
   public DartPropertyAccess(DartNode qualifier, DartIdentifier name) {
+    this(qualifier, false, name);
+  }
+
+  public DartPropertyAccess(DartNode qualifier, boolean isCascade, DartIdentifier name) {
     this.qualifier = becomeParentOf(qualifier);
+    this.isCascade = isCascade;
     this.name = becomeParentOf(name);
   }
 
   @Override
   public boolean isAssignable() {
     return true;
+  }
+
+  public boolean isCascade() {
+    return isCascade;
   }
 
   public String getPropertyName() {
@@ -53,8 +63,8 @@ public class DartPropertyAccess extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    qualifier.accept(visitor);
-    name.accept(visitor);
+    safelyVisitChild(qualifier, visitor);
+    safelyVisitChild(name, visitor);
   }
 
   @Override

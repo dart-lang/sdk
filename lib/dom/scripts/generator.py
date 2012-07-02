@@ -425,7 +425,7 @@ class OperationInfo(object):
     def FormatParam(param):
       """Returns a parameter declaration fragment for an ParamInfo."""
       type = type_fn(param)
-      if param.is_optional and default_value:
+      if param.is_optional and default_value and default_value != 'null':
         return '%s%s = %s' % (type, param.name, default_value)
       return '%s%s' % (type, param.name)
 

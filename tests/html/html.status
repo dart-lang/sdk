@@ -10,6 +10,7 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
+blob_constructor_test: Fail          # custom Blob constructor not implemented.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -26,15 +27,10 @@ dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
+shadow_dom_layout_test: Skip
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
-
-[ $runtime == chrome ]
-cssstyledeclaration_test: Fail
-
-[ $runtime == chrome && $system == macos ]
-cssstyledeclaration_test: Pass # Issue 3889.
 
 [ $runtime == ie ]
 typed_arrays_1_test: Skip   # ie9 does not have typed arrays.

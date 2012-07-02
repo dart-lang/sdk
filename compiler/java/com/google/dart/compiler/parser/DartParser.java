@@ -94,6 +94,7 @@ import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
@@ -1883,7 +1884,7 @@ public class DartParser extends CompletionHooksParserBase {
    * <pre>
    * expression
    *     : assignableExpression assignmentOperator expression
-   *     | conditionalExpression
+   *     | conditionalExpression cascadeSection*
    *     ;
    *
    * assignableExpression
@@ -1905,13 +1906,116 @@ public class DartParser extends CompletionHooksParserBase {
     }
     DartExpression result = parseConditionalExpression();
     Token token = peek(0);
-    if (token.isAssignmentOperator()) {
+    if (token == Token.CASCADE) {
+      while (token == Token.CASCADE) {
+        result = parseCascadeSection(result);
+        token = peek(0);
+      }
+      done(result);
+    } else if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
       int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
       result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpression()));
     } else {
       done(null);
+    }
+    return result;
+  }
+
+  /**
+   * Parse an expression without a cascade.
+   *
+   * <pre>
+   * expressionWithoutCascade
+   *     : assignableExpression assignmentOperator expressionWithoutCascade
+   *     | conditionalExpression
+   *     ;
+   * </pre>
+   *
+   * @return an expression matching the {@code expression} production above
+   */
+  private DartExpression parseExpressionWithoutCascade() {
+    beginExpression();
+    if (looksLikeTopLevelKeyword() || peek(0).equals(Token.RBRACE)) {
+      // Allow recovery back to the top level.
+      reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
+      return done(null);
+    }
+    DartExpression result = parseConditionalExpression();
+    Token token = peek(0);
+   if (token.isAssignmentOperator()) {
+      ensureAssignable(result);
+      consume(token);
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpressionWithoutCascade()));
+    } else {
+      done(null);
+    }
+    return result;
+  }
+
+  /**
+   * Parse a cascade section.
+   * <pre>
+   * cascadeSection
+   *     : CASCADE (cascadeSelector arguments*) (assignableSelector arguments*)* (assignmentOperator
+   * expressionWithoutCascade)?
+   *     ;
+   *
+   * cascadeSelector
+   *     : LBRACK expression RBRACK
+   *     | identifier
+   *     ;
+   * </pre>
+   * 
+   * @param target the target of the method invocation
+   * @return the expression representing the cascaded method invocation
+   */
+  private DartExpression parseCascadeSection(DartExpression target) {
+    expect(Token.CASCADE);
+    DartExpression result = target;
+    DartIdentifier functionName = null;
+    if (peek(0) == Token.IDENTIFIER) {
+      functionName = parseIdentifier();
+    } else if (peek(0) == Token.LBRACK) {
+      consume(Token.LBRACK);
+      result = doneWithoutConsuming(new DartArrayAccess(result, parseExpression()));
+      expect(Token.RBRACK);
+    } else {
+      reportUnexpectedToken(position(), null, next());
+      return result;
+    }
+    if (peek(0) == Token.LPAREN) {
+      while (peek(0) == Token.LPAREN) {
+        if (functionName != null) {
+          result = doneWithoutConsuming(new DartMethodInvocation(result, true, functionName, parseArguments()));
+          functionName = null;
+        } else {
+          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, parseArguments()));
+        }
+      }
+    } else if (functionName != null) {
+      result = doneWithoutConsuming(new DartPropertyAccess(result, true, functionName));
+    }
+    boolean progress = true;
+    while (progress) {
+      progress = false;
+      DartExpression selector = tryParseAssignableSelector(result);
+      if (selector != null) {
+        result = selector;
+        progress = true;
+        while (peek(0) == Token.LPAREN) {
+          result = doneWithoutConsuming(new DartFunctionObjectInvocation(result, parseArguments()));
+        }
+      }
+    }
+    Token token = peek(0);
+    if (token.isAssignmentOperator()) {
+      ensureAssignable(result);
+      consume(token);
+      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      result = doneWithoutConsuming(new DartBinaryExpression(token, tokenOffset, result, parseExpressionWithoutCascade()));
     }
     return result;
   }
@@ -3101,8 +3205,8 @@ public class DartParser extends CompletionHooksParserBase {
         DartIdentifier name = parseIdentifier();
         if (peek(0) == Token.LPAREN) {
           boolean save = setAllowFunctionExpression(true);
-          DartMethodInvocation expr = doneWithoutConsuming(new DartMethodInvocation(receiver, name,
-              parseArguments()));
+          DartMethodInvocation expr = doneWithoutConsuming(new DartMethodInvocation(receiver, false,
+              name, parseArguments()));
           setAllowFunctionExpression(save);
           return expr;
         } else {

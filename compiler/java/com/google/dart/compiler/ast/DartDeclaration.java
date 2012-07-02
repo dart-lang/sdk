@@ -47,8 +47,6 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    if (name != null) {
-      name.accept(visitor);
-    }
+    safelyVisitChild(name, visitor);
   }
 }

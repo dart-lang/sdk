@@ -33,7 +33,7 @@ public class DartTypeNode extends DartNode {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    identifier.accept(visitor);
+    safelyVisitChild(identifier, visitor);
     typeArguments.accept(visitor);
   }
 

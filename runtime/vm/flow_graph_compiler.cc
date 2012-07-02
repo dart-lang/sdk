@@ -95,14 +95,14 @@ void FlowGraphCompiler::VisitBlocks() {
     // Compile the block entry.
     set_current_block(block_order()[i]);
     current_block()->PrepareEntry(this);
-    Instruction* instr = current_block()->StraightLineSuccessor();
+    Instruction* instr = current_block()->successor();
     // Compile all successors until an exit, branch, or a block entry.
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
       ASSERT(instr->locs() != NULL);
       EmitInstructionPrologue(instr);
       instr->EmitNativeCode(this);
-      instr = instr->StraightLineSuccessor();
+      instr = instr->successor();
     }
     BlockEntryInstr* successor =
         (instr == NULL) ? NULL : instr->AsBlockEntry();

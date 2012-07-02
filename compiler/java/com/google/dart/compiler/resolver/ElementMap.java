@@ -4,6 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
+import com.google.dart.compiler.ast.DartMetadata;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
@@ -48,6 +49,11 @@ class ElementMap {
 
     @Override
     public ElementKind getKind() {
+      throw new AssertionError(INTERNAL_ONLY_ERROR);
+    }
+
+    @Override
+    public DartMetadata getMetadata() {
       throw new AssertionError(INTERNAL_ONLY_ERROR);
     }
 

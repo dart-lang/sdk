@@ -46,12 +46,12 @@ class CommandLineOptions {
 
  private:
   void* operator new(size_t size);
-  CommandLineOptions(const CommandLineOptions&);
-  void operator=(const CommandLineOptions&);
 
   int count_;
   int max_count_;
   const char** arguments_;
+
+  DISALLOW_COPY_AND_ASSIGN(CommandLineOptions);
 };
 
 
@@ -169,6 +169,10 @@ class CObject {
   static Dart_CObject* NewString(const char* str);
   static Dart_CObject* NewArray(int length);
   static Dart_CObject* NewUint8Array(int length);
+  static Dart_CObject* NewExternalUint8Array(int length,
+                                             uint8_t* data,
+                                             void* peer,
+                                             Dart_PeerFinalizer callback);
 
   Dart_CObject* AsApiCObject() { return cobject_; }
 
@@ -194,6 +198,9 @@ class CObject {
   static CObject null_;
   static CObject true_;
   static CObject false_;
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObject);
 };
 
 
@@ -214,6 +221,9 @@ class CObjectBool : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(Bool)
 
   bool Value() const { return cobject_->value.as_bool; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectBool);
 };
 
 
@@ -222,6 +232,9 @@ class CObjectInt32 : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(Int32)
 
   int32_t Value() const { return cobject_->value.as_int32; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectInt32);
 };
 
 
@@ -230,6 +243,9 @@ class CObjectInt64 : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(Int64)
 
   int64_t Value() const { return cobject_->value.as_int64; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectInt64);
 };
 
 
@@ -255,6 +271,9 @@ class CObjectIntptr : public CObject {
     }
     return result;
   }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectIntptr);
 };
 
 
@@ -263,6 +282,9 @@ class CObjectBigint : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(Bigint)
 
   char* Value() const { return cobject_->value.as_bigint; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectBigint);
 };
 
 
@@ -271,6 +293,9 @@ class CObjectDouble : public CObject {
   DECLARE_COBJECT_CONSTRUCTORS(Double)
 
   double Value() const { return cobject_->value.as_double; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectDouble);
 };
 
 
@@ -280,6 +305,9 @@ class CObjectString : public CObject {
 
   int Length() const { return strlen(cobject_->value.as_string); }
   char* CString() const { return cobject_->value.as_string; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectString);
 };
 
 
@@ -294,6 +322,9 @@ class CObjectArray : public CObject {
   void SetAt(int index, CObject* value) {
     cobject_->value.as_array.values[index] = value->AsApiCObject();
   }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectArray);
 };
 
 
@@ -303,6 +334,25 @@ class CObjectUint8Array : public CObject {
 
   int Length() const { return cobject_->value.as_byte_array.length; }
   uint8_t* Buffer() const { return cobject_->value.as_byte_array.values; }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectUint8Array);
+};
+
+
+class CObjectExternalUint8Array : public CObject {
+ public:
+  DECLARE_COBJECT_CONSTRUCTORS(ExternalUint8Array)
+
+  int Length() const { return cobject_->value.as_external_byte_array.length; }
+  uint8_t* Data() const { return cobject_->value.as_external_byte_array.data; }
+  void* Peer() const { return cobject_->value.as_external_byte_array.peer; }
+  Dart_PeerFinalizer Callback() const {
+    return cobject_->value.as_external_byte_array.callback;
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(CObjectExternalUint8Array);
 };
 
 #endif  // BIN_DARTUTILS_H_

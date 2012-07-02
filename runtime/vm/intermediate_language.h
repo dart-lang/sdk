@@ -328,7 +328,7 @@ class UseVal : public Value {
 
   DECLARE_VALUE(Use)
 
-  Definition* definition() const { return definition_; }
+  inline Definition* definition() const;
   void set_definition(Definition* definition) {
     definition_ = definition;
   }
@@ -1734,7 +1734,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : cid_(-1), ic_data_(NULL) {
+  Instruction() : cid_(-1), ic_data_(NULL), successor_(NULL), previous_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = Computation::GetNextCid(isolate);
     ic_data_ = Computation::GetICDataForCid(cid_, isolate);
@@ -1760,8 +1760,27 @@ class Instruction : public ZoneAllocated {
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
 
-  virtual Instruction* StraightLineSuccessor() const = 0;
-  virtual void SetSuccessor(Instruction* instr) = 0;
+  Instruction* successor() const { return successor_; }
+  void set_successor(Instruction* instr) {
+    ASSERT(!IsGraphEntry());
+    ASSERT(!IsReturn());
+    ASSERT(!IsBranch());
+    ASSERT(!IsPhi());
+    // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
+    // that do not have a successor. Currently, the graph builder will continue
+    // to append instruction in case of a Throw inside an expression. This
+    // condition should be handled in the graph builder
+    successor_ = instr;
+  }
+
+  Instruction* previous() const { return previous_; }
+  void set_previous(Instruction* instr) {
+    ASSERT(!IsBlockEntry());
+    previous_ = instr;
+  }
+
+  // Remove instruction from the graph.
+  void RemoveFromGraph();
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
@@ -1832,6 +1851,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
  private:
   intptr_t cid_;
   ICData* ic_data_;
+  Instruction* successor_;
+  Instruction* previous_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -1940,9 +1961,6 @@ class GraphEntryInstr : public BlockEntryInstr {
   }
   virtual void AddPredecessor(BlockEntryInstr* predecessor) { UNREACHABLE(); }
 
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
-
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
@@ -1975,7 +1993,6 @@ class JoinEntryInstr : public BlockEntryInstr {
   JoinEntryInstr()
       : BlockEntryInstr(),
         predecessors_(2),  // Two is the assumed to be the common case.
-        successor_(NULL),
         phis_(NULL),
         phi_count_(0) { }
 
@@ -1989,13 +2006,6 @@ class JoinEntryInstr : public BlockEntryInstr {
     predecessors_.Add(predecessor);
   }
 
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    successor_ = instr;
-  }
-
   ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -2006,7 +2016,6 @@ class JoinEntryInstr : public BlockEntryInstr {
 
  private:
   ZoneGrowableArray<BlockEntryInstr*> predecessors_;
-  Instruction* successor_;
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t phi_count_;
 
@@ -2019,14 +2028,12 @@ class TargetEntryInstr : public BlockEntryInstr {
   TargetEntryInstr()
       : BlockEntryInstr(),
         predecessor_(NULL),
-        successor_(NULL),
         try_index_(CatchClauseNode::kInvalidTryIndex) { }
 
   // Used for exception catch entries.
   explicit TargetEntryInstr(intptr_t try_index)
       : BlockEntryInstr(),
         predecessor_(NULL),
-        successor_(NULL),
         try_index_(try_index) { }
 
   DECLARE_INSTRUCTION(TargetEntry)
@@ -2043,13 +2050,6 @@ class TargetEntryInstr : public BlockEntryInstr {
     predecessor_ = predecessor;
   }
 
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    successor_ = instr;
-  }
-
   bool HasTryIndex() const {
     return try_index_ != CatchClauseNode::kInvalidTryIndex;
   }
@@ -2063,7 +2063,6 @@ class TargetEntryInstr : public BlockEntryInstr {
 
  private:
   BlockEntryInstr* predecessor_;
-  Instruction* successor_;
   const intptr_t try_index_;
 
   DISALLOW_COPY_AND_ASSIGN(TargetEntryInstr);
@@ -2073,7 +2072,7 @@ class TargetEntryInstr : public BlockEntryInstr {
 class DoInstr : public Instruction {
  public:
   explicit DoInstr(Computation* computation)
-      : computation_(computation), successor_(NULL) {
+      : computation_(computation) {
     ASSERT(computation != NULL);
     computation->set_instr(this);
   }
@@ -2082,14 +2081,6 @@ class DoInstr : public Instruction {
 
   Computation* computation() const { return computation_; }
   virtual void replace_computation(Computation* value) { computation_ = value; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-
-  virtual void SetSuccessor(Instruction* instr) {
-    successor_ = instr;
-  }
 
   virtual void RecordAssignedVars(BitVector* assigned_vars);
 
@@ -2103,7 +2094,6 @@ class DoInstr : public Instruction {
 
  private:
   Computation* computation_;
-  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(DoInstr);
 };
@@ -2131,10 +2121,17 @@ class Definition : public Instruction {
 };
 
 
+Definition* UseVal::definition() const {
+  // Check that the definition is either a Phi or a linked in the the IR.
+  ASSERT(definition_ != NULL);
+  return definition_;
+}
+
+
 class BindInstr : public Definition {
  public:
   explicit BindInstr(Computation* computation)
-      : computation_(computation), successor_(NULL) {
+      : computation_(computation) {
     ASSERT(computation != NULL);
     computation->set_instr(this);
   }
@@ -2143,14 +2140,6 @@ class BindInstr : public Definition {
 
   Computation* computation() const { return computation_; }
   virtual void replace_computation(Computation* value) { computation_ = value; }
-
-  virtual Instruction* StraightLineSuccessor() const {
-    return successor_;
-  }
-
-  virtual void SetSuccessor(Instruction* instr) {
-    successor_ = instr;
-  }
 
   // Static type of the underlying computation.
   virtual RawAbstractType* StaticType() const {
@@ -2167,7 +2156,6 @@ class BindInstr : public Definition {
 
  private:
   Computation* computation_;
-  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
@@ -2182,9 +2170,6 @@ class PhiInstr: public Definition {
   }
 
   DECLARE_INSTRUCTION(Phi)
-
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
  private:
   GrowableArray<Value*> inputs_;
@@ -2204,9 +2189,6 @@ class ReturnInstr : public InstructionWithInputs {
 
   Value* value() const { return value_; }
   intptr_t token_pos() const { return token_pos_; }
-
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2228,8 +2210,7 @@ class ThrowInstr : public InstructionWithInputs {
       : InstructionWithInputs(),
         token_pos_(token_pos),
         try_index_(try_index),
-        exception_(exception),
-        successor_(NULL) {
+        exception_(exception) {
     ASSERT(exception_ != NULL);
   }
 
@@ -2239,13 +2220,6 @@ class ThrowInstr : public InstructionWithInputs {
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
 
-  // Parser can generate a throw within an expression tree.  We never
-  // add successor instructions to the graph.
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
-  }
-
   virtual LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
@@ -2254,7 +2228,6 @@ class ThrowInstr : public InstructionWithInputs {
   const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* exception_;
-  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -2270,8 +2243,7 @@ class ReThrowInstr : public InstructionWithInputs {
         token_pos_(token_pos),
         try_index_(try_index),
         exception_(exception),
-        stack_trace_(stack_trace),
-        successor_(NULL) {
+        stack_trace_(stack_trace) {
     ASSERT(exception_ != NULL);
     ASSERT(stack_trace_ != NULL);
   }
@@ -2283,15 +2255,6 @@ class ReThrowInstr : public InstructionWithInputs {
   Value* exception() const { return exception_; }
   Value* stack_trace() const { return stack_trace_; }
 
-  // Parser can generate a rethrow within an expression tree.  We
-  // never add successor instructions to the graph.
-  virtual Instruction* StraightLineSuccessor() const {
-    return NULL;
-  }
-  virtual void SetSuccessor(Instruction* instr) {
-    ASSERT(successor_ == NULL);
-  }
-
   virtual LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
@@ -2301,7 +2264,6 @@ class ReThrowInstr : public InstructionWithInputs {
   const intptr_t try_index_;
   Value* exception_;
   Value* stack_trace_;
-  Instruction* successor_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
@@ -2325,9 +2287,6 @@ class BranchInstr : public InstructionWithInputs {
 
   TargetEntryInstr** true_successor_address() { return &true_successor_; }
   TargetEntryInstr** false_successor_address() { return &false_successor_; }
-
-  virtual Instruction* StraightLineSuccessor() const { return NULL; }
-  virtual void SetSuccessor(Instruction* instr) { UNREACHABLE(); }
 
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;

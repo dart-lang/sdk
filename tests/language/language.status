@@ -75,7 +75,6 @@ assign_instance_method_negative_test: Fail  # Runtime only test, rewrite as mult
 body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrite as multitest
 call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
-cascade_precedence_test: Fail  # Issue 3729
 char_escape_test: Pass # Issue 1654
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 const_syntax_test/01: Fail # test issue 3626

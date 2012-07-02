@@ -2,5 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#source("isolate_api.dart");
-#source("runtime/isolate.dart");
+#library("web");
+
+String htmlEscape(String text) {
+  throw "Unimplemented: web::htmlEscape(String).";
+}

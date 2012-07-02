@@ -649,7 +649,7 @@ class StandardTestSuite implements TestSuite {
         }
         args.add(htmlPath);
         if (expectedOutput != null) {
-          args.add('--out-expectation=$expectedOutput');
+          args.add('--out-expectation=${expectedOutput.toNativePath()}');
         }
       }
       commands.add(new Command('python', args));

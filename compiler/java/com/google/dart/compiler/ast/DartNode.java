@@ -109,5 +109,17 @@ public abstract class DartNode extends AbstractNode {
   public String getObjectIdentifier(){
     return super.toString();
   }
+
+  /**
+   * If the given child is not <code>null</code>, use the given visitor to visit it.
+   * 
+   * @param child the child to be visited
+   * @param visitor the visitor that will be used to visit the child
+   */
+  protected void safelyVisitChild(DartNode child, ASTVisitor<?> visitor) {
+    if (child != null) {
+      child.accept(visitor);
+    }
+  }
   
 }

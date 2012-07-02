@@ -1748,9 +1748,8 @@ class HTry extends HControlFlow {
 }
 
 class HIf extends HConditionalBranch {
-  bool hasElse;
   HBlockFlow blockInformation = null;
-  HIf(HInstruction condition, this.hasElse) : super(<HInstruction>[condition]);
+  HIf(HInstruction condition) : super(<HInstruction>[condition]);
   toString() => 'if';
   accept(HVisitor visitor) => visitor.visitIf(this);
 
@@ -1760,12 +1759,8 @@ class HIf extends HConditionalBranch {
   }
 
   HBasicBlock get elseBlock() {
-    if (hasElse) {
-      assert(block.dominatedBlocks[1] === block.successors[1]);
-      return block.successors[1];
-    } else {
-      return null;
-    }
+    assert(block.dominatedBlocks[1] === block.successors[1]);
+    return block.successors[1];
   }
 
   HBasicBlock get joinBlock() => blockInformation.continuation;

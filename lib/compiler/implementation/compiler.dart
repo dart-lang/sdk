@@ -507,7 +507,75 @@ class Compiler implements DiagnosticListener {
     assertMethod = coreLibrary.find(const SourceString('assert'));
 
     initializeSpecialClasses();
+
+    patchDartLibrary(coreLibrary, 'core');
+    patchDartLibrary(coreImplLibrary, 'coreimpl');
   }
+
+  void patchDartLibrary(LibraryElement library, String dartLibraryPath) {
+    if (library.isPatched) return;
+    Uri patchUri = resolvePatchUri(dartLibraryPath);
+    if (patchUri !== null) {
+      // TODO(lrn): Use a different parser to allow for "patch" annotations.
+      // For now just assume everything in the patch library is a patch
+      // function.
+      LibraryElement patchLibrary = scanner.loadLibrary(patchUri, null);
+      applyLibraryPatch(library, patchLibrary);
+    }
+  }
+
+  void applyLibraryPatch(LibraryElement library, LibraryElement patch) {
+    Link<Element> patches = patch.topLevelElements;
+    while (!patches.isEmpty()) {
+      Element patchElement = patches.head;
+      Element originalElement = library.elements[patchElement.name];
+      if (originalElement !== null) {
+        // Assume that we are patching if the original exists.
+        if (originalElement is! FunctionElement) {
+          // TODO(lrn): Handle class declarations too.
+          internalError("Can only patch functions", element: originalElement);
+        }
+        // TODO(lrn): Abort if the original isn't marked external, when
+        // that is added to the language.
+        if (patchElement is! FunctionElement ||
+            !patchSignatureMatches(originalElement, patchElement)) {
+          internalError("Can only patch functions with matching signatures",
+                        element: originalElement);
+        }
+        applyFunctionPatch(originalElement, patchElement);
+      } else {
+        // TODO(lrn): Allow adding private elements to the original library.
+      }
+      patches = patches.tail;
+    }
+    library.patch = patch;
+  }
+
+  bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
+    // TODO(lrn): Check that patches actually match the signature of
+    // the function it's patching.
+    return true;
+  }
+
+  void applyFunctionPatch(FunctionElement element,
+                          FunctionElement patchElement) {
+    // Don't just assign the patch field. This also updates the cachedNode.
+    if (element.isPatched) {
+      internalError("Trying to patch a function more than once.",
+                    element: element);
+    }
+    if (element.cachedNode !== null) {
+      internalError("Trying to patch an already compiled function.",
+                    element: element);
+    }
+    element.setPatch(patchElement);
+  }
+
+  /**
+   * Get an [Uri] pointing to a patch for the dart: library with
+   * the given path. Returns null if there is no patch.
+   */
+  abstract Uri resolvePatchUri(String dartLibraryPath);
 
   /** Define the JS helper functions in the given library. */
   void addForeignFunctions(LibraryElement library) {

@@ -312,8 +312,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       HasSourceInfo problemTarget = getOperatorHasSourceInfo(node);
       Member member = lookupMember(lhsType, methodName, problemTarget);
       if (member != null) {
-        node.setElement(member.getElement());
+        Element element = member.getElement();
+        node.setElement(element);
         FunctionType methodType = getMethodType(lhsType, member, methodName, diagnosticNode);
+        checkDeprecated(problemTarget, element);
         Type returnType = checkInvocation(Collections.<DartExpression> singletonList(rhs),
             diagnosticNode, methodName, methodType);
         // tweak return type for int/int and int/double operators
@@ -1228,7 +1230,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitFunctionObjectInvocation(DartFunctionObjectInvocation node) {
-      node.setElement(functionType.getElement());
+      ClassElement element = functionType.getElement();
+      node.setElement(element);
+      checkDeprecated(node, element);
       return checkInvocation(node, node, null, typeOf(node.getTarget()));
     }
 
@@ -1240,6 +1244,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
         node.setElement(element);
+        checkDeprecated(nameNode, element);
         return checkInvocation(node, nameNode, name, element.getType());
       }
       DartNode target = node.getTarget();
@@ -1252,6 +1257,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           nameNode.setElement(methodElement);
         }
       }
+      checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
       return checkInvocation(node, nameNode, name, methodType);
     }
@@ -1267,6 +1273,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return voidType;
       } else {
         node.setElement(element);
+        checkDeprecated(node, element);
         checkInvocation(node, node, null, typeAsMemberOf(element, currentClass));
         return voidType;
       }
@@ -1874,7 +1881,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           List<Type> arguments = ifaceType.getArguments();
           ftype = (FunctionType) ftype.subst(arguments, substParams);
-          checkInvocation(node, node, null, ftype);
+          checkDeprecated(getConstructorNameNode(node), constructorElement);
+          checkInvocation(node, node, constructorElement.getName(), ftype);
         }
       }
       type.getClass(); // quick null check
@@ -1950,6 +1958,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
+      if (node.isCascade()) {
+        return node.getQualifier().accept(this);
+      }
       if (node.getType() != null) {
         return node.getType();
       }
@@ -1981,6 +1992,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
                          TypeErrorCode.STATIC_MEMBER_ACCESSED_THROUGH_INSTANCE,
                          name, element.getName());
       }
+      // @deprecated
+      if (element != null && element.getMetadata().isDeprecated()) {
+        onError(node.getName(), TypeErrorCode.DEPRECATED_ELEMENT, name);
+      }
+      // analyze Element
       switch (element.getKind()) {
         case DYNAMIC:
           return dynamicType;
@@ -2175,8 +2191,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
             HasSourceInfo problemTarget = getOperatorHasSourceInfo(node);
             Member member = lookupMember(type, name, problemTarget);
             if (member != null) {
-              node.setElement(member.getElement());
+              Element element = member.getElement();
+              node.setElement(element);
               FunctionType methodType = getMethodType(type, member, name, node);
+              checkDeprecated(problemTarget, element);
               return checkInvocation(Collections.<DartExpression>emptyList(), node, name, methodType);
             } else {
               return dynamicType;
@@ -2206,9 +2224,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // For INC and DEC, "operator +" and "operator -" are used to add and subtract one,
             // respectively. Check that the resolved operator has a compatible parameter type.
             Iterator<VariableElement> it = element.getParameters().iterator();
-            if  (!types.isAssignable(numType, it.next().getType())) {
+            Type operandType = it.next().getType();
+            if  (!types.isAssignable(numType, operandType)) {
               typeError(node, TypeErrorCode.OPERATOR_WRONG_OPERAND_TYPE,
-                  operatorMethodName, numType.toString());
+                  operatorMethodName, numType.toString(), operandType.toString());
             }
             // Check that the return type of the operator is compatible with the receiver.
             checkAssignable(node, type, returnType);
@@ -2266,17 +2285,38 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           break;
       }
+      checkDeprecated(target, element);
       return checkInvocation(node, target, name, type);
+    }
+
+    /**
+     * Report warning if given {@link Element} is deprecated.
+     */
+    private void checkDeprecated(HasSourceInfo nameNode, Element element) {
+      if (element != null && element.getMetadata().isDeprecated()) {
+        onError(nameNode, TypeErrorCode.DEPRECATED_ELEMENT, element);
+      }
     }
 
     private Type checkInvocation(DartInvocation node, DartNode diagnosticNode, String name,
         Type type) {
       List<DartExpression> argumentNodes = node.getArguments();
+      if (node instanceof DartMethodInvocation) {
+        DartMethodInvocation invocation = (DartMethodInvocation) node;
+        if (invocation.isCascade()) {
+          checkInvocation(argumentNodes, diagnosticNode, name, type);
+          DartExpression target = invocation.getTarget();
+          if (target == null) {
+            return getCurrentClass();
+          }
+          return target.accept(this);
+        }
+      }
       return checkInvocation(argumentNodes, diagnosticNode, name, type);
     }
 
-    private Type checkInvocation(List<DartExpression> argumentNodes,
-        DartNode diagnosticNode, String name, Type type) {
+    private Type checkInvocation(List<DartExpression> argumentNodes, DartNode diagnosticNode,
+        String name, Type type) {
       // Prepare argument types.
       List<Type> argumentTypes = Lists.newArrayListWithCapacity(argumentNodes.size());
       for (DartExpression argumentNode : argumentNodes) {
@@ -2298,8 +2338,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
             if (types.isAssignable(functionType, type)) {
               // A subtype of interface Function.
               return dynamicType;
-            } else if (name == null) {
-              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION, type);
+            } else if (name == null || currentClass == null) {
+              return typeError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, type);
             } else {
               return typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, currentClass);
             }
@@ -2538,6 +2578,27 @@ public class TypeAnalyzer implements DartCompilationPhase {
       return hasFunctionTypeAliasReference(visited, target, current);
     }
 
+    /**
+     * @return the {@link DartIdentifier} corresponding to the name of constructor.
+     */
+    public static DartIdentifier getConstructorNameNode(DartNewExpression node) {
+      DartNode constructor = node.getConstructor();
+      return getConstructorNameNode(constructor);
+    }
+
+    /**
+     * @return the {@link DartIdentifier} corresponding to the name of constructor.
+     */
+    public static DartIdentifier getConstructorNameNode(DartNode constructor) {
+      if (constructor instanceof DartPropertyAccess) {
+        return ((DartPropertyAccess) constructor).getName();
+      } else if (constructor instanceof DartTypeNode) {
+        return getConstructorNameNode(((DartTypeNode) constructor).getIdentifier());
+      } else {
+        return (DartIdentifier) constructor;
+      }
+    }
+
     @Override
     public Type visitIntegerLiteral(DartIntegerLiteral node) {
       return typeOfLiteral(node);
@@ -2759,7 +2820,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
                           superElement.getName(), superElement.getEnclosingElement().getName());
           return false;
         } else if (superElement.getModifiers().isStatic() && !modifiers.isStatic()) {
-            onError(errorTarget, TypeErrorCode.OVERRIDING_INHERITED_STATIC_MEMBER,
+            onError(errorTarget, TypeErrorCode.OVERRIDING_STATIC_MEMBER,
                 superElement.getName(), superElement.getEnclosingElement().getName());
           // Although a warning, override is allowed anyway
           return true;

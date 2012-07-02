@@ -19,6 +19,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import junit.framework.Assert;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Basic tests of the resolver.
@@ -1110,6 +1111,17 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.NO_SUCH_TYPE,
         TypeErrorCode.NO_SUCH_TYPE);
   }
+
+  public void test_cascadeWithTypeVariable() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class C<T> {",
+        "  test() {",
+        "    this..T;",
+        "  }",
+        "}"),
+        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+   }
 
   /**
    * When {@link SupertypeResolver} can not find "UnknownA", it uses {@link DynamicType}, which

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -25,14 +25,17 @@ import java.util.List;
 public class DartMethodInvocation extends DartInvocation {
 
   private DartExpression target;
+  private boolean isCascade;
   private DartIdentifier functionName;
 
   public DartMethodInvocation(DartExpression target,
+      boolean isCascade,
       DartIdentifier functionName,
       List<DartExpression> args) {
     super(args);
     functionName.getClass(); // Quick null-check.
     this.target = becomeParentOf(target);
+    this.isCascade = isCascade;
     this.functionName = becomeParentOf(functionName);
   }
 
@@ -43,6 +46,10 @@ public class DartMethodInvocation extends DartInvocation {
 
   public String getFunctionNameString() {
     return functionName.getName();
+  }
+
+  public boolean isCascade() {
+    return isCascade;
   }
 
   public DartIdentifier getFunctionName() {
@@ -56,8 +63,8 @@ public class DartMethodInvocation extends DartInvocation {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    target.accept(visitor);
-    functionName.accept(visitor);
+    safelyVisitChild(target, visitor);
+    safelyVisitChild(functionName, visitor);
     visitor.visit(getArguments());
   }
 

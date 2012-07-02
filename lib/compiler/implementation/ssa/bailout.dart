@@ -454,10 +454,8 @@ class SsaBailoutPropagator extends HBaseVisitor {
     HIfBlockInformation info = instruction.blockInformation.body;
     visitStatements(info.thenGraph);
     preVisitedBlocks++;
-    if (instruction.hasElse) {
-      visitStatements(info.elseGraph);
-      preVisitedBlocks++;
-    }
+    visitStatements(info.elseGraph);
+    preVisitedBlocks++;
 
     HBasicBlock joinBlock = instruction.joinBlock;
     if (joinBlock !== null

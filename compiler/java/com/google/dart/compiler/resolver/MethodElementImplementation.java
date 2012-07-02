@@ -10,6 +10,7 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
+import com.google.dart.compiler.ast.DartMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
@@ -24,6 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 class MethodElementImplementation extends AbstractNodeElement implements MethodNodeElement {
+  private final DartMetadata metadata;
   private final Modifiers modifiers;
   private final EnclosingElement holder;
   private final ElementKind kind;
@@ -37,8 +39,9 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   @VisibleForTesting
   MethodElementImplementation(DartFunctionExpression node, String name, Modifiers modifiers) {
     super(node, name);
-    this.hasBody = true;
+    this.metadata = DartMetadata.EMPTY;
     this.modifiers = modifiers;
+    this.hasBody = true;
     this.holder = findParentEnclosingElement(node);
     this.kind = ElementKind.FUNCTION_OBJECT;
     if (node != null && node.getName() != null) {
@@ -52,17 +55,24 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
                                         EnclosingElement holder) {
     super(node, name);
     if (node != null) {
+      this.metadata = node.getMetadata();
       this.modifiers = node.getModifiers();
       this.nameLocation = node.getName().getSourceInfo();
       DartBlock body = node.getFunction().getBody();
       this.hasBody = body != null && !(body instanceof DartNativeBlock);
     } else {
+      this.metadata = DartMetadata.EMPTY;
       this.modifiers = Modifiers.NONE;
       this.nameLocation = SourceInfo.UNKNOWN;
       this.hasBody = false;
     }
     this.holder = holder;
     this.kind = ElementKind.METHOD;
+  }
+
+  @Override
+  public DartMetadata getMetadata() {
+    return metadata;
   }
 
   @Override

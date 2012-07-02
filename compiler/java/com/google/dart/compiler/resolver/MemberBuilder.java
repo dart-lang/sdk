@@ -355,7 +355,8 @@ public class MemberBuilder {
       }
       FieldNodeElement fieldElement = fieldNode.getElement();
       if (fieldElement == null) {
-        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, modifiers);
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getMetadata(),
+            modifiers);
         addField(currentHolder, fieldElement);
       } else {
         // This is a top-level element, and an element was already created in
@@ -438,7 +439,8 @@ public class MemberBuilder {
       }
 
       if (fieldElement == null) {
-        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getModifiers());
+        fieldElement = Elements.fieldFromNode(fieldNode, currentHolder, fieldNode.getMetadata(),
+            fieldNode.getModifiers());
         addField(currentHolder, fieldElement);
       }
 

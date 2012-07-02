@@ -1703,7 +1703,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // Depending on how the then/else branches terminate
     // (e.g., return/throw/break) there can be any number of these.
     List<HBasicBlock> dominated = node.block.dominatedBlocks;
-    for (int i = node.hasElse ? 2 : 1; i < dominated.length; i++) {
+    for (int i = 2; i < dominated.length; i++) {
       visitBasicBlock(dominated[i]);
     }
   }
@@ -3048,15 +3048,15 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     HStatementInformation thenGraph = info.thenGraph;
     HStatementInformation elseGraph = info.elseGraph;
     bool thenHasGuards = thenGraph.start.hasGuards();
-    bool elseHasGuards = node.hasElse && elseGraph.start.hasGuards();
+    bool elseHasGuards = elseGraph.start.hasGuards();
     bool hasGuards = thenHasGuards || elseHasGuards;
     if (!hasGuards) return super.generateIf(node, info);
 
     int elseKind = analyzeGraphForCodegen(elseGraph);
-    bool emptyElse = !node.hasElse || elseKind == SsaCodeGenerator.EMPTY;
+    bool emptyElse = elseKind == SsaCodeGenerator.EMPTY;
 
     startBailoutCase(thenGraph.start.guards,
-        node.hasElse ? elseGraph.start.guards : const <HTypeGuard>[]);
+        emptyElse ? const <HTypeGuard>[] : elseGraph.start.guards);
 
     addIndented('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;

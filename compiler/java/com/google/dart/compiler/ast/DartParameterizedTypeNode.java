@@ -34,7 +34,7 @@ public class DartParameterizedTypeNode extends DartExpression {
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
-    getExpression().accept(visitor);
+    safelyVisitChild(expression, visitor);
     typeParameters.accept(visitor);
   }
 }

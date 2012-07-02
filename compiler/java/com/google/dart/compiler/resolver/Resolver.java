@@ -1288,6 +1288,10 @@ public class Resolver {
           if (x.getQualifier() instanceof DartThisExpression) {
             Element foundElement = Elements.findElement(currentHolder, x.getPropertyName());
             if (foundElement != null && !foundElement.getModifiers().isStatic()) {
+              if (ElementKind.of(foundElement) == ElementKind.TYPE_VARIABLE) {
+                onError(x.getQualifier(), ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+                break;
+              }
               element = foundElement;
             }
           }
@@ -2192,13 +2196,16 @@ public class Resolver {
     List<DartInitializer> inits = ((DartMethodDefinition) constructor.getNode()).getInitializers();
     // Parser ensures that redirected constructors can be the only item in the initialization list.
     if (inits.size() == 1) {
-      Element element = inits.get(0).getValue().getElement();
-      if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
-        ConstructorElement nextConstructorElement = (ConstructorElement) element;
-        ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();
-        ClassElement currentClass = (ClassElement) constructor.getEnclosingElement();
-        if (nextClass == currentClass) {
-          return (ConstructorNodeElement) nextConstructorElement;
+      DartExpression value = inits.get(0).getValue();
+      if (value != null) {
+        Element element = value.getElement();
+        if (ElementKind.of(element).equals(ElementKind.CONSTRUCTOR)) {
+          ConstructorElement nextConstructorElement = (ConstructorElement) element;
+          ClassElement nextClass = (ClassElement) nextConstructorElement.getEnclosingElement();
+          ClassElement currentClass = (ClassElement) constructor.getEnclosingElement();
+          if (nextClass == currentClass) {
+            return (ConstructorNodeElement) nextConstructorElement;
+          }
         }
       }
     }
