@@ -89,7 +89,7 @@ public class MemberBuilder {
     boolean isFactoryContext() {
       return isFactory;
     }
-    
+
     @Override
     protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
@@ -219,7 +219,7 @@ public class MemberBuilder {
       }
       return null;
     }
-    
+
     @Override
     protected void resolveFunctionWithParameters(DartFunction node, MethodElement element) {
       super.resolveFunctionWithParameters(node, element);
@@ -579,7 +579,7 @@ public class MemberBuilder {
         if (modifiers.isConstant()) {
           // Allow const factory ... native ... ; type of constructors, used in core libraries
           DartBlock dartBlock = method.getFunction().getBody();
-          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) { 
+          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) {
             resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
           }
         }
@@ -591,7 +591,8 @@ public class MemberBuilder {
     private void checkConstructor(MethodElement element, DartMethodDefinition method) {
       if (Elements.isNonFactoryConstructor(element) && method.getFunction() != null
           && method.getFunction().getReturnTypeNode() != null) {
-        resolutionError(method, ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE);
+        resolutionError(method.getFunction().getReturnTypeNode(),
+            ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE);
       }
     }
 

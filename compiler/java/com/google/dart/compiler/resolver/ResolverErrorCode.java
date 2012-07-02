@@ -25,26 +25,23 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_BE_RESOLVED_LIBRARY("cannot resolve %s in library %s"),
   CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
   CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
       "cannot override method %s, wrong number of required parameters"),
   CANNOT_OVERRIDE_METHOD_NAMED_PARAMS(
       "cannot override method %s, named parameters don't match"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_RESOLVE_FIELD("cannot resolve field %s"),
   CANNOT_RESOLVE_LABEL("cannot resolve label %s"),
   CANNOT_RESOLVE_METHOD("cannot resolve method '%s'"),
   CANNOT_RESOLVE_METHOD_IN_CLASS("cannot resolve method '%s' in class '%s'"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
   // TODO(zundel): To exercise this requires simulating a corrupted SDK?
   CANNOT_RESOLVE_SDK_TYPE("cannot resolve SDK type %s"),
@@ -52,18 +49,14 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
   // TODO(zundel): error message needs JUnit test
   CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
   CONST_REQUIRES_VALUE("Constant fields must have an initial value"),
-  // TODO(zundel): error message needs JUnit test
   CONSTRUCTOR_CANNOT_BE_ABSTRACT("A constructor cannot be asbstract"),
-  // TODO(zundel): error message needs JUnit test
   CONSTRUCTOR_CANNOT_BE_STATIC("A constructor cannot be static"),
-  // TODO(zundel): error message needs JUnit test
   CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE("Generative constructors cannot have return type"),
   CONST_AND_NONCONST_CONSTRUCTOR("Cannot reference to non-const constructor."),
   CONST_ARRAY_WITH_TYPE_VARIABLE("Const array literals cannot have a type variable as a type argument"),

@@ -1149,17 +1149,26 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.CANNOT_USE_TYPE);
   }
 
+  public void test_classUsedAsExpression() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "main() {",
+        "    0.25 - Object;",
+        "}"),
+        ResolverErrorCode.IS_A_CLASS);
+  }
+
   public void test_typeVariableUsedAsExpression() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class A<B> {",
+        "  var field = B;",
         "  f() {",
-        "    try {",
-        "      0.25 - B;",
-        "    } catch(var e) {}",
+        "    0.25 - B;",
         "  }",
         "}"),
-        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER,
+    ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
   }
 
   public void test_shadowType_withVariable() throws Exception {
@@ -1522,6 +1531,68 @@ public class ResolverTest extends ResolverTestCase {
         "  method() {}",
         "}"),
         errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT, 10, 21, 8));
+  }
+
+  public void test_unresolvedRedirectConstructor() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  A() : this.named();",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, 3, 9, 12));
+  }
+
+  public void test_unresolvedSuperConstructor() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  A() : super.named() {}",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, 3, 9, 13));
+  }
+
+  public void test_unresolvedFieldInInitializer() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  const A() : this.field = 1;",
+        "}"),
+        errEx(ResolverErrorCode.CANNOT_RESOLVE_FIELD, 3, 20, 5));
+  }
+
+  public void test_illegalConstructorModifiers() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  abstract A();",
+        "  abstract A.named();",
+        "}",
+        "class B {",
+        "  static B() {}",
+        "  static B.named() {}",
+        "}"),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 3, 12, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 4, 12, 7),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 7, 10, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 8, 10, 7));
+  }
+
+  public void test_illegalConstructorReturnType() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface int {}",
+        "class A {",
+        "  void A();",
+        "  void A.named();",
+        "}",
+        "class B {",
+        "  int B();",
+        "  int B.named();",
+        "}"),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 4, 3, 4),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 5, 3, 4),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 8, 3, 3),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 9, 3, 3));
   }
 
   public void test_fieldAccessInInitializer() throws Exception {

@@ -3133,6 +3133,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, 6, 10, 3));
   }
 
+  public void test_overrideInstanceMember() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class A {",
+        "  var field;",
+        "  method() {}",
+        "}",
+        "class B extends A {",
+        "  static var field;",
+        "  static method() {}",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER, 6, 14, 5),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER, 7, 10, 6));
+  }
+
   public void test_overrideStaticMember() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

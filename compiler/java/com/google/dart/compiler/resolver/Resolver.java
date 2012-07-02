@@ -1087,7 +1087,6 @@ public class Resolver {
 
       if (!isQualifier) {
         switch (ElementKind.of(element)) {
-          case CLASS:
           case FUNCTION_TYPE_ALIAS:
             onError(x, ResolverErrorCode.CANNOT_USE_TYPE, name);
             break;
