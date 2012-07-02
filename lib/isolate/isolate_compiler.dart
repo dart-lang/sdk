@@ -8,6 +8,8 @@
 #library("dart:isolate");
 
 #source("isolate_api.dart");
+#source("timer.dart");
+#source("timer_hook.dart");
 
 SendPort _spawnFunction(void topLevelFunction()) {
   throw new NotImplementedException();
