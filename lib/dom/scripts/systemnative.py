@@ -299,6 +299,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if 'synthesizedV8EnabledPerContext' in ext_attrs:
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       runtime_check = emitter.Format(
           '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'

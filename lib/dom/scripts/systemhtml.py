@@ -409,6 +409,7 @@ _html_event_names = {
   'ratechange': 'rateChange',
   'readystatechange': 'readyStateChange',
   'removestream': 'removeStream',
+  'removetrack': 'removeTrack',
   'reset': 'reset',
   'resize': 'resize',
   'result': 'result',
