@@ -880,6 +880,15 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._type_comment_emitter.Emit("/// @domName $DOMNAME",
         DOMNAME=self._interface.doc_js_name)
 
+    if self._backend.HasImplementation():
+      path = self._backend.FilePathForDartImplementation()
+      self._system._dart_interface_file_paths.append(path)
+      self._implementation_emitter = self._system._emitters.FileEmitter(path)
+    else:
+      self._implementation_emitter = emitter.Emitter()
+    self._backend.SetImplementationEmitter(self._implementation_emitter)
+    self._implementation_members_emitter = self._backend.StartInterface()
+
     for constructor_info in constructors:
       self._members_emitter.Emit(
           '\n'
@@ -910,26 +919,17 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         CTOR=self._interface.id,
         TYPE=self._shared.DartType(element_type))
 
-    emit_events, events = self._shared.GetEventAttributes(self._interface)
-    if emit_events:
-      if events:
-        self.AddEventAttributes(events)
-      else:
-        self._EmitEventGetter(self._shared.GetParentEventsClass(self._interface))
+    self._GenerateEvents()
 
     for merged_interface in _merged_html_interfaces:
       if _merged_html_interfaces[merged_interface] == self._interface.id:
-        self.AddMembers(self._database.GetInterface(merged_interface))
+        merged_interface = self._database.GetInterface(merged_interface)
+        self.AddMembers(merged_interface)
+        self._backend.AddMergedMembers(merged_interface)
 
-    # Generate implementation.
-    if self._backend.HasImplementation():
-      path = self._backend.FilePathForDartImplementation()
-      self._system._dart_interface_file_paths.append(path)
-      implementation_emitter = self._system._emitters.FileEmitter(path)
-    else:
-      implementation_emitter = emitter.Emitter()
-    self._backend.SetImplementationEmitter(implementation_emitter)
-    self._backend.Generate()
+    self._backend.AddMembers(self._interface)
+    self._backend.AddSecondaryMembers(self._interface)
+    self._backend.FinishInterface()
 
   def AddAttribute(self, getter, setter):
     dom_name = DartDomNameOfAttribute(getter)
@@ -996,11 +996,22 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
                                TYPE=type,
                                VALUE=constant.value)
 
-  def AddEventAttributes(self, event_attrs):
-    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
+  def _GenerateEvents(self):
+    emit_events, event_attrs = self._shared.GetEventAttributes(self._interface)
+    if not emit_events:
+      return
+
     self._shared._event_classes.add(self._interface.id)
     events_interface = self._html_interface_name + 'Events'
-    self._EmitEventGetter(events_interface)
+    events_class = '_%sImpl' % events_interface
+    parent_events_interface = self._shared.GetParentEventsClass(self._interface)
+    parent_events_class = '_%sImpl' % parent_events_interface
+
+    if not event_attrs:
+      self._EmitEventGetter(parent_events_interface, parent_events_class)
+      return
+
+    self._EmitEventGetter(events_interface, events_class)
 
     events_members = self._interface_emitter.Emit(
         '\ninterface $INTERFACE extends $PARENTS {\n$!MEMBERS}\n',
@@ -1008,14 +1019,30 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         PARENTS=', '.join(
             self._shared.GetParentsEventsClasses(self._interface)))
 
+    # TODO(jacobr): specify the type of _ptr as EventTarget
+    implementation_events_members = self._implementation_emitter.Emit(
+        '\n'
+        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
+        '  $CLASSNAME(_ptr) : super(_ptr);\n'
+        '$!MEMBERS}\n',
+        CLASSNAME=events_class,
+        INTERFACE=events_interface,
+        SUPER=parent_events_class)
+
+    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
     for event_name in event_attrs:
       if event_name in _html_event_names:
         events_members.Emit('\n  EventListenerList get $NAME();\n',
           NAME=_html_event_names[event_name])
+        implementation_events_members.Emit(
+            "\n"
+            "  EventListenerList get $NAME() => this['$DOM_NAME'];\n",
+            NAME=_html_event_names[event_name],
+            DOM_NAME=event_name)
       else:
         raise Exception('No known html even name for event: ' + event_name)
 
-  def _EmitEventGetter(self, events_interface):
+  def _EmitEventGetter(self, events_interface, events_class):
     self._members_emitter.Emit(
         '\n  /**'
         '\n   * @domName EventTarget.addEventListener, '
@@ -1023,6 +1050,11 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         '\n   */'
         '\n  $TYPE get on();\n',
         TYPE=events_interface)
+
+    self._implementation_members_emitter.Emit(
+        '\n  $TYPE get on() =>\n    new $TYPE(this);\n',
+        TYPE=events_class)
+
 
 # ------------------------------------------------------------------------------
 
@@ -1053,6 +1085,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_code = implementation_emitter
+
+  def AddMergedMembers(self, merged_interface):
+    self.AddMembers(merged_interface)
 
   def _ImplClassName(self, type_name):
     return self._shared._ImplClassName(type_name)
@@ -1111,18 +1146,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     if constructor_info:
       self._EmitFactoryProvider(constructor_info)
 
-    emit_events, events = self._shared.GetEventAttributes(self._interface)
-    if not emit_events:
-      return
-    elif events:
-      self.AddEventAttributes(events)
-    else:
-      parent_events_class = self._shared.GetParentEventsClass(self._interface)
-      self._EmitEventGetter('_' + parent_events_class + 'Impl')
-
-    for merged_interface in _merged_html_interfaces:
-      if _merged_html_interfaces[merged_interface] == self._interface.id:
-        self.AddMembers(self._database.GetInterface(merged_interface))
+    return self._members_emitter
 
   def _EmitFactoryProvider(self, constructor_info):
     template_file = ('factoryprovider_%s.darttemplate' %
@@ -1322,41 +1346,6 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
           NAME=info.name,
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
-
-  def AddEventAttributes(self, event_attrs):
-    event_attrs = DomToHtmlEvents(self._html_interface_name, event_attrs)
-    events_class = '_' + self._html_interface_name + 'EventsImpl'
-    events_interface = self._html_interface_name + 'Events'
-    self._EmitEventGetter(events_class)
-
-    self._shared._event_classes.add(self._interface.id)
-
-    parent_event_class = self._shared.GetParentEventsClass(self._interface)
-
-    # TODO(jacobr): specify the type of _ptr as EventTarget
-    events_members = self._dart_code.Emit(
-        '\n'
-        'class $CLASSNAME extends $SUPER implements $INTERFACE {\n'
-        '  $CLASSNAME(_ptr) : super(_ptr);\n'
-        '$!MEMBERS}\n',
-        CLASSNAME=events_class,
-        INTERFACE=events_interface,
-        SUPER='_' + parent_event_class + 'Impl')
-
-    for event_name in event_attrs:
-      if event_name in _html_event_names:
-        events_members.Emit(
-            "\n"
-            "  EventListenerList get $NAME() => this['$RAWNAME'];\n",
-            RAWNAME=event_name,
-            NAME=_html_event_names[event_name])
-      else:
-        raise Exception('No known html even name for event: ' + event_name)
-
-  def _EmitEventGetter(self, events_class):
-    self._members_emitter.Emit(
-        '\n  $TYPE get on() =>\n    new $TYPE(this);\n',
-        TYPE=events_class)
 
 # ------------------------------------------------------------------------------
 

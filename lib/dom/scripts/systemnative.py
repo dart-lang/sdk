@@ -200,6 +200,12 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
 
+  def AddMergedMembers(self, merged_interface):
+    # We could not add merged functions to implementation class because
+    # underlying c++ object doesn't implement them. Merged functions are
+    # generated on merged interface implementation instead.
+    pass
+
   def StartInterface(self):
     # Create emitters for c++ implementation.
     if self.HasImplementation():
@@ -221,7 +227,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._cpp_resolver_emitter = emitter.Emitter()
 
     self._GenerateConstructors()
-    self._GenerateEvents()
+    return self._members_emitter
 
   def _GenerateConstructors(self):
     html_interface_name = self._HTMLInterfaceName(self._interface.id)
@@ -323,68 +329,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         raises_exceptions=raises_exceptions,
         runtime_check=runtime_check)
 
-  def _GenerateEvents(self):
-    if self._interface.id == 'DocumentFragment':
-      # Interface DocumentFragment extends Element in dart:html but this fact
-      # is not reflected in idls.
-      self._EmitEventGetter('_ElementEventsImpl')
-      return
-
-    events_attributes = [attr for attr in self._interface.attributes
-                         if attr.type.id == 'EventListener']
-    if not 'EventTarget' in self._interface.ext_attrs and not events_attributes:
-      return
-
-    def IsEventTarget(interface):
-      return ('EventTarget' in interface.ext_attrs and
-              interface.id != 'EventTarget')
-    is_root = not _FindParent(self._interface, self._database, IsEventTarget)
-    if is_root:
-      self._members_emitter.Emit('  _EventsImpl _on;\n')
-
-    if not events_attributes:
-      if is_root:
-        self._EmitEventGetter('_EventsImpl')
-      return
-
-    events_class = '_%sEventsImpl' % self._interface.id
-    self._EmitEventGetter(events_class)
-
-    def HasEventAttributes(interface):
-      return any([a.type.id == 'EventListener' for a in interface.attributes])
-    parent = _FindParent(self._interface, self._database, HasEventAttributes)
-    if parent:
-      parent_events_class = '_%sEventsImpl' % parent.id
-    else:
-      parent_events_class = '_EventsImpl'
-
-    html_inteface = self._HTMLInterfaceName(self._interface.id)
-    events_members = self._dart_impl_emitter.Emit(
-        '\n'
-        'class $EVENTS_CLASS extends $PARENT_EVENTS_CLASS implements $EVENTS_INTERFACE {\n'
-        '  $EVENTS_CLASS(_ptr) : super(_ptr);\n'
-        '$!MEMBERS\n'
-        '}\n',
-        EVENTS_CLASS=events_class,
-        PARENT_EVENTS_CLASS=parent_events_class,
-        EVENTS_INTERFACE='%sEvents' % html_inteface)
-
-    events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
-    for event_name in events_attributes:
-      events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
-          HTML_NAME=DomToHtmlEvent(event_name),
-          DOM_NAME=event_name)
-
-  def _EmitEventGetter(self, events_class):
-    self._members_emitter.Emit(
-        '\n'
-        '  $EVENTS_CLASS get on() {\n'
-        '    if (_on === null) _on = new $EVENTS_CLASS(this);\n'
-        '    return _on;\n'
-        '  }\n',
-        EVENTS_CLASS=events_class)
-
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
 
@@ -408,16 +352,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # inherit, but not the classes.
     # List methods are injected in AddIndexer.
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
-      return root_class
-
-    if supertype == 'EventTarget':
-      # Most implementors of EventTarget specify the EventListener operations
-      # again.  If the operations are not specified, try to inherit from the
-      # EventTarget implementation.
-      #
-      # Applies to MessagePort.
-      if not [op for op in self._interface.operations if op.id == 'addEventListener']:
-        return self._ImplClassName(supertype)
       return root_class
 
     return self._ImplClassName(supertype)
