@@ -139,7 +139,8 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 
 
 Isolate::Isolate()
-    : store_buffer_(),
+    : store_buffer_block_(),
+      store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       main_port_(0),

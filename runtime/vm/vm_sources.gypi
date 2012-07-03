@@ -146,6 +146,7 @@
     'handles.h',
     'handles_impl.h',
     'handles_test.cc',
+    'hash_set.h',
     'heap.cc',
     'heap.h',
     'heap_profiler.cc',

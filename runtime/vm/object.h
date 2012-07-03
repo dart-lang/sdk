@@ -375,6 +375,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     // TODO(iposva): Implement real store barrier here.
     *addr = value;
     // Filter stores based on source and target.
+    if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && raw()->IsOldObject()) {
       uword ptr = reinterpret_cast<uword>(addr);
       Isolate::Current()->store_buffer()->AddPointer(ptr);
@@ -2886,8 +2887,8 @@ class Number : public Instance {
 
 class Integer : public Number {
  public:
-  static RawInteger* New(const String& str);
-  static RawInteger* New(int64_t value);
+  static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
+  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;

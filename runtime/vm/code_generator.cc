@@ -1528,12 +1528,4 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
   return Code::null();
 }
 
-
-// Adds a pointer to the store buffer.
-// ptr: the address of a field being stored into.
-DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBuffer, uword ptr) {
-  Isolate::Current()->store_buffer()->AddPointer(ptr);
-}
-END_LEAF_RUNTIME_ENTRY
-
 }  // namespace dart

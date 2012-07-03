@@ -2127,7 +2127,7 @@ RawUnresolvedClass* UnresolvedClass::New() {
       Class::Handle(Object::unresolved_class_class());
   RawObject* raw = Object::Allocate(unresolved_class_class,
                                     UnresolvedClass::InstanceSize(),
-                                    Heap::kNew);
+                                    Heap::kOld);
   return reinterpret_cast<RawUnresolvedClass*>(raw);
 }
 
@@ -4334,7 +4334,7 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_kind(kind);
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
-    const Integer& value = Integer::Handle(Integer::New(literal));
+    const Integer& value = Integer::Handle(Integer::New(literal, Heap::kOld));
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
     const Double& value = Double::Handle(Double::NewCanonical(literal));
@@ -7333,23 +7333,25 @@ const char* Integer::ToCString() const {
 }
 
 
-RawInteger* Integer::New(const String& str) {
+RawInteger* Integer::New(const String& str, Heap::Space space) {
+  // TODO(iposva): If returning a big integer it will not necessarily be in the
+  // requested space.
   const Bigint& big = Bigint::Handle(Bigint::New(str));
   if (BigintOperations::FitsIntoSmi(big)) {
     return BigintOperations::ToSmi(big);
   } else if (BigintOperations::FitsIntoMint(big)) {
-    return Mint::New(BigintOperations::ToMint(big));
+    return Mint::New(BigintOperations::ToMint(big), space);
   } else {
     return big.raw();
   }
 }
 
 
-RawInteger* Integer::New(int64_t value) {
+RawInteger* Integer::New(int64_t value, Heap::Space space) {
   if ((value <= Smi::kMaxValue) && (value >= Smi::kMinValue)) {
     return Smi::New(value);
   }
-  return Mint::New(value);
+  return Mint::New(value, space);
 }
 
 

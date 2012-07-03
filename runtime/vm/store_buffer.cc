@@ -23,4 +23,30 @@ bool StoreBufferBlock::Contains(uword pointer) {
   return false;
 }
 
+
+StoreBuffer::~StoreBuffer() {
+  DedupSet* current = dedup_sets_;
+  dedup_sets_ = NULL;
+  while (current != NULL) {
+    DedupSet* next = current->next_;
+    delete current;
+    current = next;
+  }
+}
+
+
+void StoreBuffer::AddPointer(uword address) {
+  ASSERT(dedup_sets_ != NULL);
+  if (!dedup_sets_->set_->Add(address)) {
+    // TODO(iposva): Limit growth of deduplication sets until the rest of the
+    // mechanism is hooked up.
+    delete dedup_sets_;
+    dedup_sets_ = NULL;
+
+    DedupSet* fresh_element = new DedupSet();
+    fresh_element->next_ = dedup_sets_;
+    dedup_sets_ = fresh_element;
+  }
+}
+
 }  // namespace dart

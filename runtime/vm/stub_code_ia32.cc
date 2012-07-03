@@ -1095,7 +1095,7 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
   // EAX: Address being stored
   // CTX: Isolate
-  intptr_t store_buffer_offset = Isolate::store_buffer_offset();
+  intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
   __ movl(EBX,
           Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
   __ movl(Address(CTX,
