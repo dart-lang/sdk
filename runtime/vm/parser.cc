@@ -750,8 +750,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // receiver was captured.
     const bool kTestOnly = true;
     LocalVariable* receiver =
-        parser.LookupReceiver(node_sequence->scope(),
-                              kTestOnly);
+        parser.LookupReceiver(node_sequence->scope(), kTestOnly);
     if (!parser.current_function().IsLocalFunction() ||
         ((receiver != NULL) && receiver->is_captured())) {
       parsed_function->set_instantiator(
@@ -4027,16 +4026,15 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   // Now add the NativeBodyNode and return statement.
   current_block_->statements->Add(
       new ReturnNode(TokenPos(), new NativeBodyNode(TokenPos(),
-                                                      native_name,
-                                                      native_function,
-                                                      num_parameters,
-                                                      has_opt_params,
-                                                      is_instance_closure)));
+                                                    native_name,
+                                                    native_function,
+                                                    num_parameters,
+                                                    has_opt_params,
+                                                    is_instance_closure)));
 }
 
 
-LocalVariable* Parser::LookupReceiver(LocalScope* from_scope,
-                                      bool test_only) {
+LocalVariable* Parser::LookupReceiver(LocalScope* from_scope, bool test_only) {
   const String& this_name = String::Handle(String::NewSymbol(kThisName));
   return from_scope->LookupVariable(this_name, test_only);
 }
@@ -6410,6 +6408,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         EnsureExpressionTemp();
         closure = new StaticGetterNode(call_pos,
+                                       NULL,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
         return new ClosureCallNode(call_pos, closure, arguments);
@@ -6546,6 +6545,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       // is used as part of, e.g., "+=", and the explicit getter does not
       // exist, and error will be reported by the code generator.
       load_access = new StaticGetterNode(call_pos,
+                                         NULL,
                                          Class::ZoneHandle(cls.raw()),
                                          String::ZoneHandle(field_name.raw()));
     } else {
@@ -6588,6 +6588,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       } else {
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         access = new StaticGetterNode(call_pos,
+                                      NULL,
                                       Class::ZoneHandle(cls.raw()),
                                       field_name);
       }
@@ -6964,6 +6965,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new StaticGetterNode(TokenPos(),
+                                  NULL,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7012,6 +7014,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       field.set_value(instance);
     } else {
       return new StaticGetterNode(TokenPos(),
+                                  NULL,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7135,7 +7138,16 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
+        // The static getter may be changed later into an instance setter.
+        AstNode* receiver = NULL;
+        const bool kTestOnly = true;
+        if ((!current_function().is_static() ||
+             current_function().IsInFactoryScope()) &&
+            (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
+          receiver = LoadReceiver(ident_pos);
+        }
         *node = new StaticGetterNode(ident_pos,
+                                     receiver,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7162,6 +7174,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // a setter node. If there is no assignment we will get an error
         // when we try to invoke the getter.
         *node = new StaticGetterNode(ident_pos,
+                                     NULL,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7233,6 +7246,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     ASSERT(func.is_static());
     ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
+                                NULL,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
   }

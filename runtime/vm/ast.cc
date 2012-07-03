@@ -334,6 +334,18 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   const Function& setter =
       Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
   if (setter.IsNull()) {
+    const Field& field = Field::ZoneHandle(
+        cls().LookupStaticField(field_name()));
+    if (field.IsNull()) {
+      // A static getter is declared, but no setter and no field.
+      if (receiver() != NULL) {
+        return new InstanceSetterNode(token_pos(),
+                                      receiver(),
+                                      field_name(),
+                                      rhs);
+      }
+      return NULL;
+    }
     // Access to a lazily initialized static field that has not yet been
     // initialized is compiled to a static implicit getter.
     // A setter may not exist for such a field.
@@ -344,9 +356,6 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kConstImplicitGetter));
 #endif
-    const Field& field = Field::ZoneHandle(
-        cls().LookupStaticField(field_name()));
-    ASSERT(!field.IsNull());
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   } else {
     return new StaticSetterNode(token_pos(), cls(), field_name(), rhs);

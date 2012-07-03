@@ -87,6 +87,7 @@ duplicate_implements_test: Skip # Issue 976
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
+getter_no_setter_test/01: Fail # Fails to detect compile-time error.
 instance_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 is_not_class2_negative_test: Fail #  Runtime only test, rewrite as multitest
 library2_negative_test: Fail # still a valid test? Issue 3649

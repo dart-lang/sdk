@@ -1291,9 +1291,11 @@ class InstanceSetterNode : public AstNode {
 class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(intptr_t token_pos,
+                   AstNode* receiver,  // Null if called from static context.
                    const Class& cls,
                    const String& field_name)
       : AstNode(token_pos),
+        receiver_(receiver),
         cls_(cls),
         field_name_(field_name) {
     ASSERT(cls_.IsZoneHandle());
@@ -1301,6 +1303,10 @@ class StaticGetterNode : public AstNode {
     ASSERT(field_name_.IsSymbol());
   }
 
+  // The receiver is required when transforming this StaticGetterNode issued in
+  // a non-static context to an InstanceSetterNode. This occurs when no field
+  // and no setter are declared.
+  AstNode* receiver() const { return receiver_; }
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
 
@@ -1313,6 +1319,7 @@ class StaticGetterNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(StaticGetterNode);
 
  private:
+  AstNode* receiver_;
   const Class& cls_;
   const String& field_name_;
 
