@@ -49,42 +49,6 @@ svgelement_test: Fail
 svgelement2_test: Fail
 xhr_test: Fail
 
-audiocontext_test: Fail
-blob_constructor_test: Fail
-cache_test: Fail
-callbacks_test: Fail
-canvas_test: Fail
-canvas_using_html_test: Fail
-css_test: Fail
-dom_constructors_test: Fail
-exceptions_test: Fail
-fileapi_test: Fail
-hidden_dom_1_test: Fail
-hidden_dom_2_test: Fail
-history_test: Fail
-indexeddb_1_test: Fail
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
-isolates_test: Fail
-key_name_location_test: Fail
-measurement_test: Fail
-messageevent_test: Fail
-native_gc_test: Fail
-serialized_script_value_test: Fail
-shadow_dom_layout_test: Fail
-shadow_dom_test: Fail
-storage_test: Fail
-svg_2_test: Fail
-svg_3_test: Fail
-typed_arrays_range_checks_test: Fail
-websocket_test: Fail
-window_mangling_test: Fail
-window_nosuchmethod_test: Fail
-window_open_test: Fail
-xsltprocessor_test: Fail
-
-
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
 cssstyledeclaration_test: Fail
@@ -134,7 +98,7 @@ xhr_test: Fail
 
 [ $runtime == ie ]
 # TODO(vsm): Triage DOM failures.
-#*: Skip
+*: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
