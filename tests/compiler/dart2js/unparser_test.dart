@@ -89,12 +89,19 @@ testNativeMethods() {
 }
 
 testSimpleFileUnparse() {
-  testDart2Dart('main() {}', (String s) {
-    Expect.equals(
-'''main() {
-  final bailout_reason = "I can do nothing right now.";
+  final src = '''
+should_be_dropped() {
 }
-''', s);
+
+should_be_kept() {
+}
+
+main() {
+  should_be_kept();
+}
+''';
+  testDart2Dart(src, (String s) {
+    Expect.equals('should_be_kept(){}main(){should_be_kept();}', s);
   });
 }
 

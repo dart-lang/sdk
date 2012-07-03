@@ -43,9 +43,14 @@ class DartBackend extends Backend {
     }
 
     try {
+      StringBuffer sb = new StringBuffer();
       resolvedElements.forEach((element, treeElements) {
-        bailout('I can do nothing right now.');
+        if (!element.isTopLevel()) {
+          bailout('Cannot process non top-level $element');
+        }
+        sb.add(element.parseNode(compiler).unparse());
       });
+      compiler.assembledCode = sb.toString();
     } catch (BailoutException e) {
       compiler.assembledCode = '''
 main() {
