@@ -855,6 +855,16 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 3, 10);
   }
 
+  public void test_factoryInInterface() throws Exception {
+    parseUnit("phony_test_factory_in_interface.dart",
+        Joiner.on("\n").join(
+            "interface A {",
+            "  factory A();",
+            "}"),
+            ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE, 2, 3,
+            ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY, 2, 14);
+  }
+
   public void test_AbstractVar() throws Exception {
     parseUnit("phony_test_abstract_var.dart",
         Joiner.on("\n").join(
@@ -954,5 +964,149 @@ public class SyntaxTest extends AbstractParserTest {
         }
       }
     }
+  }
+
+  public void test_positionalDefaultValue() throws Exception {
+    parseUnit("phony_test_abstract_var.dart",
+        Joiner.on("\n").join(
+            "method(arg=1) {",
+            "}"),
+            ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER, 1, 8);
+  }
+
+  public void test_abstractInInterface() throws Exception {
+    parseUnit("phony_test_abstract_in_interface.dart",
+        Joiner.on("\n").join(
+            "interface A {",
+            "  abstract var foo;",
+            "  abstract bar();",
+            "}"),
+            ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE, 2, 3,
+            ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE, 3, 3);
+  }
+
+  public void test_voidParameterField() throws Exception {
+    parseUnit("phony_test_abstract_in_interface.dart",
+        Joiner.on("\n").join(
+            "method(void arg) { }",
+            "void field;",
+            "class C {",
+            "  method(void arg) { }",
+            "  void field;",
+            "}"),
+            ParserErrorCode.VOID_PARAMETER, 1, 8,
+            ParserErrorCode.VOID_FIELD, 2, 1,
+            ParserErrorCode.VOID_PARAMETER, 4, 10,
+            ParserErrorCode.VOID_FIELD, 5, 3);
+  }
+
+  public void test_unexpectedTypeArgument() throws Exception {
+    // This is valid code that was previously rejected.
+    // Invoking a named constructor in a prefixed library should work.
+    parseUnit("phony_test_unexpected_type_argument.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  new prefix.Type.named<T>();",
+            "}"));
+  }
+
+  public void test_staticOperator() throws Exception {
+    parseUnit("phony_static_operator.dart",
+        Joiner.on("\n").join(
+            "class C {",
+            "  static operator +(arg) {}",
+            "}"),
+            ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, 2, 10);
+  }
+
+  public void test_expectedPrefixIdentifier() throws Exception {
+    parseUnit("phony_expected_prefix_identifier.dart",
+        Joiner.on("\n").join(
+            "#import(\"l.dart\", postfix : \"l\");",
+            "#import(\"l.dart\", );",
+            "#import(\"l.dart\", prefix : \"1\");"),
+            ParserErrorCode.EXPECTED_PREFIX_KEYWORD, 1, 17,
+            ParserErrorCode.EXPECTED_PREFIX_KEYWORD, 2, 17,
+            ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER, 3, 28);
+  }
+
+  public void test_nonFinalStaticMemberInInterface() throws Exception {
+    parseUnit("phony_non_final_static_member_in_interface.dart",
+        Joiner.on("\n").join(
+            "interface I {",
+            "  static foo();",
+            "  static var bar;",
+            "}"),
+            ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE, 2, 3,
+            ParserErrorCode.NON_FINAL_STATIC_MEMBER_IN_INTERFACE, 3, 3);
+  }
+
+  public void test_invalidOperatorChaining() throws Exception {
+    parseUnit("phony_invalid_operator_chaining.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  if (a < b < c) {}",
+            "  if (a is b is c) {}",
+            "}"),
+            ParserErrorCode.INVALID_OPERATOR_CHAINING, 2, 11,
+            ParserErrorCode.INVALID_OPERATOR_CHAINING, 3, 12);
+  }
+
+  public void test_expectedArrayOrMapLiteral() throws Exception {
+    parseUnit("phony_expected_array_or_map_literal.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  var a = <int>;",
+            "}"),
+            ParserErrorCode.EXPECTED_ARRAY_OR_MAP_LITERAL, 2, 9,
+            ParserErrorCode.EXPECTED_TOKEN, 2, 15);
+  }
+
+  public void test_assignToNonAssignable() throws Exception {
+    parseUnit("phony_assign_to_non_assignable.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  1 + 2 = 3;",
+            "}"),
+            ParserErrorCode.ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE, 2, 7);
+  }
+
+  public void test_forComplexVariable() throws Exception {
+    parseUnit("phony_for_complex_variable.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  for (foo + 1 in a) { }",
+            "}"),
+            ParserErrorCode.FOR_IN_WITH_COMPLEX_VARIABLE, 2, 8);
+  }
+
+  public void test_forMultipleVariable() throws Exception {
+    parseUnit("phony_for_multiple_variable.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  for (var foo, bar in a) { }",
+            "}"),
+            ParserErrorCode.FOR_IN_WITH_MULTIPLE_VARIABLES, 2, 17);
+  }
+
+  public void test_forVariableInitializer() throws Exception {
+    parseUnit("phony_for_multiple_variable.dart",
+        Joiner.on("\n").join(
+            "method() {",
+            "  for (var foo = 1 in a) { }",
+            "}"),
+            ParserErrorCode.FOR_IN_WITH_VARIABLE_INITIALIZER, 2, 18);
+  }
+
+  public void test_varInFunctionType() throws Exception {
+    parseUnit("phony_var_in_function_type.dart",
+            "typedef func(var arg());",
+            ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_VAR, 1, 18);
+  }
+
+  public void test_finalInFunctionType() throws Exception {
+    parseUnit("phony_var_in_function_type.dart",
+            "typedef func(final arg());",
+            ParserErrorCode.FUNCTION_TYPED_PARAMETER_IS_FINAL, 1, 20);
   }
 }

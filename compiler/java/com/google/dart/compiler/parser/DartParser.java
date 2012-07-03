@@ -3117,7 +3117,7 @@ public class DartParser extends CompletionHooksParserBase {
           constructor = doneWithoutConsuming(toPrefixedType(parts));
         } else {
           // Named constructor.
-          DartIdentifier identifier = ensureIdentifier(part2);
+          DartIdentifier identifier = (DartIdentifier)part2.getIdentifier();
           constructor = doneWithoutConsuming(new DartPropertyAccess(doneWithoutConsuming(part1),
                                                                     identifier));
         }
@@ -3129,7 +3129,7 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(parts.get(3), ParserErrorCode.EXPECTED_LEFT_PAREN);
         }
         DartTypeNode typeNode = doneWithoutConsuming(toPrefixedType(parts));
-        DartIdentifier identifier = ensureIdentifier(parts.get(2));
+        DartIdentifier identifier = (DartIdentifier)parts.get(2).getIdentifier();
         constructor = doneWithoutConsuming(new DartPropertyAccess(typeNode, identifier));
         break;
       }
@@ -3144,16 +3144,8 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartIdentifier ensureIdentifier(DartTypeNode node) {
-    List<DartTypeNode> typeArguments = node.getTypeArguments();
-    if (!typeArguments.isEmpty()) {
-      reportError(typeArguments.get(0), ParserErrorCode.UNEXPECTED_TYPE_ARGUMENT);
-    }
-    return (DartIdentifier) node.getIdentifier();
-  }
-
   private DartTypeNode toPrefixedType(List<DartTypeNode> parts) {
-    DartIdentifier part1 = ensureIdentifier(parts.get(0));
+    DartIdentifier part1 = (DartIdentifier)parts.get(0).getIdentifier();
     DartTypeNode part2 = parts.get(1);
     DartIdentifier identifier = (DartIdentifier) part2.getIdentifier();
     DartPropertyAccess access = doneWithoutConsuming(new DartPropertyAccess(part1, identifier));
