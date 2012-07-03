@@ -11,9 +11,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
-  String buildJavaScriptFunction(FunctionElement element,
-                                 String parameters,
-                                 String body) {
+  CodeBlock buildJavaScriptFunction(FunctionElement element,
+                                    String parameters,
+                                    String body) {
     String extraSpace = "";
     // Members are emitted inside a JavaScript object literal. To line up the
     // indentation we want the closing curly brace to be indented by one space.
@@ -32,10 +32,19 @@ class SsaCodeGeneratorTask extends CompilerTask {
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
       extraSpace = " ";
     }
-    return 'function($parameters) {\n$body$extraSpace}';
+
+    String code = 'function($parameters) {\n$body$extraSpace}';
+    List<SourceMappingEntry> sourceMappings = new List<SourceMappingEntry>();
+    SourceFile sourceFile = element.getCompilationUnit().script.file;
+    FunctionExpression expression = element.cachedNode;
+    sourceMappings.add(new SourceMappingEntry(
+      sourceFile, expression.getBeginToken().charOffset, 0));
+    sourceMappings.add(new SourceMappingEntry(
+      sourceFile, expression.getEndToken().charOffset, code.length - 1));
+    return new CodeBlock(code, sourceMappings);
   }
 
-  String generateMethod(WorkItem work, HGraph graph) {
+  CodeBlock generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
@@ -69,7 +78,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  String generateBailoutMethod(WorkItem work, HGraph graph) {
+  CodeBlock generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 

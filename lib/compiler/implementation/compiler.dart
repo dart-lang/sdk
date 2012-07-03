@@ -25,8 +25,8 @@ class WorkItem {
   bool isAnalyzed() => resolutionTree !== null;
 
   String run(Compiler compiler, Enqueuer world) {
-    String code = world.universe.generatedCode[element];
-    if (code !== null) return code;
+    CodeBlock codeBlock = world.universe.generatedCode[element];
+    if (codeBlock !== null) return codeBlock.code;
     resolutionTree = compiler.analyze(this, world);
     return compiler.codegen(this, world);
   }
@@ -44,7 +44,7 @@ class Backend {
   }
 
   abstract void enqueueHelpers(Enqueuer world);
-  abstract String codegen(WorkItem work);
+  abstract CodeBlock codegen(WorkItem work);
   abstract void processNativeClasses(Enqueuer world,
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
@@ -86,13 +86,13 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  String codegen(WorkItem work) {
+  CodeBlock codegen(WorkItem work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      String code = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, code);
+      CodeBlock codeBlock = generator.generateBailoutMethod(work, graph);
+      compiler.codegenWorld.addBailoutCode(work, codeBlock);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
@@ -682,11 +682,11 @@ class Compiler implements DiagnosticListener {
     assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
-      String oldCode = world.universe.generatedCode[work.element];
+      String oldCode = world.universe.generatedCode[work.element].code;
       world.universe.generatedCode.remove(work.element);
       world.universe.generatedBailoutCode.remove(work.element);
       withCurrentElement(work.element, () => work.run(this, world));
-      String newCode = world.universe.generatedCode[work.element];
+      String newCode = world.universe.generatedCode[work.element].code;
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
         log("Pass 2 optimization:");
         log("Before:\n$oldCode");
@@ -806,9 +806,9 @@ class Compiler implements DiagnosticListener {
       constantHandler.compileWorkItem(work);
       return null;
     } else {
-      String code = backend.codegen(work);
-      codegenWorld.addGeneratedCode(work, code);
-      return code;
+      CodeBlock codeBlock = backend.codegen(work);
+      codegenWorld.addGeneratedCode(work, codeBlock);
+      return codeBlock.code;
     }
   }
 
