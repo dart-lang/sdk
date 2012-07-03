@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Universe {
-  Map<Element, CodeBlock> generatedCode;
-  Map<Element, CodeBlock> generatedBailoutCode;
+  Map<Element, String> generatedCode;
+  Map<Element, String> generatedBailoutCode;
   final Set<ClassElement> instantiatedClasses;
   final Set<SourceString> instantiatedClassInstanceFields;
   final Set<FunctionElement> staticFunctionsNeedingGetter;
@@ -17,8 +17,8 @@ class Universe {
   final Set<Element> isChecks;
   final RuntimeTypeInformation rti;
 
-  Universe() : generatedCode = new Map<Element, CodeBlock>(),
-               generatedBailoutCode = new Map<Element, CodeBlock>(),
+  Universe() : generatedCode = new Map<Element, String>(),
+               generatedBailoutCode = new Map<Element, String>(),
                instantiatedClasses = new Set<ClassElement>(),
                instantiatedClassInstanceFields = new Set<SourceString>(),
                staticFunctionsNeedingGetter = new Set<FunctionElement>(),
@@ -30,12 +30,12 @@ class Universe {
                isChecks = new Set<Element>(),
                rti = new RuntimeTypeInformation();
 
-  void addGeneratedCode(WorkItem work, CodeBlock codeBlock) {
-    generatedCode[work.element] = codeBlock;
+  void addGeneratedCode(WorkItem work, String code) {
+    generatedCode[work.element] = code;
   }
 
-  void addBailoutCode(WorkItem work, CodeBlock codeBlock) {
-    generatedBailoutCode[work.element] = codeBlock;
+  void addBailoutCode(WorkItem work, String code) {
+    generatedBailoutCode[work.element] = code;
   }
 
   bool hasMatchingSelector(Set<Selector> selectors,
@@ -351,10 +351,4 @@ class TypedSelector extends Selector {
     if (other.receiverType !== receiverType) return false;
     return super == other;
   }
-}
-
-class CodeBlock {
-  String code;
-  List<SourceMappingEntry> sourceMappings;
-  CodeBlock(this.code, this.sourceMappings);
 }

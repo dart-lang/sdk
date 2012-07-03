@@ -7,7 +7,18 @@
 #import('dart:json');
 
 #import('source_file.dart');
-#import('ssa/ssa.dart');
+
+class SourceMappingEntry {
+  SourceFile sourceFile;
+  int sourceOffset;
+  int targetOffset;
+  String sourceName;
+
+  SourceMappingEntry(this.sourceFile,
+                     this.sourceOffset,
+                     this.targetOffset,
+                     [this.sourceName]);
+}
 
 class SourceMapBuilder {
   static final int VLQ_BASE_SHIFT = 5;
@@ -16,8 +27,6 @@ class SourceMapBuilder {
   static final int VLQ_CONTINUATION_MASK = 1 << 5;
   static final String BASE64_DIGITS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmn'
                                       'opqrstuvwxyz0123456789+/';
-
-  List<_Block> blocks;
 
   Map<String, int> sourceUrlMap;
   List<String> sourceUrlList;
@@ -33,8 +42,6 @@ class SourceMapBuilder {
   bool firstEntryInLine;
 
   SourceMapBuilder() {
-    blocks = new List<_Block>();
-
     sourceUrlMap = new Map<String, int>();
     sourceUrlList = new List<String>();
     sourceNameMap = new Map<String, int>();
@@ -49,21 +56,13 @@ class SourceMapBuilder {
     firstEntryInLine = true;
   }
 
-  void addCodeBlock(List<SourceMappingEntry> sourceMappings, int offset) {
-    if (sourceMappings !== null) {
-      blocks.add(new _Block(sourceMappings, offset));
-    }
-  }
-
-  String build(SourceFile targetFile) {
+  String build(List<SourceMappingEntry> mappingEntries, SourceFile targetFile) {
     StringBuffer buffer = new StringBuffer();
     buffer.add('{\n');
     buffer.add('  "version": 3,\n');
     buffer.add('  "mappings": "');
-    blocks.forEach((_Block block) {
-      block.sourceMapings.forEach((SourceMappingEntry entry) {
-        writeEntry(entry, targetFile, block.offset, buffer);
-      });
+    mappingEntries.forEach((SourceMappingEntry entry) {
+      writeEntry(entry, targetFile, buffer);
     });
     buffer.add('",\n');
     buffer.add('  "sources": ');
@@ -77,14 +76,12 @@ class SourceMapBuilder {
 
   void writeEntry(SourceMappingEntry entry,
                   SourceFile targetFile,
-                  int targetOffset,
                   StringBuffer output) {
     if (entry.sourceFile === null) {
       return;
     }
-    int totalTargetOffset = targetOffset + entry.targetOffset;
-    int targetLine = targetFile.getLine(totalTargetOffset);
-    int targetColumn = targetFile.getColumn(targetLine, totalTargetOffset);
+    int targetLine = targetFile.getLine(entry.targetOffset);
+    int targetColumn = targetFile.getColumn(targetLine, entry.targetOffset);
     String sourceUrl = entry.sourceFile.filename;
     int sourceLine = entry.sourceFile.getLine(entry.sourceOffset);
     int sourceColumn = entry.sourceFile.getColumn(sourceLine,
@@ -155,22 +152,4 @@ class SourceMapBuilder {
       output.add(BASE64_DIGITS[digit]);
     } while (value > 0);
   }
-}
-
-class _Block {
-  List<SourceMappingEntry> sourceMapings;
-  int offset;
-  _Block(this.sourceMapings, this.offset);
-}
-
-class SourceMappingEntry {
-  SourceFile sourceFile;
-  int sourceOffset;
-  int targetOffset;
-  String sourceName;
-
-  SourceMappingEntry(this.sourceFile,
-                     this.sourceOffset,
-                     this.targetOffset,
-                     [this.sourceName]);
 }

@@ -6,8 +6,6 @@
 
 #import('../leg.dart');
 #import('../native_handler.dart', prefix: 'native');
-#import('../source_file.dart');
-#import('../source_map_builder.dart');
 #import('../elements/elements.dart');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
