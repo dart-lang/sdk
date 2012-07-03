@@ -1779,8 +1779,9 @@ class Instruction : public ZoneAllocated {
     previous_ = instr;
   }
 
-  // Remove instruction from the graph.
-  void RemoveFromGraph();
+  // Remove instruction from the graph and return the instruction following the
+  // removed instruction.
+  Instruction* RemoveFromGraph();
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this

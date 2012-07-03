@@ -532,7 +532,7 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
 }
 
 
-void Instruction::RemoveFromGraph() {
+Instruction* Instruction::RemoveFromGraph() {
   ASSERT(!IsBlockEntry());
   ASSERT(!IsBranch());
   ASSERT(!IsThrow());
@@ -559,6 +559,7 @@ void Instruction::RemoveFromGraph() {
   // that the instruction is removed from the graph.
   set_successor(NULL);
   set_previous(NULL);
+  return next;
 }
 
 

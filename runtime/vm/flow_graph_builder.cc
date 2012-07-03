@@ -2727,16 +2727,18 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
 
     if (load != NULL) {
       // Remove instruction.
-      current->RemoveFromGraph();
+      current = current->RemoveFromGraph();
     } else if (store != NULL) {
       // Remove instruction and update renaming environment.
-      current->RemoveFromGraph();
+      current = current->RemoveFromGraph();
       (*env)[store->local().BitIndexIn(var_count)] = store->value();
-    } else if (current->IsBind()) {
-      // Assign new SSA temporary.
-      current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+    } else {
+      if (current->IsBind()) {
+        // Assign new SSA temporary.
+        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+      }
+      current = current->successor();
     }
-    current = current->successor();
   }
 
   // 3. Process dominated blocks.
