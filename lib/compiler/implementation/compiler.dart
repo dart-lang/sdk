@@ -269,11 +269,7 @@ class Compiler implements DiagnosticListener {
       // do not have enough stack space.
       throw;
     } catch (var ex) {
-      try {
-        unhandledExceptionOnElement(element);
-      } catch (var doubleFault) {
-        // Ignoring exceptions in exception handling.
-      }
+      unhandledExceptionOnElement(element);
       throw;
     } finally {
       _currentElement = old;
@@ -529,10 +525,6 @@ class Compiler implements DiagnosticListener {
   }
 
   void applyLibraryPatch(LibraryElement library, LibraryElement patch) {
-    // We allow foreign functions in patched libraries.
-    addForeignFunctions(library);  // Is safe even if already added.
-
-    // Copy/patch top-level elements.
     Link<Element> patches = patch.topLevelElements;
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
@@ -556,29 +548,7 @@ class Compiler implements DiagnosticListener {
       }
       patches = patches.tail;
     }
-
-    // Copy imports.
-    Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
-    Uri base = patch.script.uri;
-    for (ScriptTag tag in patch.tags.reverse()) {
-      if (tag.isImport()) {
-        StringNode argument = tag.argument;
-        Uri resolved = base.resolve(argument.dartString.slowToString());
-        LibraryElement importedLibrary =
-            scanner.loadLibrary(resolved, argument);
-        scanner.importLibrary(library, importedLibrary, tag, patch);
-        if (resolved.scheme == "dart") {
-          delayedPatches[resolved.path] = importedLibrary;
-        }
-      }
-    }
-    // Mark library as already patched.
     library.patch = patch;
-    // We patch imported libraries after marking the current library as patched,
-    // to avoid problems with cyclic dependencies.
-    delayedPatches.forEach((String path, LibraryElement importedLibrary) {
-      patchDartLibrary(importedLibrary, path);
-    });
   }
 
   bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
