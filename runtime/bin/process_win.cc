@@ -391,7 +391,7 @@ int Process::Start(const char* path,
   startup_info.hStdInput = stdin_handles[kReadHandle];
   startup_info.hStdOutput = stdout_handles[kWriteHandle];
   startup_info.hStdError = stderr_handles[kWriteHandle];
-  startup_info.dwFlags |= STARTF_USESTDHANDLES;
+  startup_info.dwFlags = STARTF_USESTDHANDLES;
 
   PROCESS_INFORMATION process_info;
   ZeroMemory(&process_info, sizeof(process_info));
@@ -521,4 +521,3 @@ bool Process::Kill(intptr_t id, int signal) {
 void Process::TerminateExitCodeHandler() {
   // Nothing needs to be done on Windows.
 }
-
