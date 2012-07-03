@@ -250,11 +250,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
       unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
-
-    Interceptors interceptors = backend.builder.interceptors;
-    equalsNullElement = interceptors.getEqualsNullInterceptor();
-    boolifiedEqualsNullElement =
-        interceptors.getBoolifiedVersionOf(equalsNullElement);
   }
 
   abstract visitTypeGuard(HTypeGuard node);
@@ -1274,14 +1269,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitEquals(HEquals node) {
     if (node.builtin) {
       emitIdentityComparison(node.left, node.right);
-    } else if (node.element === equalsNullElement ||
-               node.element === boolifiedEqualsNullElement) {
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
-      use(node.target, JSPrecedence.CALL_PRECEDENCE);
-      buffer.add('(');
-      use(node.left, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      buffer.add(')');
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
