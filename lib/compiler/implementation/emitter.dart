@@ -35,7 +35,7 @@ class CodeEmitterTask extends CompilerTask {
   final Map<int, String> boundClosureCache;
 
   final bool generateSourceMap;
-  final List<SourceMappingEntry> sourceMappings;
+  final SourceMapBuilder sourceMapBuilder;
 
   CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
       : namer = compiler.namer,
@@ -43,7 +43,7 @@ class CodeEmitterTask extends CompilerTask {
         mainBuffer = new StringBuffer(),
         boundClosureCache = new Map<int, String>(),
         generateSourceMap = generateSourceMap,
-        sourceMappings = new List<SourceMappingEntry>(),
+        sourceMapBuilder = new SourceMapBuilder(),
         super(compiler) {
     nativeEmitter = new NativeEmitter(this);
   }
@@ -255,8 +255,7 @@ function(collectedClasses) {
 
   void addParameterStub(FunctionElement member,
                         Selector selector,
-                        void defineInstanceMember(String invocationName,
-                                                  String definition)) {
+                        DefineMemberFunction defineInstanceMember) {
     FunctionSignature parameters = member.computeSignature(compiler);
     int positionalArgumentCount = selector.positionalArgumentCount;
     if (positionalArgumentCount == parameters.parameterCount) {
@@ -360,8 +359,7 @@ function(collectedClasses) {
   }
 
   void addParameterStubs(FunctionElement member,
-                         void defineInstanceMember(String invocationName,
-                                                   String definition)) {
+                         DefineMemberFunction defineInstanceMember) {
     Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
     if (selectors == null) return;
     for (Selector selector in selectors) {
@@ -389,8 +387,7 @@ function(collectedClasses) {
   }
 
   void addInstanceMember(Element member,
-                         void defineInstanceMember(String invocationName,
-                                                   String definition)) {
+                         DefineMemberFunction defineInstanceMember) {
     // TODO(floitsch): we don't need to deal with members of
     // uninstantiated classes, that have been overwritten by subclasses.
 
@@ -399,12 +396,16 @@ function(collectedClasses) {
         || member.kind === ElementKind.GETTER
         || member.kind === ElementKind.SETTER) {
       if (member.modifiers !== null && member.modifiers.isAbstract()) return;
-      String codeBlock = compiler.codegenWorld.generatedCode[member];
+      CodeBlock codeBlock = compiler.codegenWorld.generatedCode[member];
       if (codeBlock == null) return;
-      defineInstanceMember(namer.getName(member), codeBlock);
+      defineInstanceMember(namer.getName(member),
+                           codeBlock.code,
+                           codeBlock.sourceMappings);
       codeBlock = compiler.codegenWorld.generatedBailoutCode[member];
       if (codeBlock !== null) {
-        defineInstanceMember(compiler.namer.getBailoutName(member), codeBlock);
+        defineInstanceMember(compiler.namer.getBailoutName(member),
+                             codeBlock.code,
+                             codeBlock.sourceMappings);
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
@@ -488,11 +489,15 @@ function(collectedClasses) {
                            StringBuffer buffer,
                            bool needsLeadingComma) {
     bool needsComma = needsLeadingComma;
-    void defineInstanceMember(String name, String value) {
+    void defineInstanceMember(String name,
+                              String value,
+                              [List<SourceMappingEntry> sourceMappings]) {
       if (needsComma) buffer.add(',');
       needsComma = true;
       buffer.add('\n');
-      buffer.add(' $name: $value');
+      buffer.add(' $name: ');
+      sourceMapBuilder.addCodeBlock(sourceMappings, buffer.length);
+      buffer.add('$value');
     }
 
     classElement.forEachMember(includeBackendMembers: true,
@@ -616,19 +621,14 @@ function(collectedClasses) {
   }
 
   void emitStaticFunctionsWithNamer(StringBuffer buffer,
-                                    Map<Element, String> generatedCode,
+                                    Map<Element, CodeBlock> generatedCode,
                                     String functionNamer(Element element)) {
-    generatedCode.forEach((Element element, String codeBlock) {
+    generatedCode.forEach((Element element, CodeBlock codeBlock) {
       if (!element.isInstanceMember()) {
         String functionName = functionNamer(element);
         buffer.add('$isolateProperties.$functionName = ');
-        int beginPosition = buffer.length;
-        buffer.add(codeBlock);
-        int endPosition = buffer.length;
-        buffer.add(';\n\n');
-        if (generateSourceMap) {
-          addSourceMapping(element, beginPosition, endPosition);
-        }
+        sourceMapBuilder.addCodeBlock(codeBlock.sourceMappings, buffer.length);
+        buffer.add('${codeBlock.code};\n\n');
       }
     });
   }
@@ -659,7 +659,9 @@ function(collectedClasses) {
                                    parameterCount);
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName = $fieldAccess;\n");
-      addParameterStubs(callElement, (String name, String value) {
+      addParameterStubs(callElement, (
+          String name, String value,
+          [List<SourceMappingEntry> sourceMappings]) {
         buffer.add('$fieldAccess.$name = $value;\n');
       });
       // If a static function is used as a closure we need to add its name
@@ -670,8 +672,7 @@ function(collectedClasses) {
   }
 
   void emitDynamicFunctionGetter(FunctionElement member,
-                                 defineInstanceMember(String invocationName,
-                                                      String definition)) {
+                                 DefineMemberFunction defineInstanceMember) {
     // For every method that has the same name as a property-get we create a
     // getter that returns a bound closure. Say we have a class 'A' with method
     // 'foo' and somewhere in the code there is a dynamic property get of
@@ -756,8 +757,7 @@ function(collectedClasses) {
 
   void emitCallStubForGetter(Element member,
                              Set<Selector> selectors,
-                             void defineInstanceMember(String invocationName,
-                                                       String definition)) {
+                             DefineMemberFunction defineInstanceMember) {
     String getter;
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
@@ -831,8 +831,7 @@ function(collectedClasses) {
   }
 
   void emitExtraAccessors(Element member,
-                          void defineInstanceMember(String invocationName,
-                                                    String definition)) {
+                          DefineMemberFunction defineInstanceMember) {
     if (member.kind == ElementKind.GETTER || member.kind == ElementKind.FIELD) {
       Set<Selector> selectors = compiler.codegenWorld.invokedNames[member.name];
       if (selectors !== null && !selectors.isEmpty()) {
@@ -845,8 +844,7 @@ function(collectedClasses) {
     }
   }
 
-  void emitNoSuchMethodCalls(void defineInstanceMember(String invocationName,
-                                                       String definition)) {
+  void emitNoSuchMethodCalls(DefineMemberFunction defineInstanceMember) {
     // Do not generate no such method calls if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
@@ -1047,8 +1045,7 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
 
       if (generateSourceMap) {
         SourceFile compiledFile = new SourceFile(null, compiler.assembledCode);
-        String sourceMap = new SourceMapBuilder().build(sourceMappings,
-                                                        compiledFile);
+        String sourceMap = sourceMapBuilder.build(compiledFile);
         // TODO(podivilov): We should find a better way to return source maps to
         // compiler. Using diagnostic handler for that purpose is a temporary
         // hack.
@@ -1058,15 +1055,8 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
     });
     return compiler.assembledCode;
   }
-
-  void addSourceMapping(FunctionElement element,
-                        int beginPosition,
-                        int endPosition) {
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
-    FunctionExpression expression = element.cachedNode;
-    sourceMappings.add(new SourceMappingEntry(
-        sourceFile, expression.getBeginToken().charOffset, beginPosition));
-    sourceMappings.add(new SourceMappingEntry(
-        sourceFile, expression.getEndToken().charOffset, endPosition));
-  }
 }
+
+typedef void DefineMemberFunction(String invocationName,
+                                  String definition,
+                                  [List<SourceMappingEntry> sourceMappings]);
