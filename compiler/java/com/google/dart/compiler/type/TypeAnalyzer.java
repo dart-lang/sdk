@@ -1039,10 +1039,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitTypeNode(DartTypeNode node) {
-      return validateTypeNode(node, false);
+      return validateTypeNode(node);
     }
 
-    private Type validateTypeNode(DartTypeNode node, boolean badBoundIsError) {
+    private Type validateTypeNode(DartTypeNode node) {
       Type type = node.getType(); // Already calculated by resolver.
       switch (TypeKind.of(type)) {
         case NONE:
@@ -1052,8 +1052,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           InterfaceType itype = (InterfaceType) type;
           validateBounds(node.getTypeArguments(),
                          itype.getArguments(),
-                         itype.getElement().getTypeParameters(),
-                         badBoundIsError);
+                         itype.getElement().getTypeParameters());
           return itype;
         }
         default:
@@ -1063,8 +1062,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private void validateBounds(List<? extends DartNode> diagnosticNodes,
                                 List<Type> arguments,
-                                List<Type> parameters,
-                                boolean badBoundIsError) {
+                                List<Type> parameters) {
       if (arguments.size() == parameters.size() && arguments.size() == diagnosticNodes.size()) {
         List<Type> bounds = Lists.newArrayListWithCapacity(parameters.size());
         for (Type parameter : parameters) {
@@ -1080,13 +1078,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type t = bounds.get(i);
           Type s = arguments.get(i);
           if (!types.isAssignable(t, s)) {
-            if (badBoundIsError) {
-              onError(diagnosticNodes.get(i),
-                        ResolverErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
-            } else {
-              onError(diagnosticNodes.get(i),
-                        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
-            }
+            onError(diagnosticNodes.get(i),
+                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
           }
         }
       }
@@ -1295,11 +1288,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
-        validateTypeNode(node.getSuperclass(), false);
+        validateTypeNode(node.getSuperclass());
       }
       if (node.getInterfaces() != null) {
         for (DartTypeNode interfaceNode : node.getInterfaces()) {
-          validateTypeNode(interfaceNode, false);
+          validateTypeNode(interfaceNode);
         }
       }
       visit(node.getMembers());
@@ -1833,13 +1826,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (defaultClassType != null && defaultClassType.getElement() != null) {
           validateBounds(typeNode.getTypeArguments(),
                          itype.getArguments(),
-                         defaultClassType.getElement().getTypeParameters(),
-                         false);
+                         defaultClassType.getElement().getTypeParameters());
           type = itype;
         }
       }
       if (type == null) {
-        type = validateTypeNode(typeNode, false);
+        type = validateTypeNode(typeNode);
       }
 
       DartNode typeName = typeNode.getIdentifier();
@@ -2439,7 +2431,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitTypeParameter(DartTypeParameter node) {
       if (node.getBound() != null) {
-        validateTypeNode(node.getBound(), true);
+        validateTypeNode(node.getBound());
       }
       return voidType;
     }

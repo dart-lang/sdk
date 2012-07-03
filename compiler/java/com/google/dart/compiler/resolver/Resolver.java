@@ -1661,6 +1661,12 @@ public class Resolver {
           break;
         }
 
+        case FIELD: {
+          onError(errorNode, ResolverErrorCode.IS_AN_INSTANCE_FIELD,
+              classOrLibrary.getName(), name);
+          break;
+        }
+
         default:
           throw context.internalError(errorNode, "Unexpected kind of element: %s", kind);
       }

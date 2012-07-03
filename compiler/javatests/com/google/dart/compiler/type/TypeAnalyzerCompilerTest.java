@@ -1721,6 +1721,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
   }
 
+  public void test_typeVariableBoundsCheckNew() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class Object {}",
+        "class A { }",
+        "class B { }",
+        "class C<T extends A> { }",
+        "method() {",
+        "  new C<B>();", // B not assignable to A
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 9, 1));
+  }
+
   /**
    * When we check getter/setter compatibility, we should compare propagated type variables.
    * <p>
@@ -3164,6 +3178,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 7, 7, 3),
         errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 8, 3, 3));
+  }
+
+  public void test_rethrowNotInCatch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class Object {}",
+        "method() {",
+        "  throw;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 6));
   }
 
   private static <T extends DartNode> T findNode(

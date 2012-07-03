@@ -122,40 +122,33 @@ public enum ResolverErrorCode implements ErrorCode {
   ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
-  // TODO(zundel): error message needs JUnit test
   ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(
       "Illegal constructor declaration.  No default clause in interface"),
-  // TODO(zundel): error message needs JUnit test
   ILLEGAL_FIELD_ACCESS_FROM_STATIC("Illegal access of instance field %s from static scope"),
-  // TODO(zundel): error message needs JUnit test
   ILLEGAL_METHOD_ACCESS_FROM_STATIC("Illegal access of instance method %s from static scope"),
   INIT_FIELD_ONLY_IMMEDIATELY_SURROUNDING_CLASS(
       "Only fields of immediately surrounding class can be initialized"),
   INSTANCE_METHOD_FROM_INITIALIZER("Instance methods cannot be referenced from constructor initializer"),
   INSTANCE_METHOD_FROM_REDIRECT("Instance methods cannot be referenced from constructor redirects"),
-  // TODO(zundel): error message needs JUnit test
   INSTANCE_METHOD_FROM_STATIC("Instance methods cannot be referenced from static methods"),
   INTERNAL_ERROR("internal error: %s"),
   INVALID_OVERRIDE_METADATA(ErrorSeverity.INFO, "Method marked with @override, but does not override any superclass element"),
-  // TODO(zundel): error message needs JUnit test
   INVALID_RETURN_IN_CONSTRUCTOR("Generative constructors cannot return arbitrary expressions"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   INVALID_TYPE_NAME_IN_CONSTRUCTOR("Invalid type in constructor name"),
-  // TODO(zundel): error message needs JUnit test
   IS_A_CLASS("%s is a class and cannot be used as an expression"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   IS_A_CONSTRUCTOR("%s.%s is a constructor, expected a  method"),
-  // TODO(zundel): error message needs JUnit test
+  IS_AN_INSTANCE_FIELD("%s.%s is an instance field, not a static method"),
   IS_AN_INSTANCE_METHOD("%s.%s is an instance method, not a static method"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (requires development mode checks)
   LIST_LITERAL_ELEMENT_TYPE(
       "List literal element type must match declaration '%s' when type checks are on."),
   MAIN_FUNCTION_PARAMETERS(
       ErrorSeverity.WARNING, "Top-level function 'main' should not have parameters."),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (requires development mode checks)
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
-  // TODO(zundel): error message needs JUnit test
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
@@ -164,27 +157,24 @@ public enum ResolverErrorCode implements ErrorCode {
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
   NOT_A_CLASS("\"%s\" is not a class"),
   NOT_A_CLASS_OR_INTERFACE("\"%s\" is not a class or interface"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_A_LABEL("\"%s\" is not a label"),
-  // TODO(zundel): error message needs JUnit test
   NOT_A_STATIC_FIELD("\"%s\" is not a static field"),
   NOT_A_STATIC_METHOD("\"%s\" is not a static method"),
   NOT_A_TYPE("type \"%s\" expected, but \"%s\" found"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   NOT_AN_INSTANCE_FIELD("%s is not an instance field"),
-  // TODO(zundel): error message needs JUnit test
   REDIRECTED_CONSTRUCTOR_CYCLE("Redirected constructor call has a cycle."),
   PARAMETER_INIT_OUTSIDE_CONSTRUCTOR("Parameter initializers can only be used in constructors"),
   SUPER_METHOD_INVOCATION_IN_CONSTRUCTOR_INITIALIZER(
       "Super method invocation is not allowed in constructor initializer"),
   PARAMETER_INIT_STATIC_FIELD(
       "Parameter initializer cannot be use to initialize a static field '%s'"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   PARAMETER_INIT_WITH_REDIR_CONSTRUCTOR(
       "Parameter initializers cannot be used with redirected constructors"),
   // TODO(zundel): error message needs JUnit test
   PARAMETER_NOT_MATCH_FIELD("Could not match parameter initializer '%s' with any field"),
-  // TODO(zundel): error message needs JUnit test
   RETHROW_NOT_IN_CATCH("Re-throw not in a catch block"),
   STATIC_FINAL_REQUIRES_VALUE("Static final fields must have an initial value"),
   SUPER_IN_FACTORY_CONSTRUCTOR("Cannot use 'super' in a factory constructor"),
@@ -196,16 +186,12 @@ public enum ResolverErrorCode implements ErrorCode {
   THIS_ON_TOP_LEVEL("Cannot use 'this' in a top-level element"),
   THIS_OUTSIDE_OF_METHOD("Cannot use 'this' outside of a method"),
   THIS_IN_FACTORY_CONSTRUCTOR("Cannot use 'this' in a factory constructor"),
-  // TODO(zundel): error message needs JUnit test
   TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER("Too few arguments in implicit super() constructor invocation in '%s'"),
   TOO_MANY_QUALIFIERS_FOR_METHOD("Too many qualifiers for method or constructor"),
   TOPLEVEL_FINAL_REQUIRES_VALUE("Top-level final fields must have an initial value"),
-  // TODO(zundel): error message needs JUnit test
-  TYPE_NOT_ASSIGNMENT_COMPATIBLE("%s is not assignable to %s"),
   TYPE_VARIABLE_DOES_NOT_MATCH("Type variable %s does not match %s in default class %s."),
   TYPE_PARAMETERS_MUST_MATCH_EXACTLY(
       "Type parameters in default declaration must match referenced class exactly"),
-  // TODO(zundel): error message needs JUnit test
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
