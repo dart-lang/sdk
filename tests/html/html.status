@@ -22,7 +22,7 @@ audiocontext_test: Skip
 audiocontext_test: Pass, Fail
 
 [ $compiler == none && $runtime == drt && $system == linux]
-documentfragment_test: Pass, Fail
+documentfragment_test: Pass, Timeout
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
