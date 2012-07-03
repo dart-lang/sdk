@@ -2042,9 +2042,7 @@ class HEquals extends HRelational {
     // All primitive types have === semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
-    return left.propagatedType.isPrimitive() ||
-        left.isConstantNull() ||
-        right.isConstantNull();
+    return left.isConstantNull() || left.propagatedType.isPrimitive();
   }
 
   HType computeTypeFromInputTypes() {

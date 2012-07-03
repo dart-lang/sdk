@@ -19,6 +19,14 @@ equals(a) {
   }
 }
 
+equalsNull(a) {
+  try {
+    Expect.equals(1, a == null);
+  } catch(TypeError e) {
+    // In checked mode the test doesn't do anything.
+  }
+}
+
 less(a) {
   try {
     Expect.equals(null, a < a);

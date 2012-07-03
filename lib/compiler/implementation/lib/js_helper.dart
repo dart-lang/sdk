@@ -171,11 +171,12 @@ tdiv(var a, var b) {
 }
 
 eq(var a, var b) {
-  if (JS('bool', @'# == null', a)) return JS('bool', @'# == null', b);
-  if (JS('bool', @'# == null', b)) return false;
+  if (JS('bool', @"# == null", a)) return JS('bool', @"# == null", b);
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
       return UNINTERCEPTED(a == b);
+    } else {
+      return JS('bool', @'# === #', a, b);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
@@ -183,11 +184,12 @@ eq(var a, var b) {
 }
 
 bool eqB(var a, var b) {
-  if (JS('bool', @'# == null', a)) return JS('bool', @'# == null', b);
-  if (JS('bool', @'# == null', b)) return false;
+  if (JS('bool', @"# == null", a)) return JS('bool', @"# == null", b);
   if (JS('bool', @'typeof # === "object"', a)) {
     if (JS_HAS_EQUALS(a)) {
-      return UNINTERCEPTED(a == b) == true;
+      return UNINTERCEPTED(a == b) === true;
+    } else {
+      return JS('bool', @'# === #', a, b);
     }
   }
   // TODO(lrn): is NaN === NaN ? Is -0.0 === 0.0 ?
@@ -196,6 +198,26 @@ bool eqB(var a, var b) {
 
 eqq(var a, var b) {
   return JS('bool', @'# === #', a, b);
+}
+
+eqNull(var a) {
+  if (JS('bool', @'# == null', a)) return true;
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == null);
+    }
+  }
+ return false;
+}
+
+eqNullB(var a) {
+  if (JS('bool', @'# == null', a)) return true;
+  if (JS('bool', @'typeof # === "object"', a)) {
+    if (JS_HAS_EQUALS(a)) {
+      return UNINTERCEPTED(a == null) === true;
+    }
+  }
+ return false;
 }
 
 gt$slow(var a, var b) {
