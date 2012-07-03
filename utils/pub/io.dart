@@ -125,6 +125,15 @@ Future<File> writeTextFile(file, String contents) {
 }
 
 /**
+ * Asynchronously deletes [file], which can be a [String] or a [File]. Returns a
+ * [Future] that completes when the deletion is done.
+ */
+Future<Directory> deleteFile(file) {
+  file = _getFile(file);
+  return file.delete();
+}
+
+/**
  * Creates a directory [dir]. Returns a [Future] that completes when the
  * directory is created.
  */

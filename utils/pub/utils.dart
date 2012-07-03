@@ -100,3 +100,13 @@ String replace(String source, Pattern matcher, String fn(Match)) {
   buffer.add(source.substring(start));
   return buffer.toString();
 }
+
+/**
+ * Returns whether or not [str] ends with [matcher].
+ */
+bool endsWithPattern(String str, Pattern matcher) {
+  for (var match in matcher.allMatches(str)) {
+    if (match.end() == str.length) return true;
+  }
+  return false;
+}
