@@ -939,6 +939,41 @@ class HInstruction implements Hashable {
     }
   }
 
+  // Compute the set of users of this instruction that is dominated by
+  // [other].
+  Set<HInstruction> dominatedUsers(HInstruction other) {
+    // Keep track of all instructions that we have to deal with later
+    // and count the number of them that are in the current block.
+    Set<HInstruction> users = new Set<HInstruction>();
+    int usersInCurrentBlock = 0;
+
+    // Run through all the users and see if they are dominated or
+    // potentially dominated by [other].
+    HBasicBlock block = other.block;
+    for (int i = 0, length = usedBy.length; i < length; i++) {
+      HInstruction current = usedBy[i];
+      if (current !== other && block.dominates(current.block)) {
+        if (current.block === block) usersInCurrentBlock++;
+        users.add(current);
+      }
+    }
+
+    // Run through all the instructions before [other] and remove them
+    // from the users set.
+    if (usersInCurrentBlock > 0) {
+      HInstruction current = block.first;
+      while (current !== other) {
+        if (users.contains(current)) {
+          users.remove(current);
+          if (--usersInCurrentBlock == 0) break;
+        }
+        current = current.next;
+      }
+    }
+
+    return users;
+  }
+
   bool isConstant() => false;
   bool isConstantBoolean() => false;
   bool isConstantNull() => false;
