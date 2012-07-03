@@ -78,8 +78,8 @@ string_base_vm_test: Fail, OK # VM specific test.
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
-[ $compiler == dart2js && $runtime == drt ]
-list_sort_test: Fail, Pass # Issue 2667
+[ $runtime == drt ]
+list_sort_test: Fail, Pass # Issue 3834
 
 [ $compiler == dart2js && $runtime == safari ]
 core_runtime_types_test: Fail
