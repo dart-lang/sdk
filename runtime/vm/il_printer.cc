@@ -9,6 +9,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+
 
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
@@ -58,6 +60,9 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
   char str[120];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
+  if (FLAG_print_environments && (instr->env() != NULL)) {
+    instr->env()->PrintTo(&f);
+  }
   OS::Print("%s", str);
 }
 
@@ -433,6 +438,9 @@ void FlowGraphVisualizer::PrintInstruction(Instruction* instr) {
   char str[120];
   BufferFormatter f(str, sizeof(str));
   instr->PrintToVisualizer(&f);
+  if (FLAG_print_environments && (instr->env() != NULL)) {
+    instr->env()->PrintTo(&f);
+  }
   f.Print(" <|@\n");
   (*Dart::flow_graph_writer())(str, strlen(str));
 }
@@ -649,5 +657,13 @@ void ParallelMoveInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
+void Environment::PrintTo(BufferFormatter* f) const {
+  f->Print(" env={ ");
+  for (intptr_t i = 0; i < values_.length(); ++i) {
+    if (i > 0) f->Print(", ");
+    values_[i]->PrintTo(f);
+  }
+  f->Print(" }");
+}
 
 }  // namespace dart

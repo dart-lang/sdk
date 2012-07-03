@@ -1713,6 +1713,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
 // Forward declarations for Instruction classes.
 class BlockEntryInstr;
 class FlowGraphBuilder;
+class Environment;
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -1734,7 +1735,12 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : cid_(-1), ic_data_(NULL), successor_(NULL), previous_(NULL) {
+  Instruction()
+      : cid_(-1),
+        ic_data_(NULL),
+        successor_(NULL),
+        previous_(NULL),
+        env_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = Computation::GetNextCid(isolate);
     ic_data_ = Computation::GetICDataForCid(cid_, isolate);
@@ -1849,11 +1855,15 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     UNIMPLEMENTED();
   }
 
+  Environment* env() const { return env_; }
+  void set_env(Environment* env) { env_ = env; }
+
  private:
   intptr_t cid_;
   ICData* ic_data_;
   Instruction* successor_;
   Instruction* previous_;
+  Environment* env_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -2358,6 +2368,26 @@ class ParallelMoveInstr : public Instruction {
 };
 
 #undef DECLARE_INSTRUCTION
+
+
+class Environment : public ZoneAllocated {
+ public:
+  // Construct an environment by copying from an array of values.
+  explicit Environment(ZoneGrowableArray<Value*>* values)
+      : values_(values->length()) {
+          values_.AddArray(*values);
+        }
+
+  const ZoneGrowableArray<Value*>& values() const {
+    return values_;
+  }
+
+  void PrintTo(BufferFormatter* f) const;
+
+ private:
+  ZoneGrowableArray<Value*> values_;
+  DISALLOW_COPY_AND_ASSIGN(Environment);
+};
 
 
 // Visitor base class to visit each instruction and computation in a flow

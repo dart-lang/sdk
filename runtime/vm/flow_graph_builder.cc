@@ -2653,6 +2653,14 @@ static intptr_t WhichPred(BlockEntryInstr* predecessor,
 }
 
 
+// Helper to a copy a value iff it is a UseVal.
+static Value* CopyValue(Value* value) {
+  return value->IsUse()
+      ? new UseVal(value->AsUse()->definition())
+      : value;
+}
+
+
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
                                        ZoneGrowableArray<Value*>* env,
                                        intptr_t var_count) {
@@ -2673,36 +2681,35 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   // 2. Process normal instructions.
   Instruction* current = block_entry->successor();
   while ((current != NULL) && !current->IsBlockEntry()) {
-    // 2a. Handle uses of LoadLocal / StoreLocal
+    // Attach current environment to the instruction.
+    // TODO(fschneider): Currently each instruction gets a full copy of the
+    // enviroment. This should be optimized: Only instructions that can
+    // deoptimize will should have uses of the environment values.
+    current->set_env(new Environment(env));
+
+    // 2a. Handle uses:
+    // Update expression stack environment for each use.
     // For each use of a LoadLocal or StoreLocal: Replace it with the value
     // from the environment.
     for (intptr_t i = 0; i < current->InputCount(); ++i) {
       Value* v = current->InputAt(i);
-      if (v->IsUse() &&
-          v->AsUse()->definition()->IsBind() &&
+      if (!v->IsUse()) continue;
+      // Update expression stack.
+      ASSERT(env->length() > var_count);
+      env->RemoveLast();
+      if (v->AsUse()->definition()->IsBind() &&
           v->AsUse()->definition()->AsBind()->computation()->IsLoadLocal()) {
         Computation* comp = v->AsUse()->definition()->AsBind()->computation();
         intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
-        Value* new_value = (*env)[index];
-        // Make a copy if it is a UseVal.
-        if (new_value->IsUse()) {
-          new_value = new UseVal(new_value->AsUse()->definition());
-        }
-        current->SetInputAt(i, new_value);
+        current->SetInputAt(i, CopyValue((*env)[index]));
       }
-      if (v->IsUse() &&
-          v->AsUse()->definition()->IsBind() &&
+      if (v->AsUse()->definition()->IsBind() &&
           v->AsUse()->definition()->AsBind()->computation()->IsStoreLocal()) {
         // For each use of a StoreLocal: Replace it with the value from the
         // environment.
         Computation* comp = v->AsUse()->definition()->AsBind()->computation();
         intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
-        Value* new_value = (*env)[index];
-        // Make a copy if it is a UseVal.
-        if (new_value->IsUse()) {
-          new_value = new UseVal(new_value->AsUse()->definition());
-        }
-        current->SetInputAt(i, new_value);
+        current->SetInputAt(i, CopyValue((*env)[index]));
       }
     }
 
@@ -2726,16 +2733,28 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     }
 
     if (load != NULL) {
+      ASSERT(current->IsBind());
+      // Update expression stack.
+      intptr_t index = load->local().BitIndexIn(var_count);
+      env->Add(CopyValue((*env)[index]));
       // Remove instruction.
       current = current->RemoveFromGraph();
     } else if (store != NULL) {
+      // Update renaming environment.
+      (*env)[store->local().BitIndexIn(var_count)] = store->value();
+      if (current->IsBind()) {
+        // Update expression stack.
+        intptr_t index = store->local().BitIndexIn(var_count);
+        env->Add(CopyValue((*env)[index]));
+      }
       // Remove instruction and update renaming environment.
       current = current->RemoveFromGraph();
-      (*env)[store->local().BitIndexIn(var_count)] = store->value();
     } else {
       if (current->IsBind()) {
         // Assign new SSA temporary.
         current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
+        // Update expression stack.
+        env->Add(new UseVal(current->AsDefinition()));
       }
       current = current->successor();
     }
