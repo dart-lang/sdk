@@ -44,8 +44,9 @@ localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
-
-# Investigate and triage these into bug reports.
+#
+# Investigate and triage the following into bug reports.
+#
 audiocontext_test: Fail
 blob_constructor_test: Fail
 cache_test: Fail
@@ -74,7 +75,6 @@ websocket_test: Fail
 window_nosuchmethod_test: Fail
 window_open_test: Fail
 xsltprocessor_test: Fail
-
 fileapi_test: Skip          # Timeout
 isolates_test: Skip         # Timeout
 xhr_test: Skip              # Timeout
@@ -126,10 +126,6 @@ xhr_test: Fail
 
 [ $runtime == ie && ($system == linux || $system == macos) ]
 *: Skip
-
-[ $runtime == ie ]
-# TODO(vsm): Triage DOM failures.
-#*: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]
 *: Skip
