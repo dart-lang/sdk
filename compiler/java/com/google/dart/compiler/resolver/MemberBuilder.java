@@ -569,13 +569,6 @@ public class MemberBuilder {
       }
 
       if (modifiers.isFactory()) {
-        if (modifiers.isStatic()) {
-          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_STATIC);
-        }
-        if (modifiers.isAbstract()) {
-          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
-        }
-
         if (modifiers.isConstant()) {
           // Allow const factory ... native ... ; type of constructors, used in core libraries
           DartBlock dartBlock = method.getFunction().getBody();

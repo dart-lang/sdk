@@ -817,6 +817,55 @@ public class SyntaxTest extends AbstractParserTest {
             "}"),
             ParserErrorCode.REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY, 4, 18);
   }
+
+  public void test_missingFactoryBody() throws Exception {
+    parseUnit("phony_test_missing_factory_body.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  abstract factory A.c();",  // error - no body
+            "  A() {}",
+            "}"),
+            ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT, 2, 12,
+            ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY, 2, 25);
+  }
+
+  public void test_factoryAbstractStatic() throws Exception {
+  parseUnit("phony_test_factory_not_abstract.dart",
+      Joiner.on("\n").join(
+        "class A {",
+        "  A() {}",
+        "  abstract factory A.named1() { return new A();}",
+        "  static factory A.named2() { return new A();}",
+        "  static abstract factory A.named3() { return new A();}",
+        "}"),
+        ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT, 3, 12,
+        ParserErrorCode.FACTORY_CANNOT_BE_STATIC, 4, 10,
+        ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 5, 10,
+        ParserErrorCode.FACTORY_CANNOT_BE_STATIC, 5, 19);
+  }
+
+  public void test_staticAbstractMember() throws Exception {
+    parseUnit("phony_test_static_abstract_member.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  static abstract var foo;",
+            "  static abstract bar();",
+            "}"),
+            ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 2, 10,
+            ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT, 3, 10);
+  }
+
+  public void test_AbstractVar() throws Exception {
+    parseUnit("phony_test_abstract_var.dart",
+        Joiner.on("\n").join(
+            "class A {",
+            "  abstract var a;",
+            "  abstract final b;",
+            "}"),
+            ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 2, 3,
+            ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 3, 3);
+  }
+
   public void test_metadata_deprecated() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -844,7 +893,7 @@ public class SyntaxTest extends AbstractParserTest {
       }
     }
   }
-  
+
   public void test_metadata_override() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",

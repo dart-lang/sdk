@@ -347,7 +347,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     List<DartCompilationError> compilationErrors = libraryResult.getCompilationErrors();
     assertEquals(1, compilationErrors.size());
     DartCompilationError compilationError = compilationErrors.get(0);
-    assertEquals(ParserErrorCode.DISALLOWED_FACTORY_KEYWORD, compilationError.getErrorCode());
+    assertEquals(ParserErrorCode.FACTORY_CANNOT_BE_TOP_LEVEL, compilationError.getErrorCode());
     assertEquals(1, compilationError.getLineNumber());
     assertEquals(1, compilationError.getColumnNumber());
     assertEquals("factory".length(), compilationError.getLength());

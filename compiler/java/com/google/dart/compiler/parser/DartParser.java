@@ -94,7 +94,6 @@ import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
@@ -1010,31 +1009,42 @@ public class DartParser extends CompletionHooksParserBase {
         }
         modifiers = modifiers.makeStatic();
       }
-    } else if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+    }
+    if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
       }
+      if (modifiers.isStatic()) {
+        reportError(position(), ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT);
+      }
       modifiers = modifiers.makeAbstract();
-    } else if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
+    }
+    if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE);
       }
+      if (modifiers.isStatic()) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_STATIC);
+      }
+      if (modifiers.isAbstract()) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
+      }
+
       modifiers = modifiers.makeFactory();
     }
 
     if (match(Token.VAR) || match(Token.FINAL)) {
       if (modifiers.isAbstract()) {
         reportError(position(), ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD);
-      } else if (modifiers.isFactory()) {
+      }
+      if (modifiers.isFactory()) {
         reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
       }
     }
 
     if (modifiers.isFactory()) {
-      // Factory is not allowed on top level.
-      if (!allowStatic) {
-        reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
-        modifiers = modifiers.removeFactory();
+      if (!isParsingClass) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_TOP_LEVEL);
       }
       // Do parse factory.
       DartMethodDefinition factoryNode = parseFactory(modifiers);
@@ -1968,7 +1978,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     | identifier
    *     ;
    * </pre>
-   * 
+   *
    * @param target the target of the method invocation
    * @return the expression representing the cascaded method invocation
    */
@@ -3323,7 +3333,10 @@ public class DartParser extends CompletionHooksParserBase {
         result = dietParseFunctionStatementBody();
       } else {
         beginFunctionStatementBody();
-        if (optional(Token.ARROW)) {
+        if (optional(Token.SEMICOLON)) {
+          reportError(position(), ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY);
+          result = done(null);
+        } else if (optional(Token.ARROW)) {
           DartExpression expr = parseExpression();
           if (expr == null) {
             expr = new DartSyntheticErrorExpression();

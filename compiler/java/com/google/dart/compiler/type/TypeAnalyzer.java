@@ -1699,7 +1699,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
       MethodElement methodElement = node.getElement();
       Modifiers modifiers = methodElement.getModifiers();
       DartTypeNode returnTypeNode = node.getFunction().getReturnTypeNode();
-      if (modifiers.isFactory()) {
+      if (modifiers.isFactory()
+          && ElementKind.of(methodElement).equals(ElementKind.CONSTRUCTOR)) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
       } else if (modifiers.isSetter()) {
         if (returnTypeNode != null && returnTypeNode.getType() != voidType) {

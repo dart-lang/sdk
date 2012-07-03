@@ -34,9 +34,10 @@ public enum ParserErrorCode implements ErrorCode {
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
-  // TODO(zundel): error message needs JUnit test
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
+  // TODO(zundel): error message needs JUnit test
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
+  DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
   // TODO(zundel): error message needs JUnit test
@@ -50,6 +51,7 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test
   EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),
+  EXPECTED_FUNCTION_STATEMENT_BODY("Expected function statment body"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_IDENTIFIER("Expected identifier"),
   // TODO(zundel): error message needs JUnit test
@@ -74,6 +76,7 @@ public enum ParserErrorCode implements ErrorCode {
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
   // TODO(zundel): error message needs JUnit test
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
+  FACTORY_CANNOT_BE_TOP_LEVEL("A factory cannot be top level, it must be a member of a class"),
   // TODO(zundel): error message needs JUnit test
   FACTORY_MEMBER_IN_INTERFACE("Factory members are not allowed in interfaces"),
   FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'final' is not allowed on a method definition"),
@@ -117,6 +120,7 @@ public enum ParserErrorCode implements ErrorCode {
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor cannot have initializers"),
   REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
   REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor cannot have initializers"),
+  STATIC_MEMBERS_CANNOT_BE_ABSTRACT("Static members cannot be abstract"),
   SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
   SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND(
       "'super' cannot be used as the second operand in a binary expression."),

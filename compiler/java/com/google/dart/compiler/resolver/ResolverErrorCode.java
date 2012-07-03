@@ -109,23 +109,18 @@ public enum ResolverErrorCode implements ErrorCode {
   EXPECTED_FIELD_NOT_METHOD("%s is a method, expected a local field"),
   EXPECTED_FIELD_NOT_PARAMETER("%s is a parameter, expected a local field"),
   EXPECTED_FIELD_NOT_TYPE_VAR("%s is a type variable, expected a local field"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   EXPECTED_STATIC_FIELD("expected a static field, but got %s"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXTRA_TYPE_ARGUMENT("Type variables may not have type arguments"),
-  // TODO(zundel): error message needs JUnit test
-  FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
-  // TODO(zundel): error message needs JUnit test
   FACTORY_CANNOT_BE_CONST("A factory cannot be const"),
-  // TODO(zundel): error message needs JUnit test
-  FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
   FIELD_DOES_NOT_HAVE_A_GETTER("Field does not have a getter"),
   FIELD_DOES_NOT_HAVE_A_SETTER("Field does not have a setter"),
   FIELD_GETTER_SETTER_SAME_STATIC("Field's getter and setter should be both static or not static"),
   FINAL_FIELD_MUST_BE_INITIALIZED("The final field %s must be initialized"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   ILLEGAL_ACCESS_TO_PRIVATE_MEMBER("\"%s\" refers to \"%s\" which is in a different library"),
   // TODO(zundel): error message needs JUnit test
   ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE(

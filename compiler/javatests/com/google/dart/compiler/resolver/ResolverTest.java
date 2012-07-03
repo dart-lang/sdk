@@ -572,6 +572,15 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
   }
 
+  public void test_constFactory() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A {",
+        "  const factory A() { }",
+        "}"),
+        errEx(ResolverErrorCode.FACTORY_CANNOT_BE_CONST, 3, 17, 1));
+  }
+
   public void testFactoryBadTypeArgs11() {
     // Invoke constructor in factory method with (wrong) type args
     resolveAndTest(Joiner.on("\n").join(
@@ -597,6 +606,7 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
   }
+
   public void testBadDefaultTypeArgs11() {
     // Example from spec v0.6
     resolveAndTest(Joiner.on("\n").join(
@@ -1627,34 +1637,5 @@ public class ResolverTest extends ResolverTestCase {
         "  func();",
         "}"),
         errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 4, 3, 6));
-  }
-
-  public void test_defaultTargetInterface() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A default B {",
-        "  A();",
-        "}",
-        "interface B {",
-        "}"),
-        errEx(ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS, 2, 21, 1),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
-  }
-
-  public void test_initializerErrors() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A { }",
-        "class B<T> {",
-        "  method() { }",
-        "  B(arg) : A = 1, ",
-        "           method = 2,",
-        "           arg = 3,",
-        "           T = 4 {}",
-        "}"),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_CLASS, 5, 12, 1),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_METHOD, 6, 12, 6),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_PARAMETER, 7, 12, 3),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, 8, 12, 1));
   }
 }
