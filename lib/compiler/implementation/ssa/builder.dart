@@ -1567,87 +1567,28 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitIf(If node) {
-    handleIf(() => visit(node.condition),
+    handleIf(node,
+             () => visit(node.condition),
              () => visit(node.thenPart),
              node.elsePart != null ? () => visit(node.elsePart) : null);
   }
 
-  void handleIf(void visitCondition(), void visitThen(), void visitElse()) {
-    HBasicBlock conditionStartBlock = openNewBlock();
-    visitCondition();
-    SubExpression conditionGraph =
-        new SubExpression(conditionStartBlock, lastOpenedBlock);
-    HInstruction condition = popBoolified();
-    HIf branch = new HIf(condition);
-    HBasicBlock conditionBlock = close(branch);
-
-    LocalsHandler savedLocals = new LocalsHandler.from(localsHandler);
-
-    // The then part.
-    HBasicBlock thenBlock = addNewBlock();
-    conditionBlock.addSuccessor(thenBlock);
-    open(thenBlock);
-    visitThen();
-    SubGraph thenGraph = new SubGraph(thenBlock, lastOpenedBlock);
-    thenBlock = current;
-
-    // Reset the locals state to the state after the condition and keep the
-    // current state in [thenLocals].
-    LocalsHandler thenLocals = localsHandler;
-
-    // Now the else part.
-    localsHandler = savedLocals;
-    if (visitElse == null) {
-      // Make sure to have an else part to avoid a critical edge. A
-      // critical edge is an edge that connects a block with multiple
-      // successors to a block with multiple predecessors. We avoid
-      // such edges because they prevent inserting copies during code
-      // generation of phi instructions.
-      visitElse = () {};
-    }
-
-    HBasicBlock elseBlock = addNewBlock();
-    conditionBlock.addSuccessor(elseBlock);
-    open(elseBlock);
-    visitElse();
-    SubGraph elseGraph = new SubGraph(elseBlock, lastOpenedBlock);
-    elseBlock = current;
-
-    HBasicBlock joinBlock = null;
-    if (thenBlock !== null || elseBlock !== null) {
-      joinBlock = addNewBlock();
-      if (thenBlock !== null) goto(thenBlock, joinBlock);
-      if (elseBlock !== null) goto(elseBlock, joinBlock);
-      // If the join block has two predecessors we have to merge the
-      // locals. The current locals is what either the
-      // condition or the else block left us with, so we merge that
-      // with the set of locals we got after visiting the then
-      // part of the if.
-      open(joinBlock);
-      if (joinBlock.predecessors.length == 2) {
-        localsHandler.mergeWith(thenLocals, joinBlock);
-      } else if (thenBlock !== null) {
-        // The only predecessor is the then branch.
-        localsHandler = thenLocals;
-      }
-    }
-    HIfBlockInformation info =
-        new HIfBlockInformation(
-            new HSubExpressionBlockInformation(conditionGraph),
-            new HSubGraphBlockInformation(thenGraph),
-            wrapStatementGraph(elseGraph));
-    conditionStartBlock.setBlockFlow(info, joinBlock);
-    branch.blockInformation = conditionStartBlock.blockFlow;
+  void handleIf(Node diagnosticNode,
+                void visitCondition(), void visitThen(), void visitElse()) {
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, diagnosticNode);
+    branchBuilder.handleIf(visitCondition, visitThen, visitElse);
   }
 
   void visitLogicalAndOr(Send node, Operator op) {
-    handleLogicalAndOr(() { visit(node.receiver); },
+    handleLogicalAndOr(node,
+                       () { visit(node.receiver); },
                        () { visit(node.argumentsNode); },
                        isAnd: (const SourceString("&&") == op.source));
   }
 
 
-  void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
+  void handleLogicalAndOr(Node diagnosticNode,
+                          void left(), void right(), [bool isAnd = true]) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) {
@@ -1686,7 +1627,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       boolifiedRight = popBoolified();
     }
 
-    handleIf(visitCondition, visitThen, null);
+    handleIf(diagnosticNode, visitCondition, visitThen, null);
     HPhi result = new HPhi.manyInputs(null,
         <HInstruction>[boolifiedRight, graph.addConstantBool(!isAnd)]);
     current.addPhi(result);
@@ -2719,46 +2660,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitConditional(Conditional node) {
-    HInstruction thenInstruction;
-    HBasicBlock thenEndBlock;
-    HInstruction elseInstruction;
-    HBasicBlock elseEndBlock;
-
-    void buildThen() {
-      visit(node.thenExpression);
-      if (isAborted()) {
-        // Currently expressions cannot abort. Guard against future changes.
-        compiler.internalError("aborted expression", node: node.thenExpression);
-      }
-      thenInstruction = pop();
-      thenEndBlock = current;
-    }
-    void buildElse() {
-      visit(node.elseExpression);
-      if (isAborted()) {
-        // Currently expressions cannot abort. Guard against future changes.
-        compiler.internalError("aborted expression", node: node.elseExpression);
-      }
-      elseInstruction = pop();
-      elseEndBlock = current;
-    }
-
-    handleIf(() => visit(node.condition), buildThen, buildElse);
-
-    HBasicBlock joinBlock = current;
-    if (joinBlock.predecessors.length != 2 ||
-        joinBlock.predecessors[0] != thenEndBlock ||
-        joinBlock.predecessors[1] != elseEndBlock) {
-      // This is simply a sanity check that [handleIf] returns with the join
-      // block set as [current]. In the current version of [handleIf] this is
-      // always the case.
-      compiler.internalError("handleIf not returning joinblock.",
-                             node: node);
-    }
-    HPhi phi = new HPhi.manyInputs(null,
-        <HInstruction>[thenInstruction, elseInstruction]);
-    joinBlock.addPhi(phi);
-    stack.add(phi);
+    SsaBranchBuilder brancher =
+        new SsaBranchBuilder(this, diagnosticNode: node);
+    brancher.handleConditional(() => visit(node.condition),
+                               () => visit(node.thenExpression),
+                               () => visit(node.elseExpression));
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -3242,7 +3148,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void right() {
         buildTests(tail);
       }
-      handleLogicalAndOr(left, right, isAnd: false);
+      handleLogicalAndOr(remainingCases.head, left, right, isAnd: false);
     }
 
     if (node.isDefaultCase) {
@@ -3252,15 +3158,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // statements.
       // TODO(lrn): Stop performing tests when all expressions are compile-time
       // constant strings or integers.
-      handleIf(() { buildTests(labelsAndCases); }, (){}, null);
+      handleIf(node, () { buildTests(labelsAndCases); }, (){}, null);
       visit(node.statements);
     } else {
       if (cases.tail.isEmpty()) {
-        handleIf(() { buildTests(labelsAndCases); },
+        handleIf(node,
+                 () { buildTests(labelsAndCases); },
                  () { visit(node.statements); },
                  null);
       } else {
-        handleIf(() { buildTests(labelsAndCases); },
+        handleIf(node,
+                 () { buildTests(labelsAndCases); },
                  () { visitStatementsAndAbort(); },
                  () { buildSwitchCases(cases.tail, expression,
                                        encounteredCaseTypes); });
@@ -3356,13 +3264,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
           close(new HThrow(exception, isRethrow: true));
         } else {
           CatchBlock newBlock = link.head;
-          handleIf(() { pushCondition(newBlock); },
+          handleIf(node,
+                   () { pushCondition(newBlock); },
                    visitThen, visitElse);
         }
       }
 
       CatchBlock firstBlock = link.head;
-      handleIf(() { pushCondition(firstBlock); }, visitThen, visitElse);
+      handleIf(node, () { pushCondition(firstBlock); }, visitThen, visitElse);
       if (!isAborted()) blocks.add(close(new HGoto()));
 
       rethrowableException = oldRethrowableException;
@@ -3426,7 +3335,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // TODO(lrn): Make sure to take continue into account.
       body();
     }
-    handleIf(visitCondition, buildBody, null);
+    handleIf(statement, visitCondition, buildBody, null);
   }
 }
 
@@ -3483,5 +3392,161 @@ class StringBuilderVisitor extends AbstractVisitor {
     HInstruction instruction = new HStringConcat(left, right, diagnosticNode);
     builder.add(instruction);
     return instruction;
+  }
+}
+
+class SsaBranchBuilder {
+  final SsaBuilder builder;
+  final Node diagnosticNode;
+
+  bool branchesHaveValues;
+  HInstruction thenValue;
+  HInstruction elseValue;
+  // The locals-handler at the end of the condition block.
+  LocalsHandler conditionLocals;
+  LocalsHandler thenLocals;
+  LocalsHandler elseLocals;
+  SubGraph conditionGraph;
+  SubGraph thenGraph;
+  SubGraph elseGraph;
+
+  SsaBranchBuilder(this.builder, [this.diagnosticNode]);
+
+  Compiler get compiler() => builder.compiler;
+
+  void checkNotAborted() {
+    if (builder.isAborted()) {
+      compiler.unimplemented("aborted control flow", node: diagnosticNode);
+    }
+  }
+
+  SubGraph buildCondition(void doCondition()) {
+    HBasicBlock conditionStartBlock = builder.openNewBlock();
+    doCondition();
+    checkNotAborted();
+    assert(builder.current === builder.lastOpenedBlock);
+    HInstruction condition = builder.popBoolified();
+    HIf branch = new HIf(condition);
+    builder.close(branch);
+
+    conditionGraph =
+        new SubExpression(conditionStartBlock, builder.lastOpenedBlock);
+    conditionLocals = builder.localsHandler;
+    return conditionGraph;
+  }
+
+  SubGraph buildThen(void visitThen(), LocalsHandler locals) {
+    builder.localsHandler = locals;
+    HBasicBlock thenBlock = builder.addNewBlock();
+    conditionGraph.end.addSuccessor(thenBlock);
+    builder.open(thenBlock);
+    visitThen();
+    if (branchesHaveValues) {
+      checkNotAborted();
+      thenValue = builder.pop();
+    }
+    thenGraph = new SubGraph(thenBlock, builder.lastOpenedBlock);
+    thenLocals = builder.localsHandler;
+    return thenGraph;
+  }
+
+  SubGraph buildElse(void visitElse(), LocalsHandler locals) {
+    builder.localsHandler = locals;
+    HBasicBlock elseBlock = builder.addNewBlock();
+    conditionGraph.end.addSuccessor(elseBlock);
+    builder.open(elseBlock);
+    visitElse();
+    if (branchesHaveValues) {
+      checkNotAborted();
+      elseValue = builder.pop();
+    }
+    elseGraph = new SubGraph(elseBlock, builder.lastOpenedBlock);
+    elseLocals = builder.localsHandler;
+    return elseGraph;
+  }
+
+  HBasicBlock join() {
+    HBasicBlock joinBlock = null;
+    HBasicBlock thenBlock = thenGraph.end;
+    HBasicBlock elseBlock = elseGraph.end;
+    // If the last instruction is already a control-flow instruction then the
+    // block has been aborted.
+    if (thenBlock.last is HControlFlow) thenBlock = null;
+    if (elseBlock.last is HControlFlow) elseBlock = null;
+
+    if (thenBlock !== null || elseBlock !== null) {
+      joinBlock = builder.addNewBlock();
+      if (thenBlock !== null) builder.goto(thenBlock, joinBlock);
+      if (elseBlock !== null) builder.goto(elseBlock, joinBlock);
+      // If the join block has two predecessors we have to merge the
+      // locals. The current locals is what either the
+      // condition or the else block left us with, so we merge that
+      // with the set of locals we got after visiting the then
+      // part of the if.
+      builder.open(joinBlock);
+      if (joinBlock.predecessors.length == 2) {
+        builder.localsHandler.mergeWith(thenLocals, joinBlock);
+        if (branchesHaveValues) {
+          assert(thenValue !== null);
+          assert(elseValue !== null);
+          HPhi phi = new HPhi.manyInputs(null,
+              <HInstruction>[thenValue, elseValue]);
+          joinBlock.addPhi(phi);
+          builder.stack.add(phi);
+        }
+      } else if (thenBlock !== null) {
+        // The only predecessor is the then branch.
+        builder.localsHandler = thenLocals;
+      } else {
+        assert(builder.localsHandler == elseLocals);
+      }
+    }
+    return builder.current;
+  }
+
+  handleIf(void visitCondition(), void visitThen(), void visitElse()) {
+    _handleDiamondBranch(visitCondition, visitThen, visitElse, false);
+  }
+
+  handleConditional(void visitCondition(), void visitThen(), void visitElse()) {
+    _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
+  }
+
+  void _handleDiamondBranch(void visitCondition(),
+                            void visitThen(),
+                            void visitElse(),
+                            bool isExpression) {
+    branchesHaveValues = isExpression;
+    if (visitElse == null) {
+      if (isExpression) {
+        compiler.internalError("Diamond branch with values but without else.",
+                               node: diagnosticNode);
+      }
+      // Make sure to have an else part to avoid a critical edge. A
+      // critical edge is an edge that connects a block with multiple
+      // successors to a block with multiple predecessors. We avoid
+      // such edges because they prevent inserting copies during code
+      // generation of phi instructions.
+      visitElse = () {};
+    }
+
+    buildCondition(visitCondition);
+    buildThen(visitThen, new LocalsHandler.from(conditionLocals));
+    // Use the locals state after the condition. We are the last ones to use the
+    // conditionLocals. So we don't need to make a copy of it.
+    buildElse(visitElse, conditionLocals);
+    HBasicBlock joinBlock = join();
+
+    HIfBlockInformation info =
+        new HIfBlockInformation(
+            new HSubExpressionBlockInformation(conditionGraph),
+            new HSubGraphBlockInformation(thenGraph),
+            new HSubGraphBlockInformation(elseGraph));
+
+    HBasicBlock conditionStartBlock = conditionGraph.start;
+    conditionGraph.start.setBlockFlow(info, joinBlock);
+    HIf branch = conditionGraph.end.last;
+    assert(branch is HIf);
+    branch.blockInformation = conditionStartBlock.blockFlow;
   }
 }
