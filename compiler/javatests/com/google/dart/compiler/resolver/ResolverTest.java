@@ -1628,4 +1628,33 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 4, 3, 6));
   }
+
+  public void test_defaultTargetInterface() throws Exception {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "interface A default B {",
+        "  A();",
+        "}",
+        "interface B {",
+        "}"),
+        errEx(ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS, 2, 21, 1),
+        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
+  }
+
+  public void test_initializerErrors() {
+    resolveAndTest(Joiner.on("\n").join(
+        "class Object {}",
+        "class A { }",
+        "class B<T> {",
+        "  method() { }",
+        "  B(arg) : A = 1, ",
+        "           method = 2,",
+        "           arg = 3,",
+        "           T = 4 {}",
+        "}"),
+        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_CLASS, 5, 12, 1),
+        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_METHOD, 6, 12, 6),
+        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_PARAMETER, 7, 12, 3),
+        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, 8, 12, 1));
+  }
 }

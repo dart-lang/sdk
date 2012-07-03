@@ -464,8 +464,8 @@ public class MemberBuilder {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
           Type type;
-          if (parameters.size() != 1) {
-            resolutionError(fieldNode, ResolverErrorCode.EXPECTED_ONE_ARGUMENT);
+          if (parameters.size() == 0) {
+            // Error flagged in parser
             type = getTypeProvider().getDynamicType();
           } else {
             type = parameters.get(0).getType();

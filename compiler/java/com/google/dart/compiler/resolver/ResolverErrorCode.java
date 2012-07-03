@@ -45,12 +45,11 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_METHOD_IN_LIBRARY("cannot resolve method '%s' in library '%s'"),
   // TODO(zundel): To exercise this requires simulating a corrupted SDK?
   CANNOT_RESOLVE_SDK_TYPE("cannot resolve SDK type %s"),
-  // TODO(zundel): error message needs JUnit test
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
   CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (reachable code?)
   CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
   CIRCULAR_REFERENCE(
       "Circular reference detected:  compile-time constants cannot reference themselves."),
@@ -65,7 +64,6 @@ public enum ResolverErrorCode implements ErrorCode {
   CONST_CLASS_WITH_NONFINAL_FIELDS("Const class %s cannot have non-final field %s"),
   CONST_CONSTRUCTOR_CANNOT_HAVE_BODY("A const constructor cannot have a body"),
   CONST_CONSTRUCTOR_MUST_CALL_CONST_SUPER("const constructor must call const super constructor"),
-  // TODO(zundel): error message needs JUnit test
   CONST_MAP_WITH_TYPE_VARIABLE("Const map literals cannot have a type variable as a type argument"),
   CONST_WITH_TYPE_VARIABLE("Const constructor cannot be invoked with a type variable as a type argument"),
   CONSTANTS_MUST_BE_INITIALIZED("constants must be initialized"),
@@ -78,10 +76,7 @@ public enum ResolverErrorCode implements ErrorCode {
       "Constructor '%s' in '%s' has %s required parameters, doesn't match '%s' in '%s' with %s"),
   DEFAULT_CONSTRUCTOR_NAMED_PARAMETERS(
       "Constructor '%s' in '%s' has named parameters %s, doesn't match '%s' in '%s' with %s"),
-  // TODO(zundel): error message needs JUnit test
   DEFAULT_MUST_SPECIFY_CLASS("default must indicate a class, not an interface"),
-  // TODO(zundel): error message needs JUnit test
-  DEFAULT_VALUE_IN_TYPEDEF("Default values cannot be specified in a typedef"),
   DEPRECATED_MAP_LITERAL_SYNTAX(ErrorSeverity.WARNING,
       "Deprecated Map literal syntax. Only specify a single value type as a type argument."),
   DID_YOU_MEAN_NEW("%1$s is a %2$s. Did you mean (new %1$s)?"),
@@ -100,7 +95,7 @@ public enum ResolverErrorCode implements ErrorCode {
   DUPLICATE_TOP_LEVEL_DECLARATION("duplicate top-level declaration '%s' at %s"),
   DUPLICATE_TYPE_VARIABLE("Duplicate type variable '%s'"),
   DUPLICATE_TYPE_VARIABLE_WARNING(ErrorSeverity.WARNING, "Type variable '%s' is hiding '%s' at %s"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test, (reachable code?)
   EXPECTED_AN_INSTANCE_FIELD_IN_SUPER_CLASS(
       "expected an instance field in the super class, but got %s"),
   EXPECTED_CONSTANT_EXPRESSION("Expected constant expression"),
@@ -110,16 +105,10 @@ public enum ResolverErrorCode implements ErrorCode {
   EXPECTED_CONSTANT_EXPRESSION_NUMBER("Expected constant expression of type num, got %s"),
   EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL(
       "Expected constant expression of type String, num or bool, got %s"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_FIELD_NOT_CLASS("%s is a class, expected a local field"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_FIELD_NOT_METHOD("%s is a method, expected a local field"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_FIELD_NOT_PARAMETER("%s is a parameter, expected a local field"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_FIELD_NOT_TYPE_VAR("%s is a type variable, expected a local field"),
-  // TODO(zundel): error message needs JUnit test
-  EXPECTED_ONE_ARGUMENT("Expected one argument"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_STATIC_FIELD("expected a static field, but got %s"),
   // TODO(zundel): error message needs JUnit test

@@ -246,9 +246,6 @@ public class Resolver {
               ResolverErrorCode.DUPLICATE_PARAMETER,
               ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
         }
-        if (parameter.getDefaultExpr() != null) {
-          onError(parameter.getDefaultExpr(), ResolverErrorCode.DEFAULT_VALUE_IN_TYPEDEF);
-        }
       }
 
       getContext().popScope();
@@ -325,7 +322,8 @@ public class Resolver {
 
         ClassElement defaultClass = classElement.getDefaultClass().getElement();
         if (defaultClass.isInterface()) {
-          onError(cls.getDefaultClass(), ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS);
+          onError(cls.getDefaultClass().getExpression(),
+              ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS);
         }
 
         // Make sure the default class matches the interface type parameters
@@ -1768,7 +1766,7 @@ public class Resolver {
             (ClassElement) currentHolder, x.getName().getName());
         if (element == null || element.isStatic() || element.getModifiers().isAbstractField()) {
           diagnoseErrorInInitializer(x.getName());
-        }
+       }
         recordElement(x.getName(), element);
       }
 
