@@ -19,14 +19,6 @@ equals(a) {
   }
 }
 
-equalsNull(a) {
-  try {
-    Expect.equals(false, a == null);
-  } catch(TypeError e) {
-    // In checked mode the test doesn't do anything.
-  }
-}
-
 less(a) {
   try {
     Expect.equals(null, a < a);
@@ -54,7 +46,6 @@ greaterEqual(a) {
 main() {
   var a = new A();
   equals(a);
-  equalsNull(a);
   less(a);
   lessEqual(a);
   greater(a);
