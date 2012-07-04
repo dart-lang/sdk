@@ -40,6 +40,7 @@
 #source("isolate_api.dart");
 #source("timer.dart");
 #source("timer_hook.dart");
+#source("serialization.dart");
 #source("frog/compiler_hooks.dart");
 #source("frog/isolateimpl.dart");
 #source("frog/ports.dart");

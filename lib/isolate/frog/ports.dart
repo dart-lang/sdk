@@ -220,33 +220,33 @@ _waitForPendingPorts(var message, void callback()) {
 /** Visitor that finds all unresolved [SendPort]s in a message. */
 class _PendingSendPortFinder extends _MessageTraverser {
   List<Future<SendPort>> ports;
-  _PendingSendPortFinder() : super(), ports = [];
+  _PendingSendPortFinder() : super(), ports = [] {
+    _visited = new _JsVisitedMap();
+  }
 
   visitPrimitive(x) {}
-  visitNativeJsSendPort(_NativeJsSendPort port) {}
-  visitWorkerSendPort(_WorkerSendPort port) {}
 
   visitList(List list) {
-    final visited = _getInfo(list);
-    if (visited !== null) return;
-    _attachInfo(list, true);
+    final seen = _visited[list];
+    if (seen !== null) return;
+    _visited[list] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
     // list.forEach(_dispatch);
     list.forEach((e) => _dispatch(e));
   }
 
   visitMap(Map map) {
-    final visited = _getInfo(map);
-    if (visited !== null) return;
+    final seen = _visited[map];
+    if (seen !== null) return;
 
-    _attachInfo(map, true);
+    _visited[map] = true;
     // TODO(sigmund): replace with the following: (bug #1660)
     // map.getValues().forEach(_dispatch);
     map.getValues().forEach((e) => _dispatch(e));
   }
 
-  visitBufferingSendPort(_BufferingSendPort port) {
-    if (port._port == null) {
+  visitSendPort(SendPort port) {
+    if (port is _BufferingSendPort && port._port == null) {
       ports.add(port._futurePort);
     }
   }
