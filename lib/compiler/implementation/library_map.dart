@@ -41,11 +41,13 @@ final Map<String,LibraryPatchPath> DART2JS_LIBRARY_MAP
       "lib/isolate/isolate_leg.dart", null),
   "json": const LibraryPatchPath(
       "lib/json/json.dart", null),
+  "math": const LibraryPatchPath(
+      "lib/math/math.dart",
+      "lib/compiler/implementation/lib/math.dartp"),
   "uri": const LibraryPatchPath(
       "lib/uri/uri.dart", null),
   "utf": const LibraryPatchPath(
       "lib/utf/utf.dart", null),
   "web": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/web.dart",
-      "lib/compiler/implementation/lib/web.dartp"),
+      "lib/web/web.dart", null),
 };

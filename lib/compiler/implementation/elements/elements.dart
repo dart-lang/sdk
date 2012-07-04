@@ -386,10 +386,17 @@ class LibraryElement extends CompilationUnitElement {
 class PrefixElement extends Element {
   Map<SourceString, Element> imported;
   Token firstPosition;
+  final CompilationUnitElement patchSource;
 
-  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition)
+  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition,
+                [this.patchSource])
     : imported = new Map<SourceString, Element>(),
       super(prefix, ElementKind.PREFIX, enclosing);
+
+  CompilationUnitElement getCompilationUnit() {
+    if (patchSource !== null) return patchSource;
+    return super.getCompilationUnit();
+  }
 
   lookupLocalMember(SourceString memberName) => imported[memberName];
 
