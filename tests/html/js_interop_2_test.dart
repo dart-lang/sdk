@@ -15,7 +15,7 @@ injectSource(code) {
   document.body.nodes.add(script);
 }
 
-isolateTest = """
+var isolateTest = """
   function test(data) {
     if (data == 'sent')
       return 'received';

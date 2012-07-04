@@ -65,10 +65,11 @@ ReceivePortSync.prototype.close = function() {
 // TODO(kasperl): Hide these serialization methods so they
 // do not clutter up the global scope.
 function _serialize(message) {
-  if (message == null ||
-      typeof(message) == 'string' ||
-      typeof(message) == 'number' ||
-      typeof(message) == 'boolean') {
+  if (message == null) {
+    return null;  // Convert undefined to null.
+  } else if (typeof(message) == 'string' ||
+             typeof(message) == 'number' ||
+             typeof(message) == 'boolean') {
     return message;
   } else if (message instanceof SendPortSync) {
     return [ 'sendport', message.receivePort.id ];
@@ -116,4 +117,16 @@ function _deserializeMap(x) {
 function registerPort(name, port) {
   var stringified = JSON.stringify(_serialize(port));
   window.localStorage['dart-port:' + name] = stringified;
+}
+
+if (navigator.webkitStartDart) {
+  window.addEventListener('js-sync-message', function(event) {
+    var data = JSON.parse(event.data);
+    var deserialized = _deserialize(data.message);
+    var result = ReceivePortSync.map[data.id].callback(deserialized);
+    var string = JSON.stringify(_serialize(result));
+    var event = document.createEvent('TextEvent');
+    event.initTextEvent('js-result', false, false, window, string);
+    window.dispatchEvent(event);
+  }, false);
 }

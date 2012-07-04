@@ -15,5 +15,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   IDBFactory get indexedDB() => webkitIndexedDB;
 
+  // TODO(kasperl): Document this.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
 $!MEMBERS
 }
