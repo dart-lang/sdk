@@ -198,7 +198,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
     temp_index_ -= n;
   }
 
-  BindInstr* BuildObjectAllocation(ConstructorCallNode* node);
+  Value* BuildObjectAllocation(ConstructorCallNode* node);
   void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);
