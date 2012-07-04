@@ -88,6 +88,12 @@ testNativeMethods() {
   testUnparseMember('foo()native "this.x = 41";');
 }
 
+testPrefixIncrements() {
+  testUnparse('++i;');
+  testUnparse('++a[i];');
+  testUnparse('++a[++b[i]];');
+}
+
 testSimpleFileUnparse() {
   final src = '''
 should_be_dropped() {
@@ -112,5 +118,6 @@ main() {
   testClosure();
   testIndexedOperatorDecl();
   testNativeMethods();
+  testPrefixIncrements();
   testSimpleFileUnparse();
 }

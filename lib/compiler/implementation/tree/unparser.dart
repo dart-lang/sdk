@@ -224,11 +224,16 @@ class Unparser implements Visitor {
    * Special case for assignments like "list[0] = 1".
    */
   unparseIndexedSet(SendSet node) {
+    if (node.isPrefix) {
+      add(node.assignmentOperator.token.value);
+    }
     visit(node.receiver);
     sb.add('[');
     sb.add(node.arguments.head);
     sb.add(']');
-    add(node.assignmentOperator.token.value);
+    if (!node.isPrefix) {
+      add(node.assignmentOperator.token.value);
+    }
     unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
   }
 
@@ -236,8 +241,13 @@ class Unparser implements Visitor {
     if (node.isIndex) {
       unparseIndexedSet(node);
     } else {
+      if (node.isPrefix) {
+        add(node.assignmentOperator.token.value);
+      }
       unparseSendPart(node);
-      add(node.assignmentOperator.token.value);
+      if (!node.isPrefix) {
+        add(node.assignmentOperator.token.value);
+      }
       visit(node.argumentsNode);
     }
   }
