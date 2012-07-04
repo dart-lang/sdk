@@ -243,7 +243,6 @@ void compile(List<String> argv) {
   if (code === null) {
     fail('Error: Compilation failed.');
   }
-  code = '$code\n//@ sourceMappingURL=${relativize(out, sourceMapOut)}';
   writeString(out, code);
   int jsBytesWritten = code.length;
   info('compiled $dartBytesRead bytes Dart -> $jsBytesWritten bytes JS '
