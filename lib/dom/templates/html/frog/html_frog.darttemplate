@@ -5,7 +5,10 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-#library("html");
+#library('html');
+
+#import('dart:isolate');
+#import('dart:json');
 
 $!GENERATED_DART_FILES
 
@@ -28,6 +31,7 @@ $!GENERATED_DART_FILES
 #source('../../html/src/Device.dart');
 #source('../../dom/src/_ListIterators.dart');
 #source('../../dom/src/_Lists.dart');
+#source('../../isolate/serialization.dart');
 
 
 Window get window() native "return window;";
@@ -43,4 +47,42 @@ ElementList queryAll(String selector) => _document.queryAll(selector);
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
+}
+
+// TODO(vsm): Move this to a separate Isolates.dart file.
+_serialize(var message) {
+  // TODO(kasperl): Specialize the serializer.
+  return new _Serializer().traverse(message);
+}
+
+_deserialize(var message) {
+  return new _JsDeserializer().deserialize(message);
+}
+
+class _JsDeserializer extends _Deserializer {
+
+  deserializeSendPort(List x) {
+    num id = x[1];
+    return new _JsSendPortSync(id);
+  }
+
+}
+
+class _JsSendPortSync implements SendPortSync {
+
+  num _id;
+  _JsSendPortSync(this._id);
+
+  callSync(var message) {
+    var serialized = _serialize(message);
+    var result = _call(_id, serialized);
+    return _deserialize(result);
+  }
+
+  static _call(num id, var message) native @"""
+    var deserialized = _deserialize(message);
+    var result = ReceivePortSync.map[id].callback(deserialized);
+    return _serialize(result);
+  """;
+
 }

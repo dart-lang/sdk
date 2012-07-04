@@ -6,7 +6,7 @@
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/html_config.dart');
 #import('dart:html');
-#import('dart:json');
+#import('dart:isolate');
 
 injectSource(code) {
   final script = new ScriptElement();
@@ -21,7 +21,8 @@ isolateTest = """
       return 'received';
   }
 
-  var port = new ReceivePortSync(test);
+  var port = new ReceivePortSync();
+  port.receive(test);
   window.registerPort('test', port.toSendPort());
 """;
 
@@ -29,13 +30,13 @@ main() {
   useHtmlConfiguration();
 
   test('isolateTest', () {
-      injectSource(isolateTest);
+    injectSource(isolateTest);
 
-      var port = window.lookupPort('test');
-      var result = port.call('sent');
-      Expect.equals('received', result);
+    SendPortSync port = window.lookupPort('test');
+    var result = port.callSync('sent');
+    Expect.equals('received', result);
 
-      result = port.call('ignore');
-      Expect.isNull(result);
-  });  
+    result = port.callSync('ignore');
+    Expect.isNull(result);
+  });
 }

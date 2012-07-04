@@ -31,7 +31,7 @@ class _JsSerializer extends _Serializer {
     if (x is _NativeJsSendPort) return visitNativeJsSendPort(x);
     if (x is _WorkerSendPort) return visitWorkerSendPort(x);
     if (x is _BufferingSendPort) return visitBufferingSendPort(x);
-    throw "Illegal underlying port $p";
+    throw "Illegal underlying port $x";
   }
 
   visitNativeJsSendPort(_NativeJsSendPort port) {

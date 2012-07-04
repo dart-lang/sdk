@@ -33,3 +33,87 @@ if (navigator.webkitStartDart) {
     }
   }, false);
 }
+
+// ---------------------------------------------------------------------------
+// Experimental support for JS interoperability
+// ---------------------------------------------------------------------------
+
+function SendPortSync(receivePort) {
+  this.receivePort = receivePort;
+}
+
+function ReceivePortSync() {
+  this.id = ReceivePortSync.id++;
+  ReceivePortSync.map[this.id] = this;
+}
+
+ReceivePortSync.id = 0;
+ReceivePortSync.map = {};
+
+ReceivePortSync.prototype.receive = function(callback) {
+  this.callback = callback;
+};
+
+ReceivePortSync.prototype.toSendPort = function() {
+  return new SendPortSync(this);
+};
+
+ReceivePortSync.prototype.close = function() {
+  delete ReceivePortSync.map[this.id];
+};
+
+// TODO(kasperl): Hide these serialization methods so they
+// do not clutter up the global scope.
+function _serialize(message) {
+  if (message == null ||
+      typeof(message) == 'string' ||
+      typeof(message) == 'number' ||
+      typeof(message) == 'boolean') {
+    return message;
+  } else if (message instanceof SendPortSync) {
+    return [ 'sendport', message.receivePort.id ];
+  } else {
+    var id = 0;
+    var keys = Object.getOwnPropertyNames(message);
+    var values = new Array(keys.length);
+    for (var i = 0; i < keys.length; i++) {
+      values[i] = message[keys[i]];
+    }
+    return [ 'map', id, keys, values ];
+  }
+}
+
+function _deserialize(message) {
+  return _deserializeHelper(message);
+}
+
+function _deserializeHelper(x) {
+  if (x == null ||
+      typeof(x) == 'string' ||
+      typeof(x) == 'number' ||
+      typeof(x) == 'boolean') {
+    return x;
+  }
+  switch (x[0]) {
+    case 'map': return _deserializeMap(x);
+    default: throw 'unimplemented';
+  }
+}
+
+function _deserializeMap(x) {
+  var result = { };
+  var id = x[1];
+  var keys = x[2];
+  var values = x[3];
+  for (var i = 0, length = keys.length; i < length; i++) {
+    var key = _deserializeHelper(keys[i]);
+    var value = _deserializeHelper(values[i]);
+    result[key] = value;
+  }
+  return result;
+}
+
+function registerPort(name, port) {
+  var stringified = JSON.stringify(_serialize(port));
+  window.localStorage['dart-port:' + name] = stringified;
+}

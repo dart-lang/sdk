@@ -118,5 +118,11 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS native "@*DOMWindow" {
   _IDBFactoryImpl _get_indexedDB() native
       'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
 
+  // TODO(kasperl): Document this.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
 $!MEMBERS
 }
