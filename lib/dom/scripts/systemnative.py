@@ -10,9 +10,8 @@ import emitter
 import os
 import systembase
 from generator import *
-from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
-from systemhtml import HtmlElementConstructorInfos
-from systemhtml import EmitHtmlElementFactoryConstructors
+from systemhtml import HtmlSystemShared
+
 
 class NativeImplementationSystem(systembase.System):
 
@@ -20,11 +19,9 @@ class NativeImplementationSystem(systembase.System):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._auxiliary_dir = auxiliary_dir
-    self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
     self._html_system = HtmlSystemShared(database)
-    self._factory_provider_emitters = {}
 
   def ImplementationGenerator(self, interface):
     return NativeImplementationGenerator(self, interface)
@@ -106,7 +103,7 @@ class NativeImplementationSystem(systembase.System):
     self._GenerateLibFile(
         'html_dartium.darttemplate',
         os.path.join(self._output_dir, 'html_dartium.dart'),
-        interface_files + self._dom_impl_files,
+        interface_files,
         AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
 
     # Generate DartDerivedSourcesXX.cpp.
@@ -148,24 +145,11 @@ class NativeImplementationSystem(systembase.System):
   def Finish(self):
     pass
 
-  def _FilePathForDartFactoryProviderImplementation(self, interface_name):
-    return os.path.join(self._output_dir, 'dart',
-                        '%sFactoryProviderImplementation.dart' % interface_name)
-
   def _FilePathForCppHeader(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.h' % interface_name)
 
   def _FilePathForCppImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
-
-  def _EmitterForFactoryProviderBody(self, name):
-    if name not in self._factory_provider_emitters:
-      file_name = self._FilePathForDartFactoryProviderImplementation(name)
-      self._dom_impl_files.append(file_name)
-      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
-      file_emitter = self._emitters.FileEmitter(file_name)
-      self._factory_provider_emitters[name] = file_emitter.Emit(template)
-    return self._factory_provider_emitters[name]
 
 
 class NativeImplementationGenerator(systembase.BaseGenerator):
@@ -185,7 +169,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._system = system
     self._current_secondary_parent = None
     self._html_system = self._system._html_system
-    self._html_renames = self._html_system._html_renames
+    self._html_interface_name = self._html_system._html_renames.get(
+        self._interface.id, self._interface.id)
 
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
@@ -196,6 +181,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def FilePathForDartImplementation(self):
     return os.path.join(self._system._output_dir, 'dart',
                         '%sImplementation.dart' % self._interface.id)
+
+  def FilePathForDartFactoryProviderImplementation(self):
+    file_name = '%sFactoryProviderImplementation.dart' % self._interface.id
+    return os.path.join(self._system._output_dir, 'dart', file_name)
+
+  def FilePathForDartElementsFactoryProviderImplementation(self):
+    return os.path.join(self._system._output_dir, 'dart',
+                        '_ElementsFactoryProviderImplementation.dart')
 
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
@@ -230,8 +223,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return self._members_emitter
 
   def _GenerateConstructors(self):
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
-
     if not self._IsConstructable():
       return
 
@@ -244,8 +235,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
 
     constructor_info = AnalyzeConstructor(self._interface)
-    if constructor_info:
-      self._EmitFactoryProvider(self._interface.id, constructor_info)
 
     ext_attrs = self._interface.ext_attrs
 
@@ -356,39 +345,29 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     return self._ImplClassName(supertype)
 
-  def _HTMLInterfaceName(self, interface_name):
-    return self._html_renames.get(interface_name, interface_name)
-
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
-  def _EmitFactoryProvider(self, interface_name, constructor_info):
-    dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
-        interface_name)
-    self._system._dom_impl_files.append(dart_impl_path)
-
-    html_interface_name = self._HTMLInterfaceName(interface_name)
-    template_file = 'factoryprovider_%s.darttemplate' % html_interface_name
+  def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
+    template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name
     template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('factoryprovider.darttemplate')
 
-    native_implementation_function = '%s_constructor_Callback' % interface_name
-    emitter = self._system._emitters.FileEmitter(dart_impl_path)
+    native_binding = '%s_constructor_Callback' % self._interface.id
     emitter.Emit(
         template,
-        FACTORYPROVIDER='_%sFactoryProvider' % html_interface_name,
-        INTERFACE=html_interface_name,
+        FACTORYPROVIDER=factory_provider,
+        INTERFACE=self._html_interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
-        NATIVE_NAME=native_implementation_function)
+        NATIVE_NAME=native_binding)
 
   def FinishInterface(self):
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
     template = None
-    if html_interface_name == self._interface.id or not self._database.HasInterface(html_interface_name):
-      template_file = 'impl_%s.darttemplate' % html_interface_name
+    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
+      template_file = 'impl_%s.darttemplate' % self._html_interface_name
       template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('dart_implementation.darttemplate')
@@ -398,7 +377,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         template,
         CLASSNAME=class_name,
         EXTENDS=' extends ' + self._BaseClassName(),
-        IMPLEMENTS=' implements ' + html_interface_name,
+        IMPLEMENTS=' implements ' + self._html_interface_name,
         NATIVESPEC='')
     members_emitter.Emit(''.join(self._members_emitter.Fragments()))
 

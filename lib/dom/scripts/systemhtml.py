@@ -775,7 +775,7 @@ class HtmlInterfacesSystem(HtmlSystem):
         templates, database, emitters, output_dir)
     self._backend = backend
     self._dart_interface_file_paths = []
-    self._factory_provider_emitters = {}
+    self._elements_factory_emitter = None
 
   def ProcessInterface(self, interface):
     HtmlDartInterfaceGenerator(self, interface).Generate()
@@ -857,8 +857,27 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     if constructor_info:
       constructors.append(constructor_info)
       factory_provider = '_' + typename + 'FactoryProvider'
+      path = self._backend.FilePathForDartFactoryProviderImplementation()
+      self._system._dart_interface_file_paths.append(path)
+      factory_provider_emitter = self._system._emitters.FileEmitter(path)
+      self._backend.EmitFactoryProvider(
+          constructor_info, factory_provider, factory_provider_emitter)
 
     infos = HtmlElementConstructorInfos(typename)
+    if infos:
+      if not self._system._elements_factory_emitter:
+        path = self._backend.FilePathForDartElementsFactoryProviderImplementation()
+        self._system._dart_interface_file_paths.append(path)
+        file_emitter = self._system._emitters.FileEmitter(path)
+        template = self._system._templates.Load(
+            'factoryprovider_Elements.darttemplate')
+        self._system._elements_factory_emitter = file_emitter.Emit(template)
+      EmitHtmlElementFactoryConstructors(
+          self._system._elements_factory_emitter,
+          infos,
+          self._html_interface_name,
+          self._backend.ImplementationClassName())
+
     for info in infos:
       constructors.append(info.ConstructorInfo(typename))
       if factory_provider:
@@ -896,14 +915,6 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
           CTOR=self._shared.DartType(constructor_info.ConstructorFullName()),
           PARAMS=constructor_info.ParametersInterfaceDeclaration(
                      self._shared.DartType))
-
-    if infos:
-      EmitHtmlElementFactoryConstructors(
-          self._system._backend._EmitterForFactoryProviderBody(
-              infos[0].factory_provider_name),
-          infos,
-          self._html_interface_name,
-          self._backend.ImplementationClassName())
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
@@ -1083,6 +1094,14 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     return os.path.join(self._system._output_dir, 'html', 'frog',
                         '%s.dart' % self._html_interface_name)
 
+  def FilePathForDartFactoryProviderImplementation(self):
+    return os.path.join(self._system._output_dir, 'html', 'frog',
+                        '_%sFactoryProvider.dart' % self._html_interface_name)
+
+  def FilePathForDartElementsFactoryProviderImplementation(self):
+    return os.path.join(self._system._output_dir, 'html', 'frog',
+                        '_Elements.dart')
+
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_code = implementation_emitter
 
@@ -1141,22 +1160,15 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       raise Exception("Class %s doesn't use the $!MEMBERS variable" %
                       self._class_name)
 
-    # Emit a factory provider class for the constructor.
-    constructor_info = AnalyzeConstructor(interface)
-    if constructor_info:
-      self._EmitFactoryProvider(constructor_info)
-
     return self._members_emitter
 
-  def _EmitFactoryProvider(self, constructor_info):
+  def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = ('factoryprovider_%s.darttemplate' %
                      self._html_interface_name)
     template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('factoryprovider.darttemplate')
 
-    factory_provider = '_' + self._html_interface_name + 'FactoryProvider'
-    emitter = self._system._ImplFileEmitter(factory_provider)
     emitter.Emit(
         template,
         FACTORYPROVIDER=factory_provider,
@@ -1354,33 +1366,18 @@ class HtmlFrogSystem(HtmlSystem):
   def __init__(self, templates, database, emitters, output_dir):
     super(HtmlFrogSystem, self).__init__(
         templates, database, emitters, output_dir)
-    self._dart_frog_file_paths = []
-    self._factory_provider_emitters = {}
 
   def ImplementationGenerator(self, interface):
     return HtmlFrogClassGenerator(self, interface)
 
-  def GenerateLibraries(self, interface_files):
+  def GenerateLibraries(self, dart_files):
     self._GenerateLibFile(
         'html_frog.darttemplate',
         os.path.join(self._output_dir, 'html_frog.dart'),
-        interface_files + self._dart_frog_file_paths)
+        dart_files)
 
   def Finish(self):
     pass
-
-  def _ImplFileEmitter(self, name):
-    """Returns the file emitter of the Frog implementation file."""
-    path = os.path.join(self._output_dir, 'html', 'frog', '%s.dart' % name)
-    self._dart_frog_file_paths.append(path)
-    return self._emitters.FileEmitter(path)
-
-  def _EmitterForFactoryProviderBody(self, name):
-    if name not in self._factory_provider_emitters:
-      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
-      file_emitter = self._ImplFileEmitter(name)
-      self._factory_provider_emitters[name] = file_emitter.Emit(template)
-    return self._factory_provider_emitters[name]
 
 # -----------------------------------------------------------------------------
 

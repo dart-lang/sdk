@@ -83,7 +83,8 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
                            {'DARTIUM': True, 'FROG': False}),
             webkit_database, emitters, output_dir, auxiliary_dir)
       html_system = HtmlInterfacesSystem(
-          TemplateLoader(template_dir, ['html/interface', 'html', '']),
+          TemplateLoader(template_dir, ['html/interface', 'html/impl', 'html',
+                                        '']),
           webkit_database, emitters, output_dir, backend)
       Generate(html_system)
     else:
