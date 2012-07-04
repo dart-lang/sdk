@@ -57,7 +57,7 @@ void FlowGraphPrinter::PrintBlocks() {
 
 
 void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
   if (FLAG_print_environments && (instr->env() != NULL)) {
@@ -68,7 +68,7 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
 
 
 void FlowGraphPrinter::PrintComputation(Computation* comp) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   comp->PrintTo(&f);
   OS::Print("%s", str);
@@ -109,10 +109,10 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
             String::Handle(dst_type().Name()).ToCString(),
             dst_name().ToCString());
-  f->Print(" (instantiator:");
+  f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
-  f->Print(" (instantiator_type_arguments:");
+  f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
 }
@@ -206,10 +206,10 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  f->Print(" (instantiator:");
+  f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
-  f->Print(" (type-arg:");
+  f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
 }
@@ -325,10 +325,7 @@ void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
   if (start_env_ != NULL) {
-    for (intptr_t i = 0; i < start_env_->length(); ++i) {
-      f->Print("\n  ");
-      (*start_env_)[i]->PrintTo(f);
-    }
+    start_env_->PrintTo(f);
   }
 }
 
@@ -352,6 +349,11 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     if (i < inputs_.length() - 1) f->Print(",");
   }
   f->Print(")");
+}
+
+
+void ParameterInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    v%d <- parameter(%d)", index());
 }
 
 
@@ -423,7 +425,7 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
 
 
 void FlowGraphVisualizer::Print(const char* format, ...) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   f.Print("%*s", 2 * indent_, "");
   va_list args;
@@ -435,7 +437,7 @@ void FlowGraphVisualizer::Print(const char* format, ...) {
 
 
 void FlowGraphVisualizer::PrintInstruction(Instruction* instr) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintToVisualizer(&f);
   if (FLAG_print_environments && (instr->env() != NULL)) {
@@ -560,6 +562,9 @@ void FlowGraphVisualizer::PrintFunction() {
 // or _ for instruction without result.
 void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [graph]");
+  if (start_env_ != NULL) {
+    start_env_->PrintTo(f);
+  }
 }
 
 
@@ -593,6 +598,13 @@ void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
     }
     f->Print("\"");
   }
+}
+
+
+void ParameterInstr::PrintToVisualizer(BufferFormatter* f) const {
+  ASSERT(ssa_temp_index() != -1);
+  ASSERT(temp_index() == -1);
+  f->Print("v%d Parameter(%d)", ssa_temp_index(), index());
 }
 
 

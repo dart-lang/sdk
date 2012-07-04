@@ -286,6 +286,22 @@ void PhiInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t ParameterInstr::InputCount() const {
+  return 0;
+}
+
+
+Value* ParameterInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t DoInstr::InputCount() const {
   return computation()->InputCount();
 }
@@ -441,13 +457,12 @@ void BlockEntryInstr::DiscoverBlocks(
   ASSERT(!IsTargetEntry() || (preorder_number() == -1));
   if (preorder_number() >= 0) return;
 
-  // 3. The last entry in the preorder array is the spanning-tree parent.
-  intptr_t parent_number = preorder->length() - 1;
-  parent->Add(parent_number);
+  // 3. The current block is the spanning-tree parent.
+  parent->Add(current_block->preorder_number());
 
   // 4. Assign preorder number and add the block entry to the list.
   // Allocate an empty set of assigned variables for the block.
-  set_preorder_number(parent_number + 1);
+  set_preorder_number(preorder->length());
   preorder->Add(this);
   BitVector* vars =
       (variable_count == 0) ? NULL : new BitVector(variable_count);

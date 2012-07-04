@@ -2613,27 +2613,35 @@ void FlowGraphBuilder::InsertPhis(
 
 
 void FlowGraphBuilder::Rename(intptr_t var_count) {
-  // Initialize start environment:
-  // All locals are initialized with #null.
-  // TODO(fschneider): Support parameters. All parameters are initially located
-  // on the stack.
   // TODO(fschneider): Store var_count in the FlowGraphBuilder instead of
   // passing it around.
-  ZoneGrowableArray<Value*>* start_env =
-      new ZoneGrowableArray<Value*>(var_count);
-  if (parsed_function().function().num_fixed_parameters() > 0) {
-    Bailout("Fixed parameter support in SSA");
+  // TODO(fschneider): Support catch-entry.
+  if (graph_entry_->SuccessorCount() > 1) {
+    Bailout("Catch-entry support in SSA.");
   }
+  // TODO(fschneider): Support copied parameters.
   if (parsed_function().copied_parameter_count()) {
     Bailout("Copied parameter support in SSA");
   }
+  ASSERT(var_count == (parsed_function().stack_local_count() +
+                       parsed_function().function().num_fixed_parameters()));
+
+  // Initialize start environment.
+  ZoneGrowableArray<Value*>* start_env =
+      new ZoneGrowableArray<Value*>(var_count);
+  intptr_t i = 0;
+  for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
+    ParameterInstr* param = new ParameterInstr(i);
+    param->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+    start_env->Add(new UseVal(param));
+  }
+
+  // All locals are initialized with #null.
   Value* null_value = new ConstantVal(Object::ZoneHandle());
-  // TODO(fschneider): Change this assert once parameters are supported.
-  ASSERT(var_count == parsed_function().stack_local_count());
-  for (intptr_t i = 0; i < var_count; i++) {
+  for (; i < var_count; i++) {
     start_env->Add(null_value);
   }
-  graph_entry_->set_start_env(start_env);
+  graph_entry_->set_start_env(new Environment(start_env));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
@@ -2764,7 +2772,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     ZoneGrowableArray<Value*>* new_env =
-        new ZoneGrowableArray<Value*>(var_count);
+        new ZoneGrowableArray<Value*>(env->length());
     new_env->AddArray(*env);
     RenameRecursive(block, new_env, var_count);
   }

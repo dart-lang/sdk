@@ -1707,7 +1707,8 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
   M(Branch)                                                                    \
-  M(ParallelMove)
+  M(ParallelMove)                                                              \
+  M(Parameter)
 
 
 // Forward declarations for Instruction classes.
@@ -1987,13 +1988,13 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
-  ZoneGrowableArray<Value*>* start_env() const { return start_env_; }
-  void set_start_env(ZoneGrowableArray<Value*>* env) { start_env_ = env; }
+  Environment* start_env() const { return start_env_; }
+  void set_start_env(Environment* env) { start_env_ = env; }
 
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
-  ZoneGrowableArray<Value*>* start_env_;
+  Environment* start_env_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -2186,6 +2187,21 @@ class PhiInstr: public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
+};
+
+
+class ParameterInstr: public Definition {
+ public:
+  explicit ParameterInstr(intptr_t index) : index_(index) { }
+
+  intptr_t index() const { return index_; }
+
+  DECLARE_INSTRUCTION(Parameter)
+
+ private:
+  intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
 
