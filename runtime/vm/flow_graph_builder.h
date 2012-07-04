@@ -193,9 +193,6 @@ class EffectGraphVisitor : public AstNodeVisitor {
     temp_index_ -= n;
   }
 
-  virtual void CompiletimeStringInterpolation(const Function& interpol_func,
-                                              const Array& literals);
-
   BindInstr* BuildObjectAllocation(ConstructorCallNode* node);
   void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
 
@@ -271,9 +268,6 @@ class ValueGraphVisitor : public EffectGraphVisitor {
     AddInstruction(defn);
     ReturnValue(new UseVal(defn));
   }
-
-  virtual void CompiletimeStringInterpolation(const Function& interpol_func,
-                                              const Array& literals);
 
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);

@@ -183,18 +183,6 @@ const char* BinaryOpNode::Name() const {
 }
 
 
-const Instance* StringConcatNode::EvalConstExpr() const {
-  for (int i = 0; i < values()->length(); i++) {
-    if (!values()->ElementAt(i)->IsLiteralNode()) {
-      return NULL;
-    }
-  }
-  // All nodes are literals, so this is a compile time constant string.
-  // We just return the first literal as value approximation.
-  return &values()->ElementAt(0)->AsLiteralNode()->literal();
-}
-
-
 const Instance* BinaryOpNode::EvalConstExpr() const {
   const Instance* left_val = this->left()->EvalConstExpr();
   if (left_val == NULL) {

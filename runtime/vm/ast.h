@@ -21,7 +21,6 @@ namespace dart {
   V(TypeNode, "type")                                                          \
   V(AssignableNode, "assignable")                                              \
   V(BinaryOpNode, "binop")                                                     \
-  V(StringConcatNode, "concat")                                                \
   V(ComparisonNode, "compare")                                                 \
   V(UnaryOpNode, "unaryop")                                                    \
   V(ConditionalExprNode, "?:")                                                 \
@@ -571,33 +570,6 @@ class BinaryOpNode : public AstNode {
   bool IsKindValid() const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
-};
-
-
-class StringConcatNode : public AstNode {
- public:
-  explicit StringConcatNode(intptr_t token_pos)
-      : AstNode(token_pos),
-        values_(new ArrayNode(token_pos, TypeArguments::ZoneHandle())) {
-  }
-
-  ArrayNode* values() const { return values_; }
-
-  virtual const Instance* EvalConstExpr() const;
-
-  void AddExpr(AstNode* expr) const {
-    values_->AddElement(expr);
-  }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {
-    values_->Visit(visitor);
-  }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(StringConcatNode);
-
- private:
-  ArrayNode* values_;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StringConcatNode);
 };
 
 

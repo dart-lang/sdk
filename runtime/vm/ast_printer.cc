@@ -158,11 +158,6 @@ void AstPrinter::VisitBinaryOpNode(BinaryOpNode* node) {
 }
 
 
-void AstPrinter::VisitStringConcatNode(StringConcatNode* node) {
-  VisitGenericAstNode(node);
-}
-
-
 void AstPrinter::VisitUnaryOpNode(UnaryOpNode* node) {
   VisitGenericAstNode(node);
 }
