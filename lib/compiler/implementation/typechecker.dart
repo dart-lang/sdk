@@ -31,7 +31,7 @@ interface Type {
 
 class TypeVariableType implements Type {
   final SourceString name;
-  Element element;
+  TypeVariableElement element;
   TypeVariableType(this.name, [this.element]);
 
   toString() => name.slowToString();
