@@ -67,6 +67,7 @@ indexeddb_1_test: Fail
 indexeddb_2_test: Fail
 indexeddb_3_test: Fail
 indexeddb_4_test: Fail
+js_interop_1_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
 serialized_script_value_test: Fail
