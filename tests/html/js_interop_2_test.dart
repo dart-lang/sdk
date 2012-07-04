@@ -27,15 +27,6 @@ isolateTest = """
 
 main() {
   useHtmlConfiguration();
-  var callback;
-  test('dart.js', () {
-    callback = expectAsync1((e) {
-      Expect.isTrue(e.data);
-      window.on.message.remove(callback);
-    });
-    window.on.message.add(callback);
-    injectSource(@"window.postMessage(window._$dart$initialized, '*');");
-  });
 
   test('isolateTest', () {
       injectSource(isolateTest);
