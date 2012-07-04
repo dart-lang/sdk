@@ -97,10 +97,6 @@ class Interceptors {
     return compiler.findHelper(const SourceString('indexSet'));
   }
 
-  Element getEqualsNullInterceptor() {
-    return compiler.findHelper(const SourceString('eqNull'));
-  }
-
   Element getExceptionUnwrapper() {
     return compiler.findHelper(const SourceString('unwrapException'));
   }

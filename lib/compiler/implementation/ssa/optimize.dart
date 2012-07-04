@@ -460,28 +460,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (right.isConstantNull()) {
       if (left.propagatedType.isPrimitive()) {
         return graph.addConstantBool(false);
-      } else {
-        // TODO(floitsch): cache interceptors.
-        Interceptors interceptors = backend.builder.interceptors;
-        Element equalsElement = interceptors.getEqualsInterceptor();
-        // If we have a different element than [equalsElement], we
-        // don't need to optimize this instruction to use another
-        // element: we know the element is either eqNull or eqNullB.
-        if (node.element === equalsElement) {
-          Element targetElement = interceptors.getEqualsNullInterceptor();
-          bool onlyUsedInBoolify = allUsersAreBoolifies(node);
-          if (onlyUsedInBoolify) {
-            targetElement = interceptors.getBoolifiedVersionOf(targetElement);
-          }
-          HStatic target = new HStatic(targetElement);
-          node.block.addBefore(node, target);
-          HEquals result = new HEquals(target, node.left, node.right);
-          if (onlyUsedInBoolify) {
-            result.usesBoolifiedInterceptor = true;
-            result.propagatedType = HType.BOOLEAN;
-          }
-          return result;
-        }
       }
     }
 
