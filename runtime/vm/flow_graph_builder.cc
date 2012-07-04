@@ -62,8 +62,38 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 }
 
 
+UseVal* EffectGraphVisitor::Bind(Computation* computation) {
+  ASSERT(is_open());
+  DeallocateTempIndex(computation->InputCount());
+  BindInstr* bind_instr = new BindInstr(computation);
+  bind_instr->set_temp_index(AllocateTempIndex());
+  if (is_empty()) {
+    entry_ = bind_instr;
+  } else {
+    exit()->set_successor(bind_instr);
+  }
+  exit_ = bind_instr;
+  return new UseVal(bind_instr);
+}
+
+
+void EffectGraphVisitor::Do(Computation* computation) {
+  ASSERT(is_open());
+  DeallocateTempIndex(computation->InputCount());
+  DoInstr* do_instr = new DoInstr(computation);
+  if (is_empty()) {
+    entry_ = do_instr;
+  } else {
+    exit()->set_successor(do_instr);
+  }
+  exit_ = do_instr;
+}
+
+
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
+  ASSERT(!instruction->IsDo());
+  ASSERT(!instruction->IsBind());
   DeallocateTempIndex(instruction->InputCount());
   if (instruction->IsDefinition()) {
     instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
@@ -163,17 +193,13 @@ Computation* EffectGraphVisitor::BuildStoreLocal(
     intptr_t delta = owner()->context_level() -
                      local.owner()->context_level();
     ASSERT(delta >= 0);
-    BindInstr* context = new BindInstr(new CurrentContextComp());
-    AddInstruction(context);
-    Value* context_value = new UseVal(context);
+    Value* context = Bind(new CurrentContextComp());
     while (delta-- > 0) {
-      BindInstr* load = new BindInstr(new LoadVMFieldComp(
-          context_value, Context::parent_offset(), Type::ZoneHandle()));
-      AddInstruction(load);
-      context_value = new UseVal(load);
+      context = Bind(new LoadVMFieldComp(
+          context, Context::parent_offset(), Type::ZoneHandle()));
     }
     return new StoreVMFieldComp(
-        context_value,
+        context,
         Context::variable_offset(local.index()),
         value,
         local.type());
@@ -188,16 +214,12 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
     intptr_t delta = owner()->context_level() -
                      local.owner()->context_level();
     ASSERT(delta >= 0);
-    BindInstr* context = new BindInstr(new CurrentContextComp());
-    AddInstruction(context);
-    Value* context_value = new UseVal(context);
+    Value* context = Bind(new CurrentContextComp());
     while (delta-- > 0) {
-      BindInstr* load = new BindInstr(new LoadVMFieldComp(
-          context_value, Context::parent_offset(), Type::ZoneHandle()));
-      AddInstruction(load);
-      context_value = new UseVal(load);
+      context = Bind(new LoadVMFieldComp(
+          context, Context::parent_offset(), Type::ZoneHandle()));
     }
-    return new LoadVMFieldComp(context_value,
+    return new LoadVMFieldComp(context,
                                Context::variable_offset(local.index()),
                                local.type());
   } else {
@@ -208,32 +230,24 @@ Computation* EffectGraphVisitor::BuildLoadLocal(const LocalVariable& local) {
 
 // Stores current context into the 'variable'
 void EffectGraphVisitor::BuildStoreContext(const LocalVariable& variable) {
-  BindInstr* context = new BindInstr(new CurrentContextComp());
-  AddInstruction(context);
-  Computation* store_context = BuildStoreLocal(variable, new UseVal(context));
-  AddInstruction(new DoInstr(store_context));
+  Value* context = Bind(new CurrentContextComp());
+  Do(BuildStoreLocal(variable, context));
 }
 
 
 // Loads context saved in 'context_variable' into the current context.
 void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
-  BindInstr* load_saved_context = new BindInstr(BuildLoadLocal(variable));
-  AddInstruction(load_saved_context);
-  DoInstr* store_context =
-      new DoInstr(new StoreContextComp(new UseVal(load_saved_context)));
-  AddInstruction(store_context);
+  Value* load_saved_context = Bind(BuildLoadLocal(variable));
+  Do(new StoreContextComp(load_saved_context));
 }
 
 
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
-    BindInstr* assert_boolean =
-        new BindInstr(new AssertBooleanComp(condition_token_pos(),
-                                            owner()->try_index(),
-                                            value));
-    AddInstruction(assert_boolean);
-    value = new UseVal(assert_boolean);
+    value = Bind(new AssertBooleanComp(condition_token_pos(),
+                                       owner()->try_index(),
+                                       value));
   }
   BranchInstr* branch = new BranchInstr(value);
   AddInstruction(branch);
@@ -295,8 +309,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
     }
   }
 
-  AddInstruction(
-      new ReturnInstr(node->token_pos(), return_value));
+  AddInstruction(new ReturnInstr(node->token_pos(), return_value));
   CloseFragment();
 }
 
@@ -472,43 +485,34 @@ void ValueGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
     node->right()->Visit(&for_right);
     Value* right_value = for_right.value();
     if (FLAG_enable_type_checks) {
-      BindInstr* assert_boolean =
-          new BindInstr(new AssertBooleanComp(node->right()->token_pos(),
-                                              owner()->try_index(),
-                                              right_value));
-      for_right.AddInstruction(assert_boolean);
-      right_value = new UseVal(assert_boolean);
+      right_value =
+          for_right.Bind(new AssertBooleanComp(node->right()->token_pos(),
+                                               owner()->try_index(),
+                                               right_value));
     }
-    BindInstr* constant_true = new BindInstr(new ConstantVal(bool_true));
-    for_right.AddInstruction(constant_true);
-    BindInstr* comp =
-        new BindInstr(new StrictCompareComp(Token::kEQ_STRICT,
-                                            right_value,
-                                            new UseVal(constant_true)));
-    for_right.AddInstruction(comp);
-    for_right.AddInstruction(
-        new DoInstr(BuildStoreLocal(
-            *owner()->parsed_function().expression_temp_var(),
-            new UseVal(comp))));
+    Value* constant_true = for_right.Bind(new ConstantVal(bool_true));
+    Value* compare =
+        for_right.Bind(new StrictCompareComp(Token::kEQ_STRICT,
+                                             right_value,
+                                             constant_true));
+    for_right.Do(BuildStoreLocal(
+        *owner()->parsed_function().expression_temp_var(),
+        compare));
 
     if (node->kind() == Token::kAND) {
       ValueGraphVisitor for_false(owner(), temp_index());
-      BindInstr* constant_false = new BindInstr(new ConstantVal(bool_false));
-      for_false.AddInstruction(constant_false);
-      for_false.AddInstruction(
-          new DoInstr(BuildStoreLocal(
-              *owner()->parsed_function().expression_temp_var(),
-              new UseVal(constant_false))));
+      Value* constant_false = for_false.Bind(new ConstantVal(bool_false));
+      for_false.Do(BuildStoreLocal(
+          *owner()->parsed_function().expression_temp_var(),
+          constant_false));
       Join(for_test, for_right, for_false);
     } else {
       ASSERT(node->kind() == Token::kOR);
       ValueGraphVisitor for_true(owner(), temp_index());
-      BindInstr* constant_true = new BindInstr(new ConstantVal(bool_true));
-      for_true.AddInstruction(constant_true);
-      for_true.AddInstruction(
-          new DoInstr(BuildStoreLocal(
-              *owner()->parsed_function().expression_temp_var(),
-              new UseVal(constant_true))));
+      Value* constant_true = for_true.Bind(new ConstantVal(bool_true));
+      for_true.Do(BuildStoreLocal(
+          *owner()->parsed_function().expression_temp_var(),
+          constant_true));
       Join(for_test, for_true, for_right);
     }
     ReturnComputation(
@@ -539,14 +543,10 @@ void EffectGraphVisitor::BuildTypecheckArguments(
     // Preserve instantiator.
     const LocalVariable& expr_temp =
         *owner()->parsed_function().expression_temp_var();
-    BindInstr* saved =
-        new BindInstr(BuildStoreLocal(expr_temp, instantiator));
-    AddInstruction(saved);
-    instantiator = new UseVal(saved);
-    BindInstr* loaded = new BindInstr(BuildLoadLocal(expr_temp));
-    AddInstruction(loaded);
+    instantiator = Bind(BuildStoreLocal(expr_temp, instantiator));
+    Value* loaded = Bind(BuildLoadLocal(expr_temp));
     instantiator_type_arguments =
-        BuildInstantiatorTypeArguments(token_pos, new UseVal(loaded));
+        BuildInstantiatorTypeArguments(token_pos, loaded);
   }
   *instantiator_result = instantiator;
   *instantiator_type_arguments_result = instantiator_type_arguments;
@@ -554,9 +554,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
 
 
 Value* EffectGraphVisitor::BuildNullValue() {
-  BindInstr* instr = new BindInstr(new ConstantVal(Object::ZoneHandle()));
-  AddInstruction(instr);
-  return new UseVal(instr);
+  return Bind(new ConstantVal(Object::ZoneHandle()));
 }
 
 
@@ -595,13 +593,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
   if (CanSkipTypeCheck(value, dst_type)) {
     return value;
   }
-  AssertAssignableComp* comp = BuildAssertAssignable(token_pos,
-                                                     value,
-                                                     dst_type,
-                                                     dst_name);
-  BindInstr* assert_assignable = new BindInstr(comp);
-  AddInstruction(assert_assignable);
-  return new UseVal(assert_assignable);
+  return Bind(BuildAssertAssignable(token_pos, value, dst_type, dst_name));
 }
 
 
@@ -623,12 +615,8 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   const String& dst_name = String::ZoneHandle(
       String::NewSymbol(Exceptions::kCastExceptionDstName));
   if (!CanSkipTypeCheck(for_value.value(), type)) {
-    AssertAssignableComp* assert_assignable =
-        BuildAssertAssignable(node->token_pos(),
-                              for_value.value(),
-                              type,
-                              dst_name);
-    AddInstruction(new DoInstr(assert_assignable));
+    Do(BuildAssertAssignable(
+        node->token_pos(), for_value.value(), type, dst_name));
   }
 }
 
@@ -762,17 +750,14 @@ void EffectGraphVisitor::VisitComparisonNode(ComparisonNode* node) {
     if (node->kind() == Token::kEQ) {
       ReturnComputation(comp);
     } else {
-      BindInstr* eq_result = new BindInstr(comp);
-      AddInstruction(eq_result);
+      Value* eq_result = Bind(comp);
       if (FLAG_enable_type_checks) {
         eq_result =
-            new BindInstr(new AssertBooleanComp(node->token_pos(),
-                                                owner()->try_index(),
-                                                new UseVal(eq_result)));
-        AddInstruction(eq_result);
+            Bind(new AssertBooleanComp(node->token_pos(),
+                                       owner()->try_index(),
+                                       eq_result));
       }
-      BooleanNegateComp* negate = new BooleanNegateComp(new UseVal(eq_result));
-      ReturnComputation(negate);
+      ReturnComputation(new BooleanNegateComp(eq_result));
     }
     return;
   }
@@ -800,12 +785,10 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
     Append(for_value);
     Value* value = for_value.value();
     if (FLAG_enable_type_checks) {
-      BindInstr* assert_boolean =
-          new BindInstr(new AssertBooleanComp(node->operand()->token_pos(),
-                                              owner()->try_index(),
-                                              value));
-      AddInstruction(assert_boolean);
-      value = new UseVal(assert_boolean);
+      value =
+          Bind(new AssertBooleanComp(node->operand()->token_pos(),
+                                     owner()->try_index(),
+                                     value));
     }
     BooleanNegateComp* negate = new BooleanNegateComp(value);
     ReturnComputation(negate);
@@ -853,14 +836,14 @@ void ValueGraphVisitor::VisitConditionalExprNode(ConditionalExprNode* node) {
   ValueGraphVisitor for_true(owner(), temp_index());
   node->true_expr()->Visit(&for_true);
   ASSERT(for_true.is_open());
-  for_true.AddInstruction(new DoInstr(BuildStoreLocal(
-      *owner()->parsed_function().expression_temp_var(), for_true.value())));
+  for_true.Do(BuildStoreLocal(
+      *owner()->parsed_function().expression_temp_var(), for_true.value()));
 
   ValueGraphVisitor for_false(owner(), temp_index());
   node->false_expr()->Visit(&for_false);
   ASSERT(for_false.is_open());
-  for_false.AddInstruction(new DoInstr(BuildStoreLocal(
-      *owner()->parsed_function().expression_temp_var(), for_false.value())));
+  for_false.Do(BuildStoreLocal(
+      *owner()->parsed_function().expression_temp_var(), for_false.value()));
 
   Join(for_test, for_true, for_false);
   ReturnComputation(
@@ -1051,9 +1034,8 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(!for_test.is_empty());  // Language spec.
 
   EffectGraphVisitor for_body(owner(), temp_index());
-  CheckStackOverflowComp* comp =
-      new CheckStackOverflowComp(node->token_pos(), owner()->try_index());
-  for_body.AddInstruction(new DoInstr(comp));
+  for_body.Do(
+      new CheckStackOverflowComp(node->token_pos(), owner()->try_index()));
   node->body()->Visit(&for_body);
 
   // Labels are set after body traversal.
@@ -1080,9 +1062,8 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
 void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
   // Traverse body first in order to generate continue and break labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  CheckStackOverflowComp* comp =
-      new CheckStackOverflowComp(node->token_pos(), owner()->try_index());
-  for_body.AddInstruction(new DoInstr(comp));
+  for_body.Do(
+      new CheckStackOverflowComp(node->token_pos(), owner()->try_index()));
   node->body()->Visit(&for_body);
 
   TestGraphVisitor for_test(owner(),
@@ -1145,9 +1126,8 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   EffectGraphVisitor for_body(owner(), temp_index());
   TargetEntryInstr* body_entry = new TargetEntryInstr();
   for_body.AddInstruction(body_entry);
-  CheckStackOverflowComp* comp =
-      new CheckStackOverflowComp(node->token_pos(), owner()->try_index());
-  for_body.AddInstruction(new DoInstr(comp));
+  for_body.Do(
+      new CheckStackOverflowComp(node->token_pos(), owner()->try_index()));
   node->body()->Visit(&for_body);
 
   // Join loop body, increment and compute their end instruction.
@@ -1279,9 +1259,8 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     Append(for_value);
     values->Add(for_value.value());
   }
-  Value* element_type = new UseVal(
-      BuildInstantiatedTypeArguments(node->token_pos(),
-                                     node->type_arguments()));
+  Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
+                                                       node->type_arguments());
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 values,
@@ -1398,39 +1377,30 @@ ClosureCallComp* EffectGraphVisitor::BuildClosureCall(
 
 
 void EffectGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  ClosureCallComp* call = BuildClosureCall(node);
-  AddInstruction(new DoInstr(call));
-
+  Do(BuildClosureCall(node));
   // Restore context from saved location.
   BuildLoadContext(*owner()->parsed_function().expression_temp_var());
 }
 
 
 void ValueGraphVisitor::VisitClosureCallNode(ClosureCallNode* node) {
-  ClosureCallComp* call = BuildClosureCall(node);
-  BindInstr* result = new BindInstr(call);
-  AddInstruction(result);
-
+  Value* result = Bind(BuildClosureCall(node));
   // Restore context from temp.
   BuildLoadContext(*owner()->parsed_function().expression_temp_var());
-
-  ReturnValue(new UseVal(result));
+  ReturnValue(result);
 }
 
 
 void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
-  BindInstr* context = new BindInstr(new CurrentContextComp());
-  AddInstruction(context);
-  BindInstr* clone =
-      new BindInstr(new CloneContextComp(node->token_pos(),
-                                         owner()->try_index(),
-                                         new UseVal(context)));
-  AddInstruction(clone);
-  ReturnComputation(new StoreContextComp(new UseVal(clone)));
+  Value* context = Bind(new CurrentContextComp());
+  Value* clone = Bind(new CloneContextComp(node->token_pos(),
+                                           owner()->try_index(),
+                                           context));
+  ReturnComputation(new StoreContextComp(clone));
 }
 
 
-BindInstr* EffectGraphVisitor::BuildObjectAllocation(
+Value* EffectGraphVisitor::BuildObjectAllocation(
     ConstructorCallNode* node) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
@@ -1464,31 +1434,25 @@ BindInstr* EffectGraphVisitor::BuildObjectAllocation(
                                            owner()->try_index(),
                                            allocate_arguments);
   }
-  BindInstr* allocate = new BindInstr(allocate_comp);
-  AddInstruction(allocate);
-  return allocate;
+  return Bind(allocate_comp);
 }
 
 
 void EffectGraphVisitor::BuildConstructorCall(ConstructorCallNode* node,
                                               Value* alloc_value) {
-  BindInstr* ctor_arg =
-      new BindInstr(new ConstantVal(
-                        Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
-  AddInstruction(ctor_arg);
+  Value* ctor_arg = Bind(
+      new ConstantVal(Smi::ZoneHandle(Smi::New(Function::kCtorPhaseAll))));
 
   ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>();
   values->Add(alloc_value);
-  values->Add(new UseVal(ctor_arg));
+  values->Add(ctor_arg);
 
   TranslateArgumentList(*node->arguments(), values);
-  StaticCallComp* call =
-      new StaticCallComp(node->token_pos(),
-                         owner()->try_index(),
-                         node->constructor(),
-                         node->arguments()->names(),
-                         values);
-  AddInstruction(new DoInstr(call));
+  Do(new StaticCallComp(node->token_pos(),
+                        owner()->try_index(),
+                        node->constructor(),
+                        node->arguments()->names(),
+                        values));
 }
 
 
@@ -1497,8 +1461,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
     ZoneGrowableArray<Value*>* factory_arguments =
         new ZoneGrowableArray<Value*>();
     factory_arguments->Add(
-        new UseVal(BuildInstantiatedTypeArguments(node->token_pos(),
-                                                  node->type_arguments())));
+        BuildInstantiatedTypeArguments(node->token_pos(),
+                                       node->type_arguments()));
     ASSERT(factory_arguments->length() == 1);
     TranslateArgumentList(*node->arguments(), factory_arguments);
     StaticCallComp* call =
@@ -1516,8 +1480,8 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   t_n+2... <- constructor arguments start here
   //   StaticCall(constructor, t_n+1, t_n+2, ...)
   // No need to preserve allocated value (simpler than in ValueGraphVisitor).
-  BindInstr* allocate = BuildObjectAllocation(node);
-  BuildConstructorCall(node, new UseVal(allocate));
+  Value* allocate = BuildObjectAllocation(node);
+  BuildConstructorCall(node, allocate);
 }
 
 
@@ -1559,9 +1523,7 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     type ^= ClassFinalizer::FinalizeType(
         instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
     type_arguments = type.arguments();
-    BindInstr* args = new BindInstr(new ConstantVal(type_arguments));
-    AddInstruction(args);
-    return new UseVal(args);
+    return Bind(new ConstantVal(type_arguments));
   }
   Function& outer_function =
       Function::Handle(owner()->parsed_function().function().raw());
@@ -1588,35 +1550,26 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
       instantiator_class.type_arguments_instance_field_offset();
   ASSERT(type_arguments_instance_field_offset != Class::kNoTypeArguments);
 
-  BindInstr* load =
-      new BindInstr(new LoadVMFieldComp(
-                        instantiator,
-                        type_arguments_instance_field_offset,
-                        Type::ZoneHandle()));  // Not an instance, no type.
-  AddInstruction(load);
-  return new UseVal(load);
+  return Bind(new LoadVMFieldComp(
+      instantiator,
+      type_arguments_instance_field_offset,
+      Type::ZoneHandle()));  // Not an instance, no type.
 }
 
 
-BindInstr* EffectGraphVisitor::BuildInstantiatedTypeArguments(
+Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
     intptr_t token_pos,
     const AbstractTypeArguments& type_arguments) {
   if (type_arguments.IsNull() || type_arguments.IsInstantiated()) {
-    BindInstr* type_args =
-        new BindInstr(new ConstantVal(type_arguments));
-    AddInstruction(type_args);
-    return type_args;
+    return Bind(new ConstantVal(type_arguments));
   }
   // The type arguments are uninstantiated.
   Value* instantiator_value =
       BuildInstantiatorTypeArguments(token_pos, NULL);
-  BindInstr* instantiate =
-      new BindInstr(new InstantiateTypeArgumentsComp(token_pos,
-                                                     owner()->try_index(),
-                                                     type_arguments,
-                                                     instantiator_value));
-  AddInstruction(instantiate);
-  return instantiate;
+  return Bind(new InstantiateTypeArgumentsComp(token_pos,
+                                               owner()->try_index(),
+                                               type_arguments,
+                                               instantiator_value));
 }
 
 
@@ -1627,17 +1580,12 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    BindInstr* type_args =
-        new BindInstr(new ConstantVal(node->type_arguments()));
-    AddInstruction(type_args);
+    Value* type_args = Bind(new ConstantVal(node->type_arguments()));
     // No instantiator required.
-    BindInstr* no_instantiator =
-        new BindInstr(new ConstantVal(
-                          Smi::ZoneHandle(Smi::New(
-                              StubCode::kNoInstantiator))));
-    AddInstruction(no_instantiator);
-    args->Add(new UseVal(type_args));
-    args->Add(new UseVal(no_instantiator));
+    Value* no_instantiator = Bind(
+        new ConstantVal(Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
+    args->Add(type_args);
+    args->Add(no_instantiator);
     return;
   }
   // The type arguments are uninstantiated. The generated pseudo code:
@@ -1654,41 +1602,30 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Value* instantiator_type_arguments = BuildInstantiatorTypeArguments(
       node->token_pos(), NULL);
   ASSERT(instantiator_type_arguments->IsUse());
-  BindInstr* stored_instantiator = new BindInstr(
-      BuildStoreLocal(t1, instantiator_type_arguments));
-  AddInstruction(stored_instantiator);
+  Value* stored_instantiator =
+      Bind(BuildStoreLocal(t1, instantiator_type_arguments));
   // t1: instantiator type arguments.
 
-  BindInstr* extract_type_arguments = new BindInstr(
+  Value* extract_type_arguments = Bind(
       new ExtractConstructorTypeArgumentsComp(
           node->token_pos(),
           owner()->try_index(),
           node->type_arguments(),
-          new UseVal(stored_instantiator)));
-  AddInstruction(extract_type_arguments);
+          stored_instantiator));
 
-  Instruction* stored_type_arguments = new DoInstr(
-      BuildStoreLocal(t2, new UseVal(extract_type_arguments)));
-  AddInstruction(stored_type_arguments);
+  Do(BuildStoreLocal(t2, extract_type_arguments));
   // t2: extracted constructor type arguments.
-  BindInstr* load_instantiator = new BindInstr(BuildLoadLocal(t1));
-  AddInstruction(load_instantiator);
+  Value* load_instantiator = Bind(BuildLoadLocal(t1));
 
-  BindInstr* extract_instantiator =
-      new BindInstr(new ExtractConstructorInstantiatorComp(
-                        node,
-                        new UseVal(load_instantiator)));
-  AddInstruction(extract_instantiator);
-  AddInstruction(new DoInstr(
-      BuildStoreLocal(t1, new UseVal(extract_instantiator))));
+  Value* extract_instantiator =
+      Bind(new ExtractConstructorInstantiatorComp(node, load_instantiator));
+  Do(BuildStoreLocal(t1, extract_instantiator));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.
-  BindInstr* load_0 = new BindInstr(BuildLoadLocal(t2));
-  AddInstruction(load_0);
-  BindInstr* load_1 = new BindInstr(BuildLoadLocal(t1));
-  AddInstruction(load_1);
-  args->Add(new UseVal(load_0));
-  args->Add(new UseVal(load_1));
+  Value* load_0 = Bind(BuildLoadLocal(t2));
+  Value* load_1 = Bind(BuildLoadLocal(t1));
+  args->Add(load_0);
+  args->Add(load_1);
 }
 
 
@@ -1706,18 +1643,16 @@ void ValueGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
   //   StaticCall(constructor, t_n, t_n+1, ...)
   //   tn       <- LoadLocal(temp)
 
-  BindInstr* allocate = BuildObjectAllocation(node);
+  Value* allocate = BuildObjectAllocation(node);
   Computation* store_allocated = BuildStoreLocal(
       node->allocated_object_var(),
-      new UseVal(allocate));
-  BindInstr* allocated_value = new BindInstr(store_allocated);
-  AddInstruction(allocated_value);
-  BuildConstructorCall(node, new UseVal(allocated_value));
+      allocate);
+  Value* allocated_value = Bind(store_allocated);
+  BuildConstructorCall(node, allocated_value);
   Computation* load_allocated = BuildLoadLocal(
       node->allocated_object_var());
-  allocated_value = new BindInstr(load_allocated);
-  AddInstruction(allocated_value);
-  ReturnValue(new UseVal(allocated_value));
+  allocated_value = Bind(load_allocated);
+  ReturnValue(allocated_value);
 }
 
 
@@ -1765,18 +1700,14 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   Value *receiver, *value;
   BuildInstanceSetterValues(node, &receiver, &value);
-  BindInstr* store_local_instr = new BindInstr(
+  Value* saved_value = Bind(
       BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
                       value));
-  AddInstruction(store_local_instr);
-  UseVal* saved_value = new UseVal(store_local_instr);
-  InstanceSetterComp* setter =
-      new InstanceSetterComp(node->token_pos(),
-                             owner()->try_index(),
-                             node->field_name(),
-                             receiver,
-                             saved_value);
-  AddInstruction(new DoInstr(setter));
+  Do(new InstanceSetterComp(node->token_pos(),
+                            owner()->try_index(),
+                            node->field_name(),
+                            receiver,
+                            saved_value));
   ReturnComputation(
        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
@@ -1978,17 +1909,14 @@ void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
 void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
   Value *array, *index, *value;
   BuildStoreIndexedValues(node, &array, &index, &value);
-  BindInstr* store_local_instr = new BindInstr(
+  Value* saved_value = Bind(
       BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
                       value));
-  AddInstruction(store_local_instr);
-  UseVal* saved_value = new UseVal(store_local_instr);
-  StoreIndexedComp* store = new StoreIndexedComp(node->token_pos(),
-                                                 owner()->try_index(),
-                                                 array,
-                                                 index,
-                                                 saved_value);
-  AddInstruction(new DoInstr(store));
+  Do(new StoreIndexedComp(node->token_pos(),
+                          owner()->try_index(),
+                          array,
+                          index,
+                          saved_value));
   ReturnComputation(
        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
@@ -2001,16 +1929,12 @@ bool EffectGraphVisitor::MustSaveRestoreContext(SequenceNode* node) const {
 
 
 void EffectGraphVisitor::UnchainContext() {
-  BindInstr* context = new BindInstr(new CurrentContextComp());
-  AddInstruction(context);
-  BindInstr* parent =
-      new BindInstr(
-          new LoadVMFieldComp(
-              new UseVal(context),
-              Context::parent_offset(),
-              Type::ZoneHandle()));  // Not an instance, no type.
-  AddInstruction(parent);
-  AddInstruction(new DoInstr(new StoreContextComp(new UseVal(parent))));
+  Value* context = Bind(new CurrentContextComp());
+  Value* parent = Bind(
+      new LoadVMFieldComp(context,
+                          Context::parent_offset(),
+                          Type::ZoneHandle()));  // Not an instance, no type.
+  Do(new StoreContextComp(parent));
 }
 
 
@@ -2026,34 +1950,24 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     // The loop local scope declares variables that are captured.
     // Allocate and chain a new context.
     // Allocate context computation (uses current CTX)
-    BindInstr* allocated_context =
-        new BindInstr(new AllocateContextComp(node->token_pos(),
-                                              owner()->try_index(),
-                                              num_context_variables));
-    AddInstruction(allocated_context);
+    Value* allocated_context =
+        Bind(new AllocateContextComp(node->token_pos(),
+                                     owner()->try_index(),
+                                     num_context_variables));
 
     // If this node_sequence is the body of the function being compiled, and if
     // this function is not a closure, do not link the current context as the
     // parent of the newly allocated context, as it is not accessible. Instead,
     // save it in a pre-allocated variable and restore it on exit.
     if (MustSaveRestoreContext(node)) {
-      BindInstr* current_context = new BindInstr(new CurrentContextComp());
-      AddInstruction(current_context);
-      Computation* store_local = BuildStoreLocal(
-          *owner()->parsed_function().saved_context_var(),
-          new UseVal(current_context));
-      AddInstruction(new DoInstr(store_local));
-      BindInstr* null_context =
-          new BindInstr(new ConstantVal(Object::ZoneHandle()));
-      AddInstruction(null_context);
-      StoreContextComp* store_context =
-          new StoreContextComp(new UseVal(null_context));
-      AddInstruction(new DoInstr(store_context));
+      Value* current_context = Bind(new CurrentContextComp());
+      Do(BuildStoreLocal(*owner()->parsed_function().saved_context_var(),
+                         current_context));
+      Value* null_context = Bind(new ConstantVal(Object::ZoneHandle()));
+      Do(new StoreContextComp(null_context));
     }
 
-    ChainContextComp* chain_context =
-        new ChainContextComp(new UseVal(allocated_context));
-    AddInstruction(new DoInstr(chain_context));
+    Do(new ChainContextComp(allocated_context));
     owner()->set_context_level(scope->context_level());
 
     // If this node_sequence is the body of the function being compiled, copy
@@ -2078,20 +1992,13 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
           temp_local->set_index(param_frame_index);
 
           // Copy parameter from local frame to current context.
-          BindInstr* load = new BindInstr(BuildLoadLocal(*temp_local));
-          AddInstruction(load);
-          Computation* store_local =
-              BuildStoreLocal(parameter, new UseVal(load));
-          AddInstruction(new DoInstr(store_local));
+          Value* load = Bind(BuildLoadLocal(*temp_local));
+          Do(BuildStoreLocal(parameter, load));
           // Write NULL to the source location to detect buggy accesses and
           // allow GC of passed value if it gets overwritten by a new value in
           // the function.
-          BindInstr* null_constant =
-              new BindInstr(new ConstantVal(Object::ZoneHandle()));
-          AddInstruction(null_constant);
-          Computation* clear_local =
-              BuildStoreLocal(*temp_local, new UseVal(null_constant));
-          AddInstruction(new DoInstr(clear_local));
+          Value* null_constant = Bind(new ConstantVal(Object::ZoneHandle()));
+          Do(BuildStoreLocal(*temp_local, null_constant));
         }
       }
     }
@@ -2114,14 +2021,11 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
       if (!CanSkipTypeCheck(NULL, parameter.type())) {
-        BindInstr* load = new BindInstr(BuildLoadLocal(parameter));
-        AddInstruction(load);
-        AssertAssignableComp* assert_assignable =
-            BuildAssertAssignable(parameter.token_pos(),
-                                  new UseVal(load),
-                                  parameter.type(),
-                                  parameter.name());
-        AddInstruction(new DoInstr(assert_assignable));
+        Value* load = Bind(BuildLoadLocal(parameter));
+        Do(BuildAssertAssignable(parameter.token_pos(),
+                                 load,
+                                 parameter.type(),
+                                 parameter.name()));
       }
       pos++;
     }
@@ -2172,9 +2076,7 @@ void EffectGraphVisitor::VisitCatchClauseNode(CatchClauseNode* node) {
   // NOTE: The implicit variables ':saved_context', ':exception_var'
   // and ':stacktrace_var' can never be captured variables.
   // Restores CTX from local variable ':saved_context'.
-  CatchEntryComp* catch_entry = new CatchEntryComp(node->exception_var(),
-                                                   node->stacktrace_var());
-  AddInstruction(new DoInstr(catch_entry));
+  Do(new CatchEntryComp(node->exception_var(), node->stacktrace_var()));
   BuildLoadContext(node->context_var());
 
   EffectGraphVisitor for_catch(owner(), temp_index());

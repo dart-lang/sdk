@@ -114,7 +114,12 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   // Append a graph fragment to this graph.  Assumes this graph is open.
   void Append(const EffectGraphVisitor& other_fragment);
-  // Append a single instruction.  Assumes this graph is open.
+  // Append a computation with one use.  Assumes this graph is open.
+  UseVal* Bind(Computation* computation);
+  // Append a computation with no uses.  Assumes this graph is open.
+  void Do(Computation* computation);
+  // Append a single (non-Bind, non-Do) instruction.  Assumes this graph is
+  // open.
   void AddInstruction(Instruction* instruction);
 
   // Append a 'diamond' branch and join to this graph, depending on which
@@ -140,7 +145,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.
   // May be called only if allocating an object of a parameterized class.
-  BindInstr* BuildInstantiatedTypeArguments(
+  Value* BuildInstantiatedTypeArguments(
       intptr_t token_pos,
       const AbstractTypeArguments& type_arguments);
 
@@ -209,7 +214,7 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Specify a computation as the final result.  Adds a Do instruction to
   // the graph, but normally overridden in subclasses.
   virtual void ReturnComputation(Computation* computation) {
-    AddInstruction(new DoInstr(computation));
+    Do(computation);
   }
 
   // Shared global state.
@@ -264,9 +269,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   // the graph and returns its temporary value (i.e., set the output
   // parameters).
   virtual void ReturnComputation(Computation* computation) {
-    BindInstr* defn = new BindInstr(computation);
-    AddInstruction(defn);
-    ReturnValue(new UseVal(defn));
+    ReturnValue(Bind(computation));
   }
 
   virtual void BuildTypeTest(ComparisonNode* node);
