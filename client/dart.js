@@ -37,7 +37,6 @@ if (navigator.webkitStartDart) {
 // ---------------------------------------------------------------------------
 // Experimental support for JS interoperability
 // ---------------------------------------------------------------------------
-
 function SendPortSync(receivePort) {
   this.receivePort = receivePort;
 }
@@ -62,71 +61,77 @@ ReceivePortSync.prototype.close = function() {
   delete ReceivePortSync.map[this.id];
 };
 
-// TODO(kasperl): Hide these serialization methods so they
-// do not clutter up the global scope.
-function _serialize(message) {
-  if (message == null) {
-    return null;  // Convert undefined to null.
-  } else if (typeof(message) == 'string' ||
-             typeof(message) == 'number' ||
-             typeof(message) == 'boolean') {
-    return message;
-  } else if (message instanceof SendPortSync) {
-    return [ 'sendport', message.receivePort.id ];
-  } else {
-    var id = 0;
-    var keys = Object.getOwnPropertyNames(message);
-    var values = new Array(keys.length);
-    for (var i = 0; i < keys.length; i++) {
-      values[i] = message[keys[i]];
+(function() {
+  function serialize(message) {
+    if (message == null) {
+      return null;  // Convert undefined to null.
+    } else if (typeof(message) == 'string' ||
+               typeof(message) == 'number' ||
+               typeof(message) == 'boolean') {
+      return message;
+    } else if (message instanceof SendPortSync) {
+      return [ 'sendport', message.receivePort.id ];
+    } else {
+      var id = 0;
+      var keys = Object.getOwnPropertyNames(message);
+      var values = new Array(keys.length);
+      for (var i = 0; i < keys.length; i++) {
+        values[i] = message[keys[i]];
+      }
+      return [ 'map', id, keys, values ];
     }
-    return [ 'map', id, keys, values ];
   }
-}
 
-function _deserialize(message) {
-  return _deserializeHelper(message);
-}
-
-function _deserializeHelper(x) {
-  if (x == null ||
-      typeof(x) == 'string' ||
-      typeof(x) == 'number' ||
-      typeof(x) == 'boolean') {
-    return x;
+  function deserialize(message) {
+    return deserializeHelper(message);
   }
-  switch (x[0]) {
-    case 'map': return _deserializeMap(x);
-    default: throw 'unimplemented';
+
+  function deserializeHelper(x) {
+    if (x == null ||
+        typeof(x) == 'string' ||
+        typeof(x) == 'number' ||
+        typeof(x) == 'boolean') {
+      return x;
+    }
+    switch (x[0]) {
+      case 'map': return deserializeMap(x);
+      default: throw 'unimplemented';
+    }
   }
-}
 
-function _deserializeMap(x) {
-  var result = { };
-  var id = x[1];
-  var keys = x[2];
-  var values = x[3];
-  for (var i = 0, length = keys.length; i < length; i++) {
-    var key = _deserializeHelper(keys[i]);
-    var value = _deserializeHelper(values[i]);
-    result[key] = value;
+  function deserializeMap(x) {
+    var result = { };
+    var id = x[1];
+    var keys = x[2];
+    var values = x[3];
+    for (var i = 0, length = keys.length; i < length; i++) {
+      var key = deserializeHelper(keys[i]);
+      var value = deserializeHelper(values[i]);
+      result[key] = value;
+    }
+    return result;
   }
-  return result;
-}
 
-function registerPort(name, port) {
-  var stringified = JSON.stringify(_serialize(port));
-  window.localStorage['dart-port:' + name] = stringified;
-}
+  window.registerPort = function(name, port) {
+    var stringified = JSON.stringify(serialize(port));
+    window.localStorage['dart-port:' + name] = stringified;
+  };
 
-if (navigator.webkitStartDart) {
-  window.addEventListener('js-sync-message', function(event) {
-    var data = JSON.parse(event.data);
-    var deserialized = _deserialize(data.message);
-    var result = ReceivePortSync.map[data.id].callback(deserialized);
-    var string = JSON.stringify(_serialize(result));
-    var event = document.createEvent('TextEvent');
-    event.initTextEvent('js-result', false, false, window, string);
-    window.dispatchEvent(event);
-  }, false);
-}
+  ReceivePortSync.dispatchCall = function(id, message) {
+    var deserialized = deserialize(message);
+    var result = ReceivePortSync.map[id].callback(deserialized);
+    return serialize(result);
+  };
+
+  if (navigator.webkitStartDart) {
+    window.addEventListener('js-sync-message', function(event) {
+      var data = JSON.parse(event.data);
+      var deserialized = deserialize(data.message);
+      var result = ReceivePortSync.map[data.id].callback(deserialized);
+      var string = JSON.stringify(serialize(result));
+      var event = document.createEvent('TextEvent');
+      event.initTextEvent('js-result', false, false, window, string);
+      window.dispatchEvent(event);
+    }, false);
+  }
+})();

@@ -80,9 +80,7 @@ class _JsSendPortSync implements SendPortSync {
   }
 
   static _call(num id, var message) native @"""
-    var deserialized = _deserialize(message);
-    var result = ReceivePortSync.map[id].callback(deserialized);
-    return _serialize(result);
+    return ReceivePortSync.dispatchCall(id, message);
   """;
 
 }

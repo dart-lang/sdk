@@ -30,6 +30,7 @@ ElementList queryAll(String selector) => _document.queryAll(selector);
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
 }
 
+// TODO(vsm): Move this to a separate Isolates.dart file.
 _serialize(var message) {
   // TODO(kasperl): Specialize the serializer.
   return new _Serializer().traverse(message);
@@ -60,9 +61,7 @@ class _JsSendPortSync implements SendPortSync {
   }
 
   static _call(num id, var message) native @"""
-    var deserialized = _deserialize(message);
-    var result = ReceivePortSync.map[id].callback(deserialized);
-    return _serialize(result);
+    return ReceivePortSync.dispatchCall(id, message);
   """;
 
 }
