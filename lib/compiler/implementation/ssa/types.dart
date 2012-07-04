@@ -40,7 +40,7 @@ abstract class HType {
     }
   }
 
-  static final HType CONFLICTING = const HAnalysisType("conflicting");
+  static final HType CONFLICTING = const HConflictingType();
   static final HType UNKNOWN = const HAnalysisType("unknown");
   static final HType BOOLEAN = const HBooleanType();
   static final HType NUMBER = const HNumberType();
@@ -137,6 +137,12 @@ class HAnalysisType extends HType {
 
   HType union(HType other) => combine(other);
   HType intersection(HType other) => combine(other);
+}
+
+class HConflictingType extends HAnalysisType {
+  const HConflictingType() : super("conflicting");
+  bool canBePrimitive() => false;
+  bool canBeNull() => false;
 }
 
 abstract class HPrimitiveType extends HType {
@@ -310,7 +316,7 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isInteger()) return HType.INTEGER;
     if (other.isDouble()) return HType.CONFLICTING;
-    if (other.isDoubleOrNull()) return HType.CONFLICTING;
+    if (other.isDoubleOrNull()) return HType.NULL;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
     if (other.canBeNull()) return HType.NULL;
@@ -370,7 +376,7 @@ class HDoubleOrNullType extends HNumberOrNullType {
 
   HType intersection(HType other) {
     if (other.isUnknown()) return HType.DOUBLE_OR_NULL;
-    if (other.isIntegerOrNull()) return HType.CONFLICTING;
+    if (other.isIntegerOrNull()) return HType.NULL;
     if (other.isInteger()) return HType.CONFLICTING;
     if (other.isDouble()) return HType.DOUBLE;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
