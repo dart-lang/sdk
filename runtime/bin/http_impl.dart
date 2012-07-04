@@ -1960,10 +1960,13 @@ class _HttpClient implements HttpClient {
      _activeSockets.forEach((_SocketConnection socketConn) {
        socketConn._socket.close();
      });
-     if (_evictionTimer != null) {
-       _evictionTimer.cancel();
-     }
+    if (_evictionTimer != null) _cancelEvictionTimer();
      _shutdown = true;
+  }
+
+  void _cancelEvictionTimer() {
+    _evictionTimer.cancel();
+    _evictionTimer = null;
   }
 
   String _connectionKey(String host, int port) {
@@ -1998,7 +2001,8 @@ class _HttpClient implements HttpClient {
 
     // If there are active connections for this key get the first one
     // otherwise create a new one.
-    Queue socketConnections = _openSockets[_connectionKey(host, port)];
+    String key = _connectionKey(host, port);
+    Queue socketConnections = _openSockets[key];
     if (socketConnections == null || socketConnections.isEmpty()) {
       Socket socket = new Socket(host, port);
       // Until the connection is established handle connection errors
@@ -2026,10 +2030,8 @@ class _HttpClient implements HttpClient {
       new Timer(0, (ignored) => _connectionOpened(socketConn, connection));
 
       // Get rid of eviction timer if there are no more active connections.
-      if (socketConnections.isEmpty()) {
-        _evictionTimer.cancel();
-        _evictionTimer = null;
-      }
+      if (socketConnections.isEmpty()) _openSockets.remove(key);
+      if (_openSockets.isEmpty()) _cancelEvictionTimer();
     }
 
     return connection;
@@ -2058,6 +2060,7 @@ class _HttpClient implements HttpClient {
     if (_evictionTimer == null) {
       void _handleEviction(Timer timer) {
         Date now = new Date.now();
+        List<String> emptyKeys = new List<String>();
         _openSockets.forEach(
             void _(String key, Queue<_SocketConnection> connections) {
               // As returned connections are added at the head of the
@@ -2068,11 +2071,18 @@ class _HttpClient implements HttpClient {
                     DEFAULT_EVICTION_TIMEOUT) {
                   connections.removeLast();
                   socketConn._socket.close();
+                  if (connections.isEmpty()) emptyKeys.add(key);
                 } else {
                   break;
                 }
               }
             });
+
+        // Remove the keys for which here are no more open connections.
+        emptyKeys.forEach((String key) => _openSockets.remove(key));
+
+        // If all connections where evicted cancel the eviction timer.
+        if (_openSockets.isEmpty()) _cancelEvictionTimer();
       }
       _evictionTimer = new Timer.repeating(10000, _handleEviction);
     }
