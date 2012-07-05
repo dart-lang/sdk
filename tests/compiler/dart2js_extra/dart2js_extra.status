@@ -27,21 +27,12 @@ string_interpolation_test: Skip
 naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == ie ]
-12_test: Fail # BUG(3304)
-33_test: Fail # BUG(3304)
-43_test: Fail # BUG(3304)
-7_test: Fail # BUG(3304)
 bailout_test: Fail # BUG(3304)
 class_test: Fail # BUG(3304)
-equals_test: Fail # BUG(3304)
 foo7_test: Fail # BUG(3304)
 function_parameters_test: Fail # BUG(3304)
-literals_test: Fail # BUG(3304)
-locals_test: Fail # BUG(3304)
 naming_test: Fail # BUG(3305)
 not_equals_test: Fail # BUG(3304)
-phi_test: Fail # BUG(3304)
-regression_2913_test: Fail # BUG(3304)
 send_test: Fail # BUG(3304)
 
 [ $compiler == dart2js && $runtime == safari ]
