@@ -116,10 +116,9 @@ class BaseGenerator(object):
     for const in sorted(interface.constants, ConstantOutputOrder):
       self.AddConstant(const)
 
-    attributes = [attr for attr in interface.attributes
-                  if attr.type.id != 'EventListener']
-    for (getter, setter) in  _PairUpAttributes(attributes):
-      self.AddAttribute(getter, setter)
+    for attr in interface.attributes:
+      if attr.type.id != 'EventListener':
+        self.AddAttribute(attr)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -155,10 +154,9 @@ class BaseGenerator(object):
     for parent_interface in secondary_parents:
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
-      attributes = [attr for attr in parent_interface.attributes
-                    if not FindMatchingAttribute(interface, attr)]
-      for (getter, setter) in _PairUpAttributes(attributes):
-        self.AddSecondaryAttribute(parent_interface, getter, setter)
+      for attr in parent_interface.attributes:
+        if not FindMatchingAttribute(interface, attr):
+          self.AddSecondaryAttribute(parent_interface, attr)
 
       # Group overloaded operations by id
       operationsById = {}
@@ -177,7 +175,7 @@ class BaseGenerator(object):
   def AddConstant(self, constant):
     pass
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
     pass
 
   def AddIndexer(self, element_type):
@@ -192,10 +190,10 @@ class BaseGenerator(object):
   def AddStaticOperation(self, info):
     pass
 
-  def AddSecondaryAttribute(self, interface, getter, setter):
+  def AddSecondaryAttribute(self, interface, attribute):
     pass
 
-  def AddSecondaryOperation(self, interface, attr):
+  def AddSecondaryOperation(self, interface, info):
     pass
 
   def _TransitiveSecondaryParents(self, interface):
@@ -224,17 +222,5 @@ class BaseGenerator(object):
     return result
 
 
-def _PairUpAttributes(attributes):
-  """Returns a list of (getter, setter) pairs sorted by name.
-
-  One element of the pair may be None.
-  """
-  names = sorted(set(attr.id for attr in attributes))
-  getters = {}
-  setters = {}
-  for attr in attributes:
-    if attr.is_fc_getter:
-      getters[attr.id] = attr
-    elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
-      setters[attr.id] = attr
-  return [(getters.get(id), setters.get(id)) for id in names]
+def IsReadOnly(attribute):
+  return attribute.is_read_only or 'Replaceable' in attribute.ext_attrs

@@ -170,7 +170,9 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
                                     constant.type.id),
                  VALUE=constant.value)
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not systembase.IsReadOnly(attribute) else None
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),

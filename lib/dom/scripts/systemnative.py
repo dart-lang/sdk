@@ -473,7 +473,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     # Constants are already defined on the interface.
     pass
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not systembase.IsReadOnly(attribute) else None
     if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
       # FIXME: exclude from interface as well.
       return
@@ -489,8 +491,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if setter and html_setter_name:
       self._AddSetter(setter, html_setter_name)
 
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    self.AddAttribute(getter, setter)
+  def AddSecondaryAttribute(self, interface, attribute):
+    self.AddAttribute(attribute)
 
   def _AddGetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)

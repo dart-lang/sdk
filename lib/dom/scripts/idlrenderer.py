@@ -134,17 +134,16 @@ def render(idl_node, indent_str='  '):
     elif isinstance(node, IDLAttribute):
       wsp(node.annotations)
       wsp(node.ext_attrs)
-      if node.is_fc_getter:
-        w('getter ')
-      if node.is_fc_setter:
-        w('setter ')
+      if node.is_read_only:
+        w('readonly ')
       w('attribute %s %s' % (node.type.id, node.id))
       if node.raises:
         w(' raises (%s)' % node.raises.id)
-      elif node.is_fc_getter and node.get_raises:
-        w(' getraises (%s)' % node.get_raises.id)
-      elif node.is_fc_setter and node.set_raises:
-        w(' setraises (%s)' % node.set_raises.id)
+      else:
+        if node.get_raises:
+          w(' getraises (%s)' % node.get_raises.id)
+        if node.set_raises:
+          w(' setraises (%s)' % node.set_raises.id)
       wln(';')
     elif isinstance(node, IDLConstant):
       wsp(node.annotations)

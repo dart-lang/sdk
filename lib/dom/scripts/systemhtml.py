@@ -942,7 +942,9 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     self._backend.AddSecondaryMembers(self._interface)
     self._backend.FinishInterface()
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not IsReadOnly(attribute) else None
     dom_name = DartDomNameOfAttribute(getter)
     html_getter_name = self._shared.RenameInHtmlLibrary(
       self._interface.id, dom_name, 'get:')
@@ -1225,7 +1227,9 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       template = self._system._templates.Load(template_file)
       self._members_emitter.Emit(template, E=self._shared.DartType(element_type))
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not IsReadOnly(attribute) else None
     dom_name = DartDomNameOfAttribute(getter or setter)
     html_getter_name = None
     if not self._shared.IsCustomInHtmlLibrary(

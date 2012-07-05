@@ -382,8 +382,7 @@ class IDLInterface(IDLNode):
   def has_attribute(self, candidate):
     for attribute in self.attributes:
       if (attribute.id == candidate.id and
-          attribute.is_fc_getter == candidate.is_fc_getter and
-          attribute.is_fc_setter == candidate.is_fc_setter):
+          attribute.is_read_only == candidate.is_read_only):
         return True
     return False
 
@@ -434,13 +433,8 @@ class IDLAttribute(IDLMember):
       or self._convert_first(ast, 'GetRaises', IDLType)
     self.set_raises = self.raises \
       or self._convert_first(ast, 'SetRaises', IDLType)
-    # FremontCut IDL syntax defines getters and setters separately:
-    self.is_fc_getter = self._has(ast, 'AttrGetter')
-    self.is_fc_setter = self._has(ast, 'AttrSetter')
   def _extra_repr(self):
     extra = []
-    if self.is_fc_getter: extra.append('get')
-    if self.is_fc_setter: extra.append('set')
     if self.is_read_only: extra.append('readonly')
     if self.raises: extra.append('raises')
     return extra

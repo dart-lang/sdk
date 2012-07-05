@@ -36,11 +36,11 @@ module core {
 module dom {
   // Force ElementTraversal. WebKit defines these directly.
   interface ElementTraversal {
-    getter attribute unsigned long childElementCount;
-    getter attribute Element firstElementChild;
-    getter attribute Element lastElementChild;
-    getter attribute Element nextElementSibling;
-    getter attribute Element previousElementSibling;
+    readonly attribute unsigned long childElementCount;
+    readonly attribute Element firstElementChild;
+    readonly attribute Element lastElementChild;
+    readonly attribute Element nextElementSibling;
+    readonly attribute Element previousElementSibling;
   };
   Element implements ElementTraversal;
 
@@ -273,7 +273,7 @@ module html {
 };
 
 module svg {
-    interface SVGNumber {
-      [StrictTypeChecking, Custom] attribute double value;
-    };
+  interface SVGNumber {
+    [StrictTypeChecking, Custom] attribute float value;
+  };
 }

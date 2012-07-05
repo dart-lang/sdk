@@ -195,7 +195,9 @@ class FrogInterfaceGenerator(BaseGenerator):
   def OverrideMember(self, member):
     return self._interface.id + '.' + member in _dom_frog_omitted_members
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not IsReadOnly(attribute) else None
     if getter and self.OverrideMember('get:' + getter.id):
       getter = None
     if setter and self.OverrideMember('set:' + setter.id):
@@ -312,9 +314,9 @@ class FrogInterfaceGenerator(BaseGenerator):
     return FindInParent(self._interface) if attr else (None, None)
 
 
-  def AddSecondaryAttribute(self, interface, getter, setter):
+  def AddSecondaryAttribute(self, interface, attribute):
     self._SecondaryContext(interface)
-    self.AddAttribute(getter, setter)
+    self.AddAttribute(attribute)
 
   def AddSecondaryOperation(self, interface, info):
     self._SecondaryContext(interface)
