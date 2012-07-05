@@ -217,6 +217,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
+  bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
+    for (HInstruction use in instruction.usedBy) {
+      if (use is HPhi) {
+        if (!phiSet.contains(use)) {
+          phiSet.add(use);
+          if (hasNonBitOpUser(use, phiSet)) return true;
+        }
+      } else if (use is! HBitNot && use is! HBinaryBitOp) {
+        return true;
+      }
+    }
+    return false;
+  }
+
   // We want the outcome of bit-operations to be positive. However, if
   // the result of a bit-operation is only used by other bit
   // operations we do not have to convert to an unsigned
@@ -228,14 +242,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
          isNonNegativeInt32Constant(instruction.right))) {
       return false;
     }
-    bool result = false;
-    for (HInstruction use in instruction.usedBy) {
-      if (use is! HBitNot && use is! HBinaryBitOp) {
-        result = true;
-        break;
-      }
-    }
-    return result;
+    return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 
   SsaCodeGenerator(this.backend,
