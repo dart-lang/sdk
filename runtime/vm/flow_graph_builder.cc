@@ -65,7 +65,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
 UseVal* EffectGraphVisitor::Bind(Computation* computation) {
   ASSERT(is_open());
   DeallocateTempIndex(computation->InputCount());
-  BindInstr* bind_instr = new BindInstr(computation);
+  BindInstr* bind_instr = new BindInstr(BindInstr::kUsed, computation);
   bind_instr->set_temp_index(AllocateTempIndex());
   if (is_empty()) {
     entry_ = bind_instr;
@@ -80,7 +80,7 @@ UseVal* EffectGraphVisitor::Bind(Computation* computation) {
 void EffectGraphVisitor::Do(Computation* computation) {
   ASSERT(is_open());
   DeallocateTempIndex(computation->InputCount());
-  DoInstr* do_instr = new DoInstr(computation);
+  BindInstr* do_instr = new BindInstr(BindInstr::kUnused, computation);
   if (is_empty()) {
     entry_ = do_instr;
   } else {
@@ -92,8 +92,7 @@ void EffectGraphVisitor::Do(Computation* computation) {
 
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
-  ASSERT(!instruction->IsDo());
-  ASSERT(!instruction->IsBind());
+  ASSERT(!instruction->IsDefinition());
   DeallocateTempIndex(instruction->InputCount());
   if (instruction->IsDefinition()) {
     instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
@@ -2549,46 +2548,38 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // 2b. Handle LoadLocal and StoreLocal.
     // For each LoadLocal: Remove it from the graph.
     // For each StoreLocal: Remove it from the graph and update the environment.
-    ASSERT(!current->IsDo() ||
-           !current->AsDo()->computation()->IsLoadLocal());  // Not possible.
-    LoadLocalComp* load = NULL;
-    if (current->IsBind() &&
-        current->AsBind()->computation()->IsLoadLocal()) {
-      load = current->AsBind()->computation()->AsLoadLocal();
-    }
-    StoreLocalComp* store = NULL;
-    if (current->IsDo() &&
-        current->AsDo()->computation()->IsStoreLocal()) {
-      store = current->AsDo()->computation()->AsStoreLocal();
-    } else if (current->IsBind() &&
-               current->AsBind()->computation()->IsStoreLocal()) {
-      store = current->AsBind()->computation()->AsStoreLocal();
-    }
-
-    if (load != NULL) {
-      ASSERT(current->IsBind());
-      // Update expression stack.
-      intptr_t index = load->local().BitIndexIn(var_count);
-      env->Add(CopyValue((*env)[index]));
-      // Remove instruction.
-      current = current->RemoveFromGraph();
-    } else if (store != NULL) {
-      // Update renaming environment.
-      (*env)[store->local().BitIndexIn(var_count)] = store->value();
-      if (current->IsBind()) {
-        // Update expression stack.
-        intptr_t index = store->local().BitIndexIn(var_count);
-        env->Add(CopyValue((*env)[index]));
+    BindInstr* bind = current->AsBind();
+    if (bind != NULL) {
+      LoadLocalComp* load = bind->computation()->AsLoadLocal();
+      StoreLocalComp* store = bind->computation()->AsStoreLocal();
+      if ((load != NULL) || (store != NULL)) {
+        intptr_t index;
+        if (store != NULL) {
+          index = store->local().BitIndexIn(var_count);
+          // Update renaming environment.
+          (*env)[index] = store->value();
+        } else {
+          // The graph construction ensures we do not have an unused LoadLocal
+          // computation.
+          ASSERT(bind->is_used());
+          index = load->local().BitIndexIn(var_count);
+        }
+        // Update expression stack and remove from graph.
+        if (bind->is_used()) {
+          env->Add(CopyValue((*env)[index]));
+        }
+        current = current->RemoveFromGraph();
+      } else {
+        // Not a load or store.
+        if (bind->is_used()) {
+          // Assign fresh SSA temporary and update expression stack.
+          bind->set_ssa_temp_index(current_ssa_temp_index_++);
+          env->Add(new UseVal(bind));
+        }
+        current = current->successor();
       }
-      // Remove instruction and update renaming environment.
-      current = current->RemoveFromGraph();
     } else {
-      if (current->IsBind()) {
-        // Assign new SSA temporary.
-        current->AsDefinition()->set_ssa_temp_index(current_ssa_temp_index_++);
-        // Update expression stack.
-        env->Add(new UseVal(current->AsDefinition()));
-      }
+      // Not a computation.
       current = current->successor();
     }
   }

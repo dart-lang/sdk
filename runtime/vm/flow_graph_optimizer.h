@@ -29,7 +29,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitStrictCompare(StrictCompareComp* comp);
   virtual void VisitEqualityCompare(EqualityCompareComp* comp);
 
-  virtual void VisitDo(DoInstr* instr);
   virtual void VisitBind(BindInstr* instr);
 
  private:

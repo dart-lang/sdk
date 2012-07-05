@@ -302,21 +302,6 @@ void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
-intptr_t DoInstr::InputCount() const {
-  return computation()->InputCount();
-}
-
-
-Value* DoInstr::InputAt(intptr_t i) const {
-  return computation()->InputAt(i);
-}
-
-
-void DoInstr::SetInputAt(intptr_t i, Value* value) {
-  computation()->SetInputAt(i, value);
-}
-
-
 intptr_t GraphEntryInstr::InputCount() const {
   return 0;
 }
@@ -380,11 +365,6 @@ void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
 
 void Instruction::RecordAssignedVars(BitVector* assigned_vars) {
   // Nothing to do for the base class.
-}
-
-
-void DoInstr::RecordAssignedVars(BitVector* assigned_vars) {
-  computation()->RecordAssignedVars(assigned_vars);
 }
 
 

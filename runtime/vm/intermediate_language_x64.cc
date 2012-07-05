@@ -32,7 +32,7 @@ LocationSummary* Computation::MakeCallSummary() {
 
 void BindInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   computation()->EmitNativeCode(compiler);
-  if (locs()->out().kind() == Location::kRegister) {
+  if (is_used() && locs()->out().kind() == Location::kRegister) {
     // TODO(vegorov): this should really happen only for comparisons fused
     // with branches.  Currrently IR does not provide an easy way to remove
     // instructions from the graph so we just leave fused comparison in it

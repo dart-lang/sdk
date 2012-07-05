@@ -367,14 +367,10 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-void DoInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    ");
-  computation()->PrintTo(f);
-}
-
-
 void BindInstr::PrintTo(BufferFormatter* f) const {
-  if (ssa_temp_index() != -1) {
+  if (!is_used()) {
+    f->Print("    ");
+  } else if (ssa_temp_index() != -1) {
     f->Print("    v%d <- ", ssa_temp_index());
   } else {
     f->Print("    t%d <- ", temp_index());
@@ -618,14 +614,10 @@ void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
-void DoInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ ");
-  computation()->PrintTo(f);
-}
-
-
 void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
-  if (ssa_temp_index() != -1) {
+  if (!is_used()) {
+    f->Print("_ ");
+  } else if (ssa_temp_index() != -1) {
     f->Print("v%d ", ssa_temp_index());
   } else {
     f->Print("t%d ", temp_index());

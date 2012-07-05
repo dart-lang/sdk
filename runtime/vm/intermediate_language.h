@@ -108,11 +108,11 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
-class BufferFormatter;
+class BindInstr;
 class BranchInstr;
+class BufferFormatter;
 class Instruction;
 class Value;
-
 
 class Computation : public ZoneAllocated {
  public:
@@ -163,10 +163,8 @@ class Computation : public ZoneAllocated {
     return locs_;
   }
 
-  // TODO(srdjan): Eliminate Instructions hierarchy. If 'use' is NULL
-  // it acts as a DoInstr, otherwise a BindInstr.
-  void set_instr(Instruction* value) { instr_ = value; }
-  Instruction* instr() const { return instr_; }
+  void set_instr(BindInstr* instr) { instr_ = instr; }
+  BindInstr* instr() const { return instr_; }
 
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
@@ -222,7 +220,7 @@ class Computation : public ZoneAllocated {
 
   intptr_t cid_;
   ICData* ic_data_;
-  Instruction* instr_;
+  BindInstr* instr_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -319,7 +317,6 @@ class Value : public TemplateComputation<0> {
 
 
 class Definition;
-class BindInstr;
 class PhiInstr;
 
 class UseVal : public Value {
@@ -1685,13 +1682,6 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
 
 
 // Instructions.
-//
-// <Instruction> ::= JoinEntry <Instruction>
-//                 | TargetEntry <Instruction>
-//                 | Do <Computation> <Instruction>
-//                 | Return <Value>
-//                 | Branch <Value> <Instruction> <Instruction>
-// <Definition>  ::= Bind <int> <Computation> <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -1700,7 +1690,6 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
-  M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Phi)                                                                       \
   M(Return)                                                                    \
@@ -1796,9 +1785,6 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  virtual void replace_computation(Computation* value) {
-    UNREACHABLE();
-  }
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
   // a side effect, the block entry instructions in the graph are assigned
@@ -2081,36 +2067,6 @@ class TargetEntryInstr : public BlockEntryInstr {
 };
 
 
-class DoInstr : public Instruction {
- public:
-  explicit DoInstr(Computation* computation)
-      : computation_(computation) {
-    ASSERT(computation != NULL);
-    computation->set_instr(this);
-  }
-
-  DECLARE_INSTRUCTION(Do)
-
-  Computation* computation() const { return computation_; }
-  virtual void replace_computation(Computation* value) { computation_ = value; }
-
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
-
-  virtual LocationSummary* locs() {
-    return computation()->locs();
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    computation()->EmitNativeCode(compiler);
-  }
-
- private:
-  Computation* computation_;
-
-  DISALLOW_COPY_AND_ASSIGN(DoInstr);
-};
-
-
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
@@ -2142,8 +2098,10 @@ Definition* UseVal::definition() const {
 
 class BindInstr : public Definition {
  public:
-  explicit BindInstr(Computation* computation)
-      : computation_(computation) {
+  enum UseKind { kUnused, kUsed };
+
+  BindInstr(UseKind used, Computation* computation)
+      : computation_(computation), is_used_(used != kUnused) {
     ASSERT(computation != NULL);
     computation->set_instr(this);
   }
@@ -2151,7 +2109,8 @@ class BindInstr : public Definition {
   DECLARE_INSTRUCTION(Bind)
 
   Computation* computation() const { return computation_; }
-  virtual void replace_computation(Computation* value) { computation_ = value; }
+  void replace_computation(Computation* value) { computation_ = value; }
+  bool is_used() const { return is_used_; }
 
   // Static type of the underlying computation.
   virtual RawAbstractType* StaticType() const {
@@ -2168,6 +2127,7 @@ class BindInstr : public Definition {
 
  private:
   Computation* computation_;
+  bool is_used_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };

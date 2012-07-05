@@ -604,11 +604,6 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitDo(DoInstr* instr) {
-  instr->computation()->Accept(this);
-}
-
-
 void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
   instr->computation()->Accept(this);
 }
