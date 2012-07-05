@@ -23,20 +23,11 @@ string_interpolation_test: Skip
 [ $runtime == opera ]
 *: Skip
 
-[ $compiler == dart2js && $runtime == ff ]
+[ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari) ]
 naming_test: Fail # BUG(3305)
 
 [ $compiler == dart2js && $runtime == ie ]
-bailout_test: Fail # BUG(3304)
-class_test: Fail # BUG(3304)
-foo7_test: Fail # BUG(3304)
-function_parameters_test: Fail # BUG(3304)
-naming_test: Fail # BUG(3305)
-not_equals_test: Fail # BUG(3304)
-send_test: Fail # BUG(3304)
-
-[ $compiler == dart2js && $runtime == safari ]
-naming_test: Fail # BUG(3305)
+class_test: Fail
 
 [ $checked ]
 parameter_bailout_test: Fail, OK
