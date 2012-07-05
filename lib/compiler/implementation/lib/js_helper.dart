@@ -373,14 +373,19 @@ class Primitives {
     var hasDartPrint = JS('bool', @'typeof dartPrint == "function"');
     if (hasDartPrint) {
       JS('void', @'dartPrint(#)', string);
-    } else {
-      var hasConsole = JS('bool', @'typeof console == "object"');
-      if (hasConsole) {
-        JS('void', @'console.log(#)', string);
-      } else {
-        JS('void', @'write(#)', string);
-        JS('void', @'write("\n")');
-      }
+      return;
+    }
+
+    var hasConsole = JS('bool', @'typeof console == "object"');
+    if (hasConsole) {
+      JS('void', @'console.log(#)', string);
+      return;
+    }
+
+    var hasWrite = JS('bool', @'typeof write == "function"');
+    if (hasWrite) {
+      JS('void', @'write(#)', string);
+      JS('void', @'write("\n")');
     }
   }
 
