@@ -1243,7 +1243,7 @@ class SsaProcessRecompileCandidates
               // If there are invoked setters we don't know for sure that the
               // field will hold the calculated, but the fact that the class
               // itself stick to this type in the field is still a strong
-              // signal to indiate the expected type of the field.
+              // signal to indicate the expected type of the field.
               field.propagatedType = type;
               graph.highTypeLikelyhood = true;
             } else {
