@@ -931,10 +931,13 @@ class HInstruction implements Hashable {
       }
     }
     List<HInstruction> oldInputUsers = oldInput.usedBy;
-    for (int i = 0; i < oldInputUsers.length; i++) {
+    int i = 0;
+    while (i < oldInputUsers.length) {
       if (oldInputUsers[i] == this) {
         oldInputUsers[i] = oldInputUsers[oldInput.usedBy.length - 1];
-        oldInputUsers.length = oldInputUsers.length - 1;
+        oldInputUsers.length--;
+      } else {
+        i++;
       }
     }
   }
@@ -949,11 +952,11 @@ class HInstruction implements Hashable {
 
     // Run through all the users and see if they are dominated or
     // potentially dominated by [other].
-    HBasicBlock block = other.block;
+    HBasicBlock otherBlock = other.block;
     for (int i = 0, length = usedBy.length; i < length; i++) {
       HInstruction current = usedBy[i];
-      if (current !== other && block.dominates(current.block)) {
-        if (current.block === block) usersInCurrentBlock++;
+      if (current !== other && otherBlock.dominates(current.block)) {
+        if (current.block === otherBlock) usersInCurrentBlock++;
         users.add(current);
       }
     }
@@ -961,7 +964,7 @@ class HInstruction implements Hashable {
     // Run through all the instructions before [other] and remove them
     // from the users set.
     if (usersInCurrentBlock > 0) {
-      HInstruction current = block.first;
+      HInstruction current = otherBlock.first;
       while (current !== other) {
         if (users.contains(current)) {
           users.remove(current);
