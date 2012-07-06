@@ -315,14 +315,14 @@ class FrogInterfaceGenerator(BaseGenerator):
 
 
   def AddSecondaryAttribute(self, interface, attribute):
-    self._SecondaryContext(interface)
+    self.SecondaryContext(interface)
     self.AddAttribute(attribute)
 
   def AddSecondaryOperation(self, interface, info):
-    self._SecondaryContext(interface)
+    self.SecondaryContext(interface)
     self.AddOperation(info)
 
-  def _SecondaryContext(self, interface):
+  def SecondaryContext(self, interface):
     if interface is not self._current_secondary_parent:
       self._current_secondary_parent = interface
       self._members_emitter.Emit('\n  // From $WHERE\n', WHERE=interface.id)

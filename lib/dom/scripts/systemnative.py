@@ -469,26 +469,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     return False
 
-  def AddAttribute(self, attribute):
-    getter = attribute
-    setter = attribute if not systembase.IsReadOnly(attribute) else None
-    if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
+  def AddAttribute(self, attribute, html_name, read_only):
+    if 'CheckSecurityForNode' in attribute.ext_attrs:
       # FIXME: exclude from interface as well.
       return
 
-    dom_name = DartDomNameOfAttribute(getter or setter)
-    html_getter_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, dom_name, 'get:', implementation_class=True)
-    html_setter_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, dom_name, 'set:', implementation_class=True)
-
-    if getter and html_getter_name:
-      self._AddGetter(getter, html_getter_name)
-    if setter and html_setter_name:
-      self._AddSetter(setter, html_setter_name)
-
-  def AddSecondaryAttribute(self, interface, attribute):
-    self.AddAttribute(attribute)
+    self._AddGetter(attribute, html_name)
+    if not read_only:
+      self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
@@ -765,8 +753,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def AddStaticOperation(self, info):
     self._AddOperation(info)
 
-  def AddSecondaryOperation(self, interface, info):
-    self.AddOperation(info)
+  def SecondaryContext(self, interface):
+    pass
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)

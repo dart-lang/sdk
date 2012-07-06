@@ -272,11 +272,10 @@ _html_library_remove = set([
     ])
 
 _html_library_custom = set([
-    'IFrameElement.get:contentWindow',
-    'Window.get:document',
-    'Window.get:top',
-    'Window.get:location',
-    'Window.set:location',
+    'IFrameElement.contentWindow',
+    'Window.document',
+    'Window.top',
+    'Window.location',
     'Window.open',
     'IDBDatabase.transaction',
     ])
@@ -947,46 +946,37 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
   def AmendIndexer(self, element_type):
     self._backend.AmendIndexer(element_type)
 
-  def AddAttribute(self, attribute):
-    self._backend.AddAttribute(attribute)
-
-    getter = attribute
-    setter = attribute if not IsReadOnly(attribute) else None
-    dom_name = DartDomNameOfAttribute(getter)
-    html_getter_name = self._shared.RenameInHtmlLibrary(
+  def AddAttribute(self, attribute, is_secondary=False):
+    dom_name = DartDomNameOfAttribute(attribute)
+    html_name = self._shared.RenameInHtmlLibrary(
       self._interface.id, dom_name, 'get:')
-    html_setter_name = self._shared.RenameInHtmlLibrary(
-      self._interface.id, dom_name, 'set:')
-
-    if not html_getter_name or self._shared.IsPrivate(html_getter_name):
-      getter = None
-    if not html_setter_name or self._shared.IsPrivate(html_setter_name):
-      setter = None
-    if not getter and not setter:
+    if not html_name or self._shared.IsPrivate(html_name):
       return
+
+
+    html_setter_name = self._shared.RenameInHtmlLibrary(
+        self._interface.id, dom_name, 'set:')
+    read_only = IsReadOnly(attribute) or not html_setter_name
 
     # We don't yet handle inconsistent renames of the getter and setter yet.
-    if html_getter_name and html_setter_name:
-      assert html_getter_name == html_setter_name
+    assert(not html_setter_name or html_name == html_setter_name)
 
-    self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
-        DOMINTERFACE=getter.doc_js_interface_name,
-        DOMNAME=dom_name)
-    if (getter and setter and
-        getter.type.id == setter.type.id):
-      self._members_emitter.Emit('\n  $TYPE $NAME;\n',
-                                 NAME=html_getter_name,
-                                 TYPE=self._shared.DartType(getter.type.id))
-      return
-    if getter and not setter:
-      self._members_emitter.Emit('\n  final $TYPE $NAME;\n',
-                                 NAME=html_getter_name,
-                                 TYPE=self._shared.DartType(getter.type.id))
-      return
-    raise Exception('Unexpected getter/setter combination %s %s' %
-                    (getter, setter))
+    if not is_secondary:
+      self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
+          DOMINTERFACE=attribute.doc_js_interface_name,
+          DOMNAME=dom_name)
+      modifier = 'final ' if read_only else ''
+      self._members_emitter.Emit('\n  $MODIFIER$TYPE $NAME;\n',
+                                 MODIFIER=modifier,
+                                 NAME=html_name,
+                                 TYPE=self._shared.DartType(attribute.type.id))
+    self._backend.AddAttribute(attribute, html_name, read_only)
 
-  def AddOperation(self, info):
+  def AddSecondaryAttribute(self, interface, attribute):
+    self._backend.SecondaryContext(interface)
+    self.AddAttribute(attribute, True)
+
+  def AddOperation(self, info, is_secondary=False):
     """
     Arguments:
       operations - contains the overloads, one or more operations with the same
@@ -994,7 +984,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
     """
     html_name = self._shared.RenameInHtmlLibrary(
         self._interface.id, info.name)
-    if html_name and not self._shared.IsPrivate(html_name):
+    if html_name and not self._shared.IsPrivate(html_name) and not is_secondary:
       self._members_emitter.Emit('\n  /** @domName $DOMINTERFACE.$DOMNAME */',
           DOMINTERFACE=info.overloads[0].doc_js_interface_name,
           DOMNAME=info.name)
@@ -1010,8 +1000,11 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
   def AddStaticOperation(self, info):
     self._backend.AddStaticOperation(info)
 
+  def AddSecondaryOperation(self, interface, info):
+    self._backend.SecondaryContext(interface)
+    self.AddOperation(info, True)
+
   def FinishInterface(self):
-    self._backend.AddSecondaryMembers(self._interface)
     self._backend.FinishInterface()
 
   def AddConstant(self, constant):
@@ -1083,7 +1076,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
 
 class HtmlGeneratorDummyBackend(object):
-  def AddAttribute(self, attribute):
+  def AddAttribute(self, attribute, html_name, read_only):
     pass
 
   def AddOperation(self, info):
@@ -1248,83 +1241,54 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       template = self._system._templates.Load(template_file)
       self._members_emitter.Emit(template, E=self._shared.DartType(element_type))
 
-  def AddAttribute(self, attribute):
-    getter = attribute
-    setter = attribute if not IsReadOnly(attribute) else None
-    dom_name = DartDomNameOfAttribute(getter or setter)
-    html_getter_name = None
-    if not self._shared.IsCustomInHtmlLibrary(
-        self._interface, dom_name, 'get:'):
-      html_getter_name = self._shared.RenameInHtmlLibrary(
-          self._interface.id, dom_name, 'get:',
-          implementation_class=True)
-    html_setter_name = None
-    if not self._shared.IsCustomInHtmlLibrary(
-        self._interface, dom_name, 'set:'):
-      html_setter_name = self._shared.RenameInHtmlLibrary(
-          self._interface.id, dom_name, 'set:',
-          implementation_class=True)
-
-    if not html_getter_name:
-      getter = None
-    if not html_setter_name:
-      setter = None
-
-    if not getter and not setter:
+  def AddAttribute(self, attribute, html_name, read_only):
+    if self._shared.IsCustomInHtmlLibrary(self._interface, attribute.id):
       return
 
-    if ((getter and html_getter_name != getter.id) or
-        (setter and html_setter_name != setter.id)):
-      if getter:
-        self._AddRenamingGetter(getter, html_getter_name)
-      if setter:
-        self._AddRenamingSetter(setter, html_setter_name)
+    if attribute.id != html_name:
+      self._AddRenamingGetter(attribute, html_name)
+      if not read_only:
+        self._AddRenamingSetter(attribute, html_name)
       return
 
-    # If the (getter, setter) pair is shadowing, we can't generate a shadowing
+    # If the attribute is shadowing, we can't generate a shadowing
     # field (Issue 1633).
-    (super_getter, super_getter_interface) = self._FindShadowedAttribute(getter, _merged_html_interfaces)
-    (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter, _merged_html_interfaces)
-    if super_getter or super_setter:
-      if getter and not setter and super_getter and not super_setter:
-        if getter.type.id == super_getter.type.id:
-          # Compatible getter, use the superclass property.  This works because
-          # JavaScript will do its own dynamic dispatch.
-          output_type = getter and self._NarrowOutputType(getter.type.id)
+    (super_attribute, super_attribute_interface) = self._FindShadowedAttribute(attribute, _merged_html_interfaces)
+    if super_attribute:
+      if read_only:
+        if attribute.type.id == super_attribute.type.id:
+          # Compatible attribute, use the superclass property.  This works
+          # because JavaScript will do its own dynamic dispatch.
           self._members_emitter.Emit(
               '\n'
               '  // Use implementation from $SUPER.\n'
               '  // final $TYPE $NAME;\n',
-              SUPER=super_getter_interface,
-              NAME=DartDomNameOfAttribute(getter),
-              TYPE=output_type)
+              SUPER=super_attribute_interface,
+              NAME=DartDomNameOfAttribute(attribute),
+              TYPE=self._NarrowOutputType(attribute.type.id))
           return
 
       self._members_emitter.Emit('\n  // Shadowing definition.')
-      self._AddAttributeUsingProperties(getter, setter)
+      self._AddAttributeUsingProperties(attribute, read_only)
       return
 
-    output_type = getter and self._NarrowOutputType(getter.type.id)
-    input_type = setter and self._NarrowInputType(setter.type.id)
-    if getter and setter and input_type == output_type:
+    output_type = self._NarrowOutputType(attribute.type.id)
+    input_type = self._NarrowInputType(attribute.type.id)
+    if not read_only:
       self._members_emitter.Emit(
           '\n  $TYPE $NAME;\n',
-          NAME=DartDomNameOfAttribute(getter),
+          NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
-      return
-    if getter and not setter:
+    else:
       self._members_emitter.Emit(
           '\n  final $TYPE $NAME;\n',
-          NAME=DartDomNameOfAttribute(getter),
+          NAME=DartDomNameOfAttribute(attribute),
           TYPE=output_type)
-      return
-    self._AddAttributeUsingProperties(getter, setter)
 
-  def _AddAttributeUsingProperties(self, getter, setter):
-    if getter:
-      self._AddGetter(getter)
-    if setter:
-      self._AddSetter(setter)
+  def _AddAttributeUsingProperties(self, attribute, read_only):
+    self._AddGetter(attribute)
+    if not read_only:
+      self._AddSetter(attribute)
 
   def _AddGetter(self, attr):
     self._AddRenamingGetter(attr, DartDomNameOfAttribute(attr))
