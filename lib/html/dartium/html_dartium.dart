@@ -41118,6 +41118,7 @@ class _MessageTraverser {
     if (x is List) return visitList(x);
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
+    if (x is SendPortSync) return visitSendPortSync(x);
 
     // TODO(floitsch): make this a real exception. (which one)?
     throw "Message serialization: Illegal value $x passed";
@@ -41127,6 +41128,7 @@ class _MessageTraverser {
   abstract visitList(List x);
   abstract visitMap(Map x);
   abstract visitSendPort(SendPort x);
+  abstract visitSendPortSync(SendPortSync x);
 
   static bool isPrimitive(x) {
     return (x === null) || (x is String) || (x is num) || (x is bool);

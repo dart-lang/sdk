@@ -11,6 +11,9 @@ measurement_test: Pass, Fail  # Issue 1940
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 blob_constructor_test: Fail          # custom Blob constructor not implemented.
+js_interop_2_test: Fail	             # Fix Dartium sendport (de)serialization
+js_interop_3_test: Fail	             # Implement ReceivePortSync in Dartium
+js_interop_4_test: Fail	             # Implement ReceivePortSync in Dartium
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -68,6 +71,8 @@ indexeddb_3_test: Fail
 indexeddb_4_test: Fail
 js_interop_1_test: Fail
 js_interop_2_test: Fail
+js_interop_3_test: Fail
+js_interop_4_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
 serialized_script_value_test: Fail

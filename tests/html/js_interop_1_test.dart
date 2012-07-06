@@ -19,7 +19,7 @@ main() {
   useHtmlConfiguration();
   var callback;
 
-  test('jsPostMessage', () {
+  test('js-to-dart-post-message', () {
     callback = expectAsync1((e) {
       Expect.equals('hello', e.data);
       window.on.message.remove(callback);

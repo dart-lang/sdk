@@ -37,29 +37,13 @@ if (navigator.webkitStartDart) {
 // ---------------------------------------------------------------------------
 // Experimental support for JS interoperability
 // ---------------------------------------------------------------------------
-function SendPortSync(receivePort) {
-  this.receivePort = receivePort;
+function SendPortSync() {
 }
 
 function ReceivePortSync() {
   this.id = ReceivePortSync.id++;
   ReceivePortSync.map[this.id] = this;
 }
-
-ReceivePortSync.id = 0;
-ReceivePortSync.map = {};
-
-ReceivePortSync.prototype.receive = function(callback) {
-  this.callback = callback;
-};
-
-ReceivePortSync.prototype.toSendPort = function() {
-  return new SendPortSync(this);
-};
-
-ReceivePortSync.prototype.close = function() {
-  delete ReceivePortSync.map[this.id];
-};
 
 (function() {
   function serialize(message) {
@@ -69,8 +53,11 @@ ReceivePortSync.prototype.close = function() {
                typeof(message) == 'number' ||
                typeof(message) == 'boolean') {
       return message;
-    } else if (message instanceof SendPortSync) {
-      return [ 'sendport', message.receivePort.id ];
+    } else if (message instanceof LocalSendPortSync) {
+      return [ 'sendport', 'nativejs', message.receivePort.id ];
+    } else if (message instanceof Dart2JsSendPortSync) {
+      return [ 'sendport', 'dart2js', message.receivePort.isolateId,
+               message.receivePort.portId ];
     } else {
       var id = 0;
       var keys = Object.getOwnPropertyNames(message);
@@ -95,6 +82,7 @@ ReceivePortSync.prototype.close = function() {
     }
     switch (x[0]) {
       case 'map': return deserializeMap(x);
+      case 'sendport': return deserializeSendPort(x);
       default: throw 'unimplemented';
     }
   }
@@ -112,15 +100,51 @@ ReceivePortSync.prototype.close = function() {
     return result;
   }
 
+  function deserializeSendPort(x) {
+    var tag = x[1];
+    switch (tag) {
+      case 'nativejs':
+        var id = x[2];
+        return new LocalSendPortSync(id);
+      case 'dart2js':
+        var isolateId = x[2];
+        var portId = x[3];
+        return new Dart2JsSendPortSync(isolateId, portId);
+      default:
+        throw 'Illegal SendPortSync type: $tag';
+    }
+  }
+
   window.registerPort = function(name, port) {
     var stringified = JSON.stringify(serialize(port));
     window.localStorage['dart-port:' + name] = stringified;
   };
 
+  window.lookupPort = function(name) {
+    var stringified = window.localStorage['dart-port:' + name];
+    return deserialize(JSON.parse(stringified));
+  };
+
+  ReceivePortSync.id = 0;
+  ReceivePortSync.map = {};
+
   ReceivePortSync.dispatchCall = function(id, message) {
+    // TODO(vsm): Handle and propagate exceptions.
     var deserialized = deserialize(message);
     var result = ReceivePortSync.map[id].callback(deserialized);
     return serialize(result);
+  };
+
+  ReceivePortSync.prototype.receive = function(callback) {
+    this.callback = callback;
+  };
+
+  ReceivePortSync.prototype.toSendPort = function() {
+    return new LocalSendPortSync(this);
+  };
+
+  ReceivePortSync.prototype.close = function() {
+    delete ReceivePortSync.map[this.id];
   };
 
   if (navigator.webkitStartDart) {
@@ -128,10 +152,50 @@ ReceivePortSync.prototype.close = function() {
       var data = JSON.parse(event.data);
       var deserialized = deserialize(data.message);
       var result = ReceivePortSync.map[data.id].callback(deserialized);
-      var string = JSON.stringify(serialize(result));
-      var event = document.createEvent('TextEvent');
-      event.initTextEvent('js-result', false, false, window, string);
-      window.dispatchEvent(event);
+      // TODO(vsm): Handle and propagate exceptions.
+      dispatchEvent('js-result', serialize(result));
     }, false);
+  }
+
+  function LocalSendPortSync(receivePort) {
+    this.receivePort = receivePort;
+  }
+
+  LocalSendPortSync.prototype = new SendPortSync();
+
+  LocalSendPortSync.prototype.callSync = function(message) {
+    // TODO(vsm): Do a direct deepcopy.
+    message = deserialize(serialize(message));
+    return this.receivePort.callback(message);
+  }
+
+  function Dart2JsSendPortSync(isolateId, portId) {
+    this.isolateId = isolateId;
+    this.portId = portId;
+  }
+
+  Dart2JsSendPortSync.prototype = new SendPortSync();
+
+  function dispatchEvent(receiver, message) {
+    var string = JSON.stringify(message);
+    var event = document.createEvent('TextEvent');
+    event.initTextEvent(receiver, false, false, window, string);
+    window.dispatchEvent(event);    
+  }
+
+  Dart2JsSendPortSync.prototype.callSync = function(message) {
+    var serialized = serialize(message);
+    var target = 'dart-port-' + this.isolateId + '-' + this.portId;
+    // TODO(vsm): Make this re-entrant.
+    // TODO(vsm): Set this up set once, on the first call.
+    var source = target + '-result';
+    var result = null;
+    var listener = function (e) {
+      result = JSON.parse(e.data);
+    };
+    window.addEventListener(source, listener, false);
+    dispatchEvent(target, [source, serialized]);
+    window.removeEventListener(source, listener, false);
+    return deserialize(result);
   }
 })();

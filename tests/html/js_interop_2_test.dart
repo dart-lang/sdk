@@ -29,7 +29,7 @@ var isolateTest = """
 main() {
   useHtmlConfiguration();
 
-  test('isolateTest', () {
+  test('dart-to-js-ports', () {
     injectSource(isolateTest);
 
     SendPortSync port = window.lookupPort('test');
