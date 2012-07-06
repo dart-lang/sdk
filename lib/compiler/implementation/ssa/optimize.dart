@@ -1210,40 +1210,46 @@ class SsaProcessRecompileCandidates
   }
 
   HInstruction visitEquals(HEquals node) {
+    // Determine if one of the operands is an HFieldGet.
+    HFieldGet field;
+    HInstruction other;
+    if (node.left is HFieldGet) {
+      field = node.left;
+      other = node.right;
+    } else if (node.right is HFieldGet) {
+      field = node.right;
+      other = node.left;
+    }
     // Try to optimize the case where a field which is known to always be an
     // integer is compared with a constant integer literal.
-    if (node.left is HFieldGet &&
-        node.right is HConstant &&
-        node.right.isInteger()) {
-      HFieldGet left = node.left;
-      HConstant right = node.right;
-      if (left.element != null && left.element.enclosingElement.isClass()) {
-        // Calculate the field type from the information available.
-        HType type =
-            backend.fieldSettersTypeSoFar(left.element).union(
-                backend.typeFromInitializersSoFar(left.element));
+    if (other != null &&
+        other is HConstant &&
+        other.isInteger() &&
+        field.element != null &&
+        field.element.enclosingElement.isClass()) {
+      // Calculate the field type from the information available.
+      HType type =
+          backend.fieldSettersTypeSoFar(field.element).union(
+              backend.typeFromInitializersSoFar(field.element));
+      if (!type.isConflicting()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if (!type.isConflicting()) {
-              compiler.enqueuer.codegen.registerRecompilationCandidate(
-                  work.element);
-            }
+            compiler.enqueuer.codegen.registerRecompilationCandidate(
+                work.element);
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (!type.isConflicting()) {
-              if (compiler.codegenWorld.hasInvokedSetter(left.element,
-                                                         compiler)) {
-                // If there are invoked setters we don't know for sure that the
-                // field will hold the calculated, but the fact that the class
-                // itself stick to this type in the field is still a strong
-                // signal to indiate the expected type of the field.
-                left.propagatedType = type;
-                graph.highTypeLikelyhood = true;
-              } else {
-                // If there are no invoked setters we know the type of this
-                // field for sure.
-                left.guaranteedType = type;
-              }
+            if (compiler.codegenWorld.hasInvokedSetter(field.element,
+                                                       compiler)) {
+              // If there are invoked setters we don't know for sure that the
+              // field will hold the calculated, but the fact that the class
+              // itself stick to this type in the field is still a strong
+              // signal to indiate the expected type of the field.
+              field.propagatedType = type;
+              graph.highTypeLikelyhood = true;
+            } else {
+              // If there are no invoked setters we know the type of this
+              // field for sure.
+              field.guaranteedType = type;
             }
             break;
           default:
@@ -1254,4 +1260,58 @@ class SsaProcessRecompileCandidates
     }
   }
 
+  HInstruction visitBinaryArithmetic(HBinaryArithmetic node) {
+    // Determine if one of the operands is an HFieldGet.
+    HFieldGet field;
+    HInstruction other;
+    if (node.left is HFieldGet) {
+      field = node.left;
+      other = node.right;
+    } else if (node.right is HFieldGet) {
+      field = node.right;
+      other = node.left;
+    }
+    // Check that the other operand is a number and that we have type
+    // information for the field get.
+    if (other != null &&
+        other is HConstant &&
+        other.isNumber() &&
+        field.element != null &&
+        field.element.enclosingElement.isClass()) {
+      // If we have type information for the field and it contains
+      // NUMBER, we mark for recompilation.
+      Element fieldElement = field.element;
+      HType fieldSettersType = backend.fieldSettersTypeSoFar(fieldElement);
+      HType initializersType = backend.typeFromInitializersSoFar(fieldElement);
+      HType fieldType = fieldSettersType.union(initializersType);
+      HType type = HType.NUMBER.union(fieldType);
+      if (!type.isConflicting()) {
+        switch (compiler.phase) {
+          case Compiler.PHASE_COMPILING:
+            compiler.enqueuer.codegen.registerRecompilationCandidate(
+                work.element);
+            break;
+          case Compiler.PHASE_RECOMPILING:
+            if (compiler.codegenWorld.hasInvokedSetter(fieldElement,
+                                                       compiler)) {
+              // If there are invoked setters we don't know for sure
+              // that the field will hold a value of the calculated
+              // type, but the fact that the class itself sticks to
+              // this type for the field is still a strong signal
+              // indicating the expected type of the field.
+              field.propagatedType = type;
+              graph.highTypeLikelyhood = true;
+            } else {
+              // If there are no invoked setters we know the type of
+              // this field for sure.
+              field.guaranteedType = type;
+            }
+            break;
+          default:
+            assert(false);
+            break;
+        }
+      }
+    }
+  }
 }
