@@ -151,7 +151,9 @@ class Unparser implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
-    // TODO(ahe): handle 'const'.
+    if (node.constKeyword !== null) {
+      add(node.constKeyword.value);
+    }
     if (node.type !== null) {
       sb.add('<');
       visit(node.type);
@@ -368,7 +370,9 @@ class Unparser implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    // TODO(ahe): handle 'const'.
+    if (node.constKeyword !== null) {
+      add(node.constKeyword.value);
+    }
     if (node.typeArguments !== null) visit(node.typeArguments);
     visit(node.entries);
   }

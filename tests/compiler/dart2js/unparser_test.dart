@@ -94,6 +94,13 @@ testPrefixIncrements() {
   testUnparse('++a[++b[i]];');
 }
 
+testConstModifier() {
+  testUnparse('foo([var a=const []]){}');
+  testUnparse('foo([var a=const{}]){}');
+  testUnparse('foo(){var a=const []; var b=const{};}');
+  testUnparse('foo([var a=const [const{"a": const [1, 2, 3]}]]){}');
+}
+
 testSimpleFileUnparse() {
   final src = '''
 should_be_dropped() {
@@ -119,5 +126,6 @@ main() {
   testIndexedOperatorDecl();
   testNativeMethods();
   testPrefixIncrements();
+  testConstModifier();
   testSimpleFileUnparse();
 }
