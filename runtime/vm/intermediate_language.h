@@ -1769,10 +1769,6 @@ class Instruction : public ZoneAllocated {
     previous_ = instr;
   }
 
-  // Remove instruction from the graph and return the instruction following the
-  // removed instruction.
-  Instruction* RemoveFromGraph();
-
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
   // function.
@@ -1933,6 +1929,56 @@ class BlockEntryInstr : public Instruction {
   Instruction* last_instruction_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
+};
+
+
+class ForwardInstructionIterator : public ValueObject {
+ public:
+  explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry) {
+    Advance();
+  }
+
+  void Advance() {
+    if (!Done()) current_ = current_->successor();
+  }
+
+  bool Done() const {
+    return current_ == block_entry_->last_instruction()->successor();
+  }
+
+  void RemoveCurrentFromGraph() {
+    ASSERT(!current_->IsBlockEntry());
+    ASSERT(!current_->IsBranch());
+    ASSERT(!current_->IsThrow());
+    ASSERT(!current_->IsReturn());
+    ASSERT(!current_->IsReThrow());
+    ASSERT(current_->previous() != NULL);
+    Instruction* next = current_->successor();
+    Instruction* prev = current_->previous();
+    prev->set_successor(next);
+    ASSERT(next != NULL);
+    if (current_ != block_entry_->last_instruction()) {
+      ASSERT(!next->IsBlockEntry());
+      next->set_previous(prev);
+    } else {
+      ASSERT(current_->IsBind());
+      // Removing the last instruction of a block.
+      // Update last_instruction of the current basic block.
+      block_entry_->set_last_instruction(prev);
+    }
+    // Reset successor and previous instruction to indicate
+    // that the instruction is removed from the graph.
+    current_->set_successor(NULL);
+    current_->set_previous(NULL);
+    current_ = prev;
+  }
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
 };
 
 

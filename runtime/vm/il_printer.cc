@@ -39,17 +39,18 @@ void FlowGraphPrinter::PrintBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
     PrintInstruction(block_order_[i]);
-    Instruction* current = block_order_[i]->successor();
     // And all the successors until an exit, branch, or a block entry.
-    while ((current != NULL) && !current->IsBlockEntry()) {
+    Instruction* current = block_order_[i];
+    for (ForwardInstructionIterator it(current->AsBlockEntry());
+         !it.Done();
+         it.Advance()) {
+      current = it.Current();
       OS::Print("\n");
       PrintInstruction(current);
-      current = current->successor();
     }
-    BlockEntryInstr* successor =
-        (current == NULL) ? NULL : current->AsBlockEntry();
-    if (successor != NULL) {
-      OS::Print(" goto %d", successor->block_id());
+    if (current->successor() != NULL) {
+      ASSERT(current->successor()->IsBlockEntry());
+      OS::Print(" goto %d", current->successor()->AsBlockEntry()->block_id());
     }
     OS::Print("\n");
   }
@@ -528,19 +529,20 @@ void FlowGraphVisualizer::PrintFunction() {
         BEGIN("HIR");
         // Print the block entry.
         Print("0 0 ");  // Required fields "bci" and "use". Unused.
-        Instruction* current = block_order_[i];
-        PrintInstruction(current);
-        current = current->successor();
+        PrintInstruction(block_order_[i]);
         // And all the successors until an exit, branch, or a block entry.
-        while ((current != NULL) && !current->IsBlockEntry()) {
+        Instruction* current = block_order_[i];
+        for (ForwardInstructionIterator it(current->AsBlockEntry());
+             !it.Done();
+             it.Advance()) {
+          current = it.Current();
           Print("0 0 ");
           PrintInstruction(current);
-          current = current->successor();
         }
-        BlockEntryInstr* successor =
-            (current == NULL) ? NULL : current->AsBlockEntry();
-        if (successor != NULL) {
-          Print("0 0 _ Goto B%d <|@\n", successor->block_id());
+        if (current->successor() != NULL) {
+          ASSERT(current->successor()->IsBlockEntry());
+          Print("0 0 _ Goto B%d <|@\n",
+                current->successor()->AsBlockEntry()->block_id());
         }
         END("HIR");
       }

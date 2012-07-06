@@ -2511,8 +2511,8 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   }
 
   // 2. Process normal instructions.
-  Instruction* current = block_entry->successor();
-  while ((current != NULL) && !current->IsBlockEntry()) {
+  for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
+    Instruction* current = it.Current();
     // Attach current environment to the instruction.
     // TODO(fschneider): Currently each instruction gets a full copy of the
     // enviroment. This should be optimized: Only instructions that can
@@ -2568,7 +2568,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
         if (bind->is_used()) {
           env->Add(CopyValue((*env)[index]));
         }
-        current = current->RemoveFromGraph();
+        it.RemoveCurrentFromGraph();
       } else {
         // Not a load or store.
         if (bind->is_used()) {
@@ -2576,11 +2576,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
           bind->set_ssa_temp_index(current_ssa_temp_index_++);
           env->Add(new UseVal(bind));
         }
-        current = current->successor();
       }
-    } else {
-      // Not a computation.
-      current = current->successor();
     }
   }
 

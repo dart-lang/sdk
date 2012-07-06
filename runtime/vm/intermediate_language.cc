@@ -518,37 +518,6 @@ BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
 }
 
 
-Instruction* Instruction::RemoveFromGraph() {
-  ASSERT(!IsBlockEntry());
-  ASSERT(!IsBranch());
-  ASSERT(!IsThrow());
-  ASSERT(!IsReturn());
-  ASSERT(!IsReThrow());
-  ASSERT(previous() != NULL);
-  Instruction* next = successor();
-  previous()->set_successor(next);
-  if (next != NULL) {
-    if (!next->IsBlockEntry()) {
-      next->set_previous(previous());
-    } else {
-      // Removing the last instruction of a block.
-      // Update last_instruction of the current basic block.
-      Instruction* current = this;
-      while (!current->IsBlockEntry()) {
-        current = current->previous();
-      }
-      ASSERT(current->AsBlockEntry()->last_instruction() == this);
-      current->AsBlockEntry()->set_last_instruction(previous());
-    }
-  }
-  // Reset successor and previous instruction to indicate
-  // that the instruction is removed from the graph.
-  set_successor(NULL);
-  set_previous(NULL);
-  return next;
-}
-
-
 intptr_t GraphEntryInstr::SuccessorCount() const {
   return 1 + catch_entries_.length();
 }
