@@ -124,7 +124,8 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean isTopLevelAbstract;
   private DartScanner.Position topLevelAbstractModifierPosition;
   private boolean isParsingClass;
-
+  private int errorCount = 0;
+  
   /**
    * Determines the maximum number of errors before terminating the parser. See
    * {@link #reportError(com.google.dart.compiler.parser.DartScanner.Position, ErrorCode,
@@ -286,6 +287,9 @@ public class DartParser extends CompletionHooksParserBase {
       Token.RESOURCE, Token.NATIVE})
   public DartUnit parseUnit() {
     DartSource dartSource = (DartSource) source;
+    
+    errorCount = 0;
+    
     try {
       beginCompilationUnit();
       ctx.unitAboutToCompile(dartSource, isDietParse);
@@ -4575,15 +4579,52 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
+  /**
+   * Increment the number of errors encountered while parsing this compilation unit. Returns whether
+   * the current error should be reported.
+   * 
+   * @return whether the current error should be reported
+   */
+  private boolean incErrorCount() {
+    errorCount++;
+    
+    if (errorCount >= MAX_DEFAULT_ERRORS) {
+      if (errorCount == MAX_DEFAULT_ERRORS) {
+        // Create a 'too many errors' error.
+        DartCompilationError dartError = new DartCompilationError(ctx.getSource(),
+            ctx.getTokenLocation(), ParserErrorCode.NO_SOUP_FOR_YOU);
+        ctx.error(dartError);
+      }
+      
+      // Consume the rest of the input stream. Throwing an exception - as suggested elsewhere in
+      // this file - is not ideal.
+      Token next = next();
+      
+      while (next != null && next != Token.EOS) {
+        next = next();
+      }
+    }
+    
+    return errorCount < MAX_DEFAULT_ERRORS;
+  }
+  
+  @Override
+  protected void reportError(Position position, ErrorCode errorCode, Object... arguments) {
+    if (incErrorCount()) {
+      super.reportError(position, errorCode, arguments);
+    }
+  }
+
+  @Override
+  protected void reportErrorAtPosition(Position startPosition, Position endPosition,
+      ErrorCode errorCode, Object... arguments) {
+    if (incErrorCount()) {
+      super.reportErrorAtPosition(startPosition, endPosition, errorCode, arguments);
+    }
+  }
+
   private void reportError(DartCompilationError dartError) {
-    if ((errorHistory.size() > MAX_DEFAULT_ERRORS) ||
-        errorHistory.contains(dartError.hashCode())) {
-      // Force parser termination if one of the conditions are observed:
-      // 1) We have already reported the same error at the same location; This
-      //    is an indication that the parser is not making progress.
-      // 2) If we reached the absolute maximum number of errors.
-      // TODO (fabiomfv) consider throwing AssertionError to terminate parsing.
-    } else {
+    if (incErrorCount()) {
       ctx.error(dartError);
       errorHistory.add(dartError.hashCode());
     }
