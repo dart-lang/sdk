@@ -54,10 +54,8 @@ def GetBuildInfo():
   option = None
   shard_index = None
   total_shards = None
-  is_buildbot = True
   if not builder_name:
     # We are not running on a buildbot.
-    is_buildbot = False
     if args.name:
       builder_name = args.name
     else:
@@ -101,8 +99,7 @@ def GetBuildInfo():
     print ('Error: You cannot emulate a buildbot with a platform different '
         'from your own.')
     sys.exit(1)
-  return (compiler, runtime, mode, system, option, shard_index, total_shards,
-          is_buildbot)
+  return (compiler, runtime, mode, system, option, shard_index, total_shards)
 
 
 def NeedsXterm(compiler, runtime):
@@ -169,7 +166,7 @@ def BuildSDK(mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
+def TestCompiler(compiler, runtime, mode, system, option, flags):
   """ test the compiler.
    Args:
      - compiler: either 'dart2js' or 'frog'
@@ -178,8 +175,6 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
      - system: either 'linux', 'mac', or 'win7'
      - option: 'checked'
      - flags: extra flags to pass to test.dart
-     - is_buildbot: true if we are running on a real buildbot instead of
-       emulating one.
   """
 
   # Make sure we are in the frog directory
@@ -197,34 +192,6 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
     # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
     flags = (filter(lambda(item): not item.startswith('--shard'), flags) +
         ['-j1'])
-
-  def GetPath(runtime):
-    """ Helper to get the path to the Chrome or Firefox executable for a
-    particular platform on the buildbot. Throws a KeyError if runtime is not
-    either 'chrome' or 'ff'."""
-    if system == 'mac':
-      partDict = {'chrome': 'Google\\ Chrome', 'ff': 'Firefox'}
-      mac_path = '/Applications/%s.app/Contents/MacOS/%s'
-      path_dict = {'chrome': mac_path % (partDict[runtime], partDict[runtime]),
-          'ff': mac_path % (partDict[runtime], partDict[runtime].lower())}
-    elif system == 'linux':
-      path_dict = {'ff': 'firefox', 'chrome': 'google-chrome'}
-    else:
-      # Windows.
-      path_dict = {'ff': os.path.join('C:', 'Program Files (x86)',
-          'Mozilla Firefox', 'firefox.exe'),
-          'chrome': os.path.join('C:', 'Users', 'chrome-bot', 'AppData',
-          'Local', 'Google', 'Chrome', 'Application', 'chrome.exe')}
-    return path_dict[runtime]
-
-  if ((runtime == 'ff' or runtime == 'chrome') and is_buildbot and
-      not (runtime == 'chrome' and system == 'linux')): # chrome-linux runs drt.
-    # Print out browser version numbers if we're running on the buildbot (where
-    # we know the paths to these browser installations).
-    p = subprocess.Popen('%s --version' % GetPath(runtime),
-        stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
-    output, stderr = p.communicate()
-    print 'Version of %s: %s' % (runtime, output)
 
   if system == 'linux' and runtime == 'chrome':
     # TODO(ngeoffray): We should install selenium on the buildbot.
@@ -307,8 +274,8 @@ def main():
     print 'Script pathname not known, giving up.'
     return 1
 
-  (compiler, runtime, mode, system, option, shard_index, total_shards,
-      is_buildbot) = GetBuildInfo()
+  compiler, runtime, mode, system, option, shard_index, total_shards = (
+      GetBuildInfo())
   shard_description = ""
   if shard_index:
     shard_description = " shard %s of %s" % (shard_index, total_shards)
@@ -327,13 +294,12 @@ def main():
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
 
   # First we run all the regular tests.
-  status = TestCompiler(compiler, runtime, mode, system, option, test_flags,
-                        is_buildbot)
+  status = TestCompiler(compiler, runtime, mode, system, option, test_flags)
 
   # We only run checked mode tests when the host is not in checked mode.
   if status == 0 and option != 'checked' and runtime == 'd8':
     status = TestCompiler(compiler, runtime, mode, system, option,
-                          test_flags + ['--checked'], is_buildbot)
+                          test_flags + ['--checked'])
 
   if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
   if status != 0: print '@@@STEP_FAILURE@@@'
