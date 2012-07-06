@@ -54,8 +54,8 @@ RECOGNIZED_LIST(KIND_TO_STRING)
 
 // ==== Support for visiting flow graphs.
 #define DEFINE_ACCEPT(ShortName, ClassName)                                    \
-void ClassName::Accept(FlowGraphVisitor* visitor) {                            \
-  visitor->Visit##ShortName(this);                                             \
+void ClassName::Accept(FlowGraphVisitor* visitor, BindInstr* instr) {          \
+  visitor->Visit##ShortName(this, instr);                                      \
 }
 
 FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
@@ -90,15 +90,6 @@ void FlowGraphVisitor::VisitBlocks() {
       current = current->Accept(this);
     }
   }
-}
-
-
-void Computation::ReplaceWith(Computation* other) {
-  ASSERT(other->instr() == NULL);
-  ASSERT(instr() != NULL);
-  other->set_instr(other->instr());
-  instr()->replace_computation(other);
-  set_instr(NULL);
 }
 
 

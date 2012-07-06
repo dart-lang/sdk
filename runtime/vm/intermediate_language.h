@@ -118,7 +118,7 @@ class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), instr_(NULL), locs_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -134,7 +134,7 @@ class Computation : public ZoneAllocated {
   }
 
   // Visiting support.
-  virtual void Accept(FlowGraphVisitor* visitor) = 0;
+  virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr) = 0;
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -163,9 +163,6 @@ class Computation : public ZoneAllocated {
     return locs_;
   }
 
-  void set_instr(BindInstr* instr) { instr_ = instr; }
-  BindInstr* instr() const { return instr_; }
-
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
   // that are not yet converted to the location based code generation.
@@ -175,8 +172,6 @@ class Computation : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   static LocationSummary* MakeCallSummary();
-
-  void ReplaceWith(Computation* other);
 
   // Declare an enum value used to define type-test predicates.
   enum ComputationType {
@@ -220,7 +215,6 @@ class Computation : public ZoneAllocated {
 
   intptr_t cid_;
   ICData* ic_data_;
-  BindInstr* instr_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -301,7 +295,7 @@ class Value : public TemplateComputation<0> {
 
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
-  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr);            \
   virtual ComputationType computation_type() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
@@ -2103,13 +2097,12 @@ class BindInstr : public Definition {
   BindInstr(UseKind used, Computation* computation)
       : computation_(computation), is_used_(used != kUnused) {
     ASSERT(computation != NULL);
-    computation->set_instr(this);
   }
 
   DECLARE_INSTRUCTION(Bind)
 
   Computation* computation() const { return computation_; }
-  void replace_computation(Computation* value) { computation_ = value; }
+  void set_computation(Computation* value) { computation_ = value; }
   bool is_used() const { return is_used_; }
 
   // Static type of the underlying computation.
@@ -2381,7 +2374,7 @@ class FlowGraphVisitor : public ValueObject {
   // Visit functions for instruction and computation classes, with empty
   // default implementations.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp) { }
+  virtual void Visit##ShortName(ClassName* comp, BindInstr* instr) { }
 
 #define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
   virtual void Visit##ShortName(ShortName##Instr* instr) { }
