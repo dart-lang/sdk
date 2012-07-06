@@ -27,8 +27,6 @@ main() {
   useHtmlConfiguration();
 
   test('js-to-dart', () {
-    var done = expectAsync0(() {});
-
     var fun1 = (message) {
       Expect.equals('Hello', message['a']);
       Expect.equals('World', message['b']);
@@ -41,10 +39,10 @@ main() {
     port1.receive(fun1);
     window.registerPort('fun1', port1.toSendPort());
 
+    // TODO(vsm): Investigate why this needs to be called asynchronously.
+    var done = expectAsync0(() {});
     var fun2 = (message) {
       Expect.equals(42, message);
-
-      // TODO(vsm): Investigate why this needs to be called asynchronously.
       window.setTimeout(done, 0);
     };
 

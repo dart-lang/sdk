@@ -8,8 +8,9 @@
 #import('dart:html');
 #import('dart:isolate');
 
-const testData = const [1, '2', 'true'];
+final testData = const [1, '2', 'true'];
 
+// TODO(vsm): Convert all DOM isolate tests to the new syntax.
 class TestIsolate extends Isolate {
   TestIsolate() : super();
 
@@ -28,9 +29,9 @@ main() {
   // Test that our interop scheme also works from Dart to Dart.
   test('dart-to-dart-same-isolate', () {
     var fun = expectAsync1((message) {
-        Expect.listEquals(testData, message);
-        return message.length;
-      });
+      Expect.listEquals(testData, message);
+      return message.length;
+    });
 
     var port1 = new ReceivePortSync();
     port1.receive(fun);
@@ -43,8 +44,6 @@ main() {
 
   // Test across isolate boundary.
   test('dart-to-dart-cross-isolate', () {
-    var done = expectAsync0(() {});
-
     var fun1 = (message) {
       Expect.listEquals(testData, message);
       return message.length;
@@ -54,10 +53,10 @@ main() {
     port1.receive(fun1);
     window.registerPort('fun1', port1.toSendPort());
 
+    // TODO(vsm): Investigate why this needs to be called asynchronously.
+    var done = expectAsync0(() {});
     var fun2 = (message) {
       Expect.equals(3, message);
-
-      // TODO(vsm): Investigate why this needs to be called asynchronously.
       window.setTimeout(done, 0);
     };
 
@@ -65,6 +64,6 @@ main() {
     port2.receive(fun2);
     window.registerPort('fun2', port2.toSendPort());
 
-    new TestIsolate().spawn().then((p) {});
+    new TestIsolate().spawn();
   });
 }

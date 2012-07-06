@@ -55,8 +55,8 @@ function ReceivePortSync() {
       return message;
     } else if (message instanceof LocalSendPortSync) {
       return [ 'sendport', 'nativejs', message.receivePort.id ];
-    } else if (message instanceof Dart2JsSendPortSync) {
-      return [ 'sendport', 'dart2js', message.receivePort.isolateId,
+    } else if (message instanceof DartSendPortSync) {
+      return [ 'sendport', 'dart', message.receivePort.isolateId,
                message.receivePort.portId ];
     } else {
       var id = 0;
@@ -106,10 +106,10 @@ function ReceivePortSync() {
       case 'nativejs':
         var id = x[2];
         return new LocalSendPortSync(id);
-      case 'dart2js':
+      case 'dart':
         var isolateId = x[2];
         var portId = x[3];
-        return new Dart2JsSendPortSync(isolateId, portId);
+        return new DartSendPortSync(isolateId, portId);
       default:
         throw 'Illegal SendPortSync type: $tag';
     }
@@ -169,21 +169,21 @@ function ReceivePortSync() {
     return this.receivePort.callback(message);
   }
 
-  function Dart2JsSendPortSync(isolateId, portId) {
+  function DartSendPortSync(isolateId, portId) {
     this.isolateId = isolateId;
     this.portId = portId;
   }
 
-  Dart2JsSendPortSync.prototype = new SendPortSync();
+  DartSendPortSync.prototype = new SendPortSync();
 
   function dispatchEvent(receiver, message) {
     var string = JSON.stringify(message);
     var event = document.createEvent('TextEvent');
     event.initTextEvent(receiver, false, false, window, string);
-    window.dispatchEvent(event);    
+    window.dispatchEvent(event);
   }
 
-  Dart2JsSendPortSync.prototype.callSync = function(message) {
+  DartSendPortSync.prototype.callSync = function(message) {
     var serialized = serialize(message);
     var target = 'dart-port-' + this.isolateId + '-' + this.portId;
     // TODO(vsm): Make this re-entrant.
