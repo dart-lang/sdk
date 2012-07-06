@@ -193,11 +193,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
 
-  def AddMergedMembers(self, merged_interface):
+  def ImplementsMergedMembers(self):
     # We could not add merged functions to implementation class because
     # underlying c++ object doesn't implement them. Merged functions are
     # generated on merged interface implementation instead.
-    pass
+    return False
 
   def StartInterface(self):
     # Create emitters for c++ implementation.
@@ -468,10 +468,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return True
 
     return False
-
-  def AddConstant(self, constant):
-    # Constants are already defined on the interface.
-    pass
 
   def AddAttribute(self, attribute):
     getter = attribute

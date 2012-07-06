@@ -932,17 +932,24 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
     self._GenerateEvents()
 
+    old_backend = self._backend
+    if not self._backend.ImplementsMergedMembers():
+      self._backend = HtmlGeneratorDummyBackend()
     for merged_interface in _merged_html_interfaces:
       if _merged_html_interfaces[merged_interface] == self._interface.id:
         merged_interface = self._database.GetInterface(merged_interface)
         self.AddMembers(merged_interface)
-        self._backend.AddMergedMembers(merged_interface)
+    self._backend = old_backend
 
-    self._backend.AddMembers(self._interface)
-    self._backend.AddSecondaryMembers(self._interface)
-    self._backend.FinishInterface()
+  def AddIndexer(self, element_type):
+    self._backend.AddIndexer(element_type)
+
+  def AmendIndexer(self, element_type):
+    self._backend.AmendIndexer(element_type)
 
   def AddAttribute(self, attribute):
+    self._backend.AddAttribute(attribute)
+
     getter = attribute
     setter = attribute if not IsReadOnly(attribute) else None
     dom_name = DartDomNameOfAttribute(getter)
@@ -998,9 +1005,14 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
                                  NAME=html_name,
                                  PARAMS=info.ParametersInterfaceDeclaration(
                                         self._shared.DartType))
+    self._backend.AddOperation(info)
+
+  def AddStaticOperation(self, info):
+    self._backend.AddStaticOperation(info)
 
   def FinishInterface(self):
-    pass
+    self._backend.AddSecondaryMembers(self._interface)
+    self._backend.FinishInterface()
 
   def AddConstant(self, constant):
     type = TypeOrNothing(DartType(constant.type.id), constant.type.id)
@@ -1008,6 +1020,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
                                NAME=constant.id,
                                TYPE=type,
                                VALUE=constant.value)
+    self._backend.AddConstant(constant)
 
   def _GenerateEvents(self):
     emit_events, event_attrs = self._shared.GetEventAttributes(self._interface)
@@ -1069,6 +1082,14 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         TYPE=events_class)
 
 
+class HtmlGeneratorDummyBackend(object):
+  def AddAttribute(self, attribute):
+    pass
+
+  def AddOperation(self, info):
+    pass
+
+
 # ------------------------------------------------------------------------------
 
 # TODO(jmesserly): inheritance is probably not the right way to factor this long
@@ -1107,8 +1128,8 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_code = implementation_emitter
 
-  def AddMergedMembers(self, merged_interface):
-    self.AddMembers(merged_interface)
+  def ImplementsMergedMembers(self):
+    return True
 
   def _ImplClassName(self, type_name):
     return self._shared._ImplClassName(type_name)
