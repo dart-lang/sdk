@@ -102,6 +102,7 @@ import com.google.dart.compiler.util.Lists;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigInteger;
+import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -218,7 +219,21 @@ public class DartParser extends CompletionHooksParserBase {
     this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
+    
+    if (source != null) {
+      URI srcUri = source.getUri();
+      
+      if (srcUri.getScheme() == null) {
+        // TODO(devoncarew): find out when dart:html is being parsed as an external compilation unit
+        // (and our source == a DartSourceString). We're getting hundreds of parser errors because
+        // of native keywords in a file we don't think is a core library.
+        corelibParse = true;
+      } else {
+        corelibParse = SystemLibraryManager.isDartUri(srcUri);
+      }
+    } else {
+      corelibParse = false;
+    }
   }
 
   public static String read(Source source) throws IOException {
