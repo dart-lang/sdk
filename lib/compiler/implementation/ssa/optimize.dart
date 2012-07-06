@@ -1218,32 +1218,31 @@ class SsaProcessRecompileCandidates
       HFieldGet left = node.left;
       HConstant right = node.right;
       if (left.element != null && left.element.enclosingElement.isClass()) {
+        // Calculate the field type from the information available.
+        HType type =
+            backend.fieldSettersTypeSoFar(left.element).union(
+                backend.typeFromInitializersSoFar(left.element));
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if ((backend.fieldSettersTypeSoFar(left.element).isUnknown() ||
-                 backend.fieldSettersTypeSoFar(left.element).isInteger()) &&
-                backend.couldHaveFieldSingleTypeInitializers(
-                    left.element, HType.INTEGER)) {
+            if (!type.isConflicting()) {
               compiler.enqueuer.codegen.registerRecompilationCandidate(
                   work.element);
             }
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (backend.fieldSettersTypeSoFar(left.element).isInteger() &&
-                backend.hasFieldSingleTypeInitializers(
-                    left.element, HType.INTEGER)) {
+            if (!type.isConflicting()) {
               if (compiler.codegenWorld.hasInvokedSetter(left.element,
                                                          compiler)) {
                 // If there are invoked setters we don't know for sure that the
-                // field will hold an integer, but the fact that the class
-                // itself always sets an integer in the fiels is still a strong
+                // field will hold the calculated, but the fact that the class
+                // itself stick to this type in the field is still a strong
                 // signal to indiate the expected type of the field.
-                left.propagatedType = HType.INTEGER;
+                left.propagatedType = type;
                 graph.highTypeLikelyhood = true;
               } else {
                 // If there are no invoked setters we know the type of this
                 // field for sure.
-                left.guaranteedType = HType.INTEGER;
+                left.guaranteedType = type;
               }
             }
             break;

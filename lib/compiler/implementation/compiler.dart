@@ -121,27 +121,14 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  bool couldHaveFieldSingleTypeInitializers(Element field,
-                                            HType requestedType) {
+  HType typeFromInitializersSoFar(Element field) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    // If there is no information on the initializer it might still be
-    // initialized to integers only.
-    if (!fieldInitializers.containsKey(field.enclosingElement)) return true;
+    if (!fieldInitializers.containsKey(field.enclosingElement)) {
+      return HType.UNKNOWN;
+    }
     Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
-    HType propagatedType = fields[field];
-    if (propagatedType == null) return true;
-    return propagatedType == requestedType;
-  }
-
-  bool hasFieldSingleTypeInitializers(Element field, HType requestedType) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldInitializers.containsKey(field.enclosingElement)) return false;
-    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
-    HType propagatedType = fields[field];
-    if (propagatedType == null) return false;
-    return propagatedType == requestedType;
+    return fields[field];
   }
 
   void updateFieldConstructorSetters(Element field, HType type) {
@@ -203,8 +190,8 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  // Returns whether nothing but setters setting the field to an integer have
-  // been seen during compilation so far.
+  // Returns the type that field setters are setting the field to based on what
+  // have been seen during compilation so far.
   HType fieldSettersTypeSoFar(Element field) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
