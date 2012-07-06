@@ -193,7 +193,7 @@ class JavaScriptBackend extends Backend {
   void updateFieldSetters(Element field, HType type) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    Map<Element, bool> fields =
+    Map<Element, HType> fields =
         fieldSettersType.putIfAbsent(
           field.enclosingElement, () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
@@ -211,7 +211,7 @@ class JavaScriptBackend extends Backend {
     if (!fieldSettersType.containsKey(field.enclosingElement)) {
       return HType.UNKNOWN;
     }
-    Map<Element, Htype> fields = fieldSettersType[field.enclosingElement];
+    Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
     if (!fields.containsKey(field)) return HType.UNKNOWN;
     return fields[field];
   }
