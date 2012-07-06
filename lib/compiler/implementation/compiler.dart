@@ -58,7 +58,7 @@ class JavaScriptBackend extends Backend {
   CodeEmitterTask emitter;
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
-  final Map<Element, Map<Element, bool>> fieldIntegerSetters;
+  final Map<Element, Map<Element, HType>> fieldSettersType;
 
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -68,7 +68,7 @@ class JavaScriptBackend extends Backend {
       : emitter = new CodeEmitterTask(compiler, generateSourceMap),
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
-        fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
+        fieldSettersType = new Map<Element, Map<Element, HType>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -190,27 +190,29 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void updateFieldIntegerSetters(Element field, bool isInteger) {
+  void updateFieldSetters(Element field, HType type) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
     Map<Element, bool> fields =
-        fieldIntegerSetters.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, bool>());
+        fieldSettersType.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
-      fields[field] = isInteger;
+      fields[field] = type;
     } else {
-      fields[field] = fields[field] && isInteger;
+      fields[field] = fields[field].union(type);
     }
   }
 
   // Returns whether nothing but setters setting the field to an integer have
   // been seen during compilation so far.
-  bool onlyFieldIntegerSettersSoFar(Element field) {
+  HType fieldSettersTypeSoFar(Element field) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    if (!fieldIntegerSetters.containsKey(field.enclosingElement)) return true;
-    Map<Element, bool> fields = fieldIntegerSetters[field.enclosingElement];
-    if (!fields.containsKey(field)) return false;
+    if (!fieldSettersType.containsKey(field.enclosingElement)) {
+      return HType.UNKNOWN;
+    }
+    Map<Element, Htype> fields = fieldSettersType[field.enclosingElement];
+    if (!fields.containsKey(field)) return HType.UNKNOWN;
     return fields[field];
   }
 }

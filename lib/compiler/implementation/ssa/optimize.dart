@@ -1188,12 +1188,15 @@ class SsaProcessRecompileCandidates
           // body.
           if (backend.hasConstructorBodyFieldSetter(field)) {
             // There is at least one field setter from the constructor.
-            // TODO(sgjesse): Collect the type for all the field setters so that
-            // this could be a guarenteed type if all field setters have the
-            // same type and there are no invoked setters.
-            node.propagatedType = type;
+            if (!compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+              node.guaranteedType =
+                  type.union(backend.fieldSettersTypeSoFar(node.element));
+            } else {
+              node.propagatedType =
+                  type.union(backend.fieldSettersTypeSoFar(node.element));
+            }
           } else {
-            // Optimistic type is based in field initializer list.
+            // Optimistic type is based on field initializer list.
             if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
                 !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
               node.guaranteedType = type;
@@ -1217,7 +1220,8 @@ class SsaProcessRecompileCandidates
       if (left.element != null && left.element.enclosingElement.isClass()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+            if ((backend.fieldSettersTypeSoFar(left.element).isUnknown() ||
+                 backend.fieldSettersTypeSoFar(left.element).isInteger()) &&
                 backend.couldHaveFieldSingleTypeInitializers(
                     left.element, HType.INTEGER)) {
               compiler.enqueuer.codegen.registerRecompilationCandidate(
@@ -1225,7 +1229,7 @@ class SsaProcessRecompileCandidates
             }
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
+            if (backend.fieldSettersTypeSoFar(left.element).isInteger() &&
                 backend.hasFieldSingleTypeInitializers(
                     left.element, HType.INTEGER)) {
               if (compiler.codegenWorld.hasInvokedSetter(left.element,

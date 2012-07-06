@@ -1864,8 +1864,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(node.element.name, type);
       }
-      backend.updateFieldIntegerSetters(node.element,
-                                        node.value.isInteger());
+      backend.updateFieldSetters(node.element,
+                                 node.value.propagatedType);
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
