@@ -102,7 +102,6 @@ import com.google.dart.compiler.util.Lists;
 import java.io.IOException;
 import java.io.Reader;
 import java.math.BigInteger;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
@@ -132,7 +131,7 @@ public class DartParser extends CompletionHooksParserBase {
    * {@link #reportError(com.google.dart.compiler.parser.DartScanner.Position, ErrorCode,
    * Object...)}.
    */
-  final int MAX_DEFAULT_ERRORS = 100;
+  final int MAX_DEFAULT_ERRORS = Short.MAX_VALUE;
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
@@ -219,21 +218,7 @@ public class DartParser extends CompletionHooksParserBase {
     this.sourceCode = sourceCode;
     this.isDietParse = isDietParse;
     this.prefixes = prefixes;
-    
-    if (source != null) {
-      URI srcUri = source.getUri();
-      
-      if (srcUri.getScheme() == null) {
-        // TODO(devoncarew): find out when dart:html is being parsed as an external compilation unit
-        // (and our source == a DartSourceString). We're getting hundreds of parser errors because
-        // of native keywords in a file we don't think is a core library.
-        corelibParse = true;
-      } else {
-        corelibParse = SystemLibraryManager.isDartUri(srcUri);
-      }
-    } else {
-      corelibParse = false;
-    }
+    this.corelibParse = source != null && SystemLibraryManager.isDartUri(source.getUri());
   }
 
   public static String read(Source source) throws IOException {
@@ -4625,6 +4610,7 @@ public class DartParser extends CompletionHooksParserBase {
   
   @Override
   protected void reportError(Position position, ErrorCode errorCode, Object... arguments) {
+    // TODO(devoncarew): we're not correctly identifying dart:html as a core library
     if (incErrorCount()) {
       super.reportError(position, errorCode, arguments);
     }
