@@ -271,7 +271,7 @@ _html_library_remove = set([
     "Window.get:frameElement",
     ])
 
-_html_library_custom = set([
+_js_custom_members = set([
     'IFrameElement.contentWindow',
     'Window.document',
     'Window.top',
@@ -1242,7 +1242,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
       self._members_emitter.Emit(template, E=self._shared.DartType(element_type))
 
   def AddAttribute(self, attribute, html_name, read_only):
-    if self._shared.IsCustomInHtmlLibrary(self._interface, attribute.id):
+    if self._HasCustomImplementation(attribute.id):
       return
 
     if attribute.id != html_name:
@@ -1317,7 +1317,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     Arguments:
       info: An OperationInfo object.
     """
-    if self._shared.IsCustomInHtmlLibrary(self._interface, info.name):
+    if self._HasCustomImplementation(info.name):
       return
 
     html_name = self._shared.RenameInHtmlLibrary(
@@ -1347,6 +1347,10 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
           NAME=info.name,
           PARAMS=info.ParametersImplementationDeclaration(
               lambda type_name: self._NarrowInputType(type_name)))
+
+  def _HasCustomImplementation(self, member_name):
+    member_name = '%s.%s' % (self._html_interface_name, member_name)
+    return member_name in _js_custom_members
 
 # ------------------------------------------------------------------------------
 
