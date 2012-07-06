@@ -287,12 +287,13 @@ class IDLParser(object):
       return re.compile(r'(\[\])+')
 
     def _Type():
-      return [OR(AnyType, ObjectType, _NullableType), MAYBE(ArrayModifiers)]
+      return OR(
+          [OR(AnyType, ObjectType), MAYBE([ArrayModifiers, MAYBE(Nullable)])],
+          [_NullableNonArrayType(), MAYBE(ArrayModifiers), MAYBE(Nullable)])
 
-    def _NullableType():
+    def _NullableNonArrayType():
       return [OR(_IntegerType, BooleanType, OctetType, FloatType,
-             DoubleType, SequenceType, ScopedName),
-          MAYBE(Nullable)]
+             DoubleType, SequenceType, ScopedName)]
 
     def Nullable():
       return '?'
