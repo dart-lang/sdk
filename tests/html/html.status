@@ -78,11 +78,11 @@ svg_3_test: Fail
 typed_arrays_range_checks_test: Fail
 websocket_test: Fail
 window_nosuchmethod_test: Fail
-window_open_test: Fail
-xsltprocessor_test: Fail
-fileapi_test: Skip          # Timeout
-isolates_test: Skip         # Timeout
-xhr_test: Skip              # Timeout
+window_open_test: Skip      # BUG(4016)
+xsltprocessor_test: Skip    # BUG(4016)
+fileapi_test: Skip          # BUG(4016)
+isolates_test: Skip         # BUG(4016)
+xhr_test: Skip              # BUG(4016)
 
 
 [ $runtime == safari ]
