@@ -500,7 +500,7 @@ public class Resolver {
                 typeVariableElement,
                 ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING,
                 name,
-                existingElement,
+                Elements.getUserElementTitle(existingElement),
                 Elements.getRelativeElementLocation(typeVariableElement, existingElement));
           }
         }

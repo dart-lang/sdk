@@ -383,11 +383,11 @@ static FieldElementImplementation fieldFromNode(DartField node,
 
   public static boolean isNonFactoryConstructor(Element method) {
     return !method.getModifiers().isFactory()
-        && ElementKind.of(method).equals(ElementKind.CONSTRUCTOR);
+        && ElementKind.of(method) == ElementKind.CONSTRUCTOR;
   }
 
   public static boolean isTopLevel(Element element) {
-    return ElementKind.of(element.getEnclosingElement()).equals(ElementKind.LIBRARY);
+    return ElementKind.of(element.getEnclosingElement()) == ElementKind.LIBRARY;
   }
 
   static List<TypeVariable> makeTypeVariables(List<DartTypeParameter> parameterNodes,
@@ -487,6 +487,43 @@ static FieldElementImplementation fieldFromNode(DartField node,
   }
 
   /**
+   * @return the user readable title of the given {@link Element}, a little different than
+   *         "technical" title returned from {@link Element#toString()}.
+   */
+  public static String getUserElementTitle(Element element) {
+    return MessageFormat.format("{0} ''{1}''", getUserElementKindTitle(element), element.getName());
+  }
+
+  /**
+   * @return the user readable title of the given {@link Element}'s {@link ElementKind}, a little
+   *         different than "technical" title returned from {@link Element#toString()}.
+   */
+  private static String getUserElementKindTitle(Element element) {
+    ElementKind kind = element.getKind();
+    switch (kind) {
+      case CLASS:
+        if (((ClassElement) element).isInterface()) {
+          return "interface";
+        }
+        break;
+      case METHOD:
+        if (isTopLevel(element)) {
+          return "top-level function";
+        }
+        break;
+      case FIELD:
+        if (isTopLevel(element)) {
+          return "top-level variable";
+        }
+        break;
+    }
+    String title = kind.toString();
+    title = StringUtils.replace(title, "_", " ");
+    title = title.toLowerCase();
+    return title;
+  }
+
+  /**
    * @return the {@link String} which contains user-readable description of "target" {@link Element}
    *         location relative to "source".
    */
@@ -508,16 +545,18 @@ static FieldElementImplementation fieldFromNode(DartField node,
     // Prepare (may be empty) target class name.
     String targetClassName;
     {
-      ClassElement targetClass = getEnclosingClassElement(target);
+      EnclosingElement targetEnclosing = target.getEnclosingElement();
+      ClassElement targetClass = getEnclosingClassElement(targetEnclosing);
       targetClassName = targetClass != null ? targetClass.getName() : "";
     }
     // Format location string.
-    return MessageFormat.format(
-        "{0}:{1}:{2}:{3}",
-        targetPath,
-        targetClassName,
-        targetInfo.getLine(),
-        targetInfo.getColumn());
+    if (StringUtils.isEmpty(targetClassName)) {
+      return MessageFormat.format("{0} line:{1} col:{2}", targetPath, targetInfo.getLine(),
+          targetInfo.getColumn());
+    } else {
+      return MessageFormat.format("{0} class:{1} line:{2} col:{3}", targetPath, targetClassName,
+          targetInfo.getLine(), targetInfo.getColumn());
+    }
   }
 
   /**
