@@ -280,7 +280,13 @@ class _Throws extends BaseMatcher {
           expect(false, reason:
               "Expected future to fail, but succeeded with '${future.value}'.");
         } else if (_matcher != null) {
-          expect(future.exception, _matcher);
+          var reason;
+          if (future.stackTrace != null) {
+            var stackTrace = future.stackTrace.toString();
+            stackTrace = "  ${stackTrace.replaceAll("\n", "\n  ")}";
+            reason = "Actual exception trace:\n$stackTrace";
+          }
+          expect(future.exception, _matcher, reason: reason);
         }
       }));
 
