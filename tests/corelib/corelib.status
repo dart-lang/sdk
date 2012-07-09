@@ -11,7 +11,6 @@ compare_to2_test: Fail    # Bug 4018
 [ $compiler == dartc ]
 *vm_test: Skip
 expando_test: Fail
-compare_to2_test: Fail, Ok    # Requires bigint support.
 
 [ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
@@ -74,6 +73,7 @@ reg_exp_all_matches_test: Fail, OK # NoSuchMethodException : method not found: '
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
 big_integer_vm_test: Fail, OK # VM specific test.
+compare_to2_test: Fail, Ok    # Requires bigint support.
 growable_object_array2_vm_test: Fail, OK # VM specific test.
 growable_object_array_vm_test: Fail, OK # VM specific test.
 string_base_vm_test: Fail, OK # VM specific test.
