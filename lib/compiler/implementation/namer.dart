@@ -42,6 +42,38 @@ class Namer {
                                         selector);
   }
 
+  /** Returns a non-unique name for the given closure element. */
+  String closureName(Element element) {
+    List<String> parts = <String>[];
+    SourceString ownName = element.name;
+    if (ownName == null || ownName.stringValue == "") {
+      parts.add("anon");
+    } else {
+      parts.add(ownName.slowToString());
+    }
+    for (Element enclosingElement = element.enclosingElement;
+         enclosingElement != null &&
+             (enclosingElement.kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY
+              || enclosingElement.kind === ElementKind.CLASS
+              || enclosingElement.kind === ElementKind.FUNCTION
+              || enclosingElement.kind === ElementKind.GETTER
+              || enclosingElement.kind === ElementKind.SETTER);
+         enclosingElement = enclosingElement.enclosingElement) {
+      SourceString surroundingName = enclosingElement.name;
+      if (surroundingName != null) {
+        String surroundingNameString = surroundingName.slowToString();
+        if (surroundingNameString != "") parts.add(surroundingNameString);
+      }
+    }
+    // Invert the parts.
+    for (int i = 0, j = parts.length - 1; i < j; i++, j--) {
+      var tmp = parts[i];
+      parts[i] = parts[j];
+      parts[j] = tmp;
+    }
+    return safeName(Strings.join(parts, "_"));
+  }
+
   String privateName(LibraryElement lib, SourceString name) {
     if (name.isPrivate()) {
       String nameString = name.slowToString();
@@ -131,31 +163,29 @@ class Namer {
   String _computeGuess(Element element) {
     assert(!element.isInstanceMember());
     LibraryElement lib = element.getLibrary();
-    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      FunctionElement functionElement = element;
-      return instanceMethodName(lib, element.name,
-                                functionElement.parameterCount(compiler));
-    } else {
-      // TODO(floitsch): deal with named constructors.
-      String name;
-      if (Elements.isStaticOrTopLevel(element)) {
-        name = element.name.slowToString();
-      } else if (element.kind == ElementKind.GETTER) {
-        name = getterName(lib, element.name);
-      } else if (element.kind == ElementKind.SETTER) {
-        name = setterName(lib, element.name);
-      } else if (element.kind == ElementKind.FUNCTION) {
-        FunctionElement functionElement = element;
-        name = element.name.slowToString();
-        name = '$name\$${functionElement.parameterCount(compiler)}';
-      } else if (element.kind === ElementKind.LIBRARY) {
-        name = LIBRARY_PREFIX;
+    String name;
+    if (element.isGenerativeConstructor()) {
+      if (element.name == element.enclosingElement.name) {
+        // Keep the class name for the class and not the factory.
+        name = "${element.name.slowToString()}\$";
       } else {
         name = element.name.slowToString();
       }
-      // Prefix the name with '$' if it is reserved.
-      return safeName(name);
+    } else if (Elements.isStaticOrTopLevel(element)) {
+      if (element.enclosingElement != null &&
+          element.enclosingElement.isClass()) {
+        name = "${element.enclosingElement.name.slowToString()}_"
+               "${element.name.slowToString()}";
+      } else {
+        name = element.name.slowToString();
+      }
+    } else if (element.kind === ElementKind.LIBRARY) {
+      name = LIBRARY_PREFIX;
+    } else {
+      name = element.name.slowToString();
     }
+    // Prefix the name with '$' if it is reserved.
+    return safeName(name);
   }
 
   String getBailoutName(Element element) {

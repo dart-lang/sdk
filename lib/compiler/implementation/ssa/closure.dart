@@ -13,17 +13,20 @@ class ClosureFieldElement extends Element {
 }
 
 class ClosureClassElement extends ClassElement {
-  ClosureClassElement(Compiler compiler, Element enclosingElement)
-      : super(compiler.closureClass.name,
+  ClosureClassElement(SourceString name,
+                      Compiler compiler,
+                      Element enclosingElement)
+      : super(name,
               enclosingElement,
               // By assigning a fresh class-id we make sure that the hashcode
-              // is unique, but also emit closure class after all other
+              // is unique, but also emit closure classes after all other
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId()) {
     isResolved = true;
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
   }
+  bool isClosure() => true;
 }
 
 class BoxElement extends Element {
@@ -353,10 +356,11 @@ class ClosureTranslator extends AbstractVisitor {
     scopeData.boxedLoopVariables = result;
   }
 
-  ClosureData globalizeClosure(FunctionExpression node) {
-    FunctionElement element = elements[node];
-    ClassElement globalizedElement =
-        new ClosureClassElement(compiler, element.getCompilationUnit());
+  ClosureData globalizeClosure(FunctionExpression node, Element element) {
+    SourceString closureName =
+        new SourceString(compiler.namer.closureName(element));
+    ClassElement globalizedElement = new ClosureClassElement(
+        closureName, compiler, element.getCompilationUnit());
     FunctionElement callElement =
         new FunctionElement.from(compiler.namer.CLOSURE_INVOCATION_NAME,
                                  element,
@@ -388,7 +392,7 @@ class ClosureTranslator extends AbstractVisitor {
     insideClosure = isClosure;
     currentFunctionElement = elements[node];
     if (insideClosure) {
-      closureData = globalizeClosure(node);
+      closureData = globalizeClosure(node, element);
     } else {
       Element thisElement = null;
       // TODO(floitsch): we should not need to look for generative constructors.

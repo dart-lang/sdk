@@ -118,6 +118,7 @@ class Element implements Hashable {
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;
+  bool isClosure() => false;
   bool isMember() =>
       enclosingElement !== null && enclosingElement.kind === ElementKind.CLASS;
   bool isInstanceMember() => false;

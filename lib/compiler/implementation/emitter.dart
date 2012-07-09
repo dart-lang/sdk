@@ -704,7 +704,7 @@ function(collectedClasses) {
       // Create a new closure class.
       SourceString name = const SourceString("BoundClosure");
       ClassElement closureClassElement =
-          new ClosureClassElement(compiler, member.getCompilationUnit());
+          new ClosureClassElement(name, compiler, member.getCompilationUnit());
       String mangledName = namer.getName(closureClassElement);
       String superName = namer.getName(closureClassElement.superclass);
       needsClosureClass = true;
