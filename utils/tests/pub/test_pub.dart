@@ -183,7 +183,8 @@ void run() {
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
     cleanup().then((_) {
-      guardAsync(() { throw error; }, asyncDone);
+      registerException(error, future.stackTrace);
+      asyncDone();
     });
     return true;
   });

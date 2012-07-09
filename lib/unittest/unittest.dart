@@ -669,13 +669,25 @@ _runTests() {
 guardAsync(tryBody, [finallyBody]) {
   try {
     return tryBody();
-  } catch (ExpectException e, var trace) {
+  } catch (var e, var trace) {
+    registerException(e, trace);
+  } finally {
+    _state = _READY;
+    if (finallyBody != null) finallyBody();
+  }
+}
+
+/**
+ * Registers that an exception was caught for the current test.
+ */
+registerException(e, [trace]) {
+  if (e is ExpectException) {
     Expect.isTrue(_currentTest < _tests.length);
     if (_state != _UNCAUGHT_ERROR) {
       _tests[_currentTest].fail(e.message,
           trace == null ? '' : trace.toString());
     }
-  } catch (var e, var trace) {
+  } else {
     if (_state == _RUNNING_TEST) {
       // If a random exception is thrown from within a test, we consider that
       // a test failure too. A test case implicitly has an expectation that it
@@ -686,9 +698,6 @@ guardAsync(tryBody, [finallyBody]) {
       _tests[_currentTest].error('Caught $e',
           trace == null ? '' : trace.toString());
     }
-  } finally {
-    _state = _READY;
-    if (finallyBody != null) finallyBody();
   }
 }
 
