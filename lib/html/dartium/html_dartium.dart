@@ -4425,6 +4425,8 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   MemoryInfo get memory() native "Console_memory_Getter";
 
+  List<ScriptProfile> get profiles() native "Console_profiles_Getter";
+
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
   void count() native "Console_count_Callback";
@@ -10678,6 +10680,8 @@ class _HTMLSelectElementImpl extends _HTMLElementImpl implements SelectElement {
 
   void set selectedIndex(int) native "HTMLSelectElement_selectedIndex_Setter";
 
+  HTMLCollection get selectedOptions() native "HTMLSelectElement_selectedOptions_Getter";
+
   int get size() native "HTMLSelectElement_size_Getter";
 
   void set size(int) native "HTMLSelectElement_size_Setter";
@@ -11541,11 +11545,17 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_5(key_OR_range, direction);
     }
+    if (key_OR_range === _null && direction === _null) {
+      return _openCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
+      return _openCursor_7(key_OR_range);
+    }
     if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openCursor_6(key_OR_range, direction);
+      return _openCursor_8(key_OR_range, direction);
     }
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openCursor_7(key_OR_range, direction);
+      return _openCursor_9(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
   }
@@ -11560,9 +11570,13 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 
   IDBRequest _openCursor_5(key_OR_range, direction) native "IDBIndex_openCursor_5_Callback";
 
-  IDBRequest _openCursor_6(key_OR_range, direction) native "IDBIndex_openCursor_6_Callback";
+  IDBRequest _openCursor_6() native "IDBIndex_openCursor_6_Callback";
 
-  IDBRequest _openCursor_7(key_OR_range, direction) native "IDBIndex_openCursor_7_Callback";
+  IDBRequest _openCursor_7(key_OR_range) native "IDBIndex_openCursor_7_Callback";
+
+  IDBRequest _openCursor_8(key_OR_range, direction) native "IDBIndex_openCursor_8_Callback";
+
+  IDBRequest _openCursor_9(key_OR_range, direction) native "IDBIndex_openCursor_9_Callback";
 
   IDBRequest openKeyCursor([key_OR_range = _null, direction = _null]) {
     if (key_OR_range === _null && direction === _null) {
@@ -11580,11 +11594,17 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openKeyCursor_5(key_OR_range, direction);
     }
+    if (key_OR_range === _null && direction === _null) {
+      return _openKeyCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
+      return _openKeyCursor_7(key_OR_range);
+    }
     if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openKeyCursor_6(key_OR_range, direction);
+      return _openKeyCursor_8(key_OR_range, direction);
     }
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openKeyCursor_7(key_OR_range, direction);
+      return _openKeyCursor_9(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
   }
@@ -11599,9 +11619,13 @@ class _IDBIndexImpl extends NativeFieldWrapperClass1 implements IDBIndex {
 
   IDBRequest _openKeyCursor_5(key_OR_range, direction) native "IDBIndex_openKeyCursor_5_Callback";
 
-  IDBRequest _openKeyCursor_6(key_OR_range, direction) native "IDBIndex_openKeyCursor_6_Callback";
+  IDBRequest _openKeyCursor_6() native "IDBIndex_openKeyCursor_6_Callback";
 
-  IDBRequest _openKeyCursor_7(key_OR_range, direction) native "IDBIndex_openKeyCursor_7_Callback";
+  IDBRequest _openKeyCursor_7(key_OR_range) native "IDBIndex_openKeyCursor_7_Callback";
+
+  IDBRequest _openKeyCursor_8(key_OR_range, direction) native "IDBIndex_openKeyCursor_8_Callback";
+
+  IDBRequest _openKeyCursor_9(key_OR_range, direction) native "IDBIndex_openKeyCursor_9_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11792,11 +11816,17 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is String || direction === null)) {
       return _openCursor_5(key_OR_range, direction);
     }
+    if (key_OR_range === _null && direction === _null) {
+      return _openCursor_6();
+    }
+    if ((key_OR_range is IDBKeyRange || key_OR_range === null) && direction === _null) {
+      return _openCursor_7(key_OR_range);
+    }
     if ((key_OR_range is IDBKeyRange || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openCursor_6(key_OR_range, direction);
+      return _openCursor_8(key_OR_range, direction);
     }
     if ((key_OR_range is Dynamic || key_OR_range === null) && (direction is int || direction === null)) {
-      return _openCursor_7(key_OR_range, direction);
+      return _openCursor_9(key_OR_range, direction);
     }
     throw "Incorrect number or type of arguments";
   }
@@ -11811,9 +11841,13 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
 
   IDBRequest _openCursor_5(key_OR_range, direction) native "IDBObjectStore_openCursor_5_Callback";
 
-  IDBRequest _openCursor_6(key_OR_range, direction) native "IDBObjectStore_openCursor_6_Callback";
+  IDBRequest _openCursor_6() native "IDBObjectStore_openCursor_6_Callback";
 
-  IDBRequest _openCursor_7(key_OR_range, direction) native "IDBObjectStore_openCursor_7_Callback";
+  IDBRequest _openCursor_7(key_OR_range) native "IDBObjectStore_openCursor_7_Callback";
+
+  IDBRequest _openCursor_8(key_OR_range, direction) native "IDBObjectStore_openCursor_8_Callback";
+
+  IDBRequest _openCursor_9(key_OR_range, direction) native "IDBObjectStore_openCursor_9_Callback";
 
   IDBRequest put(value, [key = _null]) {
     if (key === _null) {
@@ -12420,6 +12454,8 @@ class _JavaScriptCallFrameImpl extends NativeFieldWrapperClass1 implements JavaS
 
   void evaluate(String script) native "JavaScriptCallFrame_evaluate_Callback";
 
+  Object restart() native "JavaScriptCallFrame_restart_Callback";
+
   int scopeType(int scopeIndex) native "JavaScriptCallFrame_scopeType_Callback";
 
 }
@@ -12881,6 +12917,17 @@ class _MediaStreamListImpl extends NativeFieldWrapperClass1 implements MediaStre
 
 // WARNING: Do not edit - generated code.
 
+class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent {
+
+  MediaStreamTrack get track() native "MediaStreamTrackEvent_track_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _MediaStreamTrackImpl extends NativeFieldWrapperClass1 implements MediaStreamTrack {
 
   bool get enabled() native "MediaStreamTrack_enabled_Getter";
@@ -12892,17 +12939,58 @@ class _MediaStreamTrackImpl extends NativeFieldWrapperClass1 implements MediaStr
   String get label() native "MediaStreamTrack_label_Getter";
 
 }
+
+class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
+  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack() => this['addtrack'];
+
+  EventListenerList get removeTrack() => this['removetrack'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamTrackListImpl extends NativeFieldWrapperClass1 implements MediaStreamTrackList {
+class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamTrackList {
+
+  _MediaStreamTrackListEventsImpl get on() =>
+    new _MediaStreamTrackListEventsImpl(this);
 
   int get length() native "MediaStreamTrackList_length_Getter";
 
+  void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
+
+  void $dom_addEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
+      _addEventListener_1(type, listener);
+      return;
+    }
+    _addEventListener_2(type, listener, useCapture);
+  }
+
+  void _addEventListener_1(type, listener) native "MediaStreamTrackList_addEventListener_1_Callback";
+
+  void _addEventListener_2(type, listener, useCapture) native "MediaStreamTrackList_addEventListener_2_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "MediaStreamTrackList_dispatchEvent_Callback";
+
   MediaStreamTrack item(int index) native "MediaStreamTrackList_item_Callback";
+
+  void remove(MediaStreamTrack track) native "MediaStreamTrackList_remove_Callback";
+
+  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
+    if (useCapture === _null) {
+      _removeEventListener_1(type, listener);
+      return;
+    }
+    _removeEventListener_2(type, listener, useCapture);
+  }
+
+  void _removeEventListener_1(type, listener) native "MediaStreamTrackList_removeEventListener_1_Callback";
+
+  void _removeEventListener_2(type, listener, useCapture) native "MediaStreamTrackList_removeEventListener_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14078,7 +14166,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
 // WARNING: Do not edit - generated code.
 
-class _PerformanceImpl extends NativeFieldWrapperClass1 implements Performance {
+class _PerformanceImpl extends _EventTargetImpl implements Performance {
 
   MemoryInfo get memory() native "Performance_memory_Getter";
 
@@ -18378,8 +18466,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot {
 
   void set applyAuthorStyles(bool) native "ShadowRoot_applyAuthorStyles_Setter";
 
-  Element get host() native "ShadowRoot_host_Getter";
-
   String get innerHTML() native "ShadowRoot_innerHTML_Getter";
 
   void set innerHTML(String) native "ShadowRoot_innerHTML_Setter";
@@ -18644,6 +18730,10 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   String get lang() native "SpeechRecognition_lang_Getter";
 
   void set lang(String) native "SpeechRecognition_lang_Setter";
+
+  int get maxAlternatives() native "SpeechRecognition_maxAlternatives_Getter";
+
+  void set maxAlternatives(int) native "SpeechRecognition_maxAlternatives_Setter";
 
   void abort() native "SpeechRecognition_abort_Callback";
 
@@ -20658,6 +20748,8 @@ class _WebKitMutationObserverImpl extends NativeFieldWrapperClass1 implements We
 
   void disconnect() native "WebKitMutationObserver_disconnect_Callback";
 
+  void observe(Node target, Map options) native "WebKitMutationObserver_observe_Callback";
+
   List<MutationRecord> takeRecords() native "WebKitMutationObserver_takeRecords_Callback";
 
 }
@@ -20669,11 +20761,11 @@ class _WebKitMutationObserverImpl extends NativeFieldWrapperClass1 implements We
 
 class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNamedFlow {
 
-  NodeList get contentNodes() native "WebKitNamedFlow_contentNodes_Getter";
-
   String get name() native "WebKitNamedFlow_name_Getter";
 
   bool get overset() native "WebKitNamedFlow_overset_Getter";
+
+  NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
 
   NodeList getRegionsByContentNode(Node contentNode) native "WebKitNamedFlow_getRegionsByContentNode_Callback";
 
@@ -20784,27 +20876,7 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
 // WARNING: Do not edit - generated code.
 
-class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
-
-  bool get altKey() native "WheelEvent_altKey_Getter";
-
-  int get clientX() native "WheelEvent_clientX_Getter";
-
-  int get clientY() native "WheelEvent_clientY_Getter";
-
-  bool get ctrlKey() native "WheelEvent_ctrlKey_Getter";
-
-  bool get metaKey() native "WheelEvent_metaKey_Getter";
-
-  int get offsetX() native "WheelEvent_offsetX_Getter";
-
-  int get offsetY() native "WheelEvent_offsetY_Getter";
-
-  int get screenX() native "WheelEvent_screenX_Getter";
-
-  int get screenY() native "WheelEvent_screenY_Getter";
-
-  bool get shiftKey() native "WheelEvent_shiftKey_Getter";
+class _WheelEventImpl extends _MouseEventImpl implements WheelEvent {
 
   bool get webkitDirectionInvertedFromDevice() native "WheelEvent_webkitDirectionInvertedFromDevice_Getter";
 
@@ -20813,10 +20885,6 @@ class _WheelEventImpl extends _UIEventImpl implements WheelEvent {
   int get wheelDeltaX() native "WheelEvent_wheelDeltaX_Getter";
 
   int get wheelDeltaY() native "WheelEvent_wheelDeltaY_Getter";
-
-  int get x() native "WheelEvent_x_Getter";
-
-  int get y() native "WheelEvent_y_Getter";
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native "WheelEvent_initWebKitWheelEvent_Callback";
 
@@ -21038,8 +21106,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
   int get readyState() native "XMLHttpRequest_readyState_Getter";
 
   Object get response() native "XMLHttpRequest_response_Getter";
-
-  Blob get responseBlob() native "XMLHttpRequest_responseBlob_Getter";
 
   String get responseText() native "XMLHttpRequest_responseText_Getter";
 
@@ -25476,6 +25542,9 @@ interface Console {
   /** @domName Console.memory */
   final MemoryInfo memory;
 
+  /** @domName Console.profiles */
+  final List<ScriptProfile> profiles;
+
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
@@ -29528,6 +29597,9 @@ interface JavaScriptCallFrame {
   /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
 
+  /** @domName JavaScriptCallFrame.restart */
+  Object restart();
+
   /** @domName JavaScriptCallFrame.scopeType */
   int scopeType(int scopeIndex);
 }
@@ -30343,14 +30415,53 @@ interface MediaStreamTrack {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamTrackEvent
+interface MediaStreamTrackEvent extends Event {
+
+  /** @domName MediaStreamTrackEvent.track */
+  final MediaStreamTrack track;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName MediaStreamTrackList
-interface MediaStreamTrackList {
+interface MediaStreamTrackList extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamTrackListEvents get on();
 
   /** @domName MediaStreamTrackList.length */
   final int length;
 
+  /** @domName MediaStreamTrackList.add */
+  void add(MediaStreamTrack track);
+
+  /** @domName MediaStreamTrackList.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaStreamTrackList.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName MediaStreamTrackList.item */
   MediaStreamTrack item(int index);
+
+  /** @domName MediaStreamTrackList.remove */
+  void remove(MediaStreamTrack track);
+
+  /** @domName MediaStreamTrackList.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamTrackListEvents extends Events {
+
+  EventListenerList get addTrack();
+
+  EventListenerList get removeTrack();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31673,7 +31784,7 @@ interface PeerConnection00Events extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName Performance
-interface Performance {
+interface Performance extends EventTarget {
 
   /** @domName Performance.memory */
   final MemoryInfo memory;
@@ -35833,6 +35944,9 @@ interface SelectElement extends Element {
   /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
 
+  /** @domName HTMLSelectElement.selectedOptions */
+  final HTMLCollection selectedOptions;
+
   /** @domName HTMLSelectElement.size */
   int size;
 
@@ -35908,9 +36022,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   /** @domName ShadowRoot.applyAuthorStyles */
   bool applyAuthorStyles;
-
-  /** @domName ShadowRoot.host */
-  final Element host;
 
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
@@ -36113,6 +36224,9 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
   /** @domName SpeechRecognition.lang */
   String lang;
+
+  /** @domName SpeechRecognition.maxAlternatives */
+  int maxAlternatives;
 
   /** @domName SpeechRecognition.abort */
   void abort();
@@ -37609,6 +37723,8 @@ interface WebGLDebugShaders {
 
 /// @domName WebGLDepthTexture
 interface WebGLDepthTexture {
+
+  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38770,6 +38886,9 @@ interface WebKitMutationObserver {
   /** @domName WebKitMutationObserver.disconnect */
   void disconnect();
 
+  /** @domName WebKitMutationObserver.observe */
+  void observe(Node target, Map options);
+
   /** @domName WebKitMutationObserver.takeRecords */
   List<MutationRecord> takeRecords();
 }
@@ -38782,14 +38901,14 @@ interface WebKitMutationObserver {
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
 
-  /** @domName WebKitNamedFlow.contentNodes */
-  final NodeList contentNodes;
-
   /** @domName WebKitNamedFlow.name */
   final String name;
 
   /** @domName WebKitNamedFlow.overset */
   final bool overset;
+
+  /** @domName WebKitNamedFlow.getContent */
+  NodeList getContent();
 
   /** @domName WebKitNamedFlow.getRegionsByContentNode */
   NodeList getRegionsByContentNode(Node contentNode);
@@ -38872,37 +38991,7 @@ interface WebSocketEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName WheelEvent
-interface WheelEvent extends UIEvent {
-
-  /** @domName WheelEvent.altKey */
-  final bool altKey;
-
-  /** @domName WheelEvent.clientX */
-  final int clientX;
-
-  /** @domName WheelEvent.clientY */
-  final int clientY;
-
-  /** @domName WheelEvent.ctrlKey */
-  final bool ctrlKey;
-
-  /** @domName WheelEvent.metaKey */
-  final bool metaKey;
-
-  /** @domName WheelEvent.offsetX */
-  final int offsetX;
-
-  /** @domName WheelEvent.offsetY */
-  final int offsetY;
-
-  /** @domName WheelEvent.screenX */
-  final int screenX;
-
-  /** @domName WheelEvent.screenY */
-  final int screenY;
-
-  /** @domName WheelEvent.shiftKey */
-  final bool shiftKey;
+interface WheelEvent extends MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   final bool webkitDirectionInvertedFromDevice;
@@ -38915,12 +39004,6 @@ interface WheelEvent extends UIEvent {
 
   /** @domName WheelEvent.wheelDeltaY */
   final int wheelDeltaY;
-
-  /** @domName WheelEvent.x */
-  final int x;
-
-  /** @domName WheelEvent.y */
-  final int y;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -39594,9 +39677,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   /** @domName XMLHttpRequest.response */
   final Object response;
-
-  /** @domName XMLHttpRequest.responseBlob */
-  final Blob responseBlob;
 
   /** @domName XMLHttpRequest.responseText */
   final String responseText;

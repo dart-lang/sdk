@@ -4052,6 +4052,8 @@ class _ConsoleImpl
 
   final _MemoryInfoImpl memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg) native;
 
   void count() native;
@@ -8357,6 +8359,8 @@ class _JavaScriptCallFrameImpl implements JavaScriptCallFrame native "*JavaScrip
 
   void evaluate(String script) native;
 
+  Object restart() native;
+
   int scopeType(int scopeIndex) native;
 }
 
@@ -8930,11 +8934,37 @@ class _MediaStreamTrackImpl implements MediaStreamTrack native "*MediaStreamTrac
   final String label;
 }
 
-class _MediaStreamTrackListImpl implements MediaStreamTrackList native "*MediaStreamTrackList" {
+class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
+
+  final _MediaStreamTrackImpl track;
+}
+
+class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamTrackList native "*MediaStreamTrackList" {
+
+  _MediaStreamTrackListEventsImpl get on() =>
+    new _MediaStreamTrackListEventsImpl(this);
 
   final int length;
 
+  void add(_MediaStreamTrackImpl track) native;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
   _MediaStreamTrackImpl item(int index) native;
+
+  void remove(_MediaStreamTrackImpl track) native;
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
+class _MediaStreamTrackListEventsImpl extends _EventsImpl implements MediaStreamTrackListEvents {
+  _MediaStreamTrackListEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get addTrack() => this['addtrack'];
+
+  EventListenerList get removeTrack() => this['removetrack'];
 }
 
 class _MemoryInfoImpl implements MemoryInfo native "*MemoryInfo" {
@@ -10091,7 +10121,7 @@ class _PeerConnection00EventsImpl extends _EventsImpl implements PeerConnection0
   EventListenerList get stateChange() => this['statechange'];
 }
 
-class _PerformanceImpl implements Performance native "*Performance" {
+class _PerformanceImpl extends _EventTargetImpl implements Performance native "*Performance" {
 
   final _MemoryInfoImpl memory;
 
@@ -13883,6 +13913,8 @@ class _SelectElementImpl extends _ElementImpl implements SelectElement native "*
 
   int selectedIndex;
 
+  final _HTMLCollectionImpl selectedOptions;
+
   int size;
 
   final String type;
@@ -13921,8 +13953,6 @@ class _ShadowRootImpl extends _DocumentFragmentImpl implements ShadowRoot native
   final _ElementImpl activeElement;
 
   bool applyAuthorStyles;
-
-  final _ElementImpl host;
 
   String innerHTML;
 
@@ -14017,6 +14047,8 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
   _SpeechGrammarListImpl grammars;
 
   String lang;
+
+  int maxAlternatives;
 
   void abort() native;
 
@@ -15301,6 +15333,8 @@ class _WebGLDebugShadersImpl implements WebGLDebugShaders native "*WebGLDebugSha
 }
 
 class _WebGLDepthTextureImpl implements WebGLDepthTexture native "*WebGLDepthTexture" {
+
+  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 
 class _WebGLFramebufferImpl implements WebGLFramebuffer native "*WebGLFramebuffer" {
@@ -16244,16 +16278,18 @@ class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*Web
 
   void disconnect() native;
 
+  void observe(_NodeImpl target, Map options) native;
+
   List<MutationRecord> takeRecords() native;
 }
 
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
-  final _NodeListImpl contentNodes;
-
   final String name;
 
   final bool overset;
+
+  _NodeListImpl getContent() native;
 
   _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
 }
@@ -16308,27 +16344,7 @@ class _WebSocketEventsImpl extends _EventsImpl implements WebSocketEvents {
   EventListenerList get open() => this['open'];
 }
 
-class _WheelEventImpl extends _UIEventImpl implements WheelEvent native "*WheelEvent" {
-
-  final bool altKey;
-
-  final int clientX;
-
-  final int clientY;
-
-  final bool ctrlKey;
-
-  final bool metaKey;
-
-  final int offsetX;
-
-  final int offsetY;
-
-  final int screenX;
-
-  final int screenY;
-
-  final bool shiftKey;
+class _WheelEventImpl extends _MouseEventImpl implements WheelEvent native "*WheelEvent" {
 
   final bool webkitDirectionInvertedFromDevice;
 
@@ -16337,10 +16353,6 @@ class _WheelEventImpl extends _UIEventImpl implements WheelEvent native "*WheelE
   final int wheelDeltaX;
 
   final int wheelDeltaY;
-
-  final int x;
-
-  final int y;
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
@@ -16939,8 +16951,6 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest nat
   final int readyState;
 
   final Object response;
-
-  final _BlobImpl responseBlob;
 
   final String responseText;
 
@@ -21585,6 +21595,9 @@ interface Console {
   /** @domName Console.memory */
   final MemoryInfo memory;
 
+  /** @domName Console.profiles */
+  final List<ScriptProfile> profiles;
+
   /** @domName Console.assertCondition */
   void assertCondition(bool condition, Object arg);
 
@@ -25637,6 +25650,9 @@ interface JavaScriptCallFrame {
   /** @domName JavaScriptCallFrame.evaluate */
   void evaluate(String script);
 
+  /** @domName JavaScriptCallFrame.restart */
+  Object restart();
+
   /** @domName JavaScriptCallFrame.scopeType */
   int scopeType(int scopeIndex);
 }
@@ -26452,14 +26468,53 @@ interface MediaStreamTrack {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaStreamTrackEvent
+interface MediaStreamTrackEvent extends Event {
+
+  /** @domName MediaStreamTrackEvent.track */
+  final MediaStreamTrack track;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName MediaStreamTrackList
-interface MediaStreamTrackList {
+interface MediaStreamTrackList extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamTrackListEvents get on();
 
   /** @domName MediaStreamTrackList.length */
   final int length;
 
+  /** @domName MediaStreamTrackList.add */
+  void add(MediaStreamTrack track);
+
+  /** @domName MediaStreamTrackList.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaStreamTrackList.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName MediaStreamTrackList.item */
   MediaStreamTrack item(int index);
+
+  /** @domName MediaStreamTrackList.remove */
+  void remove(MediaStreamTrack track);
+
+  /** @domName MediaStreamTrackList.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamTrackListEvents extends Events {
+
+  EventListenerList get addTrack();
+
+  EventListenerList get removeTrack();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27782,7 +27837,7 @@ interface PeerConnection00Events extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName Performance
-interface Performance {
+interface Performance extends EventTarget {
 
   /** @domName Performance.memory */
   final MemoryInfo memory;
@@ -31942,6 +31997,9 @@ interface SelectElement extends Element {
   /** @domName HTMLSelectElement.selectedIndex */
   int selectedIndex;
 
+  /** @domName HTMLSelectElement.selectedOptions */
+  final HTMLCollection selectedOptions;
+
   /** @domName HTMLSelectElement.size */
   int size;
 
@@ -32017,9 +32075,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   /** @domName ShadowRoot.applyAuthorStyles */
   bool applyAuthorStyles;
-
-  /** @domName ShadowRoot.host */
-  final Element host;
 
   /** @domName ShadowRoot.innerHTML */
   String innerHTML;
@@ -32222,6 +32277,9 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
 
   /** @domName SpeechRecognition.lang */
   String lang;
+
+  /** @domName SpeechRecognition.maxAlternatives */
+  int maxAlternatives;
 
   /** @domName SpeechRecognition.abort */
   void abort();
@@ -33718,6 +33776,8 @@ interface WebGLDebugShaders {
 
 /// @domName WebGLDepthTexture
 interface WebGLDepthTexture {
+
+  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34879,6 +34939,9 @@ interface WebKitMutationObserver {
   /** @domName WebKitMutationObserver.disconnect */
   void disconnect();
 
+  /** @domName WebKitMutationObserver.observe */
+  void observe(Node target, Map options);
+
   /** @domName WebKitMutationObserver.takeRecords */
   List<MutationRecord> takeRecords();
 }
@@ -34891,14 +34954,14 @@ interface WebKitMutationObserver {
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
 
-  /** @domName WebKitNamedFlow.contentNodes */
-  final NodeList contentNodes;
-
   /** @domName WebKitNamedFlow.name */
   final String name;
 
   /** @domName WebKitNamedFlow.overset */
   final bool overset;
+
+  /** @domName WebKitNamedFlow.getContent */
+  NodeList getContent();
 
   /** @domName WebKitNamedFlow.getRegionsByContentNode */
   NodeList getRegionsByContentNode(Node contentNode);
@@ -34981,37 +35044,7 @@ interface WebSocketEvents extends Events {
 // WARNING: Do not edit - generated code.
 
 /// @domName WheelEvent
-interface WheelEvent extends UIEvent {
-
-  /** @domName WheelEvent.altKey */
-  final bool altKey;
-
-  /** @domName WheelEvent.clientX */
-  final int clientX;
-
-  /** @domName WheelEvent.clientY */
-  final int clientY;
-
-  /** @domName WheelEvent.ctrlKey */
-  final bool ctrlKey;
-
-  /** @domName WheelEvent.metaKey */
-  final bool metaKey;
-
-  /** @domName WheelEvent.offsetX */
-  final int offsetX;
-
-  /** @domName WheelEvent.offsetY */
-  final int offsetY;
-
-  /** @domName WheelEvent.screenX */
-  final int screenX;
-
-  /** @domName WheelEvent.screenY */
-  final int screenY;
-
-  /** @domName WheelEvent.shiftKey */
-  final bool shiftKey;
+interface WheelEvent extends MouseEvent {
 
   /** @domName WheelEvent.webkitDirectionInvertedFromDevice */
   final bool webkitDirectionInvertedFromDevice;
@@ -35024,12 +35057,6 @@ interface WheelEvent extends UIEvent {
 
   /** @domName WheelEvent.wheelDeltaY */
   final int wheelDeltaY;
-
-  /** @domName WheelEvent.x */
-  final int x;
-
-  /** @domName WheelEvent.y */
-  final int y;
 
   /** @domName WheelEvent.initWebKitWheelEvent */
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, Window view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
@@ -35703,9 +35730,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
 
   /** @domName XMLHttpRequest.response */
   final Object response;
-
-  /** @domName XMLHttpRequest.responseBlob */
-  final Blob responseBlob;
 
   /** @domName XMLHttpRequest.responseText */
   final String responseText;
