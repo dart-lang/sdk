@@ -33,8 +33,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   virtual void VisitBind(BindInstr* instr);
 
  private:
-  void VisitBlocks();
-
   bool TryReplaceWithBinaryOp(BindInstr* instr,
                               InstanceCallComp* comp,
                               Token::Kind op_kind);
@@ -56,7 +54,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 // method, i.e., does not contain any calls to runtime or other Dart code.
 class FlowGraphAnalyzer : public ValueObject {
  public:
-  explicit FlowGraphAnalyzer(const GrowableArray<BlockEntryInstr*>& blocks);
+  explicit FlowGraphAnalyzer(const GrowableArray<BlockEntryInstr*>& blocks)
+      : blocks_(blocks), is_leaf_(false) {}
   virtual ~FlowGraphAnalyzer() {}
 
   void Analyze();

@@ -2220,12 +2220,12 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   if (for_optimized && use_ssa) {
     // Link instructions backwards for optimized compilation.
     for (intptr_t i = 0; i < block_count; ++i) {
-      Instruction* prev = postorder_block_entries_[i];
-      Instruction* current = prev->next();
-      while (current != NULL && !current->IsBlockEntry()) {
-        current->set_previous(prev);
-        prev = current;
-        current = current->next();
+      BlockEntryInstr* entry = postorder_block_entries_[i];
+      Instruction* previous = entry;
+      for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+        Instruction* current = it.Current();
+        current->set_previous(previous);
+        previous = current;
       }
     }
     GrowableArray<BitVector*> dominance_frontier;

@@ -531,10 +531,9 @@ void FlowGraphVisualizer::PrintFunction() {
         Print("0 0 ");  // Required fields "bci" and "use". Unused.
         PrintInstruction(block_order_[i]);
         // And all the successors until an exit, branch, or a block entry.
-        Instruction* current = block_order_[i];
-        for (ForwardInstructionIterator it(current->AsBlockEntry());
-             !it.Done();
-             it.Advance()) {
+        BlockEntryInstr* entry = block_order_[i];
+        Instruction* current = entry;
+        for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
           current = it.Current();
           Print("0 0 ");
           PrintInstruction(current);

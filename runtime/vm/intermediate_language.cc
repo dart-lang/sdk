@@ -64,9 +64,8 @@ FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
 
 
 #define DEFINE_ACCEPT(ShortName)                                               \
-Instruction* ShortName##Instr::Accept(FlowGraphVisitor* visitor) {             \
+void ShortName##Instr::Accept(FlowGraphVisitor* visitor) {                     \
   visitor->Visit##ShortName(this);                                             \
-  return next();                                                               \
 }
 
 FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
@@ -85,9 +84,10 @@ static bool VerifyValues(Value* v1, Value* v2) {
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    Instruction* current = block_order_[i]->Accept(this);
-    while ((current != NULL) && !current->IsBlockEntry()) {
-      current = current->Accept(this);
+    BlockEntryInstr* entry = block_order_[i];
+    entry->Accept(this);
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      it.Current()->Accept(this);
     }
   }
 }

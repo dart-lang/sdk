@@ -1706,7 +1706,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION(type)                                              \
-  virtual Instruction* Accept(FlowGraphVisitor* visitor);                      \
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
@@ -1748,7 +1748,7 @@ class Instruction : public ZoneAllocated {
   virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Visiting support.
-  virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
+  virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
   Instruction* previous() const { return previous_; }
   void set_previous(Instruction* instr) {

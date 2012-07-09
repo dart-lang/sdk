@@ -24,17 +24,6 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
-void FlowGraphOptimizer::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    Instruction* instr = block_order_[i]->Accept(this);
-    // Optimize all successors until an exit, branch, or a block entry.
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      instr = instr->Accept(this);
-    }
-  }
-}
-
-
 static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -621,25 +610,16 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 
 
 
-FlowGraphAnalyzer::FlowGraphAnalyzer(
-    const GrowableArray<BlockEntryInstr*>& blocks)
-        :blocks_(blocks), is_leaf_(false) {}
-
-
 void FlowGraphAnalyzer::Analyze() {
   is_leaf_ = true;
   for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* block_entry = blocks_[i];
-    Instruction* instr = block_entry->next();
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      LocationSummary* locs = instr->locs();
-      if (locs != NULL) {
-        if (locs->is_call()) {
-          is_leaf_ = false;
-          return;
-        }
+    BlockEntryInstr* entry = blocks_[i];
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      LocationSummary* locs = it.Current()->locs();
+      if ((locs != NULL) && locs->is_call()) {
+        is_leaf_ = false;
+        return;
       }
-      instr = instr->next();
     }
   }
 }
