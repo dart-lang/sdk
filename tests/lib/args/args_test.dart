@@ -122,6 +122,13 @@ main() {
         expect(args['no-strum'], isTrue);
         expect(args['strum'], isFalse);
       });
+
+      test('fail for non-negatable flags', () {
+        var parser = new ArgParser();
+        parser.addFlag('strum', negatable: false);
+
+        throwsBadFormat(parser, ['--no-strum']);
+      });
     });
 
     group('callbacks', () {
@@ -380,13 +387,23 @@ main() {
   });
 
   group('ArgParser.getUsage()', () {
-    test('flags show "no-" in title', () {
+    test('negatable flags show "no-" in title', () {
       var parser = new ArgParser();
       parser.addFlag('mode', help: 'The mode');
 
       validateUsage(parser,
           '''
           --[no-]mode    The mode
+          ''');
+    });
+
+    test('non-negatable flags don\'t show "no-" in title', () {
+      var parser = new ArgParser();
+      parser.addFlag('mode', negatable: false, help: 'The mode');
+
+      validateUsage(parser,
+          '''
+          --mode    The mode
           ''');
     });
 

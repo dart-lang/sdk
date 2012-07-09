@@ -12,12 +12,15 @@
 final USAGE_STRING = """
     Pub is a package manager for Dart.
 
-    Usage:
+    Usage: pub command [arguments]
 
-      pub command [arguments]
+    Global options:
+    -h, --help        Prints this usage information
+        --version     Prints the version of Pub
+        --cachedir    The directory containing the system-wide Pub cache
+        --sdkdir      The directory containing the Dart SDK
 
     The commands are:
-
       install   install the current package's dependencies
       list      print the contents of repositories
       update    update the current package's dependencies to the latest versions

@@ -7,6 +7,7 @@
  */
 #library('pub');
 
+#import('../../lib/args/args.dart');
 #import('io.dart');
 #import('command_install.dart');
 #import('command_list.dart');
@@ -27,8 +28,6 @@
 Version get pubVersion() => new Version(0, 0, 0);
 
 main() {
-  var args = new Options().arguments;
-
   // TODO(rnystrom): In addition to explicit "help" and "version" commands,
   // should also add special-case support for --help and --version arguments to
   // be consistent with other Unix apps.
@@ -39,71 +38,65 @@ main() {
     'version': new VersionCommand()
   };
 
-  // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
-  // pass in relevant paths. Eventually these should be either environment
-  // variables or at least a cleaner arg parser.
-  var cacheDir, sdkDir;
-  for (var i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--cachedir=')) {
-      cacheDir = args[i].substring('--cachedir='.length);
-      args.removeRange(i, 1);
-      i--;
-    } else if (args[i].startsWith('--sdkdir=')) {
-      sdkDir = args[i].substring('--sdkdir='.length);
-      args.removeRange(i, 1);
-      i--;
-    }
-  }
+  var parser = new ArgParser();
+  parser.addFlag('help', abbr: 'h', negatable: false,
+    help: 'Prints this usage information');
+  parser.addFlag('version', negatable: false,
+    help: 'Prints the version of Pub');
+  // TODO(rnystrom): Hack. These are temporary options to allow the pub tests to
+  // pass in relevant paths. Eventually these should be environment variables.
+  parser.addOption('cachedir', help: 'The directory containing the system-wide '
+    'Pub cache');
+  parser.addOption('sdkdir', help: 'The directory containing the Dart SDK');
 
-  if (args.length == 0) {
-    printUsage(commands);
+  var results;
+  try {
+    results = parser.parse(new Options().arguments);
+  } catch (ArgFormatException e) {
+    printUsage(parser, commands, description: e.message);
     return;
   }
 
-  // For consistency with expected unix idioms, support --help, -h, and
-  // --version in addition to the regular commands.
-  if (args.length == 1) {
-    if (args[0] == '--help' || args[0] == '-h') {
-      printUsage(commands);
-      return;
-    }
-
-    if (args[0] == '--version') {
-      printVersion();
-      return;
-    }
+  if (results['version']) {
+    printVersion();
+    return;
   }
 
-  var cache = new SystemCache(cacheDir);
-  cache.sources.register(new SdkSource(sdkDir));
+  if (results['help'] || results.rest.isEmpty()) {
+    printUsage(parser, commands);
+    return;
+  }
+
+  var cache = new SystemCache(results['cachedir']);
+  cache.sources.register(new SdkSource(results['sdkdir']));
   cache.sources.register(new GitSource());
   cache.sources.register(new RepoSource());
   // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
   cache.sources.setDefault('sdk');
 
   // Select the command.
-  var command = commands[args[0]];
+  var command = commands[results.rest[0]];
   if (command == null) {
-    printError('Unknown command "${args[0]}".');
+    printError('Unknown command "${results.rest[0]}".');
     printError('Run "pub help" to see available commands.');
     exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     return;
   }
 
-  args.removeRange(0, 1);
-  command.run(cache, args);
+  command.run(cache, results.rest.getRange(1, results.rest.length - 1));
 }
 
 /** Displays usage information for the app. */
-void printUsage(Map<String, PubCommand> commands) {
-  print('Pub is a package manager for Dart.');
+void printUsage(ArgParser parser, Map<String, PubCommand> commands,
+    [String description = 'Pub is a package manager for Dart.']) {
+  print(description);
   print('');
-  print('Usage:');
+  print('Usage: pub command [arguments]');
   print('');
-  print('  pub command [arguments]');
+  print('Global options:');
+  print(parser.getUsage());
   print('');
   print('The commands are:');
-  print('');
 
   // Show the commands sorted.
   // TODO(rnystrom): A sorted map would be nice.

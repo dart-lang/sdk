@@ -204,11 +204,11 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
     return ensureDir(pathInSandbox(appPath)).chain((_) {
       // TODO(rnystrom): Hack in the cache directory path. Should pass this in
       // using environment var once #752 is done.
-      args.add('--cachedir=${pathInSandbox(cachePath)}');
+      args.insertRange(0, 1, '--cachedir=${pathInSandbox(cachePath)}');
 
       // TODO(rnystrom): Hack in the SDK path. Should pass this in using
       // environment var once #752 is done.
-      args.add('--sdkdir=${pathInSandbox(sdkPath)}');
+      args.insertRange(0, 1, '--sdkdir=${pathInSandbox(sdkPath)}');
 
       return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
           pipeStderr: error == null);

@@ -201,9 +201,9 @@ class ArgParser {
    * * There is already an option using abbreviation [abbr].
    */
   void addFlag(String name, [String abbr, String help, bool defaultsTo = false,
-      void callback(bool value)]) {
+      bool negatable = true, void callback(bool value)]) {
     _addOption(name, abbr, help, null, null, defaultsTo, callback,
-        isFlag: true);
+        isFlag: true, negatable: negatable);
   }
 
   /**
@@ -215,13 +215,13 @@ class ArgParser {
   void addOption(String name, [String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
       void callback(bool value)]) {
-    _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo, callback,
-        isFlag: false);
+    _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
+        callback, isFlag: false);
   }
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, defaultsTo,
-      void callback(bool value), [bool isFlag]) {
+      void callback(bool value), [bool isFlag, bool negatable = false]) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {
       throw new IllegalArgumentException('Duplicate option "$name".');
@@ -242,7 +242,7 @@ class ArgParser {
     }
 
     _options[name] = new _Option(name, abbr, help, allowed, allowedHelp,
-        defaultsTo, callback, isFlag: isFlag);
+        defaultsTo, callback, isFlag: isFlag, negatable: negatable);
     _optionNames.add(name);
   }
 
@@ -434,7 +434,8 @@ class ArgParser {
       name = name.substring('no-'.length);
       option = _options[name];
       _validate(option != null, 'Could not find an option named "$name".');
-      _validate(option.isFlag, 'Cannot negate non-flag option "$name.');
+      _validate(option.isFlag, 'Cannot negate non-flag option "$name".');
+      _validate(option.negatable, 'Cannot negate option "$name".');
 
       _setOption(results, option, false);
     } else {
@@ -503,9 +504,11 @@ class _Option {
   final String help;
   final Map<String, String> allowedHelp;
   final bool isFlag;
+  final bool negatable;
 
   _Option(this.name, this.abbreviation, this.help, this.allowed,
-      this.allowedHelp, this.defaultValue, this.callback, [this.isFlag]);
+      this.allowedHelp, this.defaultValue, this.callback, [this.isFlag,
+      this.negatable]);
 }
 
 /**
@@ -611,7 +614,7 @@ class _Usage {
   }
 
   String getLongOption(_Option option) {
-    if (option.isFlag) {
+    if (option.negatable) {
       return '--[no-]${option.name}';
     } else {
       return '--${option.name}';
