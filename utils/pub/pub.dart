@@ -48,42 +48,45 @@ main() {
   parser.addOption('cachedir', help: 'The directory containing the system-wide '
     'Pub cache');
   parser.addOption('sdkdir', help: 'The directory containing the Dart SDK');
+  parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
 
-  var results;
+  var globalOptions;
   try {
-    results = parser.parse(new Options().arguments);
+    globalOptions = parser.parse(new Options().arguments);
   } catch (ArgFormatException e) {
     printUsage(parser, commands, description: e.message);
     return;
   }
 
-  if (results['version']) {
+  if (globalOptions['version']) {
     printVersion();
     return;
   }
 
-  if (results['help'] || results.rest.isEmpty()) {
+  if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
     printUsage(parser, commands);
     return;
   }
 
-  var cache = new SystemCache(results['cachedir']);
-  cache.sources.register(new SdkSource(results['sdkdir']));
+  var cache = new SystemCache(globalOptions['cachedir']);
+  cache.sources.register(new SdkSource(globalOptions['sdkdir']));
   cache.sources.register(new GitSource());
   cache.sources.register(new RepoSource());
   // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
   cache.sources.setDefault('sdk');
 
   // Select the command.
-  var command = commands[results.rest[0]];
+  var command = commands[globalOptions.rest[0]];
   if (command == null) {
-    printError('Unknown command "${results.rest[0]}".');
+    printError('Unknown command "${globalOptions.rest[0]}".');
     printError('Run "pub help" to see available commands.');
     exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     return;
   }
 
-  command.run(cache, results.rest.getRange(1, results.rest.length - 1));
+  var commandArgs =
+    globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+  command.run(cache, globalOptions, commandArgs);
 }
 
 /** Displays usage information for the app. */
@@ -128,13 +131,14 @@ class PubCommand {
 
   abstract String get description();
 
-  void run(SystemCache cache_, List<String> args) {
+  void run(SystemCache cache_, ArgResults globalOptions,
+      List<String> commandArgs) {
     cache = cache_;
 
     // TODO(rnystrom): Each command should define the arguments it expects and
     // we can handle them generically here.
 
-    handleError(error) {
+    handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       // TODO(rnystrom): Add --trace flag so stack traces can be enabled for
@@ -148,13 +152,16 @@ class PubCommand {
       }
 
       printError(message);
+      if (globalOptions['trace'] && trace != null) {
+        printError(trace);
+      }
       return true;
     }
 
     // TODO(rnystrom): Will eventually need better logic to walk up
     // subdirectories until we hit one that looks package-like. For now, just
     // assume the cwd is it.
-    Package.load(workingDir, cache.sources).chain((package) {
+    var future = Package.load(workingDir, cache.sources).chain((package) {
       entrypoint = new Entrypoint(package, cache);
 
       try {
@@ -162,11 +169,12 @@ class PubCommand {
         if (commandFuture == null) return new Future.immediate(true);
 
         return commandFuture;
-      } catch (var error) {
-        handleError(error);
+      } catch (var error, var trace) {
+        handleError(error, trace);
         return new Future.immediate(null);
       }
-    }).handleException(handleError);
+    });
+    future.handleException((e) => handleError(e, future.stackTrace));
   }
 
   /**

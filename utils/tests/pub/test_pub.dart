@@ -210,6 +210,10 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
       // environment var once #752 is done.
       args.insertRange(0, 1, '--sdkdir=${pathInSandbox(sdkPath)}');
 
+      // If an error occurs in pub during testing, we want it to print the stack
+      // trace so it can be debugged.
+      args.insertRange(0, 1, '--trace');
+
       return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
           pipeStderr: error == null);
     }).transform((result) {

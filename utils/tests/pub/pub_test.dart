@@ -15,10 +15,11 @@ final USAGE_STRING = """
     Usage: pub command [arguments]
 
     Global options:
-    -h, --help        Prints this usage information
-        --version     Prints the version of Pub
-        --cachedir    The directory containing the system-wide Pub cache
-        --sdkdir      The directory containing the Dart SDK
+    -h, --help          Prints this usage information
+        --version       Prints the version of Pub
+        --cachedir      The directory containing the system-wide Pub cache
+        --sdkdir        The directory containing the Dart SDK
+        --[no-]trace    Prints a stack trace when an error occurs
 
     The commands are:
       install   install the current package's dependencies
