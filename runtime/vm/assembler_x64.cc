@@ -1545,6 +1545,36 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
+void Assembler::PreserveCallerSavedRegisters() {
+  // Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
+  pushq(RAX);
+  pushq(RCX);
+  pushq(RDX);
+  pushq(RSI);
+  pushq(RDI);
+  pushq(R8);
+  pushq(R9);
+  pushq(R10);
+  pushq(R11);
+  // TODO(srdjan): Add XMM registers once they are used by the compiler.
+}
+
+
+void Assembler::RestoreCallerSavedRegisters() {
+  // Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
+  // TODO(srdjan): Add XMM registers once they are used by the compiler.
+  popq(R11);
+  popq(R10);
+  popq(R9);
+  popq(R8);
+  popq(RDI);
+  popq(RSI);
+  popq(RDX);
+  popq(RCX);
+  popq(RAX);
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
 }

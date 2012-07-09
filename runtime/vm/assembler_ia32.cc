@@ -1525,6 +1525,20 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
+void Assembler::PreserveCallerSavedRegisters() {
+  pushl(EAX);
+  pushl(ECX);
+  pushl(EDX);
+}
+
+
+void Assembler::RestoreCallerSavedRegisters() {
+  popl(EDX);
+  popl(ECX);
+  popl(EAX);
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
 }

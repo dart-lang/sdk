@@ -11,6 +11,9 @@
 
 namespace dart {
 
+// Forward declarations.
+class Isolate;
+
 class StoreBufferBlock {
  public:
   // Each block contains kSize pointers.
@@ -35,6 +38,7 @@ class StoreBufferBlock {
 
   // Process this store buffer and remember its contents in the heap.
   void ProcessBuffer();
+  void ProcessBuffer(Isolate* isolate);
 
   bool Contains(uword pointer);
 

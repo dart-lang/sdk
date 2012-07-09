@@ -91,47 +91,26 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
 
 // Print the stop message.
-static void PrintStopMessage(const char* message) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
   OS::Print("Stop message: %s\n", message);
 }
+END_LEAF_RUNTIME_ENTRY
 
 
 // Input parameters:
 //   RSP : points to return address.
 //   RDI : stop message (const char*).
-// Must preserve all registers, except RDI and TMP.
+// Must preserve all registers.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  // Preserve caller-saved registers.
-  __ pushq(RAX);
-  __ pushq(RCX);
-  __ pushq(RDX);
-  __ pushq(RSI);
-  __ pushq(R8);
-  __ pushq(R9);
-  __ pushq(R10);
+  __ enter(Immediate(0));
+  __ PreserveCallerSavedRegisters();
 
-  AssemblerMacros::EnterStubFrame(assembler);
+  // Call the runtime leaf function. RDI already contains the parameter.
+  __ ReserveAlignedFrameSpace(0);
+  __ CallRuntime(kPrintStopMessageRuntimeEntry);
 
-  // Align frame before entering C++ world.
-  if (OS::ActivationFrameAlignment() > 0) {
-    __ andq(RSP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
-
-  // Stop message is already in RDI.
-  __ movq(TMP, Immediate(reinterpret_cast<uword>(&PrintStopMessage)));
-  __ call(TMP);
-
-  __ LeaveFrame();
-
-  // Restore caller-saved registers.
-  __ popq(R10);
-  __ popq(R9);
-  __ popq(R8);
-  __ popq(RSI);
-  __ popq(RDX);
-  __ popq(RCX);
-  __ popq(RAX);
-
+  __ RestoreCallerSavedRegisters();
+  __ leave();
   __ ret();
 }
 
@@ -1066,49 +1045,56 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
+
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   RAX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save registers being destroyed.
-  __ pushq(CTX);
-  __ pushq(RBX);
+  __ pushq(RDX);
+  __ pushq(RCX);
 
   // Load the isolate out of the context.
   // RAX: Address being stored
-  __ movq(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movq(RDX, FieldAddress(CTX, Context::isolate_offset()));
 
   // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
   // RAX: Address being stored
-  // CTX: Isolate
+  // RDX: Isolate
   intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ movl(RBX,
-          Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
-  __ movq(Address(CTX,
-                  RBX, TIMES_8,
+  __ movl(RCX,
+          Address(RDX, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ movq(Address(RDX,
+                  RCX, TIMES_8,
                   store_buffer_offset + StoreBufferBlock::pointers_offset()),
           RAX);
 
   // Increment top_ and check for overflow.
-  // RBX: top_
-  // CTX: Isolate
+  // RCX: top_
+  // RDX: Isolate
   Label L;
-  __ incq(RBX);
-  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          RBX);
-  __ cmpl(RBX, Immediate(StoreBufferBlock::kSize));
-  __ j(NOT_EQUAL, &L, Assembler::kNearJump);
-
-  // Handle overflow: Reset the top_ pointer.
-  // CTX: Isolate
-  __ movl(RBX, Immediate(0));
-  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          RBX);
-
-  __ Bind(&L);
+  __ incq(RCX);
+  __ movl(Address(RDX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          RCX);
+  __ cmpl(RCX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
-  __ popq(RBX);
-  __ popq(CTX);
+  __ popq(RCX);
+  __ popq(RDX);
+  __ j(EQUAL, &L, Assembler::kNearJump);
+  __ ret();
+
+  // Handle overflow: Call the runtime leaf function.
+  __ Bind(&L);
+  // Setup frame, push callee-saved registers.
+  __ enter(Immediate(0));
+  __ PreserveCallerSavedRegisters();
+  __ ReserveAlignedFrameSpace(0);
+  __ movq(RDI, FieldAddress(CTX, Context::isolate_offset()));
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
+  // Restore callee-saved registers, tear down frame.
+  __ RestoreCallerSavedRegisters();
+  __ leave();
   __ ret();
 }
 
