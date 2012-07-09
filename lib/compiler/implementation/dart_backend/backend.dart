@@ -48,7 +48,26 @@ class DartBackend extends Backend {
         if (!element.isTopLevel()) {
           bailout('Cannot process non top-level $element');
         }
-        sb.add(element.parseNode(compiler).unparse());
+
+        if (element.isField()) {
+          // Add modifiers first.
+          sb.add(element.modifiers.toString());
+          sb.add(' ');
+          // Figure out type.
+          if (element is VariableElement) {
+            VariableListElement variables = element.variables;
+            if (variables.type !== null) {
+              sb.add(variables.type);
+              sb.add(' ');
+            }
+          }
+          // TODO(smok): Maybe not rely on node unparsing,
+          // but unparse initializer manually.
+          sb.add(element.parseNode(compiler).unparse());
+          sb.add(';');
+        } else {
+          sb.add(element.parseNode(compiler).unparse());
+        }
       });
       compiler.assembledCode = sb.toString();
     } catch (BailoutException e) {

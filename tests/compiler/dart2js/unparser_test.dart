@@ -118,6 +118,11 @@ main() {
   });
 }
 
+testTopLevelField() {
+  final src = 'final String x="asd";main(){x;}';
+  testDart2Dart(src, (String s) => Expect.equals(src, s));
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -128,4 +133,5 @@ main() {
   testPrefixIncrements();
   testConstModifier();
   testSimpleFileUnparse();
+  testTopLevelField();
 }
