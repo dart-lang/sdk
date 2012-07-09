@@ -25,11 +25,68 @@ void testDone(String test) {
 }
 
 int global_var = 0;
+final int final_global_var = 0;
+
+// Top-level getter and setter.
+int get myVar() { return 5; }
+int set myVar(x) {}
 
 // This function will be invoked reflectively.
 int function(int x) {
   global_var = x;
   return x + 1;
+}
+
+_stringCompare(String a, String b) => a.compareTo(b);
+sort(list) => list.sort(_stringCompare);
+
+String buildMethodString(MethodMirror func) {
+  var result = '${func.simpleName}';
+  if (func.isTopLevel) {
+    result = '$result toplevel';
+  }
+  if (func.isStatic) {
+    result = '$result static';
+  }
+  if (func.isMethod) {
+    result = '$result method';
+  }
+  if (func.isGetter) {
+    result = '$result getter';
+  }
+  if (func.isSetter) {
+    result = '$result setter';
+  }
+  if (func.isConstructor) {
+    result = '$result constructor';
+  }
+  if (func.isConstConstructor) {
+    result = '$result const';
+  }
+  if (func.isGenerativeConstructor) {
+    result = '$result generative';
+  }
+  if (func.isRedirectingConstructor) {
+    result = '$result redirecting';
+  }
+  if (func.isFactoryConstructor) {
+    result = '$result factory';
+  }
+  return result;
+}
+
+String buildVariableString(VariableMirror variable) {
+  var result = '${variable.simpleName}';
+  if (variable.isTopLevel) {
+    result = '$result toplevel';
+  }
+  if (variable.isStatic) {
+    result = '$result static';
+  }
+  if (variable.isFinal) {
+    result = '$result final';
+  }
+  return result;
 }
 
 void testRootLibraryMirror(LibraryMirror lib_mirror) {
@@ -48,6 +105,123 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
         Expect.equals(124, retval.simpleValue);
         testDone('testRootLibraryMirror');
       });
+
+  // Check that the members map is complete.
+  List keys = lib_mirror.members().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'MyClass, '
+                'MyException, '
+                'MyInterface, '
+                'MySuperClass, '
+                '_stringCompare, '
+                'buildMethodString, '
+                'buildVariableString, '
+                'exit_port, '
+                'expectedTests, '
+                'final_global_var, '
+                'function, '
+                'global_var, '
+                'main, '
+                'methodWithError, '
+                'methodWithException, '
+                'myVar, '
+                'myVar=, '
+                'sort, '
+                'testBoolInstanceMirror, '
+                'testCustomInstanceMirror, '
+                'testDone, '
+                'testIntegerInstanceMirror, '
+                'testIsolateMirror, '
+                'testLibrariesMap, '
+                'testMirrorErrors, '
+                'testNullInstanceMirror, '
+                'testRootLibraryMirror, '
+                'testStringInstanceMirror]',
+                '$keys');
+
+  // Check that the classes map is complete.
+  keys = lib_mirror.classes().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'MyClass, '
+                'MyException, '
+                'MyInterface, '
+                'MySuperClass]',
+                '$keys');
+
+  // Check that the functions map is complete.
+  keys = lib_mirror.functions().getKeys();
+  sort(keys);
+  Expect.equals('['
+                '_stringCompare, '
+                'buildMethodString, '
+                'buildVariableString, '
+                'function, '
+                'main, '
+                'methodWithError, '
+                'methodWithException, '
+                'myVar, '
+                'myVar=, '
+                'sort, '
+                'testBoolInstanceMirror, '
+                'testCustomInstanceMirror, '
+                'testDone, '
+                'testIntegerInstanceMirror, '
+                'testIsolateMirror, '
+                'testLibrariesMap, '
+                'testMirrorErrors, '
+                'testNullInstanceMirror, '
+                'testRootLibraryMirror, '
+                'testStringInstanceMirror]',
+                '$keys');
+
+  // Check that the variables map is complete.
+  keys = lib_mirror.variables().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'exit_port, '
+                'expectedTests, '
+                'final_global_var, '
+                'global_var]',
+                '$keys');
+
+  InterfaceMirror cls_mirror = lib_mirror.members()['MyClass'];
+
+  // Test function mirrors.
+  MethodMirror func = lib_mirror.members()['function'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('function toplevel static method', buildMethodString(func));
+
+  func = lib_mirror.members()['myVar'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('myVar toplevel static getter', buildMethodString(func));
+
+  func = lib_mirror.members()['myVar='];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('myVar= toplevel static setter', buildMethodString(func));
+
+  func = cls_mirror.members()['method'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('method method', buildMethodString(func));
+
+  func = cls_mirror.members()['MyClass'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('MyClass constructor', buildMethodString(func));
+
+  // Test variable mirrors.
+  VariableMirror variable = lib_mirror.members()['global_var'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('global_var toplevel static', buildVariableString(variable));
+  
+  variable = lib_mirror.members()['final_global_var'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('final_global_var toplevel static final',
+                buildVariableString(variable));
+
+  variable = cls_mirror.members()['value'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('value final', buildVariableString(variable));
 }
 
 void testLibrariesMap(Map libraries) {

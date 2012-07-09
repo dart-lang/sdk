@@ -4,6 +4,7 @@
 
 #include "include/dart_api.h"
 #include "platform/assert.h"
+#include "platform/json.h"
 #include "platform/utils.h"
 #include "vm/class_finalizer.h"
 #include "vm/dart_api_impl.h"
@@ -3917,6 +3918,456 @@ TEST_CASE(GetClass) {
 }
 
 
+static void BuildFunctionDescription(TextBuffer* buffer, Dart_Handle func) {
+  buffer->Clear();
+  if (Dart_IsNull(func)) {
+    WARN("Function not found");
+    return;
+  }
+  Dart_Handle name = Dart_FunctionName(func);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  bool is_abstract = false;
+  bool is_static = false;
+  bool is_getter = false;
+  bool is_setter = false;
+  bool is_constructor = false;
+  EXPECT_VALID(Dart_FunctionIsAbstract(func, &is_abstract));
+  EXPECT_VALID(Dart_FunctionIsStatic(func, &is_static));
+  EXPECT_VALID(Dart_FunctionIsGetter(func, &is_getter));
+  EXPECT_VALID(Dart_FunctionIsSetter(func, &is_setter));
+  EXPECT_VALID(Dart_FunctionIsConstructor(func, &is_constructor));
+  buffer->Printf("%s", name_cstr);
+  if (is_abstract) {
+    buffer->Printf(" abstract");
+  }
+  if (is_static) {
+    buffer->Printf(" static");
+  }
+  if (is_getter) {
+    buffer->Printf(" getter");
+  }
+  if (is_setter) {
+    buffer->Printf(" setter");
+  }
+  if (is_constructor) {
+    buffer->Printf(" constructor");
+  }
+}
+
+
+TEST_CASE(FunctionReflection) {
+  const char* kScriptChars =
+      "a() => 'a';\n"
+      "_b() => '_b';\n"
+      "get c() => 'bar';\n"
+      "set d(x) {}\n"
+      "get _e() => 'bar';\n"
+      "set _f(x) {}\n"
+      "class MyClass {\n"
+      "  MyClass() {}\n"
+      "  MyClass.named() {}\n"
+      "  a() => 'a';\n"
+      "  _b() => '_b';\n"
+      "  get c() => 'bar';\n"
+      "  set d(x) {}\n"
+      "  get _e() => 'bar';\n"
+      "  set _f(x) {}\n"
+      "  static g() => 'g';\n"
+      "  static _h() => '_h';\n"
+      "  static get i() => 'i';\n"
+      "  static set j(x) {}\n"
+      "  static get _k() => 'k';\n"
+      "  static set _l(x) {}\n"
+      "  abstract m();\n"
+      "  abstract _n();\n"
+      "  abstract get o();\n"
+      "  abstract set p(x);\n"
+      "  abstract get _q();\n"
+      "  abstract set _r(x);\n"
+      "  operator ==(x) {}\n"
+      "}\n"
+      "class _PrivateClass {\n"
+      "  _PrivateClass() {}\n"
+      "  _PrivateClass.named() {}\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
+  EXPECT_VALID(cls);
+  Dart_Handle private_cls = Dart_GetClass(lib, Dart_NewString("_PrivateClass"));
+  EXPECT_VALID(private_cls);
+  TextBuffer buffer(128);
+
+  // Lookup a top-level function.
+  Dart_Handle func = Dart_LookupFunction(lib, Dart_NewString("a"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("a static", buffer.buf());
+
+  // Lookup a private top-level function.
+  func = Dart_LookupFunction(lib, Dart_NewString("_b"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_b static", buffer.buf());
+
+  // Lookup a top-level getter.
+  func = Dart_LookupFunction(lib, Dart_NewString("c"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("c static getter", buffer.buf());
+
+  // Lookup a top-level setter.
+  func = Dart_LookupFunction(lib, Dart_NewString("d="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("d= static setter", buffer.buf());
+
+  // Lookup a private top-level getter.
+  func = Dart_LookupFunction(lib, Dart_NewString("_e"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_e static getter", buffer.buf());
+
+  // Lookup a private top-level setter.
+  func = Dart_LookupFunction(lib, Dart_NewString("_f="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_f= static setter", buffer.buf());
+
+  // Lookup an unnamed constructor
+  func = Dart_LookupFunction(cls, Dart_NewString("MyClass"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("MyClass constructor", buffer.buf());
+
+  // Lookup a named constructor
+  func = Dart_LookupFunction(cls, Dart_NewString("MyClass.named"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("MyClass.named constructor", buffer.buf());
+
+  // Lookup an private unnamed constructor
+  func = Dart_LookupFunction(private_cls, Dart_NewString("_PrivateClass"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_PrivateClass constructor", buffer.buf());
+
+  // Lookup a private named constructor
+  func = Dart_LookupFunction(private_cls,
+                             Dart_NewString("_PrivateClass.named"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_PrivateClass.named constructor", buffer.buf());
+
+  // Lookup a method.
+  func = Dart_LookupFunction(cls, Dart_NewString("a"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("a", buffer.buf());
+
+  // Lookup a private method.
+  func = Dart_LookupFunction(cls, Dart_NewString("_b"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_b", buffer.buf());
+
+  // Lookup a instance getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("c"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("c getter", buffer.buf());
+
+  // Lookup a instance setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("d="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("d= setter", buffer.buf());
+
+  // Lookup a private instance getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_e"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_e getter", buffer.buf());
+
+  // Lookup a private instance setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_f="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_f= setter", buffer.buf());
+
+  // Lookup a static method.
+  func = Dart_LookupFunction(cls, Dart_NewString("g"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("g static", buffer.buf());
+
+  // Lookup a private static method.
+  func = Dart_LookupFunction(cls, Dart_NewString("_h"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_h static", buffer.buf());
+
+  // Lookup a static getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("i"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("i static getter", buffer.buf());
+
+  // Lookup a static setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("j="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("j= static setter", buffer.buf());
+
+  // Lookup a private static getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_k"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_k static getter", buffer.buf());
+
+  // Lookup a private static setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_l="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_l= static setter", buffer.buf());
+
+  // Lookup an abstract method.
+  func = Dart_LookupFunction(cls, Dart_NewString("m"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("m abstract", buffer.buf());
+
+  // Lookup a private abstract method.
+  func = Dart_LookupFunction(cls, Dart_NewString("_n"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_n abstract", buffer.buf());
+
+  // Lookup a abstract getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("o"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("o abstract getter", buffer.buf());
+
+  // Lookup a abstract setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("p="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("p= abstract setter", buffer.buf());
+
+  // Lookup a private abstract getter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_q"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_q abstract getter", buffer.buf());
+
+  // Lookup a private abstract setter.
+  func = Dart_LookupFunction(cls, Dart_NewString("_r="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("_r= abstract setter", buffer.buf());
+
+  // Lookup an operator
+  func = Dart_LookupFunction(cls, Dart_NewString("=="));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("==", buffer.buf());
+
+  // Lookup a function that does not exist from a library.
+  func = Dart_LookupFunction(lib, Dart_NewString("DoesNotExist"));
+  EXPECT(Dart_IsNull(func));
+
+  // Lookup a function that does not exist from a class.
+  func = Dart_LookupFunction(cls, Dart_NewString("DoesNotExist"));
+  EXPECT(Dart_IsNull(func));
+
+  // Lookup a class using an error class name.  The error propagates.
+  func = Dart_LookupFunction(cls, Api::NewError("myerror"));
+  EXPECT_ERROR(func, "myerror");
+
+  // Lookup a class from an error library.  The error propagates.
+  func = Dart_LookupFunction(Api::NewError("myerror"), Dart_NewString("foo"));
+  EXPECT_ERROR(func, "myerror");
+}
+
+
+static void BuildVariableDescription(TextBuffer* buffer, Dart_Handle var) {
+  buffer->Clear();
+  Dart_Handle name = Dart_VariableName(var);
+  EXPECT_VALID(name);
+  const char* name_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(name, &name_cstr));
+  bool is_static = false;
+  bool is_final = false;
+  EXPECT_VALID(Dart_VariableIsStatic(var, &is_static));
+  EXPECT_VALID(Dart_VariableIsFinal(var, &is_final));
+  buffer->Printf("%s", name_cstr);
+  if (is_static) {
+    buffer->Printf(" static");
+  }
+  if (is_final) {
+    buffer->Printf(" final");
+  }
+}
+
+
+TEST_CASE(VariableReflection) {
+  const char* kScriptChars =
+      "var a = 'a';\n"
+      "var _b = '_b';\n"
+      "final c = 'c';\n"
+      "final _d = '_d';\n"
+      "class MyClass {\n"
+      "  var a = 'a';\n"
+      "  var _b = '_b';\n"
+      "  final c = 'c';\n"
+      "  final _d = '_d';\n"
+      "  static var e = 'e';\n"
+      "  static var _f = '_f';\n"
+      "  static final g = 'g';\n"
+      "  static final _h = '_h';\n"
+      "}\n";
+
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
+  EXPECT_VALID(cls);
+  TextBuffer buffer(128);
+
+  // Lookup a top-level variable.
+  Dart_Handle var = Dart_LookupVariable(lib, Dart_NewString("a"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("a static", buffer.buf());
+
+  // Lookup a private top-level variable.
+  var = Dart_LookupVariable(lib, Dart_NewString("_b"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_b static", buffer.buf());
+
+  // Lookup a final top-level variable.
+  var = Dart_LookupVariable(lib, Dart_NewString("c"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("c static final", buffer.buf());
+
+  // Lookup a private final top-level variable.
+  var = Dart_LookupVariable(lib, Dart_NewString("_d"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_d static final", buffer.buf());
+
+  // Lookup a instance variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("a"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("a", buffer.buf());
+
+  // Lookup a private instance variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("_b"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_b", buffer.buf());
+
+  // Lookup a final instance variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("c"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("c final", buffer.buf());
+
+  // Lookup a private final instance variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("_d"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_d final", buffer.buf());
+
+  // Lookup a static variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("e"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("e static", buffer.buf());
+
+  // Lookup a private static variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("_f"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_f static", buffer.buf());
+
+  // Lookup a final static variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("g"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("g static final", buffer.buf());
+
+  // Lookup a private final static variable.
+  var = Dart_LookupVariable(cls, Dart_NewString("_h"));
+  EXPECT_VALID(var);
+  EXPECT(Dart_IsVariable(var));
+  BuildVariableDescription(&buffer, var);
+  EXPECT_STREQ("_h static final", buffer.buf());
+
+  // Lookup a variable that does not exist from a library.
+  var = Dart_LookupVariable(lib, Dart_NewString("DoesNotExist"));
+  EXPECT(Dart_IsNull(var));
+
+  // Lookup a variable that does not exist from a class.
+  var = Dart_LookupVariable(cls, Dart_NewString("DoesNotExist"));
+  EXPECT(Dart_IsNull(var));
+
+  // Lookup a class from an error library.  The error propagates.
+  var = Dart_LookupVariable(Api::NewError("myerror"), Dart_NewString("foo"));
+  EXPECT_ERROR(var, "myerror");
+
+  // Lookup a class using an error class name.  The error propagates.
+  var = Dart_LookupVariable(lib, Api::NewError("myerror"));
+  EXPECT_ERROR(var, "myerror");
+}
+
+
 TEST_CASE(InstanceOf) {
   const char* kScriptChars =
       "class OtherClass {\n"
@@ -4325,9 +4776,10 @@ TEST_CASE(LibraryGetClassNames) {
       "\n"
       "class A {}\n"
       "class B {}\n"
-      "class D {}\n"
       "interface C {}\n"
-      "interface E {}\n"
+      "class _A {}\n"
+      "class _B {}\n"
+      "interface _C {}\n"
       "\n"
       "_compare(String a, String b) => a.compareTo(b);\n"
       "sort(list) => list.sort(_compare);\n";
@@ -4351,7 +4803,142 @@ TEST_CASE(LibraryGetClassNames) {
   EXPECT_VALID(list_string);
   const char* list_cstr = "";
   EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
-  EXPECT_STREQ("[A, B, C, D, E]", list_cstr);
+  EXPECT_STREQ("[A, B, C, _A, _B, _C]", list_cstr);
+}
+
+
+TEST_CASE(GetFunctionNames) {
+  const char* kLibraryChars =
+      "#library('library_name');\n"
+      "\n"
+      "void A() {}\n"
+      "get B() => 11;\n"
+      "set C(x) { }\n"
+      "var D;\n"
+      "void _A() {}\n"
+      "get _B() => 11;\n"
+      "set _C(x) { }\n"
+      "var _D;\n"
+      "\n"
+      "class MyClass {\n"
+      "  void A2() {}\n"
+      "  get B2() => 11;\n"
+      "  set C2(x) { }\n"
+      "  var D2;\n"
+      "  void _A2() {}\n"
+      "  get _B2() => 11;\n"
+      "  set _C2(x) { }\n"
+      "  var _D2;\n"
+      "}\n"
+      "\n"
+      "_compare(String a, String b) => a.compareTo(b);\n"
+      "sort(list) => list.sort(_compare);\n";
+
+  // Get the functions from a library.
+  Dart_Handle url = Dart_NewString("library_url");
+  Dart_Handle source = Dart_NewString(kLibraryChars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+
+  Dart_Handle list = Dart_GetFunctionNames(lib);
+  EXPECT_VALID(list);
+  EXPECT(Dart_IsList(list));
+
+  // Sort the list.
+  const int kNumArgs = 1;
+  Dart_Handle args[1];
+  args[0] = list;
+  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("sort"), kNumArgs, args));
+
+  Dart_Handle list_string = Dart_ToString(list);
+  EXPECT_VALID(list_string);
+  const char* list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
+  EXPECT_STREQ("[A, B, C=, _A, _B, _C=, _compare, sort]", list_cstr);
+
+  // Get the functions from a class.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
+  EXPECT_VALID(cls);
+
+  list = Dart_GetFunctionNames(cls);
+  EXPECT_VALID(list);
+  EXPECT(Dart_IsList(list));
+
+  // Sort the list.
+  args[0] = list;
+  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("sort"), kNumArgs, args));
+
+  // Check list contents.
+  list_string = Dart_ToString(list);
+  EXPECT_VALID(list_string);
+  list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
+  EXPECT_STREQ("[A2, B2, C2=, MyClass, _A2, _B2, _C2=]", list_cstr);
+}
+
+
+TEST_CASE(GetVariableNames) {
+  const char* kLibraryChars =
+      "#library('library_name');\n"
+      "\n"
+      "var A;\n"
+      "get B() => 12;\n"
+      "set C(x) { }\n"
+      "D(x) => (x + 1);\n"
+      "var _A;\n"
+      "get _B() => 12;\n"
+      "set _C(x) { }\n"
+      "_D(x) => (x + 1);\n"
+      "\n"
+      "class MyClass {\n"
+      "  var A2;\n"
+      "  var _A2;\n"
+      "}\n"
+      "\n"
+      "_compare(String a, String b) => a.compareTo(b);\n"
+      "sort(list) => list.sort(_compare);\n";
+
+  // Get the variables from a library.
+  Dart_Handle url = Dart_NewString("library_url");
+  Dart_Handle source = Dart_NewString(kLibraryChars);
+  Dart_Handle lib = Dart_LoadLibrary(url, source);
+  EXPECT_VALID(lib);
+
+  Dart_Handle list = Dart_GetVariableNames(lib);
+  EXPECT_VALID(list);
+  EXPECT(Dart_IsList(list));
+
+  // Sort the list.
+  const int kNumArgs = 1;
+  Dart_Handle args[1];
+  args[0] = list;
+  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("sort"), kNumArgs, args));
+
+  // Check list contents.
+  Dart_Handle list_string = Dart_ToString(list);
+  EXPECT_VALID(list_string);
+  const char* list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
+  EXPECT_STREQ("[A, _A]", list_cstr);
+
+  // Get the variables from a class.
+  Dart_Handle cls = Dart_GetClass(lib, Dart_NewString("MyClass"));
+  EXPECT_VALID(cls);
+
+  list = Dart_GetVariableNames(cls);
+  EXPECT_VALID(list);
+  EXPECT(Dart_IsList(list));
+
+  // Sort the list.
+  args[0] = list;
+  EXPECT_VALID(Dart_Invoke(lib, Dart_NewString("sort"), kNumArgs, args));
+
+  // Check list contents.
+  list_string = Dart_ToString(list);
+  EXPECT_VALID(list_string);
+  list_cstr = "";
+  EXPECT_VALID(Dart_StringToCString(list_string, &list_cstr));
+  EXPECT_STREQ("[A2, _A2]", list_cstr);
 }
 
 

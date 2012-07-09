@@ -9,6 +9,16 @@ bool isSimpleValue(var value) {
   return (value === null || value is num || value is String || value is bool);
 }
 
+Map filterMap(Map old_map, bool filter(key, value)) {
+  Map new_map = new Map();
+  old_map.forEach((key, value) {
+      if (filter(key, value)) {
+        new_map[key] = value;
+      }
+    });
+  return new_map;
+}
+
 abstract class _LocalMirrorImpl implements Mirror {
   // Local mirrors always return the same IsolateMirror.  This field
   // is more interesting once we implement remote mirrors.
@@ -24,6 +34,28 @@ class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
   final Map<String, LibraryMirror> _libraries;
 
   Map<String, LibraryMirror> libraries() { return _libraries; }
+
+  InterfaceMirror _sharedDynamic = null;
+
+  InterfaceMirror _dynamicMirror() {
+    if (_sharedDynamic === null) {
+      _sharedDynamic =
+          new _LocalInterfaceMirrorImpl(
+              null, 'Dynamic', false, null, null, [], null, const {});
+    }
+    return _sharedDynamic;
+  }
+
+  InterfaceMirror _sharedVoid = null;
+
+  InterfaceMirror _voidMirror() {
+    if (_sharedVoid === null) {
+      _sharedVoid =
+          new _LocalInterfaceMirrorImpl(
+              null, 'void', false, null, null, [], null, const {});
+    }
+    return _sharedVoid;
+  }
 
   String toString() {
     return "IsolateMirror on '$debugName'";
@@ -92,7 +124,7 @@ String _dartEscape(String str) {
   StringBuffer buf = new StringBuffer();
   for (int i = 0; i < str.length; i++) {
     var input = str[i];
-    String output; 
+    String output;
     switch (input) {
       case '\\' :
         output = @'\\';
@@ -176,6 +208,16 @@ class _LazyInterfaceMirror {
   _LazyInterfaceMirror(this.libraryName, this.interfaceName) {}
 
   InterfaceMirror resolve(IsolateMirror isolate) {
+    if (libraryName === null) {
+      if (interfaceName == 'Dynamic') {
+        return isolate._dynamicMirror();
+      } else if (interfaceName == 'void') {
+        return isolate._dynamicMirror();
+      } else {
+        throw new NotImplementedException(
+            "Mirror for type '$interfaceName' not implemented");
+      }
+    }
     return isolate.libraries()[libraryName].members()[interfaceName];
   }
 
@@ -191,7 +233,8 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
                             this._library,
                             this._superclass,
                             this._superinterfaces,
-                            this._defaultFactory) : super(ref) {}
+                            this._defaultFactory,
+                            this._members) : super(ref) {}
 
   final String simpleName;
   final bool isClass;
@@ -233,6 +276,28 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
     return _defaultFactory;
   }
 
+  Map<String, InterfaceMirror> _members;
+  Map<String, InterfaceMirror> _methods = null;
+  Map<String, InterfaceMirror> _variables = null;
+
+  Map<String, Mirror> members() { return _members; }
+
+  Map<String, MethodMirror> methods() {
+    if (_methods == null) {
+      _methods = filterMap(members(),
+                           (key, value) => (value is MethodMirror));
+    }
+    return _methods;
+  }
+
+  Map<String, VariableMirror> variables() {
+    if (_variables == null) {
+      _variables = filterMap(members(),
+                             (key, value) => (value is VariableMirror));
+    }
+    return _variables;
+  }
+
   String toString() {
     return "InterfaceMirror on '$simpleName'";
   }
@@ -258,11 +323,116 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   final String simpleName;
   final String url;
   Map<String, InterfaceMirror> _members;
+  Map<String, InterfaceMirror> _classes = null;
+  Map<String, InterfaceMirror> _functions = null;
+  Map<String, InterfaceMirror> _variables = null;
 
   Map<String, Mirror> members() { return _members; }
 
+  Map<String, InterfaceMirror> classes() {
+    if (_classes == null) {
+      _classes = filterMap(members(),
+                           (key, value) => (value is InterfaceMirror));
+    }
+    return _classes;
+  }
+
+  Map<String, MethodMirror> functions() {
+    if (_functions == null) {
+      _functions = filterMap(members(),
+                             (key, value) => (value is MethodMirror));
+    }
+    return _functions;
+  }
+
+  Map<String, VariableMirror> variables() {
+    if (_variables == null) {
+      _variables = filterMap(members(),
+                             (key, value) => (value is VariableMirror));
+    }
+    return _variables;
+  }
+
   String toString() {
     return "LibraryMirror on '$simpleName'";
+  }
+}
+
+class _LocalMethodMirrorImpl extends _LocalMirrorImpl
+    implements MethodMirror {
+  _LocalMethodMirrorImpl(this.simpleName,
+                         this._owner,
+                         this.isStatic,
+                         this.isAbstract,
+                         this.isGetter,
+                         this.isSetter,
+                         this.isConstructor,
+                         this.isConstConstructor,
+                         this.isGenerativeConstructor,
+                         this.isRedirectingConstructor,
+                         this.isFactoryConstructor) {}
+
+  final String simpleName;
+
+  var _owner;
+  Mirror get owner() {
+    if (_owner is! Mirror) {
+      _owner = _owner.resolve(isolate);
+    }
+    return _owner;
+  }
+
+  bool get isTopLevel() {
+    return owner is LibraryMirror;
+  }
+
+  final bool isStatic;
+
+  bool get isMethod() {
+    return !isGetter && !isSetter && !isConstructor;
+  }
+
+  final bool isAbstract;
+  final bool isGetter;
+  final bool isSetter;
+  final bool isConstructor;
+
+  final bool isConstConstructor;
+  final bool isGenerativeConstructor;
+  final bool isRedirectingConstructor;
+  final bool isFactoryConstructor;
+
+  String toString() {
+    return "MethodMirror on '$simpleName'";
+  }
+}
+
+class _LocalVariableMirrorImpl extends _LocalMirrorImpl
+    implements VariableMirror {
+  _LocalVariableMirrorImpl(this.simpleName,
+                           this._owner,
+                           this.isStatic,
+                           this.isFinal) {}
+
+  final String simpleName;
+
+  var _owner;
+  Mirror get owner() {
+    if (_owner is! Mirror) {
+      _owner = _owner.resolve(isolate);
+    }
+    return _owner;
+  }
+
+  bool get isTopLevel() {
+    return owner is LibraryMirror;
+  }
+
+  final bool isStatic;
+  final bool isFinal;
+
+  String toString() {
+    return "VariableMirror on '$simpleName'";
   }
 }
 

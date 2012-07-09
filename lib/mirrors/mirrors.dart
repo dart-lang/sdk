@@ -15,7 +15,6 @@
 // ...the getter is named 'myField' and the setter is named
 // 'myField='.  This allows us to assign unique names to getters and
 // setters for the purposes of member lookup.
-// TODO(turnidge): Implement getter/setter lookup.
 //
 // TODO(turnidge): Finish implementing this api.
 
@@ -48,7 +47,7 @@ Future<IsolateMirror> isolateMirrorOf(SendPort port) {
  */
 interface Mirror {
   /**
-   * The isolate of orgin for this [Mirror].
+   * A mirror on the originating isolate for this [Mirror].
    */
   final IsolateMirror isolate;
 }
@@ -92,8 +91,6 @@ interface ObjectMirror extends Mirror {
    * Invokes the named function and returns a mirror on the result.
    *
    * TODO(turnidge): Properly document.
-   *
-   * TODO(turnidge): what to do if invoke causes the death of the reflectee?
    */
   Future<InstanceMirror> invoke(String memberName,
                                 List<Object> positionalArguments,
@@ -118,17 +115,16 @@ interface InstanceMirror extends ObjectMirror {
    * If the [InstanceMirror] refers to a simple value, we provide
    * access to the actual value here.
    *
-   * A value is simple if:
-   *  - it is null
-   *  - it is of type [num]
-   *  - it is of type [bool]
-   *  - it is of type [String]
+   * A value is simple if one of the following holds:
+   *  - the value is null
+   *  - the value is of type [num]
+   *  - the value is of type [bool]
+   *  - the value is of type [String]
    *
    * If you access [simpleValue] when [hasSimpleValue] is false an
    * exception is thrown.
    */
   final simpleValue;
-
 }
 
 /**
@@ -170,14 +166,26 @@ interface InterfaceMirror extends ObjectMirror {
 
   /**
    * An immutable map from from names to mirrors for all members of
-   * this type, including inherited members.
+   * this type.
    *
    * The members of an interface are its constructors, methods,
    * fields, getters, and setters.
    *
-   * TODO(turnidge): Currently empty.
+   * This does not include inherited members.
    */
   Map<String, Mirror> members();
+
+  /**
+   * An immutable map from names to mirrors for all method,
+   * constructor, getter, and setter declarations in this library.
+   */
+  Map<String, MethodMirror> methods();
+
+  /**
+   * An immutable map from names to mirrors for all variable
+   * declarations in this library.
+   */
+  Map<String, VariableMirror> variables();
 }
 
 /**
@@ -200,16 +208,158 @@ interface LibraryMirror extends ObjectMirror {
   final String url;
 
   /**
-   * An immutable map from from top-level names to mirrors for all
-   * members in this library.
+   * An immutable map from from names to mirrors for all members in
+   * this library.
    *
    * The members of a library are its top-level classes, interfaces,
    * functions, variables, getters, and setters.
-   *
-   * TODO(turnidge): Currently only contains classes and interfaces.
    */
   Map<String, Mirror> members();
+
+  /**
+   * An immutable map from names to mirrors for all class and
+   * interface declarations in this library.
+   */
+  Map<String, InterfaceMirror> classes();
+
+  /**
+   * An immutable map from names to mirrors for all function
+   * declarations in this library.
+   */
+  Map<String, MethodMirror> functions();
+
+  /**
+   * An immutable map from names to mirrors for all variable
+   * declarations in this library.
+   */
+  Map<String, VariableMirror> variables();
 }
+
+/**
+ * A [MethodMirror] reflects a Dart language function, method,
+ * constructor, getter, or setter.
+ */
+interface MethodMirror {
+  /**
+   * The name of this function.
+   */
+  final String simpleName;
+
+  /**
+   * A mirror on the owner of this function.  This is the declaration
+   * immediately surrounding the reflectee.
+   *
+   * For top-level functions, this will be a [LibraryMirror] and for
+   * methods, constructors, getters, and setters, this will be an
+   * [InterfaceMirror].
+   */
+  Mirror owner;
+
+  // Ownership
+
+  /**
+   * Does this mirror reflect a top-level function?
+   */
+  bool isTopLevel;
+
+  /**
+   * Does this mirror reflect a static method?
+   *
+   * For the purposes of the mirrors library, a top-level function is
+   * considered static.
+   */
+  bool isStatic;
+
+  // Method kind
+
+  /**
+   * Does this mirror reflect a regular function or method?
+   *
+   * A method is regular if it is not a getter, setter, or constructor.
+   */
+  bool isMethod;
+
+  /**
+   * Does this mirror reflect an abstract method?
+   */
+  bool isAbstract;
+
+  /**
+   * Does this mirror reflect a getter?
+   */
+  bool isGetter;
+
+  /**
+   * Does this mirror reflect a setter?
+   */
+  bool isSetter;
+
+  /**
+   * Does this mirror reflect a constructor?
+   */
+  bool isConstructor;
+
+  // Constructor kind
+
+  /**
+   * Does this mirror reflect a const constructor?
+   */
+  bool isConstConstructor;
+
+  /**
+   * Does this mirror reflect a generative constructor?
+   */
+  bool isGenerativeConstructor;
+
+  /**
+   * Does this mirror reflect a redirecting constructor?
+   */
+  bool isRedirectingConstructor;
+
+  /**
+   * Does this mirror reflect a factory constructor?
+   */
+  bool isFactoryConstructor;
+}
+
+
+/**
+ * A [VariableMirror] reflects a Dart language variable.
+ */
+interface VariableMirror {
+  /**
+   * The name of this variable
+   */
+  final String simpleName;
+
+  /**
+   * A mirror on the owner of this method.  The owner is the
+   * declaration immediately surrounding the reflectee.
+   *
+   * For top-level variables, this will be a [LibraryMirror] and for
+   * class and interface variables, this will be an [InterfaceMirror].
+   */
+  Mirror owner;
+
+  /**
+   * Does this mirror reflect a top-level variable?
+   */
+  bool isTopLevel;
+
+  /**
+   * Does this mirror reflect a static variable?
+   *
+   * For the purposes of the mirror library, top-level variables are
+   * implicitly declared static.
+   */
+  bool isStatic;
+
+  /**
+   * Does this mirror reflect a final variable?
+   */
+  bool isFinal;
+}
+
 
 /**
  * When an error occurs during the mirrored execution of code, a
@@ -230,7 +380,7 @@ interface LibraryMirror extends ObjectMirror {
  *   the reflector and reflectee share the same isolate, then they
  *   will both suffer.  If the reflector and reflectee are in distinct
  *   isolates, then we hope to provide some information about the
- *   isolate death, but this is yet to be implemented.
+ *   isolate death, but this has yet to be implemented.
  *
  * TODO(turnidge): Specify the behavior for remote fatal errors.
  */

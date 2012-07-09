@@ -2670,6 +2670,111 @@ TEST_CASE(FieldTests) {
                String::Handle(Field::NameFromSetter(setter_f)).ToCString());
 }
 
+
+// Expose helper function from object.cc for testing.
+bool EqualsIgnoringPrivate(const String& name, const String& private_name);
+
+
+TEST_CASE(EqualsIgnoringPrivate) {
+  String& mangled_name = String::Handle();
+  String& bare_name = String::Handle();
+
+  // Simple matches.
+  mangled_name = String::New("foo");
+  bare_name = String::New("foo");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.");
+  bare_name = String::New("foo.");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.named");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Simple mismatches.
+  mangled_name = String::New("bar");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo");
+  bare_name = String::New("foo.");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.name");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.named");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private match.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("foo");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private mismatch.
+  mangled_name = String::New("food@12345");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private mismatch 2.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("food");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor match.
+  mangled_name = String::New("foo@12345.");
+  bare_name = String::New("foo.");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor mismatch.
+  mangled_name = String::New("foo@12345.");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor mismatch 2.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("foo.");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor match.
+  mangled_name = String::New("foo@12345.named");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor mismatch.
+  mangled_name = String::New("foo@12345.name");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor mismatch 2.
+  mangled_name = String::New("foo@12345.named");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor match.  Yes, this happens.
+  mangled_name = String::New("foo@12345.named@12345");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor mismatch.
+  mangled_name = String::New("foo@12345.name@12345");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor mismatch.
+  mangled_name = String::New("foo@12345.named@12345");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

@@ -2022,6 +2022,165 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceCount(Dart_Handle clazz,
 DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
                                                  intptr_t index);
 
+// --- Function and Variable Declarations ---
+
+/**
+ * Returns a list of the names of all functions or methods declared in
+ * a library or class.
+ *
+ * \param target A library or class.
+ *
+ * \return If no error occurs, a list of strings is returned.
+ *   Otherwise an erorr handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target);
+
+/**
+ * Looks up a function or method declaration by name from a library or
+ * class.
+ *
+ * \param target The library or class containing the function.
+ * \param function_name The name of the function.
+ *
+ * \return If an error is encountered, returns an error handle.
+ *   Otherwise returns a function handle if the function is found of
+ *   Dart_Null() if the function is not found.
+ */
+DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
+                                            Dart_Handle function_name);
+
+/**
+ * Is this a function or method declaration handle?
+ */
+DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
+
+/**
+ * Returns the name for the provided function or method.
+ *
+ * \return A valid string handle if no error occurs during the
+ * operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
+
+/**
+ * Determines whether a function handle refers to an abstract method.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the handle refers to an abstract method.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
+                                                bool* is_abstract);
+
+/**
+ * Determines whether a function handle referes to a static function
+ * of method.
+ *
+ * For the purposes of the embedding API, a top-level function is
+ * implicitly declared static.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the function or method is declared static.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
+                                              bool* is_static);
+
+/**
+ * Determines whether a function handle referes to a constructor.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the function or method is a constructor.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
+                                                   bool* is_constructor);
+// TODO(turnidge): Document behavior for factory constructors too.
+
+/**
+ * Determines whether a function or method is a getter.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the function or method is a getter.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
+                                              bool* is_getter);
+
+/**
+ * Determines whether a function or method is a setter.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param is_static Returns whether the function or method is a setter.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
+                                              bool* is_setter);
+
+/**
+ * Returns a list of the names of all variables declared in a library
+ * or class.
+ *
+ * \param target A library or class.
+ *
+ * \return If no error occurs, a list of strings is returned.
+ *   Otherwise an erorr handle is returned.
+ */
+DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target);
+
+/**
+ * Looks up a variable declaration by name from a library or class.
+ *
+ * \param library The library or class containing the variable.
+ * \param variable_name The name of the variable.
+ *
+ * \return If an error is encountered, returns an error handle.
+ *   Otherwise returns a variable handle if the variable is found or
+ *   Dart_Null() if the variable is not found.
+ */
+DART_EXPORT Dart_Handle Dart_LookupVariable(Dart_Handle target,
+                                            Dart_Handle variable_name);
+
+/**
+ * Is this a variable declaration handle?
+ */
+DART_EXPORT bool Dart_IsVariable(Dart_Handle handle);
+
+/**
+ * Returns the name for the provided variable.
+ */
+DART_EXPORT Dart_Handle Dart_VariableName(Dart_Handle variable);
+
+/**
+ * Determines whether a variable is declared static.
+ *
+ * For the purposes of the embedding API, a top-level variable is
+ * implicitly declared static.
+ *
+ * \param variable A handle to a variable declaration.
+ * \param is_static Returns whether the variable is declared static.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_VariableIsStatic(Dart_Handle variable,
+                                              bool* is_static);
+
+/**
+ * Determines whether a variable is declared final.
+ *
+ * \param variable A handle to a variable declaration.
+ * \param is_final Returns whether the variable is declared final.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_VariableIsFinal(Dart_Handle variable,
+                                             bool* is_final);
+
 // --- Constructors, Methods, and Fields ---
 
 /**

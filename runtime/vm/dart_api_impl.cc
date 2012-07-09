@@ -34,6 +34,7 @@ DECLARE_FLAG(bool, print_class_table);
 
 ThreadLocalKey Api::api_native_key_ = Thread::kUnsetThreadLocalKey;
 
+
 const char* CanonicalFunction(const char* func) {
   if (strncmp(func, "dart::", 6) == 0) {
     return func + 6;
@@ -41,6 +42,7 @@ const char* CanonicalFunction(const char* func) {
     return func;
   }
 }
+
 
 #define RETURN_TYPE_ERROR(isolate, dart_handle, type)                          \
   do {                                                                         \
@@ -56,6 +58,86 @@ const char* CanonicalFunction(const char* func) {
                            CURRENT_FUNC, #dart_handle, #type);                 \
     }                                                                          \
   } while (0)
+
+
+#define RETURN_NULL_ERROR(parameter)                                           \
+  return Api::NewError("%s expects argument '%s' to be non-null.",             \
+                       CURRENT_FUNC, #parameter);
+
+
+// Takes a vm internal name and makes it suitable for external user.
+//
+// Examples:
+//
+// Internal getter and setter prefices are removed:
+//
+//   get:foo -> foo
+//   set:foo -> foo
+//
+// Private name mangling is removed, possibly twice:
+//
+//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
+//   _ReceivePortImpl@6be832b._internal@6be832b -> +ReceivePortImpl._internal
+//
+// The trailing . on the default constructor name is dropped:
+//
+//   List. -> List
+//
+// And so forth:
+//
+//   get:foo@6be832b -> foo
+//   _MyClass@6b3832b. -> _MyClass
+//   _MyClass@6b3832b.named -> _MyClass.named
+//
+static RawString* IdentifierPrettyName(Isolate* isolate, const String& name) {
+  intptr_t len = name.Length();
+  intptr_t start = 0;
+  intptr_t at_pos = len;   // Position of '@' in the name.
+  intptr_t dot_pos = len;  // Position of '.' in the name.
+
+  for (int i = 0; i < name.Length(); i++) {
+    if (name.CharAt(i) == ':') {
+      ASSERT(start == 0);
+      start = i + 1;
+    } else if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    } else if (name.CharAt(i) == '.') {
+      dot_pos = i;
+      break;
+    }
+  }
+  intptr_t limit = (at_pos < dot_pos ? at_pos : dot_pos);
+  if (start == 0 && limit == len) {
+    // This name is fine as it is.
+    return name.raw();
+  }
+
+  String& result = String::Handle(isolate);
+  result = String::SubString(name, start, (limit - start));
+
+  // Look for a second '@' now to correctly handle names like
+  // "_ReceivePortImpl@6be832b._internal@6be832b".
+  at_pos = len;
+  for (int i = dot_pos; i < name.Length(); i++) {
+    if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    }
+  }
+
+  intptr_t suffix_len = at_pos - dot_pos;
+  if (suffix_len <= 1) {
+    // The constructor name is of length 0 or 1.  That means that
+    // either this isn't a constructor or that this is an unnamed
+    // constructor.  In either case, we're done.
+    return result.raw();
+  }
+
+  const String& suffix =
+      String::Handle(isolate, String::SubString(name, dot_pos, suffix_len));
+  return String::Concat(result, suffix);
+}
 
 
 // Return error if isolate is in an inconsistent state.
@@ -108,7 +190,7 @@ Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
 }
 
 RawObject* Api::UnwrapHandle(Dart_Handle object) {
-#ifdef DEBUG
+#if defined(DEBUG)
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
@@ -575,8 +657,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   if (keys == NULL) {
-    return Api::NewError("%s expects argument 'keys' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(keys);
   }
   if (num_keys <= 0) {
     return Api::NewError(
@@ -584,8 +665,7 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
         CURRENT_FUNC);
   }
   if (values == NULL) {
-    return Api::NewError("%s expects argument 'values' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(values);
   }
   if (num_values <= 0) {
     return Api::NewError(
@@ -670,8 +750,7 @@ DART_EXPORT Dart_Handle Dart_HeapProfile(Dart_HeapProfileWriteCallback callback,
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   if (callback == NULL) {
-    return Api::NewError("%s expects argument 'callback' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(callback);
   }
   isolate->heap()->Profile(callback, stream);
   return Api::Success(isolate);
@@ -814,12 +893,10 @@ DART_EXPORT Dart_Handle Dart_CreateSnapshot(uint8_t** buffer,
   DARTSCOPE(isolate);
   TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
-    return Api::NewError("%s expects argument 'buffer' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(buffer);
   }
   if (size == NULL) {
-    return Api::NewError("%s expects argument 'size' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(size);
   }
   const char* msg = CheckIsolateState(isolate,
                                       ClassFinalizer::kGeneratingSnapshot);
@@ -841,12 +918,10 @@ DART_EXPORT Dart_Handle Dart_CreateScriptSnapshot(uint8_t** buffer,
   DARTSCOPE(isolate);
   TIMERSCOPE(time_creating_snapshot);
   if (buffer == NULL) {
-    return Api::NewError("%s expects argument 'buffer' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(buffer);
   }
   if (size == NULL) {
-    return Api::NewError("%s expects argument 'size' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(size);
   }
   const char* msg = CheckIsolateState(isolate);
   if (msg != NULL) {
@@ -1490,8 +1565,7 @@ DART_EXPORT Dart_Handle Dart_NewString(const char* str) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (str == NULL) {
-    return Api::NewError("%s expects argument 'str' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(str);
   }
   if (!Utf8::IsValid(str)) {
     return Api::NewError("%s expects argument 'str' to be valid UTF-8.",
@@ -1544,8 +1618,7 @@ DART_EXPORT Dart_Handle Dart_ExternalStringGetPeer(Dart_Handle object,
                       CURRENT_FUNC);
   }
   if (peer == NULL) {
-    return Api::NewError("%s expects argument 'peer' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(peer);
   }
   *peer = str.GetPeer();
   return Api::Success(isolate);
@@ -1559,8 +1632,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (codepoints == NULL && length != 0) {
-    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(codepoints);
   }
   if (length < 0) {
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
@@ -1578,8 +1650,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (codepoints == NULL && length != 0) {
-    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(codepoints);
   }
   if (length < 0) {
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
@@ -1597,8 +1668,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (codepoints == NULL && length != 0) {
-    return Api::NewError("%s expects argument 'codepoints' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(codepoints);
   }
   if (length < 0) {
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
@@ -1701,12 +1771,10 @@ DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle object,
     RETURN_TYPE_ERROR(isolate, object, String);
   }
   if (bytes == NULL) {
-    return Api::NewError("%s expects argument 'bytes' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(bytes);
   }
   if (length == NULL) {
-    return Api::NewError("%s expects argument 'length' to be non-null.",
-                        CURRENT_FUNC);
+    RETURN_NULL_ERROR(length);
   }
   const char* cstring = str.ToCString();
   *length = Utf8::Length(str);
@@ -2106,8 +2174,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   if (data == NULL && length != 0) {
-    return Api::NewError("%s expects argument 'data' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(data);
   }
   if (length < 0) {
     return Api::NewError("%s expects argument 'length' to be greater than 0.",
@@ -2128,8 +2195,7 @@ DART_EXPORT Dart_Handle Dart_ExternalByteArrayGetPeer(Dart_Handle object,
     RETURN_TYPE_ERROR(isolate, object, ExternalUint8Array);
   }
   if (peer == NULL) {
-    return Api::NewError("%s expects argument 'peer' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(peer);
   }
   *peer = array.GetPeer();
   return Api::Success(isolate);
@@ -2407,7 +2473,8 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
-  return Api::NewHandle(isolate, cls.Name());
+  const String& cls_name = String::Handle(isolate, cls.Name());
+  return Api::NewHandle(isolate, IdentifierPrettyName(isolate, cls_name));
 }
 
 
@@ -2419,6 +2486,14 @@ DART_EXPORT Dart_Handle Dart_ClassGetLibrary(Dart_Handle clazz) {
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
+
+#if defined(DEBUG)
+  const Library& lib = Library::Handle(cls.library());
+  if (lib.IsNull()) {
+    ASSERT(cls.IsDynamicClass() || cls.IsVoidClass());
+  }
+#endif
+
   return Api::NewHandle(isolate, cls.library());
 }
 
@@ -2496,6 +2571,417 @@ DART_EXPORT Dart_Handle Dart_ClassGetInterfaceAt(Dart_Handle clazz,
                        CURRENT_FUNC, type_name.ToCString());
 }
 
+
+// --- Function and Variable Reflection ---
+
+
+// Outside of the vm, we expose setter names with a trailing '='.
+static bool HasExternalSetterSuffix(const String& name) {
+  return name.CharAt(name.Length() - 1) == '=';
+}
+
+
+static RawString* AddExternalSetterSuffix(const String& name) {
+  const String& equals = String::Handle(String::NewSymbol("="));
+  return String::Concat(name, equals);
+}
+
+
+static RawString* RemoveExternalSetterSuffix(const String& name) {
+  ASSERT(HasExternalSetterSuffix(name));
+  return String::SubString(name, 0, name.Length() - 1);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  Function& func = Function::Handle();
+  String& name = String::Handle();
+
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    const Array& func_array = Array::Handle(cls.functions());
+
+    // Some special types like 'Dynamic' have a null functions list.
+    if (!func_array.IsNull()) {
+      for (intptr_t i = 0; i < func_array.Length(); ++i) {
+        func ^= func_array.At(i);
+
+        // Skip implicit getters and setters.
+        if (func.kind() == RawFunction::kImplicitGetter ||
+            func.kind() == RawFunction::kImplicitSetter ||
+            func.kind() == RawFunction::kConstImplicitGetter) {
+          continue;
+        }
+
+        name = func.name();
+        bool is_setter = Field::IsSetterName(name);
+        name = IdentifierPrettyName(isolate, name);
+
+        if (is_setter) {
+          name = AddExternalSetterSuffix(name);
+        }
+        names.Add(name);
+      }
+    }
+  } else if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+    DictionaryIterator it(lib);
+    Object& obj = Object::Handle();
+    while (it.HasNext()) {
+      obj = it.GetNext();
+      if (obj.IsFunction()) {
+        func ^= obj.raw();
+        name = func.name();
+        bool is_setter = Field::IsSetterName(name);
+        name = IdentifierPrettyName(isolate, name);
+        if (is_setter) {
+          name = AddExternalSetterSuffix(name);
+        }
+        names.Add(name);
+      }
+    }
+  } else {
+    return Api::NewError(
+        "%s expects argument 'target' to be a class or library.",
+        CURRENT_FUNC);
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(names));
+}
+
+
+DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
+                                            Dart_Handle function_name) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+  const String& func_name = Api::UnwrapStringHandle(isolate, function_name);
+  if (func_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function_name, String);
+  }
+
+  Function& func = Function::Handle(isolate);
+  String& tmp_name = String::Handle(isolate);
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+
+    // Case 1.  Lookup the unmodified function name.
+    func = cls.LookupFunction(func_name);
+
+    // Case 2.  Lookup the function without the external setter suffix
+    // '='.  Make sure to do this check after the regular lookup, so
+    // that we don't interfere with operator lookups (like ==).
+    if (func.IsNull() && HasExternalSetterSuffix(func_name)) {
+      tmp_name = RemoveExternalSetterSuffix(func_name);
+      tmp_name = Field::SetterName(tmp_name);
+      func = cls.LookupFunction(tmp_name);
+    }
+
+    // Case 3.  Lookup the funciton with the getter prefix prepended.
+    if (func.IsNull()) {
+      tmp_name = Field::GetterName(func_name);
+      func = cls.LookupFunction(tmp_name);
+    }
+
+    // Case 4.  Lookup the function with a . appended to find the
+    // unnamed constructor.
+    if (func.IsNull()) {
+      const String& dot = String::Handle(String::NewSymbol("."));
+      tmp_name = String::Concat(func_name, dot);
+      func = cls.LookupFunction(tmp_name);
+    }
+  } else if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+
+    // Case 1.  Lookup the unmodified function name.
+    func = lib.LookupFunctionAllowPrivate(func_name);
+
+    // Case 2.  Lookup the function without the external setter suffix
+    // '='.  Make sure to do this check after the regular lookup, so
+    // that we don't interfere with operator lookups (like ==).
+    if (func.IsNull() && HasExternalSetterSuffix(func_name)) {
+      tmp_name = RemoveExternalSetterSuffix(func_name);
+      tmp_name = Field::SetterName(tmp_name);
+      func = lib.LookupFunctionAllowPrivate(tmp_name);
+    }
+
+    // Case 3.  Lookup the funciton with the getter prefix prepended.
+    if (func.IsNull()) {
+      tmp_name = Field::GetterName(func_name);
+      func = lib.LookupFunctionAllowPrivate(tmp_name);
+    }
+  } else {
+    return Api::NewError(
+        "%s expects argument 'target' to be a class or library.",
+        CURRENT_FUNC);
+  }
+
+#if defined(DEBUG)
+  if (!func.IsNull()) {
+    // We only provide access to a subset of function kinds.
+    RawFunction::Kind func_kind = func.kind();
+    ASSERT(func_kind == RawFunction::kFunction ||
+           func_kind == RawFunction::kGetterFunction ||
+           func_kind == RawFunction::kSetterFunction ||
+           func_kind == RawFunction::kConstructor ||
+           func_kind == RawFunction::kAbstract);
+  }
+#endif
+  return Api::NewHandle(isolate, func.raw());
+}
+
+
+DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
+  return Api::ClassId(handle) == kFunction;
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  String& func_name = String::Handle(isolate);
+  func_name = func.name();
+  bool is_setter = Field::IsSetterName(func_name);
+  func_name = IdentifierPrettyName(isolate, func_name);
+  if (is_setter) {
+    func_name = AddExternalSetterSuffix(func_name);
+  }
+  return Api::NewHandle(isolate, func_name.raw());
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
+                                                bool* is_abstract) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_abstract == NULL) {
+    RETURN_NULL_ERROR(is_abstract);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  *is_abstract = (func.kind() == RawFunction::kAbstract);
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionIsStatic(Dart_Handle function,
+                                              bool* is_static) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_static == NULL) {
+    RETURN_NULL_ERROR(is_static);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  *is_static = func.is_static();
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionIsConstructor(Dart_Handle function,
+                                                   bool* is_constructor) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_constructor == NULL) {
+    RETURN_NULL_ERROR(is_constructor);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  *is_constructor = func.kind() == RawFunction::kConstructor;
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
+                                              bool* is_getter) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_getter == NULL) {
+    RETURN_NULL_ERROR(is_getter);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  // TODO(turnidge): It would be nice if I could just use func.kind()
+  // to check for a getter function here, but unfortunately the only
+  // way to distinguish abstract getter functions is to use the name
+  // itself.  Consider adding a RawFunction::kAbstractGetter type.
+  const String& func_name = String::Handle(isolate, func.name());
+  *is_getter = Field::IsGetterName(func_name);
+
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
+                                              bool* is_setter) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_setter == NULL) {
+    RETURN_NULL_ERROR(is_setter);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  // TODO(turnidge): It would be nice if I could just use func.kind()
+  // to check for a setter function here, but unfortunately the only
+  // way to distinguish abstract setter functions is to use the name
+  // itself.  Consider adding a RawFunction::kAbstractSetter type.
+  const String& func_name = String::Handle(isolate, func.name());
+  *is_setter = Field::IsSetterName(func_name);
+
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+
+  const GrowableObjectArray& names =
+      GrowableObjectArray::Handle(isolate, GrowableObjectArray::New());
+  Field& field = Field::Handle(isolate);
+  String& name = String::Handle(isolate);
+
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    const Array& field_array = Array::Handle(cls.fields());
+
+    // Some special types like 'Dynamic' have a null fields list.
+    //
+    // TODO(turnidge): Fix 'Dynamic' so that it does not have a null
+    // fields list.  This will have to wait until the empty array is
+    // allocated in the vm isolate.
+    if (!field_array.IsNull()) {
+      for (intptr_t i = 0; i < field_array.Length(); ++i) {
+        field ^= field_array.At(i);
+        name = field.name();
+        name = IdentifierPrettyName(isolate, name);
+        names.Add(name);
+      }
+    }
+  } else if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+    DictionaryIterator it(lib);
+    Object& obj = Object::Handle(isolate);
+    while (it.HasNext()) {
+      obj = it.GetNext();
+      if (obj.IsField()) {
+        field ^= obj.raw();
+        name = field.name();
+        name = IdentifierPrettyName(isolate, name);
+        names.Add(name);
+      }
+    }
+  } else {
+    return Api::NewError(
+        "%s expects argument 'target' to be a class or library.",
+        CURRENT_FUNC);
+  }
+  return Api::NewHandle(isolate, Array::MakeArray(names));
+}
+
+
+DART_EXPORT Dart_Handle Dart_LookupVariable(Dart_Handle target,
+                                            Dart_Handle variable_name) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(target));
+  if (obj.IsError()) {
+    return target;
+  }
+  const String& var_name = Api::UnwrapStringHandle(isolate, variable_name);
+  if (var_name.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, variable_name, String);
+  }
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    return Api::NewHandle(isolate, cls.LookupField(var_name));
+  }
+  if (obj.IsLibrary()) {
+    const Library& lib = Library::Cast(obj);
+    return Api::NewHandle(isolate, lib.LookupFieldAllowPrivate(var_name));
+  }
+  return Api::NewError(
+      "%s expects argument 'target' to be a class or library.",
+      CURRENT_FUNC);
+}
+
+
+DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
+  return Api::ClassId(handle) == kField;
+}
+
+
+DART_EXPORT Dart_Handle Dart_VariableName(Dart_Handle variable) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Field& var = Api::UnwrapFieldHandle(isolate, variable);
+  if (var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, variable, Field);
+  }
+  const String& var_name = String::Handle(var.name());
+  return Api::NewHandle(isolate, IdentifierPrettyName(isolate, var_name));
+}
+
+
+DART_EXPORT Dart_Handle Dart_VariableIsStatic(Dart_Handle variable,
+                                              bool* is_static) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_static == NULL) {
+    RETURN_NULL_ERROR(is_static);
+  }
+  const Field& var = Api::UnwrapFieldHandle(isolate, variable);
+  if (var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, variable, Field);
+  }
+  *is_static = var.is_static();
+  return Api::Success(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_VariableIsFinal(Dart_Handle variable,
+                                             bool* is_final) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (is_final == NULL) {
+    RETURN_NULL_ERROR(is_final);
+  }
+  const Field& var = Api::UnwrapFieldHandle(isolate, variable);
+  if (var.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, variable, Field);
+  }
+  *is_final = var.is_final();
+  return Api::Success(isolate);
+}
 
 // --- Constructors, Methods, and Fields ---
 
@@ -3333,8 +3819,7 @@ DART_EXPORT Dart_Handle Dart_LoadScriptFromSnapshot(const uint8_t* buffer) {
   DARTSCOPE(isolate);
   TIMERSCOPE(time_script_loading);
   if (buffer == NULL) {
-    return Api::NewError("%s expects argument 'buffer' to be non-null.",
-                         CURRENT_FUNC);
+    RETURN_NULL_ERROR(buffer);
   }
   const Snapshot* snapshot = Snapshot::SetupFromBuffer(buffer);
   if (!snapshot->IsScriptSnapshot()) {
@@ -3464,8 +3949,15 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
   String& name = String::Handle();
   while (it.HasNext()) {
     cls = it.GetNextClass();
-    name = cls.Name();
-    names.Add(name);
+    // For now we suppress the signature classes of closures.
+    //
+    // TODO(turnidge): Add this to the unit test.
+    const Function& signature_func = Function::Handle(cls.signature_function());
+    if (signature_func.IsNull()) {
+      name = cls.Name();
+      name = IdentifierPrettyName(isolate, name);
+      names.Add(name);
+    }
   }
   return Api::NewHandle(isolate, Array::MakeArray(names));
 }

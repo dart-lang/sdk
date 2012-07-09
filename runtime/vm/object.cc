@@ -321,6 +321,9 @@ void Object::InitOnce() {
   // Therefore, it cannot have a heap allocated name (the name is hard coded,
   // see GetSingletonClassIndex) and its array fields cannot be set to the empty
   // array, but remain null.
+  //
+  // TODO(turnidge): Once the empty array is allocated in the vm
+  // isolate, use it here.
   cls = Class::New<Instance>(kDynamicClassId);
   cls.set_is_finalized();
   cls.set_is_interface();
@@ -1925,26 +1928,51 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-static bool MatchesPrivateName(const String& name, const String& private_name) {
-  intptr_t name_len = name.Length();
-  intptr_t private_len = private_name.Length();
-  // The private_name must at least have room for the separator and one key
-  // character.
-  if ((name_len < (private_len + 2)) || (name_len == 0) || (private_len == 0)) {
+// Check to see if mangled_name is equal to bare_name once the private
+// key separator is stripped from mangled_name.
+//
+// Things are made more complicated by the fact that constructors are
+// added *after* the private suffix, so "foo@123.named" should match
+// "foo.named".
+//
+// Also, the private suffix can occur more than once in the name, as in:
+//
+//    _ReceivePortImpl@6be832b._internal@6be832b
+//
+bool EqualsIgnoringPrivate(const String& mangled_name,
+                           const String& bare_name) {
+  intptr_t mangled_len = mangled_name.Length();
+  intptr_t bare_len = bare_name.Length();
+  if (mangled_len < bare_len) {
+    // No way they can match.
     return false;
   }
 
-  // Check for the private key separator.
-  if (name.CharAt(private_len) != Scanner::kPrivateKeySeparator) {
-    return false;
-  }
+  intptr_t mangled_pos = 0;
+  intptr_t bare_pos = 0;
+  while (mangled_pos < mangled_len) {
+    int32_t mangled_char = mangled_name.CharAt(mangled_pos);
+    mangled_pos++;
 
-  for (intptr_t i = 0; i < private_len; i++) {
-    if (name.CharAt(i) != private_name.CharAt(i)) {
+    if (mangled_char == Scanner::kPrivateKeySeparator) {
+      // Consume a private key separator.
+      while (mangled_pos < mangled_len &&
+             mangled_name.CharAt(mangled_pos) != '.') {
+        mangled_pos++;
+      }
+
+      // Resume matching characters.
+      continue;
+    }
+    if (bare_pos == bare_len || mangled_char != bare_name.CharAt(bare_pos)) {
       return false;
     }
+    bare_pos++;
   }
-  return true;
+
+  // The strings match if we have reached the end of both strings.
+  return (mangled_pos == mangled_len &&
+          bare_pos == bare_len);
 }
 
 
@@ -1957,7 +1985,8 @@ RawFunction* Class::LookupFunction(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
-    if (function_name.Equals(name) || MatchesPrivateName(function_name, name)) {
+    if (function_name.Equals(name) ||
+        EqualsIgnoringPrivate(function_name, name)) {
       return function.raw();
     }
   }
@@ -2059,7 +2088,7 @@ RawField* Class::LookupField(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
-    if (field_name.Equals(name) || MatchesPrivateName(field_name, name)) {
+    if (field_name.Equals(name) || EqualsIgnoringPrivate(field_name, name)) {
       return field.raw();
     }
   }
