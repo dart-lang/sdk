@@ -102,6 +102,7 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
+  Link<Node> metadata = const EmptyLink<Node>();
   Modifiers get modifiers() => null;
 
   Node parseNode(DiagnosticListener listener) {
@@ -110,6 +111,10 @@ class Element implements Hashable {
 
   Type computeType(Compiler compiler) {
     compiler.internalError("$this.computeType.", token: position());
+  }
+
+  void addMetadata(Node node) {
+    metadata = metadata.prepend(node);
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;

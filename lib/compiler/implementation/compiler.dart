@@ -273,6 +273,7 @@ class Compiler implements DiagnosticListener {
   ScannerTask scanner;
   DietParserTask dietParser;
   ParserTask parser;
+  PatchParserTask patchParser;
   TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
@@ -312,6 +313,7 @@ class Compiler implements DiagnosticListener {
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
+    patchParser = new PatchParserTask(this);
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
@@ -509,65 +511,125 @@ class Compiler implements DiagnosticListener {
     if (library.isPatched) return;
     Uri patchUri = resolvePatchUri(dartLibraryPath);
     if (patchUri !== null) {
-      // TODO(lrn): Use a different parser to allow for "patch" annotations.
-      // For now just assume everything in the patch library is a patch
-      // function.
-      LibraryElement patchLibrary = scanner.loadLibrary(patchUri, null);
+      LibraryElement patchLibrary =
+          patchParser.loadPatchLibrary(patchUri);
+      // We allow foreign functions in patched libraries.
+      addForeignFunctions(library);  // Is safe even if already added.
       applyLibraryPatch(library, patchLibrary);
     }
   }
 
-  void applyLibraryPatch(LibraryElement library, LibraryElement patch) {
-    // We allow foreign functions in patched libraries.
-    addForeignFunctions(library);  // Is safe even if already added.
+  void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
+    Link<Element> patches = patch.topLevelElements;
 
     // Copy/patch top-level elements.
-    Link<Element> patches = patch.topLevelElements;
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
-      Element originalElement = library.elements[patchElement.name];
-      if (originalElement !== null) {
-        // Assume that we are patching if the original exists.
-        if (originalElement is! FunctionElement) {
-          // TODO(lrn): Handle class declarations too.
-          internalError("Can only patch functions", element: originalElement);
-        }
-        // TODO(lrn): Abort if the original isn't marked external, when
-        // that is added to the language.
-        if (patchElement is! FunctionElement ||
-            !patchSignatureMatches(originalElement, patchElement)) {
-          internalError("Can only patch functions with matching signatures",
+      Element originalElement = original.elements[patchElement.name];
+      // Getters and setters are kept inside a synthetic field.
+      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        if (originalElement !== null &&
+            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          internalError("Cannot patch non-getter/setter with getter/setter",
                         element: originalElement);
         }
-        applyFunctionPatch(originalElement, patchElement);
+        AbstractFieldElement patchField = patchElement;
+        AbstractFieldElement originalField = originalElement;
+        if (patchField.getter !== null) {
+          if (originalField === null || originalField.getter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.getter));
+          } else {
+            patchMember(originalField.getter, patchField.getter);
+          }
+        }
+        if (patchField.setter !== null) {
+          if (originalField === null || originalField.setter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.setter));
+          } else {
+            patchMember(originalField.setter, patchField.setter);
+          }
+        }
+      } else if (originalElement === null) {
+        original.addMember(clonePatch(patchElement));
       } else {
-        // TODO(lrn): Allow adding private elements to the original library.
+        patchMember(originalElement, patchElement);
       }
       patches = patches.tail;
     }
 
     // Copy imports.
     Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
-    Uri base = patch.script.uri;
+    Uri patchBase = patch.script.uri;
     for (ScriptTag tag in patch.tags.reverse()) {
       if (tag.isImport()) {
         StringNode argument = tag.argument;
-        Uri resolved = base.resolve(argument.dartString.slowToString());
+        Uri resolved = patchBase.resolve(argument.dartString.slowToString());
         LibraryElement importedLibrary =
             scanner.loadLibrary(resolved, argument);
-        scanner.importLibrary(library, importedLibrary, tag, patch);
+        scanner.importLibrary(original, importedLibrary, tag, patch);
         if (resolved.scheme == "dart") {
           delayedPatches[resolved.path] = importedLibrary;
         }
       }
     }
+
     // Mark library as already patched.
-    library.patch = patch;
-    // We patch imported libraries after marking the current library as patched,
-    // to avoid problems with cyclic dependencies.
+    original.patch = patch;
+
+    // We patch imported libraries after marking the current library as
+    // patched, to avoid problems with cyclic dependencies.
     delayedPatches.forEach((String path, LibraryElement importedLibrary) {
       patchDartLibrary(importedLibrary, path);
     });
+  }
+
+  bool isPatchElement(Element element) {
+    // TODO(lrn): More checks needed if we introduce metadata for real.
+    // In that case, it must have the identifier "native" as metadata.
+    return !element.metadata.isEmpty();
+  }
+
+  Element clonePatch(Element patchElement) {
+    // The original library does not have an element with the same name
+    // as the patch library element.
+    // In this case, the patch library element must not be marked as "patch",
+    // and its name must make it private.
+    if (isPatchElement(patchElement)) {
+      internalError("Cannot patch non-existing member '"
+                      "${patchElement.name.slowToString()}'.");
+
+    }
+    if (!patchElement.name.isPrivate()) {
+      internalError("Cannot add non-private member '"
+                    "${patchElement.name.slowToString()}' from patch.");
+    }
+    // TODO(lrn): Create a copy of patchElement that isn't added to anything,
+    // but which takes its source from patchElement.
+    throw "Adding members from patch is unsupported";
+  }
+
+  void patchMember(Element originalElement,
+                   Element patchElement) {
+    // The original library has an element with the same name as the patch
+    // library element.
+    // In this case, the patch library element must be a function marked as
+    // "patch" and it must have the same signature as the function it patches.
+    if (!isPatchElement(patchElement)) {
+      internalError("Cannot overwrite existing '"
+                    "${originalElement.name.slowToString()}' with non-patch.");
+    }
+    if (originalElement is! FunctionElement) {
+      // TODO(lrn): Handle class declarations too.
+      internalError("Can only patch functions", element: originalElement);
+    }
+    // TODO(lrn): Abort if the original isn't marked external, when
+    // that is added to the language.
+    if (patchElement is! FunctionElement ||
+        !patchSignatureMatches(originalElement, patchElement)) {
+      internalError("Can only patch functions with matching signatures",
+                    element: originalElement);
+    }
+    applyFunctionPatch(originalElement, patchElement);
   }
 
   bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {

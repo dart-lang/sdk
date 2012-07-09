@@ -4,9 +4,10 @@
 
 // Patch file for dart:math library.
 
-// Imports the MathNatives class used by the library.
+// Imports the MathNatives class used by the library as well as checkNum used
+// below.
 #import("js_helper.dart");
 
 // Override the sqrt function, as proof-of-concept.
-double sqrt(num value)
+patch double sqrt(num value)
   => JS('double', @'Math.sqrt(#)', checkNum(value));
