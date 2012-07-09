@@ -107,6 +107,8 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     return type.isPrimitive() && !type.isNull();
   }
 
+  bool get hasTypeGuards() => work.guards.length != 0;
+
   bool typeGuardWouldBeValuable(HInstruction instruction,
                                 HType speculativeType) {
     // If the type itself is not valuable, do not generate a guard for it.
@@ -143,6 +145,20 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
     for (HInstruction user in instruction.usedBy) {
       HBasicBlock userLoopHeader = user.block.enclosingLoopHeader;
       if (isNested(userLoopHeader, currentLoopHeader)) return true;
+    }
+
+    // To speed up computations on values loaded from arrays, we
+    // insert type guards for builtin array indexing operations in
+    // nested loops. Since this can blow up code size quite
+    // significantly, we only do it if type guards have already been
+    // inserted for this method. The code size price for an additional
+    // type guard is much smaller than the first one that causes the
+    // generation of a bailout method.
+    if (instruction is HIndex && instruction.builtin && hasTypeGuards) {
+      HBasicBlock loopHeader = instruction.block.enclosingLoopHeader;
+      if (loopHeader != null && loopHeader.parentLoopHeader != null) {
+        return true;
+      }
     }
 
     // Insert type guards if the method is likely to be called in a
