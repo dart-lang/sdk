@@ -1722,8 +1722,8 @@ class Instruction : public ZoneAllocated {
   Instruction()
       : cid_(-1),
         ic_data_(NULL),
-        successor_(NULL),
         previous_(NULL),
+        next_(NULL),
         env_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = Computation::GetNextCid(isolate);
@@ -1750,8 +1750,14 @@ class Instruction : public ZoneAllocated {
   // Visiting support.
   virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
 
-  Instruction* successor() const { return successor_; }
-  void set_successor(Instruction* instr) {
+  Instruction* previous() const { return previous_; }
+  void set_previous(Instruction* instr) {
+    ASSERT(!IsBlockEntry());
+    previous_ = instr;
+  }
+
+  Instruction* next() const { return next_; }
+  void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
     ASSERT(!IsBranch());
@@ -1760,13 +1766,7 @@ class Instruction : public ZoneAllocated {
     // that do not have a successor. Currently, the graph builder will continue
     // to append instruction in case of a Throw inside an expression. This
     // condition should be handled in the graph builder
-    successor_ = instr;
-  }
-
-  Instruction* previous() const { return previous_; }
-  void set_previous(Instruction* instr) {
-    ASSERT(!IsBlockEntry());
-    previous_ = instr;
+    next_ = instr;
   }
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
@@ -1838,8 +1838,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
  private:
   intptr_t cid_;
   ICData* ic_data_;
-  Instruction* successor_;
   Instruction* previous_;
+  Instruction* next_;
   Environment* env_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
@@ -1940,11 +1940,11 @@ class ForwardInstructionIterator : public ValueObject {
   }
 
   void Advance() {
-    if (!Done()) current_ = current_->successor();
+    if (!Done()) current_ = current_->next();
   }
 
   bool Done() const {
-    return current_ == block_entry_->last_instruction()->successor();
+    return current_ == block_entry_->last_instruction()->next();
   }
 
   void RemoveCurrentFromGraph() {
@@ -1954,9 +1954,9 @@ class ForwardInstructionIterator : public ValueObject {
     ASSERT(!current_->IsReturn());
     ASSERT(!current_->IsReThrow());
     ASSERT(current_->previous() != NULL);
-    Instruction* next = current_->successor();
     Instruction* prev = current_->previous();
-    prev->set_successor(next);
+    Instruction* next = current_->next();
+    prev->set_next(next);
     ASSERT(next != NULL);
     if (current_ != block_entry_->last_instruction()) {
       ASSERT(!next->IsBlockEntry());
@@ -1969,8 +1969,8 @@ class ForwardInstructionIterator : public ValueObject {
     }
     // Reset successor and previous instruction to indicate
     // that the instruction is removed from the graph.
-    current_->set_successor(NULL);
     current_->set_previous(NULL);
+    current_->set_next(NULL);
     current_ = prev;
   }
 

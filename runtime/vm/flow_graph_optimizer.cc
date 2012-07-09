@@ -540,7 +540,7 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
 
 static void TryFuseComparisonWithBranch(BindInstr* instr,
                                         ComparisonComp* comp) {
-  Instruction* next_instr = instr->successor();
+  Instruction* next_instr = instr->next();
   if ((next_instr != NULL) && next_instr->IsBranch()) {
     BranchInstr* branch = next_instr->AsBranch();
     UseVal* use = branch->value()->AsUse();
@@ -553,7 +553,7 @@ static void TryFuseComparisonWithBranch(BindInstr* instr,
   if ((next_instr != NULL) && next_instr->IsBind()) {
     Computation* next_comp = next_instr->AsBind()->computation();
     if (next_comp->IsBooleanNegate()) {
-      Instruction* next_next_instr = next_instr->successor();
+      Instruction* next_next_instr = next_instr->next();
       if ((next_next_instr != NULL) && next_next_instr->IsBranch()) {
         BooleanNegateComp* negate = next_comp->AsBooleanNegate();
         BranchInstr* branch = next_next_instr->AsBranch();
@@ -562,7 +562,7 @@ static void TryFuseComparisonWithBranch(BindInstr* instr,
           comp->MarkFusedWithBranch(branch);
           branch->MarkFusedWithComparison();
           branch->set_is_negated(true);
-          instr->set_successor(next_next_instr);
+          instr->set_next(next_next_instr);
           return;
         }
       }
@@ -630,7 +630,7 @@ void FlowGraphAnalyzer::Analyze() {
   is_leaf_ = true;
   for (intptr_t i = 0; i < blocks_.length(); ++i) {
     BlockEntryInstr* block_entry = blocks_[i];
-    Instruction* instr = block_entry->successor();
+    Instruction* instr = block_entry->next();
     while ((instr != NULL) && !instr->IsBlockEntry()) {
       LocationSummary* locs = instr->locs();
       if (locs != NULL) {
@@ -639,7 +639,7 @@ void FlowGraphAnalyzer::Analyze() {
           return;
         }
       }
-      instr = instr->successor();
+      instr = instr->next();
     }
   }
 }

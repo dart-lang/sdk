@@ -55,7 +55,7 @@ void EffectGraphVisitor::Append(const EffectGraphVisitor& other_fragment) {
     entry_ = other_fragment.entry();
     exit_ = other_fragment.exit();
   } else {
-    exit()->set_successor(other_fragment.entry());
+    exit()->set_next(other_fragment.entry());
     exit_ = other_fragment.exit();
   }
   temp_index_ = other_fragment.temp_index();
@@ -70,7 +70,7 @@ UseVal* EffectGraphVisitor::Bind(Computation* computation) {
   if (is_empty()) {
     entry_ = bind_instr;
   } else {
-    exit()->set_successor(bind_instr);
+    exit()->set_next(bind_instr);
   }
   exit_ = bind_instr;
   return new UseVal(bind_instr);
@@ -84,7 +84,7 @@ void EffectGraphVisitor::Do(Computation* computation) {
   if (is_empty()) {
     entry_ = do_instr;
   } else {
-    exit()->set_successor(do_instr);
+    exit()->set_next(do_instr);
   }
   exit_ = do_instr;
 }
@@ -100,7 +100,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
-    exit()->set_successor(instruction);
+    exit()->set_next(instruction);
     exit_ = instruction;
   }
 }
@@ -111,7 +111,7 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
 static Instruction* AppendFragment(BlockEntryInstr* entry,
                                    const EffectGraphVisitor& fragment) {
   if (fragment.is_empty()) return entry;
-  entry->set_successor(fragment.entry());
+  entry->set_next(fragment.entry());
   return fragment.exit();
 }
 
@@ -147,8 +147,8 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     temp_index_ = true_fragment.temp_index();
   } else {
     exit_ = new JoinEntryInstr();
-    true_exit->set_successor(exit_);
-    false_exit->set_successor(exit_);
+    true_exit->set_next(exit_);
+    false_exit->set_next(exit_);
     ASSERT(true_fragment.temp_index() == false_fragment.temp_index());
     temp_index_ = true_fragment.temp_index();
   }
@@ -176,8 +176,8 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
   } else {
     JoinEntryInstr* join = new JoinEntryInstr();
     AddInstruction(join);
-    join->set_successor(test_fragment.entry());
-    body_exit->set_successor(join);
+    join->set_next(test_fragment.entry());
+    body_exit->set_next(join);
   }
 
   // 3. Set the exit to the graph to be the false successor of the test, a
@@ -971,7 +971,7 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     *case_false_addresses[i] = case_entries[i + 1];
     TargetEntryInstr* true_target = new TargetEntryInstr();
     *case_true_addresses[i] = true_target;
-    true_target->set_successor(statement_start);
+    true_target->set_next(statement_start);
   }
 
   BlockEntryInstr* exit_instruction = NULL;
@@ -983,25 +983,25 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
     } else {
       TargetEntryInstr* true_target = new TargetEntryInstr();
       *case_true_addresses[len - 1] = true_target;
-      true_target->set_successor(statement_start);
+      true_target->set_next(statement_start);
     }
     TargetEntryInstr* false_target = new TargetEntryInstr();
     *case_false_addresses[len - 1] = false_target;
     if (node->contains_default()) {
       // True and false go to statement start.
-      false_target->set_successor(statement_start);
+      false_target->set_next(statement_start);
       if (for_case_statements.is_open()) {
         exit_instruction = new TargetEntryInstr();
-        for_case_statements.exit()->set_successor(exit_instruction);
+        for_case_statements.exit()->set_next(exit_instruction);
       }
     } else {
       if (for_case_statements.is_open()) {
         exit_instruction = new JoinEntryInstr();
-        for_case_statements.exit()->set_successor(exit_instruction);
+        for_case_statements.exit()->set_next(exit_instruction);
       } else {
         exit_instruction = new TargetEntryInstr();
       }
-      false_target->set_successor(exit_instruction);
+      false_target->set_next(exit_instruction);
     }
   } else {
     // A CaseNode without case expressions must contain default.
@@ -1083,21 +1083,21 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
     } else {
       test_entry = node->label()->join_for_continue();
     }
-    test_entry->set_successor(for_test.entry());
+    test_entry->set_next(for_test.entry());
     if (body_exit != NULL) {
-      body_exit->set_successor(test_entry);
+      body_exit->set_next(test_entry);
     }
   }
 
   TargetEntryInstr* back_target_entry = new TargetEntryInstr();
   *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->set_successor(body_entry_join);
+  back_target_entry->set_next(body_entry_join);
   TargetEntryInstr* loop_exit_target = new TargetEntryInstr();
   *for_test.false_successor_address() = loop_exit_target;
   if (node->label()->join_for_break() == NULL) {
     exit_ = loop_exit_target;
   } else {
-    loop_exit_target->set_successor(node->label()->join_for_break());
+    loop_exit_target->set_next(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
 }
@@ -1143,7 +1143,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   } else if (node->label()->join_for_continue() != NULL) {
     // Insert join between body and increment.
     if (for_body.is_open()) {
-      for_body.exit()->set_successor(node->label()->join_for_continue());
+      for_body.exit()->set_next(node->label()->join_for_continue());
     }
     for_increment.AddInstruction(node->label()->join_for_continue());
     node->increment()->Visit(&for_increment);
@@ -1159,7 +1159,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   if (loop_increment_end != NULL) {
     JoinEntryInstr* loop_start = new JoinEntryInstr();
     AddInstruction(loop_start);
-    loop_increment_end->set_successor(loop_start);
+    loop_increment_end->set_next(loop_start);
   }
 
   if (node->condition() == NULL) {
@@ -1183,7 +1183,7 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
     if (node->label()->join_for_break() == NULL) {
       exit_ = loop_exit;
     } else {
-      loop_exit->set_successor(node->label()->join_for_break());
+      loop_exit->set_next(node->label()->join_for_break());
       exit_ = node->label()->join_for_break();
     }
   }
@@ -2221,11 +2221,11 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
     // Link instructions backwards for optimized compilation.
     for (intptr_t i = 0; i < block_count; ++i) {
       Instruction* prev = postorder_block_entries_[i];
-      Instruction* current = prev->successor();
+      Instruction* current = prev->next();
       while (current != NULL && !current->IsBlockEntry()) {
         current->set_previous(prev);
         prev = current;
-        current = current->successor();
+        current = current->next();
       }
     }
     GrowableArray<BitVector*> dominance_frontier;

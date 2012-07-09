@@ -48,9 +48,9 @@ void FlowGraphPrinter::PrintBlocks() {
       OS::Print("\n");
       PrintInstruction(current);
     }
-    if (current->successor() != NULL) {
-      ASSERT(current->successor()->IsBlockEntry());
-      OS::Print(" goto %d", current->successor()->AsBlockEntry()->block_id());
+    if (current->next() != NULL) {
+      ASSERT(current->next()->IsBlockEntry());
+      OS::Print(" goto %d", current->next()->AsBlockEntry()->block_id());
     }
     OS::Print("\n");
   }
@@ -539,10 +539,10 @@ void FlowGraphVisualizer::PrintFunction() {
           Print("0 0 ");
           PrintInstruction(current);
         }
-        if (current->successor() != NULL) {
-          ASSERT(current->successor()->IsBlockEntry());
+        if (current->next() != NULL) {
+          ASSERT(current->next()->IsBlockEntry());
           Print("0 0 _ Goto B%d <|@\n",
-                current->successor()->AsBlockEntry()->block_id());
+                current->next()->AsBlockEntry()->block_id());
         }
         END("HIR");
       }

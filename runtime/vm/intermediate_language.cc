@@ -66,7 +66,7 @@ FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
 #define DEFINE_ACCEPT(ShortName)                                               \
 Instruction* ShortName##Instr::Accept(FlowGraphVisitor* visitor) {             \
   visitor->Visit##ShortName(this);                                             \
-  return successor();                                                          \
+  return next();                                                               \
 }
 
 FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
@@ -445,20 +445,22 @@ void BlockEntryInstr::DiscoverBlocks(
 
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
-  ASSERT(successor() != NULL);
-  Instruction* next = successor();
-  if (next->IsBlockEntry()) {
+  ASSERT(next() != NULL);
+  Instruction* next_instr = next();
+  if (next_instr->IsBlockEntry()) {
     set_last_instruction(this);
   } else {
-    while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
-      if (vars != NULL) next->RecordAssignedVars(vars);
-      set_last_instruction(next);
-      next = next->successor();
+    while ((next_instr != NULL) &&
+           !next_instr->IsBlockEntry() &&
+           !next_instr->IsBranch()) {
+      if (vars != NULL) next_instr->RecordAssignedVars(vars);
+      set_last_instruction(next_instr);
+      next_instr = next_instr->next();
     }
   }
-  if (next != NULL) {
-    next->DiscoverBlocks(this, preorder, postorder,
-                         parent, assigned_vars, variable_count);
+  if (next_instr != NULL) {
+    next_instr->DiscoverBlocks(this, preorder, postorder,
+                               parent, assigned_vars, variable_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -507,14 +509,13 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 intptr_t Instruction::SuccessorCount() const {
   ASSERT(!IsBranch());
   ASSERT(!IsGraphEntry());
-  ASSERT(successor() == NULL ||
-         successor()->IsBlockEntry());
-  return successor() != NULL ? 1 : 0;
+  ASSERT(next() == NULL || next()->IsBlockEntry());
+  return (next() != NULL) ? 1 : 0;
 }
 
 
 BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
-  return successor()->AsBlockEntry();
+  return next()->AsBlockEntry();
 }
 
 
