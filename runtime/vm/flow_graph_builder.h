@@ -46,6 +46,10 @@ class FlowGraphBuilder: public ValueObject {
     return current_ssa_temp_index_;
   }
 
+  intptr_t alloc_ssa_temp_index() {
+    return current_ssa_temp_index_++;
+  }
+
  private:
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
                          GrowableArray<intptr_t>* parent,

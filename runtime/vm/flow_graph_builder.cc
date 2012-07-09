@@ -2498,7 +2498,7 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   intptr_t i = 0;
   for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
     ParameterInstr* param = new ParameterInstr(i);
-    param->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+    param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     start_env->Add(new UseVal(param));
   }
 
@@ -2546,7 +2546,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*join->phis())[i];
         if (phi != NULL) {
           (*env)[i] = new UseVal(phi);
-          phi->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+          phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
         }
       }
     }
@@ -2615,7 +2615,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
         // Not a load or store.
         if (bind->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
-          bind->set_ssa_temp_index(current_ssa_temp_index_++);
+          bind->set_ssa_temp_index(alloc_ssa_temp_index());
           env->Add(new UseVal(bind));
         }
       }

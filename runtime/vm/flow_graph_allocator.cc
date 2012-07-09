@@ -29,12 +29,6 @@ void FlowGraphAllocator::ResolveConstraints() {
 }
 
 
-static intptr_t ToVirtualRegister(Instruction* instr) {
-  const Definition* def = instr->AsDefinition();
-  return (def == NULL) ? -1 : def->ssa_temp_index();
-}
-
-
 void FlowGraphAllocator::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
@@ -49,16 +43,13 @@ void FlowGraphAllocator::ComputeInitialSets() {
         for (intptr_t j = 0; j < join->phis()->length(); j++) {
           PhiInstr* phi = (*join->phis())[j];
           if (phi == NULL) continue;
-
-          const intptr_t def = ToVirtualRegister(phi);
-          if (def >= 0) kill->Add(def);
+          kill->Add(phi->ssa_temp_index());
 
           for (intptr_t k = 0; k < phi->InputCount(); k++) {
             Value* val = phi->InputAt(k);
-            if (!val->IsUse()) continue;
-            const intptr_t use = ToVirtualRegister(val->AsUse()->definition());
-            if (use >= 0) {
+            if (val->IsUse()) {
               BlockEntryInstr* pred = block->PredecessorAt(k);
+              const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
               live_out_[pred->postorder_number()]->Add(use);
             }
           }
@@ -71,13 +62,16 @@ void FlowGraphAllocator::ComputeInitialSets() {
       Instruction* current = it.Current();
       for (intptr_t j = 0; j < current->InputCount(); j++) {
         Value* input = current->InputAt(j);
-        if (!input->IsUse()) continue;
-        const intptr_t use = ToVirtualRegister(input->AsUse()->definition());
-        if ((use >= 0) && !kill->Contains(use)) live_in->Add(use);
+        if (input->IsUse()) {
+          const intptr_t use = input->AsUse()->definition()->ssa_temp_index();
+          if (!kill->Contains(use)) live_in->Add(use);
+        }
       }
 
-      const intptr_t def = ToVirtualRegister(current);
-      if (def >= 0) kill->Add(def);
+      Definition* current_def = current->AsDefinition();
+      if ((current_def != NULL) && (current_def->ssa_temp_index() >= 0)) {
+        kill->Add(current_def->ssa_temp_index());
+      }
     }
   }
 

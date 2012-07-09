@@ -73,6 +73,34 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
+void ForwardInstructionIterator::RemoveCurrentFromGraph() {
+  ASSERT(!current_->IsBlockEntry());
+  ASSERT(!current_->IsBranch());
+  ASSERT(!current_->IsThrow());
+  ASSERT(!current_->IsReturn());
+  ASSERT(!current_->IsReThrow());
+  ASSERT(current_->previous() != NULL);
+  Instruction* prev = current_->previous();
+  Instruction* next = current_->next();
+  prev->set_next(next);
+  ASSERT(next != NULL);
+  if (current_ != block_entry_->last_instruction()) {
+    ASSERT(!next->IsBlockEntry());
+    next->set_previous(prev);
+  } else {
+    ASSERT(current_->IsBind());
+    // Removing the last instruction of a block.
+    // Update last_instruction of the current basic block.
+    block_entry_->set_last_instruction(prev);
+  }
+  // Reset successor and previous instruction to indicate
+  // that the instruction is removed from the graph.
+  current_->set_previous(NULL);
+  current_->set_next(NULL);
+  current_ = prev;
+}
+
+
 // True iff. the v2 is above v1 on stack, or one of them is constant.
 static bool VerifyValues(Value* v1, Value* v2) {
   ASSERT(v1->IsUse() && v2->IsUse());
@@ -507,8 +535,6 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 
 
 intptr_t Instruction::SuccessorCount() const {
-  ASSERT(!IsBranch());
-  ASSERT(!IsGraphEntry());
   ASSERT(next() == NULL || next()->IsBlockEntry());
   return (next() != NULL) ? 1 : 0;
 }

@@ -1940,39 +1940,16 @@ class ForwardInstructionIterator : public ValueObject {
   }
 
   void Advance() {
-    if (!Done()) current_ = current_->next();
+    ASSERT(!Done());
+    current_ = current_->next();
   }
 
   bool Done() const {
     return current_ == block_entry_->last_instruction()->next();
   }
 
-  void RemoveCurrentFromGraph() {
-    ASSERT(!current_->IsBlockEntry());
-    ASSERT(!current_->IsBranch());
-    ASSERT(!current_->IsThrow());
-    ASSERT(!current_->IsReturn());
-    ASSERT(!current_->IsReThrow());
-    ASSERT(current_->previous() != NULL);
-    Instruction* prev = current_->previous();
-    Instruction* next = current_->next();
-    prev->set_next(next);
-    ASSERT(next != NULL);
-    if (current_ != block_entry_->last_instruction()) {
-      ASSERT(!next->IsBlockEntry());
-      next->set_previous(prev);
-    } else {
-      ASSERT(current_->IsBind());
-      // Removing the last instruction of a block.
-      // Update last_instruction of the current basic block.
-      block_entry_->set_last_instruction(prev);
-    }
-    // Reset successor and previous instruction to indicate
-    // that the instruction is removed from the graph.
-    current_->set_previous(NULL);
-    current_->set_next(NULL);
-    current_ = prev;
-  }
+  // Removes 'current_' from graph and sets 'current_' to previous instruction.
+  void RemoveCurrentFromGraph();
 
   Instruction* Current() const { return current_; }
 
@@ -2166,13 +2143,13 @@ class BindInstr : public Definition {
 
  private:
   Computation* computation_;
-  bool is_used_;
+  const bool is_used_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
 
 
-class PhiInstr: public Definition {
+class PhiInstr : public Definition {
  public:
   explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2189,7 +2166,7 @@ class PhiInstr: public Definition {
 };
 
 
-class ParameterInstr: public Definition {
+class ParameterInstr : public Definition {
  public:
   explicit ParameterInstr(intptr_t index) : index_(index) { }
 
@@ -2198,7 +2175,7 @@ class ParameterInstr: public Definition {
   DECLARE_INSTRUCTION(Parameter)
 
  private:
-  intptr_t index_;
+  const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
