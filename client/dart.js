@@ -53,6 +53,12 @@ function ReceivePortSync() {
                typeof(message) == 'number' ||
                typeof(message) == 'boolean') {
       return message;
+    } else if (message instanceof Array) {
+      var values = new Array(message.length);
+      for (var i = 0; i < message.length; i++) {
+        values[i] = serialize(message[i]);
+      }
+      return [ 'list', message.length, values ];
     } else if (message instanceof LocalSendPortSync) {
       return [ 'sendport', 'nativejs', message.receivePort.id ];
     } else if (message instanceof DartSendPortSync) {
@@ -63,7 +69,7 @@ function ReceivePortSync() {
       var keys = Object.getOwnPropertyNames(message);
       var values = new Array(keys.length);
       for (var i = 0; i < keys.length; i++) {
-        values[i] = message[keys[i]];
+        values[i] = serialize(message[keys[i]]);
       }
       return [ 'map', id, keys, values ];
     }
@@ -83,6 +89,7 @@ function ReceivePortSync() {
     switch (x[0]) {
       case 'map': return deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
+      case 'list': return deserializeList(x);
       default: throw 'unimplemented';
     }
   }
@@ -105,7 +112,7 @@ function ReceivePortSync() {
     switch (tag) {
       case 'nativejs':
         var id = x[2];
-        return new LocalSendPortSync(id);
+        return new LocalSendPortSync(ReceivePortSync.map[id]);
       case 'dart':
         var isolateId = x[2];
         var portId = x[3];
@@ -113,6 +120,16 @@ function ReceivePortSync() {
       default:
         throw 'Illegal SendPortSync type: $tag';
     }
+  }
+
+  function deserializeList(x) {
+    var length = x[1];
+    var values = x[2];
+    var result = new Array(length);
+    for (var i = 0; i < length; i++) {
+      result[i] = values[i];
+    }
+    return result;
   }
 
   window.registerPort = function(name, port) {
