@@ -988,7 +988,7 @@ $mainEnsureGetter
     }
     buffer.add("""
 if (typeof window != 'undefined' && typeof document != 'undefined' &&
-    window.addEventListener && document.readyState != 'complete') {
+    window.addEventListener && document.readyState == 'loading') {
   window.addEventListener('DOMContentLoaded', function(e) {
     ${mainCall};
   });
