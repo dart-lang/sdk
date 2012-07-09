@@ -41,9 +41,23 @@ _MockFailureHandler _mockFailureHandler = null;
 final _noArg = const _Sentinel();
 
 /** The ways in which a call to a mock method can be handled. */
-final RETURN = 0;
-final THROW = 1;
-final PROXY = 2;
+class _Action {
+  /** Do nothing (void method) */
+  static final IGNORE = const _Action._('IGNORE');
+
+  /** Return a supplied value. */
+  static final RETURN = const _Action._('RETURN');
+
+  /** Throw a supplied value. */
+  static final THROW = const _Action._('THROW');
+
+  /** Call a supplied function. */
+  static final PROXY = const _Action._('PROXY');
+
+  const _Action._(this.name);
+
+  final String name;
+}
 
 /**
  * The behavior of a method call in the mock library is specified
@@ -54,23 +68,23 @@ final PROXY = 2;
  */
 class Responder {
   var value;
-  int action;
+  _Action action;
   int count;
-  Responder(this.value, [this.count = 1, this.action = RETURN]);
+  Responder(this.value, [this.count = 1, this.action = _Action.RETURN]);
 }
 
 /**
  * A [CallMatcher] is a special matcher used to match method calls (i.e.
  * a method name and set of arguments). It is not a [Matcher] like the
- * unit test [Matcher], but instead represents a collection of [Matcher]s,
- * one per argument, that will be applied to the parameters to decide if
- * the method call is a match.
+ * unit test [Matcher], but instead represents a method name and a
+ * collection of [Matcher]s, one per argument, that will be applied
+ * to the parameters to decide if the method call is a match.
  */
 class CallMatcher {
   String name;
   List<Matcher> argMatchers;
 
-  CallMatcher(String method, [
+  CallMatcher(this.name, [
               arg0 = _noArg,
               arg1 = _noArg,
               arg2 = _noArg,
@@ -81,7 +95,6 @@ class CallMatcher {
               arg7 = _noArg,
               arg8 = _noArg,
               arg9 = _noArg]) {
-    name = method;
     argMatchers = new List<Matcher>();
     if (arg0 == _noArg) return;
     argMatchers.add(wrapMatcher(arg0));
@@ -123,7 +136,7 @@ class CallMatcher {
   }
 
   /**
-   * Given a [method] name oand list of [arguments], return true
+   * Given a [method] name and list of [arguments], return true
    * if it matches this [CallMatcher.
    */
   bool matches(String method, List arguments) {
@@ -143,7 +156,8 @@ class CallMatcher {
 }
 
 /** [callsTo] returns a CallMatcher for the specified signature. */
-CallMatcher callsTo(String method, [ arg0 = _noArg,
+CallMatcher callsTo(String method, [
+                        arg0 = _noArg,
                         arg1 = _noArg,
                         arg2 = _noArg,
                         arg3 = _noArg,
@@ -174,7 +188,7 @@ class Behavior {
    * (1 by default).
    */
   Behavior thenReturn(value, [count = 1]) {
-    actions.add(new Responder(value, count, RETURN));
+    actions.add(new Responder(value, count, _Action.RETURN));
     return this; // For chaining calls.
   }
 
@@ -188,7 +202,7 @@ class Behavior {
    * times (1 by default).
    */
   Behavior thenThrow(value, [count = 1]) {
-    actions.add(new Responder(value, count, THROW));
+    actions.add(new Responder(value, count, _Action.THROW));
     return this; // For chaining calls.
   }
 
@@ -214,7 +228,7 @@ class Behavior {
    *     m.when(callsTo('foo')).thenCall(() => 0)
    */
   Behavior thenCall(value, [count = 1]) {
-    actions.add(new Responder(value, count, PROXY));
+    actions.add(new Responder(value, count, _Action.PROXY));
     return this; // For chaining calls.
   }
 
@@ -224,7 +238,7 @@ class Behavior {
   }
 
   /** Returns true if a method call matches the [Behavior]. */
-  bool matches(name, args) => matcher.matches(name, args);
+  bool matches(String method, List args) => matcher.matches(method, args);
 
   /** Returns the [matcher]'s representation. */
   String toString() => matcher.toString();
@@ -235,12 +249,62 @@ class Behavior {
  * kept in instances of [LogEntry].
  */
 class LogEntry {
-  final String name; // The method name.
-  final List args; // The parameters.
-  final int action; // The behavior that resulted.
-  final value; // The value that was returned (if no throw).
+  /** The time of the event. */
+  Date time;
 
-  const LogEntry(this.name, this.args, this.action, [this.value = null]);
+  /** The mock object name, if any. */
+  final String mockName;
+
+  /** The method name. */
+  final String methodName;
+
+  /** The parameters. */
+  final List args;
+
+  /** The behavior that resulted. */
+  final _Action action;
+
+  /** The value that was returned (if no throw). */
+  final value;
+
+  LogEntry(this.mockName, this.methodName,
+      this.args, this.action, [this.value]) {
+    time = new Date.now();
+  }
+
+  String _pad2(int val) => (val >= 10 ? '$val' : '0$val');
+
+  String toString([Date baseTime]) {
+    Description d = new StringDescription();
+    if (baseTime == null) {
+      // Show absolute time.
+      d.add('${time.hour}:${_pad2(time.minute)}:'
+          '${_pad2(time.second)}.${time.millisecond}>  ');
+    } else {
+      // Show relative time.
+      int delta = time.millisecondsSinceEpoch - baseTime.millisecondsSinceEpoch;
+      int secs = delta ~/ 1000;
+      int msecs = delta % 1000;
+      d.add('$secs.$msecs>  ');
+    }
+    d.add('${_qualifiedName(mockName, methodName)}(');
+    for (var i = 0; i < args.length; i++) {
+      if (i != 0) d.add(', ');
+      d.addDescriptionOf(args[i]);
+    }
+    d.add(') ${action == _Action.THROW ? "threw" : "returned"} ');
+    d.addDescriptionOf(value);
+    return d.toString();
+  }
+}
+
+/** Utility function for optionally qualified method names */
+String _qualifiedName(String owner, String method) {
+  if (owner == null) {
+    return method;
+  } else {
+    return '$owner.$method';
+  }
 }
 
 /**
@@ -250,26 +314,37 @@ class LogEntry {
  */
 class LogEntryList {
   final String filter;
-  final List<LogEntry> logs;
-  const LogEntryList(this.logs, [this.filter = null]);
+  List<LogEntry> logs;
+  LogEntryList([this.filter]) {
+    logs = new List<LogEntry>();
+  }
 
   /** Add a [LogEntry] to the log. */
   add(LogEntry entry) => logs.add(entry);
 
   /**
    * Create a new [LogEntryList] consisting of [LogEntry]s from
-   * this list that match the specified [logfilter]. If [destructive]
+   * this list that match the specified [mockName] and [logFilter].
+   * If [mockName] is null, all entries will be checked. If [destructive]
    * is true, the log entries are removed from the original list.
    */
-  LogEntryList getMatches(CallMatcher logfilter, bool destructive) {
-    LogEntryList rtn =
-        new LogEntryList(new List<LogEntry>(), logfilter.toString());
+  LogEntryList getMatches(String mockName,
+                          CallMatcher logFilter,
+                          [Matcher actionMatcher,
+                          bool destructive = false]) {
+    String filterName = _qualifiedName(mockName, logFilter.toString());
+    LogEntryList rtn = new LogEntryList(filterName);
     for (var i = 0; i < logs.length; i++) {
       LogEntry entry = logs[i];
-      if (logfilter.matches(entry.name, entry.args)) {
-        rtn.add(entry);
-        if (destructive) {
-          logs.removeRange(i--, 1);
+      if (mockName != null && mockName != entry.mockName) {
+        continue;
+      }
+      if (logFilter.matches(entry.methodName, entry.args)) {
+        if (actionMatcher == null || actionMatcher.matches(entry)) {
+          rtn.add(entry);
+          if (destructive) {
+            logs.removeRange(i--, 1);
+          }
         }
       }
     }
@@ -284,6 +359,14 @@ class LogEntryList {
     }
     expect(logs, matcher, filter, _mockFailureHandler);
     return this;
+  }
+
+  String toString([Date baseTime]) {
+    String s = '';
+    for (var e in logs) {
+      s = '$s${e.toString(baseTime)}\n';
+    }
+    return s;
   }
 }
 
@@ -316,79 +399,153 @@ class _TimesMatcher extends BaseMatcher {
       mismatchDescription.add('was called ${log.length} times');
 }
 
-/** [calledExactly] matches an exact number of calls. */
-Matcher calledExactly(count) {
+/** [happenedExactly] matches an exact number of calls. */
+Matcher happenedExactly(count) {
   return new _TimesMatcher(count, count);
 }
 
-/** [calledAtLeast] matches a minimum number of calls. */
-Matcher calledAtLeast(count) {
+/** [happenedAtLeast] matches a minimum number of calls. */
+Matcher happenedAtLeast(count) {
   return new _TimesMatcher(count);
 }
 
-/** [calledAtMost] matches a maximum number of calls. */
-Matcher calledAtMost(count) {
+/** [happenedAtMost] matches a maximum number of calls. */
+Matcher happenedAtMost(count) {
   return new _TimesMatcher(0, count);
 }
 
-/** [neverCalled] matches zero calls. */
-final Matcher neverCalled = const _TimesMatcher(0, 0);
+/** [neverHappened] matches zero calls. */
+final Matcher neverHappened = const _TimesMatcher(0, 0);
 
-/** [calledOnce] matches exactly one call. */
-final Matcher calledOnce = const _TimesMatcher(1, 1);
+/** [happenedOnce] matches exactly one call. */
+final Matcher happenedOnce = const _TimesMatcher(1, 1);
 
-/** [calledAtLeastOnce] matches one or more calls. */
-final Matcher calledAtLeastOnce = const _TimesMatcher(1);
+/** [happenedAtLeastOnce] matches one or more calls. */
+final Matcher happenedAtLeastOnce = const _TimesMatcher(1);
 
-/** [calledAtMostOnce] matches zero or one call. */
-final Matcher calledAtMostOnce = const _TimesMatcher(0, 1);
+/** [happenedAtMostOnce] matches zero or one call. */
+final Matcher happenedAtMostOnce = const _TimesMatcher(0, 1);
 
-/** Special values for use with [_ResultMatcher] [frequency]. */
-final int ALL = 0;
-final int SOME = 1;
-final int NONE = 2;
 /**
  * [_ResultMatcher]s are used to make assertions about the results
- * of method calls. When filtering an execution log by calling
- * [forThe], a [LogEntrySet] of matching call logs is returned;
- * [_ResultMatcher]s can then assert various things about this
- * (sub)set of logs.
+ * of method calls. These can be used as optional parameters to [getLogs].
  */
 class _ResultMatcher extends BaseMatcher {
-  final int action;
-  final value;
-  final int frequency; // -1 for all, 0 for none, 1 for some.
+  final _Action action;
+  final Matcher value;
 
-  const _ResultMatcher(this.action, this.value, this.frequency);
+  const _ResultMatcher(this.action, this.value);
 
-  bool matches(log) {
-    for (LogEntry entry in log) {
-      // normalize the action; PROXY is like RETURN.
-      int eaction = (entry.action == THROW) ? THROW : RETURN;
-      if (eaction == action && value.matches(entry.value)) {
-        if (frequency == NONE) {
-          return false;
-        } else if (frequency == SOME) {
-          return true;
-        }
-      } else {
-        // Mismatch.
-        if (frequency == ALL) { // We need just one mismatch to fail.
-          return false;
-        }
-      }
+  bool matches(item) {
+    if (item is! LogEntry) {
+     return false;
     }
-    // If we get here, then if count is ALL we got all matches and
-    // this is success; otherwise we got all mismatched which is
-    // success for count == NONE and failure for count == SOME.
-    return (frequency != SOME);
+    // normalize the action; _PROXY is like _RETURN.
+    _Action eaction = item.action;
+    if (eaction == _Action.PROXY) {
+      eaction = _Action.RETURN;
+    }
+    return (eaction == action && value.matches(item.value));
   }
 
   Description describe(Description description) {
     description.add(' to ');
-    description.add(frequency == ALL ? 'alway ' :
-        (frequency == NONE ? 'never ' : 'sometimes '));
-    if (action == RETURN || action == PROXY)
+    if (action == _Action.RETURN || action == _Action.PROXY)
+      description.add('return ');
+    else
+      description.add('throw ');
+    return description.addDescriptionOf(value);
+  }
+
+  Description describeMismatch(item, Description mismatchDescription) {
+    if (item.action == _Action.RETURN || item.action == _Action.PROXY) {
+      mismatchDescription.add('returned ');
+    } else {
+      mismatchDescription.add('threw ');
+    }
+    mismatchDescription.add(item.value);
+    return mismatchDescription;
+  }
+}
+
+/**
+ *[returning] matches log entries where the call to a method returned
+ * a value that matched [value].
+ */
+Matcher returning(value) =>
+    new _ResultMatcher(_Action.RETURN, wrapMatcher(value));
+
+/**
+ *[throwing] matches log entrues where the call to a method threw
+ * a value that matched [value].
+ */
+Matcher throwing(value) =>
+    new _ResultMatcher(_Action.THROW, wrapMatcher(value));
+
+/** Special values for use with [_ResultSetMatcher] [frequency]. */
+class _Frequency {
+  /** Every call/throw must match */
+  static final ALL = const _Frequency._('ALL');
+
+  /** At least one call/throw must match. */
+  static final SOME = const _Frequency._('SOME');
+
+  /** No calls/throws should match. */
+  static final NONE = const _Frequency._('NONE');
+
+  const _Frequency._(this.name);
+
+  final String name;
+}
+
+/**
+ * [_ResultSetMatcher]s are used to make assertions about the results
+ * of method calls. When filtering an execution log by calling
+ * [getLogs], a [LogEntrySet] of matching call logs is returned;
+ * [_ResultSetMatcher]s can then assert various things about this
+ * (sub)set of logs.
+ *
+ * We could make this class use _ResultMatcher but it doesn't buy that
+ * match and adds some perf hit, so there is some duplication here.
+ */
+class _ResultSetMatcher extends BaseMatcher {
+  final _Action action;
+  final Matcher value;
+  final _Frequency frequency; // ALL, SOME, or NONE.
+
+  const _ResultSetMatcher(this.action, this.value, this.frequency);
+
+  bool matches(log) {
+    for (LogEntry entry in log) {
+      // normalize the action; _PROXY is like _RETURN.
+      _Action eaction = entry.action;
+      if (eaction == _Action.PROXY) {
+        eaction = _Action.RETURN;
+      }
+      if (eaction == action && value.matches(entry.value)) {
+        if (frequency == _Frequency.NONE) {
+          return false;
+        } else if (frequency == _Frequency.SOME) {
+          return true;
+        }
+      } else {
+        // Mismatch.
+        if (frequency == _Frequency.ALL) { // We need just one mismatch to fail.
+          return false;
+        }
+      }
+    }
+    // If we get here, then if count is _ALL we got all matches and
+    // this is success; otherwise we got all mismatched which is
+    // success for count == _NONE and failure for count == _SOME.
+    return (frequency != _Frequency.SOME);
+  }
+
+  Description describe(Description description) {
+    description.add(' to ');
+    description.add(frequency == _Frequency.ALL ? 'alway ' :
+        (frequency == _Frequency.NONE ? 'never ' : 'sometimes '));
+    if (action == _Action.RETURN || action == __Action.PROXY)
       description.add('return ');
     else
       description.add('throw ');
@@ -396,10 +553,10 @@ class _ResultMatcher extends BaseMatcher {
   }
 
   Description describeMismatch(log, Description mismatchDescription) {
-    if (frequency != SOME) {
+    if (frequency != _Frequency.SOME) {
       for (LogEntry entry in log) {
         if (entry.action != action || !value.matches(entry.value)) {
-          if (entry.action == RETURN || entry.action == PROXY)
+          if (entry.action == _Action.RETURN || entry.action == _Action.PROXY)
             mismatchDescription.add('returned ');
           else
             mismatchDescription.add('threw ');
@@ -420,42 +577,45 @@ class _ResultMatcher extends BaseMatcher {
  * a value that matched [value].
  */
 Matcher alwaysReturned(value) =>
-    new _ResultMatcher(RETURN, wrapMatcher(value), ALL);
+    new _ResultSetMatcher(_Action.RETURN, wrapMatcher(value), _Frequency.ALL);
 
 /**
  *[sometimeReturned] asserts that at least one matching call to a method
  * returned a value that matched [value].
  */
 Matcher sometimeReturned(value) =>
-    new _ResultMatcher(RETURN, wrapMatcher(value), SOME);
+    new _ResultSetMatcher(_Action.RETURN, wrapMatcher(value), _Frequency.SOME);
 
 /**
  *[neverReturned] asserts that no matching calls to a method returned
  * a value that matched [value].
  */
 Matcher neverReturned(value) =>
-    new _ResultMatcher(RETURN, wrapMatcher(value), NONE);
+    new _ResultSetMatcher(_Action.RETURN, wrapMatcher(value), _Frequency.NONE);
 
 /**
  *[alwaysThrew] asserts that all matching calls to a method threw
  * a value that matched [value].
  */
 Matcher alwaysThrew(value) =>
-    new _ResultMatcher(THROW, wrapMatcher(value), ALL);
+    new _ResultSetMatcher(_Action.THROW, wrapMatcher(value), _Frequency.ALL);
 
 /**
  *[sometimeThrew] asserts that at least one matching call to a method threw
  * a value that matched [value].
  */
 Matcher sometimeThrew(value) =>
-  new _ResultMatcher(THROW, wrapMatcher(value), SOME);
+  new _ResultSetMatcher(_Action.THROW, wrapMatcher(value), _Frequency.SOME);
 
 /**
  *[neverThrew] asserts that no matching call to a method threw
  * a value that matched [value].
  */
 Matcher neverThrew(value) =>
-  new _ResultMatcher(THROW, wrapMatcher(value), NONE);
+  new _ResultSetMatcher(_Action.THROW, wrapMatcher(value), _Frequency.NONE);
+
+/** The shared log used for named mocks. */
+LogEntryList sharedLog = null;
 
 /**
  * [Mock] is the base class for all mocked objects, with
@@ -479,8 +639,13 @@ Matcher neverThrew(value) =>
  * to some other implementation. This provides a way to implement 'spies'.
  *
  * You can then use the mock object. Once you are done, to verify the
- * behavior, use [forThe] to extract a relevant subset of method call
+ * behavior, use [getLogs] to extract a relevant subset of method call
  * logs and apply [Matchers] to these through calling [verify].
+ *
+ * A Mock can be given a name when constructed. In this case instead of
+ * keeping its own log, it uses a shared log. This can be useful to get an
+ * audit trail of interleaved behavior. It is the responsibility of the user
+ * to ensure that mock names, if used, are unique.
  *
  * Limitations:
  * - only positional parameters are supported (up to 10);
@@ -497,9 +662,9 @@ Matcher neverThrew(value) =>
  *     m.add('foo');
  *     m.add('bar');
  *
- *     getLogs(m, callsTo('add', anything)).verify(calledExactly(2));
- *     getLogs(m, callsTo('add', 'foo')).verify(calledOnce);
- *     getLogs(m, callsTo('add', 'isNull)).verify(neverCalled);
+ *     getLogs(m, callsTo('add', anything)).verify(happenedExactly(2));
+ *     getLogs(m, callsTo('add', 'foo')).verify(happenedOnce);
+ *     getLogs(m, callsTo('add', 'isNull)).verify(neverHappened);
  *
  * Note that we don't need to provide argument matchers for all arguments,
  * but we do need to provide arguments for all matchers. So this is allowed:
@@ -530,12 +695,40 @@ Matcher neverThrew(value) =>
  *
  */
 class Mock {
-  Map<String,Behavior> behaviors; /** The set of [behavior]s supported. */
-  LogEntryList log; /** The [log] of calls made. */
+  /** The mock name. Needed if the log is shared; optional otherwise. */
+  final String name;
 
-  Mock() {
+  /** The set of [behavior]s supported. */
+  Map<String,Behavior> behaviors;
+
+  /** The [log] of calls made. Only used if [name] is null. */
+  LogEntryList log;
+
+  /** How to handle unknown method calls - swallow or throw. */
+  final bool throwIfNoBehavior = false;
+
+  /*
+   * Default constructor. Unknown method calls are allowed and logged,
+   * the mock has no name, and has its own log.
+   */
+  Mock() : throwIfNoBehavior = false, name = null {
+    log = new LogEntryList();
     behaviors = new Map<String,Behavior>();
-    log = new LogEntryList(new List<LogEntry>());
+  }
+
+  /**
+   * This constructor makes a mock that has a [name] and possibly uses
+   * a shared [log]. If [throwIfNoBehavior] is true, any calls to methods
+   * that have no defined behaviors will throw an exception; otherwise they
+   * will be allowed and logged (but will not do anything).
+   */
+  Mock.custom([this.name,
+               this.log,
+               this.throwIfNoBehavior = false]) {
+    if (log == null) {
+      log = new LogEntryList();
+    }
+    behaviors = new Map<String,Behavior>();
   }
 
   /**
@@ -565,10 +758,17 @@ class Mock {
    * return value. If we find no [Behavior] to apply an exception is
    * thrown.
    */
-  noSuchMethod(String name, List args) {
+  noSuchMethod(String method, List args) {
+    if (method.startsWith('get:')) {
+      method = 'get ${method.substring(4)}';
+    }
+    bool matchedMethodName = false;
     for (String k in behaviors.getKeys()) {
       Behavior b = behaviors[k];
-      if (b.matches(name, args)) {
+      if (b.matcher.name == method) {
+        matchedMethodName = true;
+      }
+      if (b.matches(method, args)) {
         List actions = b.actions;
         if (actions == null || actions.length == 0) {
           continue; // No return values left in this Behavior.
@@ -581,97 +781,98 @@ class Mock {
         // (negation of) the number of times we returned the value.
         if (--response.count == 0) {
           actions.removeRange(0, 1);
-          if (actions.length == 0) {
-            // Remove the behavior. Note that in the future there
-            // may be some value in preserving the behaviors for
-            // auditing purposes (e.g. how many times was this behavior used?).
-            // If we do decide to keep them and perf is an issue instead of
-            // deleting we could move this to a separate list.
-            behaviors.remove(k);
-          }
         }
         // Do the response.
-        var action = response.action;
+        _Action action = response.action;
         var value = response.value;
-        switch (action) {
-          case RETURN:
-            log.add(new LogEntry(name, args, action, value));
-            return value;
-          case THROW:
-            log.add(new LogEntry(name, args, action, value));
-            throw value;
-          case PROXY:
-            var rtn;
-            switch (args.length) {
-              case 0:
-                rtn = value();
-                break;
-              case 1:
-                rtn = value(args[0]);
-                break;
-              case 2:
-                rtn = value(args[0], args[1]);
-                break;
-              case 3:
-                rtn = value(args[0], args[1], args[2]);
-                break;
-              case 4:
-                rtn = value(args[0], args[1], args[2], args[3]);
-                break;
-              case 5:
-                rtn = value(args[0], args[1], args[2], args[3], args[4]);
-                break;
-              case 6:
-                rtn = value(args[0], args[1], args[2], args[3],
-                    args[4], args[5]);
-                break;
-              case 7:
-                rtn = value(args[0], args[1], args[2], args[3],
-                    args[4], args[5], args[6]);
-                break;
-              case 8:
-                rtn = value(args[0], args[1], args[2], args[3],
-                    args[4], args[5], args[6], args[7]);
-                break;
-              case 9:
-                rtn = value(args[0], args[1], args[2], args[3],
-                    args[4], args[5], args[6], args[7], args[8]);
-                break;
-              case 9:
-                rtn = value(args[0], args[1], args[2], args[3],
-                    args[4], args[5], args[6], args[7], args[8], args[9]);
-                break;
-              default:
-                throw new Exception(
-                    "Cannot proxy calls with more than 10 parameters");
-            }
-            log.add(new LogEntry(name, args, action, rtn));
-            return rtn;
+        if (action == _Action.RETURN) {
+          log.add(new LogEntry(name, method, args, action, value));
+          return value;
+        } else if (action == _Action.THROW) {
+          log.add(new LogEntry(name, method, args, action, value));
+          throw value;
+        } else if (action == _Action.PROXY) {
+          var rtn;
+          switch (args.length) {
+            case 0:
+              rtn = value();
+              break;
+            case 1:
+              rtn = value(args[0]);
+              break;
+            case 2:
+              rtn = value(args[0], args[1]);
+              break;
+            case 3:
+              rtn = value(args[0], args[1], args[2]);
+              break;
+            case 4:
+              rtn = value(args[0], args[1], args[2], args[3]);
+              break;
+            case 5:
+              rtn = value(args[0], args[1], args[2], args[3], args[4]);
+              break;
+            case 6:
+              rtn = value(args[0], args[1], args[2], args[3],
+                  args[4], args[5]);
+              break;
+            case 7:
+              rtn = value(args[0], args[1], args[2], args[3],
+                  args[4], args[5], args[6]);
+              break;
+            case 8:
+              rtn = value(args[0], args[1], args[2], args[3],
+                  args[4], args[5], args[6], args[7]);
+              break;
+            case 9:
+              rtn = value(args[0], args[1], args[2], args[3],
+                  args[4], args[5], args[6], args[7], args[8]);
+              break;
+            case 9:
+              rtn = value(args[0], args[1], args[2], args[3],
+                  args[4], args[5], args[6], args[7], args[8], args[9]);
+              break;
+            default:
+              throw new Exception(
+                  "Cannot proxy calls with more than 10 parameters");
+          }
+          log.add(new LogEntry(name, method, args, action, rtn));
+          return rtn;
         }
       }
     }
-    throw new Exception('No behavior specified for method $name');
+    if (matchedMethodName) {
+      // User did specify behavior for this method, but all the
+      // actions are exhausted. This is considered an error.
+      throw new Exception('No more actions for method '
+          '${_qualifiedName(name, method)}');
+    } else if (throwIfNoBehavior) {
+      throw new Exception('No behavior specified for method '
+          '${_qualifiedName(name, method)}');
+    }
+    // User hasn't specified behavior for this method; we don't throw
+    // so we can underspecify.
+    log.add(new LogEntry(name, method, args, _Action.IGNORE));
   }
 
   /** [verifyZeroInteractions] returns true if no calls were made */
   bool verifyZeroInteractions() => log.logs.length == 0;
+
+  /**
+   * [getLogs] extracts all calls from the call log that match the
+   * [logFilter] [CallMatcher], and returns the matching list of
+   * [LogEntry]s. If [destructive] is false (the default) the matching
+   * calls are left in the log, else they are removed. Removal allows
+   * us to verify a set of interactions and then verify that there are
+   * no other interactions left. [actionMatcher] can be used to further
+   * restrict the returned logs based on the action the mock performed.
+   *
+   * Typical usage:
+   *
+   *     getLogs(callsTo(...)).verify(...);
+   */
+  LogEntryList getLogs(CallMatcher logFilter, [Matcher actionMatcher,
+                    bool destructive = false]) {
+    return log.getMatches(name, logFilter, actionMatcher, destructive);
+  }
 }
-
-/**
- * [getLogs] extracts all calls from the call log of [mock] that match the
- * [logFilter] [CallMatcher], and returns the matching list of
- * [LogEntry]s. If [destructive] is false (the default) the matching
- * calls are left in the mock object's log, else they are removed.
- * Removal allows us to verify a set of interactions and then verify
- * that there are no other interactions left.
- *
- * Typical usage:
- *
- *     getLogs(mock, callsTo(...)).verify(...);
- */
-LogEntryList getLogs(Mock mock, CallMatcher logFilter,
-                    [bool destructive = false]) {
-    return mock.log.getMatches(logFilter, destructive);
-}
-
-
