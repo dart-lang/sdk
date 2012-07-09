@@ -582,22 +582,11 @@ RawAbstractType* StoreContextComp::StaticType() const {
 
 
 RawAbstractType* ClosureCallComp::StaticType() const {
-  // The closure is the first argument to the call.
-  const AbstractType& function_type =
-      AbstractType::Handle(ArgumentAt(0)->StaticType());
-  if (function_type.IsDynamicType() || function_type.IsFunctionInterface()) {
-    // The function type is not statically known or simply Function.
-    return Type::DynamicType();
-  }
-  const Class& signature_class = Class::Handle(function_type.type_class());
-  const Function& signature_function =
-      Function::Handle(signature_class.signature_function());
-  if (signature_function.IsNull()) {
-    // Attempting to invoke a non-closure object.
-    return Type::DynamicType();
-  }
-  // TODO(regis): The result type may be generic. Consider upper bounds.
-  return signature_function.result_type();
+  // Because of function subtyping rules, the static return type of a closure
+  // call cannot be relied upon for static type analysis. For example, a
+  // function returning Dynamic can be assigned to a closure variable declared
+  // to return int and may actually return a double at run-time.
+  return Type::DynamicType();
 }
 
 
