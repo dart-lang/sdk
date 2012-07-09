@@ -6,10 +6,12 @@
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 expando_test: Fail
+compare_to2_test: Fail    # Bug 4018
 
 [ $compiler == dartc ]
 *vm_test: Skip
 expando_test: Fail
+compare_to2_test: Fail, Ok    # Requires bigint support.
 
 [ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.
@@ -19,6 +21,7 @@ expando_test: Fail
 *dartc_negative_test: Skip
 # Note: Correctly skips 4 VMTests that rely on VM internals
 
+compare_to2_test: Fail, Ok    # Requires bigint support.
 const_list_*: Fail # 'const' is not currently checked.
 core_runtime_types_test: Fail
 for_in_test: Fail
