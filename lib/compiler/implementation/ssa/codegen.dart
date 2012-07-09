@@ -1231,35 +1231,45 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitIdentityComparison(HInstruction left, HInstruction right) {
-    String op = singleIdentityComparison(left, right);
-    if (op != null) {
-      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' $op ');
-      use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
-      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    } else {
-      assert(NullConstant.JsNull == 'null');
-      withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
+    HType leftType = left.propagatedType;
+    HType rightType = right.propagatedType;
+    if (leftType.canBeNull() && rightType.canBeNull()) {
+      if (left.isConstantNull() || right.isConstantNull() ||
+          (leftType.isPrimitive() && leftType == rightType)) {
         beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
         use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(' == null');
+        buffer.add(' == ');
+        use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
         endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(' ? ');
-        this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
-        withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
-          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' == null');
-          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(" : ");
+      } else {
+        assert(NullConstant.JsNull == 'null');
+        withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
           beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
           use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' === ');
-          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' == null');
           endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' ? ');
+          this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
+          withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
+            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(' == null');
+            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(" : ");
+            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+            use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+            buffer.add(' === ');
+            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          });
         });
-      });
+      }
+    } else {
+      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+      buffer.add(' === ');
+      use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
+      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     }
   }
 
@@ -3103,21 +3113,5 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     if (labeledBlockInfo.body.start.hasGuards()) {
       endBailoutSwitch();
     }
-  }
-}
-
-String singleIdentityComparison(HInstruction left, HInstruction right) {
-  // Returns the single identity comparison (== or ===) or null if a more
-  // complex expression is required.
-  HType leftType = left.propagatedType;
-  HType rightType = right.propagatedType;
-  if (leftType.canBeNull() && rightType.canBeNull()) {
-    if (left.isConstantNull() || right.isConstantNull() ||
-        (leftType.isPrimitive() && leftType == rightType)) {
-      return '==';
-    }
-    return null;
-  } else {
-    return '===';
   }
 }
