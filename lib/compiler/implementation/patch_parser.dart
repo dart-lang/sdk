@@ -18,7 +18,7 @@ class PatchParserTask extends leg.CompilerTask {
 
   LibraryElement loadPatchLibrary(Uri uri) {
     bool newLibrary = false;
-    PatchLibraryElement library =
+    LibraryElement library =
       compiler.libraries.putIfAbsent(uri.toString(), () {
           newLibrary = true;
           leg.Script script = compiler.readScript(uri, null);
@@ -135,7 +135,7 @@ class PatchClassElementParser extends PatchParser {
 class PatchElementListener extends ElementListener implements PatchListener {
   bool isMemberPatch = false;
   bool isClassPatch = false;
-  PatchElementListener(DiagnosticListener listener,
+  PatchElementListener(leg.DiagnosticListener listener,
                        CompilationUnitElement patchElement,
                        int idGenerator())
     : super(listener, patchElement, idGenerator);
