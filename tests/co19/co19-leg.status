@@ -537,6 +537,7 @@ Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail, OK # @
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail, OK # @compile-error
 Language/07_Classes/9_Superinterfaces_A04_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail, OK # @compile-error

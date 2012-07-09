@@ -113,6 +113,10 @@ class ClosureTranslator extends AbstractVisitor {
   // The variables that have been declared in the current scope.
   List<Element> scopeVariables;
 
+  // Keep track of the mutated variables so that we don't need to box
+  // non-mutated variables.
+  Set<Element> mutatedVariables;
+
   FunctionElement currentFunctionElement;
   // The closureData of the currentFunctionElement.
   ClosureData closureData;
@@ -126,6 +130,7 @@ class ClosureTranslator extends AbstractVisitor {
         this.elements = builder.elements,
         capturedVariableMapping = new Map<Element, Element>(),
         closures = <FunctionExpression>[],
+        mutatedVariables = new Set<Element>(),
         this.closureDataCache = builder.builder.closureDataCache;
 
   ClosureData translate(Node node) {
@@ -234,11 +239,16 @@ class ClosureTranslator extends AbstractVisitor {
       Element element = elements[definition];
       assert(element !== null);
       declareLocal(element);
+      // We still need to visit the right-hand sides of the init-assignments.
+      // For SendSets don't visit the left again. Otherwise it would be marked
+      // as mutated.
+      if (definition is SendSet) {
+        SendSet assignment = definition;
+        visit(assignment.argumentsNode);
+      } else {
+        visit(definition);
+      }
     }
-    // We still need to visit the right-hand sides of the init-assignments.
-    // Simply visit all children. We will visit the locals again and make them
-    // used, but that should not be a problem.
-    node.visitChildren(this);
   }
 
   visitIdentifier(Identifier node) {
@@ -261,6 +271,14 @@ class ClosureTranslator extends AbstractVisitor {
     node.visitChildren(this);
   }
 
+  visitSendSet(SendSet node) {
+    Element element = elements[node];
+    if (Elements.isLocal(element)) {
+      mutatedVariables.add(element);
+    }
+    super.visitSendSet(node);
+  }
+
   // If variables that are declared in the [node] scope are captured and need
   // to be boxed create a box-element and update the [capturingScopes] in the
   // current [closureData].
@@ -271,6 +289,7 @@ class ClosureTranslator extends AbstractVisitor {
     for (Element element in scopeVariables) {
       // No need to box non-assignable elements.
       if (!element.isAssignable()) continue;
+      if (!mutatedVariables.contains(element)) continue;
       if (capturedVariableMapping.containsKey(element)) {
         if (box == null) {
           // TODO(floitsch): construct better box names.
@@ -296,12 +315,21 @@ class ClosureTranslator extends AbstractVisitor {
     }
   }
 
-  visitLoop(Loop node) {
+  void inNewScope(Node node, Function action) {
     List<Element> oldScopeVariables = scopeVariables;
     scopeVariables = new List<Element>();
-    node.visitChildren(this);
+    action();
     attachCapturedScopeVariables(node);
+    for (Element element in scopeVariables) {
+      mutatedVariables.remove(element);
+    }
     scopeVariables = oldScopeVariables;
+  }
+
+  visitLoop(Loop node) {
+    inNewScope(node, () {
+      node.visitChildren(this);
+    });
   }
 
   visitFor(For node) {
@@ -356,8 +384,6 @@ class ClosureTranslator extends AbstractVisitor {
     bool oldInsideClosure = insideClosure;
     FunctionElement oldFunctionElement = currentFunctionElement;
     ClosureData oldClosureData = closureData;
-    List<Element> oldScopeVariables = scopeVariables;
-
 
     insideClosure = isClosure;
     currentFunctionElement = elements[node];
@@ -381,28 +407,28 @@ class ClosureTranslator extends AbstractVisitor {
       }
       closureData = new ClosureData(null, null, null, thisElement);
     }
-    scopeVariables = new List<Element>();
 
-    // We have to declare the implicit 'this' parameter.
-    if (!insideClosure && closureData.thisElement !== null) {
-      declareLocal(closureData.thisElement);
-    }
-    // If we are inside a named closure we have to declare ourselve. For
-    // simplicity we declare the local even if the closure does not have a name
-    // It will simply not be used.
-    if (insideClosure) {
-      declareLocal(element);
-    }
+    inNewScope(node, () {
+      // We have to declare the implicit 'this' parameter.
+      if (!insideClosure && closureData.thisElement !== null) {
+        declareLocal(closureData.thisElement);
+      }
+      // If we are inside a named closure we have to declare ourselve. For
+      // simplicity we declare the local even if the closure does not have a
+      // name.
+      // It will simply not be used.
+      if (insideClosure) {
+        declareLocal(element);
+      }
 
-    // TODO(ahe): This is problematic. The backend should not repeat
-    // the work of the resolver. It is the resolver's job to create
-    // parameters, etc. Other phases should only visit statements.
-    // TODO(floitsch): we avoid visiting the initializers on purpose so that we
-    // get an error-message later in the builder.
-    if (node.parameters !== null) node.parameters.accept(this);
-    if (node.body !== null) node.body.accept(this);
-
-    attachCapturedScopeVariables(node);
+      // TODO(ahe): This is problematic. The backend should not repeat
+      // the work of the resolver. It is the resolver's job to create
+      // parameters, etc. Other phases should only visit statements.
+      // TODO(floitsch): we avoid visiting the initializers on purpose so that
+      // we get an error-message later in the builder.
+      if (node.parameters !== null) node.parameters.accept(this);
+      if (node.body !== null) node.body.accept(this);
+    });
 
     closureDataCache[node] = closureData;
 
@@ -410,7 +436,6 @@ class ClosureTranslator extends AbstractVisitor {
     bool savedInsideClosure = insideClosure;
 
     // Restore old values.
-    scopeVariables = oldScopeVariables;
     insideClosure = oldInsideClosure;
     closureData = oldClosureData;
     currentFunctionElement = oldFunctionElement;
