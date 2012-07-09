@@ -324,7 +324,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 static void PrintTypeCheck(
     const char* message,
     const Instance& instance,
-    const AbstractType&type,
+    const AbstractType& type,
     const AbstractTypeArguments& instantiator_type_arguments,
     const Bool& result) {
   DartFrameIterator iterator;

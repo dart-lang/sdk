@@ -21,9 +21,11 @@
 namespace dart {
 
 DEFINE_FLAG(bool, eliminate_type_checks, true,
-            "Eliminate type checks when allowed by static type analysis");
+            "Eliminate type checks when allowed by static type analysis.");
 DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
+DEFINE_FLAG(bool, trace_type_check_elimination, false,
+            "Trace type check elimination at compile time.");
 #if defined(TARGET_ARCH_X64)
 DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
 #else
@@ -327,20 +329,14 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
-// Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the static type of the value is a subtype
-// of the destination type.
-static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
-  ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsFinalized());
-  if (!FLAG_eliminate_type_checks) {
-    return false;
-  }
+// Helper routine returning true if the static type of the given value is more
+// specific than the given dst_type.
+static bool IsStaticTypeMoreSpecific(Value* value,
+                                     const AbstractType& dst_type) {
+  ASSERT(!dst_type.IsMalformed());
 
-  // Any expression is assignable to the Dynamic type and to the Object type.
-  // Skip the test.
-  if (!dst_type.IsMalformed() &&
-      (dst_type.IsDynamicType() || dst_type.IsObjectType())) {
+  // Any type is more specific than the Dynamic type and than the Object type.
+  if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
     return true;
   }
 
@@ -350,11 +346,18 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
   // skip the type test here and trust the parser to only return null in void
   // function.
   if (dst_type.IsVoidType()) {
+    // TODO(regis): Should we perform this null test at run-time?
     return true;
   }
 
+  // Do not perform type check elimination if this optimization is turned off.
+  if (!FLAG_eliminate_type_checks) {
+    return false;
+  }
+
   // If nothing is known about the value, as is the case for passed-in
-  // parameters, the test cannot be eliminated.
+  // parameters, and since dst_type is not one of the tested cases above, then
+  // the type test cannot be eliminated.
   if (value == NULL) {
     return false;
   }
@@ -365,39 +368,75 @@ static bool CanSkipTypeCheck(Value* value, const AbstractType& dst_type) {
 
   // If the static type of the value is void, the only allowed value is null,
   // which must be verified by the type test.
+  // TODO(regis): Eliminate the test if the value is constant null.
   if (static_type.IsVoidType()) {
-    // TODO(regis): Eliminate the test if the value is constant null.
     return false;
   }
 
   // If the static type of the value is NullType, the type test is eliminated.
+  // There are only three instances that can be of Class Null:
+  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+  // The inline code and run time code performing the type check will never
+  // encounter the 2 sentinel values. The type check of a sentinel value
+  // will always be eliminated here, because these sentinel values can only
+  // be encountered as constants, never as actual value of a heap object
+  // being type checked.
   if (static_type.IsNullType()) {
-    // There are only three instances that can be of Class Null:
-    // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-    // The inline code and run time code performing the type check will never
-    // encounter the 2 sentinel values. The type check of a sentinel value
-    // will always be eliminated here, because these sentinel values can only
-    // be encountered as constants, never as actual value of a heap object
-    // being type checked.
     return true;
   }
 
-  // The run time type of the value is guaranteed to be a subtype of the compile
-  // time static type of the value. However, establishing here that the static
-  // type is a subtype of the destination type does not guarantee that the run
-  // time type will also be a subtype of the destination type, because the
-  // subtype relation is not transitive.
-  // However, the 'more specific than' relation is transitive and is used here.
-  // In other words, if the static type of the value is more specific than the
-  // destination type, the run time type of the value, which is guaranteed to
-  // be a subtype of the static type, is also guaranteed to be a subtype of the
-  // destination type and the type check can therefore be eliminated.
+  // The run time type of the value is guaranteed to be a subtype of the
+  // compile time static type of the value. However, establishing here that
+  // the static type is a subtype of the destination type does not guarantee
+  // that the run time type will also be a subtype of the destination type,
+  // because the subtype relation is not transitive.
+  // However, the 'more specific than' relation is transitive and is used
+  // here. In other words, if the static type of the value is more specific
+  // than the destination type, the run time type of the value, which is
+  // guaranteed to be a subtype of the static type, is also guaranteed to be
+  // a subtype of the destination type and the type check can therefore be
+  // eliminated.
   Error& malformed_error = Error::Handle();
-  if (static_type.IsMoreSpecificThan(dst_type, &malformed_error)) {
-    return true;
+  return static_type.IsMoreSpecificThan(dst_type, &malformed_error);
+}
+
+
+// Returns true if the type check can be skipped, for example, if the
+// destination type is Dynamic or if the static type of the value is a subtype
+// of the destination type.
+bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
+                                          Value* value,
+                                          const AbstractType& dst_type,
+                                          const String& dst_name) {
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+
+  // If the destination type is malformed, a dynamic type error must be thrown
+  // at run time.
+  if (dst_type.IsMalformed()) {
+    return false;
   }
 
-  return false;
+  const bool eliminated = IsStaticTypeMoreSpecific(value, dst_type);
+  if (FLAG_eliminate_type_checks && FLAG_trace_type_check_elimination) {
+    const Class& cls = Class::Handle(
+        owner()->parsed_function().function().owner());
+    const Script& script = Script::Handle(cls.script());
+    const char* static_type_name = "unknown";
+    if (value != NULL) {
+      const AbstractType& type = AbstractType::Handle(value->StaticType());
+      static_type_name = String::Handle(type.Name()).ToCString();
+    }
+    Parser::PrintMessage(script, token_pos, "",
+                         "%s type check: static type '%s' is %s specific than "
+                         "type '%s' of '%s'.",
+                         eliminated ? "Eliminated" : "Generated",
+                         static_type_name,
+                         eliminated ? "more" : "not more",
+                         String::Handle(dst_type.Name()).ToCString(),
+                         dst_name.ToCString());
+  }
+  return eliminated;
 }
 
 
@@ -589,7 +628,7 @@ Value* EffectGraphVisitor::BuildAssignableValue(intptr_t token_pos,
                                                 Value* value,
                                                 const AbstractType& dst_type,
                                                 const String& dst_name) {
-  if (CanSkipTypeCheck(value, dst_type)) {
+  if (CanSkipTypeCheck(token_pos, value, dst_type, dst_name)) {
     return value;
   }
   return Bind(BuildAssertAssignable(token_pos, value, dst_type, dst_name));
@@ -613,7 +652,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
       String::NewSymbol(Exceptions::kCastExceptionDstName));
-  if (!CanSkipTypeCheck(for_value.value(), type)) {
+  if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
     Do(BuildAssertAssignable(
         node->token_pos(), for_value.value(), type, dst_name));
   }
@@ -2019,7 +2058,10 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
     while (pos < num_params) {
       const LocalVariable& parameter = *scope->VariableAt(pos);
       ASSERT(parameter.owner() == scope);
-      if (!CanSkipTypeCheck(NULL, parameter.type())) {
+      if (!CanSkipTypeCheck(parameter.token_pos(),
+                            NULL,
+                            parameter.type(),
+                            parameter.name())) {
         Value* load = Bind(BuildLoadLocal(parameter));
         Do(BuildAssertAssignable(parameter.token_pos(),
                                  load,

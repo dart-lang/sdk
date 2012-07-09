@@ -5765,6 +5765,22 @@ void Parser::FormatMessage(const Script& script,
 }
 
 
+void Parser::PrintMessage(const Script& script,
+                          intptr_t token_pos,
+                          const char* message_header,
+                          const char* format, ...) {
+  va_list args;
+  va_start(args, format);
+  const intptr_t kMessageBufferSize = 512;
+  char message_buffer[kMessageBufferSize];
+  FormatMessage(script, token_pos, message_header,
+                message_buffer, kMessageBufferSize,
+                format, args);
+  va_end(args);
+  OS::Print("%s", message_buffer);
+}
+
+
 void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) {
   va_list args;
   va_start(args, format);

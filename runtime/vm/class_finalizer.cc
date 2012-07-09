@@ -161,9 +161,9 @@ void ClassFinalizer::VerifyClassImplements(const Class& cls) {
       } else {
         Error& malformed_error = Error::Handle();
         if (!class_function.IsSubtypeOf(TypeArguments::Handle(),
-                                             interface_function,
-                                             TypeArguments::Handle(),
-                                             &malformed_error)) {
+                                        interface_function,
+                                        TypeArguments::Handle(),
+                                        &malformed_error)) {
           if (!malformed_error.IsNull()) {
             OS::PrintErr("%s\n", malformed_error.ToErrorCString());
           }
