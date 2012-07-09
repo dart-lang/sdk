@@ -708,9 +708,14 @@ class FunctionElement extends Element {
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
-    if (patch !== null) {
-      cachedNode = patch.parseNode(listener);
+    if (patch === null) {
+      if (modifiers.isExternal()) {
+        // An external function that isn't patched has no body.
+        return null;
+      }
+      return cachedNode;
     }
+    cachedNode = patch.parseNode(listener);
     return cachedNode;
   }
 

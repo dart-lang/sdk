@@ -40,6 +40,7 @@ class Keyword implements SourceString {
   static final Keyword ABSTRACT = const Keyword("abstract", isPseudo: true);
   static final Keyword AS = const Keyword("as", info: AS_INFO, isPseudo: true);
   static final Keyword ASSERT = const Keyword("assert", isPseudo: true);
+  static final Keyword EXTERNAL = const Keyword("external", isPseudo: true);
   static final Keyword FACTORY = const Keyword("factory", isPseudo: true);
   static final Keyword GET = const Keyword("get", isPseudo: true);
   static final Keyword IMPLEMENTS = const Keyword("implements", isPseudo: true);
@@ -87,6 +88,7 @@ class Keyword implements SourceString {
       ASSERT,
       CLASS,
       EXTENDS,
+      EXTERNAL,
       FACTORY,
       GET,
       IMPLEMENTS,

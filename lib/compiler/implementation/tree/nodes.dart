@@ -1081,7 +1081,8 @@ class Modifiers extends Node {
   /* TODO(ahe): The following should be validated relating to modifiers:
    * 1. The nodes must come in a certain order.
    * 2. The keywords "var" and "final" may not be used at the same time.
-   * 3. The type of an element must be null if isVar() is true.
+   * 3. The keywords "abstract" and "external" may not be used at the same time.
+   * 4. The type of an element must be null if isVar() is true.
    */
 
   final NodeList nodes;
@@ -1094,6 +1095,7 @@ class Modifiers extends Node {
   static final int FLAG_VAR = FLAG_FINAL << 1;
   static final int FLAG_CONST = FLAG_VAR << 1;
   static final int FLAG_FACTORY = FLAG_CONST << 1;
+  static final int FLAG_EXTERNAL = FLAG_FACTORY << 1;
 
   Modifiers(NodeList nodes) : this.withFlags(nodes, computeFlags(nodes.nodes));
 
@@ -1105,12 +1107,13 @@ class Modifiers extends Node {
     int flags = 0;
     for (; !nodes.isEmpty(); nodes = nodes.tail) {
       String value = nodes.head.asIdentifier().source.stringValue;
-      if (value === 'static') flags += FLAG_STATIC;
-      else if (value === 'abstract') flags += FLAG_ABSTRACT;
-      else if (value === 'final') flags += FLAG_FINAL;
-      else if (value === 'var') flags += FLAG_VAR;
-      else if (value === 'const') flags += FLAG_CONST;
-      else if (value === 'factory') flags += FLAG_FACTORY;
+      if (value === 'static') flags |= FLAG_STATIC;
+      else if (value === 'abstract') flags |= FLAG_ABSTRACT;
+      else if (value === 'final') flags |= FLAG_FINAL;
+      else if (value === 'var') flags |= FLAG_VAR;
+      else if (value === 'const') flags |= FLAG_CONST;
+      else if (value === 'factory') flags |= FLAG_FACTORY;
+      else if (value === 'external') flags |= FLAG_EXTERNAL;
       else throw 'internal error: ${nodes.head}';
     }
     return flags;
@@ -1128,6 +1131,7 @@ class Modifiers extends Node {
   bool isVar() => (flags & FLAG_VAR) != 0;
   bool isConst() => (flags & FLAG_CONST) != 0;
   bool isFactory() => (flags & FLAG_FACTORY) != 0;
+  bool isExternal() => (flags & FLAG_EXTERNAL) != 0;
 
   String toString() {
     LinkBuilder<String> builder = new LinkBuilder<String>();
@@ -1137,6 +1141,7 @@ class Modifiers extends Node {
     if (isVar()) builder.addLast('var');
     if (isConst()) builder.addLast('const');
     if (isFactory()) builder.addLast('factory');
+    if (isExternal()) builder.addLast('external');
     StringBuffer buffer = new StringBuffer();
     builder.toLink().printOn(buffer, ', ');
     return buffer.toString();

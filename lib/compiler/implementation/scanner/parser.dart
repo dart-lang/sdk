@@ -467,7 +467,8 @@ class Parser {
            ('var' === token.stringValue) ||
            ('const' === token.stringValue) ||
            ('abstract' === token.stringValue) ||
-           ('static' === token.stringValue));
+           ('static' === token.stringValue) ||
+           ('external' === token.stringValue));
     listener.handleModifier(token);
     return token.next;
   }
@@ -480,7 +481,8 @@ class Parser {
           ('var' !== value) &&
           ('const' !== value) &&
           ('abstract' !== value) &&
-          ('static' !== value))
+          ('static' !== value) &&
+          ('external' !== value))
         break;
       token = parseModifier(token);
       count++;
@@ -567,7 +569,9 @@ class Parser {
   }
 
   Token parseMember(Token token) {
-    if (optional('factory', token)) {
+    String value = token.stringValue;
+    if (value === 'factory' ||
+        (value === 'external' && optional('factory', token.next))) {
       return parseFactoryMethod(token);
     }
     Token start = token;
@@ -631,7 +635,10 @@ class Parser {
   }
 
   Token parseFactoryMethod(Token token) {
-    assert(optional('factory', token));
+    assert((optional('external', token) && optional('factory', token.next)) ||
+           optional('factory', token));
+    Token start = token;
+    if (start.stringValue === 'external') token = token.next;
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);
     token = token.next; // Skip 'factory'.
@@ -645,7 +652,7 @@ class Parser {
     }
     token = parseFormalParameters(token);
     token = parseFunctionBody(token, false);
-    listener.endFactoryMethod(factoryKeyword, period, token);
+    listener.endFactoryMethod(factoryKeyword, period, start);
     return token.next;
   }
 
