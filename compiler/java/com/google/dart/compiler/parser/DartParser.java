@@ -2182,11 +2182,11 @@ public class DartParser extends CompletionHooksParserBase {
   @Terminals(tokens={Token.RPAREN, Token.COMMA})
   public List<DartExpression> parseArguments() {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
-    expect(Token.LPAREN);
     // SEMICOLON is for error recovery
     boolean namedArgumentParsed = false;
     outer: while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
       beginParameter();
+      // parse single parameter, may be named with default
       DartExpression expression;
       if (peek(1) == Token.COLON) {
         DartIdentifier name = parseIdentifier();
@@ -2199,9 +2199,13 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
         }
       }
+      // done with parameter
+      done(expression);
+      // may be add
       if (expression != null) {
-        arguments.add(done(expression));
+        arguments.add(expression);
       }
+      // do we have next parameter?
       switch(peek(0)) {
         // Must keep in sync with @Terminals above
         case COMMA:
