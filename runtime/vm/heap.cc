@@ -11,6 +11,7 @@
 #include "vm/heap_profiler.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/os.h"
 #include "vm/pages.h"
 #include "vm/scavenger.h"
@@ -111,6 +112,20 @@ bool Heap::Contains(uword addr) const {
 
 bool Heap::CodeContains(uword addr) const {
   return code_space_->Contains(addr);
+}
+
+
+void Heap::IterateObjects(ObjectVisitor* visitor) {
+  new_space_->VisitObjects(visitor);
+  old_space_->VisitObjects(visitor);
+  code_space_->VisitObjects(visitor);
+}
+
+
+void Heap::IteratePointers(ObjectPointerVisitor* visitor) {
+  new_space_->VisitObjectPointers(visitor);
+  old_space_->VisitObjectPointers(visitor);
+  code_space_->VisitObjectPointers(visitor);
 }
 
 
@@ -218,11 +233,53 @@ void Heap::Init(Isolate* isolate) {
 }
 
 
+void Heap::StartEndAddress(uword* start, uword* end) const {
+  ASSERT(new_space_->capacity() != 0);
+  new_space_->StartEndAddress(start, end);
+  if (old_space_->capacity() != 0) {
+    uword old_start;
+    uword old_end;
+    old_space_->StartEndAddress(&old_start, &old_end);
+    *start = Utils::Minimum(old_start, *start);
+    *end = Utils::Maximum(old_end, *end);
+  }
+  if (code_space_->capacity() != 0) {
+    uword code_start;
+    uword code_end;
+    code_space_->StartEndAddress(&code_start, &code_end);
+    *start = Utils::Minimum(code_start, *start);
+    *end = Utils::Maximum(code_end, *end);
+  }
+  ASSERT(*start <= *end);
+}
+
+
+ObjectSet* Heap::CreateAllocatedObjectSet() const {
+  Isolate* isolate = Isolate::Current();
+  uword start, end;
+  isolate->heap()->StartEndAddress(&start, &end);
+
+  Isolate* vm_isolate = Dart::vm_isolate();
+  uword vm_start, vm_end;
+  vm_isolate->heap()->StartEndAddress(&vm_start, &vm_end);
+
+  ObjectSet* allocated_set = new ObjectSet(Utils::Minimum(start, vm_start),
+                                           Utils::Maximum(end, vm_end));
+
+  VerifyObjectVisitor object_visitor(isolate, allocated_set);
+  isolate->heap()->IterateObjects(&object_visitor);
+  vm_isolate->heap()->IterateObjects(&object_visitor);
+
+  return allocated_set;
+}
+
+
 bool Heap::Verify() const {
-  VerifyPointersVisitor visitor(Isolate::Current());
-  new_space_->VisitObjectPointers(&visitor);
-  old_space_->VisitObjectPointers(&visitor);
-  code_space_->VisitObjectPointers(&visitor);
+  Isolate* isolate = Isolate::Current();
+  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet();
+  VerifyPointersVisitor visitor(isolate, allocated_set);
+  isolate->heap()->IteratePointers(&visitor);
+  delete allocated_set;
   // Only returning a value so that Heap::Validate can be called from an ASSERT.
   return true;
 }
@@ -251,12 +308,9 @@ void Heap::Profile(Dart_HeapProfileWriteCallback callback, void* stream) const {
   isolate->VisitWeakPersistentHandles(&weak_root_visitor, true);
 
   // Dump the current and VM isolate heaps.
-  HeapProfilerObjectVisitor object_visitor(&profiler);
-  isolate->heap()->new_space_->VisitObjects(&object_visitor);
-  isolate->heap()->old_space_->VisitObjects(&object_visitor);
-  isolate->heap()->code_space_->VisitObjects(&object_visitor);
-  vm_isolate->heap()->new_space_->VisitObjects(&object_visitor);
-  vm_isolate->heap()->old_space_->VisitObjects(&object_visitor);
+  HeapProfilerObjectVisitor object_visitor(isolate, &profiler);
+  isolate->heap()->IterateObjects(&object_visitor);
+  vm_isolate->heap()->IterateObjects(&object_visitor);
 }
 
 

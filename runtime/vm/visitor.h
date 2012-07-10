@@ -41,10 +41,19 @@ class ObjectPointerVisitor {
 // An object visitor interface.
 class ObjectVisitor {
  public:
+  explicit ObjectVisitor(Isolate* isolate) : isolate_(isolate) {}
+
   virtual ~ObjectVisitor() {}
+
+  Isolate* isolate() const { return isolate_; }
 
   // Invoked for each object.
   virtual void VisitObject(RawObject* obj) = 0;
+
+ private:
+  Isolate* isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(ObjectVisitor);
 };
 
 

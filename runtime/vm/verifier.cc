@@ -11,6 +11,7 @@
 #include "vm/heap.h"
 #include "vm/isolate.h"
 #include "vm/object.h"
+#include "vm/object_set.h"
 #include "vm/raw_object.h"
 #include "vm/stack_frame.h"
 
@@ -19,16 +20,20 @@ namespace dart {
 DEFINE_FLAG(bool, verify_on_transition, false, "Verify on dart <==> VM.");
 
 
+void VerifyObjectVisitor::VisitObject(RawObject* raw_obj) {
+  allocated_set_->Add(raw_obj);
+  raw_obj->Validate(isolate());
+}
+
+
 void VerifyPointersVisitor::VisitPointers(RawObject** first, RawObject** last) {
   for (RawObject** current = first; current <= last; current++) {
     RawObject* raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
-      uword obj_addr = RawObject::ToAddr(raw_obj);
-      if (!Isolate::Current()->heap()->Contains(obj_addr) &&
-          !Dart::vm_isolate()->heap()->Contains(obj_addr)) {
-        FATAL1("Invalid object pointer encountered 0x%lx\n", obj_addr);
+      if (!allocated_set_->Contains(raw_obj)) {
+        uword raw_addr = RawObject::ToAddr(raw_obj);
+        FATAL1("Invalid object pointer encountered %#lx\n", raw_addr);
       }
-      raw_obj->Validate(isolate());
     }
   }
 }
@@ -45,7 +50,8 @@ void VerifyWeakPointersVisitor::VisitHandle(uword addr) {
 void VerifyPointersVisitor::VerifyPointers() {
   NoGCScope no_gc;
   Isolate* isolate = Isolate::Current();
-  VerifyPointersVisitor visitor(isolate);
+  ObjectSet* allocated_set = isolate->heap()->CreateAllocatedObjectSet();
+  VerifyPointersVisitor visitor(isolate, allocated_set);
   // Visit all strongly reachable objects.
   isolate->VisitObjectPointers(&visitor,
                                false,  // skip prologue weak handles
@@ -54,6 +60,7 @@ void VerifyPointersVisitor::VerifyPointers() {
   // Visit weak handles and prologue weak handles.
   isolate->VisitWeakPersistentHandles(&weak_visitor,
                                       true);  // visit prologue weak handles
+  delete allocated_set;
 }
 
 }  // namespace dart

@@ -33,6 +33,8 @@ FileWriterFunction Dart::flow_graph_writer_ = NULL;
 // premark all objects in the vm_isolate_ heap.
 class PremarkingVisitor : public ObjectVisitor {
  public:
+  explicit PremarkingVisitor(Isolate* isolate) : ObjectVisitor(isolate) {}
+
   void VisitObject(RawObject* obj) {
     // RawInstruction objects are premarked on allocation.
     if (!obj->IsMarked()) {
@@ -70,7 +72,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce();
     StubCode::InitOnce();
     Scanner::InitOnce();
-    PremarkingVisitor premarker;
+    PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.

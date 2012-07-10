@@ -17,6 +17,7 @@ namespace dart {
 // Forward declarations.
 class Isolate;
 class ObjectPointerVisitor;
+class ObjectSet;
 class VirtualMemory;
 
 DECLARE_FLAG(bool, verbose_gc);
@@ -80,10 +81,16 @@ class Heap {
   bool CodeContains(uword addr) const;
   bool StubCodeContains(uword addr) const;
 
+  // Visit all pointers.
+  void IteratePointers(ObjectPointerVisitor* visitor);
+
   // Visit all pointers in the space.
   void IterateNewPointers(ObjectPointerVisitor* visitor);
   void IterateOldPointers(ObjectPointerVisitor* visitor);
   void IterateCodePointers(ObjectPointerVisitor* visitor);
+
+  // Visit all objects.
+  void IterateObjects(ObjectVisitor* visitor);
 
   // Visit all object in the space.
   void IterateNewObjects(ObjectVisitor* visitor);
@@ -121,6 +128,11 @@ class Heap {
 
   // Print heap sizes.
   void PrintSizes() const;
+
+  // Returns the [lowest, highest) addresses in the heap.
+  void StartEndAddress(uword* start, uword* end) const;
+
+  ObjectSet* CreateAllocatedObjectSet() const;
 
   // Generates a profile of the current and VM isolate heaps.
   void Profile(Dart_HeapProfileWriteCallback callback, void* stream) const;

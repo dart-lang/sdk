@@ -74,6 +74,11 @@ class Scavenger {
   void VisitObjects(ObjectVisitor* visitor) const;
   void VisitObjectPointers(ObjectPointerVisitor* visitor) const;
 
+  void StartEndAddress(uword* start, uword* end) const {
+    *start = to_->start();
+    *end = to_->end();
+  }
+
   // Returns true if the last scavenge had a promotion failure.
   bool HadPromotionFailure() {
     return had_promotion_failure_;

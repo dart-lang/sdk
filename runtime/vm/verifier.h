@@ -23,14 +23,31 @@ DECLARE_FLAG(bool, verify_on_transition);
 
 // Forward declarations.
 class Isolate;
+class ObjectSet;
 class RawObject;
+
+class VerifyObjectVisitor : public ObjectVisitor {
+ public:
+  VerifyObjectVisitor(Isolate* isolate, ObjectSet* allocated_set)
+      : ObjectVisitor(isolate),
+        allocated_set_(allocated_set) {
+  }
+
+  virtual void VisitObject(RawObject* obj);
+
+ private:
+  ObjectSet* allocated_set_;
+
+  DISALLOW_COPY_AND_ASSIGN(VerifyObjectVisitor);
+};
 
 // A sample object pointer visitor implementation which verifies that
 // the pointers visited are contained in the isolate heap.
 class VerifyPointersVisitor : public ObjectPointerVisitor {
  public:
-  explicit VerifyPointersVisitor(Isolate* isolate)
-      : ObjectPointerVisitor(isolate) {
+  explicit VerifyPointersVisitor(Isolate* isolate, ObjectSet* allocated_set)
+      : ObjectPointerVisitor(isolate),
+        allocated_set_(allocated_set) {
   }
 
   virtual void VisitPointers(RawObject** first, RawObject** last);
@@ -38,6 +55,8 @@ class VerifyPointersVisitor : public ObjectPointerVisitor {
   static void VerifyPointers();
 
  private:
+  ObjectSet* allocated_set_;
+
   DISALLOW_COPY_AND_ASSIGN(VerifyPointersVisitor);
 };
 
@@ -51,6 +70,8 @@ class VerifyWeakPointersVisitor : public HandleVisitor {
 
  private:
   ObjectPointerVisitor* visitor_;
+
+  ObjectSet* allocated_set;
 
   DISALLOW_COPY_AND_ASSIGN(VerifyWeakPointersVisitor);
 };

@@ -187,6 +187,8 @@ class PageSpace {
         RawObject::ToAddr(raw_obj) & ~(kPageSize -1));
   }
 
+  void StartEndAddress(uword* start, uword* end) const;
+
   void EnableGrowthControl() {
     page_space_controller_.Enable();
   }
