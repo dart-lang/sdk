@@ -2184,7 +2184,7 @@ TEST_CASE(Script) {
   EXPECT_EQ('b', str.CharAt(0));
   EXPECT_EQ(':', str.CharAt(7));
   EXPECT_EQ('e', str.CharAt(16));
-  str = script.source();
+  str = script.Source();
   EXPECT_EQ(22, str.Length());
   EXPECT_EQ('T', str.CharAt(0));
   EXPECT_EQ('n', str.CharAt(10));

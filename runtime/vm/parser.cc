@@ -61,11 +61,14 @@ class TraceParser : public ValueObject {
  public:
   TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
     if (FLAG_trace_parser) {
-      intptr_t line, column;
-      script.GetTokenLocation(token_pos, &line, &column);
-      PrintIndent();
-      OS::Print("%s (line %d, col %d, token %d)\n",
-                msg, line, column, token_pos);
+      // Skips tracing of bootstrap libraries.
+      if (script.HasSource()) {
+        intptr_t line, column;
+        script.GetTokenLocation(token_pos, &line, &column);
+        PrintIndent();
+        OS::Print("%s (line %d, col %d, token %d)\n",
+                  msg, line, column, token_pos);
+      }
       indent_++;
     }
   }

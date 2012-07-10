@@ -1731,7 +1731,8 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
-  RawString* source() const;
+  bool HasSource() const;
+  RawString* Source() const;
   RawScript::Kind kind() const { return raw_ptr()->kind_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }

@@ -4505,7 +4505,12 @@ const char* TokenStream::ToCString() const {
 }
 
 
-RawString* Script::source() const {
+bool Script::HasSource() const {
+  return raw_ptr()->source_ != String::null();
+}
+
+
+RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
     const TokenStream& token_stream = TokenStream::Handle(tokens());
@@ -4545,7 +4550,7 @@ void Script::Tokenize(const String& private_key) const {
 
   // Get the source, scan and allocate the token stream.
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   Scanner scanner(src, private_key);
   set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream())));
   if (FLAG_compiler_stats) {
@@ -4557,7 +4562,7 @@ void Script::Tokenize(const String& private_key) const {
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(src, dummy_key);
   scanner.ScanTo(token_pos);
@@ -4569,7 +4574,7 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(src, dummy_key);
   scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
@@ -4577,7 +4582,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
 
 
 RawString* Script::GetLine(intptr_t line_number) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   intptr_t current_line = 1;
   intptr_t line_start = -1;
   intptr_t last_char = -1;
@@ -4610,7 +4615,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t from_column,
                               intptr_t to_line,
                               intptr_t to_column) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   intptr_t length = src.Length();
   intptr_t line = 1;
   intptr_t column = 1;

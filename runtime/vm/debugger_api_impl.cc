@@ -505,7 +505,7 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
                          CURRENT_FUNC, script_url.ToCString(),
                          String::Handle(lib.url()).ToCString());
   }
-  return Api::NewHandle(isolate, script.source());
+  return Api::NewHandle(isolate, script.Source());
 }
 
 
@@ -530,7 +530,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
                          library_url.ToCString());
   }
 
-  return Api::NewHandle(isolate, script.source());
+  return Api::NewHandle(isolate, script.Source());
 }
 
 

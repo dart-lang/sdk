@@ -72,7 +72,7 @@ RawError* Bootstrap::Compile(const Library& library, const Script& script) {
   if (FLAG_print_bootstrap) {
     OS::Print("Bootstrap source '%s':\n%s\n",
         String::Handle(script.url()).ToCString(),
-        String::Handle(script.source()).ToCString());
+        String::Handle(script.Source()).ToCString());
   }
   library.SetLoadInProgress();
   const Error& error = Error::Handle(Compiler::Compile(library, script));
