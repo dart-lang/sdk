@@ -41,15 +41,15 @@ class DartBackend extends Backend {
   void addMemberToClass(Element element, ClassElement classElement) {
     // ${element} should have ${classElement} as enclosing.
     assert(element.enclosingElement == classElement);
-    List<Element> resolvedElementsInClass =
-        resolvedClassMembers.putIfAbsent(classElement, () => <Element>[]);
+    Set<Element> resolvedElementsInClass = resolvedClassMembers.putIfAbsent(
+        classElement, () => new Set<Element>());
     resolvedElementsInClass.add(element);
   }
 
   /**
    * Outputs given class element with given inner elements to a string buffer.
    */
-  void outputClass(ClassElement classElement, List<Element> innerElements,
+  void outputClass(ClassElement classElement, Set<Element> innerElements,
       StringBuffer sb) {
     // TODO(smok): Very soon properly print out correct class declaration with
     // extends, implements, etc.
