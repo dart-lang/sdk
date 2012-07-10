@@ -117,6 +117,7 @@ static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
   const String& native_name = String::ZoneHandle(String::New("TestSmiSub"));
   Dart_NativeFunction native_function =
       NativeTestEntry_Lookup(native_name, argc);
+  ASSERT(native_function != NULL);
   const Context& context = Context::ZoneHandle(Context::New(0));
   ASSERT(context.isolate() == Isolate::Current());
   __ enter(Immediate(0));

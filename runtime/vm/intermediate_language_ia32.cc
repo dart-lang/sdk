@@ -182,7 +182,6 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ CompareObject(obj, compiler->bool_false());
   __ j(EQUAL, &done, Assembler::kNearJump);
 
-  __ pushl(Immediate(Smi::RawValue(token_pos())));  // Source location.
   __ pushl(obj);  // Push the source object.
   compiler->GenerateCallRuntime(cid(),
                                 token_pos(),
@@ -1061,7 +1060,6 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
 
   // Push the result place holder initialized to NULL.
   __ PushObject(Object::ZoneHandle());
-  __ pushl(Immediate(Smi::RawValue(token_pos())));
   __ PushObject(cls);
   __ pushl(type_arguments);
   __ pushl(instantiator_type_arguments);
@@ -1069,9 +1067,9 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
                                 token_pos(),
                                 try_index(),
                                 kAllocateObjectWithBoundsCheckRuntimeEntry);
-  // Pop instantiator type arguments, type arguments, class, and
+  // Pop instantiator type arguments, type arguments, and class.
   // source location.
-  __ Drop(4);
+  __ Drop(3);
   __ popl(result);  // Pop new instance.
 }
 

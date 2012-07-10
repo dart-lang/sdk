@@ -211,7 +211,6 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
   // Instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
-  // TODO(regis): We should introduce a SmiType.
   Error& malformed_error = Error::Handle();
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                             type_class,
@@ -481,7 +480,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
   __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushl(EAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
@@ -490,9 +488,9 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
   GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
-  // Pop the two parameters supplied to the runtime entry. The result of the
+  // Pop the parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ Drop(7);
+  __ Drop(6);
   Label done;
   if (negate_result) {
     __ popl(EDX);
@@ -556,7 +554,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
     const String& error_message = String::ZoneHandle(
         String::NewSymbol(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
@@ -580,7 +577,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
   __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
@@ -595,7 +591,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(8);
+  __ Drop(7);
   __ popl(EAX);
 
   __ Bind(&is_assignable);
