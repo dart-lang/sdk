@@ -30,4 +30,24 @@ main() {
       final event = new Event('test');
       div.on['test'].dispatch(event);
   });
+
+  test('WindowEventListener', () {
+    Element testDiv = new DivElement();
+    testDiv.id = '#TestDiv';
+    document.body.nodes.add(testDiv);
+    window.on.message.add((e) => testDiv.click());
+
+    for (int i = 0; i < 100; ++i) {
+      triggerMajorGC();
+    }
+
+    testDiv.on.click.add(expectAsync1((e) {}));
+    window.postMessage('test', '*');
+  });
+}
+
+void triggerMajorGC() {
+  List list = new List(1000000);
+  Element div = new DivElement();
+  div.on.click.add((e) => print(list[0]));
 }
