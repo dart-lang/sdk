@@ -495,6 +495,14 @@ bool Intrinsifier::Integer_add(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains right argument, which is the actual minuend of subtraction.
+  __ subq(RAX, Address(RSP, + 2 * kWordSize));
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -594,28 +602,47 @@ bool Intrinsifier::Integer_shl(Assembler* assembler) {
 }
 
 
-bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
+  Label fall_through, true_label;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains the right argument.
+  __ cmpq(Address(RSP, + 2 * kWordSize), RAX);
+  __ j(true_condition, &true_label, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&true_label);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
+}
+
+
+
+bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+  return CompareIntegers(assembler, LESS);
 }
 
 
 bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, LESS);
 }
 
 
 bool Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, GREATER);
 }
 
 
 bool Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
 bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
