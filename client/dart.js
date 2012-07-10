@@ -127,7 +127,7 @@ function ReceivePortSync() {
     var values = x[2];
     var result = new Array(length);
     for (var i = 0; i < length; i++) {
-      result[i] = values[i];
+      result[i] = deserializeHelper(values[i]);
     }
     return result;
   }
