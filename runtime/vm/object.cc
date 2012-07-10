@@ -4456,10 +4456,29 @@ RawString* TokenStream::GenerateSource() const {
   String& literal = String::Handle();
   String& blank = String::Handle(String::New(" "));
   String& newline = String::Handle(String::New("\n"));
+  String& double_quotes = String::Handle(String::New("\""));
   for (intptr_t i = 0; i < Length(); i++) {
     Token::Kind kind = KindAt(i);
     literal = LiteralAt(i);
-    literals.Add(literal);
+    if (kind == Token::kSTRING) {
+      bool escape_quotes = false;
+      for (intptr_t i = 0; i < literal.Length(); i++) {
+        if (literal.CharAt(i) == '"') {
+          escape_quotes = true;
+          break;
+        }
+      }
+      literals.Add(double_quotes);
+      if (escape_quotes) {
+        literal = String::EscapeDoubleQuotes(literal);
+        literals.Add(literal);
+      } else {
+        literals.Add(literal);
+      }
+      literals.Add(double_quotes);
+    } else {
+      literals.Add(literal);
+    }
     if (kind == Token::kLBRACE) {
       literals.Add(newline);
     } else {
@@ -8311,6 +8330,21 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
+RawString* String::EscapeDoubleQuotes(const String& str) {
+  if (str.IsOneByteString()) {
+    const OneByteString& onestr = OneByteString::Cast(str);
+    return onestr.EscapeDoubleQuotes();
+  }
+  if (str.IsTwoByteString()) {
+    const TwoByteString& twostr = TwoByteString::Cast(str);
+    return twostr.EscapeDoubleQuotes();
+  }
+  ASSERT(str.IsFourByteString());
+  const FourByteString& fourstr = FourByteString::Cast(str);
+  return fourstr.EscapeDoubleQuotes();
+}
+
+
 static void GrowSymbolTable(const Array& symbol_table, intptr_t table_size) {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_table_size = table_size * 2;
@@ -8628,6 +8662,34 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
+RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const OneByteString& dststr = OneByteString::Handle(
+        OneByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return OneByteString::null();
+}
+
+
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -8741,6 +8803,34 @@ const char* OneByteString::ToCString() const {
 }
 
 
+RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const TwoByteString& dststr = TwoByteString::Handle(
+        TwoByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return TwoByteString::null();
+}
+
+
 RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -8841,6 +8931,34 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 const char* TwoByteString::ToCString() const {
   return String::ToCString();
+}
+
+
+RawFourByteString* FourByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const FourByteString& dststr = FourByteString::Handle(
+        FourByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return FourByteString::null();
 }
 
 

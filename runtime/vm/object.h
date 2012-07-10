@@ -3221,6 +3221,8 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
+  static RawString* EscapeDoubleQuotes(const String& str);
+
   static RawString* Concat(const String& str1,
                            const String& str2,
                            Heap::Space space = Heap::kNew);
@@ -3292,6 +3294,8 @@ class OneByteString : public String {
     return kOneByteChar;
   }
 
+  RawOneByteString* EscapeDoubleQuotes() const;
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -3351,6 +3355,8 @@ class TwoByteString : public String {
     return kTwoByteChar;
   }
 
+  RawTwoByteString* EscapeDoubleQuotes() const;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
     return 0;
@@ -3403,6 +3409,8 @@ class FourByteString : public String {
   virtual intptr_t CharSize() const {
     return kFourByteChar;
   }
+
+  RawFourByteString* EscapeDoubleQuotes() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawFourByteString) == OFFSET_OF(RawFourByteString, data_));

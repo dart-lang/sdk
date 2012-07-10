@@ -720,6 +720,10 @@ TEST_CASE(SerializeScript) {
       "class A {\n"
       "  static bar() { return 42; }\n"
       "  static fly() { return 5; }\n"
+      "  static s1() { return 'this is a string in the source'; }\n"
+      "  static s2() { return 'this is a \"string\" in the source'; }\n"
+      "  static s3() { return 'this is a \\\'string\\\' in \"the\" source'; }\n"
+      "  static s4() { return 'this \"is\" a \"string\" in \"the\" source'; }\n"
       "}\n";
 
   String& url = String::Handle(String::New("dart-test:SerializeScript"));
