@@ -2363,19 +2363,19 @@ class ParallelMoveInstr : public Instruction {
 class Environment : public ZoneAllocated {
  public:
   // Construct an environment by copying from an array of values.
-  explicit Environment(ZoneGrowableArray<Value*>* values)
-      : values_(values->length()) {
-          values_.AddArray(*values);
+  explicit Environment(const GrowableArray<Value*>& values)
+      : values_(values.length()) {
+          values_.AddArray(values);
         }
 
-  const ZoneGrowableArray<Value*>& values() const {
+  const GrowableArray<Value*>& values() const {
     return values_;
   }
 
   void PrintTo(BufferFormatter* f) const;
 
  private:
-  ZoneGrowableArray<Value*> values_;
+  GrowableArray<Value*> values_;
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
 

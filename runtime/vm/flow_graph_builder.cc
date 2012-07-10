@@ -2493,27 +2493,26 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
                        parsed_function().function().num_fixed_parameters()));
 
   // Initialize start environment.
-  ZoneGrowableArray<Value*>* start_env =
-      new ZoneGrowableArray<Value*>(var_count);
+  GrowableArray<Value*> start_env(var_count);
   intptr_t i = 0;
   for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
     ParameterInstr* param = new ParameterInstr(i);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-    start_env->Add(new UseVal(param));
+    start_env.Add(new UseVal(param));
   }
 
   // All locals are initialized with #null.
   Value* null_value = new ConstantVal(Object::ZoneHandle());
   for (; i < var_count; i++) {
-    start_env->Add(null_value);
+    start_env.Add(null_value);
   }
   graph_entry_->set_start_env(new Environment(start_env));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  ZoneGrowableArray<Value*>* env = new ZoneGrowableArray<Value*>(var_count);
-  env->AddArray(*start_env);
-  RenameRecursive(normal_entry, env, var_count);
+  GrowableArray<Value*> env(var_count);
+  env.AddArray(start_env);
+  RenameRecursive(normal_entry, &env, var_count);
 }
 
 
@@ -2536,7 +2535,7 @@ static Value* CopyValue(Value* value) {
 
 
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
-                                       ZoneGrowableArray<Value*>* env,
+                                       GrowableArray<Value*>* env,
                                        intptr_t var_count) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
@@ -2559,7 +2558,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // TODO(fschneider): Currently each instruction gets a full copy of the
     // enviroment. This should be optimized: Only instructions that can
     // deoptimize will should have uses of the environment values.
-    current->set_env(new Environment(env));
+    current->set_env(new Environment(*env));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -2625,10 +2624,9 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   // 3. Process dominated blocks.
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
-    ZoneGrowableArray<Value*>* new_env =
-        new ZoneGrowableArray<Value*>(env->length());
-    new_env->AddArray(*env);
-    RenameRecursive(block, new_env, var_count);
+    GrowableArray<Value*> new_env(env->length());
+    new_env.AddArray(*env);
+    RenameRecursive(block, &new_env, var_count);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks
