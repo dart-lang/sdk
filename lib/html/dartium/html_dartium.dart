@@ -39018,6 +39018,19 @@ interface WheelEvent extends MouseEvent {
 interface Window extends EventTarget {
 
   /**
+   * Register a [port] on this window under the given [name].  This
+   * port may be retrieved by any isolate (or JavaScript script)
+   * running in this window.
+   */
+  void registerPort(String name, SendPortSync port);
+
+  /**
+   * Lookup a port by its [name].  Return null if no port is
+   * registered under [name].
+   */
+  SendPortSync lookupPort(String name);
+
+  /**
    * Executes a [callback] after the next batch of browser layout measurements
    * has completed or would have completed if any browser layout measurements
    * had been scheduled.
