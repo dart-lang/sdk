@@ -16,7 +16,9 @@ namespace WebCore {
 struct Dart$INTERFACE {
     static const char* const dartImplementationClassName;
     typedef $WEBCORE_CLASS_NAME NativeType;
-    typedef $NATIVE_TRAITS_TYPE NativeTraits;
+    static const bool isNode = $IS_NODE;
+    static const bool isActive = $IS_ACTIVE;
+    static const bool isEventTarget = $IS_EVENT_TARGET;
 
 $TO_NATIVE
 $TO_DART

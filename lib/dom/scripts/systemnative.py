@@ -421,14 +421,22 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INTERFACE=self._interface.id)
 
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
-    wrapper_type = _DOMWrapperType(self._database, self._interface)
+
+    is_node_test = lambda interface: interface.id == 'Node'
+    is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
+    is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+    def TypeCheckHelper(test):
+      return 'true' if _FindInHierarchy(self._database, self._interface, test) else 'false'
+
     self._cpp_header_emitter.Emit(
         self._system._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments(),
-        NATIVE_TRAITS_TYPE='DartDOMWrapper::%sTraits' % wrapper_type,
+        IS_NODE=TypeCheckHelper(is_node_test),
+        IS_ACTIVE=TypeCheckHelper(is_active_test),
+        IS_EVENT_TARGET=TypeCheckHelper(is_event_target_test),
         TO_NATIVE=to_native_emitter.Fragments(),
         TO_DART=to_dart_emitter.Fragments())
 
@@ -942,28 +950,15 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in sorted(includes)])
 
-def _DOMWrapperType(database, interface):
-  if interface.id == 'MessagePort':
-    return 'MessagePort'
-
-  type = 'Object'
-  def is_node(interface):
-    return interface.id == 'Node'
-  if is_node(interface) or _FindParent(interface, database, is_node):
-    type = 'Node'
-  if 'ActiveDOMObject' in interface.ext_attrs:
-    type = 'Active%s' % type
-  return type
-
-def _FindParent(interface, database, callback):
+def _FindInHierarchy(database, interface, test):
+  if test(interface):
+    return interface
   for parent in interface.parents:
     parent_name = parent.type.id
     if not database.HasInterface(parent.type.id):
       continue
     parent_interface = database.GetInterface(parent.type.id)
-    if callback(parent_interface):
-      return parent_interface
-    parent_interface = _FindParent(parent_interface, database, callback)
+    parent_interface = _FindInHierarchy(database, parent_interface, test)
     if parent_interface:
       return parent_interface
 
