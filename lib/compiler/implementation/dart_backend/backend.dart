@@ -42,9 +42,19 @@ class DartBackend extends Backend {
       throw new BailoutException(reason);
     }
 
+    /**
+     * Tells whether we should output given element. Corelib classes like
+     * Object should not be in the resulting code.
+     */
+    bool shouldOutput(Element element) {
+      return element.kind !== ElementKind.VOID
+          && element.getLibrary() !== compiler.coreLibrary;
+    }
+
     try {
       StringBuffer sb = new StringBuffer();
       resolvedElements.forEach((element, treeElements) {
+        if (!shouldOutput(element)) return;
         if (!element.isTopLevel()) {
           bailout('Cannot process non top-level $element');
         }

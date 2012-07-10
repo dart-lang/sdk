@@ -123,6 +123,10 @@ testTopLevelField() {
   testDart2Dart(src, (String s) => Expect.equals(src, s));
 }
 
+testSimpleObjectInstantiation() {
+  testUnparse('main(){new Object();}');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -133,5 +137,6 @@ main() {
   testPrefixIncrements();
   testConstModifier();
   testSimpleFileUnparse();
+  testSimpleObjectInstantiation();
   testTopLevelField();
 }
