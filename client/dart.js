@@ -123,8 +123,8 @@ function ReceivePortSync() {
   }
 
   function deserializeList(x) {
-    var length = x[1];
     var values = x[2];
+    var length = values.length;
     var result = new Array(length);
     for (var i = 0; i < length; i++) {
       result[i] = deserializeHelper(values[i]);
