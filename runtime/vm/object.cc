@@ -2728,48 +2728,50 @@ bool Type::IsIdentical(const AbstractType& other,
 
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
+  if (IsCanonical() || IsMalformed()) {
+    return this->raw();
+  }
   const Class& cls = Class::Handle(type_class());
   Array& canonical_types = Array::Handle(cls.canonical_types());
   if (canonical_types.IsNull()) {
     // Types defined in the VM isolate are canonicalized via the object store.
     return this->raw();
   }
-  if (!IsCanonical()) {
-    const intptr_t canonical_types_len = canonical_types.Length();
-    // Linear search to see whether this type is already present in the
-    // list of canonicalized types.
-    // TODO(asiva): Try to re-factor this lookup code to make sharing
-    // easy between the 4 versions of this loop.
-    Type& type = Type::Handle();
-    intptr_t index = 0;
-    while (index < canonical_types_len) {
-      type ^= canonical_types.At(index);
-      if (type.IsNull()) {
-        break;
-      }
-      if (!type.IsFinalized()) {
-        ASSERT((index == 0) && cls.IsSignatureClass());
-        index++;
-        continue;
-      }
-      if (this->Equals(type)) {
-        return type.raw();
-      }
+  const intptr_t canonical_types_len = canonical_types.Length();
+  // Linear search to see whether this type is already present in the
+  // list of canonicalized types.
+  // TODO(asiva): Try to re-factor this lookup code to make sharing
+  // easy between the 4 versions of this loop.
+  Type& type = Type::Handle();
+  intptr_t index = 0;
+  while (index < canonical_types_len) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    if (!type.IsFinalized()) {
+      ASSERT((index == 0) && cls.IsSignatureClass());
       index++;
+      continue;
     }
-    // The type needs to be added to the list. Grow the list if it is full.
-    if (index == canonical_types_len) {
-      const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
-      const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-      const Array& new_canonical_types =
-          Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
-      cls.set_canonical_types(new_canonical_types);
-      new_canonical_types.SetAt(index, *this);
-    } else {
-      canonical_types.SetAt(index, *this);
+    if (this->Equals(type)) {
+      return type.raw();
     }
-    SetCanonical();
+    index++;
   }
+  // The type needs to be added to the list. Grow the list if it is full.
+  // TODO(srdjan): Copy type into old space if canonicalized?
+  if (index == canonical_types_len) {
+    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
+    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+    const Array& new_canonical_types =
+        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+    cls.set_canonical_types(new_canonical_types);
+    new_canonical_types.SetAt(index, *this);
+  } else {
+    canonical_types.SetAt(index, *this);
+  }
+  SetCanonical();
   return this->raw();
 }
 
@@ -2785,19 +2787,20 @@ void Type::set_arguments(const AbstractTypeArguments& value) const {
 }
 
 
-RawType* Type::New() {
+RawType* Type::New(Heap::Space space) {
   const Class& type_class = Class::Handle(Object::type_class());
   RawObject* raw = Object::Allocate(type_class,
                                     Type::InstanceSize(),
-                                    Heap::kOld);
+                                    space);
   return reinterpret_cast<RawType*>(raw);
 }
 
 
 RawType* Type::New(const Object& clazz,
                    const AbstractTypeArguments& arguments,
-                   intptr_t token_pos) {
-  const Type& result = Type::Handle(Type::New());
+                   intptr_t token_pos,
+                   Heap::Space space) {
+  const Type& result = Type::Handle(Type::New(space));
   result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.set_token_pos(token_pos);
@@ -3349,7 +3352,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   }
   const intptr_t num_types = Length();
   TypeArguments& instantiated_array =
-      TypeArguments::Handle(TypeArguments::New(num_types));
+      TypeArguments::Handle(TypeArguments::New(num_types, Heap::kNew));
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -3362,7 +3365,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 
-RawTypeArguments* TypeArguments::New(intptr_t len) {
+RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   if ((len < 0) || (len > kMaxTypes)) {
     // TODO(iposva): Should we throw an illegal parameter exception?
     UNIMPLEMENTED();
@@ -3375,7 +3378,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
   {
     RawObject* raw = Object::Allocate(type_arguments_class,
                                       TypeArguments::InstanceSize(len),
-                                      Heap::kOld);
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
     // Length must be set before we start storing into the array.
@@ -3419,6 +3422,7 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
     other ^= table.At(++index);
   }
   // Not found. Add 'this' to table.
+  // TODO(srdjan): Copy 'this' into old space if canonicalized?
   if (index == table.Length() - 1) {
     table = Array::Grow(table, table.Length() + 4, Heap::kOld);
     object_store->set_canonical_type_arguments(table);
@@ -4053,7 +4057,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
-        signature_class, signature_type, ClassFinalizer::kFinalize);
+        signature_class, signature_type, ClassFinalizer::kCanonicalize);
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);

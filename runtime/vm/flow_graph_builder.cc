@@ -1555,12 +1555,14 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
-    // TODO(regis): Temporary type should be allocated in new gen heap.
+    // Type is temporary. Only its type arguments are preserved.
     Type& type = Type::Handle(
-        Type::New(instantiator_class, type_arguments, token_pos));
+        Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
     type ^= ClassFinalizer::FinalizeType(
-        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
+        instantiator_class, type, ClassFinalizer::kFinalize);
+    ASSERT(!type.IsMalformed());
     type_arguments = type.arguments();
+    type_arguments = type_arguments.Canonicalize();
     return Bind(new ConstantVal(type_arguments));
   }
   Function& outer_function =

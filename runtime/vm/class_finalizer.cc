@@ -319,7 +319,7 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
     return;
   }
   // Resolve failures lead to a longjmp.
-  ResolveType(cls, super_type, kFinalizeWellFormed);
+  ResolveType(cls, super_type, kCanonicalizeWellFormed);
   const Class& super_class = Class::Handle(super_type.type_class());
   if (cls.is_interface() != super_class.is_interface()) {
     String& class_name = String::Handle(cls.Name());
@@ -532,7 +532,9 @@ void ClassFinalizer::FinalizeTypeParameters(const Class& cls) {
     const intptr_t num_types = type_parameters.Length();
     for (intptr_t i = 0; i < num_types; i++) {
       type_parameter ^= type_parameters.TypeAt(i);
-      type_parameter ^= FinalizeType(cls, type_parameter, kFinalizeWellFormed);
+      type_parameter ^= FinalizeType(cls,
+                                     type_parameter,
+                                     kCanonicalizeWellFormed);
       type_parameters.SetTypeAt(i, type_parameter);
     }
   }
@@ -599,7 +601,9 @@ void ClassFinalizer::FinalizeTypeArguments(
         if (!super_type_arg.IsInstantiated()) {
           super_type_arg = super_type_arg.InstantiateFrom(arguments);
         }
-        super_type_arg = super_type_arg.Canonicalize();
+        if (finalization >= kCanonicalize) {
+          super_type_arg = super_type_arg.Canonicalize();
+        }
       }
       arguments.SetTypeAt(super_offset + i, super_type_arg);
     }
@@ -615,7 +619,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     return type.raw();
   }
   ASSERT(type.IsResolved());
-  ASSERT((finalization == kFinalize) || (finalization == kFinalizeWellFormed));
+  ASSERT(finalization >= kFinalize);
 
   if (FLAG_trace_type_finalization) {
     OS::Print("Finalize type '%s'\n", String::Handle(type.Name()).ToCString());
@@ -748,7 +752,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         // The parameterized_type is raw. Set its argument vector to null, which
         // is more efficient in type tests.
         full_arguments = TypeArguments::null();
-      } else {
+      } else if (finalization >= kCanonicalize) {
         // FinalizeTypeArguments can modify 'full_arguments',
         // canonicalize afterwards.
         full_arguments ^= full_arguments.Canonicalize();
@@ -822,7 +826,11 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
     }
   }
 
-  return parameterized_type.Canonicalize();
+  if (finalization >= kCanonicalize) {
+    return parameterized_type.Canonicalize();
+  } else {
+    return parameterized_type.raw();
+  }
 }
 
 
@@ -834,8 +842,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   // with an unresolved class whose name matches the factory name.
   // It is not a compile time error if this name does not resolve to a class or
   // interface.
-  ResolveType(cls, type, kFinalize);
-  type = FinalizeType(cls, type, kFinalize);
+  ResolveType(cls, type, kCanonicalize);
+  type = FinalizeType(cls, type, kCanonicalize);
   // In production mode, a malformed result type is mapped to Dynamic.
   if (!FLAG_enable_type_checks && type.IsMalformed()) {
     type = Type::DynamicType();
@@ -845,8 +853,8 @@ void ClassFinalizer::ResolveAndFinalizeSignature(const Class& cls,
   const intptr_t num_parameters = function.NumberOfParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type, kFinalize);
-    type = FinalizeType(cls, type, kFinalize);
+    ResolveType(cls, type, kCanonicalize);
+    type = FinalizeType(cls, type, kCanonicalize);
     // In production mode, a malformed parameter type is mapped to Dynamic.
     if (!FLAG_enable_type_checks && type.IsMalformed()) {
       type = Type::DynamicType();
@@ -910,8 +918,8 @@ void ClassFinalizer::ResolveAndFinalizeUpperBounds(const Class& cls) {
     if (bound.IsFinalized()) {
       continue;
     }
-    ResolveType(cls, bound, kFinalize);
-    bound = FinalizeType(cls, bound, kFinalize);
+    ResolveType(cls, bound, kCanonicalize);
+    bound = FinalizeType(cls, bound, kCanonicalize);
     type_param.set_bound(bound);
   }
 }
@@ -939,8 +947,8 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
   for (intptr_t i = 0; i < num_fields; i++) {
     field ^= array.At(i);
     type = field.type();
-    ResolveType(cls, type, kFinalize);
-    type = FinalizeType(cls, type, kFinalize);
+    ResolveType(cls, type, kCanonicalize);
+    type = FinalizeType(cls, type, kCanonicalize);
     field.set_type(type);
     name = field.name();
     super_class = FindSuperOwnerOfInstanceMember(cls, name);
@@ -1102,7 +1110,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   // Finalize super type.
   Type& super_type = Type::Handle(cls.super_type());
   if (!super_type.IsNull()) {
-    super_type ^= FinalizeType(cls, super_type, kFinalizeWellFormed);
+    super_type ^= FinalizeType(cls, super_type, kCanonicalizeWellFormed);
     cls.set_super_type(super_type);
   }
   // Signature classes are finalized upon creation, except function type
@@ -1139,7 +1147,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
   AbstractType& interface_type = AbstractType::Handle();
   for (intptr_t i = 0; i < interface_types.Length(); i++) {
     interface_type ^= interface_types.At(i);
-    interface_type = FinalizeType(cls, interface_type, kFinalizeWellFormed);
+    interface_type = FinalizeType(cls, interface_type, kCanonicalizeWellFormed);
     interface_types.SetAt(i, interface_type);
   }
   // Mark as finalized before resolving type parameter upper bounds and member
@@ -1210,7 +1218,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   const Function& function = Function::Handle(cls.signature_function());
   // Check class of result type.
   AbstractType& type = AbstractType::Handle(function.result_type());
-  ResolveType(cls, type, kFinalize);
+  ResolveType(cls, type, kCanonicalize);
   if (type.IsType() && !type.IsMalformed()) {
     const Class& type_class = Class::Handle(type.type_class());
     if (!type_class.is_finalized() &&
@@ -1225,7 +1233,7 @@ bool ClassFinalizer::IsAliasCycleFree(const Class& cls,
   const intptr_t num_parameters = function.NumberOfParameters();
   for (intptr_t i = 0; i < num_parameters; i++) {
     type = function.ParameterTypeAt(i);
-    ResolveType(cls, type, kFinalize);
+    ResolveType(cls, type, kCanonicalize);
     if (type.IsType() && !type.IsMalformed()) {
       const Class& type_class = Class::Handle(type.type_class());
       if (!type_class.is_finalized() &&
@@ -1312,7 +1320,7 @@ void ClassFinalizer::ResolveInterfaces(const Class& cls,
   Class& interface_class = Class::Handle();
   for (intptr_t i = 0; i < super_interfaces.Length(); i++) {
     interface ^= super_interfaces.At(i);
-    ResolveType(cls, interface, kFinalizeWellFormed);
+    ResolveType(cls, interface, kCanonicalizeWellFormed);
     if (interface.IsTypeParameter()) {
       const Script& script = Script::Handle(cls.script());
       ReportError(script, cls.token_pos(),
@@ -1442,7 +1450,7 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
   LanguageError& error = LanguageError::Handle();
   if (FLAG_enable_type_checks ||
       !type.HasResolvedTypeClass() ||
-      (finalization == kFinalizeWellFormed)) {
+      (finalization == kCanonicalizeWellFormed)) {
     const Script& script = Script::Handle(cls.script());
     if (prev_error.IsNull()) {
       error ^= Parser::FormatError(
@@ -1451,7 +1459,7 @@ void ClassFinalizer::FinalizeMalformedType(const Error& prev_error,
       error ^= Parser::FormatErrorWithAppend(
           prev_error, script, type.token_pos(), "Error", format, args);
     }
-    if (finalization == kFinalizeWellFormed) {
+    if (finalization == kCanonicalizeWellFormed) {
       ReportError(error);
     }
   }

@@ -1010,13 +1010,14 @@ class Type : public AbstractType {
 
   static RawType* New(const Object& clazz,
                       const AbstractTypeArguments& arguments,
-                      intptr_t token_pos);
+                      intptr_t token_pos,
+                      Heap::Space space = Heap::kOld);
 
  private:
   void set_token_pos(intptr_t token_pos) const;
   void set_type_state(int8_t state) const;
 
-  static RawType* New();
+  static RawType* New(Heap::Space space = Heap::kOld);
 
   HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
@@ -1214,7 +1215,7 @@ class TypeArguments : public AbstractTypeArguments {
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
-  static RawTypeArguments* New(intptr_t len);
+  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
   // Make sure that the array size cannot wrap around.
