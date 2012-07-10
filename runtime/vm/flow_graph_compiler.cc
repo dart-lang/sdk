@@ -390,7 +390,7 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
 
 
 void FlowGraphCompiler::EmitComment(Instruction* instr) {
-  char buffer[80];
+  char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
   assembler()->Comment("@%d: %s", instr->cid(), buffer);
@@ -427,11 +427,16 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t cid,
                                         intptr_t token_index,
                                         intptr_t try_index) {
-  // TODO(srdjan): better loop please!
+  Label match_found;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    const bool is_last_check = (i == (ic_data.NumberOfChecks() - 1));
     Label next_test;
     assembler()->cmpl(class_id_reg, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    assembler()->j(NOT_EQUAL, &next_test);
+    if (is_last_check) {
+      assembler()->j(NOT_EQUAL, deopt);
+    } else {
+      assembler()->j(NOT_EQUAL, &next_test);
+    }
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     GenerateStaticCall(cid,
                        token_index,
@@ -439,10 +444,15 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                        target,
                        arg_count,
                        arg_names);
-    assembler()->jmp(done);
+    if (!is_last_check) {
+      assembler()->jmp(&match_found);
+    }
     assembler()->Bind(&next_test);
   }
-  assembler()->jmp(deopt);
+  assembler()->Bind(&match_found);
+  if (done != NULL) {
+    assembler()->jmp(done);
+  }
 }
 
 

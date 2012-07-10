@@ -562,9 +562,7 @@ class PolymorphicInstanceCallComp : public Computation {
     instance_call()->SetInputAt(index, value);
   }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const {
-    instance_call()->PrintOperandsTo(f);
-  }
+  void PrintTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(PolymorphicInstanceCall)
 

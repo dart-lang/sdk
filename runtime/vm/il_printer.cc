@@ -136,6 +136,24 @@ void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
+  f->Print("%s(", DebugName());
+  instance_call()->PrintOperandsTo(f);
+  f->Print(") ");
+  intptr_t len = HasICData() ? ic_data()->NumberOfChecks() : 0;
+  f->Print("[%d: ", len);
+  for (intptr_t i = 0; i < len; i++) {
+    intptr_t class_id = ic_data()->GetReceiverClassIdAt(i);
+    const Class& cls =
+        Class::Handle(Isolate::Current()->class_table()->At(class_id));
+    if (i > 0) {
+      f->Print(", ");
+    }
+    f->Print("%s", cls.ToCString());
+  }
+  f->Print("]");
+}
+
 void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
   left()->PrintTo(f);

@@ -139,7 +139,7 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t arg_count,
                        const Array& arg_names,
                        Label* deopt,
-                       Label* done,
+                       Label* done,  // Can be NULL, which means fallthrough.
                        intptr_t cid,
                        intptr_t token_index,
                        intptr_t try_index);

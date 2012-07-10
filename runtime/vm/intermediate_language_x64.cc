@@ -677,17 +677,16 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
   __ movq(RAX, Address(RSP, (kNumArguments - 1) * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
-  Label done;
   __ LoadClassId(RDI, RAX);
   compiler->EmitTestAndCall(ic_data,
                             RDI,  // Class id register.
                             kNumArguments,
                             Array::Handle(),  // No named arguments.
-                            deopt, &done,  // Labels.
+                            deopt,  // Deoptimize target.
+                            NULL,   // Fallthrough when done.
                             comp->cid(),
                             comp->token_pos(),
                             comp->try_index());
-  __ Bind(&done);
 }
 
 
@@ -816,17 +815,16 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
   __ movq(RAX, Address(RSP, (kNumArguments - 1) * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
-  Label done;
   __ LoadClassId(RDI, RAX);
   compiler->EmitTestAndCall(ic_data,
                             RDI,  // Class id register.
                             kNumArguments,
                             Array::Handle(),  // No named arguments.
-                            deopt, &done,  // Labels.
+                            deopt,  // deoptimize label.
+                            NULL,   // fallthrough when done.
                             comp->cid(),
                             comp->token_pos(),
                             comp->try_index());
-  __ Bind(&done);
 }
 
 
@@ -1963,7 +1961,8 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                             RDI,  // Class id register.
                             instance_call()->ArgumentCount(),
                             instance_call()->argument_names(),
-                            deopt, &done,  // Labels.
+                            deopt,
+                            (is_smi_label == &handle_smi) ? &done : NULL,
                             instance_call()->cid(),
                             instance_call()->token_pos(),
                             instance_call()->try_index());
