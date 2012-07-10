@@ -1729,12 +1729,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         world.registerDynamicInvocationOf(node.element);
       } else {
-        if (inLoop) {
-          backend.builder.selectorsCalledInLoop[node.name] = node.selector;
-        }
-        world.registerDynamicInvocation(
-            node.name,
-            getOptimizedSelectorFor(node, node.selector));
+        Selector selector = getOptimizedSelectorFor(node, node.selector);
+        world.registerDynamicInvocation(node.name, selector);
+        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
