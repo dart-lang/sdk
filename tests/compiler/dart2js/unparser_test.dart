@@ -19,7 +19,7 @@ testUnparseMember(String member) {
 
 final coreLib = @'''
 #library('corelib');
-interface Object {}
+class Object {}
 interface bool {}
 interface num {}
 interface int extends num {}
@@ -127,6 +127,11 @@ testSimpleObjectInstantiation() {
   testUnparse('main(){new Object();}');
 }
 
+testSimpleTopLevelClass() {
+  final src = 'main(){new A();}class A{A(){}}';
+  testDart2Dart(src, (String s) => Expect.equals(src, s));
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -138,5 +143,6 @@ main() {
   testConstModifier();
   testSimpleFileUnparse();
   testSimpleObjectInstantiation();
+  testSimpleTopLevelClass();
   testTopLevelField();
 }

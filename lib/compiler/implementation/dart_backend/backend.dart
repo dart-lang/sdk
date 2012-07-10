@@ -14,10 +14,12 @@ class DartBackend extends Backend {
 
   Map<Element, TreeElements> get resolvedElements() =>
       compiler.enqueuer.resolution.resolvedElements;
+  Map<ClassElement, Set<Element>> resolvedClassMembers;
 
   DartBackend(Compiler compiler, [bool validateUnparse = false])
       : tasks = <CompilerTask>[],
       unparseValidator = new UnparseValidator(compiler, validateUnparse),
+      resolvedClassMembers = new Map<ClassElement, Set<Element>>(),
       super(compiler) {
     tasks.add(unparseValidator);
   }
@@ -30,6 +32,35 @@ class DartBackend extends Backend {
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {
+  }
+
+  /**
+   * Adds given class element with its member element to resolved classes
+   * collections.
+   */
+  void addMemberToClass(Element element, ClassElement classElement) {
+    // ${element} should have ${classElement} as enclosing.
+    assert(element.enclosingElement == classElement);
+    List<Element> resolvedElementsInClass =
+        resolvedClassMembers.putIfAbsent(classElement, () => <Element>[]);
+    resolvedElementsInClass.add(element);
+  }
+
+  /**
+   * Outputs given class element with given inner elements to a string buffer.
+   */
+  void outputClass(ClassElement classElement, List<Element> innerElements,
+      StringBuffer sb) {
+    // TODO(smok): Very soon properly print out correct class declaration with
+    // extends, implements, etc.
+    sb.add('class ');
+    sb.add(classElement.name.slowToString());
+    sb.add('{');
+    innerElements.forEach((element) {
+      // TODO(smok): Filter out default constructors here.
+      sb.add(element.parseNode(compiler).unparse());
+    });
+    sb.add('}');
   }
 
   void assembleProgram() {
@@ -55,6 +86,13 @@ class DartBackend extends Backend {
       StringBuffer sb = new StringBuffer();
       resolvedElements.forEach((element, treeElements) {
         if (!shouldOutput(element)) return;
+        if (element.isMember()) {
+          var enclosingClass = element.enclosingElement;
+          assert(enclosingClass.isClass());
+          assert(enclosingClass.isTopLevel());
+          addMemberToClass(element, enclosingClass);
+          return;
+        }
         if (!element.isTopLevel()) {
           bailout('Cannot process non top-level $element');
         }
@@ -78,6 +116,11 @@ class DartBackend extends Backend {
         } else {
           sb.add(element.parseNode(compiler).unparse());
         }
+      });
+
+      // Now output resolved classes with inner elements we met before.
+      resolvedClassMembers.forEach((classElement, resolvedElements) {
+        outputClass(classElement, resolvedElements, sb);
       });
       compiler.assembledCode = sb.toString();
     } catch (BailoutException e) {
