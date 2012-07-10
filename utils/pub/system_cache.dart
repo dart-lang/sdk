@@ -6,6 +6,7 @@
 
 #import('io.dart');
 #import('package.dart');
+#import('source.dart');
 #import('source_registry.dart');
 #import('utils.dart');
 
@@ -40,6 +41,15 @@ class SystemCache {
     sources = new SourceRegistry();
 
   /**
+   * Registers a new source. This source must not have the same name as a source
+   * that's already been registered.
+   */
+  void register(Source source) {
+    source.bind(this);
+    sources.register(source);
+  }
+
+  /**
    * Loads all of the package ids in the cache and returns them.
    */
   Future<List<PackageId>> listAll() {
@@ -72,8 +82,7 @@ class SystemCache {
     var pending = _pendingInstalls[id];
     if (pending != null) return pending;
 
-    var sourceDir = join(rootDir, id.source.name);
-    var path = id.source.systemCacheDirectory(id, sourceDir);
+    var path = id.source.systemCacheDirectory(id);
     var future = exists(path).chain((exists) {
       // TODO(nweiz): better error handling
       if (exists) throw 'Package $id is already installed.';

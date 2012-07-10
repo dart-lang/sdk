@@ -69,9 +69,9 @@ main() {
   }
 
   var cache = new SystemCache(globalOptions['cachedir']);
-  cache.sources.register(new SdkSource(globalOptions['sdkdir']));
-  cache.sources.register(new GitSource());
-  cache.sources.register(new RepoSource());
+  cache.register(new SdkSource(globalOptions['sdkdir']));
+  cache.register(new GitSource());
+  cache.register(new RepoSource());
   // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
   cache.sources.setDefault('sdk');
 

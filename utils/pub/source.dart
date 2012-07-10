@@ -4,8 +4,10 @@
 
 #library('source');
 
+#import('io.dart');
 #import('package.dart');
 #import('pubspec.dart');
+#import('system_cache.dart');
 #import('version.dart');
 
 /**
@@ -30,6 +32,37 @@ class Source {
    * locally.
    */
   abstract bool get shouldCache();
+
+  /**
+   * The system cache with which this source is registered.
+   */
+  SystemCache get systemCache() {
+    assert(_systemCache != null);
+    return _systemCache;
+  }
+
+  /**
+   * The system cache variable. Set by [_bind].
+   */
+  SystemCache _systemCache;
+
+  /**
+   * The root directory of this source's cache within the system cache.
+   *
+   * This shouldn't be overridden by subclasses.
+   */
+  String get systemCacheRoot() => join(systemCache.rootDir, name);
+
+  /**
+   * Records the system cache to which this source belongs.
+   *
+   * This should only be called once for each source, by [SystemCache.register].
+   * It should not be overridden by base classes.
+   */
+  void bind(SystemCache systemCache) {
+    assert(_systemCache == null);
+    this._systemCache = systemCache;
+  }
 
   /**
    * Get the list of all versions that exist for the package described by
@@ -67,13 +100,13 @@ class Source {
 
   /**
    * Returns the directory in the system cache that the package identified by
-   * [id] should be installed to. [parent] is this source's subdirectory in the
-   * system cache directory.
+   * [id] should be installed to. This should return a path to a subdirectory of
+   * [systemCacheRoot].
    *
    * This doesn't need to be implemented if [shouldCache] is false.
    */
-  String systemCacheDirectory(PackageId id, String parent) =>
-    join(parent, packageName(id.description));
+  String systemCacheDirectory(PackageId id) =>
+    join(systemCacheRoot, packageName(id.description));
 
   /**
    * When a [Pubspec] is parsed, it reads in the description for each

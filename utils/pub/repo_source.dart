@@ -51,13 +51,13 @@ class RepoSource extends Source {
    * subdirectories then contains a subdirectory for each package installed from
    * that repository.
    */
-  String systemCacheDirectory(PackageId id, String parent) {
+  String systemCacheDirectory(PackageId id) {
     var parsed = _parseDescription(id.description);
     var url = parsed.last.replaceAll(new RegExp(@"^https?://"), "");
     var urlDir = replace(url, new RegExp(@'[<>:"\\/|?*%]'), (match) {
       return '%${match[0].charCodeAt(0)}';
     });
-    return join(parent, urlDir, "${parsed.first}-${id.version}");
+    return join(systemCacheRoot, urlDir, "${parsed.first}-${id.version}");
   }
 
   String packageName(description) => _parseDescription(description).first;
