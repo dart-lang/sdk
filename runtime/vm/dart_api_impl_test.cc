@@ -1295,6 +1295,19 @@ UNIT_TEST_CASE(NewPersistentHandle_FromPersistentHandle) {
 }
 
 
+// Helper class to ensure new gen GC is triggered without any side effects.
+// The normal call to CollectGarbage(Heap::kNew) could potentially trigger
+// an old gen collection if there is a promotion failure and this could
+// perturb the test.
+class GCTestHelper : public AllStatic {
+ public:
+  static void CollectNewSpace(Heap::ApiCallbacks api_callbacks) {
+    bool invoke_api_callbacks = (api_callbacks == Heap::kInvokeApiCallbacks);
+    Isolate::Current()->heap()->new_space_->Scavenge(invoke_api_callbacks);
+  }
+};
+
+
 // Only ia32 and x64 can run execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
@@ -1308,11 +1321,11 @@ TEST_CASE(WeakPersistentHandle) {
   {
     Dart_EnterScope();
 
-    // create an object in new space
+    // Create an object in new space.
     Dart_Handle new_ref = Dart_NewString("new string");
     EXPECT_VALID(new_ref);
 
-    // create an object in old space
+    // Create an object in old space.
     Dart_Handle old_ref;
     {
       Isolate* isolate = Isolate::Current();
@@ -1321,20 +1334,20 @@ TEST_CASE(WeakPersistentHandle) {
       EXPECT_VALID(old_ref);
     }
 
-    // create a weak ref to the new space object
+    // Create a weak ref to the new space object.
     weak_new_ref = Dart_NewWeakPersistentHandle(new_ref, NULL, NULL);
     EXPECT_VALID(weak_new_ref);
     EXPECT(!Dart_IsNull(weak_new_ref));
 
-    // create a weak ref to the old space object
+    // Create a weak ref to the old space object.
     weak_old_ref = Dart_NewWeakPersistentHandle(old_ref, NULL, NULL);
     EXPECT_VALID(weak_old_ref);
     EXPECT(!Dart_IsNull(weak_old_ref));
 
-    // garbage collect new space
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+    // Garbage collect new space.
+    GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
 
-    // nothing should be invalidated or cleared
+    // Nothing should be invalidated or cleared.
     EXPECT_VALID(new_ref);
     EXPECT(!Dart_IsNull(new_ref));
     EXPECT_VALID(old_ref);
@@ -1348,10 +1361,10 @@ TEST_CASE(WeakPersistentHandle) {
     EXPECT(!Dart_IsNull(weak_old_ref));
     EXPECT(Dart_IdentityEquals(old_ref, weak_old_ref));
 
-    // garbage collect old space
+    // Garbage collect old space.
     Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 
-    // nothing should be invalidated or cleared
+    // Nothing should be invalidated or cleared.
     EXPECT_VALID(new_ref);
     EXPECT(!Dart_IsNull(new_ref));
     EXPECT_VALID(old_ref);
@@ -1365,23 +1378,23 @@ TEST_CASE(WeakPersistentHandle) {
     EXPECT(!Dart_IsNull(weak_old_ref));
     EXPECT(Dart_IdentityEquals(old_ref, weak_old_ref));
 
-    // delete local (strong) references
+    // Delete local (strong) references.
     Dart_ExitScope();
   }
 
-  // garbage collect new space again
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  // Garbage collect new space again.
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
 
-  // weak ref to new space object should now be cleared
+  // Weak ref to new space object should now be cleared.
   EXPECT_VALID(weak_new_ref);
   EXPECT(Dart_IsNull(weak_new_ref));
   EXPECT_VALID(weak_old_ref);
   EXPECT(!Dart_IsNull(weak_old_ref));
 
-  // garbage collect old space again
+  // Garbage collect old space again.
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 
-  // weak ref to old space object should now be cleared
+  // Weak ref to old space object should now be cleared.
   EXPECT_VALID(weak_new_ref);
   EXPECT(Dart_IsNull(weak_new_ref));
   EXPECT_VALID(weak_old_ref);
@@ -1390,7 +1403,7 @@ TEST_CASE(WeakPersistentHandle) {
   Dart_DeletePersistentHandle(weak_new_ref);
   Dart_DeletePersistentHandle(weak_old_ref);
 
-  // garbage collect one last time to revisit deleted handles
+  // Garbage collect one last time to revisit deleted handles.
   Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
 }
@@ -1417,7 +1430,7 @@ TEST_CASE(WeakPersistentHandleCallback) {
   EXPECT(*peer == 0);
   Isolate::Current()->heap()->CollectGarbage(Heap::kOld);
   EXPECT(*peer == 0);
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT(*peer == 42);
   delete peer;
   Dart_DeletePersistentHandle(weak_ref);
@@ -1483,7 +1496,7 @@ TEST_CASE(ObjectGroups) {
   EXPECT_VALID(weak3);
   EXPECT_VALID(weak4);
 
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
 
   // New space collection should not affect old space objects
   EXPECT(!Dart_IsNull(weak1));
@@ -1647,8 +1660,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   EXPECT(!Dart_IsNull(old_pwph));
   EXPECT(Dart_IsPrologueWeakPersistentHandle(old_pwph));
   // Garbage collect new space without invoking API callbacks.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                             Heap::kIgnoreApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
+
   // Both prologue weak handles should be preserved.
   EXPECT(!Dart_IsNull(new_pwph));
   EXPECT(!Dart_IsNull(old_pwph));
@@ -1659,8 +1672,8 @@ TEST_CASE(PrologueWeakPersistentHandles) {
   EXPECT(!Dart_IsNull(new_pwph));
   EXPECT(!Dart_IsNull(old_pwph));
   // Garbage collect new space invoking API callbacks.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                             Heap::kInvokeApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
+
   // The prologue weak handle with a new space referent should now be
   // cleared.  The old space referent should be preserved.
   EXPECT(Dart_IsNull(new_pwph));
@@ -1723,7 +1736,7 @@ TEST_CASE(ImplicitReferencesOldSpace) {
   EXPECT_VALID(weak2);
   EXPECT_VALID(weak3);
 
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
 
   // New space collection should not affect old space objects
   EXPECT(!Dart_IsNull(weak1));
@@ -1825,8 +1838,7 @@ TEST_CASE(ImplicitReferencesNewSpace) {
     EXPECT_VALID(Dart_NewWeakReferenceSet(keys, ARRAY_SIZE(keys),
                                           values, ARRAY_SIZE(values)));
 
-    Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                               Heap::kInvokeApiCallbacks);
+    GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
   }
 
   // All weak references should be preserved.
@@ -1834,8 +1846,7 @@ TEST_CASE(ImplicitReferencesNewSpace) {
   EXPECT(!Dart_IsNull(weak2));
   EXPECT(!Dart_IsNull(weak3));
 
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                             Heap::kIgnoreApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
 
   // No weak references should be preserved.
   EXPECT(Dart_IsNull(weak1));
@@ -1956,7 +1967,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // invoke the prologue callback.  No status values should change.
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
@@ -1964,8 +1975,7 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // invoke the prologue callback.  No status values should change.
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                             Heap::kInvokeApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
@@ -1999,15 +2009,14 @@ TEST_CASE(SingleGarbageCollectionCallback) {
   // or the epilogue callback.  No status values should change.
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 
   // Garbage collect new space.  This should invoke the prologue and
   // the epilogue callback.  The prologue and epilogue status values
   // should change.
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew,
-                                             Heap::kInvokeApiCallbacks);
+  GCTestHelper::CollectNewSpace(Heap::kInvokeApiCallbacks);
   EXPECT_EQ(6, global_prologue_callback_status);
   EXPECT_EQ(28, global_epilogue_callback_status);
 
@@ -2058,7 +2067,7 @@ TEST_CASE(MultipleGarbageCollectionCallbacks) {
   // or epilogue callbacks.  No status values should change.
   global_prologue_callback_status = 3;
   global_epilogue_callback_status = 7;
-  Isolate::Current()->heap()->CollectGarbage(Heap::kNew);
+  GCTestHelper::CollectNewSpace(Heap::kIgnoreApiCallbacks);
   EXPECT_EQ(3, global_prologue_callback_status);
   EXPECT_EQ(7, global_epilogue_callback_status);
 

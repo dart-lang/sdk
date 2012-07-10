@@ -149,6 +149,7 @@ class Heap {
   PageSpace* old_space_;
   PageSpace* code_space_;
 
+  friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);
 };
 
