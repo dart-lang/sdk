@@ -168,19 +168,6 @@ dependencies:
       schedulePub(args: ['install'],
           output: const RegExp(@"Dependencies installed!$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ])
-        ])
-      ]).scheduleValidate();
-
       dir(packagesPath, [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
@@ -217,25 +204,6 @@ dependencies:
       schedulePub(args: ['install'],
           output: const RegExp("Dependencies installed!\$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ]),
-            dir(new RegExp(@'bar-[a-f0-9]+'), [
-              file('bar.dart', 'main() => "bar";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ]),
-          dir(new RegExp(@'bar-[a-f0-9]+'), [
-            file('bar.dart', 'main() => "bar";')
-          ])
-        ])
-      ]).scheduleValidate();
-
       dir(packagesPath, [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
@@ -244,128 +212,6 @@ dependencies:
           file('bar.dart', 'main() => "bar";')
         ])
       ]).scheduleValidate();
-
-      run();
-    });
-  });
-
-  test('checks out and updates a package from Git', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
-      ]).scheduleCreate();
-
-      dir(appPath, [
-        file('pubspec.yaml', '''
-dependencies:
-  foo:
-    git: ../foo.git
-''')
-      ]).scheduleCreate();
-
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
-
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
-          file('foo.dart', 'main() => "foo";')
-        ])
-      ]).scheduleValidate();
-
-      // TODO(nweiz): remove this once we support pub update
-      dir(packagesPath).scheduleDelete();
-
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo 2";')
-      ]).scheduleCommit();
-
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
-
-      // When we download a new version of the git package, we should re-use the
-      // git/cache directory but create a new git/ directory.
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo 2";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo 2";')
-          ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
-          file('foo.dart', 'main() => "foo 2";')
-        ])
-      ]).scheduleValidate();
-
-      run();
-    });
-  });
-
-  test('checks out a package from Git twice', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
-      ]).scheduleCreate();
-
-      dir(appPath, [
-        file('pubspec.yaml', '''
-dependencies:
-  foo:
-    git: ../foo.git
-''')
-      ]).scheduleCreate();
-
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
-
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
-          file('foo.dart', 'main() => "foo";')
-        ])
-      ]).scheduleValidate();
-
-      // TODO(nweiz): remove this once we support pub update
-      dir(packagesPath).scheduleDelete();
-
-      // Verify that nothing breaks if we install a Git revision that's already
-      // in the cache.
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
 
       run();
     });

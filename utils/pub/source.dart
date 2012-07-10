@@ -95,42 +95,15 @@ class Source {
    *
    * [path] is guaranteed not to exist, and its parent directory is guaranteed
    * to exist.
-   *
-   * This doesn't need to be implemented if [installToSystemCache] is
-   * implemented.
    */
-  Future<bool> install(PackageId id, String path) {
-    throw "Either install or installToSystemCache must be implemented for "
-      "source $name."
-  }
-
-  /**
-   * Installs the package identified by [id] to the system cache. This is only
-   * called for sources with [shouldCache] set to true.
-   *
-   * By default, this uses [systemCacheDirectory] and [install].
-   */
-  Future<Package> installToSystemCache(PackageId id) {
-    var path = systemCacheDirectory(id);
-    return exists(path).chain((exists) {
-      // TODO(nweiz): better error handling
-      if (exists) throw 'Package $id is already installed.';
-      return ensureDir(dirname(path));
-    }).chain((_) {
-      return install(id, path);
-    }).chain((found) {
-      if (!found) throw 'Package $id not found.';
-      return Package.load(path, systemCache.sources);
-    });
-  }
+  abstract Future<bool> install(PackageId id, String path);
 
   /**
    * Returns the directory in the system cache that the package identified by
    * [id] should be installed to. This should return a path to a subdirectory of
    * [systemCacheRoot].
    *
-   * This doesn't need to be implemented if [shouldCache] is false, or if
-   * [installToSystemCache] is implemented.
+   * This doesn't need to be implemented if [shouldCache] is false.
    */
   String systemCacheDirectory(PackageId id) =>
     join(systemCacheRoot, packageName(id.description));
