@@ -79,6 +79,20 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.REDIRECTING_CONSTRUCTOR_MULTIPLE, 1, 39, 7));
   }
 
+  /**
+   * May be parsing errors, but not exceptions.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4040
+   */
+  public void test_incompleteArguments() {
+    parseSource(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  f(a: 0,",
+        "}",
+        ""));
+  }
+
   public void testSuperMultipleInvocationsTest() {
     String source =
         makeCode(

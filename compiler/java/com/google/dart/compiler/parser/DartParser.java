@@ -1503,12 +1503,10 @@ public class DartParser extends CompletionHooksParserBase {
     // Abstract method can not have a body.
     if (method.getFunction().getBody() != null) {
       if (isParsingInterface) {
-        reportError(new DartCompilationError(method.getName(),
-            ParserErrorCode.INTERFACE_METHOD_WITH_BODY));
+        reportError(method.getName(), ParserErrorCode.INTERFACE_METHOD_WITH_BODY);
       }
       if (method.getModifiers().isAbstract()) {
-        reportError(new DartCompilationError(method.getName(),
-            ParserErrorCode.ABSTRACT_METHOD_WITH_BODY));
+        reportError(method.getName(), ParserErrorCode.ABSTRACT_METHOD_WITH_BODY);
       }
     }
     // If getter or setter, generate DartFieldDefinition instead.
@@ -2182,13 +2180,12 @@ public class DartParser extends CompletionHooksParserBase {
   @Terminals(tokens={Token.RPAREN, Token.COMMA})
   public List<DartExpression> parseArguments() {
     List<DartExpression> arguments = new ArrayList<DartExpression>();
-    if (!expect(Token.LPAREN)) {
-      return arguments;
-    }
+    expect(Token.LPAREN);
     // SEMICOLON is for error recovery
     boolean namedArgumentParsed = false;
     outer: while (!match(Token.RPAREN) && !match(Token.EOS) && !match(Token.SEMICOLON)) {
       beginParameter();
+      // parse argument, may be named
       DartExpression expression;
       if (peek(1) == Token.COLON) {
         DartIdentifier name = parseIdentifier();
@@ -2201,9 +2198,12 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(expression, ParserErrorCode.POSITIONAL_AFTER_NAMED_ARGUMENT);
         }
       }
+      done(expression);
+      // add argument, if parsed successfully
       if (expression != null) {
-        arguments.add(done(expression));
+        arguments.add(expression);
       }
+      // do we have more arguments?
       switch(peek(0)) {
         // Must keep in sync with @Terminals above
         case COMMA:
@@ -4634,7 +4634,9 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private void reportError(DartNode node, ErrorCode errorCode, Object... arguments) {
-    reportError(new DartCompilationError(node, errorCode, arguments));
+    if (node != null) {
+      reportError(new DartCompilationError(node, errorCode, arguments));
+    }
   }
 
   private boolean currentlyParsingToplevel() {
