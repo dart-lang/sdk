@@ -125,7 +125,7 @@ class JavaScriptBackend extends Backend {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
     if (!fieldInitializers.containsKey(field.enclosingElement)) {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
     Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
     return fields[field];
@@ -153,6 +153,7 @@ class JavaScriptBackend extends Backend {
   }
 
   // Provide an optimistic estimate of the type of a field after construction.
+  // If the constructor body has setters for fields returns HType.UNKNOWN.
   // This only takes the initializer lists and field assignments in the
   // constructor body into account. The constructor body might have method calls
   // that could alter the field.
@@ -161,19 +162,20 @@ class JavaScriptBackend extends Backend {
     assert(field.enclosingElement.isClass());
 
     if (hasConstructorBodyFieldSetter(field)) {
-      // If there are field setters for this field in some constructor only one
-      // constructor then the type set will be the field type after
-      // construction.
-      if (field.enclosingElement.constructors.length == 1) {
+      // If there are field setters but there is only constructor then the type
+      // of the field is determined by the assignments in the constructor
+      // body.
+      ClassElement classElement = field.enclosingElement;
+      if (classElement.constructors.length == 1) {
         return fieldConstructorSetters[field.enclosingElement][field];
       } else {
         return HType.UNKNOWN;
       }
     } else if (fieldInitializers.containsKey(field.enclosingElement)) {
       HType type = fieldInitializers[field.enclosingElement][field];
-      return type == null ? HType.UNKNOWN : type;
+      return type == null ? HType.CONFLICTING : type;
     } else {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
   }
 
@@ -196,10 +198,10 @@ class JavaScriptBackend extends Backend {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
     if (!fieldSettersType.containsKey(field.enclosingElement)) {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
     Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
-    if (!fields.containsKey(field)) return HType.UNKNOWN;
+    if (!fields.containsKey(field)) return HType.CONFLICTING;
     return fields[field];
   }
 }

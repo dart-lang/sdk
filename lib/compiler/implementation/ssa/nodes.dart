@@ -1312,6 +1312,7 @@ class HFieldGet extends HFieldAccess {
   int typeCode() => 27;
   bool typeEquals(other) => other is HFieldGet;
   bool dataEquals(HFieldGet other) => element == other.element;
+  String toString() => "FieldGet $element.name";
 }
 
 class HFieldSet extends HFieldAccess {
@@ -1328,6 +1329,7 @@ class HFieldSet extends HFieldAccess {
   }
 
   final bool isStatement = true;
+  String toString() => "FieldSet $element.name";
 }
 
 class HLocalGet extends HFieldGet {
@@ -1929,28 +1931,23 @@ class HPhi extends HInstruction {
   // have the same known type return it. If any two inputs have
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
-  HType computeInputsType(bool unknownWins) {
-    HType candidateType = inputs[0].propagatedType;
-    bool seenUnknown = candidateType.isUnknown();
-    for (int i = 1, length = inputs.length; i < length; i++) {
+  HType computeInputsType(bool ignoreUnknowns) {
+    HType candidateType = HType.CONFLICTING;
+    for (int i = 0, length = inputs.length; i < length; i++) {
       HType inputType = inputs[i].propagatedType;
-      if (inputType.isUnknown()) {
-        seenUnknown = true;
-      } else {
-        // Phis need to combine the incoming types using the union operation.
-        // For example, if one incoming edge has type integer and the other has
-        // type double, then the phi is either an integer or double and thus has
-        // type number.
-        candidateType = candidateType.union(inputType);
-        if (candidateType.isConflicting()) return HType.CONFLICTING;
-      }
+      if (ignoreUnknowns && inputType.isUnknown()) continue;
+      // Phis need to combine the incoming types using the union operation.
+      // For example, if one incoming edge has type integer and the other has
+      // type double, then the phi is either an integer or double and thus has
+      // type number.
+      candidateType = candidateType.union(inputType);
+      if (candidateType.isUnknown()) return HType.UNKNOWN;
     }
-    if (seenUnknown && unknownWins) return HType.UNKNOWN;
     return candidateType;
   }
 
   HType computeTypeFromInputTypes() {
-    HType inputsType = computeInputsType(true);
+    HType inputsType = computeInputsType(false);
     if (inputsType.isConflicting()) return HType.UNKNOWN;
     return inputsType;
   }
@@ -1968,7 +1965,7 @@ class HPhi extends HInstruction {
   }
 
   HType get likelyType() {
-    HType agreedType = computeInputsType(false);
+    HType agreedType = computeInputsType(true);
     if (agreedType.isConflicting()) return HType.UNKNOWN;
     // Don't be too restrictive. If the agreed type is integer or double just
     // say that the likely type is number. If more is expected the type will be

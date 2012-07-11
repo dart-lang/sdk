@@ -1175,15 +1175,13 @@ class SsaProcessRecompileCandidates
     if (!node.element.enclosingElement.isClass()) return;
     Element field = node.element;
     HType type = backend.optimisticFieldTypeAfterConstruction(field);
-    switch (compiler.phase) {
-      case Compiler.PHASE_COMPILING:
-        if (!type.isConflicting()) {
+    if (!type.isConflicting() && !type.isUnknown()) {
+      switch (compiler.phase) {
+        case Compiler.PHASE_COMPILING:
           compiler.enqueuer.codegen.registerRecompilationCandidate(
               work.element);
-        }
-        break;
-      case Compiler.PHASE_RECOMPILING:
-        if (!type.isConflicting() && !type.isUnknown()) {
+          break;
+        case Compiler.PHASE_RECOMPILING:
           // Check if optimistic type is based on a setter in the constructor
           // body.
           if (backend.hasConstructorBodyFieldSetter(field)) {
@@ -1204,8 +1202,8 @@ class SsaProcessRecompileCandidates
               node.propagatedType = type;
             }
           }
-        }
-        break;
+          break;
+      }
     }
   }
 
@@ -1223,15 +1221,14 @@ class SsaProcessRecompileCandidates
     // Try to optimize the case where a field which is known to always be an
     // integer is compared with a constant integer literal.
     if (other != null &&
-        other is HConstant &&
-        other.isInteger() &&
+        other.isConstantInteger() &&
         field.element != null &&
         field.element.enclosingElement.isClass()) {
       // Calculate the field type from the information available.
       HType type =
           backend.fieldSettersTypeSoFar(field.element).union(
               backend.typeFromInitializersSoFar(field.element));
-      if (!type.isConflicting()) {
+      if (!type.isUnknown()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
             compiler.enqueuer.codegen.registerRecompilationCandidate(
@@ -1274,8 +1271,7 @@ class SsaProcessRecompileCandidates
     // Check that the other operand is a number and that we have type
     // information for the field get.
     if (other != null &&
-        other is HConstant &&
-        other.isNumber() &&
+        other.isConstantNumber() &&
         field.element != null &&
         field.element.enclosingElement.isClass()) {
       // If we have type information for the field and it contains
@@ -1285,7 +1281,7 @@ class SsaProcessRecompileCandidates
       HType initializersType = backend.typeFromInitializersSoFar(fieldElement);
       HType fieldType = fieldSettersType.union(initializersType);
       HType type = HType.NUMBER.union(fieldType);
-      if (!type.isConflicting()) {
+      if (type == HType.NUMBER) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
             compiler.enqueuer.codegen.registerRecompilationCandidate(
