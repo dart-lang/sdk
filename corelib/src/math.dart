@@ -84,7 +84,7 @@ class Math {
             }
           }
           // Check for NaN and b == -0.0.
-          if (a == 0 && b.isNegative() || b.isNan()) return b;
+          if (a == 0 && b.isNegative() || b.isNaN()) return b;
           return a;
         }
         return a;
