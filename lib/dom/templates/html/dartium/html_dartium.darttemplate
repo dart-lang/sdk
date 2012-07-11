@@ -82,11 +82,8 @@ _callPortSync(num id, var message) {
     }, false);
     _callPortInitialized = true;
   }
-  var data = JSON.stringify({ 'id': id, 'message': message });
-  var event = document.$dom_createEvent('TextEvent');
-  event.initTextEvent('js-sync-message', false, false, window, data);
   assert(_callPortLastResult == null);
-  window.$dom_dispatchEvent(event);
+  _dispatchEvent('js-sync-message', {'id': id, 'message': message});
   var result = _callPortLastResult;
   _callPortLastResult = null;
   return result;
