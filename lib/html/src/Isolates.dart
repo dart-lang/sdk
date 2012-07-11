@@ -157,28 +157,22 @@ class ReceivePortSync {
   String get _listenerName() => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
-    // Clear old listener.
-    if (_callback != null) {
-      window.on[_listenerName].remove(_listener);
-    }
-
     _callback = callback;
-
-    // Install new listener.
-    var sendport = toSendPort();
-    _listener = (TextEvent e) {
-      var data = JSON.parse(e.data);
-      var replyTo = data[0];
-      var message = _deserialize(data[1]);
-      var result = sendport.callSync(message);
-      _dispatchEvent(replyTo, _serialize(result));
-    };
-    window.on[_listenerName].add(_listener);
+    if (_listener === null) {
+      _listener = (TextEvent e) {
+        var data = JSON.parse(e.data);
+        var replyTo = data[0];
+        var message = _deserialize(data[1]);
+        var result = _callback(message);
+        _dispatchEvent(replyTo, _serialize(result));
+      };
+      window.on[_listenerName].add(_listener);
+    }
   }
 
   void close() {
     _portMap.remove(_portId);
-    window.on[_listenerName].remove(_listener);
+    if (_listener !== null) window.on[_listenerName].remove(_listener);
   }
 
   SendPortSync toSendPort() {
