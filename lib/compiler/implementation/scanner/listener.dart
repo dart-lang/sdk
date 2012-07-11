@@ -1414,7 +1414,7 @@ class NodeListener extends ElementListener {
       name = new Send(popNode(), name);
     }
     handleModifier(startKeyword);
-    if (startKeyword.stringValue == 'external') {
+    if (startKeyword.stringValue === 'external') {
       handleModifier(startKeyword.next);
       handleModifiers(2);
     } else {
@@ -1495,8 +1495,12 @@ class PartialFunctionElement extends FunctionElement {
       cachedNode = patch.parseNode(listener);
       return cachedNode;
     }
+    if (modifiers.isExternal()) {
+      listener.cancel("External method without an implementation",
+                      element: this);
+    }
     parseFunction(Parser p) {
-      if (isMember() && p.optional('factory', beginToken)) {
+      if (isMember() && modifiers.isFactory()) {
         p.parseFactoryMethod(beginToken);
       } else {
         p.parseFunction(beginToken, getOrSet);

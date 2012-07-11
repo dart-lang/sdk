@@ -521,43 +521,9 @@ class Compiler implements DiagnosticListener {
 
   void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
     Link<Element> patches = patch.topLevelElements;
+    applyContainerPatch(original, patches, original.findLocal);
 
-    // Copy/patch top-level elements.
-    while (!patches.isEmpty()) {
-      Element patchElement = patches.head;
-      Element originalElement = original.elements[patchElement.name];
-      // Getters and setters are kept inside a synthetic field.
-      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
-        if (originalElement !== null &&
-            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
-          internalError("Cannot patch non-getter/setter with getter/setter",
-                        element: originalElement);
-        }
-        AbstractFieldElement patchField = patchElement;
-        AbstractFieldElement originalField = originalElement;
-        if (patchField.getter !== null) {
-          if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter));
-          } else {
-            patchMember(originalField.getter, patchField.getter);
-          }
-        }
-        if (patchField.setter !== null) {
-          if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter));
-          } else {
-            patchMember(originalField.setter, patchField.setter);
-          }
-        }
-      } else if (originalElement === null) {
-        original.addMember(clonePatch(patchElement));
-      } else {
-        patchMember(originalElement, patchElement);
-      }
-      patches = patches.tail;
-    }
-
-    // Copy imports.
+    // Copy imports from patch to original library.
     Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
     Uri patchBase = patch.script.uri;
     for (ScriptTag tag in patch.tags.reverse()) {
@@ -583,6 +549,55 @@ class Compiler implements DiagnosticListener {
     });
   }
 
+  void applyContainerPatch(ContainerElement original, Link<Element> patches,
+                           Element lookup(SourceString name)) {
+    while (!patches.isEmpty()) {
+      Element patchElement = patches.head;
+      Element originalElement = lookup(patchElement.name);
+      // Getters and setters are kept inside a synthetic field.
+      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        if (originalElement !== null &&
+            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          internalError("Cannot patch non-getter/setter with getter/setter",
+                        element: originalElement);
+        }
+        AbstractFieldElement patchField = patchElement;
+        AbstractFieldElement originalField = originalElement;
+        if (patchField.getter !== null) {
+          if (originalField === null || originalField.getter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.getter),
+                                       originalField,
+                                       this);
+            if (originalField === null && patchField.setter !== null) {
+              // It exists now, so find it for the setter patching.
+              originalField = lookup(patchElement.name);
+            }
+          } else {
+            patchMember(originalField.getter, patchField.getter);
+          }
+        }
+        if (patchField.setter !== null) {
+          if (originalField === null || originalField.setter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.setter),
+                                       originalField,
+                                       this);
+          } else {
+            patchMember(originalField.setter, patchField.setter);
+          }
+        }
+      } else if (originalElement === null) {
+        if (isPatchElement(patchElement)) {
+          internalError("Cannot patch non-existing member '"
+                        "${patchElement.name.slowToString()}'.");
+        }
+        original.addMember(clonePatch(patchElement), this);
+      } else {
+        patchMember(originalElement, patchElement);
+      }
+      patches = patches.tail;
+    }
+  }
+
   bool isPatchElement(Element element) {
     // TODO(lrn): More checks needed if we introduce metadata for real.
     // In that case, it must have the identifier "native" as metadata.
@@ -594,22 +609,16 @@ class Compiler implements DiagnosticListener {
     // as the patch library element.
     // In this case, the patch library element must not be marked as "patch",
     // and its name must make it private.
-    if (isPatchElement(patchElement)) {
-      internalError("Cannot patch non-existing member '"
-                      "${patchElement.name.slowToString()}'.");
-
-    }
     if (!patchElement.name.isPrivate()) {
       internalError("Cannot add non-private member '"
                     "${patchElement.name.slowToString()}' from patch.");
     }
-    // TODO(lrn): Create a copy of patchElement that isn't added to anything,
-    // but which takes its source from patchElement.
+    // TODO(lrn): Create a copy of patchElement that isn't added to any
+    // object/library yet, but which takes its source from patchElement.
     throw "Adding members from patch is unsupported";
   }
 
-  void patchMember(Element originalElement,
-                   Element patchElement) {
+  void patchMember(Element originalElement, Element patchElement) {
     // The original library has an element with the same name as the patch
     // library element.
     // In this case, the patch library element must be a function marked as
@@ -618,18 +627,30 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot overwrite existing '"
                     "${originalElement.name.slowToString()}' with non-patch.");
     }
+    if (originalElement is PartialClassElement) {
+      // Only happens when patching a library. Dart does not, yet, have nested
+      // classes.
+      if (patchElement is! PartialClassElement) {
+        internalError("Trying to patch class with non-class",
+                      element:originalElement);
+      }
+      applyClassPatch(originalElement, patchElement);
+      return;
+    }
     if (originalElement is! FunctionElement) {
       // TODO(lrn): Handle class declarations too.
       internalError("Can only patch functions", element: originalElement);
     }
-    // TODO(lrn): Abort if the original isn't marked external, when
-    // that is added to the language.
-    if (patchElement is! FunctionElement ||
-        !patchSignatureMatches(originalElement, patchElement)) {
-      internalError("Can only patch functions with matching signatures",
-                    element: originalElement);
+    FunctionElement original = originalElement;
+    if (!original.modifiers.isExternal()) {
+      internalError("Can only patch external functions.", element: original);
     }
-    applyFunctionPatch(originalElement, patchElement);
+    if (patchElement is! FunctionElement ||
+        !patchSignatureMatches(original, patchElement)) {
+      internalError("Can only patch functions with matching signatures",
+                    element: original);
+    }
+    applyFunctionPatch(original, patchElement);
   }
 
   bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
@@ -640,7 +661,6 @@ class Compiler implements DiagnosticListener {
 
   void applyFunctionPatch(FunctionElement element,
                           FunctionElement patchElement) {
-    // Don't just assign the patch field. This also updates the cachedNode.
     if (element.isPatched) {
       internalError("Trying to patch a function more than once.",
                     element: element);
@@ -649,7 +669,25 @@ class Compiler implements DiagnosticListener {
       internalError("Trying to patch an already compiled function.",
                     element: element);
     }
+    // Don't just assign the patch field. This also updates the cachedNode.
     element.setPatch(patchElement);
+  }
+
+  void applyClassPatch(PartialClassElement original,
+                       PartialClassElement patch) {
+    // Eagerly parse the class so we can patch it.
+    // TODO(lrn): Perhaps find a way to delay parsing until the class is needed,
+    // i.e., until [parseNode] is called on [original].
+    ClassNode node = original.parseNode(this);
+    // Parse patch class with "patch" parser.
+    ClassNode patchNode = patchParser.parsePatchClassNode(patch);
+    Link<Element> patches = patch.members;
+    Element lookupMemberOrConstructor(SourceString name) {
+      Element result = original.lookupLocalMember(name);
+      if (result !== null) return result;
+      return original.lookupConstructor(name);
+    }
+    applyContainerPatch(original, patches, lookupMemberOrConstructor);
   }
 
   /**

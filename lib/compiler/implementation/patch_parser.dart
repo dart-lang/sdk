@@ -12,6 +12,7 @@
 #import("elements/elements.dart");
 #import('native_handler.dart', prefix: 'native');
 
+
 class PatchParserTask extends leg.CompilerTask {
   PatchParserTask(leg.Compiler compiler): super(compiler);
   final String name = "Patching Parser";
@@ -46,6 +47,20 @@ class PatchParserTask extends leg.CompilerTask {
           new PatchElementListener(compiler, library, idGenerator);
       new PatchParser(patchListener).parseUnit(tokens);
     });
+  }
+
+  tree.ClassNode parsePatchClassNode(PartialClassElement element) {
+    // Parse [PartialClassElement] using a "patch"-aware parser instead
+    // of calling its [parseNode] method.
+    if (element.cachedNode != null) return element.cachedNode;
+    PatchMemberListener listener =
+        new PatchMemberListener(compiler, element);
+    Parser parser = new PatchClassElementParser(listener);
+    Token token = parser.parseTopLevelDeclaration(element.beginToken);
+    assert(token === element.endToken.next);
+    element.cachedNode = listener.popNode();
+    assert(listener.nodes.isEmpty());
+    return element.cachedNode;
   }
 }
 
@@ -93,7 +108,7 @@ class PatchParser extends PartialParser {
       return listener.unexpected(patch);
     }
     patchListener.beginPatch(patch);
-    token = super.parseTopLevelDeclaration(token.next);
+    token = super.parseTopLevelDeclaration(token);
     patchListener.endPatch(patch);
     return token;
   }
@@ -162,5 +177,41 @@ class PatchElementListener extends ElementListener implements PatchListener {
       element.addMetadata(popNode());
     }
     super.pushElement(element);
+  }
+}
+
+
+/**
+ * Extension of [MemberListener] for parsing patch class bodies.
+ */
+class PatchMemberListener extends MemberListener implements PatchListener {
+  bool isMemberPatch = false;
+  bool isClassPatch = false;
+  PatchMemberListener(leg.DiagnosticListener listener,
+                      Element enclosingElement)
+    : super(listener, enclosingElement);
+
+  void beginPatch(Token token) {
+    if (token.next.stringValue === "class") {
+      isClassPatch = true;
+    } else {
+      isMemberPatch = true;
+    }
+    handleIdentifier(token);
+  }
+
+  void endPatch(Token token) {
+    if (token.next.stringValue === "class") {
+      isClassPatch = false;
+    } else {
+      isMemberPatch = false;
+    }
+  }
+
+  void addMember(Element element) {
+    if (isMemberPatch || (isClassPatch && element is ClassElement)) {
+      element.addMetadata(popNode());
+    }
+    super.addMember(element);
   }
 }

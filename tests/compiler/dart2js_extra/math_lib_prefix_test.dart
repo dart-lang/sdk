@@ -8,4 +8,8 @@
 main() {
   Expect.equals(2.0, foo.sqrt(4));
   Expect.equals(2.25, foo.pow(1.5, 2.0));
+
+  int i = new foo.Random().nextInt(256);
+  double d = new foo.Random().nextDouble();
+  bool b = new foo.Random().nextBool();
 }

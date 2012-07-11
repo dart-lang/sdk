@@ -716,10 +716,10 @@ class FunctionElement extends Element {
     if (cachedNode !== null) return cachedNode;
     if (patch === null) {
       if (modifiers.isExternal()) {
-        // An external function that isn't patched has no body.
-        return null;
+        listener.cancel("Compiling external function with no implementation.",
+                        element: this);
       }
-      return cachedNode;
+      return null;
     }
     cachedNode = patch.parseNode(listener);
     return cachedNode;
