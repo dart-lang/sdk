@@ -1175,31 +1175,47 @@ class SsaProcessRecompileCandidates
     if (!node.element.enclosingElement.isClass()) return;
     Element field = node.element;
     HType type = backend.optimisticFieldTypeAfterConstruction(field);
-    if (!type.isConflicting() && !type.isUnknown()) {
+    if (!type.isUnknown()) {
       switch (compiler.phase) {
         case Compiler.PHASE_COMPILING:
+          // Recompile even if we haven't seen any types for this
+          // field yet. There might still be only one setter in an
+          // initializer list or constructor body.
           compiler.enqueuer.codegen.registerRecompilationCandidate(
               work.element);
           break;
         case Compiler.PHASE_RECOMPILING:
-          // Check if optimistic type is based on a setter in the constructor
-          // body.
-          if (backend.hasConstructorBodyFieldSetter(field)) {
-            // There is at least one field setter from the constructor.
-            if (!compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
-              node.guaranteedType =
-                  type.union(backend.fieldSettersTypeSoFar(node.element));
+          if (!type.isConflicting()) {
+            // Check if optimistic type is based on a setter in the
+            // constructor body.
+            if (backend.hasConstructorBodyFieldSetter(field)) {
+              // If there are no other field setters then the one in
+              // the constructor body, the type is guaranteed for this
+              // field after construction.
+              assert(!node.element.isGenerativeConstructorBody());
+              if (!compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+                node.guaranteedType =
+                    type.union(backend.fieldSettersTypeSoFar(node.element));
+              } else {
+                node.propagatedType =
+                    type.union(backend.fieldSettersTypeSoFar(node.element));
+              }
             } else {
-              node.propagatedType =
-                  type.union(backend.fieldSettersTypeSoFar(node.element));
-            }
-          } else {
-            // Optimistic type is based on field initializer list.
-            if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
-                !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
-              node.guaranteedType = type;
-            } else {
-              node.propagatedType = type;
+              // If there are no setters the initializer list type is
+              // guaranteed to remain constant.
+              //
+              // TODO(ager): Why is this treated differently from the
+              // case above? It seems to me that we could/should use
+              // the union of the types for the field setters and the
+              // initializer list here? It would give the same when
+              // there are none and potentially better information for
+              // more cases.
+              if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
+                  !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+                node.guaranteedType = type;
+              } else {
+                node.propagatedType = type;
+              }
             }
           }
           break;
