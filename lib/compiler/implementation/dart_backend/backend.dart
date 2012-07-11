@@ -57,11 +57,41 @@ class DartBackend extends Backend {
     sb.add(classElement.name.slowToString());
     sb.add('{');
     innerElements.forEach((element) {
-      if (element is SynthesizedConstructorElement) return;
       // TODO(smok): Filter out default constructors here.
-      sb.add(element.parseNode(compiler).unparse());
+      outputElement(element, sb);
     });
     sb.add('}');
+  }
+
+  void outputElement(Element element, StringBuffer sb) {
+    // TODO(smok): Figure out why AbstractFieldElement appears here,
+    // we have used getters/setters resolved instead of it.
+    if (element is SynthesizedConstructorElement
+        || element is AbstractFieldElement) return;
+    if (element.isField()) {
+      // Add modifiers first.
+      sb.add(element.modifiers.toString());
+      sb.add(' ');
+      // Figure out type.
+      if (element is VariableElement) {
+        VariableListElement variables = element.variables;
+        if (variables.type !== null) {
+          sb.add(variables.type);
+          sb.add(' ');
+        }
+      }
+      // TODO(smok): Maybe not rely on node unparsing,
+      // but unparse initializer manually.
+      sb.add(element.parseNode(compiler).unparse());
+      sb.add(';');
+    } else {
+      if (element.isSetter()) {
+        sb.add('set ');
+      } else if (element.isGetter()) {
+        sb.add('get ');
+      }
+      sb.add(element.parseNode(compiler).unparse());
+    }
   }
 
   void assembleProgram() {
@@ -98,25 +128,7 @@ class DartBackend extends Backend {
           bailout('Cannot process non top-level $element');
         }
 
-        if (element.isField()) {
-          // Add modifiers first.
-          sb.add(element.modifiers.toString());
-          sb.add(' ');
-          // Figure out type.
-          if (element is VariableElement) {
-            VariableListElement variables = element.variables;
-            if (variables.type !== null) {
-              sb.add(variables.type);
-              sb.add(' ');
-            }
-          }
-          // TODO(smok): Maybe not rely on node unparsing,
-          // but unparse initializer manually.
-          sb.add(element.parseNode(compiler).unparse());
-          sb.add(';');
-        } else {
-          sb.add(element.parseNode(compiler).unparse());
-        }
+        outputElement(element, sb);
       });
 
       // Now output resolved classes with inner elements we met before.

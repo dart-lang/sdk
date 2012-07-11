@@ -30,6 +30,7 @@ interface List {}
 interface Closure {}
 interface Dynamic {}
 interface Null {}
+assert() {}
 ''';
 
 testDart2Dart(String src, [void continuation(String s)]) {
@@ -148,6 +149,13 @@ testVariableDefinitions() {
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
 }
 
+testGetSet() {
+  // Top-level get/set.
+  testDart2Dart('get foo(){return 5;}set foo(arg){}main(){foo; foo=5;}');
+  // Field get/set.
+  testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}class A{set foo(a){}get foo(){return 5;}}');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -163,5 +171,6 @@ main() {
   testClassWithSynthesizedConstructor();
   testClassWithMethod();
   testVariableDefinitions();
+  testGetSet();
   testTopLevelField();
 }
