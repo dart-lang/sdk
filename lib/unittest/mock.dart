@@ -81,10 +81,16 @@ class Responder {
  * to the parameters to decide if the method call is a match.
  */
 class CallMatcher {
-  String name;
+  Matcher nameFilter;
   List<Matcher> argMatchers;
 
-  CallMatcher(this.name, [
+  /**
+   * Constructor for [CallMatcher]. [name] can be null to
+   * match anything, or a literal [String], a predicate [Function],
+   * or a [Matcher]. The various arguments can be scalar values or
+   * [Matcher]s.
+   */
+  CallMatcher([name,
               arg0 = _noArg,
               arg1 = _noArg,
               arg2 = _noArg,
@@ -95,6 +101,11 @@ class CallMatcher {
               arg7 = _noArg,
               arg8 = _noArg,
               arg9 = _noArg]) {
+    if (name == null) {
+      nameFilter = anything;
+    } else {
+      nameFilter = wrapMatcher(name);
+    }
     argMatchers = new List<Matcher>();
     if (arg0 == _noArg) return;
     argMatchers.add(wrapMatcher(arg0));
@@ -126,7 +137,8 @@ class CallMatcher {
    */
   String toString() {
     Description d = new StringDescription();
-    d.add(name).add('(');
+    d.addDescriptionOf(nameFilter);
+    d.add('(');
     for (var i = 0; i < argMatchers.length; i++) {
       if (i > 0) d.add(', ');
       d.addDescriptionOf(argMatchers[i]);
@@ -140,11 +152,11 @@ class CallMatcher {
    * if it matches this [CallMatcher.
    */
   bool matches(String method, List arguments) {
-    if (method != this.name) {
+    if (!nameFilter.matches(method)) {
       return false;
     }
     if (arguments.length < argMatchers.length) {
-      throw new Exception("Less arguments than matchers for $name");
+      throw new Exception("Less arguments than matchers for $method");
     }
     for (var i = 0; i < argMatchers.length; i++) {
       if (!argMatchers[i].matches(arguments[i])) {
@@ -155,18 +167,22 @@ class CallMatcher {
   }
 }
 
-/** [callsTo] returns a CallMatcher for the specified signature. */
-CallMatcher callsTo(String method, [
-                        arg0 = _noArg,
-                        arg1 = _noArg,
-                        arg2 = _noArg,
-                        arg3 = _noArg,
-                        arg4 = _noArg,
-                        arg5 = _noArg,
-                        arg6 = _noArg,
-                        arg7 = _noArg,
-                        arg8 = _noArg,
-                        arg9 = _noArg]) {
+/**
+ * Returns a [CallMatcher] for the specified signature. [method] can be
+ * null to match anything, or a literal [String], a predicate [Function],
+ * or a [Matcher]. The various arguments can be scalar values or [Matcher]s.
+ */
+CallMatcher callsTo([method,
+                     arg0 = _noArg,
+                     arg1 = _noArg,
+                     arg2 = _noArg,
+                     arg3 = _noArg,
+                     arg4 = _noArg,
+                     arg5 = _noArg,
+                     arg6 = _noArg,
+                     arg7 = _noArg,
+                     arg8 = _noArg,
+                     arg9 = _noArg]) {
   return new CallMatcher(method, arg0, arg1, arg2, arg3, arg4,
       arg5, arg6, arg7, arg8, arg9);
 }
@@ -299,9 +315,15 @@ class LogEntry {
 }
 
 /** Utility function for optionally qualified method names */
-String _qualifiedName(String owner, String method) {
+String _qualifiedName(owner, String method) {
   if (owner == null) {
     return method;
+  } else if (owner is Matcher) {
+    Description d = new StringDescription();
+    d.addDescriptionOf(owner);
+    d.add('.');
+    d.add(method);
+    return d.toString();
   } else {
     return '$owner.$method';
   }
@@ -324,19 +346,27 @@ class LogEntryList {
 
   /**
    * Create a new [LogEntryList] consisting of [LogEntry]s from
-   * this list that match the specified [mockName] and [logFilter].
-   * If [mockName] is null, all entries will be checked. If [destructive]
-   * is true, the log entries are removed from the original list.
+   * this list that match the specified [mockNameFilter] and [logFilter].
+   * [mockNameFilter] can be null, a [String], a predicate [Function],
+   * or a [Matcher]. If [mockNameFilter] is null, only Mocks with no name
+   * will be checked.
+   * If [logFilter] is null, all entries in the log will be returned.
+   * If [destructive] is true, the log entries are removed from the
+   * original list.
    */
-  LogEntryList getMatches(String mockName,
+  LogEntryList getMatches([mockNameFilter,
                           CallMatcher logFilter,
-                          [Matcher actionMatcher,
+                          Matcher actionMatcher,
                           bool destructive = false]) {
-    String filterName = _qualifiedName(mockName, logFilter.toString());
+    mockNameFilter = wrapMatcher(mockNameFilter);
+    if (logFilter == null) {
+      logFilter = new CallMatcher();
+    }
+    String filterName = _qualifiedName(mockNameFilter, logFilter.toString());
     LogEntryList rtn = new LogEntryList(filterName);
     for (var i = 0; i < logs.length; i++) {
       LogEntry entry = logs[i];
-      if (mockName != null && mockName != entry.mockName) {
+      if (!mockNameFilter.matches(entry.mockName)) {
         continue;
       }
       if (logFilter.matches(entry.methodName, entry.args)) {
@@ -707,7 +737,7 @@ class Mock {
   /** How to handle unknown method calls - swallow or throw. */
   final bool throwIfNoBehavior = false;
 
-  /*
+  /**
    * Default constructor. Unknown method calls are allowed and logged,
    * the mock has no name, and has its own log.
    */
@@ -765,7 +795,7 @@ class Mock {
     bool matchedMethodName = false;
     for (String k in behaviors.getKeys()) {
       Behavior b = behaviors[k];
-      if (b.matcher.name == method) {
+      if (b.matcher.nameFilter.matches(method)) {
         matchedMethodName = true;
       }
       if (b.matches(method, args)) {
@@ -871,8 +901,9 @@ class Mock {
    *
    *     getLogs(callsTo(...)).verify(...);
    */
-  LogEntryList getLogs(CallMatcher logFilter, [Matcher actionMatcher,
-                    bool destructive = false]) {
+  LogEntryList getLogs([CallMatcher logFilter,
+                        Matcher actionMatcher,
+                        bool destructive = false]) {
     return log.getMatches(name, logFilter, actionMatcher, destructive);
   }
 }
