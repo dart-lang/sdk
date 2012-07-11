@@ -88,14 +88,39 @@ testNativeMethods() {
   testUnparseMember('foo()native "this.x = 41";');
 }
 
-testSimpleFileUnparse() {
-  testDart2Dart('main() {}', (String s) {
-    Expect.equals(
-'''main() {
-  final bailout_reason = "I can do nothing right now.";
+testPrefixIncrements() {
+  testUnparse('++i;');
+  testUnparse('++a[i];');
+  testUnparse('++a[++b[i]];');
 }
-''', s);
+
+testConstModifier() {
+  testUnparse('foo([var a=const []]){}');
+  testUnparse('foo([var a=const{}]){}');
+  testUnparse('foo(){var a=const []; var b=const{};}');
+  testUnparse('foo([var a=const [const{"a": const [1, 2, 3]}]]){}');
+}
+
+testSimpleFileUnparse() {
+  final src = '''
+should_be_dropped() {
+}
+
+should_be_kept() {
+}
+
+main() {
+  should_be_kept();
+}
+''';
+  testDart2Dart(src, (String s) {
+    Expect.equals('should_be_kept(){}main(){should_be_kept();}', s);
   });
+}
+
+testTopLevelField() {
+  final src = 'final String x="asd";main(){x;}';
+  testDart2Dart(src, (String s) => Expect.equals(src, s));
 }
 
 main() {
@@ -105,5 +130,8 @@ main() {
   testClosure();
   testIndexedOperatorDecl();
   testNativeMethods();
+  testPrefixIncrements();
+  testConstModifier();
   testSimpleFileUnparse();
+  testTopLevelField();
 }

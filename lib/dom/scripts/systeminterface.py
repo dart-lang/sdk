@@ -106,7 +106,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
     factory_provider = None
     constructor_info = AnalyzeConstructor(self._interface)
     if constructor_info:
-      factory_provider = '_' + typename + 'FactoryProvider';
+      factory_provider = '_' + typename + 'FactoryProvider'
 
     if typename in interface_factories:
       factory_provider = interface_factories[typename]
@@ -126,7 +126,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
           '\n'
           '  $CTOR($PARAMS);\n',
           CTOR=typename,
-          PARAMS=constructor_info.ParametersInterfaceDeclaration());
+          PARAMS=constructor_info.ParametersInterfaceDeclaration())
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
@@ -170,7 +170,9 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
                                     constant.type.id),
                  VALUE=constant.value)
 
-  def AddAttribute(self, getter, setter):
+  def AddAttribute(self, attribute):
+    getter = attribute
+    setter = attribute if not systembase.IsReadOnly(attribute) else None
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),

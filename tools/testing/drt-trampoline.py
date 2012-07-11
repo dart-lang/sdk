@@ -48,7 +48,8 @@ def main(argv):
       cmd.append(arg)
 
 
-  p = subprocess.Popen(cmd, env=env, stdout=subprocess.PIPE)
+  stdout = subprocess.PIPE if out_expected_file else None
+  p = subprocess.Popen(cmd, env=env, stdout=stdout)
   output, error = p.communicate()
   if p.returncode != 0:
     raise Exception('Failed to run command. return code=%s' % p.returncode)
@@ -85,9 +86,6 @@ def main(argv):
       print 'Expectation didn\'t match. Update expectations by running:\n'
       print 'cp %s %s\n' % (out_file, out_expected_file)
     print '#EOF'
-  else:
-    # Pipe through the output for non-layout tests.
-    print output
 
 if __name__ == '__main__':
   try:

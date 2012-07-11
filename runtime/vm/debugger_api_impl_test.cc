@@ -175,28 +175,67 @@ static void PrintStackTrace(Dart_StackTrace trace) {
 }
 
 
+static void VerifyListEquals(Dart_Handle expected, Dart_Handle got) {
+  EXPECT(Dart_IsList(expected));
+  EXPECT(Dart_IsList(got));
+  Dart_Handle res;
+  intptr_t expected_length;
+  res = Dart_ListLength(expected, &expected_length);
+  EXPECT_NOT_ERROR(res);
+  intptr_t got_length;
+  res = Dart_ListLength(expected, &got_length);
+  EXPECT_NOT_ERROR(res);
+  EXPECT_EQ(expected_length, got_length);
+  for (intptr_t i = 0; i < expected_length; i++) {
+    Dart_Handle expected_elem = Dart_ListGetAt(expected, i);
+    EXPECT_NOT_ERROR(expected_elem);
+    Dart_Handle got_elem = Dart_ListGetAt(got, i);
+    EXPECT_NOT_ERROR(got_elem);
+    bool equals;
+    res = Dart_ObjectEquals(expected_elem, got_elem, &equals);
+    EXPECT_NOT_ERROR(res);
+    EXPECT(equals);
+  }
+}
+
+
+static void VerifyStackFrame(Dart_ActivationFrame frame,
+                             const char* expected_name,
+                             Dart_Handle expected_locals) {
+  Dart_Handle func_name;
+  Dart_Handle res;
+  res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
+  EXPECT_NOT_ERROR(res);
+  EXPECT(Dart_IsString(func_name));
+  const char* func_name_chars;
+  Dart_StringToCString(func_name, &func_name_chars);
+  if (expected_name != NULL) {
+    EXPECT_STREQ(func_name_chars, expected_name);
+  }
+
+  if (!Dart_IsNull(expected_locals)) {
+    Dart_Handle locals = Dart_GetLocalVariables(frame);
+    EXPECT_NOT_ERROR(locals);
+    VerifyListEquals(expected_locals, locals);
+  }
+}
+
+
 static void VerifyStackTrace(Dart_StackTrace trace,
                              const char* func_names[],
-                             int names_len) {
+                             Dart_Handle local_vars[],
+                             int expected_frames) {
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  Dart_Handle func_name;
   EXPECT_NOT_ERROR(res);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
     EXPECT_NOT_ERROR(res);
-    res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-    EXPECT_NOT_ERROR(res);
-    EXPECT(Dart_IsString(func_name));
-    const char* func_name_chars;
-    Dart_StringToCString(func_name, &func_name_chars);
-    if (i < names_len) {
-      EXPECT_STREQ(func_name_chars, func_names[i]);
-      if (strcmp(func_name_chars, func_names[i]) != 0) {
-        OS::Print("Stack frame %d: expected function %s, but found %s\n",
-            i, func_names[i], func_name_chars);
-      }
+    if (i < expected_frames) {
+      VerifyStackFrame(frame, func_names[i], local_vars[i]);
+    } else {
+      VerifyStackFrame(frame, NULL, Dart_Null());
     }
   }
 }
@@ -585,10 +624,16 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 
 static void ExprClosureBreakpointHandler(Dart_Breakpoint bpt,
                                          Dart_StackTrace trace) {
-  static const char* expected_trace[] = {"add", "main", ""};
+  static const char* expected_trace[] = {"add", "main"};
+  Dart_Handle add_locals = Dart_NewList(4);
+  Dart_ListSetAt(add_locals, 0, Dart_NewString("a"));
+  Dart_ListSetAt(add_locals, 1, Dart_NewInteger(10));
+  Dart_ListSetAt(add_locals, 2, Dart_NewString("b"));
+  Dart_ListSetAt(add_locals, 3, Dart_NewInteger(20));
+  Dart_Handle expected_locals[] = {add_locals, Dart_Null()};
   breakpoint_hit_counter++;
   PrintStackTrace(trace);
-  VerifyStackTrace(trace, expected_trace, 2);
+  VerifyStackTrace(trace, expected_trace, expected_locals, 2);
 }
 
 

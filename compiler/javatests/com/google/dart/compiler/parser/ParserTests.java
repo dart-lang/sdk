@@ -18,7 +18,9 @@ public class ParserTests extends TestSetup {
     TestSuite suite = new TestSuite("Dart parser test suite.");
 
     suite.addTestSuite(SyntaxTest.class);
-    suite.addTestSuite(DietParserTest.class);
+    //diet-parsing is used only for incremental compilation which is turned off
+    //(and this test causes intermittent timeouts)
+    //suite.addTestSuite(DietParserTest.class);
     suite.addTestSuite(CPParserTest.class);
     suite.addTestSuite(ParserRoundTripTest.class);
     suite.addTestSuite(LibraryParserTest.class);

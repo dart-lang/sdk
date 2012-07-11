@@ -326,7 +326,7 @@ DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
   // can't talk to.
   const Object& port = Object::Handle(DartLibraryCalls::NewSendPort(port_id));
   if (port.IsError()) {
-    Exceptions::PropagateError(port);
+    Exceptions::PropagateError(Error::Cast(port));
   }
   arguments->SetReturn(port);
 }
@@ -338,7 +338,7 @@ DEFINE_NATIVE_ENTRY(ReceivePortImpl_factory, 1) {
       PortMap::CreatePort(arguments->isolate()->message_handler());
   const Object& port = Object::Handle(ReceivePortCreate(port_id));
   if (port.IsError()) {
-    Exceptions::PropagateError(port);
+    Exceptions::PropagateError(Error::Cast(port));
   }
   arguments->SetReturn(port);
 }
@@ -593,7 +593,7 @@ static void Spawn(NativeArguments* arguments, SpawnState* state) {
   if (port.IsError()) {
     state->Cleanup();
     delete state;
-    Exceptions::PropagateError(port);
+    Exceptions::PropagateError(Error::Cast(port));
   }
 
   // Start the new isolate.
@@ -648,7 +648,7 @@ DEFINE_NATIVE_ENTRY(isolate_spawnUri, 1) {
 DEFINE_NATIVE_ENTRY(isolate_getPortInternal, 0) {
   const Object& port = Object::Handle(ReceivePortCreate(isolate->main_port()));
   if (port.IsError()) {
-    Exceptions::PropagateError(port);
+    Exceptions::PropagateError(Error::Cast(port));
   }
   arguments->SetReturn(port);
 }

@@ -66,7 +66,7 @@ class Listener {
   void beginFactoryMethod(Token token) {
   }
 
-  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
+  void endFactoryMethod(Token startKeyword, Token periodBeforeName,
                         Token endToken) {
   }
 
@@ -1403,7 +1403,7 @@ class NodeListener extends ElementListener {
     pushNode(new EmptyStatement(token));
   }
 
-  void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
+  void endFactoryMethod(Token startKeyword, Token periodBeforeName,
                         Token endToken) {
     Statement body = popNode();
     NodeList formals = popNode();
@@ -1413,8 +1413,13 @@ class NodeListener extends ElementListener {
       // A library prefix was handled in [handleQualified].
       name = new Send(popNode(), name);
     }
-    handleModifier(factoryKeyword);
-    handleModifiers(1);
+    handleModifier(startKeyword);
+    if (startKeyword.stringValue == 'external') {
+      handleModifier(startKeyword.next);
+      handleModifiers(2);
+    } else {
+      handleModifiers(1);
+    }
     Modifiers modifiers = popNode();
     pushNode(new FunctionExpression(name, formals, body, null,
                                     modifiers, null, null));

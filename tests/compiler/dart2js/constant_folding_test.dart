@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Test constant folding on numbers.
@@ -37,7 +37,7 @@ main() {
       NEGATIVE_NUMBER_FOLDING, 'main', const RegExp(@"print\(1\)"));
 
   String generated = compile(NULL_EQUALS_FOLDING, 'foo');
-  RegExp regexp = const RegExp(@'eqNullB\(a\)');
+  RegExp regexp = const RegExp(@'a == null');
   Expect.isTrue(regexp.hasMatch(generated));
 
   regexp = const RegExp(@'null == b');

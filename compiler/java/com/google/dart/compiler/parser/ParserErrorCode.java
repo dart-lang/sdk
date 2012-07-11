@@ -15,7 +15,6 @@ import com.google.dart.compiler.SubSystem;
  * the beginning default English translation of the message.
  */
 public enum ParserErrorCode implements ErrorCode {
-  // TODO(zundel): error message needs JUnit test
   ABSTRACT_MEMBER_IN_INTERFACE("Abstract members are not allowed in interfaces"),
   ABSTRACT_METHOD_WITH_BODY("Abstract method cannot have a body"),
   ABSTRACT_TOP_LEVEL_ELEMENT("Only class can be abstract top-level element"),
@@ -30,16 +29,15 @@ public enum ParserErrorCode implements ErrorCode {
       "Default values cannot be specified in closure parameter"),
   DEFAULT_VALUE_CAN_NOT_BE_SPECIFIED_IN_TYPEDEF(
       "Default values cannot be specified in closure type definition"),
-  // TODO(zundel): error message needs JUnit test
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
   DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
-  // TODO(zundel): error message needs JUnit test
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
+  // TODO(zundel): error message needs JUnit test (unreachable code?)
   DISALLOWED_FACTORY_KEYWORD("Factory keyword not allowed here"),
-  // TODO(zundel): error message needs JUnit test
+  DISALLOWED_STATIC_KEYWORD("Static keyword not allowed here"),
   EXPECTED_ARRAY_OR_MAP_LITERAL("Expected array or map literal"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (unreachable code?)
   EXPECTED_CASE_OR_DEFAULT("Expected 'case' or 'default'"),
   EXPECTED_CLASS_DECLARATION_LBRACE("Expected '{' in class or interface declaration"),
   // TODO(zundel): error message needs JUnit test
@@ -50,19 +48,18 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test
   EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),
+  EXPECTED_FUNCTION_STATEMENT_BODY("Expected function statment body"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_IDENTIFIER("Expected identifier"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_LEFT_PAREN("'(' expected"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_PREFIX_KEYWORD("Expected 'prefix' after comma"),
-  // TODO(zundel): error message needs JUnit test
   EXPECTED_PREFIX_IDENTIFIER("Prefix string can only contain valid identifier characters"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_SEMICOLON("Expected ';'"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_STRING_LITERAL("Expected string literal"),
-  // TODO(zundel): error message needs JUnit test
+  // TODO(zundel): error message needs JUnit test (unreachable code?)
   EXPECTED_STRING_LITERAL_MAP_ENTRY_KEY("Expected string literal for map entry key"),
   EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
   // TODO(zundel): error message needs JUnit test
@@ -70,25 +67,17 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): this error message is out of date
   NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
   NATIVE_ONLY_CORE_LIB("Native keyword can be used only in corelib"),
-  // TODO(zundel): error message needs JUnit test
   FACTORY_CANNOT_BE_ABSTRACT("A factory cannot be abstract"),
-  // TODO(zundel): error message needs JUnit test
   FACTORY_CANNOT_BE_STATIC("A factory cannot be static"),
-  // TODO(zundel): error message needs JUnit test
+  FACTORY_CANNOT_BE_TOP_LEVEL("A factory cannot be top level, it must be a member of a class"),
   FACTORY_MEMBER_IN_INTERFACE("Factory members are not allowed in interfaces"),
   FINAL_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'final' is not allowed on a method definition"),
-  // TODO(zundel): error message needs JUnit test
   FOR_IN_WITH_COMPLEX_VARIABLE("Only simple variables can be assigned to in a for-in construct"),
-  // TODO(zundel): error message needs JUnit test
   FOR_IN_WITH_MULTIPLE_VARIABLES("Too many variable declarations in a for-in construct"),
-  // TODO(zundel): error message needs JUnit test
   FOR_IN_WITH_VARIABLE_INITIALIZER("Cannot initialize for-in variables"),
-  // TODO(zundel): error message needs JUnit test
   FUNCTION_TYPED_PARAMETER_IS_FINAL("Formal parameter with a function type cannot be const"),
-  // TODO(zundel): error message needs JUnit test
   FUNCTION_TYPED_PARAMETER_IS_VAR("Formal parameter with a function type cannot be var"),
   FUNCTION_NAME_EXPECTED_IDENTIFIER("Function name expected to be an identifier"),
-  // TODO(zundel): error message needs JUnit test
   ILLEGAL_ASSIGNMENT_TO_NON_ASSIGNABLE("Illegal assignment to non-assignable expression"),
   // TODO(zundel): error message needs JUnit test
   ILLEGAL_NUMBER_OF_PARAMETERS("Illegal number of parameters"),
@@ -97,18 +86,16 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test
   INVALID_FIELD_DECLARATION("Wrong syntax for field declaration"),
   INVALID_IDENTIFIER("The token '%s' cannot be used as an identifier"),
-  // TODO(zundel): error message needs JUnit test
   INVALID_OPERATOR_CHAINING("Cannot chain '%s'"),
   LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LOCAL_CANNOT_BE_STATIC("Local function cannot be static"),
   MISSING_FUNCTION_NAME(ErrorSeverity.WARNING, "a function name is required for a declaration"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
+  NO_SOUP_FOR_YOU("Too many errors"),
   NO_UNARY_PLUS_OPERATOR("No unary plus operator in Dart"),
-  // TODO(zundel): error message needs JUnit test
   NON_FINAL_STATIC_MEMBER_IN_INTERFACE("Non-final static members are not allowed in interfaces"),
   ONLY_ONE_LIBRARY_DIRECTIVE("Only one library directive may be declared in a file"),
-  // TODO(zundel): error message needs JUnit test
   OPERATOR_CANNOT_BE_STATIC("Operators cannot be static"),
   OPERATOR_IS_NOT_USER_DEFINABLE("Operator is not user definable"),
   POSITIONAL_AFTER_NAMED_ARGUMENT("Positional argument after named argument"),
@@ -117,6 +104,7 @@ public enum ParserErrorCode implements ErrorCode {
   REDIRECTING_CONSTRUCTOR_ITSELF("Redirecting constructor cannot have initializers"),
   REDIRECTING_CONSTRUCTOR_MULTIPLE("Multiple redirecting constructor invocations"),
   REDIRECTING_CONSTRUCTOR_OTHER("Redirecting constructor cannot have initializers"),
+  STATIC_MEMBERS_CANNOT_BE_ABSTRACT("Static members cannot be abstract"),
   SUPER_CONSTRUCTOR_MULTIPLE("'super' must be called only once in the initialization list"),
   SUPER_CANNOT_BE_USED_AS_THE_SECOND_OPERAND(
       "'super' cannot be used as the second operand in a binary expression."),
@@ -127,12 +115,8 @@ public enum ParserErrorCode implements ErrorCode {
   UNREACHABLE_CODE_IN_CASE(ErrorSeverity.WARNING, "Unreachable code in case statement"),
   UNEXPECTED_TOKEN("Unexpected token '%s'"),
   UNEXPECTED_TOKEN_IN_STRING_INTERPOLATION("Unexpected token in string interpolation: %s"),
-  // TODO(zundel): error message needs JUnit test
-  UNEXPECTED_TYPE_ARGUMENT("unexpected type argument"),
   VAR_IS_NOT_ALLOWED_ON_A_METHOD_DEFINITION("'var' is not allowed on a method definition"),
-  // TODO(zundel): error message needs JUnit test
   VOID_FIELD("Field cannot be of type void"),
-  // TODO(zundel): error message needs JUnit test
   VOID_PARAMETER("Parameter cannot be of type void");
 
   private final ErrorSeverity severity;

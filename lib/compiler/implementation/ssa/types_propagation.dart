@@ -139,51 +139,10 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
         new HTypeConversion.argumentTypeCheck(type, input);
     instruction.block.addBefore(instruction, converted);
     instruction.changeUse(input, converted);
-    replaceDominatedUses(input, converted);
-  }
-
-  // TODO(kasperl): Get rid of the changeUsesDominatedBy method in
-  // SsaTypeConversionInserter because this is just better.
-  void replaceDominatedUses(HInstruction instruction,
-                            HInstruction replacement) {
-    // Keep track of all instructions that we have to deal with later
-    // and count the number of them that are in the current block.
-    Set<HInstruction> pending = null;
-    int pendingInCurrentBlock = 0;
-
-    // Run through all the users of the instruction and see if they
-    // are dominated or potentially dominated by the replacement.
-    HBasicBlock block = replacement.block;
-    for (int i = 0, length = instruction.usedBy.length; i < length; i++) {
-      HInstruction current = instruction.usedBy[i];
-      if (current !== replacement && block.dominates(current.block)) {
-        if (current.block === block) pendingInCurrentBlock++;
-        if (pending === null) pending = new Set<HInstruction>();
-        pending.add(current);
-      }
-    }
-
-    // If there are no pending instructions, we're done.
-    if (pending === null) return;
-
-    // Run through all the instructions before the replacement and
-    // remove them from the pending set.
-    if (pendingInCurrentBlock > 0) {
-      HInstruction current = block.first;
-      while (current !== replacement) {
-        if (pending.contains(current)) {
-          pending.remove(current);
-          if (--pendingInCurrentBlock == 0) break;
-        }
-        current = current.next;
-      }
-    }
-
-    // Run through all the pending instructions. They are the
-    // dominated users.
-    for (HInstruction current in pending) {
-      current.changeUse(instruction, replacement);
-      addToWorkList(current);
+    Set<HInstruction> dominatedUsers = input.dominatedUsers(converted);
+    for (HInstruction user in dominatedUsers) {
+      user.changeUse(input, converted);
+      addToWorkList(user);
     }
   }
 }

@@ -149,8 +149,10 @@ public class TopLevelElementBuilder {
    */
   private void reportDuplicateDeclaration(DartCompilerListener listener, Element element,
       Element otherElement) {
-    compilationError(listener, element.getNameLocation(), ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION,
-        otherElement, Elements.getRelativeElementLocation(element, otherElement));
+    compilationError(listener, element.getNameLocation(),
+        ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION,
+        Elements.getUserElementTitle(otherElement),
+        Elements.getRelativeElementLocation(element, otherElement));
   }
 
   /**

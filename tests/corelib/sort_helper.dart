@@ -12,7 +12,6 @@ class SortHelper {
   }
 
   void printList(List a) {
-    if (true) return;
     StringBuffer buffer = new StringBuffer();
     for (int i = 0; i < a.length; i++) {
       if (i != 0) buffer.add(",");
@@ -123,12 +122,13 @@ class SortHelper {
   }
 
   void testSort(List a) {
-    printList(a);
+    final bool log = false;
+    if (log) printList(a);
     sortFunction(a);
-    printList(a);
+    if (log) printList(a);
     bool sorted = isSorted(a);
     Expect.equals(true, sorted);
-    print(sorted);
+    if (log) print(sorted);
   }
 
   void testInsertionSort(int i1, int i2, int i3, int i4) {

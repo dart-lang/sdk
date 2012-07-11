@@ -94,7 +94,6 @@ import com.google.dart.compiler.ast.ImportCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
 import com.google.dart.compiler.parser.DartScanner.Position;
@@ -125,13 +124,14 @@ public class DartParser extends CompletionHooksParserBase {
   private boolean isTopLevelAbstract;
   private DartScanner.Position topLevelAbstractModifierPosition;
   private boolean isParsingClass;
-
+  private int errorCount = 0;
+  
   /**
    * Determines the maximum number of errors before terminating the parser. See
    * {@link #reportError(com.google.dart.compiler.parser.DartScanner.Position, ErrorCode,
    * Object...)}.
    */
-  final int MAX_DEFAULT_ERRORS = 100;
+  final int MAX_DEFAULT_ERRORS = Short.MAX_VALUE;
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
@@ -287,6 +287,9 @@ public class DartParser extends CompletionHooksParserBase {
       Token.RESOURCE, Token.NATIVE})
   public DartUnit parseUnit() {
     DartSource dartSource = (DartSource) source;
+    
+    errorCount = 0;
+    
     try {
       beginCompilationUnit();
       ctx.unitAboutToCompile(dartSource, isDietParse);
@@ -1010,31 +1013,42 @@ public class DartParser extends CompletionHooksParserBase {
         }
         modifiers = modifiers.makeStatic();
       }
-    } else if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
+    }
+    if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.ABSTRACT_MEMBER_IN_INTERFACE);
       }
+      if (modifiers.isStatic()) {
+        reportError(position(), ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT);
+      }
       modifiers = modifiers.makeAbstract();
-    } else if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
+    }
+    if (optionalPseudoKeyword(FACTORY_KEYWORD)) {
       if (isParsingInterface) {
         reportError(position(), ParserErrorCode.FACTORY_MEMBER_IN_INTERFACE);
       }
+      if (modifiers.isStatic()) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_STATIC);
+      }
+      if (modifiers.isAbstract()) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
+      }
+
       modifiers = modifiers.makeFactory();
     }
 
     if (match(Token.VAR) || match(Token.FINAL)) {
       if (modifiers.isAbstract()) {
         reportError(position(), ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD);
-      } else if (modifiers.isFactory()) {
+      }
+      if (modifiers.isFactory()) {
         reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
       }
     }
 
     if (modifiers.isFactory()) {
-      // Factory is not allowed on top level.
-      if (!allowStatic) {
-        reportError(position(), ParserErrorCode.DISALLOWED_FACTORY_KEYWORD);
-        modifiers = modifiers.removeFactory();
+      if (!isParsingClass) {
+        reportError(position(), ParserErrorCode.FACTORY_CANNOT_BE_TOP_LEVEL);
       }
       // Do parse factory.
       DartMethodDefinition factoryNode = parseFactory(modifiers);
@@ -1968,7 +1982,7 @@ public class DartParser extends CompletionHooksParserBase {
    *     | identifier
    *     ;
    * </pre>
-   * 
+   *
    * @param target the target of the method invocation
    * @return the expression representing the cascaded method invocation
    */
@@ -3107,7 +3121,7 @@ public class DartParser extends CompletionHooksParserBase {
           constructor = doneWithoutConsuming(toPrefixedType(parts));
         } else {
           // Named constructor.
-          DartIdentifier identifier = ensureIdentifier(part2);
+          DartIdentifier identifier = (DartIdentifier)part2.getIdentifier();
           constructor = doneWithoutConsuming(new DartPropertyAccess(doneWithoutConsuming(part1),
                                                                     identifier));
         }
@@ -3119,7 +3133,7 @@ public class DartParser extends CompletionHooksParserBase {
           reportError(parts.get(3), ParserErrorCode.EXPECTED_LEFT_PAREN);
         }
         DartTypeNode typeNode = doneWithoutConsuming(toPrefixedType(parts));
-        DartIdentifier identifier = ensureIdentifier(parts.get(2));
+        DartIdentifier identifier = (DartIdentifier)parts.get(2).getIdentifier();
         constructor = doneWithoutConsuming(new DartPropertyAccess(typeNode, identifier));
         break;
       }
@@ -3134,16 +3148,8 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartIdentifier ensureIdentifier(DartTypeNode node) {
-    List<DartTypeNode> typeArguments = node.getTypeArguments();
-    if (!typeArguments.isEmpty()) {
-      reportError(typeArguments.get(0), ParserErrorCode.UNEXPECTED_TYPE_ARGUMENT);
-    }
-    return (DartIdentifier) node.getIdentifier();
-  }
-
   private DartTypeNode toPrefixedType(List<DartTypeNode> parts) {
-    DartIdentifier part1 = ensureIdentifier(parts.get(0));
+    DartIdentifier part1 = (DartIdentifier)parts.get(0).getIdentifier();
     DartTypeNode part2 = parts.get(1);
     DartIdentifier identifier = (DartIdentifier) part2.getIdentifier();
     DartPropertyAccess access = doneWithoutConsuming(new DartPropertyAccess(part1, identifier));
@@ -3323,7 +3329,10 @@ public class DartParser extends CompletionHooksParserBase {
         result = dietParseFunctionStatementBody();
       } else {
         beginFunctionStatementBody();
-        if (optional(Token.ARROW)) {
+        if (optional(Token.SEMICOLON)) {
+          reportError(position(), ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY);
+          result = done(null);
+        } else if (optional(Token.ARROW)) {
           DartExpression expr = parseExpression();
           if (expr == null) {
             expr = new DartSyntheticErrorExpression();
@@ -4570,15 +4579,53 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
+  /**
+   * Increment the number of errors encountered while parsing this compilation unit. Returns whether
+   * the current error should be reported.
+   * 
+   * @return whether the current error should be reported
+   */
+  private boolean incErrorCount() {
+    errorCount++;
+    
+    if (errorCount >= MAX_DEFAULT_ERRORS) {
+      if (errorCount == MAX_DEFAULT_ERRORS) {
+        // Create a 'too many errors' error.
+        DartCompilationError dartError = new DartCompilationError(ctx.getSource(),
+            ctx.getTokenLocation(), ParserErrorCode.NO_SOUP_FOR_YOU);
+        ctx.error(dartError);
+      }
+      
+      // Consume the rest of the input stream. Throwing an exception - as suggested elsewhere in
+      // this file - is not ideal.
+      Token next = next();
+      
+      while (next != null && next != Token.EOS) {
+        next = next();
+      }
+    }
+    
+    return errorCount < MAX_DEFAULT_ERRORS;
+  }
+  
+  @Override
+  protected void reportError(Position position, ErrorCode errorCode, Object... arguments) {
+    // TODO(devoncarew): we're not correctly identifying dart:html as a core library
+    if (incErrorCount()) {
+      super.reportError(position, errorCode, arguments);
+    }
+  }
+
+  @Override
+  protected void reportErrorAtPosition(Position startPosition, Position endPosition,
+      ErrorCode errorCode, Object... arguments) {
+    if (incErrorCount()) {
+      super.reportErrorAtPosition(startPosition, endPosition, errorCode, arguments);
+    }
+  }
+
   private void reportError(DartCompilationError dartError) {
-    if ((errorHistory.size() > MAX_DEFAULT_ERRORS) ||
-        errorHistory.contains(dartError.hashCode())) {
-      // Force parser termination if one of the conditions are observed:
-      // 1) We have already reported the same error at the same location; This
-      //    is an indication that the parser is not making progress.
-      // 2) If we reached the absolute maximum number of errors.
-      // TODO (fabiomfv) consider throwing AssertionError to terminate parsing.
-    } else {
+    if (incErrorCount()) {
       ctx.error(dartError);
       errorHistory.add(dartError.hashCode());
     }

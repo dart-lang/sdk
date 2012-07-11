@@ -104,7 +104,7 @@ class TemplateLoader(object):
 
       else:
         if active:
-          out.append(full_line);
+          out.append(full_line)
         continue
 
     if condition_stack:

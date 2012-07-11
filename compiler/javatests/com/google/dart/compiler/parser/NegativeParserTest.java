@@ -139,7 +139,7 @@ public class NegativeParserTest extends CompilerTestCase {
     DartUnit unit =
         parseSourceUnitErrors(
             "factory foo() {}",
-            ParserErrorCode.DISALLOWED_FACTORY_KEYWORD.getMessage(),
+            ParserErrorCode.FACTORY_CANNOT_BE_TOP_LEVEL.getMessage(),
             1,
             1);
     DartMethodDefinition factory = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
@@ -341,7 +341,7 @@ public class NegativeParserTest extends CompilerTestCase {
         "typedef ParameterizedFun1<T, U extends bool, V>(T t, U u);",
         ""));
   }
-  
+
   public void test_abstractTopLevel_class() {
     parseExpectErrors(Joiner.on("\n").join(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -702,7 +702,7 @@ public class NegativeParserTest extends CompilerTestCase {
         "}",
         ""));
   }
-  
+
   /**
    * We can parse operator "equals" declaration.
    */
@@ -972,7 +972,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "}",
             ""));
   }
-  
+
   /**
    * There is ambiguity in parsing function expression inside of initializer.
    * <p>
@@ -994,7 +994,7 @@ public class NegativeParserTest extends CompilerTestCase {
             "}",
             ""));
   }
-  
+
   /**
    * There is ambiguity in parsing function expression inside of initializer.
    * <p>

@@ -145,6 +145,13 @@ class Parser : ValueObject {
 
   static void ParseFunction(ParsedFunction* parsed_function);
 
+  // Format and print a message with source location.
+  // A null script means no source and a negative token_pos means no position.
+  static void PrintMessage(const Script& script,
+                           intptr_t token_pos,
+                           const char* message_header,
+                           const char* format, ...);
+
   // Build an error object containing a formatted error or warning message.
   // A null script means no source and a negative token_pos means no position.
   static RawError* FormatError(const Script& script,

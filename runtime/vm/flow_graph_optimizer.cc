@@ -24,17 +24,6 @@ void FlowGraphOptimizer::ApplyICData() {
 }
 
 
-void FlowGraphOptimizer::VisitBlocks() {
-  for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    Instruction* instr = block_order_[i]->Accept(this);
-    // Optimize all successors until an exit, branch, or a block entry.
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      instr = instr->Accept(this);
-    }
-  }
-}
-
-
 static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
   ASSERT(ic_data.num_args_tested() > 0);
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -131,7 +120,8 @@ static bool HasOnlyTwoDouble(const ICData& ic_data) {
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
+bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
+                                                InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
   BinaryOpComp::OperandsType operands_type = BinaryOpComp::kDynamicOperands;
   ASSERT(comp->HasICData());
@@ -179,7 +169,6 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
       UNREACHABLE();
   };
 
-  ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 2);
   Value* left = comp->InputAt(0);
   Value* right = comp->InputAt(1);
@@ -190,18 +179,18 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(InstanceCallComp* comp,
                        left,
                        right);
   bin_op->set_ic_data(comp->ic_data());
-  comp->ReplaceWith(bin_op);
+  instr->set_computation(bin_op);
   return true;
 }
 
 
-bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
+bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
+                                               InstanceCallComp* comp,
                                                Token::Kind op_kind) {
   if (comp->ic_data()->NumberOfChecks() != 1) {
     // TODO(srdjan): Not yet supported.
     return false;
   }
-  ASSERT(comp->instr() != NULL);
   ASSERT(comp->InputCount() == 1);
   Computation* unary_op = NULL;
   if (HasOneSmi(*comp->ic_data())) {
@@ -211,7 +200,7 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(InstanceCallComp* comp,
   }
   if (unary_op != NULL) {
     unary_op->set_ic_data(comp->ic_data());
-    comp->ReplaceWith(unary_op);
+    instr->set_computation(unary_op);
     return true;
   }
   return false;
@@ -283,7 +272,8 @@ static RawICData* ToUnaryClassChecks(const ICData& ic_data) {
 
 
 // Only unique implicit instance getters can be currently handled.
-bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
+                                                 InstanceCallComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
@@ -308,7 +298,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
         field, comp->InputAt(0), comp);
     load->set_ic_data(comp->ic_data());
-    comp->ReplaceWith(load);
+    instr->set_computation(load);
     return true;
   }
 
@@ -342,7 +332,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
         Type::ZoneHandle(Type::IntInterface()));
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
-    comp->ReplaceWith(load);
+    instr->set_computation(load);
     return true;
   }
 
@@ -354,7 +344,7 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
         Type::ZoneHandle(Type::IntInterface()));
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
-    comp->ReplaceWith(load);
+    instr->set_computation(load);
     return true;
   }
   return false;
@@ -362,7 +352,8 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(InstanceCallComp* comp) {
 
 
 // Inline only simple, frequently called core library methods.
-bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
+                                                 InstanceCallComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if ((ic_data.NumberOfChecks() == 0) || !HasOneTarget(ic_data)) {
@@ -389,28 +380,29 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(InstanceCallComp* comp) {
   }
   ToDoubleComp* coerce = new ToDoubleComp(
       comp->InputAt(0), from_kind, comp);
-  coerce->set_instr(comp->instr());
-  comp->instr()->replace_computation(coerce);
+  instr->set_computation(coerce);
   return true;
 }
 
 
 
 
-void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
+void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
+                                           BindInstr* instr) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = comp->token_kind();
     if (Token::IsBinaryToken(op_kind) &&
-        TryReplaceWithBinaryOp(comp, op_kind)) {
+        TryReplaceWithBinaryOp(instr, comp, op_kind)) {
       return;
     }
-    if (Token::IsUnaryToken(op_kind) && TryReplaceWithUnaryOp(comp, op_kind)) {
+    if (Token::IsUnaryToken(op_kind) &&
+        TryReplaceWithUnaryOp(instr, comp, op_kind)) {
       return;
     }
-    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(comp)) {
+    if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, comp)) {
       return;
     }
-    if (TryInlineInstanceMethod(comp)) {
+    if (TryInlineInstanceMethod(instr, comp)) {
       return;
     }
     const intptr_t kMaxChecks = 4;
@@ -419,18 +411,19 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp) {
       ICData& unary_checks =
           ICData::ZoneHandle(ToUnaryClassChecks(*comp->ic_data()));
       call->set_ic_data(&unary_checks);
-      comp->ReplaceWith(call);
+      instr->set_computation(call);
     }
   } else {
     // Mark it for deopt.
     PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
     call->set_ic_data(&ICData::ZoneHandle());
-    comp->ReplaceWith(call);
+    instr->set_computation(call);
   }
 }
 
 
-void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
+void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp,
+                                         BindInstr* instr) {
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(comp->function());
   if (recognized_kind == MethodRecognizer::kMathSqrt) {
@@ -439,7 +432,8 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp) {
 }
 
 
-bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
+bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
+                                                 InstanceSetterComp* comp) {
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
@@ -467,16 +461,17 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(InstanceSetterComp* comp) {
       comp->InputAt(1),
       comp);
   store->set_ic_data(comp->ic_data());
-  comp->ReplaceWith(store);
+  instr->set_computation(store);
   return true;
 }
 
 
 
-void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp) {
+void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp,
+                                             BindInstr* instr) {
   // TODO(srdjan): Add assignable check node if --enable_type_checks.
   if (comp->HasICData() && !FLAG_enable_type_checks) {
-    if (TryInlineInstanceSetter(comp)) {
+    if (TryInlineInstanceSetter(instr, comp)) {
       return;
     }
   }
@@ -507,7 +502,8 @@ static intptr_t ReceiverClassId(Computation* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
+void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp,
+                                          BindInstr* instr) {
   const intptr_t class_id = ReceiverClassId(comp);
   switch (class_id) {
     case kArray:
@@ -518,7 +514,8 @@ void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
+void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
+                                           BindInstr* instr) {
   if (FLAG_enable_type_checks) return;
 
   const intptr_t class_id = ReceiverClassId(comp);
@@ -530,9 +527,9 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp) {
 }
 
 
-static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
-  Instruction* instr = comp->instr();
-  Instruction* next_instr = instr->successor();
+static void TryFuseComparisonWithBranch(BindInstr* instr,
+                                        ComparisonComp* comp) {
+  Instruction* next_instr = instr->next();
   if ((next_instr != NULL) && next_instr->IsBranch()) {
     BranchInstr* branch = next_instr->AsBranch();
     UseVal* use = branch->value()->AsUse();
@@ -545,16 +542,16 @@ static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
   if ((next_instr != NULL) && next_instr->IsBind()) {
     Computation* next_comp = next_instr->AsBind()->computation();
     if (next_comp->IsBooleanNegate()) {
-      Instruction* next_next_instr = next_instr->successor();
+      Instruction* next_next_instr = next_instr->next();
       if ((next_next_instr != NULL) && next_next_instr->IsBranch()) {
         BooleanNegateComp* negate = next_comp->AsBooleanNegate();
         BranchInstr* branch = next_next_instr->AsBranch();
-        if ((branch->value()->AsUse()->definition() == negate->instr()) &&
+        if ((branch->value()->AsUse()->definition() == next_instr) &&
             (negate->value()->AsUse()->definition() == instr)) {
           comp->MarkFusedWithBranch(branch);
           branch->MarkFusedWithComparison();
           branch->set_is_negated(true);
-          instr->set_successor(next_next_instr);
+          instr->set_next(next_next_instr);
           return;
         }
       }
@@ -563,7 +560,8 @@ static void TryFuseComparisonWithBranch(ComparisonComp* comp) {
 }
 
 
-void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
+void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
+                                           BindInstr* instr) {
   if (!comp->HasICData()) return;
 
   const ICData& ic_data = *comp->ic_data();
@@ -583,16 +581,18 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp) {
   // For smi and double comparisons if the next instruction is a conditional
   // branch that uses the value of this comparison mark them as fused together
   // to avoid materializing a boolean value.
-  TryFuseComparisonWithBranch(comp);
+  TryFuseComparisonWithBranch(instr, comp);
 }
 
 
-void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp) {
-  TryFuseComparisonWithBranch(comp);
+void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp,
+                                            BindInstr* instr) {
+  TryFuseComparisonWithBranch(instr, comp);
 }
 
 
-void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
+void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
+                                              BindInstr* instr) {
   if (comp->HasICData()) {
     // Replace binary checks with unary ones since EmitNative expects it.
     ICData& unary_checks =
@@ -600,40 +600,26 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp) {
     comp->set_ic_data(&unary_checks);
   }
 
-  TryFuseComparisonWithBranch(comp);
-}
-
-
-void FlowGraphOptimizer::VisitDo(DoInstr* instr) {
-  instr->computation()->Accept(this);
+  TryFuseComparisonWithBranch(instr, comp);
 }
 
 
 void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
-  instr->computation()->Accept(this);
+  instr->computation()->Accept(this, instr);
 }
 
-
-
-FlowGraphAnalyzer::FlowGraphAnalyzer(
-    const GrowableArray<BlockEntryInstr*>& blocks)
-        :blocks_(blocks), is_leaf_(false) {}
 
 
 void FlowGraphAnalyzer::Analyze() {
   is_leaf_ = true;
   for (intptr_t i = 0; i < blocks_.length(); ++i) {
-    BlockEntryInstr* block_entry = blocks_[i];
-    Instruction* instr = block_entry->successor();
-    while ((instr != NULL) && !instr->IsBlockEntry()) {
-      LocationSummary* locs = instr->locs();
-      if (locs != NULL) {
-        if (locs->is_call()) {
-          is_leaf_ = false;
-          return;
-        }
+    BlockEntryInstr* entry = blocks_[i];
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      LocationSummary* locs = it.Current()->locs();
+      if ((locs != NULL) && locs->is_call()) {
+        is_leaf_ = false;
+        return;
       }
-      instr = instr->successor();
     }
   }
 }

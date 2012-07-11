@@ -13,9 +13,9 @@ class AlwaysFalse {
 main() {
   var a = new AlwaysTrue();
   Expect.isTrue(a == 2);
-  Expect.isTrue(a == null);
+  Expect.isFalse(a == null);
   Expect.isFalse(a != 2);
-  Expect.isFalse(a != null);
+  Expect.isTrue(a != null);
 
   a = new AlwaysFalse();
   Expect.isFalse(a == 2);

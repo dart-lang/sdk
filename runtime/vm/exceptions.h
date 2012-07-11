@@ -28,7 +28,7 @@ class Exceptions : AllStatic {
 
   static void Throw(const Instance& exception);
   static void ReThrow(const Instance& exception, const Instance& stacktrace);
-  static void PropagateError(const Object& obj);
+  static void PropagateError(const Error& error);
 
   // Helpers to create and throw errors.
   static RawScript* GetCallerScript(DartFrameIterator* iterator);

@@ -102,6 +102,7 @@ class Element implements Hashable {
   final SourceString name;
   final ElementKind kind;
   final Element enclosingElement;
+  Link<Node> metadata = const EmptyLink<Node>();
   Modifiers get modifiers() => null;
 
   Node parseNode(DiagnosticListener listener) {
@@ -112,7 +113,12 @@ class Element implements Hashable {
     compiler.internalError("$this.computeType.", token: position());
   }
 
+  void addMetadata(Node node) {
+    metadata = metadata.prepend(node);
+  }
+
   bool isFunction() => kind === ElementKind.FUNCTION;
+  bool isClosure() => false;
   bool isMember() =>
       enclosingElement !== null && enclosingElement.kind === ElementKind.CLASS;
   bool isInstanceMember() => false;
@@ -386,10 +392,17 @@ class LibraryElement extends CompilationUnitElement {
 class PrefixElement extends Element {
   Map<SourceString, Element> imported;
   Token firstPosition;
+  final CompilationUnitElement patchSource;
 
-  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition)
+  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition,
+                [this.patchSource])
     : imported = new Map<SourceString, Element>(),
       super(prefix, ElementKind.PREFIX, enclosing);
+
+  CompilationUnitElement getCompilationUnit() {
+    if (patchSource !== null) return patchSource;
+    return super.getCompilationUnit();
+  }
 
   lookupLocalMember(SourceString memberName) => imported[memberName];
 
@@ -701,9 +714,14 @@ class FunctionElement extends Element {
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
-    if (patch !== null) {
-      cachedNode = patch.parseNode(listener);
+    if (patch === null) {
+      if (modifiers.isExternal()) {
+        // An external function that isn't patched has no body.
+        return null;
+      }
+      return cachedNode;
     }
+    cachedNode = patch.parseNode(listener);
     return cachedNode;
   }
 

@@ -181,10 +181,17 @@ def TestCompiler(compiler, runtime, mode, system, option, flags):
   os.chdir(DART_PATH)
 
   if system.startswith('win') and runtime == 'ie':
+    # We don't do proper sharding on the IE bots, since the runtime is
+    # long for both. We have a "fast bot" and a "slow bot" that run specific
+    # tests instead.
+    for i in flags:
+      if i.startswith('--shard='):
+        bot_num = i.split('=')[1]
     # There should not be more than one InternetExplorerDriver instance
     # running at a time. For details, see
     # http://code.google.com/p/selenium/wiki/InternetExplorerDriver.
-    flags = flags + ['-j1']
+    flags = (filter(lambda(item): not item.startswith('--shard'), flags) +
+        ['-j1'])
 
   if system == 'linux' and runtime == 'chrome':
     # TODO(ngeoffray): We should install selenium on the buildbot.
@@ -199,12 +206,24 @@ def TestCompiler(compiler, runtime, mode, system, option, flags):
       # that run the browser tests to cut down on the cycle time.
       TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
-    # Run the default set of test suites.
-    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
+    if not (system.startswith('win') and runtime == 'ie'):
+      # Run the default set of test suites.
+      TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-    # TODO(kasperl): Consider running peg and css tests too.
-    extras = ['dart2js_extra', 'dart2js_native']
-    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+      # TODO(kasperl): Consider running peg and css tests too.
+      extras = ['dart2js_extra', 'dart2js_native']
+      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+    else:
+      if bot_num == '1':
+        TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
+      else:
+        TestStep("dart2js", mode, system, 'dart2js', runtime, ['dartc',
+            'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
+            'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
+            flags)
+        extras = ['dart2js_extra', 'dart2js_native']
+        TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
+            flags)
 
   elif compiler == 'frog':
     TestStep("frog", mode, system, compiler, runtime, [], flags)

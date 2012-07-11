@@ -103,7 +103,9 @@ function(cls, fields, methods) {
     nativeBuffer.add(nativeCode);
     nativeBuffer.add(';\n');
 
-    void defineInstanceMember(String name, String value) {
+    void defineInstanceMember(String name,
+                              String value,
+                              [List<SourceMappingEntry> sourceMappings]) {
       nativeBuffer.add("$className.$name = $value;\n");
     }
 
