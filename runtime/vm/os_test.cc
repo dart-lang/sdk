@@ -38,6 +38,14 @@ UNIT_TEST_CASE(SNPrint) {
 }
 
 
+// This test is expected to crash when it runs.
+UNIT_TEST_CASE(SNPrint_BadArgs) {
+  int width = kMaxInt32;
+  int num = 7;
+  OS::SNPrint(NULL, 0, "%*d%*d", width, num, width, num);
+}
+
+
 UNIT_TEST_CASE(OsFuncs) {
   EXPECT(Utils::IsPowerOfTwo(OS::ActivationFrameAlignment()));
   EXPECT(Utils::IsPowerOfTwo(OS::PreferredCodeAlignment()));

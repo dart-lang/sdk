@@ -153,7 +153,11 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 
 
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  return vsnprintf(str, size, format, args);
+  int retval = vsnprintf(str, size, format, args);
+  if (retval < 0) {
+    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
+  }
+  return retval;
 }
 
 

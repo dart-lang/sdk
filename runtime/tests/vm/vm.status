@@ -5,6 +5,9 @@
 # When a spawned isolate throws an uncaught exception, we terminate the vm.
 cc/RunLoop_ExceptionChild: Fail
 
+# This test is expected to crash on all platforms.
+cc/SNPrint_BadArgs: Crash
+
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
