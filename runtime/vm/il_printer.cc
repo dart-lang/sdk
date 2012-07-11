@@ -64,6 +64,12 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
   if (FLAG_print_environments && (instr->env() != NULL)) {
     instr->env()->PrintTo(&f);
   }
+  if (print_locations_ && (instr->locs() != NULL)) {
+    instr->locs()->PrintTo(&f);
+  }
+  if (instr->lifetime_position() != -1) {
+    OS::Print("%3d: ", instr->lifetime_position());
+  }
   OS::Print("%s", str);
 }
 
@@ -435,7 +441,11 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
-  UNIMPLEMENTED();
+  f->Print("    %s ", DebugName());
+  for (intptr_t i = 0; i < moves_.length(); i++) {
+    if (i != 0) f->Print(", ");
+    f->Print("%s = %s", moves_[i].dest().Name(), moves_[i].src().Name());
+  }
 }
 
 
@@ -685,6 +695,9 @@ void Environment::PrintTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
+    if ((i < locations_.length()) && !locations_[i].IsInvalid()) {
+      f->Print(" [%s]", locations_[i].Name());
+    }
   }
   f->Print(" }");
 }

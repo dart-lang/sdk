@@ -527,8 +527,6 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
 }
 
 
-
-
 static void TryFuseComparisonWithBranch(BindInstr* instr,
                                         ComparisonComp* comp) {
   Instruction* next_instr = instr->next();

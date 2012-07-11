@@ -1774,6 +1774,18 @@ const Code::Comments& Assembler::GetCodeComments() const {
 }
 
 
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+  "rax", "rcx", "rdx", "rbx", "rsp", "rbp", "rsi", "rdi",
+  "r8", "r9", "r10", "r11", "r12", "r13", "r14", "r15"
+};
+
+
+const char* Assembler::RegisterName(Register reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+  return cpu_reg_names[reg];
+}
+
+
 }  // namespace dart
 
 #endif  // defined TARGET_ARCH_X64

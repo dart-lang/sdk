@@ -571,6 +571,8 @@ class Assembler : public ValueObject {
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
 
+  static const char* RegisterName(Register reg);
+
  private:
   AssemblerBuffer buffer_;
   int prolog_offset_;

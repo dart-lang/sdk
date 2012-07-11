@@ -17,6 +17,7 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/flow_graph_optimizer.h"
+#include "vm/il_printer.h"
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
@@ -168,13 +169,8 @@ static bool CompileParsedFunctionHelper(
 
         if (use_ssa) {
           // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(graph_builder.postorder_block_entries(),
-                                       graph_builder.current_ssa_temp_index());
-          allocator.ResolveConstraints();
-          allocator.AnalyzeLiveness();
-
-          // Temporary bailout until we support code generation from SSA form.
-          graph_builder.Bailout("No SSA code generation support.");
+          FlowGraphAllocator allocator(block_order, &graph_builder);
+          allocator.AllocateRegisters();
         }
       }
     }
@@ -186,8 +182,12 @@ static bool CompileParsedFunctionHelper(
       is_leaf = analyzer.is_leaf();
     }
     Assembler assembler;
-    FlowGraphCompiler graph_compiler(&assembler, parsed_function,
-                                     block_order, optimized, is_leaf);
+    FlowGraphCompiler graph_compiler(&assembler,
+                                     parsed_function,
+                                     block_order,
+                                     optimized,
+                                     optimized && use_ssa,
+                                     is_leaf);
     {
       TimerScope timer(FLAG_compiler_stats,
                        &CompilerStats::graphcompiler_timer,

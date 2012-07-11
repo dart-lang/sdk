@@ -578,6 +578,8 @@ class Assembler : public ValueObject {
   void Comment(const char* format, ...);
   const Code::Comments& GetCodeComments() const;
 
+  static const char* RegisterName(Register reg);
+
  private:
   AssemblerBuffer buffer_;
   int prolog_offset_;

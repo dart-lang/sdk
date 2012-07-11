@@ -59,7 +59,7 @@ class BaseGrowableArray : public B {
   }
 
   void AddArray(const BaseGrowableArray<T, B>& src) {
-    for (int i = 0; i < src.length(); i++) {
+    for (intptr_t i = 0; i < src.length(); i++) {
       Add(src[i]);
     }
   }
@@ -74,6 +74,14 @@ class BaseGrowableArray : public B {
     for (int i = 0; i < length_; i++) {
       data_[i] = data_[i + 1];
     }
+  }
+
+  void InsertAt(intptr_t idx, const T& value) {
+    Resize(length() + 1);
+    for (intptr_t i = length_ - 2; i >= idx; i--) {
+      data_[i + 1] = data_[i];
+    }
+    data_[idx] = value;
   }
 
   // Sort the array in place.

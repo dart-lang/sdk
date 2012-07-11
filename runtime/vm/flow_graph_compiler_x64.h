@@ -29,6 +29,7 @@ class FlowGraphCompiler : public ValueObject {
                     const ParsedFunction& parsed_function,
                     const GrowableArray<BlockEntryInstr*>& block_order,
                     bool is_optimizing,
+                    bool is_ssa,
                     bool is_leaf);
 
   ~FlowGraphCompiler();
@@ -282,6 +283,7 @@ class FlowGraphCompiler : public ValueObject {
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;
+  const bool is_ssa_;
   const bool is_dart_leaf_;
 
   const Bool& bool_true_;
@@ -289,39 +291,15 @@ class FlowGraphCompiler : public ValueObject {
   const Class& double_class_;
 
   FrameRegisterAllocator frame_register_allocator_;
+  ParallelMoveResolver parallel_move_resolver_;
+
+  // Currently instructions generate deopt stubs internally by
+  // calling AddDeoptStub.  To communicate deoptimization environment
+  // that should be used when deoptimizing we store it in this variable.
+  // In future AddDeoptStub should be moved out of the instruction template.
+  Environment* pending_deoptimization_env_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphCompiler);
-};
-
-
-class DeoptimizationStub : public ZoneAllocated {
- public:
-  DeoptimizationStub(intptr_t deopt_id,
-                     intptr_t deopt_token_pos,
-                     intptr_t try_index,
-                     DeoptReasonId reason)
-      : deopt_id_(deopt_id),
-        deopt_token_pos_(deopt_token_pos),
-        try_index_(try_index),
-        reason_(reason),
-        registers_(2),
-        entry_label_() {}
-
-  void Push(Register reg) { registers_.Add(reg); }
-  Label* entry_label() { return &entry_label_; }
-
-  // Implementation is in architecture specific file.
-  void GenerateCode(FlowGraphCompiler* compiler);
-
- private:
-  const intptr_t deopt_id_;
-  const intptr_t deopt_token_pos_;
-  const intptr_t try_index_;
-  const DeoptReasonId reason_;
-  GrowableArray<Register> registers_;
-  Label entry_label_;
-
-  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
 };
 
 }  // namespace dart

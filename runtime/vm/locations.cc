@@ -4,6 +4,7 @@
 
 #include "vm/locations.h"
 
+#include "vm/il_printer.h"
 #include "vm/intermediate_language.h"
 #include "vm/flow_graph_compiler.h"
 
@@ -20,6 +21,53 @@ LocationSummary* LocationSummary::Make(intptr_t input_count,
   }
   summary->set_out(out);
   return summary;
+}
+
+
+const char* Location::Name() const {
+  switch (kind()) {
+    case kInvalid: return "?";
+    case kRegister: return Assembler::RegisterName(reg());
+    case kUnallocated:
+      switch (policy()) {
+        case kRequiresRegister:
+          return "R";
+        case kSameAsFirstInput:
+          return "0";
+      }
+    default:
+      ASSERT(IsConstant());
+      return "C";
+  }
+  return "?";
+}
+
+
+void LocationSummary::PrintTo(BufferFormatter* f) const {
+  if (input_count() > 0) {
+    f->Print(" (");
+    for (intptr_t i = 0; i < input_count(); i++) {
+      if (i != 0) f->Print(", ");
+      f->Print("%s", in(i).Name());
+    }
+    f->Print(")");
+  }
+
+  if (temp_count() > 0) {
+    f->Print(" [");
+    for (intptr_t i = 0; i < temp_count(); i++) {
+      if (i != 0) f->Print(", ");
+      f->Print("%s", temp(i).Name());
+    }
+    f->Print("]");
+  }
+
+  if (!out().IsInvalid()) {
+    f->Print(" => ");
+    f->Print("%s", out().Name());
+  }
+
+  if (is_call()) f->Print(" C");
 }
 
 }  // namespace dart

@@ -33,6 +33,7 @@ FlowGraphCompiler::FlowGraphCompiler(
     const ParsedFunction& parsed_function,
     const GrowableArray<BlockEntryInstr*>& block_order,
     bool is_optimizing,
+    bool is_ssa,
     bool is_leaf)
     : assembler_(assembler),
       parsed_function_(parsed_function),
@@ -44,13 +45,16 @@ FlowGraphCompiler::FlowGraphCompiler(
       block_info_(block_order.length()),
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
+      is_ssa_(is_ssa),
       is_dart_leaf_(is_leaf),
       bool_true_(Bool::ZoneHandle(Bool::True())),
       bool_false_(Bool::ZoneHandle(Bool::False())),
       double_class_(Class::ZoneHandle(
           Isolate::Current()->object_store()->double_class())),
-      frame_register_allocator_(this, is_optimizing) {
+      frame_register_allocator_(this, is_optimizing, is_ssa),
+      parallel_move_resolver_(this) {
   ASSERT(assembler != NULL);
+  ASSERT(is_optimizing_ || !is_ssa_);
 }
 
 
@@ -101,9 +105,14 @@ void FlowGraphCompiler::VisitBlocks() {
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       instr = it.Current();
       if (FLAG_code_comments) EmitComment(instr);
-      ASSERT(instr->locs() != NULL);
-      EmitInstructionPrologue(instr);
-      instr->EmitNativeCode(this);
+      if (instr->IsParallelMove()) {
+        parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
+      } else {
+        ASSERT(instr->locs() != NULL);
+        EmitInstructionPrologue(instr);
+        pending_deoptimization_env_ = instr->env();
+        instr->EmitNativeCode(this);
+      }
     }
     if (instr->next() != NULL) {
       BlockEntryInstr* successor = instr->next()->AsBlockEntry();
@@ -189,10 +198,14 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
                                        Register reg3) {
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_pos, try_index, reason);
-  frame_register_allocator()->SpillInDeoptStub(stub);
-  if (reg1 != kNoRegister) stub->Push(reg1);
-  if (reg2 != kNoRegister) stub->Push(reg2);
-  if (reg3 != kNoRegister) stub->Push(reg3);
+  if (pending_deoptimization_env_ == NULL) {
+    frame_register_allocator()->SpillInDeoptStub(stub);
+    if (reg1 != kNoRegister) stub->Push(reg1);
+    if (reg2 != kNoRegister) stub->Push(reg2);
+    if (reg3 != kNoRegister) stub->Push(reg3);
+  } else {
+    stub->set_deoptimization_env(pending_deoptimization_env_);
+  }
   deopt_stubs_.Add(stub);
   return stub->entry_label();
 }
@@ -486,6 +499,8 @@ void FrameRegisterAllocator::SpillRegister(Register reg) {
 
 
 void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
+  if (is_ssa_) return;
+
   LocationSummary* locs = instr->locs();
 
   bool blocked_registers[kNumberOfCpuRegisters];
@@ -502,7 +517,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   // Mark all fixed input, temp and output registers as used.
   for (intptr_t i = 0; i < locs->input_count(); i++) {
     Location loc = locs->in(i);
-    if (loc.kind() == Location::kRegister) {
+    if (loc.IsRegister()) {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
       if (registers_[loc.reg()] != NULL) {
@@ -518,14 +533,14 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 
   for (intptr_t i = 0; i < locs->temp_count(); i++) {
     Location loc = locs->temp(i);
-    if (loc.kind() == Location::kRegister) {
+    if (loc.IsRegister()) {
       ASSERT(!blocked_registers[loc.reg()]);
       blocked_registers[loc.reg()] = true;
       blocked_temp_registers[loc.reg()] = true;
     }
   }
 
-  if (locs->out().kind() == Location::kRegister) {
+  if (locs->out().IsRegister()) {
     // Fixed output registers are allowed to overlap with
     // temps and inputs.
     blocked_registers[locs->out().reg()] = true;
@@ -543,9 +558,9 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   for (intptr_t i = locs->input_count() - 1; i >= 0; i--) {
     Location loc = locs->in(i);
     Register reg = kNoRegister;
-    if (loc.kind() == Location::kRegister) {
+    if (loc.IsRegister()) {
       reg = loc.reg();
-    } else if (loc.kind() == Location::kUnallocated) {
+    } else if (loc.IsUnallocated()) {
       ASSERT(loc.policy() == Location::kRequiresRegister);
       if ((stack_.length() > 0) && !blocked_temp_registers[stack_.Last()]) {
         reg = stack_.Last();
@@ -568,7 +583,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   // Allocate all unallocated temp locations.
   for (intptr_t i = 0; i < locs->temp_count(); i++) {
     Location loc = locs->temp(i);
-    if (loc.kind() == Location::kUnallocated) {
+    if (loc.IsUnallocated()) {
       ASSERT(loc.policy() == Location::kRequiresRegister);
       loc = Location::RegisterLocation(
         AllocateFreeRegister(blocked_registers));
@@ -578,7 +593,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   }
 
   Location result_location = locs->out();
-  if (result_location.kind() == Location::kUnallocated) {
+  if (result_location.IsUnallocated()) {
     switch (result_location.policy()) {
       case Location::kRequiresRegister:
         result_location = Location::RegisterLocation(
@@ -591,13 +606,15 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
     locs->set_out(result_location);
   }
 
-  if (result_location.kind() == Location::kRegister) {
+  if (result_location.IsRegister()) {
     SpillRegister(result_location.reg());
   }
 }
 
 
 void FrameRegisterAllocator::Pop(Register dst, Value* val) {
+  if (is_ssa_) return;
+
   if (stack_.length() > 0) {
     ASSERT(keep_values_in_registers_);
     Register src = stack_.Last();
@@ -612,6 +629,8 @@ void FrameRegisterAllocator::Pop(Register dst, Value* val) {
 
 
 void FrameRegisterAllocator::Push(Register reg, BindInstr* val) {
+  if (is_ssa_) return;
+
   ASSERT(registers_[reg] == NULL);
   if (keep_values_in_registers_) {
     registers_[reg] = val;
@@ -623,6 +642,8 @@ void FrameRegisterAllocator::Push(Register reg, BindInstr* val) {
 
 
 void FrameRegisterAllocator::Spill() {
+  if (is_ssa_) return;
+
   for (int i = 0; i < stack_.length(); i++) {
     Register r = stack_[i];
     registers_[r] = NULL;
@@ -633,9 +654,119 @@ void FrameRegisterAllocator::Spill() {
 
 
 void FrameRegisterAllocator::SpillInDeoptStub(DeoptimizationStub* stub) {
+  if (is_ssa_) return;
+
   for (int i = 0; i < stack_.length(); i++) {
     stub->Push(stack_[i]);
   }
+}
+
+
+ParallelMoveResolver::ParallelMoveResolver(FlowGraphCompiler* compiler)
+    : compiler_(compiler), moves_(32) {}
+
+
+void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
+  ASSERT(moves_.is_empty());
+  // Build up a worklist of moves.
+  BuildInitialMoveList(parallel_move);
+
+  for (int i = 0; i < moves_.length(); ++i) {
+    MoveOperands move = moves_[i];
+    // Skip constants to perform them last.  They don't block other moves
+    // and skipping such moves with register destinations keeps those
+    // registers free for the whole algorithm.
+    if (!move.IsEliminated() && !move.src().IsConstant()) PerformMove(i);
+  }
+
+  // Perform the moves with constant sources.
+  for (int i = 0; i < moves_.length(); ++i) {
+    if (!moves_[i].IsEliminated()) {
+      ASSERT(moves_[i].src().IsConstant());
+      EmitMove(i);
+    }
+  }
+
+  moves_.Clear();
+}
+
+
+void ParallelMoveResolver::BuildInitialMoveList(
+    ParallelMoveInstr* parallel_move) {
+  // Perform a linear sweep of the moves to add them to the initial list of
+  // moves to perform, ignoring any move that is redundant (the source is
+  // the same as the destination, the destination is ignored and
+  // unallocated, or the move was already eliminated).
+  const GrowableArray<MoveOperands>& moves = parallel_move->moves();
+  for (int i = 0; i < moves.length(); ++i) {
+    MoveOperands move = moves[i];
+    if (!move.IsRedundant()) moves_.Add(move);
+  }
+}
+
+
+void ParallelMoveResolver::PerformMove(int index) {
+  // Each call to this function performs a move and deletes it from the move
+  // graph.  We first recursively perform any move blocking this one.  We
+  // mark a move as "pending" on entry to PerformMove in order to detect
+  // cycles in the move graph.  We use operand swaps to resolve cycles,
+  // which means that a call to PerformMove could change any source operand
+  // in the move graph.
+
+  ASSERT(!moves_[index].IsPending());
+  ASSERT(!moves_[index].IsRedundant());
+
+  // Clear this move's destination to indicate a pending move.  The actual
+  // destination is saved in a stack-allocated local.  Recursion may allow
+  // multiple moves to be pending.
+  ASSERT(!moves_[index].src().IsInvalid());
+  Location destination = moves_[index].MarkPending();
+
+  // Perform a depth-first traversal of the move graph to resolve
+  // dependencies.  Any unperformed, unpending move with a source the same
+  // as this one's destination blocks this one so recursively perform all
+  // such moves.
+  for (int i = 0; i < moves_.length(); ++i) {
+    MoveOperands other_move = moves_[i];
+    if (other_move.Blocks(destination) && !other_move.IsPending()) {
+      // Though PerformMove can change any source operand in the move graph,
+      // this call cannot create a blocking move via a swap (this loop does
+      // not miss any).  Assume there is a non-blocking move with source A
+      // and this move is blocked on source B and there is a swap of A and
+      // B.  Then A and B must be involved in the same cycle (or they would
+      // not be swapped).  Since this move's destination is B and there is
+      // only a single incoming edge to an operand, this move must also be
+      // involved in the same cycle.  In that case, the blocking move will
+      // be created but will be "pending" when we return from PerformMove.
+      PerformMove(i);
+    }
+  }
+
+  // We are about to resolve this move and don't need it marked as
+  // pending, so restore its destination.
+  moves_[index].ClearPending(destination);
+
+  // This move's source may have changed due to swaps to resolve cycles and
+  // so it may now be the last move in the cycle.  If so remove it.
+  if (moves_[index].src().Equals(destination)) {
+    moves_[index].Eliminate();
+    return;
+  }
+
+  // The move may be blocked on a (at most one) pending move, in which case
+  // we have a cycle.  Search for such a blocking move and perform a swap to
+  // resolve it.
+  for (int i = 0; i < moves_.length(); ++i) {
+    MoveOperands other_move = moves_[i];
+    if (other_move.Blocks(destination)) {
+      ASSERT(other_move.IsPending());
+      EmitSwap(index);
+      return;
+    }
+  }
+
+  // This move is not blocked.
+  EmitMove(index);
 }
 
 
