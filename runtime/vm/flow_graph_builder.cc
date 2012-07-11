@@ -2261,7 +2261,8 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   for (intptr_t i = 0; i < block_count; ++i) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
-  if (for_optimized && use_ssa) {
+
+  if (for_optimized) {
     // Link instructions backwards for optimized compilation.
     for (intptr_t i = 0; i < block_count; ++i) {
       BlockEntryInstr* entry = postorder_block_entries_[i];
@@ -2272,6 +2273,9 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
         previous = current;
       }
     }
+  }
+
+  if (for_optimized && use_ssa) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,

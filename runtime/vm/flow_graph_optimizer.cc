@@ -527,6 +527,8 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
 }
 
 
+
+
 static void TryFuseComparisonWithBranch(BindInstr* instr,
                                         ComparisonComp* comp) {
   Instruction* next_instr = instr->next();
@@ -535,7 +537,11 @@ static void TryFuseComparisonWithBranch(BindInstr* instr,
     UseVal* use = branch->value()->AsUse();
     if (instr == use->definition()) {
       comp->MarkFusedWithBranch(branch);
-      branch->MarkFusedWithComparison();
+      branch->MarkFusedWithComparison(comp);
+
+      // Remove comparison from the graph.
+      branch->set_previous(instr->previous());
+      instr->previous()->set_next(branch);
       return;
     }
   }
@@ -549,9 +555,12 @@ static void TryFuseComparisonWithBranch(BindInstr* instr,
         if ((branch->value()->AsUse()->definition() == next_instr) &&
             (negate->value()->AsUse()->definition() == instr)) {
           comp->MarkFusedWithBranch(branch);
-          branch->MarkFusedWithComparison();
+          branch->MarkFusedWithComparison(comp);
           branch->set_is_negated(true);
-          instr->set_next(next_next_instr);
+
+          // Remove comparison and boolean negation from the graph.
+          branch->set_previous(instr->previous());
+          instr->previous()->set_next(branch);
           return;
         }
       }

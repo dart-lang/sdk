@@ -170,11 +170,14 @@ void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
 
 
 intptr_t BranchInstr::InputCount() const {
-  return 1;
+  return is_fused_with_comparison() ? fused_with_comparison_->InputCount() : 1;
 }
 
 
 Value* BranchInstr::InputAt(intptr_t i) const {
+  if (is_fused_with_comparison()) {
+    return fused_with_comparison_->InputAt(i);
+  }
   if (i == 0) return value();
   UNREACHABLE();
   return NULL;
@@ -182,6 +185,7 @@ Value* BranchInstr::InputAt(intptr_t i) const {
 
 
 void BranchInstr::SetInputAt(intptr_t i, Value* value) {
+  ASSERT(!is_fused_with_comparison());
   if (i == 0) {
     value_ = value;
     return;
@@ -985,17 +989,13 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   if (is_fused_with_comparison()) {
-    return LocationSummary::Make(0,
-                                 Location::NoLocation(),
-                                 LocationSummary::kNoCall,
-                                 LocationSummary::kBranch);
+    return fused_with_comparison_->locs();
   } else {
     const int kNumInputs = 1;
     const int kNumTemps = 0;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
-                                                LocationSummary::kNoCall,
-                                                LocationSummary::kBranch);
+                                                LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
     return locs;
   }
@@ -1003,8 +1003,9 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
 
 
 void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // If branch was fused with a comparision then no code needs to be emitted.
-  if (!is_fused_with_comparison()) {
+  if (is_fused_with_comparison()) {
+    fused_with_comparison_->EmitNativeCode(compiler);
+  } else {
     Register value = locs()->in(0).reg();
     __ CompareObject(value, compiler->bool_true());
     EmitBranchOnCondition(compiler, EQUAL);
@@ -1081,8 +1082,7 @@ LocationSummary* StrictCompareComp::MakeLocationSummary() const {
     const intptr_t kNumTemps = 0;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
-                                                LocationSummary::kNoCall,
-                                                LocationSummary::kBranch);
+                                                LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
     return locs;

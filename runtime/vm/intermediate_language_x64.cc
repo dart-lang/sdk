@@ -204,10 +204,6 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
-  const LocationSummary::ContainsBranch contains_branch =
-      is_fused_with_branch() ? LocationSummary::kBranch
-                             : LocationSummary::kNoBranch;
-
   const intptr_t kNumInputs = 2;
   if (HasICData() &&
       (ic_data()->NumberOfChecks() == 1) &&
@@ -215,8 +211,7 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
-                                                LocationSummary::kNoCall,
-                                                contains_branch);
+                                                LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
@@ -229,8 +224,7 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
-                                                LocationSummary::kCall,
-                                                contains_branch);
+                                                LocationSummary::kCall);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
     locs->set_temp(0, Location::RequiresRegister());
@@ -242,8 +236,7 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumTemps = 0;
   LocationSummary* locs = new LocationSummary(kNumInputs,
                                               kNumTemps,
-                                              LocationSummary::kCall,
-                                              contains_branch);
+                                              LocationSummary::kCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_in(1, Location::RequiresRegister());
   if (!is_fused_with_branch()) {
@@ -438,17 +431,12 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
-  const LocationSummary::ContainsBranch contains_branch =
-      is_fused_with_branch() ? LocationSummary::kBranch
-                             : LocationSummary::kNoBranch;
-
   if (operands_class_id() == kSmi || operands_class_id() == kDouble) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs,
                                                    kNumTemps,
-                                                   LocationSummary::kCall,
-                                                   contains_branch);
+                                                   LocationSummary::kCall);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     if (!is_fused_with_branch()) {

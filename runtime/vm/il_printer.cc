@@ -421,13 +421,13 @@ void ReThrowInstr::PrintTo(BufferFormatter* f) const {
 void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   f->Print("if ");
-  value()->PrintTo(f);
   if (is_fused_with_comparison()) {
-    f->Print(" (fused)");
+    if (is_negated()) f->Print(" not ");
+    fused_with_comparison_->PrintTo(f);
+  } else {
+    value()->PrintTo(f);
   }
-  if (is_negated()) {
-    f->Print(" (negated)");
-  }
+
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());

@@ -2277,7 +2277,7 @@ class BranchInstr : public InstructionWithInputs {
         value_(value),
         true_successor_(NULL),
         false_successor_(NULL),
-        is_fused_with_comparison_(false),
+        fused_with_comparison_(NULL),
         is_negated_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
@@ -2307,11 +2307,13 @@ class BranchInstr : public InstructionWithInputs {
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
 
-  void MarkFusedWithComparison() {
-    is_fused_with_comparison_ = true;
+  void MarkFusedWithComparison(ComparisonComp* comp) {
+    fused_with_comparison_ = comp;
   }
 
-  bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+  bool is_fused_with_comparison() const {
+    return fused_with_comparison_ != NULL;
+  }
   bool is_negated() const { return is_negated_; }
   void set_is_negated(bool value) { is_negated_ = value; }
 
@@ -2319,7 +2321,7 @@ class BranchInstr : public InstructionWithInputs {
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
-  bool is_fused_with_comparison_;
+  ComparisonComp* fused_with_comparison_;
   bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);

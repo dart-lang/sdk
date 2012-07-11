@@ -105,21 +105,14 @@ class LocationSummary : public ZoneAllocated {
     kCall,
   };
 
-  enum ContainsBranch {
-    kNoBranch,
-    kBranch
-  };
-
   // TODO(vegorov): remove unsafe kNoCall default.
   LocationSummary(intptr_t input_count,
                   intptr_t temp_count,
-                  ContainsCall call = kNoCall,
-                  ContainsBranch branch = kNoBranch)
+                  ContainsCall call = kNoCall)
       : input_locations_(input_count),
         temp_locations_(temp_count),
         output_location_(),
-        is_call_(call == kCall),
-        is_branch_(branch == kBranch) {
+        is_call_(call == kCall) {
     for (intptr_t i = 0; i < input_count; i++) {
       input_locations_.Add(Location());
     }
@@ -164,17 +157,9 @@ class LocationSummary : public ZoneAllocated {
     return is_call_;
   }
 
-  // TODO(vegorov): this is a temporary solution. Once we will start removing
-  // comparison operations from the flow graph when they are fused with a branch
-  // we should eliminate this.
-  bool is_branch() const {
-    return is_branch_;
-  }
-
   static LocationSummary* Make(intptr_t input_count,
                                Location out,
-                               ContainsCall contains_call = kNoCall,
-                               ContainsBranch contains_branch = kNoBranch);
+                               ContainsCall contains_call = kNoCall);
 
  private:
   // TODO(vegorov): replace with ZoneArray.
@@ -183,7 +168,6 @@ class LocationSummary : public ZoneAllocated {
   Location output_location_;
 
   const bool is_call_;
-  const bool is_branch_;
 };
 
 

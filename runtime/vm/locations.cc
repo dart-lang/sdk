@@ -11,12 +11,10 @@ namespace dart {
 
 LocationSummary* LocationSummary::Make(intptr_t input_count,
                                        Location out,
-                                       ContainsCall contains_call,
-                                       ContainsBranch contains_branch) {
+                                       ContainsCall contains_call) {
   LocationSummary* summary = new LocationSummary(input_count,
                                                  0,
-                                                 contains_call,
-                                                 contains_branch);
+                                                 contains_call);
   for (intptr_t i = 0; i < input_count; i++) {
     summary->set_in(i, Location::RequiresRegister());
   }
