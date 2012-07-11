@@ -173,10 +173,17 @@ BENCHMARK(UseDartApi) {
       1);
   EXPECT(!Dart_IsError(result));
 
-  Timer timer(true, "UseDartApi benchmark");
-  timer.Start();
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(kNumIterations);
+
+  // Warmup first to avoid compilation jitters.
+  Dart_Invoke(lib,
+              Dart_NewString("benchmark"),
+              1,
+              args);
+
+  Timer timer(true, "UseDartApi benchmark");
+  timer.Start();
   Dart_Invoke(lib,
               Dart_NewString("benchmark"),
               1,

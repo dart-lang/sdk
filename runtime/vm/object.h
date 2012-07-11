@@ -1689,39 +1689,68 @@ class TokenStream : public Object {
  public:
   inline intptr_t Length() const;
 
-  inline Token::Kind KindAt(intptr_t index) const;
+  RawArray* TokenObjects() const;
+  void SetTokenObjects(const Array& value) const;
 
-  void SetTokenAt(intptr_t index, Token::Kind kind, const String& literal);
-  void SetTokenAt(intptr_t index, const Object& token);
-
-  RawObject* TokenAt(intptr_t index) const;
-  RawString* LiteralAt(intptr_t index) const;
   RawString* GenerateSource() const;
+  intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
+  intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawTokenStream) + (len * kWordSize));
-  }
-  static intptr_t StreamLength(intptr_t len) {
-    return len;
+    return RoundedAllocationSize(sizeof(RawTokenStream) + len);
   }
 
   static RawTokenStream* New(intptr_t length);
   static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens);
 
+  // The class Iterator encapsulates iteration over the tokens
+  // in a TokenStream object.
+  class Iterator : ValueObject {
+   public:
+    Iterator(const TokenStream& tokens, intptr_t token_pos);
+
+    bool IsValid() const;
+
+    inline Token::Kind CurrentTokenKind() const {
+      return cur_token_kind_;
+    }
+
+    Token::Kind LookaheadTokenKind(intptr_t num_tokens);
+
+    intptr_t CurrentPosition() const;
+    void SetCurrentPosition(intptr_t value);
+
+    void Advance();
+
+    RawObject* CurrentToken() const;
+    RawString* CurrentLiteral() const;
+    RawString* MakeLiteralToken(const Object& obj) const;
+
+   private:
+    // Read token from the token stream (could be a simple token or an index
+    // into the token objects array for IDENT or literal tokens).
+    intptr_t ReadToken();
+    uint8_t ReadByte();
+
+    const TokenStream& tokens_;
+    Array& token_objects_;
+    Object& obj_;
+    intptr_t cur_token_pos_;
+    intptr_t stream_token_pos_;
+    Token::Kind cur_token_kind_;
+    intptr_t cur_token_obj_index_;
+  };
+
  private:
   void SetLength(intptr_t value) const;
 
-  RawObject** EntryAddr(intptr_t index) const {
-    ASSERT((index >=0) && (index < Length()));
-    return &raw_ptr()->data_[index];
-  }
-
-  RawSmi** SmiAddr(intptr_t index) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index));
+  uint8_t* EntryAddr(intptr_t token_pos) const {
+    ASSERT((token_pos >=0) && (token_pos < Length()));
+    return &raw_ptr()->data_[token_pos];
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
@@ -5082,18 +5111,6 @@ void Field::SetOffset(intptr_t value) const {
 
 intptr_t TokenStream::Length() const {
   return Smi::Value(raw_ptr()->length_);
-}
-
-
-Token::Kind TokenStream::KindAt(intptr_t index) const {
-  const Object& obj = Object::Handle(TokenAt(index));
-  if (obj.IsSmi()) {
-    return static_cast<Token::Kind>(Smi::Cast(obj).Value());
-  } else if (obj.IsLiteralToken()) {
-    return LiteralToken::Cast(obj).kind();
-  }
-  ASSERT(obj.IsString());  // Must be an identifier.
-  return Token::kIDENT;
 }
 
 

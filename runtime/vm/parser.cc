@@ -198,31 +198,6 @@ void ParsedFunction::AllocateVariables() {
 }
 
 
-bool TokenStreamIterator::IsValid() const {
-  return !tokens_.IsNull();
-}
-
-
-Token::Kind TokenStreamIterator::CurrentTokenKind() const {
-  return tokens_.KindAt(token_position_);
-}
-
-
-Token::Kind TokenStreamIterator::LookaheadTokenKind(intptr_t num_tokens) const {
-  return tokens_.KindAt(token_position_ + num_tokens);
-}
-
-
-RawObject* TokenStreamIterator::CurrentToken() const {
-  return tokens_.TokenAt(token_position_);
-}
-
-
-RawString* TokenStreamIterator::CurrentLiteral() const {
-  return tokens_.LiteralAt(token_position_);
-}
-
-
 struct Parser::Block : public ZoneAllocated {
   Block(Block* outer_block, LocalScope* local_scope, SequenceNode* seq)
     : parent(outer_block), scope(local_scope), statements(seq) {
@@ -358,9 +333,6 @@ void Parser::ParseCompilationUnit(const Library& library,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);
   parser.ParseTopLevel();
-  if (FLAG_compiler_stats) {
-    CompilerStats::num_tokens_total += parser.tokens_iterator_.NumberOfTokens();
-  }
 }
 
 

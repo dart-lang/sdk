@@ -626,13 +626,13 @@ class RawTokenStream : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->private_key_);
   }
   RawString* private_key_;  // Key used for private identifiers.
-  RawSmi* length_;  // Number of tokens.
-
-  // Variable length data follows here.
-  RawObject* data_[0];
-  RawObject** to(intptr_t length) {
-    return reinterpret_cast<RawObject**>(&ptr()->data_[length - 1]);
+  RawSmi* length_;  // Length of token stream.
+  RawArray* token_objects_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->token_objects_);
   }
+  // Variable length data follows here.
+  uint8_t data_[0];
 
   friend class SnapshotReader;
 };

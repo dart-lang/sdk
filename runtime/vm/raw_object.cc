@@ -405,7 +405,7 @@ intptr_t RawLiteralToken::VisitLiteralTokenPointers(
 intptr_t RawTokenStream::VisitTokenStreamPointers(
     RawTokenStream* raw_obj, ObjectPointerVisitor* visitor) {
   intptr_t length = Smi::Value(raw_obj->ptr()->length_);
-  visitor->VisitPointers(raw_obj->from(), raw_obj->to(length));
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
   return TokenStream::InstanceSize(length);
 }
 

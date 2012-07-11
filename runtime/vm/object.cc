@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
+#include "vm/datastream.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -4386,80 +4387,34 @@ const char* LiteralToken::ToCString() const {
 }
 
 
+RawArray* TokenStream::TokenObjects() const {
+  return raw_ptr()->token_objects_;
+}
+
+
+void TokenStream::SetTokenObjects(const Array& value) const {
+  StorePointer(&raw_ptr()->token_objects_, value.raw());
+}
+
+
 void TokenStream::SetLength(intptr_t value) const {
   raw_ptr()->length_ = Smi::New(value);
 }
 
 
-void TokenStream::SetTokenAt(intptr_t index,
-                             Token::Kind kind,
-                             const String& literal) {
-  if (kind == Token::kIDENT) {
-    if (FLAG_compiler_stats) {
-      CompilerStats::num_ident_tokens_total += 1;
-    }
-    StorePointer(EntryAddr(index), reinterpret_cast<RawObject*>(literal.raw()));
-  } else if (Token::NeedsLiteralToken(kind)) {
-    if (FLAG_compiler_stats) {
-      CompilerStats::num_literal_tokens_total += 1;
-    }
-    StorePointer(
-        EntryAddr(index),
-        reinterpret_cast<RawObject*>(LiteralToken::New(kind, literal)));
-  } else {
-    ASSERT(kind < Token::kNumTokens);
-    *(SmiAddr(index)) = Smi::New(kind);
-  }
-}
-
-
-void TokenStream::SetTokenAt(intptr_t index, const Object& token) {
-  StorePointer(EntryAddr(index), token.raw());
-}
-
-
-RawObject* TokenStream::TokenAt(intptr_t index) const {
-  return *EntryAddr(index);
-}
-
-
-RawString* TokenStream::LiteralAt(intptr_t index) const {
-  const Object& obj = Object::Handle(TokenAt(index));
-  if (obj.IsString()) {
-    return reinterpret_cast<RawString*>(obj.raw());
-  } else if (obj.IsSmi()) {
-    Token::Kind kind = static_cast<Token::Kind>(
-        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
-    ASSERT(kind < Token::kNumTokens);
-    if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
-      Isolate* isolate = Isolate::Current();
-      ObjectStore* object_store = isolate->object_store();
-      String& str = String::Handle(isolate, String::null());
-      const Array& symbols = Array::Handle(isolate,
-                                           object_store->keyword_symbols());
-      ASSERT(!symbols.IsNull());
-      str ^= symbols.At(kind - Token::kFirstKeyword);
-      ASSERT(!str.IsNull());
-      return str.raw();
-    }
-    return String::NewSymbol(Token::Str(kind));
-  } else {
-    // Must be a literal token.
-    return LiteralToken::Cast(obj).literal();
-  }
-}
-
-
 RawString* TokenStream::GenerateSource() const {
+  Iterator iterator(*this, 0);
   GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
   String& literal = String::Handle();
   String& blank = String::Handle(String::New(" "));
   String& newline = String::Handle(String::New("\n"));
   String& double_quotes = String::Handle(String::New("\""));
-  for (intptr_t i = 0; i < Length(); i++) {
-    Token::Kind kind = KindAt(i);
-    literal = LiteralAt(i);
+  Object& obj = Object::Handle();
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (kind != Token::kEOS) {
+    obj = iterator.CurrentToken();
+    literal = iterator.MakeLiteralToken(obj);
     if (kind == Token::kSTRING) {
       bool escape_quotes = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
@@ -4484,9 +4439,37 @@ RawString* TokenStream::GenerateSource() const {
     } else {
       literals.Add(blank);
     }
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
   }
   const Array& source = Array::Handle(Array::MakeArray(literals));
   return String::ConcatAll(source);
+}
+
+
+intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
+  Iterator iterator(*this, 0);
+  intptr_t src_pos = 0;
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (iterator.CurrentPosition() < tok_pos && kind != Token::kEOS) {
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
+    src_pos += 1;
+  }
+  return src_pos;
+}
+
+
+intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
+  Iterator iterator(*this, 0);
+  intptr_t index = 0;
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (index < src_pos && kind != Token::kEOS) {
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
+    index += 1;
+  }
+  return iterator.CurrentPosition();
 }
 
 
@@ -4505,19 +4488,176 @@ RawTokenStream* TokenStream::New(intptr_t len) {
 }
 
 
-RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
-  intptr_t len = tokens.length();
+// Helper class for creation of compressed token stream data.
+class CompressedTokenStreamData : public ValueObject {
+ public:
+  CompressedTokenStreamData() :
+      buffer_(NULL),
+      stream_(&buffer_, Reallocate),
+      token_objects_(GrowableObjectArray::Handle(
+          GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
+      token_obj_(Object::Handle()),
+      literal_token_(LiteralToken::Handle()),
+      literal_str_(String::Handle()) {
+    const String& empty_literal = String::Handle();
+    token_objects_.Add(empty_literal);
+  }
+  ~CompressedTokenStreamData() {
+    free(buffer_);
+  }
 
-  TokenStream& result = TokenStream::Handle(New(len));
-  // Copy the relevant data out of the scanner's token stream.
-  const String& empty_literal = String::Handle();
+  // Add an IDENT token into the stream and the token objects array.
+  void AddIdentToken(String* ident) {
+    if (ident != NULL) {
+      // If the IDENT token is already in the tokens object array use the
+      // same index instead of duplicating it.
+      intptr_t index = FindIdentIndex(ident);
+      if (index == -1) {
+        WriteIndex(token_objects_.Length());
+        ASSERT(ident != NULL);
+        token_objects_.Add(*ident);
+      } else {
+        WriteIndex(index);
+      }
+    } else {
+      WriteIndex(0);
+    }
+  }
+
+  // Add a LITERAL token into the stream and the token objects array.
+  void AddLiteralToken(Token::Kind kind, String* literal) {
+    if (literal != NULL) {
+      // If the literal token is already in the tokens object array use the
+      // same index instead of duplicating it.
+      intptr_t index = FindLiteralIndex(kind, literal);
+      if (index == -1) {
+        WriteIndex(token_objects_.Length());
+        ASSERT(literal != NULL);
+        literal_token_ = LiteralToken::New(kind, *literal);
+        token_objects_.Add(literal_token_);
+      } else {
+        WriteIndex(index);
+      }
+    } else {
+      WriteIndex(0);
+    }
+  }
+
+  // Add a simple token into the stream.
+  void AddSimpleToken(intptr_t kind) {
+    stream_.WriteUnsigned(kind);
+  }
+
+  // Return the compressed token stream.
+  uint8_t* GetStream() const { return buffer_; }
+
+  // Return the compressed token stream length.
+  intptr_t Length() const { return stream_.bytes_written(); }
+
+  // Return the token objects array.
+  const GrowableObjectArray& TokenObjects() const {
+    return token_objects_;
+  }
+
+ private:
+  intptr_t FindIdentIndex(String* ident) {
+    ASSERT(ident != NULL);
+    intptr_t hash_value = ident->Hash() % kTableSize;
+    GrowableArray<intptr_t>& value = ident_table_[hash_value];
+    for (intptr_t i = 0; i < value.length(); i++) {
+      intptr_t index = value[i];
+      token_obj_ = token_objects_.At(index);
+      if (token_obj_.IsString()) {
+        const String& ident_str = String::Cast(token_obj_);
+        if (ident->Equals(ident_str)) {
+          return index;
+        }
+      }
+    }
+    value.Add(token_objects_.Length());
+    return -1;
+  }
+
+  intptr_t FindLiteralIndex(Token::Kind kind, String* literal) {
+    ASSERT(literal != NULL);
+    intptr_t hash_value = literal->Hash() % kTableSize;
+    GrowableArray<intptr_t>& value = literal_table_[hash_value];
+    for (intptr_t i = 0; i < value.length(); i++) {
+      intptr_t index = value[i];
+      token_obj_ = token_objects_.At(index);
+      if (token_obj_.IsLiteralToken()) {
+        const LiteralToken& token = LiteralToken::Cast(token_obj_);
+        literal_str_ = token.literal();
+        if (kind == token.kind() && literal->Equals(literal_str_)) {
+          return index;
+        }
+      }
+    }
+    value.Add(token_objects_.Length());
+    return -1;
+  }
+
+  void WriteIndex(intptr_t value) {
+    stream_.WriteUnsigned(value + Token::kNumTokens);
+  }
+
+  static uint8_t* Reallocate(uint8_t* ptr,
+                             intptr_t old_size,
+                             intptr_t new_size) {
+    void* new_ptr = ::realloc(reinterpret_cast<void*>(ptr), new_size);
+    return reinterpret_cast<uint8_t*>(new_ptr);
+  }
+
+  static const int kInitialTokenCount = 32;
+  static const intptr_t kTableSize = 128;
+
+  uint8_t* buffer_;
+  WriteStream stream_;
+  GrowableArray<intptr_t> ident_table_[kTableSize];
+  GrowableArray<intptr_t> literal_table_[kTableSize];
+  const GrowableObjectArray& token_objects_;
+  Object& token_obj_;
+  LiteralToken& literal_token_;
+  String& literal_str_;
+
+  DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
+};
+
+
+RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
+  // Copy the relevant data out of the scanner into a compressed stream of
+  // tokens.
+  CompressedTokenStreamData data;
+  intptr_t len = tokens.length();
   for (intptr_t i = 0; i < len; i++) {
     Scanner::TokenDescriptor token = tokens[i];
-    if (token.literal != NULL) {
-      result.SetTokenAt(i, token.kind, *(token.literal));
-    } else {
-      result.SetTokenAt(i, token.kind, empty_literal);
+    if (token.kind == Token::kIDENT) {  // Identifier token.
+      if (FLAG_compiler_stats) {
+        CompilerStats::num_ident_tokens_total += 1;
+      }
+      data.AddIdentToken(token.literal);
+    } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
+      if (FLAG_compiler_stats) {
+        CompilerStats::num_literal_tokens_total += 1;
+      }
+      data.AddLiteralToken(token.kind, token.literal);
+    } else {  // Keyword, pseudo keyword etc.
+      ASSERT(token.kind < Token::kNumTokens);
+      data.AddSimpleToken(token.kind);
     }
+  }
+  if (FLAG_compiler_stats) {
+    CompilerStats::num_tokens_total += len;
+  }
+  data.AddSimpleToken(Token::kEOS);  // End of stream.
+
+  // Create and setup the token stream object.
+  const TokenStream& result = TokenStream::Handle(New(data.Length()));
+  {
+    NoGCScope no_gc;
+    memmove(result.EntryAddr(0), data.GetStream(), data.Length());
+    const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
+    result.SetTokenObjects(tokens);
   }
   return result.raw();
 }
@@ -4525,6 +4665,147 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
 
 const char* TokenStream::ToCString() const {
   return "TokenStream";
+}
+
+
+TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
+    : tokens_(tokens),
+      token_objects_(Array::Handle(tokens.TokenObjects())),
+      obj_(Object::Handle()),
+      cur_token_pos_(token_pos),
+      stream_token_pos_(token_pos),
+      cur_token_kind_(Token::kILLEGAL),
+      cur_token_obj_index_(-1) {
+  SetCurrentPosition(token_pos);
+}
+
+
+bool TokenStream::Iterator::IsValid() const {
+  return !tokens_.IsNull();
+}
+
+
+Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
+  intptr_t saved_position = stream_token_pos_;
+  Token::Kind kind = Token::kILLEGAL;
+  intptr_t value = -1;
+  intptr_t count = 0;
+  while (count < num_tokens && value != Token::kEOS) {
+    value = ReadToken();
+    count += 1;
+  }
+  if (value < Token::kNumTokens) {
+    kind = static_cast<Token::Kind>(value);
+  } else {
+    value = value - Token::kNumTokens;
+    obj_ = token_objects_.At(value);
+    if (obj_.IsLiteralToken()) {
+      const LiteralToken& literal_token = LiteralToken::Cast(obj_);
+      kind = literal_token.kind();
+    } else {
+      ASSERT(obj_.IsString());  // Must be an identifier.
+      kind = Token::kIDENT;
+    }
+  }
+  stream_token_pos_ = saved_position;
+  return kind;
+}
+
+
+intptr_t TokenStream::Iterator::CurrentPosition() const {
+  return cur_token_pos_;
+}
+
+
+void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
+  stream_token_pos_ = value;
+  Advance();
+}
+
+
+void TokenStream::Iterator::Advance() {
+  cur_token_pos_ = stream_token_pos_;
+  intptr_t value = ReadToken();
+  if (value < Token::kNumTokens) {
+    cur_token_kind_ = static_cast<Token::Kind>(value);
+    cur_token_obj_index_ = -1;
+    return;
+  }
+  cur_token_obj_index_ = value - Token::kNumTokens;
+  obj_ = token_objects_.At(cur_token_obj_index_);
+  if (obj_.IsLiteralToken()) {
+    const LiteralToken& literal_token = LiteralToken::Cast(obj_);
+    cur_token_kind_ = literal_token.kind();
+    return;
+  }
+  ASSERT(obj_.IsString());  // Must be an identifier.
+  cur_token_kind_ = Token::kIDENT;
+}
+
+
+RawObject* TokenStream::Iterator::CurrentToken() const {
+  if (cur_token_obj_index_ != -1) {
+    return token_objects_.At(cur_token_obj_index_);
+  } else {
+    return Smi::New(cur_token_kind_);
+  }
+}
+
+
+RawString* TokenStream::Iterator::CurrentLiteral() const {
+  obj_ = CurrentToken();
+  return MakeLiteralToken(obj_);
+}
+
+
+RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
+  if (obj.IsString()) {
+    return reinterpret_cast<RawString*>(obj.raw());
+  } else if (obj.IsSmi()) {
+    Token::Kind kind = static_cast<Token::Kind>(
+        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
+    ASSERT(kind < Token::kNumTokens);
+    if (Token::IsPseudoKeyword(kind) || Token::IsKeyword(kind)) {
+      Isolate* isolate = Isolate::Current();
+      ObjectStore* object_store = isolate->object_store();
+      String& str = String::Handle(isolate, String::null());
+      const Array& symbols = Array::Handle(isolate,
+                                           object_store->keyword_symbols());
+      ASSERT(!symbols.IsNull());
+      str ^= symbols.At(kind - Token::kFirstKeyword);
+      ASSERT(!str.IsNull());
+      return str.raw();
+    }
+    return String::NewSymbol(Token::Str(kind));
+  } else {
+    ASSERT(obj.IsLiteralToken());  // Must be a literal token.
+    const LiteralToken& literal_token = LiteralToken::Cast(obj);
+    return literal_token.literal();
+  }
+}
+
+
+intptr_t TokenStream::Iterator::ReadToken() {
+  uint8_t b = ReadByte();
+  if (b > kMaxUnsignedDataPerByte) {
+    return static_cast<intptr_t>(b) - kEndUnsignedByteMarker;
+  }
+  intptr_t value = 0;
+  uint8_t s = 0;
+  do {
+    value |= static_cast<intptr_t>(b) << s;
+    s += kDataBitsPerByte;
+    b = ReadByte();
+  } while (b <= kMaxUnsignedDataPerByte);
+  value |= ((static_cast<intptr_t>(b) - kEndUnsignedByteMarker) << s);
+  ASSERT((value >= 0) && (value <= kIntptrMax));
+  return value;
+}
+
+
+uint8_t TokenStream::Iterator::ReadByte() {
+  ASSERT(stream_token_pos_ < tokens_.Length());
+  return *(tokens_.EntryAddr(stream_token_pos_++));
 }
 
 
@@ -4587,8 +4868,10 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* column) const {
   const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
+  const TokenStream& tkns = TokenStream::Handle(tokens());
+  intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
   Scanner scanner(src, dummy_key);
-  scanner.ScanTo(token_pos);
+  scanner.ScanTo(src_pos);
   *line = scanner.CurrentPosition().line;
   *column = scanner.CurrentPosition().column;
 }
@@ -4597,10 +4880,15 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
+  intptr_t first_src_pos;
+  intptr_t last_src_pos;
   const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
+  const TokenStream& tkns = TokenStream::Handle(tokens());
   Scanner scanner(src, dummy_key);
-  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
+  scanner.TokenRangeAtLine(line_number, &first_src_pos, &last_src_pos);
+  *first_token_index = tkns.ComputeTokenPosition(first_src_pos);
+  *last_token_index = tkns.ComputeTokenPosition(last_src_pos);
 }
 
 

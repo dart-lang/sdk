@@ -603,11 +603,17 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Set the object tags.
   token_stream.set_tags(tags);
 
-  // Read the token stream into the TokenStream.
-  for (intptr_t i = 0; i < len; i++) {
-    *reader->ObjectHandle() = reader->ReadObjectImpl();
-    token_stream.SetTokenAt(i, *reader->ObjectHandle());
+  // Read the stream of tokens into the TokenStream object.
+  {
+    NoGCScope no_gc;
+    reader->ReadBytes(reinterpret_cast<uint8_t*>(token_stream.EntryAddr(0)),
+                      len);
   }
+
+  // Read in the literal/identifier token array.
+  *(reader->TokensHandle()) ^= reader->ReadObjectImpl();
+  token_stream.SetTokenObjects(*(reader->TokensHandle()));
+
   return token_stream.raw();
 }
 
@@ -626,14 +632,13 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
   writer->WriteObjectHeader(Object::kTokenStreamClass,
                             writer->GetObjectTags(this));
 
-  // Write out the length field.
-  writer->Write<RawObject*>(ptr()->length_);
-
-  // Write out the token stream (token kind and literal).
+  // Write out the length field and the token stream.
   intptr_t len = Smi::Value(ptr()->length_);
-  for (intptr_t i = 0; i < TokenStream::StreamLength(len); i++) {
-    writer->WriteObjectImpl(ptr()->data_[i]);
-  }
+  writer->Write<RawObject*>(ptr()->length_);
+  writer->WriteBytes(reinterpret_cast<uint8_t*>(ptr()->data_), len);
+
+  // Write out the literal/identifier token array.
+  writer->WriteObjectImpl(ptr()->token_objects_);
 }
 
 

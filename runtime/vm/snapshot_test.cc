@@ -749,21 +749,31 @@ TEST_CASE(SerializeScript) {
   serialized_script ^= reader.ReadObject();
 
   // Check if the serialized script object matches the original script.
+  String& expected_literal = String::Handle();
+  String& actual_literal = String::Handle();
   String& str = String::Handle();
   str ^= serialized_script.url();
   EXPECT(url.Equals(str));
+
   const TokenStream& expected_tokens = TokenStream::Handle(script.tokens());
   const TokenStream& serialized_tokens =
       TokenStream::Handle(serialized_script.tokens());
   EXPECT_EQ(expected_tokens.Length(), serialized_tokens.Length());
-  String& expected_literal = String::Handle();
-  String& actual_literal = String::Handle();
-  for (intptr_t i = 0; i < expected_tokens.Length(); i++) {
-    EXPECT_EQ(expected_tokens.KindAt(i), serialized_tokens.KindAt(i));
-    expected_literal ^= expected_tokens.LiteralAt(i);
-    actual_literal ^= serialized_tokens.LiteralAt(i);
+  TokenStream::Iterator expected_iterator(expected_tokens, 0);
+  TokenStream::Iterator serialized_iterator(serialized_tokens, 0);
+  Token::Kind expected_kind = expected_iterator.CurrentTokenKind();
+  Token::Kind serialized_kind = serialized_iterator.CurrentTokenKind();
+  while (expected_kind != Token::kEOS && serialized_kind != Token::kEOS) {
+    EXPECT_EQ(expected_kind, serialized_kind);
+    expected_literal ^= expected_iterator.CurrentLiteral();
+    actual_literal ^= serialized_iterator.CurrentLiteral();
     EXPECT(expected_literal.Equals(actual_literal));
+    expected_iterator.Advance();
+    serialized_iterator.Advance();
+    expected_kind = expected_iterator.CurrentTokenKind();
+    serialized_kind = serialized_iterator.CurrentTokenKind();
   }
+
   // Check if we are able to generate the source from the token stream.
   // Rescan this source and compare the token stream to see if they are
   // the same.
@@ -772,11 +782,19 @@ TEST_CASE(SerializeScript) {
   Scanner scanner(str, dummy_key);
   const TokenStream& reconstructed_tokens =
       TokenStream::Handle(TokenStream::New(scanner.GetStream()));
-  for (intptr_t i = 0; i < expected_tokens.Length(); i++) {
-    EXPECT_EQ(expected_tokens.KindAt(i), serialized_tokens.KindAt(i));
-    expected_literal ^= expected_tokens.LiteralAt(i);
-    actual_literal ^= reconstructed_tokens.LiteralAt(i);
+  expected_iterator.SetCurrentPosition(0);
+  TokenStream::Iterator reconstructed_iterator(reconstructed_tokens, 0);
+  expected_kind = expected_iterator.CurrentTokenKind();
+  Token::Kind reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
+  while (expected_kind != Token::kEOS && reconstructed_kind != Token::kEOS) {
+    EXPECT_EQ(expected_kind, reconstructed_kind);
+    expected_literal ^= expected_iterator.CurrentLiteral();
+    actual_literal ^= reconstructed_iterator.CurrentLiteral();
     EXPECT(expected_literal.Equals(actual_literal));
+    expected_iterator.Advance();
+    reconstructed_iterator.Advance();
+    expected_kind = expected_iterator.CurrentTokenKind();
+    reconstructed_kind = reconstructed_iterator.CurrentTokenKind();
   }
 
   free(buffer);

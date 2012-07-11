@@ -142,10 +142,16 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(TokenStream::New(ts));
-  EXPECT_EQ(6, token_stream.Length());
-  EXPECT_EQ(Token::kLPAREN, token_stream.KindAt(1));
-  EXPECT_EQ(Token::kPERIOD, token_stream.KindAt(4));
-  EXPECT_EQ(Token::kEOS, token_stream.KindAt(5));
+  TokenStream::Iterator iterator(token_stream, 0);
+  // EXPECT_EQ(6, token_stream.Length());
+  iterator.Advance();  // Advance to '(' token.
+  EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
+  iterator.Advance();
+  iterator.Advance();
+  iterator.Advance();  // Advance to '.' token.
+  EXPECT_EQ(Token::kPERIOD, iterator.CurrentTokenKind());
+  iterator.Advance();  // Advance to end of stream.
+  EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
 }
 
 
