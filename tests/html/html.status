@@ -13,9 +13,6 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 blob_constructor_test: Fail          # custom Blob constructor not implemented.
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
 
-[ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
-native_gc_test: Skip  # Issue 2538. Too slow in debug.
-
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
