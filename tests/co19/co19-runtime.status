@@ -66,6 +66,8 @@ LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
 LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
 LibTest/core/Math/pow_A13_t01: Fail  # Issue 449
+LibTest/core/Math/max_A01_t03: Fail  # Issue co19 - 157
+LibTest/core/Math/min_A01_t03: Fail  # Issue co19 - 157
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t05: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_NonEmptyClassRanges_A01_t06: Fail
 LibTest/core/RegExp/firstMatch_A01_t01: Fail
