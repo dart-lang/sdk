@@ -57,6 +57,7 @@ class DartBackend extends Backend {
     sb.add(classElement.name.slowToString());
     sb.add('{');
     innerElements.forEach((element) {
+      if (element is SynthesizedConstructorElement) return;
       // TODO(smok): Filter out default constructors here.
       sb.add(element.parseNode(compiler).unparse());
     });

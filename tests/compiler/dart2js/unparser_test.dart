@@ -32,7 +32,7 @@ interface Dynamic {}
 interface Null {}
 ''';
 
-testDart2Dart(String src, void continuation(String s)) {
+testDart2Dart(String src, [void continuation(String s)]) {
   fileUri(path) => new Uri(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
@@ -49,6 +49,10 @@ testDart2Dart(String src, void continuation(String s)) {
     }
   }
 
+  // If continuation is not provided, check that source string remains the same.
+  if (continuation == null) {
+    continuation = (s) => Expect.equals(src, s);
+  }
   compile(
       scriptUri,
       fileUri('libraryRoot'),
@@ -119,8 +123,7 @@ main() {
 }
 
 testTopLevelField() {
-  final src = 'final String x="asd";main(){x;}';
-  testDart2Dart(src, (String s) => Expect.equals(src, s));
+  testDart2Dart('final String x="asd";main(){x;}');
 }
 
 testSimpleObjectInstantiation() {
@@ -128,8 +131,15 @@ testSimpleObjectInstantiation() {
 }
 
 testSimpleTopLevelClass() {
-  final src = 'main(){new A();}class A{A(){}}';
-  testDart2Dart(src, (String s) => Expect.equals(src, s));
+  testDart2Dart('main(){new A();}class A{A(){}}');
+}
+
+testClassWithSynthesizedConstructor() {
+  testDart2Dart('main(){new A();}class A{}');
+}
+
+testClassWithMethod() {
+  testDart2Dart('main(){var a=new A(); a.foo();}class A{void foo(){}}');
 }
 
 main() {
@@ -144,5 +154,7 @@ main() {
   testSimpleFileUnparse();
   testSimpleObjectInstantiation();
   testSimpleTopLevelClass();
+  testClassWithSynthesizedConstructor();
+  testClassWithMethod();
   testTopLevelField();
 }
