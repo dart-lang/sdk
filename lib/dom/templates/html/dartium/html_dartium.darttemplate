@@ -67,10 +67,7 @@ class _Null {
 
 final _null = const _Null();
 
-int _getNewIsolateId() {
-  // TODO(vsm): We need a Dartium native for this.
-  return 1;
-}
+int _getNewIsolateId() => _Utils._getNewIsolateId();
 
 bool _callPortInitialized = false;
 var _callPortLastResult = null;

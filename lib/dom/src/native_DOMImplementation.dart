@@ -33,6 +33,7 @@ class _Utils {
 
   static window() native "Utils_window";
   static SendPort spawnDomIsolateImpl(Window window, String entryPoint) native "Utils_spawnDomIsolate";
+  static int _getNewIsolateId() native "Utils_getNewIsolateId";
 }
 
 Utils_print(String message) native "Utils_print";
