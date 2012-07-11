@@ -98,7 +98,7 @@ def Copy(src, dest):
 # TODO(zundel): this excludes the analyzer from the sdk build until builders
 # have all prerequisite software installed.  Also update dart.gyp.
 def ShouldCopyAnalyzer():
-  os = utils.GuessOS(); 
+  os = utils.GuessOS();
   return os == 'linux' or os == 'macos'
 
 
@@ -129,6 +129,9 @@ def CopyDart2Js(build_dir, sdk_root):
            ignore=ignore_patterns('.svn'))
   copytree(os.path.join('corelib', 'src'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'src'),
+           ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('corelib', 'unified'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'unified'),
            ignore=ignore_patterns('.svn'))
   copytree(os.path.join('runtime', 'lib'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
