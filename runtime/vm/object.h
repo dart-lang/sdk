@@ -2679,7 +2679,7 @@ class ICData : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClass = 0,
+    kInstanceClassId = 0,
     kInstanceTypeArguments = 1,
     kInstantiatorTypeArguments = 2,
     kTestResult = 3,
@@ -2687,12 +2687,12 @@ class SubtypeTestCache : public Object {
   };
 
   intptr_t NumberOfChecks() const;
-  void AddCheck(const Class& instance_class,
+  void AddCheck(intptr_t class_id,
                 const AbstractTypeArguments& instance_type_arguments,
                 const AbstractTypeArguments& instantiator_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
-                Class* instance_class,
+                intptr_t* class_id,
                 AbstractTypeArguments* instance_type_arguments,
                 AbstractTypeArguments* instantiator_type_arguments,
                 Bool* test_result) const;

@@ -1767,9 +1767,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const intptr_t kInstanceOffsetInBytes = 2 * kWordSize;
   const intptr_t kCacheOffsetInBytes = 3 * kWordSize;
   __ movq(RAX, Address(RSP, kInstanceOffsetInBytes));
-  __ LoadClass(R10, RAX);
-  // RAX: instance, R10: instance class.
   if (n > 1) {
+    __ LoadClass(R10, RAX);
     // Compute instance type arguments into R13.
     Label has_no_type_arguments;
     __ movq(R13, raw_null);
@@ -1780,17 +1779,20 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movq(R13, FieldAddress(RAX, RDI, TIMES_1, 0));
     __ Bind(&has_no_type_arguments);
   }
+  __ LoadClassId(R10, RAX);
+  // RAX: instance, R10: instance class id.
   // R13: instance type arguments or null, used only if n > 1.
   __ movq(RDX, Address(RSP, kCacheOffsetInBytes));
   // RDX: SubtypeTestCache.
   __ movq(RDX, FieldAddress(RDX, SubtypeTestCache::cache_offset()));
   __ addq(RDX, Immediate(Array::data_offset() - kHeapObjectTag));
   // RDX: Entry start.
-  // R10: instance class.
-  // R13: instance type arguments
+  // R10: instance class id.
+  // R13: instance type arguments.
   Label loop, found, not_found, next_iteration;
+  __ SmiTag(R10);
   __ Bind(&loop);
-  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClass));
+  __ movq(RDI, Address(RDX, kWordSize * SubtypeTestCache::kInstanceClassId));
   __ cmpq(RDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpq(RDI, R10);

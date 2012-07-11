@@ -7220,7 +7220,7 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 
 
 void SubtypeTestCache::AddCheck(
-    const Class& instance_class,
+    intptr_t instance_class_id,
     const AbstractTypeArguments& instance_type_arguments,
     const AbstractTypeArguments& instantiator_type_arguments,
     const Bool& test_result) const {
@@ -7230,7 +7230,8 @@ void SubtypeTestCache::AddCheck(
   data = Array::Grow(data, new_len);
   set_cache(data);
   intptr_t data_pos = old_num * kTestEntryLength;
-  data.SetAt(data_pos + kInstanceClass, instance_class);
+  data.SetAt(data_pos + kInstanceClassId,
+      Smi::Handle(Smi::New(instance_class_id)));
   data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
   data.SetAt(data_pos + kInstantiatorTypeArguments,
       instantiator_type_arguments);
@@ -7240,13 +7241,15 @@ void SubtypeTestCache::AddCheck(
 
 void SubtypeTestCache::GetCheck(
     intptr_t ix,
-    Class* instance_class,
+    intptr_t* instance_class_id,
     AbstractTypeArguments* instance_type_arguments,
     AbstractTypeArguments* instantiator_type_arguments,
     Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
-  *instance_class ^= data.At(data_pos + kInstanceClass);
+  Smi& instance_class_id_handle = Smi::Handle();
+  instance_class_id_handle ^= data.At(data_pos + kInstanceClassId);
+  *instance_class_id = instance_class_id_handle.Value();
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);

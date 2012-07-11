@@ -1809,10 +1809,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  __ LoadClass(ECX, EAX, EBX);
-  // EAX: instance, ECX: instance-class.
-  // Get instance type arguments
   if (n > 1) {
+    // Get instance type arguments.
+    __ LoadClass(ECX, EAX, EBX);
     // Compute instance type arguments into EBX.
     Label has_no_type_arguments;
     __ movl(EBX, raw_null);
@@ -1823,6 +1822,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
     __ Bind(&has_no_type_arguments);
   }
+  __ LoadClassId(ECX, EAX);
+  // EAX: instance, ECX: instance class id.
   // EBX: instance type arguments (null if none), used only if n > 1.
   __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
   // EDX: SubtypeTestCache.
@@ -1831,10 +1832,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, found, not_found, next_iteration;
   // EDX: Entry start.
-  // ECX: instance class.
-  // EBX: instance type arguments
+  // ECX: instance class id.
+  // EBX: instance type arguments.
+  __ SmiTag(ECX);
   __ Bind(&loop);
-  __ movl(EDI, Address(EDX, kWordSize * SubtypeTestCache::kInstanceClass));
+  __ movl(EDI, Address(EDX, kWordSize * SubtypeTestCache::kInstanceClassId));
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpl(EDI, ECX);

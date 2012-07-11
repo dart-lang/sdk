@@ -351,11 +351,13 @@ static void PrintTypeCheck(
   const Type& instance_type = Type::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
-    OS::Print("%s: '%s' %s '%s' (pc: 0x%x).\n",
+    OS::Print("%s: '%s' %d %s '%s' %d (pc: 0x%x).\n",
               message,
               String::Handle(instance_type.Name()).ToCString(),
+              Class::Handle(instance_type.type_class()).id(),
               (result.raw() == Bool::True()) ? "is" : "is !",
               String::Handle(type.Name()).ToCString(),
+              Class::Handle(type.type_class()).id(),
               caller_frame->pc());
   } else {
     // Instantiate type before printing.
@@ -475,7 +477,7 @@ static void UpdateTypeTestCache(
     instantiator_type_arguments = instantiator.GetTypeArguments();
   }
 
-  Class& last_instance_class = Class::Handle();
+  intptr_t last_instance_class_id = -1;
   AbstractTypeArguments& last_instance_type_arguments =
       AbstractTypeArguments::Handle();
   AbstractTypeArguments& last_instantiator_type_arguments =
@@ -485,11 +487,11 @@ static void UpdateTypeTestCache(
   for (intptr_t i = 0; i < len; ++i) {
     new_cache.GetCheck(
         i,
-        &last_instance_class,
+        &last_instance_class_id,
         &last_instance_type_arguments,
         &last_instantiator_type_arguments,
         &last_result);
-    if ((last_instance_class.raw() == instance_class.raw()) &&
+    if ((last_instance_class_id == instance_class.id()) &&
         (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
@@ -509,7 +511,7 @@ static void UpdateTypeTestCache(
       return;
     }
   }
-  new_cache.AddCheck(instance_class,
+  new_cache.AddCheck(instance_class.id(),
                      instance_type_arguments,
                      instantiator_type_arguments,
                      result);
@@ -519,16 +521,18 @@ static void UpdateTypeTestCache(
       test_type = type.InstantiateFrom(instantiator_type_arguments);
     }
     OS::Print("  Updated test cache 0x%x ix:%d:\n"
-        "    [0x%x %s, 0x%x %s]\n"
-        "    [0x%x %s, 0x%x %s] %s\n",
+        "    [0x%x %s %d, 0x%x %s]\n"
+        "    [0x%x %s %d, 0x%x %s] %s\n",
         new_cache.raw(),
         len,
         instance_class.raw(),
         instance_class.ToCString(),
+        instance_class.id(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
         test_type.type_class(),
         Class::Handle(test_type.type_class()).ToCString(),
+        Class::Handle(test_type.type_class()).id(),
         instantiator_type_arguments.raw(),
         instantiator_type_arguments.ToCString(),
         result.ToCString());
