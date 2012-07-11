@@ -166,7 +166,7 @@ class _DeepMatcher extends BaseMatcher {
         }
       }
     }
-    if (reason != null) {
+    if (reason != null && location.length > 0) {
       reason.add(' ').add(location);
     }
     return reason;

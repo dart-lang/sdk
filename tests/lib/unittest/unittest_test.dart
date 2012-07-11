@@ -95,7 +95,7 @@ runTest() {
     } else if (testName == 'single failing test') {
       test(testName, () => expect(2 + 2, equals(5)));
     } else if (testName == 'exception test') {
-      test(testName, () { throw new Exception('fail'); });
+      test(testName, () { throw new Exception('Fail.'); });
     } else if (testName == 'group name test') {
       group('a', () {
         test('a', () {});
@@ -258,15 +258,21 @@ runTest() {
       test(testName, () {
         var m = new Mock();
         m.when(callsTo(matches('^[A-Z]'))).
-            alwaysThrow('Method names must start with lower case');
+            alwaysThrow('Method names must start with lower case.');
         m.test();
       });
     } else if (testName.startsWith('mock test 11 ')) {
       test(testName, () {
         var m = new Mock();
         m.when(callsTo(matches('^[A-Z]'))).
-            alwaysThrow('Method names must start with lower case');
+            alwaysThrow('Method names must start with lower case.');
         m.Test();
+      });
+    } else if (testName.startsWith('mock test 12 ')) {
+      test(testName, () {
+        var m = new Mock.custom(enableLogging:false);
+        m.Test();
+        print(m.getLogs(callsTo('Test')).toString());
       });
     }
   });
@@ -278,7 +284,7 @@ void nextTest(int testNum) {
     actual.add(msg);
     if (actual.length == expected.length) {
       for (var i = 0; i < tests.length; i++) {
-        test(tests[i], () => expect(actual[i], equals(expected[i])));
+        test(tests[i], () => expect(actual[i].trim(), equals(expected[i])));
       }
     } else {
       nextTest(testNum+1);
@@ -308,13 +314,15 @@ main() {
     'mock test 8 (Shared log)',
     'mock test 9 (Null CallMatcher)',
     'mock test 10 (RegExp CallMatcher Good)',
-    'mock test 11 (RegExp CallMatcher Bad)'
+    'mock test 11 (RegExp CallMatcher Bad)',
+    'mock test 12 (No logging)'
   ];
 
   expected = [
     buildStatusString(1, 0, 0, tests[0]),
-    buildStatusString(0, 1, 0, tests[1], message: 'Expected: <5> but: was <4>'),
-    buildStatusString(0, 1, 0, tests[2], message: 'Caught Exception: fail'),
+    buildStatusString(0, 1, 0, tests[1],
+        message: 'Expected: <5> but: was <4>.'),
+    buildStatusString(0, 1, 0, tests[2], message: 'Caught Exception: Fail.'),
     buildStatusString(2, 0, 0, 'a a::a b b'),
     buildStatusString(1, 0, 0, 'a ${tests[4]}', 0, 'setup'),
     buildStatusString(1, 0, 0, 'a ${tests[5]}', 0, '', 'teardown'),
@@ -322,25 +330,27 @@ main() {
         'setup', 'teardown'),
     buildStatusString(1, 0, 0, tests[7], 1),
     buildStatusString(0, 0, 1, tests[8], 1,
-        message: 'Callback called more times than expected (2 > 1)'),
+        message: 'Callback called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], 10),
     buildStatusString(1, 0, 0, tests[10]),
     buildStatusString(1, 0, 0, tests[11]),
     buildStatusString(1, 0, 0, tests[12]),
     buildStatusString(0, 1, 0, tests[13],
         message: "Expected <null>.'foo'() to be called 1 times but:"
-            " was called 2 times"),
+            " was called 2 times."),
     buildStatusString(0, 1, 0, tests[14],
-        message: 'Caught Exception: No more actions for method foo'),
+        message: 'Caught Exception: No more actions for method foo.'),
     buildStatusString(0, 1, 0, tests[15], message:
-        "Expected <null>.'sum'() to sometimes return <0> but: never did"),
+        "Expected <null>.'sum'() to sometimes return <0> but: never did."),
     buildStatusString(0, 1, 0, tests[16],
-        message: 'Caught Exception: No behavior specified for method bar'),
+        message: 'Caught Exception: No behavior specified for method bar.'),
     buildStatusString(1, 0, 0, tests[17]),
     buildStatusString(1, 0, 0, tests[18]),
     buildStatusString(1, 0, 0, tests[19]),
     buildStatusString(0, 1, 0, tests[20],
-        message:'Caught Method names must start with lower case')
+        message:'Caught Method names must start with lower case.'),
+    buildStatusString(0, 1, 0, tests[21], message:
+      "Caught Exception: Can't retrieve logs when logging was never enabled."),
   ];
 
   actual = [];

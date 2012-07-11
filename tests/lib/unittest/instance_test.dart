@@ -15,7 +15,7 @@ main() {
   group('Type Matchers', () {
     test('isInstanceOf', () {
       shouldFail(0, new isInstanceOf<String>('String'),
-        "Expected: an instance of String but: was <0>");
+        "Expected: an instance of String but: was <0>.");
       shouldPass('cow', new isInstanceOf<String>('String'));
     });
 
@@ -23,7 +23,7 @@ main() {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
         "Expected: throws an exception which matches 'Y' "
-        "but:  no exception or exception does not match 'Y'");
+        "but:  no exception or exception does not match 'Y'.");
     });
   });
 }

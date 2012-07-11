@@ -12,7 +12,7 @@ String _mockingErrorFormatter(actual, Matcher matcher, String signature) {
   var description = new StringDescription();
   description.add('Expected ${signature} ').addDescriptionOf(matcher).
       add('\n     but: ');
-  matcher.describeMismatch(actual, description);
+  matcher.describeMismatch(actual, description).add('.');
   return description.toString();
 }
 
@@ -156,7 +156,7 @@ class CallMatcher {
       return false;
     }
     if (arguments.length < argMatchers.length) {
-      throw new Exception("Less arguments than matchers for $method");
+      throw new Exception("Less arguments than matchers for $method.");
     }
     for (var i = 0; i < argMatchers.length; i++) {
       if (!argMatchers[i].matches(arguments[i])) {
@@ -728,22 +728,33 @@ class Mock {
   /** The mock name. Needed if the log is shared; optional otherwise. */
   final String name;
 
-  /** The set of [behavior]s supported. */
-  Map<String,Behavior> behaviors;
+  /** The set of [Behavior]s supported. */
+  Map<String,Behavior> _behaviors;
 
   /** The [log] of calls made. Only used if [name] is null. */
   LogEntryList log;
 
   /** How to handle unknown method calls - swallow or throw. */
-  final bool throwIfNoBehavior = false;
+  final bool _throwIfNoBehavior;
+
+  /** Whether to create an audit log or not. */
+  bool _logging;
+
+  bool get logging() => _logging;
+  bool set logging(bool value) {
+    if (value && log == null) {
+      log = new LogEntryList();
+    }
+    _logging = value;
+  }
 
   /**
    * Default constructor. Unknown method calls are allowed and logged,
    * the mock has no name, and has its own log.
    */
-  Mock() : throwIfNoBehavior = false, name = null {
-    log = new LogEntryList();
-    behaviors = new Map<String,Behavior>();
+  Mock() : _throwIfNoBehavior = false, log = null, name = null {
+    logging = true;
+    _behaviors = new Map<String,Behavior>();
   }
 
   /**
@@ -751,14 +762,15 @@ class Mock {
    * a shared [log]. If [throwIfNoBehavior] is true, any calls to methods
    * that have no defined behaviors will throw an exception; otherwise they
    * will be allowed and logged (but will not do anything).
+   * If [enableLogging] is false, no logging will be done initially (whether
+   * or not a [log] is supplied), but [logging] can be set to true later.
    */
   Mock.custom([this.name,
                this.log,
-               this.throwIfNoBehavior = false]) {
-    if (log == null) {
-      log = new LogEntryList();
-    }
-    behaviors = new Map<String,Behavior>();
+               throwIfNoBehavior = false,
+               enableLogging = true]) : _throwIfNoBehavior = throwIfNoBehavior {
+    logging = enableLogging;
+    _behaviors = new Map<String,Behavior>();
   }
 
   /**
@@ -772,12 +784,12 @@ class Mock {
    */
   Behavior when(CallMatcher logFilter) {
     String key = logFilter.toString();
-    if (!behaviors.containsKey(key)) {
+    if (!_behaviors.containsKey(key)) {
       Behavior b = new Behavior(logFilter);
-      behaviors[key] = b;
+      _behaviors[key] = b;
       return b;
     } else {
-      return behaviors[key];
+      return _behaviors[key];
     }
   }
 
@@ -793,8 +805,8 @@ class Mock {
       method = 'get ${method.substring(4)}';
     }
     bool matchedMethodName = false;
-    for (String k in behaviors.getKeys()) {
-      Behavior b = behaviors[k];
+    for (String k in _behaviors.getKeys()) {
+      Behavior b = _behaviors[k];
       if (b.matcher.nameFilter.matches(method)) {
         matchedMethodName = true;
       }
@@ -816,10 +828,14 @@ class Mock {
         _Action action = response.action;
         var value = response.value;
         if (action == _Action.RETURN) {
-          log.add(new LogEntry(name, method, args, action, value));
+          if (_logging) {
+            log.add(new LogEntry(name, method, args, action, value));
+          }
           return value;
         } else if (action == _Action.THROW) {
-          log.add(new LogEntry(name, method, args, action, value));
+          if (_logging) {
+            log.add(new LogEntry(name, method, args, action, value));
+          }
           throw value;
         } else if (action == _Action.PROXY) {
           var rtn;
@@ -864,9 +880,11 @@ class Mock {
               break;
             default:
               throw new Exception(
-                  "Cannot proxy calls with more than 10 parameters");
+                  "Cannot proxy calls with more than 10 parameters.");
           }
-          log.add(new LogEntry(name, method, args, action, rtn));
+          if (_logging) {
+            log.add(new LogEntry(name, method, args, action, rtn));
+          }
           return rtn;
         }
       }
@@ -875,18 +893,28 @@ class Mock {
       // User did specify behavior for this method, but all the
       // actions are exhausted. This is considered an error.
       throw new Exception('No more actions for method '
-          '${_qualifiedName(name, method)}');
-    } else if (throwIfNoBehavior) {
+          '${_qualifiedName(name, method)}.');
+    } else if (_throwIfNoBehavior) {
       throw new Exception('No behavior specified for method '
-          '${_qualifiedName(name, method)}');
+          '${_qualifiedName(name, method)}.');
     }
-    // User hasn't specified behavior for this method; we don't throw
+    // Otherwise user hasn't specified behavior for this method; we don't throw
     // so we can underspecify.
-    log.add(new LogEntry(name, method, args, _Action.IGNORE));
+    if (_logging) {
+      log.add(new LogEntry(name, method, args, _Action.IGNORE));
+    }
   }
 
   /** [verifyZeroInteractions] returns true if no calls were made */
-  bool verifyZeroInteractions() => log.logs.length == 0;
+  bool verifyZeroInteractions() {
+    if (log == null) {
+      // This means we created the mock with logging off and have never turned
+      // it on, so it doesn't make sense to verify behavior on such a mock.
+      throw new
+          Exception("Can't verify behavior when logging was never enabled.");
+    }
+    return log.logs.length == 0;
+  }
 
   /**
    * [getLogs] extracts all calls from the call log that match the
@@ -904,6 +932,13 @@ class Mock {
   LogEntryList getLogs([CallMatcher logFilter,
                         Matcher actionMatcher,
                         bool destructive = false]) {
-    return log.getMatches(name, logFilter, actionMatcher, destructive);
+    if (log == null) {
+      // This means we created the mock with logging off and have never turned
+      // it on, so it doesn't make sense to get logs from such a mock.
+      throw new
+          Exception("Can't retrieve logs when logging was never enabled.");
+    } else {
+      return log.getMatches(name, logFilter, actionMatcher, destructive);
+    }
   }
 }
