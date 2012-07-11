@@ -20,10 +20,6 @@ class RootSource extends Source {
 
   RootSource(this.package);
 
-  Future<List<Version>> getVersions(description) {
-    return Future<List<Version>>.immediate([package.version]);
-  }
-
   Future<Pubspec> describe(PackageId id) {
     return Future<Pubspec>.immediate(package.pubspec);
   }

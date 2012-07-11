@@ -27,6 +27,15 @@ class SdkSource extends Source {
   SdkSource(this.rootDir);
 
   /**
+   * An SDK package has no dependencies. Its version number is inferred from the
+   * revision number of the SDK itself.
+   */
+  Future<Pubspec> describe(PackageId id) {
+    return readTextFile(join(rootDir, "revision")).transform((revision) =>
+        new Pubspec("0.0.0-r.${revision.trim()}", <PackageRef>[]));
+  }
+
+  /**
    * Since all the SDK files are already available locally, installation just
    * involves symlinking the SDK library into the packages directory.
    */

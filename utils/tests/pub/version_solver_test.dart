@@ -24,6 +24,7 @@ final couldNotSolve = 'unsolved';
 
 Source source1;
 Source source2;
+Source versionlessSource;
 
 main() {
   testResolve('no dependencies', {
@@ -101,6 +102,30 @@ main() {
     'foo': '1.0.1',
     'bar': '1.0.0',
     'bang': '1.0.0'
+  });
+
+  testResolve('from versionless source', {
+    'myapp 0.0.0': {
+      'foo from versionless': 'any'
+    },
+    'foo 1.2.3 from versionless': {}
+  }, result: {
+    'myapp': '0.0.0',
+    'foo': '1.2.3'
+  });
+
+  testResolve('transitively through versionless source', {
+    'myapp 0.0.0': {
+      'foo from versionless': 'any'
+    },
+    'foo 1.2.3 from versionless': {
+      'bar': '>=1.0.0'
+    },
+    'bar 1.1.0': {}
+  }, result: {
+    'myapp': '0.0.0',
+    'foo': '1.2.3',
+    'bar': '1.1.0'
   });
 
   testResolve('dependency back onto root package', {
@@ -206,8 +231,10 @@ testResolve(description, packages, [result, error]) {
     var sources = new SourceRegistry();
     source1 = new MockSource('mock1');
     source2 = new MockSource('mock2');
+    versionlessSource = new MockVersionlessSource();
     sources.register(source1);
     sources.register(source2);
+    sources.register(versionlessSource);
     sources.setDefault(source1.name);
 
     // Build the test package graph.
@@ -221,7 +248,7 @@ testResolve(description, packages, [result, error]) {
       var name = parts[0];
       var version = parts[1];
 
-      var package = source.mockPackage(name, version, dependencies);
+      var package = source1.mockPackage(name, version, dependencies);
       if (name == 'myapp') {
         // Don't add the root package to the server, so we can verify that Pub
         // doesn't try to look up information about the local package on the
@@ -317,11 +344,36 @@ class MockSource extends Source {
   void addPackage(Package package) {
     _packages.putIfAbsent(package.name, () => new Map<Version, Package>());
     _packages[package.name][package.version] = package;
-    return package;
   }
 
   String packageName(String description) =>
     description.replaceFirst(new RegExp(@"-[^-]+$"), "");
+}
+
+/**
+ * A source used for testing that doesn't natively understand versioning,
+ * similar to how the Git and SDK sources work.
+ */
+class MockVersionlessSource extends Source {
+  final Map<String, Package> _packages;
+
+  final String name = 'versionless';
+  final bool shouldCache = false;
+
+  MockVersionlessSource()
+    : _packages = <Package>{};
+
+  Future<bool> install(PackageId id, String path) {
+    throw 'no';
+  }
+
+  Future<Pubspec> describe(PackageId id) {
+    return new Future<Pubspec>.immediate(_packages[id.description].pubspec);
+  }
+
+  void addPackage(Package package) {
+    _packages[package.name] = package;
+  }
 }
 
 Future fakeAsync(callback()) {
@@ -339,5 +391,7 @@ Pair<String, Source> parseSource(String name) {
   switch (match[2]) {
   case 'mock1': return new Pair<String, Source>(match[1], source1);
   case 'mock2': return new Pair<String, Source>(match[1], source2);
+  case 'versionless':
+    return new Pair<String, Source>(match[1], versionlessSource);
   }
 }

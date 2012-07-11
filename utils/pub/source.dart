@@ -71,20 +71,27 @@ class Source {
    * Note that this does *not* require the packages to be installed, which is
    * the point. This is used during version resolution to determine which
    * package versions are available to be installed (or already installed).
+   *
+   * By default, this assumes that each description has a single version and
+   * uses [describe] to get that version.
    */
   Future<List<Version>> getVersions(description) {
-    // TODO(rnystrom): Do something better here.
-    throw "Source $name doesn't support versioning.";
+    return describe(new PackageId(this, Version.none, description))
+      .transform((pubspec) => [pubspec.version]);
   }
 
   /**
    * Loads the (possibly remote) pubspec for the package version identified by
-   * [id]. This will be called for packages that have not yet been installed
+   * [id]. This may be called for packages that have not yet been installed
    * during the version resolution process.
+   *
+   * For cached sources, by default this uses [installToSystemCache] to get the
+   * pubspec. There is no default implementation for non-cached sources; they
+   * must implement it manually.
    */
   Future<Pubspec> describe(PackageId id) {
-    // TODO(rnystrom): Figure out how non-default sources should handle this.
-    throw "Source $name doesn't support versioning.";
+    if (!shouldCache) throw "Source $name must implement describe(id).";
+    return installToSystemCache(id).transform((package) => package.pubspec);
   }
 
   /**
