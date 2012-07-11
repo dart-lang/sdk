@@ -82,18 +82,7 @@ class SystemCache {
     var pending = _pendingInstalls[id];
     if (pending != null) return pending;
 
-    var path = id.source.systemCacheDirectory(id);
-    var future = exists(path).chain((exists) {
-      // TODO(nweiz): better error handling
-      if (exists) throw 'Package $id is already installed.';
-      return ensureDir(dirname(path));
-    }).chain((_) {
-      return id.source.install(id, path);
-    }).chain((found) {
-      if (!found) throw 'Package $id not found.';
-      return Package.load(path, sources);
-    });
-
+    var future = id.source.installToSystemCache(id);
     always(future, () => _pendingInstalls.remove(id));
     _pendingInstalls[id] = future;
     return future;
