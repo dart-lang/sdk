@@ -276,13 +276,14 @@ class Unparser implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    visit(node.modifiers);
+    if (node.modifiers.nodes.length() > 0) {
+      sb.add(' ');
+    }
     if (node.type !== null) {
       visit(node.type);
-    } else {
-      sb.add('var');
+      sb.add(' ');
     }
-    sb.add(' ');
-    // TODO(karlklose): print modifiers.
     visit(node.definitions);
     if (node.endToken.value == const SourceString(';')) {
       add(node.endToken.value);

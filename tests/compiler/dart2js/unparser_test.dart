@@ -142,6 +142,12 @@ testClassWithMethod() {
   testDart2Dart('main(){var a=new A(); a.foo();}class A{void foo(){}}');
 }
 
+testVariableDefinitions() {
+  testDart2Dart('main(){final var x, y; final String s;}');
+  testDart2Dart('foo(f, g){}main(){foo(1, 2);}');
+  testDart2Dart('foo(f(arg)){}main(){foo(main);}');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -156,5 +162,6 @@ main() {
   testSimpleTopLevelClass();
   testClassWithSynthesizedConstructor();
   testClassWithMethod();
+  testVariableDefinitions();
   testTopLevelField();
 }
