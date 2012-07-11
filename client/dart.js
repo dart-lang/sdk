@@ -62,8 +62,7 @@ function ReceivePortSync() {
     } else if (message instanceof LocalSendPortSync) {
       return [ 'sendport', 'nativejs', message.receivePort.id ];
     } else if (message instanceof DartSendPortSync) {
-      return [ 'sendport', 'dart', message.receivePort.isolateId,
-               message.receivePort.portId ];
+      return [ 'sendport', 'dart', message.isolateId, message.portId ];
     } else {
       var id = 0;
       var keys = Object.getOwnPropertyNames(message);
