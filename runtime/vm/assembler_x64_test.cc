@@ -1292,6 +1292,19 @@ ASSEMBLER_TEST_RUN(XorpdZeroing, entry) {
 }
 
 
+ASSEMBLER_TEST_GENERATE(XorpdZeroing2, assembler) {
+  __ xorpd(XMM0, XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(XorpdZeroing2, entry) {
+  typedef double (*XorpdZeroing2Code)(double d);
+  double res = reinterpret_cast<XorpdZeroing2Code>(entry)(12.56e3);
+  EXPECT_FLOAT_EQ(0.0, res, 0.0001);
+}
+
+
 ASSEMBLER_TEST_GENERATE(SquareRootDouble, assembler) {
   __ sqrtsd(XMM0, XMM0);
   __ ret();
@@ -1315,6 +1328,113 @@ ASSEMBLER_TEST_GENERATE(StoreIntoObject, assembler) {
                      RSI);
   __ popq(CTX);
   __ ret();
+}
+
+
+ASSEMBLER_TEST_GENERATE(DoubleFPUStackMoves, assembler) {
+  int64_t l = bit_cast<int64_t, double>(1024.67);
+  __ movq(RAX, Immediate(l));
+  __ pushq(RAX);
+  __ fldl(Address(RSP, 0));
+  __ movq(Address(RSP, 0), Immediate(0));
+  __ fstpl(Address(RSP, 0));
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(DoubleFPUStackMoves, entry) {
+  typedef int64_t (*DoubleFPUStackMovesCode)();
+  int64_t res = reinterpret_cast<DoubleFPUStackMovesCode>(entry)();
+  EXPECT_FLOAT_EQ(1024.67, (bit_cast<double, int64_t>(res)), 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Sine, assembler) {
+  __ pushq(RAX);
+  __ movsd(Address(RSP, 0), XMM0);
+  __ fldl(Address(RSP, 0));
+  __ fsin();
+  __ fstpl(Address(RSP, 0));
+  __ movsd(XMM0, Address(RSP, 0));
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Sine, entry) {
+  typedef double (*SineCode)(double d);
+  const double kDoubleConst = 0.7;
+  double res = reinterpret_cast<SineCode>(entry)(kDoubleConst);
+  EXPECT_FLOAT_EQ(sin(kDoubleConst), res, 0.0001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(Cosine, assembler) {
+  __ pushq(RAX);
+  __ movsd(Address(RSP, 0), XMM0);
+  __ fldl(Address(RSP, 0));
+  __ fcos();
+  __ fstpl(Address(RSP, 0));
+  __ movsd(XMM0, Address(RSP, 0));
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Cosine, entry) {
+  typedef double (*CosineCode)(double f);
+  const double kDoubleConst = 0.7;
+  double res = reinterpret_cast<CosineCode>(entry)(kDoubleConst);
+  EXPECT_FLOAT_EQ(cos(kDoubleConst), res, 0.0001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(IntToDoubleConversion, assembler) {
+  __ movq(RDX, Immediate(6));
+  __ cvtsi2sd(XMM0, RDX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(IntToDoubleConversion, entry) {
+  typedef double (*IntToDoubleConversionCode)();
+  double res = reinterpret_cast<IntToDoubleConversionCode>(entry)();
+  EXPECT_FLOAT_EQ(6.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(IntToDoubleConversion2, assembler) {
+  __ pushq(RDI);
+  __ fildl(Address(RSP, 0));
+  __ fstpl(Address(RSP, 0));
+  __ movsd(XMM0, Address(RSP, 0));
+  __ popq(RAX);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(IntToDoubleConversion2, entry) {
+  typedef double (*IntToDoubleConversion2Code)(int i);
+  double res = reinterpret_cast<IntToDoubleConversion2Code>(entry)(3);
+  EXPECT_FLOAT_EQ(3.0, res, 0.001);
+}
+
+
+ASSEMBLER_TEST_GENERATE(ExtractSignBits, assembler) {
+  __ movmskpd(RAX, XMM0);
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(ExtractSignBits, entry) {
+  typedef int (*ExtractSignBits)(double d);
+  int res = reinterpret_cast<ExtractSignBits>(entry)(1.0);
+  EXPECT_EQ(0, res);
+  res = reinterpret_cast<ExtractSignBits>(entry)(-1.0);
+  EXPECT_EQ(1, res);
+  res = reinterpret_cast<ExtractSignBits>(entry)(-0.0);
+  EXPECT_EQ(1, res);
 }
 
 }  // namespace dart

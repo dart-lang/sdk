@@ -1132,7 +1132,7 @@ bool Intrinsifier::Double_isNegative(Assembler* assembler) {
 bool Intrinsifier::Math_sqrt(Assembler* assembler) {
   Label fall_through, is_smi, double_op;
   TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
-  // Argument is double and is in EAX, class in EBX.
+  // Argument is double and is in EAX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
   __ Bind(&double_op);
   __ sqrtsd(XMM0, XMM1);

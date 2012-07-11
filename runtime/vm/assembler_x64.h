@@ -444,9 +444,23 @@ class Assembler : public ValueObject {
   void leave();
   void ret();
 
+  void movmskpd(Register dst, XmmRegister src);
+
   void sqrtsd(XmmRegister dst, XmmRegister src);
 
   void xorpd(XmmRegister dst, const Address& src);
+  void xorpd(XmmRegister dst, XmmRegister src);
+
+  void fldl(const Address& src);
+  void fstpl(const Address& dst);
+
+  void fildl(const Address& src);
+
+  void fincstp();
+  void ffree(intptr_t value);
+
+  void fsin();
+  void fcos();
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);

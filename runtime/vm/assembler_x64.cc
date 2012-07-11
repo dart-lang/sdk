@@ -538,6 +538,16 @@ void Assembler::comisd(XmmRegister a, XmmRegister b) {
 }
 
 
+void Assembler::movmskpd(Register dst, XmmRegister src) {
+  ASSERT(src <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x50);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::sqrtsd(XmmRegister dst, XmmRegister src) {
   ASSERT(dst <= XMM7);
   ASSERT(src <= XMM7);
@@ -560,6 +570,17 @@ void Assembler::xorpd(XmmRegister dst, const Address& src) {
 }
 
 
+void Assembler::xorpd(XmmRegister dst, XmmRegister src) {
+  ASSERT(dst <= XMM7);
+  ASSERT(src <= XMM7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0x66);
+  EmitUint8(0x0F);
+  EmitUint8(0x57);
+  EmitXmmRegisterOperand(dst, src);
+}
+
+
 void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   ASSERT(dst <= XMM7);
@@ -569,6 +590,55 @@ void Assembler::cvtsi2sd(XmmRegister dst, Register src) {
   EmitUint8(0x0F);
   EmitUint8(0x2A);
   EmitOperand(dst, operand);
+}
+
+
+void Assembler::fldl(const Address& src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xDD);
+  EmitOperand(0, src);
+}
+
+
+void Assembler::fstpl(const Address& dst) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xDD);
+  EmitOperand(3, dst);
+}
+
+
+void Assembler::fildl(const Address& src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xDF);
+  EmitOperand(5, src);
+}
+
+void Assembler::fincstp() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xD9);
+  EmitUint8(0xF7);
+}
+
+
+void Assembler::ffree(intptr_t value) {
+  ASSERT(value < 7);
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xDD);
+  EmitUint8(0xC0 + value);
+}
+
+
+void Assembler::fsin() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xD9);
+  EmitUint8(0xFE);
+}
+
+
+void Assembler::fcos() {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitUint8(0xD9);
+  EmitUint8(0xFF);
 }
 
 
