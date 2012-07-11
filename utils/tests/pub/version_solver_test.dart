@@ -270,7 +270,13 @@ testResolve(description, packages, [result, error]) {
     var future = resolveVersions(sources, root);
 
     if (result != null) {
-      expect(future, completion(equals(result)));
+      expect(future, completion(predicate((actualResult) {
+        for (var id in actualResult) {
+          if (!result.containsKey(id.description)) return false;
+          if (id.version != result.remove(id.description)) return false;
+        }
+        return result.isEmpty();
+      }, description: 'packages to match $result')));
     } else if (error == noVersion) {
       expect(future, throwsA(new isInstanceOf<NoVersionException>()));
     } else if (error == disjointConstraint) {
