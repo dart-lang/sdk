@@ -1277,37 +1277,17 @@ class SsaRecompilationFieldTypePropagator
   void handleFieldGet(HFieldGet field, HType type) {
     assert(compiler.phase == Compiler.PHASE_RECOMPILING);
     if (!type.isConflicting()) {
+      // If there are no invoked setters with this name, the union of
+      // the types of the initializers and the setters is guaranteed
+      // otherwise it is only speculative.
       Element element = field.element;
-      // Check if optimistic type is based on a setter in the
-      // constructor body.
-      if (backend.hasConstructorBodyFieldSetter(element)) {
-        // If there are no other field setters then the one in
-        // the constructor body, the type is guaranteed for this
-        // field after construction.
-        assert(!element.isGenerativeConstructorBody());
-        if (!compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
-          field.guaranteedType =
-              type.union(backend.fieldSettersTypeSoFar(element));
-        } else {
-          field.propagatedType =
-              type.union(backend.fieldSettersTypeSoFar(element));
-        }
+      assert(!element.isGenerativeConstructorBody());
+      if (!compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
+        field.guaranteedType =
+            type.union(backend.fieldSettersTypeSoFar(element));
       } else {
-        // If there are no setters the initializer list type is
-        // guaranteed to remain constant.
-        //
-        // TODO(ager): Why is this treated differently from the
-        // case above? It seems to me that we could/should use
-        // the union of the types for the field setters and the
-        // initializer list here? It would give the same when
-        // there are none and potentially better information for
-        // more cases.
-        if (!compiler.codegenWorld.hasFieldSetter(element, compiler) &&
-            !compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
-          field.guaranteedType = type;
-        } else {
-          field.propagatedType = type;
-        }
+        field.propagatedType =
+            type.union(backend.fieldSettersTypeSoFar(element));
       }
     }
   }
