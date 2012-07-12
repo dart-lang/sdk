@@ -37,7 +37,7 @@ class SsaOptimizerTask extends CompilerTask {
           new SsaGlobalValueNumberer(compiler),
           new SsaCodeMotion(),
           new SsaDeadCodeEliminator(),
-          new SsaProcessRecompileCandidates(backend, work)];
+          new SsaRegisterRecompilationCandidates(backend, work)];
       runPhases(graph, phases);
     });
   }
@@ -46,6 +46,7 @@ class SsaOptimizerTask extends CompilerTask {
     return measure(() {
       // Run the phases that will generate type guards.
       List<OptimizationPhase> phases = <OptimizationPhase>[
+          new SsaRecompilationFieldTypePropagator(backend, work),
           new SsaSpeculativeTypePropagator(compiler),
           new SsaTypeGuardInserter(compiler, work),
           new SsaEnvironmentBuilder(compiler),
@@ -1156,74 +1157,23 @@ class SsaTypeConversionInserter extends HBaseVisitor
   }
 }
 
-class SsaProcessRecompileCandidates
-      extends HBaseVisitor implements OptimizationPhase {
-  final String name = "SsaProcessRecompileCandidates";
+
+// Base class for the handling of recompilation based on inferred
+// field types.
+class BaseRecompilationVisitor extends HBaseVisitor {
   final JavaScriptBackend backend;
   final WorkItem work;
-  HGraph graph;
   Compiler get compiler() => backend.compiler;
 
-  SsaProcessRecompileCandidates(this.backend, this.work);
+  BaseRecompilationVisitor(this.backend, this.work);
 
-  void visitGraph(HGraph visitee) {
-    graph = visitee;
-    visitDominatorTree(visitee);
-  }
+  abstract void handleFieldGet(HFieldGet node, HType type);
+  abstract void handleFieldNumberOperation(HFieldGet field, HType type);
 
-  void visitFieldGet(HFieldGet node) {
-    if (!node.element.enclosingElement.isClass()) return;
-    Element field = node.element;
-    HType type = backend.optimisticFieldTypeAfterConstruction(field);
-    if (!type.isUnknown()) {
-      switch (compiler.phase) {
-        case Compiler.PHASE_COMPILING:
-          // Recompile even if we haven't seen any types for this
-          // field yet. There might still be only one setter in an
-          // initializer list or constructor body.
-          compiler.enqueuer.codegen.registerRecompilationCandidate(
-              work.element);
-          break;
-        case Compiler.PHASE_RECOMPILING:
-          if (!type.isConflicting()) {
-            // Check if optimistic type is based on a setter in the
-            // constructor body.
-            if (backend.hasConstructorBodyFieldSetter(field)) {
-              // If there are no other field setters then the one in
-              // the constructor body, the type is guaranteed for this
-              // field after construction.
-              assert(!node.element.isGenerativeConstructorBody());
-              if (!compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
-                node.guaranteedType =
-                    type.union(backend.fieldSettersTypeSoFar(node.element));
-              } else {
-                node.propagatedType =
-                    type.union(backend.fieldSettersTypeSoFar(node.element));
-              }
-            } else {
-              // If there are no setters the initializer list type is
-              // guaranteed to remain constant.
-              //
-              // TODO(ager): Why is this treated differently from the
-              // case above? It seems to me that we could/should use
-              // the union of the types for the field setters and the
-              // initializer list here? It would give the same when
-              // there are none and potentially better information for
-              // more cases.
-              if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
-                  !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
-                node.guaranteedType = type;
-              } else {
-                node.propagatedType = type;
-              }
-            }
-          }
-          break;
-      }
-    }
-  }
-
-  HInstruction visitEquals(HEquals node) {
+  // Checks if the binary invocation operates on a field and a
+  // constant number. If it does [handleFieldNumberOperation] is
+  // called with the field and the type inferred for the field so far.
+  void checkFieldNumberOperation(HInvokeBinary node) {
     // Determine if one of the operands is an HFieldGet.
     HFieldGet field;
     HInstruction other;
@@ -1234,96 +1184,147 @@ class SsaProcessRecompileCandidates
       field = node.right;
       other = node.left;
     }
-    // Try to optimize the case where a field which is known to always be an
-    // integer is compared with a constant integer literal.
-    if (other != null &&
-        other.isConstantInteger() &&
-        field.element != null &&
-        field.element.enclosingElement.isClass()) {
-      // Calculate the field type from the information available.
-      HType type =
-          backend.fieldSettersTypeSoFar(field.element).union(
-              backend.typeFromInitializersSoFar(field.element));
-      if (!type.isUnknown()) {
-        switch (compiler.phase) {
-          case Compiler.PHASE_COMPILING:
-            compiler.enqueuer.codegen.registerRecompilationCandidate(
-                work.element);
-            break;
-          case Compiler.PHASE_RECOMPILING:
-            if (compiler.codegenWorld.hasInvokedSetter(field.element,
-                                                       compiler)) {
-              // If there are invoked setters we don't know for sure that the
-              // field will hold the calculated, but the fact that the class
-              // itself stick to this type in the field is still a strong
-              // signal to indicate the expected type of the field.
-              field.propagatedType = type;
-              graph.highTypeLikelyhood = true;
-            } else {
-              // If there are no invoked setters we know the type of this
-              // field for sure.
-              field.guaranteedType = type;
-            }
-            break;
-          default:
-            assert(false);
-            break;
-        }
-      }
-    }
-  }
-
-  HInstruction visitBinaryArithmetic(HBinaryArithmetic node) {
-    // Determine if one of the operands is an HFieldGet.
-    HFieldGet field;
-    HInstruction other;
-    if (node.left is HFieldGet) {
-      field = node.left;
-      other = node.right;
-    } else if (node.right is HFieldGet) {
-      field = node.right;
-      other = node.left;
-    }
-    // Check that the other operand is a number and that we have type
-    // information for the field get.
+    // Try to optimize the case where a field which is known to always
+    // be an integer is compared with a constant number.
     if (other != null &&
         other.isConstantNumber() &&
         field.element != null &&
         field.element.enclosingElement.isClass()) {
-      // If we have type information for the field and it contains
-      // NUMBER, we mark for recompilation.
+      // Calculate the field type from the information available.  If
+      // we have type information for the field and it contains NUMBER
+      // we use it as a candidate for recompilation.
       Element fieldElement = field.element;
       HType fieldSettersType = backend.fieldSettersTypeSoFar(fieldElement);
       HType initializersType = backend.typeFromInitializersSoFar(fieldElement);
       HType fieldType = fieldSettersType.union(initializersType);
       HType type = HType.NUMBER.union(fieldType);
       if (type == HType.NUMBER) {
-        switch (compiler.phase) {
-          case Compiler.PHASE_COMPILING:
-            compiler.enqueuer.codegen.registerRecompilationCandidate(
-                work.element);
-            break;
-          case Compiler.PHASE_RECOMPILING:
-            if (compiler.codegenWorld.hasInvokedSetter(fieldElement,
-                                                       compiler)) {
-              // If there are invoked setters we don't know for sure
-              // that the field will hold a value of the calculated
-              // type, but the fact that the class itself sticks to
-              // this type for the field is still a strong signal
-              // indicating the expected type of the field.
-              field.propagatedType = type;
-              graph.highTypeLikelyhood = true;
-            } else {
-              // If there are no invoked setters we know the type of
-              // this field for sure.
-              field.guaranteedType = type;
-            }
-            break;
-          default:
-            assert(false);
-            break;
+        handleFieldNumberOperation(field, fieldType);
+      }
+    }
+  }
+
+  void visitFieldGet(HFieldGet node) {
+    if (!node.element.isInstanceMember()) return;
+    Element field = node.element;
+    HType type = backend.optimisticFieldTypeAfterConstruction(field);
+    if (!type.isUnknown()) {
+      // Allow handling even if we haven't seen any types for this
+      // field yet. There might still be only one setter in an
+      // initializer list or constructor body and recompilation
+      // can therefore pay off.
+      handleFieldGet(node, type);
+    }
+  }
+
+  HInstruction visitEquals(HEquals node) {
+    checkFieldNumberOperation(node);
+  }
+
+  HInstruction visitBinaryArithmetic(HBinaryArithmetic node) {
+    checkFieldNumberOperation(node);
+  }
+}
+
+
+// Visitor that registers candidates for recompilation.
+class SsaRegisterRecompilationCandidates
+    extends BaseRecompilationVisitor implements OptimizationPhase {
+  final String name = "SsaRegisterRecompileCandidates";
+  HGraph graph;
+
+  SsaRegisterRecompilationCandidates(
+      JavaScriptBackend backend, WorkItem work) : super(backend, work);
+
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    if (compiler.phase == Compiler.PHASE_COMPILING) {
+      visitDominatorTree(visitee);
+    }
+  }
+
+  void handleFieldGet(HFieldGet node, HType type) {
+    assert(compiler.phase == Compiler.PHASE_COMPILING);
+    compiler.enqueuer.codegen.registerRecompilationCandidate(
+        work.element);
+  }
+
+  void handleFieldNumberOperation(HFieldGet node, HType type) {
+    assert(compiler.phase == Compiler.PHASE_COMPILING);
+    compiler.enqueuer.codegen.registerRecompilationCandidate(
+        work.element);
+  }
+}
+
+
+// Visitor that sets the known or suspected type of fields during
+// recompilation.
+class SsaRecompilationFieldTypePropagator
+    extends BaseRecompilationVisitor implements OptimizationPhase {
+  final String name = "SsaRecompilationFieldTypePropagator";
+  HGraph graph;
+
+  SsaRecompilationFieldTypePropagator(
+      JavaScriptBackend backend, WorkItem work) : super(backend, work);
+
+  void visitGraph(HGraph visitee) {
+    graph = visitee;
+    if (compiler.phase == Compiler.PHASE_RECOMPILING) {
+      visitDominatorTree(visitee);
+    }
+  }
+
+  void handleFieldGet(HFieldGet field, HType type) {
+    assert(compiler.phase == Compiler.PHASE_RECOMPILING);
+    if (!type.isConflicting()) {
+      Element element = field.element;
+      // Check if optimistic type is based on a setter in the
+      // constructor body.
+      if (backend.hasConstructorBodyFieldSetter(element)) {
+        // If there are no other field setters then the one in
+        // the constructor body, the type is guaranteed for this
+        // field after construction.
+        assert(!element.isGenerativeConstructorBody());
+        if (!compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
+          field.guaranteedType =
+              type.union(backend.fieldSettersTypeSoFar(element));
+        } else {
+          field.propagatedType =
+              type.union(backend.fieldSettersTypeSoFar(element));
+        }
+      } else {
+        // If there are no setters the initializer list type is
+        // guaranteed to remain constant.
+        //
+        // TODO(ager): Why is this treated differently from the
+        // case above? It seems to me that we could/should use
+        // the union of the types for the field setters and the
+        // initializer list here? It would give the same when
+        // there are none and potentially better information for
+        // more cases.
+        if (!compiler.codegenWorld.hasFieldSetter(element, compiler) &&
+            !compiler.codegenWorld.hasInvokedSetter(element, compiler)) {
+          field.guaranteedType = type;
+        } else {
+          field.propagatedType = type;
         }
       }
+    }
+  }
+
+  void handleFieldNumberOperation(HFieldGet field, HType type) {
+    assert(compiler.phase == Compiler.PHASE_RECOMPILING);
+    if (compiler.codegenWorld.hasInvokedSetter(field.element, compiler)) {
+      // If there are invoked setters we don't know for sure
+      // that the field will hold a value of the calculated
+      // type, but the fact that the class itself sticks to
+      // this type for the field is still a strong signal
+      // indicating the expected type of the field.
+      field.propagatedType = type;
+    } else {
+      // If there are no invoked setters we know the type of
+      // this field for sure.
+      field.guaranteedType = type;
     }
   }
 }

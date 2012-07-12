@@ -75,7 +75,6 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   final String name = 'SsaTypeGuardInserter';
   final WorkItem work;
   bool calledInLoop = false;
-  bool highTypeLikelyhood = false;
   bool isRecursiveMethod = false;
   int stateId = 1;
 
@@ -84,7 +83,6 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
   void visitGraph(HGraph graph) {
     isRecursiveMethod = graph.isRecursiveMethod;
     calledInLoop = graph.calledInLoop;
-    highTypeLikelyhood = graph.highTypeLikelyhood;
     work.guards = <HTypeGuard>[];
     visitDominatorTree(graph);
   }
@@ -163,7 +161,7 @@ class SsaTypeGuardInserter extends HGraphVisitor implements OptimizationPhase {
 
     // Insert type guards if the method is likely to be called in a
     // loop.
-    return calledInLoop || highTypeLikelyhood;
+    return calledInLoop;
   }
 
   bool shouldInsertTypeGuard(HInstruction instruction) {
