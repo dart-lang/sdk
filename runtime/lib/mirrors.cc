@@ -569,6 +569,23 @@ static Dart_Handle CreateIsolateMirror() {
     return cls;
   }
 
+  Dart_Handle args[] = { Dart_DebugName() };
+  Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+  if (Dart_IsError(mirror)) {
+    return mirror;
+  }
+
+  return mirror;
+}
+
+
+static Dart_Handle CreateMirrorSystem() {
+  Dart_Handle cls_name = Dart_NewString("_LocalMirrorSystemImpl");
+  Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
+  if (Dart_IsError(cls)) {
+    return cls;
+  }
+
   Dart_Handle libraries = CreateLibrariesMap();
   if (Dart_IsError(libraries)) {
     return libraries;
@@ -582,9 +599,9 @@ static Dart_Handle CreateIsolateMirror() {
   }
 
   Dart_Handle args[] = {
-    Dart_DebugName(),
     root_lib_mirror,
     libraries,
+    CreateIsolateMirror(),
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   if (Dart_IsError(mirror)) {
@@ -687,13 +704,13 @@ static Dart_Handle CreateMirroredError(Dart_Handle error) {
 }
 
 
-void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalIsolateMirror)(
+void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
     Dart_NativeArguments args) {
-  Dart_Handle mirror = CreateIsolateMirror();
-  if (Dart_IsError(mirror)) {
-    Dart_PropagateError(mirror);
+  Dart_Handle mirrors = CreateMirrorSystem();
+  if (Dart_IsError(mirrors)) {
+    Dart_PropagateError(mirrors);
   }
-  Dart_SetReturnValue(args, mirror);
+  Dart_SetReturnValue(args, mirrors);
 }
 
 void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(

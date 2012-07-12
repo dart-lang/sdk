@@ -19,37 +19,69 @@
 // TODO(turnidge): Finish implementing this api.
 
 /**
- * Returns an [IsolateMirror] for the current isolate.
+ * A [MirrorSystem] is the main interface used to reflect on a set of
+ * associated libraries.
+ *
+ * At runtime each running isolate has a distinct [MirrorSystem].
+ *
+ * It is also possible to have a [MirrorSystem] which represents a set
+ * of libraries which are not running -- perhaps at compile-time.  In
+ * this case, all available reflective functionality would be
+ * supported, but runtime functionality (such as invoking a function
+ * or inspecting the contents of a variable) would fail dynamically.
  */
-IsolateMirror currentIsolateMirror() {
-  return _Mirrors.currentIsolateMirror();
+interface MirrorSystem {
+  /**
+   * A mirror on the root library of the mirror system.
+   */
+  final LibraryMirror rootLibrary;
+
+  /**
+   * An immutable map from from library names to mirrors for all
+   * libraries known to this mirror system.
+  */
+  Map<String, LibraryMirror> libraries();
+
+  /**
+   * A mirror on the isolate associated with this [MirrorSystem].
+   * This may be null if this mirror system is not running.
+   */
+  IsolateMirror isolate;
+
+  /**
+   * Returns an [InstanceMirror] for some Dart language object.
+   *
+   * This only works if this mirror system is associated with the
+   * current running isolate.
+   */
+  InstanceMirror mirrorOf(Object reflectee);
 }
 
 /**
- * Returns an [InstanceMirror] for some Dart language object.
+ * Returns a [MirrorSystem] for the current isolate.
  */
-InstanceMirror mirrorOf(Object reflectee) {
-  return _Mirrors.mirrorOf(reflectee);
+MirrorSystem currentMirrorSystem() {
+  return _Mirrors.currentMirrorSystem();
 }
 
 /**
- * Creates an [IsolateMirror] on the isolate which is listening on
+ * Creates a [MirrorSystem] for the isolate which is listening on
  * the [SendPort].
  */
-Future<IsolateMirror> isolateMirrorOf(SendPort port) {
-  return _Mirrors.isolateMirrorOf(port);
+Future<MirrorSystem> mirrorSystemOf(SendPort port) {
+  return _Mirrors.mirrorSystemOf(port);
 }
 
 /**
  * A [Mirror] reflects some Dart language entity.
  *
- * Every [Mirror] originates from some [IsolateMirror].
+ * Every [Mirror] originates from some [MirrorSystem].
  */
 interface Mirror {
   /**
-   * A mirror on the originating isolate for this [Mirror].
+   * The originating [MirrorSystem] for this mirror.
    */
-  final IsolateMirror isolate;
+  final MirrorSystem mirrors;
 }
 
 /**
@@ -62,15 +94,9 @@ interface IsolateMirror extends Mirror {
   final String debugName;
 
   /**
-   * A mirror on the root library of the reflectee.
+   * Does this mirror reflect the currently running isolate?
    */
-  final LibraryMirror rootLibrary;
-
-  /**
-   * An immutable map from from library names to mirrors for all
-   * libraries loaded in the reflectee.
-  */
-  Map<String, LibraryMirror> libraries();
+  final bool isCurrent;
 }
 
 
@@ -128,18 +154,24 @@ interface InstanceMirror extends ObjectMirror {
 }
 
 /**
- * An [InterfaceMirror] reflects a Dart language class or interface.
+ * A [TypeMirror] reflects a Dart language class, interface, typedef
+ * or type variable.
  */
-interface InterfaceMirror extends ObjectMirror {
-  /**
-   * The name of this interface.
-   */
-  final String simpleName;
-
+interface TypeMirror extends Mirror {
   /**
    * The library in which this interface is declared.
    */
   final LibraryMirror library;
+}
+
+/**
+ * An [InterfaceMirror] reflects a Dart language class or interface.
+ */
+interface InterfaceMirror extends TypeMirror, ObjectMirror {
+  /**
+   * The name of this interface.
+   */
+  final String simpleName;
 
   /**
    * Does this mirror represent a class?

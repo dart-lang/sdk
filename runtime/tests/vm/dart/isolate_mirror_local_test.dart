@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Dart test program for checking implemention of IsolateMirror when
+// Dart test program for checking implemention of MirrorSystem when
 // inspecting the current isolate.
 
 #library('isolate_mirror_local_test');
@@ -132,9 +132,9 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testCustomInstanceMirror, '
                 'testDone, '
                 'testIntegerInstanceMirror, '
-                'testIsolateMirror, '
                 'testLibrariesMap, '
                 'testMirrorErrors, '
+                'testMirrorSystem, '
                 'testNullInstanceMirror, '
                 'testRootLibraryMirror, '
                 'testStringInstanceMirror]',
@@ -168,9 +168,9 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
                 'testCustomInstanceMirror, '
                 'testDone, '
                 'testIntegerInstanceMirror, '
-                'testIsolateMirror, '
                 'testLibrariesMap, '
                 'testMirrorErrors, '
+                'testMirrorSystem, '
                 'testNullInstanceMirror, '
                 'testRootLibraryMirror, '
                 'testStringInstanceMirror]',
@@ -257,11 +257,11 @@ void testLibrariesMap(Map libraries) {
   testDone('testLibrariesMap');
 }
 
-void testIsolateMirror(IsolateMirror mirror) {
-  Expect.isTrue(mirror.debugName.contains('main'));
-  testRootLibraryMirror(mirror.rootLibrary);
-  testLibrariesMap(mirror.libraries());
-  testDone('testIsolateMirror');
+void testMirrorSystem(MirrorSystem mirrors) {
+  Expect.isTrue(mirrors.isolate.debugName.contains('main'));
+  testRootLibraryMirror(mirrors.rootLibrary);
+  testLibrariesMap(mirrors.libraries());
+  testDone('testMirrorSystem');
 }
 
 void testIntegerInstanceMirror(InstanceMirror mirror) {
@@ -382,8 +382,8 @@ void methodWithError() {
   +++;
 }
 
-void testMirrorErrors(IsolateMirror mirror) {
-  LibraryMirror lib_mirror = mirror.rootLibrary;
+void testMirrorErrors(MirrorSystem mirrors) {
+  LibraryMirror lib_mirror = mirrors.rootLibrary;
 
   Future<InstanceMirror> future =
       lib_mirror.invoke('methodWithException', []);
@@ -446,7 +446,7 @@ void main() {
   exit_port = new ReceivePort();
   expectedTests = new Set<String>.from(['testRootLibraryMirror',
                                         'testLibrariesMap',
-                                        'testIsolateMirror',
+                                        'testMirrorSystem',
                                         'testIntegerInstanceMirror',
                                         'testStringInstanceMirror',
                                         'testBoolInstanceMirror',
@@ -457,12 +457,13 @@ void main() {
                                         'testMirrorErrors3']);
 
   // Test that an isolate can reflect on itself.
-  isolateMirrorOf(exit_port.toSendPort()).then(testIsolateMirror);
+  mirrorSystemOf(exit_port.toSendPort()).then(testMirrorSystem);
 
-  testIntegerInstanceMirror(mirrorOf(1001));
-  testStringInstanceMirror(mirrorOf('This\nis\na\nString'));
-  testBoolInstanceMirror(mirrorOf(true));
-  testNullInstanceMirror(mirrorOf(null));
-  testCustomInstanceMirror(mirrorOf(new MyClass(17)));
-  testMirrorErrors(currentIsolateMirror());
+  MirrorSystem mirrors = currentMirrorSystem();
+  testIntegerInstanceMirror(mirrors.mirrorOf(1001));
+  testStringInstanceMirror(mirrors.mirrorOf('This\nis\na\nString'));
+  testBoolInstanceMirror(mirrors.mirrorOf(true));
+  testNullInstanceMirror(mirrors.mirrorOf(null));
+  testCustomInstanceMirror(mirrors.mirrorOf(new MyClass(17)));
+  testMirrorErrors(currentMirrorSystem());
 }

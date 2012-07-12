@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Dart test program for checking implemention of IsolateMirror when
+// Dart test program for checking implemention of MirrorSystem when
 // inspecting a remote isolate.
 
 #library('isolate_mirror_local_test');
@@ -17,14 +17,14 @@ void isolateMain() {
       });
 }
 
-void testIsolateMirror(IsolateMirror mirror) {
+void testMirrorSystem(MirrorSystem mirror) {
   Expect.fail('Should not reach here.  Remote isolates not implemented.');
 }
 
 void main() {
   SendPort sp = spawnFunction(isolateMain);
   try {
-    isolateMirrorOf(sp).then(testIsolateMirror);
+    mirrorSystemOf(sp).then(testMirrorSystem);
     Expect.fail('Should not reach here.  Remote isolates not implemented.');
   } catch (var exception) {
     Expect.isTrue(exception is NotImplementedException);

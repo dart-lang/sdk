@@ -19,21 +19,18 @@ Map filterMap(Map old_map, bool filter(key, value)) {
   return new_map;
 }
 
-abstract class _LocalMirrorImpl implements Mirror {
-  // Local mirrors always return the same IsolateMirror.  This field
-  // is more interesting once we implement remote mirrors.
-  IsolateMirror get isolate() { return _Mirrors.currentIsolateMirror(); }
-}
+class _LocalMirrorSystemImpl implements MirrorSystem {
+  _LocalMirrorSystemImpl(this.rootLibrary, this._libraries, this.isolate) {}
 
-class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
-    implements IsolateMirror {
-  _LocalIsolateMirrorImpl(this.debugName, this.rootLibrary, this._libraries) {}
-
-  final String debugName;
   final LibraryMirror rootLibrary;
   final Map<String, LibraryMirror> _libraries;
+  final IsolateMirror isolate;
 
   Map<String, LibraryMirror> libraries() { return _libraries; }
+
+  Mirror mirrorOf(Object reflectee) {
+    return _Mirrors.mirrorOf(reflectee);
+  }
 
   InterfaceMirror _sharedDynamic = null;
 
@@ -56,6 +53,24 @@ class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     }
     return _sharedVoid;
   }
+
+  String toString() {
+    return "MirrorSystem for isolate '$debugName'";
+  }
+}
+
+abstract class _LocalMirrorImpl implements Mirror {
+  // Local mirrors always return the same MirrorSystem.  This field
+  // is more interesting once we implement remote mirrors.
+  MirrorSystem get mirrors() { return _Mirrors.currentMirrorSystem(); }
+}
+
+class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
+    implements IsolateMirror {
+  _LocalIsolateMirrorImpl(this.debugName) {}
+
+  final String debugName;
+  final bool isCurrent = true;
 
   String toString() {
     return "IsolateMirror on '$debugName'";
@@ -174,7 +189,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   var _class;
   InterfaceMirror getClass() {
     if (_class is _LazyInterfaceMirror) {
-      _class = _class.resolve(isolate);
+      _class = _class.resolve(mirrors);
     }
     return _class;
   }
@@ -207,18 +222,18 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
 class _LazyInterfaceMirror {
   _LazyInterfaceMirror(this.libraryName, this.interfaceName) {}
 
-  InterfaceMirror resolve(IsolateMirror isolate) {
+  InterfaceMirror resolve(MirrorSystem mirrors) {
     if (libraryName === null) {
       if (interfaceName == 'Dynamic') {
-        return isolate._dynamicMirror();
+        return mirrors._dynamicMirror();
       } else if (interfaceName == 'void') {
-        return isolate._dynamicMirror();
+        return mirrors._dynamicMirror();
       } else {
         throw new NotImplementedException(
             "Mirror for type '$interfaceName' not implemented");
       }
     }
-    return isolate.libraries()[libraryName].members()[interfaceName];
+    return mirrors.libraries()[libraryName].members()[interfaceName];
   }
 
   final String libraryName;
@@ -242,7 +257,7 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   var _library;
   LibraryMirror get library() {
     if (_library is _LazyLibraryMirror) {
-      _library = _library.resolve(isolate);
+      _library = _library.resolve(mirrors);
     }
     return _library;
   }
@@ -250,7 +265,7 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   var _superclass;
   InterfaceMirror superclass() {
     if (_superclass is _LazyInterfaceMirror) {
-      _superclass = _superclass.resolve(isolate);
+      _superclass = _superclass.resolve(mirrors);
     }
     return _superclass;
   }
@@ -261,7 +276,7 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
         _superinterfaces[0] is _LazyInterfaceMirror) {
       List<InterfaceMirror> resolved = new List<InterfaceMirror>();
       for (int i = 0; i < _superinterfaces.length; i++) {
-        resolved.add(_superinterfaces[i].resolve(isolate));
+        resolved.add(_superinterfaces[i].resolve(mirrors));
       }
       _superinterfaces = resolved;
     }
@@ -271,7 +286,7 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   var _defaultFactory;
   InterfaceMirror defaultFactory() {
     if (_defaultFactory is _LazyInterfaceMirror) {
-      _defaultFactory = _defaultFactory.resolve(isolate);
+      _defaultFactory = _defaultFactory.resolve(mirrors);
     }
     return _defaultFactory;
   }
@@ -306,8 +321,8 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
 class _LazyLibraryMirror {
   _LazyLibraryMirror(this.libraryName) {}
 
-  LibraryMirror resolve(IsolateMirror isolate) {
-    return isolate.libraries()[libraryName];
+  LibraryMirror resolve(MirrorSystem mirrors) {
+    return mirrors.libraries()[libraryName];
   }
 
   final String libraryName;
@@ -377,7 +392,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   var _owner;
   Mirror get owner() {
     if (_owner is! Mirror) {
-      _owner = _owner.resolve(isolate);
+      _owner = _owner.resolve(mirrors);
     }
     return _owner;
   }
@@ -419,7 +434,7 @@ class _LocalVariableMirrorImpl extends _LocalMirrorImpl
   var _owner;
   Mirror get owner() {
     if (_owner is! Mirror) {
-      _owner = _owner.resolve(isolate);
+      _owner = _owner.resolve(mirrors);
     }
     return _owner;
   }
@@ -440,31 +455,31 @@ class _Mirrors {
   // Does a port refer to our local isolate?
   static bool isLocalPort(SendPort port) native 'Mirrors_isLocalPort';
 
-  static IsolateMirror _currentIsolateMirror = null;
+  static MirrorSystem _currentMirrorSystem = null;
 
-  // Creates a new local IsolateMirror.
-  static IsolateMirror makeLocalIsolateMirror()
-      native 'Mirrors_makeLocalIsolateMirror';
+  // Creates a new local MirrorSystem.
+  static MirrorSystem makeLocalMirrorSystem()
+      native 'Mirrors_makeLocalMirrorSystem';
 
-  // The IsolateMirror for the current isolate.
-  static IsolateMirror currentIsolateMirror() {
-    if (_currentIsolateMirror === null) {
-      _currentIsolateMirror = makeLocalIsolateMirror();
+  // The MirrorSystem for the current isolate.
+  static MirrorSystem currentMirrorSystem() {
+    if (_currentMirrorSystem === null) {
+      _currentMirrorSystem = makeLocalMirrorSystem();
     }
-    return _currentIsolateMirror;
+    return _currentMirrorSystem;
   }
 
-  static Future<IsolateMirror> isolateMirrorOf(SendPort port) {
-    Completer<IsolateMirror> completer = new Completer<IsolateMirror>();
+  static Future<MirrorSystem> mirrorSystemOf(SendPort port) {
+    Completer<MirrorSystem> completer = new Completer<MirrorSystem>();
     if (isLocalPort(port)) {
-      // Make a local isolate mirror.
+      // Make a local mirror system.
       try {
-        completer.complete(currentIsolateMirror());
+        completer.complete(currentMirrorSystem());
       } catch (var exception) {
         completer.completeException(exception);
       }
     } else {
-      // Make a remote isolate mirror.
+      // Make a remote mirror system
       throw new NotImplementedException('Remote mirrors not yet implemented');
     }
     return completer.future;
@@ -474,7 +489,7 @@ class _Mirrors {
   static InstanceMirror makeLocalInstanceMirror(Object reflectee)
       native 'Mirrors_makeLocalInstanceMirror';
 
-  // The IsolateMirror for the current isolate.
+  // Creates a new local mirror for some Object.
   static InstanceMirror mirrorOf(Object reflectee) {
     return makeLocalInstanceMirror(reflectee);
   }
