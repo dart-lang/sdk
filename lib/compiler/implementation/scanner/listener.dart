@@ -1531,6 +1531,14 @@ class PartialFieldListElement extends VariableListElement {
     cachedNode = parse(listener,
                        getCompilationUnit(),
                        (p) => p.parseVariablesDeclaration(beginToken));
+    if (!cachedNode.modifiers.isVar() &&
+        !cachedNode.modifiers.isFinal() &&
+        !cachedNode.modifiers.isConst() &&
+        cachedNode.type === null) {
+      listener.cancel('A field declaration must start with var, final, '
+                      'const, or a type annotation.',
+                      cachedNode);
+    }
     return cachedNode;
   }
 

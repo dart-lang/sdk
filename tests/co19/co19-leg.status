@@ -520,7 +520,6 @@ Language/07_Classes/3_Setters_A04_t01: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t02: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t02: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
