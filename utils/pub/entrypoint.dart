@@ -6,8 +6,10 @@
 
 #import('io.dart');
 #import('package.dart');
+#import('root_source.dart');
 #import('system_cache.dart');
 #import('version.dart');
+#import('version_solver.dart');
 #import('utils.dart');
 
 /**
@@ -112,34 +114,12 @@ class Entrypoint {
    * installed.
    */
   Future installDependencies() {
-    var seen = new Set<PackageId>();
-
-    Future helper(List<PackageRef> packages) {
-      return Futures.wait(packages.map((ref) {
-        return resolve(ref).chain((id) {
-          if (seen.contains(id)) return new Future.immediate(null);
-          seen.add(id);
-
-          return install(id).chain((package) {
-            return helper(package.dependencies);
-          });
-        });
+    return resolveVersions(cache.sources, root).chain((packageVersions) {
+      // TODO(nweiz): persist packageVersions to a lockfile.
+      return Futures.wait(packageVersions.map((id) {
+        if (id.source is RootSource) return new Future.immediate(null);
+        return install(id);
       }));
-    }
-
-    return helper(root.dependencies);
-  }
-
-  /**
-   * Given [ref], which ambiguously identifies a dependent package, selects an
-   * appropriate precise package to use when this is the entrypoint. In other
-   * words, given a loose refence like "foo >= 2.0", figures out what concrete
-   * package we should use starting from this entrypoint.
-   */
-  Future<PackageId> resolve(PackageRef ref) {
-    // TODO(rnystrom): This should use the lockfile to select the right version
-    // once that's implemented. If the lockfile doesn't exist, it should
-    // generate it. In the meantime, here's a dumb implementation:
-    return new Future.immediate(ref.atVersion(ref.constraint));
+    });
   }
 }

@@ -90,8 +90,9 @@ listCommand() {
 }
 
 installCommand() {
-  test('adds a dependent package', () {
+  test('checks out a package from the SDK', () {
     dir(sdkPath, [
+      file('revision', '1234'),
       dir('lib', [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
@@ -111,40 +112,6 @@ installCommand() {
     dir(packagesPath, [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
-      ])
-    ]).scheduleValidate();
-
-    run();
-  });
-
-  test('adds a transitively dependent package', () {
-    dir(sdkPath, [
-      dir('lib', [
-        dir('foo', [
-          file('foo.dart', 'main() => "foo";'),
-          file('pubspec.yaml', 'dependencies:\n  bar:')
-        ]),
-        dir('bar', [
-          file('bar.dart', 'main() => "bar";'),
-        ])
-      ])
-    ]).scheduleCreate();
-
-    dir(appPath, [
-      file('pubspec.yaml', 'dependencies:\n  foo:')
-    ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
-
-    dir(packagesPath, [
-      dir('foo', [
-        file('foo.dart', 'main() => "foo";')
-      ]),
-      dir('bar', [
-        file('bar.dart', 'main() => "bar";'),
       ])
     ]).scheduleValidate();
 
@@ -475,6 +442,105 @@ dependencies:
       dir('bar', [
         file('pubspec.yaml', '{name: bar, version: 2.0.4}'),
         file('bar.dart', 'main() => print("bar 2.0.4");')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('resolves version constraints from a pub server', () {
+    servePackages("localhost", 3123, [
+      '''
+name: foo
+version: 1.2.3
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: ">=2.0.0"
+''',
+      '''
+name: bar
+version: 2.3.4
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: "<3.0.0"
+''',
+      '{name: baz, version: 2.0.3}',
+      '{name: baz, version: 2.0.4}',
+      '{name: baz, version: 3.0.1}',
+    ]);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo: {repo: {name: foo, url: http://localhost:3123}}
+  bar: {repo: {name: bar, url: http://localhost:3123}}
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp("Dependencies installed!\$"));
+
+    dir(cachePath, [
+      dir('repo', [
+        dir('localhost%583123', [
+          dir('foo-1.2.3', [
+            file('pubspec.yaml', '''
+name: foo
+version: 1.2.3
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: ">=2.0.0"
+'''),
+            file('foo.dart', 'main() => print("foo 1.2.3");')
+          ]),
+          dir('bar-2.3.4', [
+            file('pubspec.yaml', '''
+name: bar
+version: 2.3.4
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: "<3.0.0"
+'''),
+            file('bar.dart', 'main() => print("bar 2.3.4");')
+          ]),
+          dir('baz-2.0.4', [
+            file('pubspec.yaml', '{name: baz, version: 2.0.4}'),
+            file('baz.dart', 'main() => print("baz 2.0.4");')
+          ])
+        ])
+      ])
+    ]).scheduleValidate();
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('pubspec.yaml', '''
+name: foo
+version: 1.2.3
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: ">=2.0.0"
+'''),
+        file('foo.dart', 'main() => print("foo 1.2.3");')
+      ]),
+      dir('bar', [
+        file('pubspec.yaml', '''
+name: bar
+version: 2.3.4
+dependencies:
+  baz:
+    repo: {name: baz, url: http://localhost:3123}
+    version: "<3.0.0"
+'''),
+        file('bar.dart', 'main() => print("bar 2.3.4");')
+      ]),
+      dir('baz', [
+        file('pubspec.yaml', '{name: baz, version: 2.0.4}'),
+        file('baz.dart', 'main() => print("baz 2.0.4");')
       ])
     ]).scheduleValidate();
 

@@ -5,11 +5,15 @@
 #library('dartlang_source');
 
 #import('dart:io');
+#import('dart:json');
 #import('dart:uri');
 #import('io.dart');
 #import('package.dart');
+#import('pubspec.dart');
 #import('source.dart');
+#import('source_registry.dart');
 #import('utils.dart');
+#import('version.dart');
 
 /**
  * A package source that installs packages from a package repository that uses
@@ -30,6 +34,33 @@ class RepoSource extends Source {
   static final String defaultUrl = "http://pub.dartlang.org";
 
   RepoSource();
+
+  /**
+   * Downloads a list of all versions of a package that have been uploaded to
+   * pub.dartlang.org.
+   */
+  Future<List<Version>> getVersions(description) {
+    var parsed = _parseDescription(description);
+    var fullUrl = "${parsed.last}/packages/${parsed.first}.json";
+    return consumeInputStream(httpGet(fullUrl)).transform((data) {
+      var doc = JSON.parse(new String.fromCharCodes(data));
+      return doc['versions'].map((version) => new Version.parse(version));
+    });
+  }
+
+  /**
+   * Downloads and parses the pubspec for a specific version of a package that
+   * has been uploaded to pub.dartlang.org.
+   */
+  Future<Pubspec> describe(PackageId id) {
+    var parsed = _parseDescription(id.description);
+    var fullUrl = "${parsed.last}/packages/${parsed.first}/versions/"
+      "${id.version}.yaml";
+    return consumeInputStream(httpGet(fullUrl)).transform((data) {
+      return new Pubspec.parse(
+          new String.fromCharCodes(data), systemCache.sources);
+    });
+  }
 
   /**
    * Downloads a package from a package repository and unpacks it.

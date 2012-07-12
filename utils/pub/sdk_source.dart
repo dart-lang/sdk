@@ -6,7 +6,9 @@
 
 #import('io.dart');
 #import('package.dart');
+#import('pubspec.dart');
 #import('source.dart');
+#import('version.dart');
 
 /**
  * A package source that uses libraries from the Dart SDK.
@@ -31,8 +33,10 @@ class SdkSource extends Source {
    * revision number of the SDK itself.
    */
   Future<Pubspec> describe(PackageId id) {
-    return readTextFile(join(rootDir, "revision")).transform((revision) =>
-        new Pubspec("0.0.0-r.${revision.trim()}", <PackageRef>[]));
+    return readTextFile(join(rootDir, "revision")).transform((revision) {
+      var version = new Version.parse("0.0.0-r.${revision.trim()}");
+      return new Pubspec(version, <PackageRef>[]);
+    });
   }
 
   /**

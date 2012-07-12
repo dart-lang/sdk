@@ -11,6 +11,8 @@
 #library('test_pub');
 
 #import('dart:io');
+#import('dart:isolate');
+#import('dart:json');
 #import('dart:uri');
 
 #import('../../../lib/unittest/unittest.dart');
@@ -57,10 +59,13 @@ void serve(String host, int port, [List<Descriptor> contents]) {
     var server = new HttpServer();
     server.defaultRequestHandler = (request, response) {
       var path = request.uri.replaceFirst("/", "").split("/");
-      var stream = baseDir.load(path);
       response.persistentConnection = false;
-      if (stream == null) {
+      var stream;
+      try {
+        stream = baseDir.load(path);
+      } catch (var e) {
         response.statusCode = 404;
+        response.contentLength = 0;
         response.outputStream.close();
         return;
       }
@@ -102,16 +107,23 @@ void servePackages(String host, int port, List<String> pubspecs) {
   });
 
   serve(host, port, [
-    dir('packages', packages.getKeys().map((name) {
-      return dir(name, [
-        dir('versions', packages[name].getKeys().map((version) {
-          return tar('$version.tar.gz', [
-            file('pubspec.yaml', packages[name][version]),
-            file('$name.dart', 'main() => print("$name $version");')
-          ]);
-        }))
-      ]);
-    }))
+    dir('packages', flatten(packages.getKeys().map((name) {
+      return [
+        file('$name.json',
+          JSON.stringify({'versions': packages[name].getKeys()})),
+        dir(name, [
+          dir('versions', flatten(packages[name].getKeys().map((version) {
+            return [
+              file('$version.yaml', packages[name][version]),
+              tar('$version.tar.gz', [
+                file('pubspec.yaml', packages[name][version]),
+                file('$name.dart', 'main() => print("$name $version");')
+              ])
+            ];
+          })))
+        ])
+      ];
+    })))
   ]);
 }
 
@@ -510,12 +522,13 @@ class FileDescriptor extends Descriptor {
    */
   InputStream load(List<String> path) {
     if (!path.isEmpty()) {
-      var joinedPath = Strings.join('/', path);
+      var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
 
     var stream = new ListInputStream();
     stream.write(contents.charCodes());
+    stream.markEndOfStream();
     return stream;
   }
 }
@@ -595,7 +608,7 @@ class DirectoryDescriptor extends Descriptor {
       }
     }
 
-    throw "Directory $name doesn't contain ${Strings.join('/', path)}.";
+    throw "Directory $name doesn't contain ${Strings.join(path, '/')}.";
   }
 }
 
@@ -694,7 +707,7 @@ class TarFileDescriptor extends Descriptor {
    */
   InputStream load(List<String> path) {
     if (!path.isEmpty()) {
-      var joinedPath = Strings.join('/', path);
+      var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
 
