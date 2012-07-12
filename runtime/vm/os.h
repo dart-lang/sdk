@@ -82,6 +82,14 @@ class OS {
                       const char* format,
                       va_list args);
 
+  // Converts a C string which represents a valid dart integer into a 64 bit
+  // value.
+  // Returns false if it is unable to convert the string to a 64 bit value,
+  // the failure could be because of underflow/overflow or invalid characters.
+  // On success the function returns true and 'value' contains the converted
+  // value.
+  static bool StringToInteger(const char* str, int64_t* value);
+
   // Initialize the OS class.
   static void InitOnce();
 

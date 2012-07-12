@@ -7736,16 +7736,18 @@ const char* Integer::ToCString() const {
 
 
 RawInteger* Integer::New(const String& str, Heap::Space space) {
-  // TODO(iposva): If returning a big integer it will not necessarily be in the
-  // requested space.
-  const Bigint& big = Bigint::Handle(Bigint::New(str));
-  if (BigintOperations::FitsIntoSmi(big)) {
-    return BigintOperations::ToSmi(big);
-  } else if (BigintOperations::FitsIntoMint(big)) {
-    return Mint::New(BigintOperations::ToMint(big), space);
-  } else {
+  // We are not supposed to have integers represented as two byte or
+  // four byte strings.
+  ASSERT(str.IsOneByteString());
+  const OneByteString& onestr = OneByteString::Cast(str);
+  int64_t value;
+  if (!OS::StringToInteger(onestr.ToCString(), &value)) {
+    const Bigint& big = Bigint::Handle(Bigint::New(onestr, space));
+    ASSERT(!BigintOperations::FitsIntoSmi(big));
+    ASSERT(!BigintOperations::FitsIntoMint(big));
     return big.raw();
   }
+  return Integer::New(value, space);
 }
 
 
