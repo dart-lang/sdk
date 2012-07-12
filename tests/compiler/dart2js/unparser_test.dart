@@ -154,6 +154,8 @@ testGetSet() {
   testDart2Dart('get foo(){return 5;}set foo(arg){}main(){foo; foo=5;}');
   // Field get/set.
   testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}class A{set foo(a){}get foo(){return 5;}}');
+  // Typed get/set.
+  testDart2Dart('String get foo(){return "a";}main(){foo;}');
 }
 
 main() {

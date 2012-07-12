@@ -50,11 +50,6 @@ class Emitter {
       sb.add(element.parseNode(listener).unparse());
       sb.add(';');
     } else {
-      if (element.isSetter()) {
-        sb.add('set ');
-      } else if (element.isGetter()) {
-        sb.add('get ');
-      }
       sb.add(element.parseNode(listener).unparse());
     }
   }
