@@ -1573,59 +1573,13 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   void visitLogicalAndOr(Send node, Operator op) {
-    handleLogicalAndOr(node,
-                       () { visit(node.receiver); },
-                       () { visit(node.argumentsNode); },
-                       isAnd: (const SourceString("&&") == op.source));
+    SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
+    branchBuilder.handleLogicalAndOr(
+        () { visit(node.receiver); },
+        () { visit(node.argumentsNode); },
+        isAnd: (const SourceString("&&") == op.source));
   }
 
-
-  void handleLogicalAndOr(Node diagnosticNode,
-                          void left(), void right(), [bool isAnd = true]) {
-    // x && y is transformed into:
-    //   t0 = boolify(x);
-    //   if (t0) {
-    //     t1 = boolify(y);
-    //   } else {
-    //     t2 = t0;
-    //   }
-    //   result = phi(t1, false);
-    //
-    // x || y is transformed into:
-    //   t0 = boolify(x);
-    //   if (not(t0)) {
-    //     t1 = boolify(y);
-    //   } else {
-    //     t2 = t0;
-    //   }
-    //   result = phi(t1, true);
-    HInstruction boolifiedLeft;
-    HInstruction boolifiedRight;
-
-    void visitCondition() {
-      left();
-      boolifiedLeft = popBoolified();
-      HInstruction condition;
-      if (isAnd) {
-        condition = boolifiedLeft;
-      } else {
-        condition = new HNot(boolifiedLeft);
-        add(condition);
-      }
-      stack.add(condition);
-    }
-
-    void visitThen() {
-      right();
-      boolifiedRight = popBoolified();
-    }
-
-    handleIf(diagnosticNode, visitCondition, visitThen, null);
-    HPhi result = new HPhi.manyInputs(null,
-        <HInstruction>[boolifiedRight, graph.addConstantBool(!isAnd)]);
-    current.addPhi(result);
-    stack.add(result);
-  }
 
   void visitLogicalNot(Send node) {
     assert(node.argumentsNode is Prefix);
@@ -3141,7 +3095,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       void right() {
         buildTests(tail);
       }
-      handleLogicalAndOr(remainingCases.head, left, right, isAnd: false);
+      SsaBranchBuilder branchBuilder =
+          new SsaBranchBuilder(this, remainingCases.head);
+      branchBuilder.handleLogicalAndOr(left, right, isAnd: false);
     }
 
     if (node.isDefaultCase) {
@@ -3498,6 +3454,52 @@ class SsaBranchBuilder {
   handleConditional(void visitCondition(), void visitThen(), void visitElse()) {
     assert(visitElse != null);
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
+  }
+
+  void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
+    // x && y is transformed into:
+    //   t0 = boolify(x);
+    //   if (t0) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, false);
+    //
+    // x || y is transformed into:
+    //   t0 = boolify(x);
+    //   if (not(t0)) {
+    //     t1 = boolify(y);
+    //   } else {
+    //     t2 = t0;
+    //   }
+    //   result = phi(t1, true);
+    HInstruction boolifiedLeft;
+    HInstruction boolifiedRight;
+
+    void visitCondition() {
+      left();
+      boolifiedLeft = builder.popBoolified();
+      HInstruction condition;
+      if (isAnd) {
+        condition = boolifiedLeft;
+      } else {
+        condition = new HNot(boolifiedLeft);
+        builder.add(condition);
+      }
+      builder.stack.add(condition);
+    }
+
+    void visitThen() {
+      right();
+      boolifiedRight = builder.popBoolified();
+    }
+
+    handleIf(visitCondition, visitThen, null);
+    HPhi result = new HPhi.manyInputs(null,
+        <HInstruction>[boolifiedRight, builder.graph.addConstantBool(!isAnd)]);
+    builder.current.addPhi(result);
+    builder.stack.add(result);
   }
 
   void _handleDiamondBranch(void visitCondition(),
