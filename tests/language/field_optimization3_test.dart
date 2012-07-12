@@ -5,8 +5,8 @@
 // Dart test program to test type-based optimization on fields.
 
 class A {
-  int a = 0;
-  int b = 0;
+  var a = 0;
+  var b = 0;
   foo() {
     var c = b + 27;
     for (var i = 0; i < 1 ; i++) {
