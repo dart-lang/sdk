@@ -380,18 +380,22 @@ class Assembler : public ValueObject {
   void xorl(Register dst, Register src);
 
   void andq(Register dst, Register src);
+  void andq(Register dst, const Address& address);
   void andq(Register dst, const Immediate& imm);
 
   void orq(Register dst, Register src);
+  void orq(Register dst, const Address& address);
   void orq(Register dst, const Immediate& imm);
 
   void xorq(Register dst, Register src);
+  void xorq(Register dst, const Address& address);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);
 
   void addq(Register dst, Register src);
   void addq(Register reg, const Immediate& imm);
+  void addq(Register reg, const Address& address);
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register reg);
 
@@ -409,6 +413,7 @@ class Assembler : public ValueObject {
   void imull(Register reg, const Immediate& imm);
 
   void imulq(Register dst, Register src);
+  void imulq(Register dst, const Address& address);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);

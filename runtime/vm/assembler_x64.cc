@@ -872,6 +872,14 @@ void Assembler::andq(Register dst, Register src) {
 }
 
 
+void Assembler::andq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x23);
+  EmitOperand(dst & 7, address);
+}
+
+
 void Assembler::andq(Register dst, const Immediate& imm) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   EmitRegisterREX(dst, REX_W);
@@ -885,6 +893,14 @@ void Assembler::orq(Register dst, Register src) {
   EmitOperandREX(dst, operand, REX_W);
   EmitUint8(0x0B);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::orq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x0B);
+  EmitOperand(dst & 7, address);
 }
 
 
@@ -904,6 +920,14 @@ void Assembler::xorq(Register dst, Register src) {
 }
 
 
+void Assembler::xorq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x33);
+  EmitOperand(dst & 7, address);
+}
+
+
 void Assembler::addl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -919,6 +943,14 @@ void Assembler::addq(Register dst, Register src) {
   EmitOperandREX(dst, operand, REX_W);
   EmitUint8(0x03);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::addq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x03);
+  EmitOperand(dst & 7, address);
 }
 
 
@@ -1022,6 +1054,15 @@ void Assembler::imulq(Register dst, Register src) {
   EmitUint8(0x0F);
   EmitUint8(0xAF);
   EmitOperand(dst & 7, operand);
+}
+
+
+void Assembler::imulq(Register dst, const Address& address) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(dst, address, REX_W);
+  EmitUint8(0x0F);
+  EmitUint8(0xAF);
+  EmitOperand(dst & 7, address);
 }
 
 

@@ -351,7 +351,9 @@ ASSEMBLER_TEST_GENERATE(SignedMultiply64, assembler) {
   __ imulq(RAX, RCX);
   __ movq(R8, Immediate(2));
   __ movq(R9, Immediate(4));
-  __ imulq(R8, R9);
+  __ pushq(R9);
+  __ imulq(R8, Address(RSP, 0));
+  __ popq(R9);
   __ addq(RAX, R8);
   __ ret();
 }
@@ -517,6 +519,38 @@ ASSEMBLER_TEST_GENERATE(Bitwise, assembler) {
 ASSEMBLER_TEST_RUN(Bitwise, entry) {
   typedef int (*Bitwise)();
   EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise>(entry)());
+}
+
+
+ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
+  Label error;
+  __ movq(RAX, Immediate(42));
+  __ pushq(RAX);
+  __ xorq(RAX, Address(RSP, 0));
+  __ popq(RCX);
+  __ cmpq(RAX, Immediate(0));
+  __ j(NOT_EQUAL, &error);
+  __ xorq(RCX, RCX);
+  __ orq(RCX, Immediate(256));
+  __ movq(RAX, Immediate(4));
+  __ orq(RCX, RAX);
+  __ movq(RAX, Immediate(0xfff0));
+  __ andq(RCX, RAX);
+  __ movq(RAX, Immediate(1));
+  __ pushq(RAX);
+  __ orq(RCX, Address(RSP, 0));
+  __ popq(RAX);
+  __ movq(RAX, RCX);
+  __ ret();
+  __ Bind(&error);
+  __ movq(RAX, Immediate(-1));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(Bitwise64, entry) {
+  typedef int (*Bitwise64)();
+  EXPECT_EQ(256 + 1, reinterpret_cast<Bitwise64>(entry)());
 }
 
 
@@ -717,6 +751,210 @@ ASSEMBLER_TEST_GENERATE(LogicalOps, assembler) {
 
 
 ASSEMBLER_TEST_RUN(LogicalOps, entry) {
+  typedef int (*LogicalOpsCode)();
+  EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(entry)());
+}
+
+
+ASSEMBLER_TEST_GENERATE(LogicalOps64, assembler) {
+  Label donetest1;
+  __ movq(RAX, Immediate(4));
+  __ andq(RAX, Immediate(2));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &donetest1);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest1);
+
+  Label donetest2;
+  __ movq(RCX, Immediate(4));
+  __ pushq(RCX);
+  __ andq(RCX, Address(RSP, 0));
+  __ popq(RAX);
+  __ cmpq(RCX, Immediate(0));
+  __ j(NOT_EQUAL, &donetest2);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest2);
+
+  Label donetest3;
+  __ movq(RAX, Immediate(0));
+  __ orq(RAX, Immediate(0));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &donetest3);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest3);
+
+  Label donetest4;
+  __ movq(RAX, Immediate(4));
+  __ orq(RAX, Immediate(0));
+  __ cmpq(RAX, Immediate(0));
+  __ j(NOT_EQUAL, &donetest4);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest4);
+
+  Label donetest5;
+  __ pushq(RAX);
+  __ movq(RAX, Immediate(0xff));
+  __ movq(Address(RSP, 0), RAX);
+  __ cmpq(Address(RSP, 0), Immediate(0xff));
+  __ j(EQUAL, &donetest5);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest5);
+  __ popq(RAX);
+
+  Label donetest6;
+  __ movq(RAX, Immediate(1));
+  __ shlq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(8));
+  __ j(EQUAL, &donetest6);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest6);
+
+  Label donetest7;
+  __ movq(RAX, Immediate(2));
+  __ shrq(RAX, Immediate(1));
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest7);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest7);
+
+  Label donetest8;
+  __ movq(RAX, Immediate(8));
+  __ shrq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest8);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest8);
+
+  Label donetest9;
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(3));
+  __ shlq(RAX, RCX);
+  __ cmpq(RAX, Immediate(8));
+  __ j(EQUAL, &donetest9);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest9);
+
+  Label donetest10;
+  __ movq(RAX, Immediate(8));
+  __ movq(RCX, Immediate(3));
+  __ shrq(RAX, RCX);
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest10);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest10);
+
+  Label donetest6a;
+  __ movq(RAX, Immediate(1));
+  __ shlq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(8));
+  __ j(EQUAL, &donetest6a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest6a);
+
+  Label donetest7a;
+  __ movq(RAX, Immediate(2));
+  __ shrq(RAX, Immediate(1));
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest7a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest7a);
+
+  Label donetest8a;
+  __ movq(RAX, Immediate(8));
+  __ shrq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest8a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest8a);
+
+  Label donetest9a;
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(3));
+  __ shlq(RAX, RCX);
+  __ cmpq(RAX, Immediate(8));
+  __ j(EQUAL, &donetest9a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest9a);
+
+  Label donetest10a;
+  __ movq(RAX, Immediate(8));
+  __ movq(RCX, Immediate(3));
+  __ shrq(RAX, RCX);
+  __ cmpq(RAX, Immediate(1));
+  __ j(EQUAL, &donetest10a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest10a);
+
+  Label donetest11a;
+  __ movq(RAX, Immediate(1));
+  __ shlq(RAX, Immediate(31));
+  __ shrq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(0x10000000));
+  __ j(EQUAL, &donetest11a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest11a);
+
+  Label donetest12a;
+  __ movq(RAX, Immediate(1));
+  __ shlq(RAX, Immediate(63));
+  __ sarq(RAX, Immediate(3));
+  __ cmpq(RAX, Immediate(0xf000000000000000));
+  __ j(EQUAL, &donetest12a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest12a);
+
+  Label donetest13a;
+  __ movq(RAX, Immediate(1));
+  __ movq(RCX, Immediate(3));
+  __ shlq(RAX, Immediate(63));
+  __ sarq(RAX, RCX);
+  __ cmpq(RAX, Immediate(0xf000000000000000));
+  __ j(EQUAL, &donetest13a);
+  // Be sure to skip this crashing code.
+  __ movq(RAX, Immediate(0));
+  __ movq(Address(RAX, 0), RAX);
+  __ Bind(&donetest13a);
+
+  __ movq(RAX, Immediate(0));
+  __ ret();
+}
+
+
+ASSEMBLER_TEST_RUN(LogicalOps64, entry) {
   typedef int (*LogicalOpsCode)();
   EXPECT_EQ(0, reinterpret_cast<LogicalOpsCode>(entry)());
 }
@@ -1250,7 +1488,10 @@ ASSEMBLER_TEST_GENERATE(TestAdds, assembler) {
   __ movq(RCX, Immediate(3));
   __ addq(Address(RSP, 0), RCX);
   // TOS: 10
-  __ popq(RAX);
+  __ movq(RAX, Immediate(10));
+  __ addq(RAX, Address(RSP, 0));
+  // RAX: 20
+  __ popq(RCX);
   __ ret();
 }
 
@@ -1258,7 +1499,7 @@ ASSEMBLER_TEST_GENERATE(TestAdds, assembler) {
 ASSEMBLER_TEST_RUN(TestAdds, entry) {
   typedef int (*TestAdds)();
   int res = reinterpret_cast<TestAdds>(entry)();
-  EXPECT_EQ(10, res);
+  EXPECT_EQ(20, res);
 }
 
 

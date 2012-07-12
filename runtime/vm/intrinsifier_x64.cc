@@ -489,8 +489,7 @@ bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX contains right argument.
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ addq(RAX, RCX);
+  __ addq(RAX, Address(RSP, + 2 * kWordSize));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   // Result is in RAX.
   __ ret();
@@ -539,8 +538,7 @@ bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
   // RAX is the right argument.
   ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
   __ SmiUntag(RAX);
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ imulq(RAX, RCX);
+  __ imulq(RAX, Address(RSP, + 2 * kWordSize));
   __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
   // Result is in RAX.
   __ ret();
@@ -631,8 +629,7 @@ bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ andq(RAX, RCX);
+  __ andq(RAX, Address(RSP, + 2 * kWordSize));
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -649,8 +646,7 @@ bool Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ orq(RAX, RCX);
+  __ orq(RAX, Address(RSP, + 2 * kWordSize));
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
@@ -667,8 +663,7 @@ bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
   Label fall_through;
   TestBothArgumentsSmis(assembler, &fall_through);
   // RAX is the right argument.
-  __ movq(RCX, Address(RSP, + 2 * kWordSize));
-  __ xorq(RAX, RCX);
+  __ xorq(RAX, Address(RSP, + 2 * kWordSize));
   // Result is in RAX.
   __ ret();
   __ Bind(&fall_through);
