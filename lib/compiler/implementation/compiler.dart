@@ -977,7 +977,7 @@ class Compiler implements DiagnosticListener {
       // URI.
       throw 'Cannot find tokens to produce error message.';
     }
-    if (uri === null) {
+    if (uri === null && currentElement !== null) {
       uri = currentElement.getCompilationUnit().script.uri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
@@ -1089,4 +1089,6 @@ class SourceSpan {
     assert(endOffset >= beginOffset);
     return f(beginOffset, endOffset);
   }
+
+  String toString() => 'SourceSpan($uri, $begin, $end)';
 }

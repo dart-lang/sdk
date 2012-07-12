@@ -18,15 +18,11 @@
 #import('dart:io');
 #import('dart:json');
 #import('html_diff.dart');
-
-#import('../../lib/dartdoc/frog/lang.dart');
-#import('../../lib/dartdoc/frog/file_system_vm.dart');
-#import('../../lib/dartdoc/frog/file_system.dart');
+#import('../../lib/dartdoc/mirrors/mirrors.dart');
+#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
 #import('../../lib/dartdoc/dartdoc.dart', prefix: 'doc');
 
 HtmlDiff _diff;
-
-final GET_PREFIX = 'get:';
 
 void main() {
   final args = new Options().arguments;
@@ -66,12 +62,7 @@ void main() {
     }
   }
 
-  final frogPath = joinPaths(doc.scriptDir, '../../lib/dartdoc/frog/');
-
-  if (compilerPath === null) {
-    compilerPath
-        = Platform.operatingSystem == 'windows' ? 'dart2js.bat' : 'dart2js';
-  }
+  final libPath = '${doc.scriptDir}/../../';
 
   doc.cleanOutputDirectory(outputDir);
 
@@ -80,7 +71,7 @@ void main() {
 
   final clientScript = (mode == doc.MODE_STATIC) ?
       'static' : 'live-nav';
-  final Future scriptCompiled = doc.compileScript(compilerPath,
+  doc.compileScript(
       '${doc.scriptDir}/../../lib/dartdoc/client-$clientScript.dart',
       '${outputDir}/client-$clientScript.js');
 
@@ -93,54 +84,61 @@ void main() {
   final Future copiedApiDocStatic = doc.copyFiles('${doc.scriptDir}/static',
       outputDir);
 
-  var files = new VMFileSystem();
-  parseOptions(frogPath, ['', '', '--libdir=../../lib'], files);
-  initializeWorld(files);
-
   print('Parsing MDN data...');
   final mdnFile = new File('${doc.scriptDir}/mdn/database.json');
   final mdn = JSON.parse(mdnFile.readAsTextSync());
 
   print('Cross-referencing dart:html...');
-  HtmlDiff.initialize();
+  HtmlDiff.initialize(libPath);
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
 
   // Process handwritten HTML documentation.
-  world.reset();
-  world.getOrAddLibrary('${doc.scriptDir}/../../lib/html/doc/html.dartdoc');
-  world.process();
   final htmldoc = new Htmldoc();
-  htmldoc.document();
+  htmldoc.documentLibraries(
+    <String>['${doc.scriptDir}/../../lib/html/doc/html.dartdoc'],
+    libPath);
   print('Processing handwritten HTML documentation...');
 
   // Process libraries.
 
-  // Note, Frog has global internal state.  We need to clear away the
-  // HTML documentation classes above first.
-  world.reset();
-
   // Add all of the core libraries.
-  world.getOrAddLibrary('dart:core');
-  world.getOrAddLibrary('dart:coreimpl');
-  world.getOrAddLibrary('dart:crypto');
-  world.getOrAddLibrary('dart:html');
-  world.getOrAddLibrary('dart:io');
-  world.getOrAddLibrary('dart:isolate');
-  world.getOrAddLibrary('dart:json');
-  world.getOrAddLibrary('${doc.scriptDir}/../../lib/math/math.dart');
-  world.getOrAddLibrary('${doc.scriptDir}/../../lib/unittest/unittest.dart');
-  world.getOrAddLibrary('${doc.scriptDir}/../../lib/i18n/intl.dart');
-  world.getOrAddLibrary('dart:uri');
-  world.getOrAddLibrary('dart:utf');
-  world.getOrAddLibrary('dart:web');
-  world.process();
-
+  var apidocLibraries = <String>[
+    'dart:core',
+    'dart:coreimpl',
+    'dart:crypto',
+    'dart:html',
+    'dart:io',
+    'dart:isolate',
+    'dart:json',
+    '${doc.scriptDir}/../../lib/math/math.dart',
+    '${doc.scriptDir}/../../lib/unittest/unittest.dart',
+    '${doc.scriptDir}/../../lib/i18n/intl.dart',
+    'dart:uri',
+    'dart:utf',
+    'dart:web',
+  ];
   print('Generating docs...');
   final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
+  // Select the libraries to include in the produced documentation:
+  apidoc.libraries = <String>[
+    'core',
+    'coreimpl',
+    'crypto',
+    'html',
+    'io',
+    'dart:isolate',
+    'json',
+    'math',
+    'unittest',
+    'intl',
+    'uri',
+    'utf',
+    'web',
+  ];
 
-  Futures.wait([scriptCompiled, copiedStatic, copiedApiDocStatic]).then((_) {
-    apidoc.document();
+  Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
+    apidoc.documentLibraries(apidocLibraries, libPath);
   });
 }
 
@@ -151,12 +149,20 @@ void main() {
  */
 class Htmldoc extends doc.Dartdoc {
   String libraryComment;
+
+  /**
+   * Map from qualified type names to comments.
+   */
   Map<String, String> typeComments;
-  Map<String, Map<String, String>> memberComments;
+
+  /**
+   * Map from qualified member names to comments.
+   */
+  Map<String, String> memberComments;
 
   Htmldoc() {
     typeComments = new Map<String, String>();
-    memberComments = new Map<String, Map<String, String>>();
+    memberComments = new Map<String, String>();
   }
 
   // Suppress any actual writing to file.  This is only for analysis.
@@ -166,88 +172,67 @@ class Htmldoc extends doc.Dartdoc {
   void write(String s) {
   }
 
-  String getRecordedLibraryComment(Library library) {
-    if (library.name == 'html') {
+  String getRecordedLibraryComment(LibraryMirror library) {
+    if (library.simpleName() == 'html') {
       return libraryComment;
     }
     return null;
   }
 
-  String getRecordedTypeComment(Type type) {
-    if (type.library.name == 'html') {
-      if (typeComments.containsKey(type.name)) {
-        return typeComments[type.name];
-      }
+  String getRecordedTypeComment(TypeMirror type) {
+    if (typeComments.containsKey(type.qualifiedName())) {
+      return typeComments[type.qualifiedName()];
     }
     return null;
   }
 
-  String getRecordedMemberComment(Member member) {
-    if (member.library.name == 'html') {
-      String typeName;
-      if (member.declaringType != null) {
-        typeName = member.declaringType.name;
-      }
-      if (typeName == null) {
-        typeName = '';
-      }
-      if (memberComments.containsKey(typeName)) {
-        Map<String, String> memberMap = memberComments[typeName];
-        if (memberMap.containsKey(member.name)) {
-          return memberMap[member.name];
-        }
-      }
+  String getRecordedMemberComment(MemberMirror member) {
+    if (memberComments.containsKey(member.qualifiedName())) {
+      return memberComments[member.qualifiedName()];
     }
     return null;
   }
 
   // These methods are subclassed and used for internal processing.
   // Do not invoke outside of this class.
-  String getLibraryComment(Library library) {
+  String getLibraryComment(LibraryMirror library) {
     String comment = super.getLibraryComment(library);
     libraryComment = comment;
     return comment;
   }
 
-  String getTypeComment(Type type) {
+  String getTypeComment(TypeMirror type) {
     String comment = super.getTypeComment(type);
     recordTypeComment(type, comment);
     return comment;
   }
 
-  String getMethodComment(MethodMember method) {
+  String getMethodComment(MethodMirror method) {
     String comment = super.getMethodComment(method);
     recordMemberComment(method, comment);
     return comment;
   }
 
-  String getFieldComment(FieldMember field) {
+  String getFieldComment(FieldMirror field) {
     String comment = super.getFieldComment(field);
     recordMemberComment(field, comment);
     return comment;
   }
 
-  void recordTypeComment(Type type, String comment) {
+  void recordTypeComment(TypeMirror type, String comment) {
     if (comment != null && comment.contains('@domName')) {
       // This is not a handwritten comment.
       return;
     }
-    typeComments[type.name] = comment;
+    typeComments[type.qualifiedName()] = comment;
   }
 
-  void recordMemberComment(Member member, String comment) {
+  void recordMemberComment(MemberMirror member, String comment) {
     if (comment != null && comment.contains('@domName')) {
       // This is not a handwritten comment.
       return;
     }
-    String typeName = member.declaringType.name;
-    if (typeName == null)
-      typeName = '';
-    if (!memberComments.containsKey(typeName)) {
-      memberComments[typeName] = new Map<String, String>();
-    }
-    Map<String, String> memberMap = memberComments[typeName];
-    memberMap[member.name] = comment;
+    memberComments[member.qualifiedName()] = comment;
   }
 }
 
@@ -352,24 +337,24 @@ class Apidoc extends doc.Dartdoc {
         ''');
   }
 
-  void docIndexLibrary(Library library) {
+  void docIndexLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.name == 'dart:nativewrappers') return;
+    if (library.simpleName() == 'dart:nativewrappers') return;
     super.docIndexLibrary(library);
   }
 
-  void docLibraryNavigationJson(Library library, Map libraries) {
+  void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.name == 'dart:nativewrappers') return;
-    super.docLibraryNavigationJson(library, libraries);
+    if (library.simpleName() == 'dart:nativewrappers') return;
+    super.docLibraryNavigationJson(library, libraryMap);
   }
 
-  void docLibrary(Library library) {
+  void docLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.name == 'dart:nativewrappers') return;
+    if (library.simpleName() == 'dart:nativewrappers') return;
     super.docLibrary(library);
   }
 
@@ -379,26 +364,26 @@ class Apidoc extends doc.Dartdoc {
         comment.replaceAll(const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)"), ''));
   }
 
-  String getLibraryComment(Library library) {
-    if (library.name == 'html') {
+  String getLibraryComment(LibraryMirror library) {
+    if (library.simpleName() == 'html') {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
   }
 
-  String getTypeComment(Type type) {
+  String getTypeComment(TypeMirror type) {
     return _mergeDocs(
         includeMdnTypeComment(type), super.getTypeComment(type),
         htmldoc.getRecordedTypeComment(type));
   }
 
-  String getMethodComment(MethodMember method) {
+  String getMethodComment(MethodMirror method) {
     return _mergeDocs(
         includeMdnMemberComment(method), super.getMethodComment(method),
         htmldoc.getRecordedMemberComment(method));
   }
 
-  String getFieldComment(FieldMember field) {
+  String getFieldComment(FieldMirror field) {
     return _mergeDocs(
         includeMdnMemberComment(field), super.getFieldComment(field),
         htmldoc.getRecordedMemberComment(field));
@@ -431,7 +416,7 @@ class Apidoc extends doc.Dartdoc {
     return '';
   }
 
-  void docType(Type type) {
+  void docType(TypeMirror type) {
     // Track whether we've inserted MDN content into this page.
     mdnUrl = null;
 
@@ -467,11 +452,11 @@ class Apidoc extends doc.Dartdoc {
    * Gets the MDN-scraped docs for [type], or `null` if this type isn't
    * scraped from MDN.
    */
-  includeMdnTypeComment(Type type) {
-    if (type.library.name == 'html') {
+  includeMdnTypeComment(TypeMirror type) {
+    if (type.library().simpleName() == 'html') {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
-      final domTypes = _diff.htmlTypesToDom[type];
+      final domTypes = _diff.htmlTypesToDom[type.qualifiedName()];
 
       // Couldn't find a DOM type.
       if ((domTypes == null) || (domTypes.length != 1)) return null;
@@ -480,12 +465,12 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       type = domTypes.iterator().next();
-    } else if (type.library.name != 'dom') {
+    } else if (type.library().simpleName() != 'dom') {
       // Not a DOM type.
       return null;
     }
 
-    final mdnType = mdn[type.name];
+    final mdnType = mdn[type.simpleName()];
     if (mdnType == null) return null;
     if (mdnType['skipped'] != null) return null;
 
@@ -498,8 +483,9 @@ class Apidoc extends doc.Dartdoc {
    * Gets the MDN-scraped docs for [member], or `null` if this type isn't
    * scraped from MDN.
    */
-  includeMdnMemberComment(Member member) {
-    if (member.library.name == 'html') {
+  includeMdnMemberComment(MemberMirror member) {
+    var library = findLibrary(member);
+    if (library.simpleName() == 'html') {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member];
@@ -511,17 +497,17 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       member = domMembers.iterator().next();
-    } else if (member.library.name != 'dom') {
+    } else if (library.simpleName() != 'dom') {
       // Not a DOM type.
       return null;
     }
 
     // Ignore top-level functions.
-    if (member.declaringType.isTop) return null;
+    if (member.isTopLevel) return null;
 
-    final mdnType = mdn[member.declaringType.name];
+    final mdnType = mdn[member.surroundingDeclaration().simpleName()];
     if (mdnType == null) return null;
-    var nameToFind = member.name;
+    var nameToFind = member.simpleName();
     if (nameToFind.startsWith(GET_PREFIX)) {
       nameToFind = nameToFind.substring(GET_PREFIX.length);
     }
@@ -544,14 +530,12 @@ class Apidoc extends doc.Dartdoc {
    * Returns a link to [member], relative to a type page that may be in a
    * different library than [member].
    */
-  String _linkMember(Member member) {
-    final typeName = member.declaringType.name;
-    var memberName = '$typeName.${member.name}';
+  String _linkMember(MemberMirror member) {
+    final typeName = member.surroundingDeclaration().simpleName();
+    var memberName = '$typeName.${member.simpleName()}';
     if (member.isConstructor || member.isFactory) {
       final separator = member.constructorName == '' ? '' : '.';
       memberName = 'new $typeName$separator${member.constructorName}';
-    } else if (member.name.startsWith(GET_PREFIX)) {
-      memberName = '$typeName.${member.name.substring(GET_PREFIX.length)}';
     }
 
     return a(memberUrl(member), memberName);

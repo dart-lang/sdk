@@ -99,14 +99,14 @@ void testFoo(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(objectType.isObject, "Object is not Object");
   Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
   Expect.isTrue(containsType(fooClass,
-                             computeSubdeclarations(system, objectType)),
+                             computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
   var fooInterfaces = fooClass.interfaces();
   Expect.isNotNull(fooInterfaces, "Interfaces map is null");
   Expect.isTrue(fooInterfaces.isEmpty(), "Interfaces map is not empty");
 
-  var fooSubdeclarations = computeSubdeclarations(system, fooClass);
+  var fooSubdeclarations = computeSubdeclarations(fooClass);
   Expect.equals(1, count(fooSubdeclarations), "Unexpected subtype count");
   for (var fooSubdeclaration in fooSubdeclarations) {
     Expect.equals(fooClass, fooSubdeclaration.superclass().declaration,
@@ -172,14 +172,14 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(objectType.isObject, "Object is not Object");
   Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
   Expect.isTrue(containsType(barInterface,
-                             computeSubdeclarations(system, objectType)),
+                             computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
   var barInterfaces = barInterface.interfaces();
   Expect.isNotNull(barInterfaces, "Interfaces map is null");
   Expect.isTrue(barInterfaces.isEmpty(), "Interfaces map is not empty");
 
-  var barSubdeclarations = computeSubdeclarations(system, barInterface);
+  var barSubdeclarations = computeSubdeclarations(barInterface);
   Expect.equals(1, count(barSubdeclarations), "Unexpected subtype count");
   for (var barSubdeclaration in barSubdeclarations) {
     Expect.isTrue(containsType(barInterface,
@@ -262,7 +262,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(objectType.isObject, "Object is not Object");
   Expect.isFalse(objectType.isDeclaration, "Object type is declaration");
   Expect.isTrue(containsType(bazClass,
-                             computeSubdeclarations(system, objectType)),
+                             computeSubdeclarations(objectType)),
                 "Class is not subclass of superclass");
 
   var bazInterfaces = bazClass.interfaces();
@@ -270,11 +270,11 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(!bazInterfaces.isEmpty(), "Interfaces map is empty");
   for (var bazInterface in bazInterfaces.getValues()) {
     Expect.isTrue(containsType(bazClass,
-                               computeSubdeclarations(system, objectType)),
+                               computeSubdeclarations(objectType)),
                   "Class is not subclass of superinterface");
   }
 
-  var bazSubdeclarations = computeSubdeclarations(system, bazClass);
+  var bazSubdeclarations = computeSubdeclarations(bazClass);
   Expect.equals(0, count(bazSubdeclarations), "Unexpected subtype count");
 
   var barInterface = findMirror(bazInterfaces, "Bar");

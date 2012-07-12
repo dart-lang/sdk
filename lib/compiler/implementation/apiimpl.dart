@@ -105,7 +105,9 @@ class Compiler extends leg.Compiler {
     if (kind === api.Diagnostic.ERROR || kind === api.Diagnostic.CRASH) {
       compilationFailed = true;
     }
-    if (span === null) {
+    // [:span.uri:] might be [:null:] in case of a [Script] with no [uri]. For
+    // instance in the [Types] constructor in typechecker.dart.
+    if (span === null || span.uri === null) {
       handler(null, null, null, message, kind);
     } else {
       handler(translateUri(span.uri, null), span.begin, span.end,

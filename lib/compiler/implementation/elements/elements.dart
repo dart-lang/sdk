@@ -145,6 +145,10 @@ class Element implements Hashable {
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
+  // TODO(johnniwinther): This breaks for libraries (for which enclosing
+  // elements are null) and is invalid for top level variable declarations for
+  // which the enclosing element is a VariableDeclarations and not a compilation
+  // unit.
   bool isTopLevel() => enclosingElement.isCompilationUnit();
 
   bool isAssignable() {
@@ -213,7 +217,7 @@ class Element implements Hashable {
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
     // invariant for all element types.
-    if (!isTopLevel()) {
+    if (enclosingElement !== null && !isTopLevel()) {
       String holderName = enclosingElement.name.slowToString();
       return '$kind($holderName#${name.slowToString()})';
     } else {

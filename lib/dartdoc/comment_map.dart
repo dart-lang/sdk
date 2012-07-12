@@ -24,11 +24,11 @@ class CommentMap {
       _libraryComments = <String>{};
 
   /** Finds the doc comment preceding the given source span, if there is one. */
-  String find(SourceSpan span) {
+  String find(Location span) {
     if (span == null) return null;
 
-    _ensureFileParsed(span.file);
-    final comment = _comments[span.file.filename][span.start];
+    _ensureFileParsed(span.source());
+    final comment = _comments[span.source().uri().toString()][span.start()];
     if (comment == null) return '';
     return comment;
   }
@@ -37,32 +37,31 @@ class CommentMap {
    * Finds the doc comment associated with the `#library` directive for the
    * given file.
    */
-  String findLibrary(SourceFile file) {
-    _ensureFileParsed(file);
-    final comment = _libraryComments[file.filename];
+  String findLibrary(Source source) {
+    _ensureFileParsed(source);
+    final comment = _libraryComments[source.uri().toString()];
     if (comment == null) return '';
     return comment;
   }
 
-  _ensureFileParsed(SourceFile file) {
-    _comments.putIfAbsent(file.filename, () => _parseComments(file));
+  _ensureFileParsed(Source source) {
+    _comments.putIfAbsent(source.uri().toString(), () =>
+        _parseComments(source));
   }
 
-  _parseComments(SourceFile file) {
+  _parseComments(Source source) {
     final comments = new Map<int, String>();
 
-    final tokenizer = new Tokenizer(file, false);
+    final scanner = new dart2js.StringScanner(source.text(), true);
     var lastComment = null;
 
-    while (true) {
-      final token = tokenizer.next();
-      if (token.kind == TokenKind.END_OF_FILE) break;
-
-      if (token.kind == TokenKind.COMMENT) {
-        final text = token.text;
+    var token = scanner.tokenize();
+    while (token.kind != dart2js.EOF_TOKEN) {
+      if (token.kind == dart2js.COMMENT_TOKEN) {
+        final text = token.slowToString();
         if (text.startsWith('/**')) {
           // Remember that we've encountered a doc comment.
-          lastComment = stripComment(token.text);
+          lastComment = stripComment(token.slowToString());
         } else if (text.startsWith('///')) {
           var line = text.substring(3);
           // Allow a leading space.
@@ -73,23 +72,20 @@ class CommentMap {
             lastComment = '$lastComment$line';
           }
         }
-      } else if (token.kind == TokenKind.WHITESPACE) {
-        // Ignore whitespace tokens.
-      } else if (token.kind == TokenKind.HASH) {
+      } else if (token.kind == dart2js.HASH_TOKEN) {
         // Look for #library() to find the library comment.
-        final next = tokenizer.next();
-        if ((lastComment != null) && (next.kind == TokenKind.LIBRARY)) {
-          _libraryComments[file.filename] = lastComment;
+        final next = token.next;
+        if ((lastComment != null) && (next.stringValue == 'library')) {
+          _libraryComments[source.uri().toString()] = lastComment;
           lastComment = null;
         }
-      } else {
-        if (lastComment != null) {
-          // We haven't attached the last doc comment to something yet, so stick
-          // it to this token.
-          comments[token.start] = lastComment;
-          lastComment = null;
-        }
+      } else if (lastComment != null) {
+        // We haven't attached the last doc comment to something yet, so stick
+        // it to this token.
+        comments[token.charOffset] = lastComment;
+        lastComment = null;
       }
+      token = token.next;
     }
 
     return comments;

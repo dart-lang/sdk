@@ -344,10 +344,20 @@ def Main(argv):
   copytree(dartdoc_src_dir, dartdoc_dest_dir,
            ignore=ignore_patterns('.svn', 'docs'))
 
-  # Fixup frog dependencies.
-  ReplaceInFiles([join(LIB, 'dartdoc', 'dartdoc.dart')], [
-      ("'dart2js'", "joinPaths(scriptDir, '../../bin/dart2js')"),
+  # Fixup dart2js dependencies.
+  ReplaceInFiles([
+      join(LIB, 'dartdoc', 'dartdoc.dart'),
+    ], [
+      ("scriptDir, '../'",
+       "scriptDir, '../dart2js/lib/'"),
     ])
+  ReplaceInFiles([
+      join(LIB, 'dartdoc', 'dartdoc.dart'),
+    ], [
+      ("scriptDir, '../../'",
+       "scriptDir, '../dart2js/'"),
+    ])
+
   ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'frog_options.dart')], [
       ("final config = \'dev\';", "final config = \'sdk\';")
     ])

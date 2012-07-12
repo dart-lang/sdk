@@ -17,12 +17,17 @@
 #library('dartdoc');
 
 #import('dart:io');
+#import('dart:uri');
 #import('dart:json');
-#import('frog/lang.dart');
-#import('frog/file_system.dart');
-#import('frog/file_system_vm.dart');
+#import('mirrors/mirrors.dart');
+#import('mirrors/mirrors_util.dart');
+#import('mirrors/dart2js_mirror.dart', prefix: 'dart2js');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
+#import('../compiler/implementation/dart2js.dart', prefix: 'dart2js');
+#import('../compiler/implementation/scanner/scannerlib.dart',
+        prefix: 'dart2js');
+#import('file_util.dart');
 
 #source('comment_map.dart');
 #source('utils.dart');
@@ -60,6 +65,13 @@ void main() {
   String outputDir;
   bool generateAppCache;
   bool omitGenerationTime;
+  bool verbose;
+
+  if (args.isEmpty()) {
+    print('No arguments provided.');
+    printUsage();
+    return;
+  }
 
   for (int i = 0; i < args.length - 1; i++) {
     final arg = args[i];
@@ -85,12 +97,16 @@ void main() {
       case '--omit-generation-time':
         omitGenerationTime = true;
         break;
+      case '--verbose':
+        verbose = true;
+        break;
 
       default:
         if (arg.startsWith('--out=')) {
           outputDir = arg.substring('--out='.length);
         } else {
           print('Unknown option: $arg');
+          printUsage();
           return;
         }
         break;
@@ -102,21 +118,14 @@ void main() {
     return;
   }
 
-  // The entrypoint of the library to generate docs for.
-  final entrypoint = args[args.length - 1];
-
-  final files = new VMFileSystem();
-
   // TODO(rnystrom): Note that the following lines get munged by create-sdk to
   // work with the SDK's different file layout. If you change, be sure to test
   // that dartdoc still works when run from the built SDK directory.
-  final frogPath = joinPaths(scriptDir, 'frog/');
-  final libDir = joinPaths(scriptDir, '..');
-  final compilerPath
-      = Platform.operatingSystem == 'windows' ? 'dart2js.bat' : 'dart2js';
+  final String libPath = joinPaths(scriptDir, '../');
 
-  parseOptions(frogPath, ['', '', '--libdir=$libDir'], files);
-  initializeWorld(files);
+  // The entrypoint of the library to generate docs for.
+  // TODO(johnniwinther): Handle absolute/relative paths
+  final entrypoint = canonicalizePath(args[args.length - 1]);
 
   final dartdoc = new Dartdoc();
 
@@ -127,24 +136,59 @@ void main() {
   if (omitGenerationTime != null) {
     dartdoc.omitGenerationTime = omitGenerationTime;
   }
+  if (verbose != null) dartdoc.verbose = verbose;
 
   cleanOutputDirectory(dartdoc.outputDir);
 
+  dartdoc.documentEntryPoint(entrypoint, libPath);
+
   // Compile the client-side code to JS.
   final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
-  final Future scriptCompiled = compileScript(compilerPath,
-                '$scriptDir/client-$clientScript.dart',
-                '${dartdoc.outputDir}/client-$clientScript.js');
+  compileScript(
+    '$scriptDir/client-$clientScript.dart',
+    '${dartdoc.outputDir}/client-$clientScript.js');
 
   final Future filesCopied = copyFiles('$scriptDir/static', dartdoc.outputDir);
 
-  Futures.wait([scriptCompiled, filesCopied]).then((_) {
-    dartdoc.document(entrypoint);
-
+  Futures.wait([filesCopied]).then((_) {
     print('Documented ${dartdoc._totalLibraries} libraries, '
-        '${dartdoc._totalTypes} types, and '
-        '${dartdoc._totalMembers} members.');
+          '${dartdoc._totalTypes} types, and '
+          '${dartdoc._totalMembers} members.');
   });
+}
+
+void printUsage() {
+  print('''
+Usage dartdoc [options] <entrypoint>
+[options] include
+ --no-code                   Do not include source code in the documentation.
+
+ --mode=static               Generates completely static HTML containing 
+                             everything you need to browse the docs. The only 
+                             client side behavior is trivial stuff like syntax
+                             highlighting code.
+
+ --mode=live-nav             (default) Generated docs do not include baked HTML 
+                             navigation. Instead, a single `nav.json` file is 
+                             created and the appropriate navigation is generated
+                             client-side by parsing that and building HTML.
+                                This dramatically reduces the generated size of 
+                             the HTML since a large fraction of each static page 
+                             is just redundant navigation links.
+                                In this mode, the browser will do a XHR for 
+                             nav.json which means that to preview docs locally, 
+                             you will need to enable requesting file:// links in
+                             your browser or run a little local server like 
+                             `python -m SimpleHTTPServer`.
+
+ --generate-app-cache        Generates the App Cache manifest file, enabling 
+                             offline doc viewing.
+
+ --out=<dir>                 Generates files into directory <dir>. If omitted
+                             the files are generated into ./docs/
+
+ --verbose                   Print verbose information during generation.
+''');
 }
 
 /**
@@ -166,7 +210,14 @@ void cleanOutputDirectory(String path) {
     outputDir.deleteRecursivelySync();
   }
 
-  outputDir.createSync();
+  try {
+    // TODO(johnniwinther): Hack to avoid 'file already exists' exception thrown
+    // due to invalid result from dir.existsSync() (probably due to race
+    // conditions).
+    outputDir.createSync();
+  } catch (DirectoryIOException e) {
+    // Ignore.
+  }
 }
 
 /**
@@ -199,33 +250,19 @@ Future copyFiles(String from, String to) {
 
 /**
  * Compiles the given Dart script to a JavaScript file at [jsPath] using the
- * Dart-to-JS compiler located at [compilerPath].
+ * Dart2js compiler.
  */
-Future compileScript(String compilerPath, String dartPath, String jsPath) {
-  final completer = new Completer();
-  onExit(ProcessResult result) {
-    if (result.exitCode != 0) {
-      final message = 'Non-zero exit code from $compilerPath';
-      print('$message.');
-      print(result.stdout);
-      print(result.stderr);
-      throw message;
-    }
-    completer.complete(true);
-  }
-
-  onError(error) {
-    final message = 'Error trying to execute $compilerPath. Error: $error';
-    print('$message.');
-    throw message;
-  }
-
-  print('Compiling $dartPath to $jsPath');
-  var processFuture = Process.run(compilerPath, ['--out=$jsPath', dartPath]);
-  processFuture.handleException(onError);
-  processFuture.then(onExit);
-
-  return completer.future;
+void compileScript(String dartPath, String jsPath) {
+  dart2js.compile([
+      '--no-colors',
+      // TODO(johnniwinther): The following lines get munged by create-sdk to
+      // work with the SDK's different file layout. If you change, be sure to
+      // test that dartdoc still works when run from the built SDK directory.
+      '--library-root=${joinPaths(scriptDir, '../../')}',
+      '--out=$jsPath',
+      '--throw-on-error',
+      '--suppress-warnings',
+      dartPath]);
 }
 
 class Dartdoc {
@@ -277,25 +314,27 @@ class Dartdoc {
   /** Set this to omit generation timestamp from output */
   bool omitGenerationTime = false;
 
+  /** Set by Dartdoc user to print extra information during generation. */
+  bool verbose = false;
+
+  /** Set this to select the libraries to document */
+  List<String> libraries = null;
+
   /**
-   * From exposes the set of libraries in `world.libraries`. That maps library
-   * *keys* to [Library] objects. The keys are *not* exactly the same as their
-   * names. This means if we order by key, we won't actually have them sorted
-   * correctly. This list contains the libraries in correct order by their
-   * *name*.
+   * This list contains the libraries sorted in by the library name.
    */
-  List<Library> _sortedLibraries;
+  List<LibraryMirror> _sortedLibraries;
 
   CommentMap _comments;
 
   /** The library that we're currently generating docs for. */
-  Library _currentLibrary;
+  LibraryMirror _currentLibrary;
 
   /** The type that we're currently generating docs for. */
-  Type _currentType;
+  InterfaceMirror _currentType;
 
   /** The member that we're currently generating docs for. */
-  Member _currentMember;
+  MemberMirror _currentMember;
 
   /** The path to the file currently being written to, relative to [outdir]. */
   String _filePath;
@@ -319,10 +358,17 @@ class Dartdoc {
             member: _currentMember));
   }
 
+  bool includeLibrary(LibraryMirror library) {
+    if (libraries != null) {
+      return libraries.indexOf(library.simpleName()) != -1;
+    }
+    return true;
+  }
+
   String get footerContent(){
     var footerItems = [];
     if(!omitGenerationTime) {
-      footerItems.add("This page generated at ${new Date.now()}");
+      footerItems.add("This page was generated at ${new Date.now()}");
     }
     if(footerText != null) {
       footerItems.add(footerText);
@@ -337,38 +383,35 @@ class Dartdoc {
     return content;
   }
 
-  void document([String entrypoint]) {
-    var oldDietParse = options.dietParse;
-    try {
-      options.dietParse = true;
+  void documentEntryPoint(String entrypoint, String libPath) {
+    final compilation = new Compilation(entrypoint, libPath);
+    _document(compilation);
+  }
 
-      // If we have an entrypoint, process it. Otherwise, just use whatever
-      // libraries have been previously loaded by the calling code.
-      if (entrypoint != null) {
-        world.processDartScript(entrypoint);
-      }
+  void documentLibraries(List<String> libraries, String libPath) {
+    final compilation = new Compilation.library(libraries, libPath);
+    _document(compilation);
+  }
 
-      world.resolveAll();
+  void _document(Compilation compilation) {
+    // Sort the libraries by name (not key).
+    _sortedLibraries = new List<LibraryMirror>.from(
+        compilation.mirrors().libraries().getValues().filter(includeLibrary));
+    _sortedLibraries.sort((x, y) {
+      return x.simpleName().toUpperCase().compareTo(
+          y.simpleName().toUpperCase());
+    });
 
-      // Sort the libraries by name (not key).
-      _sortedLibraries = world.libraries.getValues();
-      _sortedLibraries.sort((a, b) {
-        return a.name.toUpperCase().compareTo(b.name.toUpperCase());
-      });
+    // Generate the docs.
+    if (mode == MODE_LIVE_NAV) docNavigationJson();
 
-      // Generate the docs.
-      if (mode == MODE_LIVE_NAV) docNavigationJson();
+    docIndex();
+    for (final library in _sortedLibraries) {
+      docLibrary(library);
+    }
 
-      docIndex();
-      for (final library in _sortedLibraries) {
-        docLibrary(library);
-      }
-
-      if (generateAppCache) {
-        generateAppCacheManifest();
-      }
-    } finally {
-      options.dietParse = oldDietParse;
+    if (generateAppCache) {
+      generateAppCacheManifest();
     }
   }
 
@@ -381,10 +424,17 @@ class Dartdoc {
     final outPath = '$outputDir/$_filePath';
     final dir = new Directory(dirname(outPath));
     if (!dir.existsSync()) {
-      dir.createSync();
+      // TODO(johnniwinther): Hack to avoid 'file already exists' exception
+      // thrown due to invalid result from dir.existsSync() (probably due to
+      // race conditions).
+      try {
+        dir.createSync();
+      } catch (DirectoryIOException e) {
+        // Ignore.
+      }
     }
 
-    world.files.writeString(outPath, _file.toString());
+    writeString(new File(outPath), _file.toString());
     _filePath = null;
     _file = null;
   }
@@ -424,7 +474,8 @@ class Dartdoc {
     // Add data attributes describing what the page documents.
     var data = '';
     if (_currentLibrary != null) {
-      data = '$data data-library="${md.escapeHtml(_currentLibrary.name)}"';
+      data = '$data data-library='
+             '"${md.escapeHtml(_currentLibrary.simpleName())}"';
     }
 
     if (_currentType != null) {
@@ -520,8 +571,8 @@ class Dartdoc {
     endFile();
   }
 
-  void docIndexLibrary(Library library) {
-    writeln('<h4>${a(libraryUrl(library), library.name)}</h4>');
+  void docIndexLibrary(LibraryMirror library) {
+    writeln('<h4>${a(libraryUrl(library), library.simpleName())}</h4>');
   }
 
   /**
@@ -531,29 +582,28 @@ class Dartdoc {
   void docNavigationJson() {
     startFile('nav.json');
 
-    final libraries = {};
+    final libraryMap = {};
 
     for (final library in _sortedLibraries) {
-      docLibraryNavigationJson(library, libraries);
+      docLibraryNavigationJson(library, libraryMap);
     }
 
-    writeln(JSON.stringify(libraries));
+    writeln(JSON.stringify(libraryMap));
     endFile();
   }
 
-  void docLibraryNavigationJson(Library library, Map libraries) {
+  void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
     final types = [];
 
-    for (final type in orderByName(library.types)) {
-      if (type.isTop) continue;
-      if (type.name.startsWith('_')) continue;
+    for (final type in orderByName(library.types().getValues())) {
+      if (type.isPrivate) continue;
 
       final kind = type.isClass ? 'class' : 'interface';
       final url = typeUrl(type);
       types.add({ 'name': typeName(type), 'kind': kind, 'url': url });
     }
 
-    libraries[library.name] = types;
+    libraryMap[library.simpleName()] = types;
   }
 
   void docNavigation() {
@@ -567,9 +617,9 @@ class Dartdoc {
         write('<h2><div class="icon-library"></div>');
 
         if ((_currentLibrary == library) && (_currentType == null)) {
-          write('<strong>${library.name}</strong>');
+          write('<strong>${library.simpleName()}</strong>');
         } else {
-          write('${a(libraryUrl(library), library.name)}');
+          write('${a(libraryUrl(library), library.simpleName())}');
         }
         write('</h2>');
 
@@ -582,16 +632,15 @@ class Dartdoc {
   }
 
   /** Writes the navigation for the types contained by the given library. */
-  void docLibraryNavigation(Library library) {
+  void docLibraryNavigation(LibraryMirror library) {
     // Show the exception types separately.
-    final types = <Type>[];
-    final exceptions = <Type>[];
+    final types = <InterfaceMirror>[];
+    final exceptions = <InterfaceMirror>[];
 
-    for (final type in orderByName(library.types)) {
-      if (type.isTop) continue;
-      if (type.name.startsWith('_')) continue;
+    for (final type in orderByName(library.types().getValues())) {
+      if (type.isPrivate) continue;
 
-      if (type.name.endsWith('Exception')) {
+      if (isException(type)) {
         exceptions.add(type);
       } else {
         types.add(type);
@@ -607,9 +656,9 @@ class Dartdoc {
   }
 
   /** Writes a linked navigation list item for the given type. */
-  void docTypeNavigation(Type type) {
+  void docTypeNavigation(InterfaceMirror type) {
     var icon = 'interface';
-    if (type.name.endsWith('Exception')) {
+    if (type.simpleName().endsWith('Exception')) {
       icon = 'exception';
     } else if (type.isClass) {
       icon = 'class';
@@ -626,15 +675,18 @@ class Dartdoc {
     writeln('</li>');
   }
 
-  void docLibrary(Library library) {
+  void docLibrary(LibraryMirror library) {
+    if (verbose) {
+      print('Library \'${library.simpleName()}\':');
+    }
     _totalLibraries++;
     _currentLibrary = library;
     _currentType = null;
 
     startFile(libraryUrl(library));
-    writeHeader('${library.name} Library',
-        [library.name, libraryUrl(library)]);
-    writeln('<h2><strong>${library.name}</strong> library</h2>');
+    writeHeader('${library.simpleName()} Library',
+        [library.simpleName(), libraryUrl(library)]);
+    writeln('<h2><strong>${library.simpleName()}</strong> library</h2>');
 
     // Look for a comment for the entire library.
     final comment = getLibraryComment(library);
@@ -643,18 +695,17 @@ class Dartdoc {
     }
 
     // Document the top-level members.
-    docMembers(library.topType);
+    docMembers(library);
 
     // Document the types.
-    final classes = <Type>[];
-    final interfaces = <Type>[];
-    final exceptions = <Type>[];
+    final classes = <InterfaceMirror>[];
+    final interfaces = <InterfaceMirror>[];
+    final exceptions = <InterfaceMirror>[];
 
-    for (final type in orderByName(library.types)) {
-      if (type.isTop) continue;
-      if (type.name.startsWith('_')) continue;
+    for (final type in orderByName(library.types().getValues())) {
+      if (type.isPrivate) continue;
 
-      if (type.name.endsWith('Exception')) {
+      if (isException(type)) {
         exceptions.add(type);
       } else if (type.isClass) {
         classes.add(type);
@@ -670,14 +721,14 @@ class Dartdoc {
     writeFooter();
     endFile();
 
-    for (final type in library.types.getValues()) {
-      if (type.isTop) continue;
-      if (type.name.startsWith('_')) continue;
+    for (final type in library.types().getValues()) {
+      if (type.isPrivate) continue;
+
       docType(type);
     }
   }
 
-  void docTypes(List<Type> types, String header) {
+  void docTypes(List<InterfaceMirror> types, String header) {
     if (types.length == 0) return;
 
     writeln('<h3>$header</h3>');
@@ -694,26 +745,37 @@ class Dartdoc {
     }
   }
 
-  void docType(Type type) {
+  void docType(InterfaceMirror type) {
+    if (verbose) {
+      print('- ${type.simpleName()}');
+    }
     _totalTypes++;
     _currentType = type;
 
     startFile(typeUrl(type));
 
+    var kind = 'Interface';
+    if (type.isTypedef) {
+      kind = 'Typedef';
+    } else if (type.isClass) {
+      kind = 'Class';
+    }
+
     final typeTitle =
-      '${typeName(type)} ${type.isClass ? "Class" : "Interface"}';
-    writeHeader('$typeTitle / ${type.library.name} Library',
-        [type.library.name, libraryUrl(type.library),
+      '${typeName(type)} ${kind}';
+    writeHeader('$typeTitle / ${type.library().simpleName()} Library',
+        [type.library().simpleName(), libraryUrl(type.library()),
          typeName(type), typeUrl(type)]);
     writeln(
         '''
         <h2><strong>${typeName(type, showBounds: true)}</strong>
-          ${type.isClass ? "Class" : "Interface"}
+          $kind
         </h2>
         ''');
 
-    docCode(type.span, getTypeComment(type));
+    docCode(type.location(), getTypeComment(type));
     docInheritance(type);
+    docTypedef(type);
     docConstructors(type);
     docMembers(type);
 
@@ -732,9 +794,9 @@ class Dartdoc {
    * an icon and the type's name. It's similar to how types appear in the
    * navigation, but is suitable for inline (as opposed to in a `<ul>`) use.
    */
-  void typeSpan(Type type) {
+  void typeSpan(InterfaceMirror type) {
     var icon = 'interface';
-    if (type.name.endsWith('Exception')) {
+    if (type.simpleName().endsWith('Exception')) {
       icon = 'exception';
     } else if (type.isClass) {
       icon = 'class';
@@ -754,7 +816,7 @@ class Dartdoc {
    * subclasses, superclasses, subinterfaces, superinferfaces, and default
    * class.
    */
-  void docInheritance(Type type) {
+  void docInheritance(InterfaceMirror type) {
     // Don't show the inheritance details for Object. It doesn't have any base
     // class (obviously) and it has too many subclasses to be useful.
     if (type.isObject) return;
@@ -764,30 +826,35 @@ class Dartdoc {
       if (types == null) return;
 
       // Skip private types.
-      final publicTypes = types.filter((type) => !type.name.startsWith('_'));
+      final publicTypes = new List.from(types.filter((t) => !t.isPrivate));
       if (publicTypes.length == 0) return;
 
       writeln('<h3>$header</h3>');
       writeln('<p>');
       bool first = true;
-      for (final type in publicTypes) {
+      for (final t in publicTypes) {
         if (!first) write(', ');
-        typeSpan(type);
+        typeSpan(t);
         first = false;
       }
       writeln('</p>');
     }
 
+    final subtypes = [];
+    for (final subtype in computeSubdeclarations(type)) {
+      subtypes.add(subtype);
+    }
+    subtypes.sort((x, y) => x.simpleName().compareTo(y.simpleName()));
     if (type.isClass) {
       // Show the chain of superclasses.
-      if (!type.parent.isObject) {
+      if (!type.superclass().isObject) {
         final supertypes = [];
-        var thisType = type.parent;
+        var thisType = type.superclass();
         // As a sanity check, only show up to five levels of nesting, otherwise
         // the box starts to get hideous.
         do {
           supertypes.add(thisType);
-          thisType = thisType.parent;
+          thisType = thisType.superclass();
         } while (!thisType.isObject);
 
         writeln('<h3>Extends</h3>');
@@ -802,41 +869,26 @@ class Dartdoc {
         writeln('</p>');
       }
 
-      // Find the immediate declared subclasses (Type.subtypes includes many
-      // transitive subtypes).
-      final subtypes = [];
-      for (final subtype in type.subtypes) {
-        if (subtype.parent == type) subtypes.add(subtype);
-      }
-      subtypes.sort((a, b) => a.name.compareTo(b.name));
-
       listTypes(subtypes, 'Subclasses');
-      listTypes(type.interfaces, 'Implements');
+      listTypes(type.interfaces().getValues(), 'Implements');
     } else {
       // Show the default class.
-      if (type.genericType.defaultType != null) {
-        listTypes([type.genericType.defaultType], 'Default class');
+      if (type.defaultType() != null) {
+        listTypes([type.defaultType()], 'Default class');
       }
 
       // List extended interfaces.
-      listTypes(type.interfaces, 'Extends');
+      listTypes(type.interfaces().getValues(), 'Extends');
 
       // List subinterfaces and implementing classes.
       final subinterfaces = [];
       final implementing = [];
 
-      for (final subtype in type.subtypes) {
-        // We only want explicitly declared subinterfaces, so check that this
-        // type is a superinterface.
-        for (final supertype in subtype.interfaces) {
-          if (supertype == type) {
-            if (subtype.isClass) {
-              implementing.add(subtype);
-            } else {
-              subinterfaces.add(subtype);
-            }
-            break;
-          }
+      for (final subtype in subtypes) {
+        if (subtype.isClass) {
+          implementing.add(subtype);
+        } else {
+          subinterfaces.add(subtype);
         }
       }
 
@@ -845,38 +897,68 @@ class Dartdoc {
     }
   }
 
+  /**
+   * Documents the definition of [type] if it is a typedef.
+   */
+  void docTypedef(TypeMirror type) {
+    if (type is! TypedefMirror) {
+      return;
+    }
+    writeln('<div class="method"><h4 id="${type.simpleName()}">');
+
+    if (includeSource) {
+      writeln('<span class="show-code">Code</span>');
+    }
+
+    if (type.definition() !== null) {
+      // TODO(johnniwinther): Implement [:TypedefMirror.definition():].
+      write('typedef ');
+      annotateType(type, type.definition(), type.simpleName());
+
+      write(''' <a class="anchor-link" href="#${type.simpleName()}"
+                title="Permalink to ${type.simpleName()}">#</a>''');
+    }
+    writeln('</h4>');
+
+    docCode(type.location(), null, showCode: true);
+
+    writeln('</div>');
+  }
+
   /** Document the constructors for [Type], if any. */
-  void docConstructors(Type type) {
-    final names = type.constructors.getKeys().filter(
-      (name) => !name.startsWith('_'));
+  void docConstructors(InterfaceMirror type) {
+    final constructors = <MethodMirror>[];
+    for (var constructor in type.constructors().getValues()) {
+       if (!constructor.isPrivate) {
+         constructors.add(constructor);
+       }
+    }
 
-    if (names.length > 0) {
+    if (constructors.length > 0) {
       writeln('<h3>Constructors</h3>');
-      names.sort((x, y) => x.toUpperCase().compareTo(y.toUpperCase()));
+      constructors.sort((x, y) => x.simpleName().toUpperCase().compareTo(
+                                  y.simpleName().toUpperCase()));
 
-      for (final name in names) {
-        docMethod(type, type.constructors[name], constructorName: name);
+      for (final constructor in constructors) {
+        docMethod(type, constructor);
       }
     }
   }
 
-  void docMembers(Type type) {
+  void docMembers(ObjectMirror host) {
     // Collect the different kinds of members.
     final staticMethods = [];
     final staticFields = [];
     final instanceMethods = [];
     final instanceFields = [];
 
-    for (final member in orderByName(type.members)) {
-      if (member.name.startsWith('_')) continue;
+    for (final member in orderByName(host.declaredMembers().getValues())) {
+      if (member.isPrivate) continue;
 
       final methods = member.isStatic ? staticMethods : instanceMethods;
       final fields = member.isStatic ? staticFields : instanceFields;
 
-      if (member.isProperty) {
-        if (member.canGet) methods.add(member.getter);
-        if (member.canSet) methods.add(member.setter);
-      } else if (member.isMethod) {
+      if (member.isMethod) {
         methods.add(member);
       } else if (member.isField) {
         fields.add(member);
@@ -884,25 +966,33 @@ class Dartdoc {
     }
 
     if (staticMethods.length > 0) {
-      final title = type.isTop ? 'Functions' : 'Static Methods';
+      final title = host is LibraryMirror ? 'Functions' : 'Static Methods';
       writeln('<h3>$title</h3>');
-      for (final method in staticMethods) docMethod(type, method);
+      for (final method in orderByName(staticMethods)) {
+        docMethod(host, method);
+      }
     }
 
     if (staticFields.length > 0) {
-      final title = type.isTop ? 'Variables' : 'Static Fields';
+      final title = host is LibraryMirror ? 'Variables' : 'Static Fields';
       writeln('<h3>$title</h3>');
-      for (final field in staticFields) docField(type, field);
+      for (final field in orderByName(staticFields)) {
+        docField(host, field);
+      }
     }
 
     if (instanceMethods.length > 0) {
       writeln('<h3>Methods</h3>');
-      for (final method in instanceMethods) docMethod(type, method);
+      for (final method in orderByName(instanceMethods)) {
+        docMethod(host, method);
+      }
     }
 
     if (instanceFields.length > 0) {
       writeln('<h3>Fields</h3>');
-      for (final field in instanceFields) docField(type, field);
+      for (final field in orderByName(instanceFields)) {
+        docField(host, field);
+      }
     }
   }
 
@@ -910,8 +1000,7 @@ class Dartdoc {
    * Documents the [method] in type [type]. Handles all kinds of methods
    * including getters, setters, and constructors.
    */
-  void docMethod(Type type, MethodMember method,
-      [String constructorName = null]) {
+  void docMethod(ObjectMirror host, MethodMirror method) {
     _totalMembers++;
     _currentMember = method;
 
@@ -922,57 +1011,51 @@ class Dartdoc {
     }
 
     if (method.isConstructor) {
-      write(method.isConst ? 'const ' : 'new ');
-    }
-
-    if (constructorName == null) {
-      annotateType(type, method.returnType);
-    }
-
-    // Translate specially-named methods: getters, setters, operators.
-    var name = method.name;
-    if (name.startsWith('get:')) {
-      // Getter.
-      name = 'get ${name.substring(4)}';
-    } else if (name.startsWith('set:')) {
-      // Setter.
-      name = 'set ${name.substring(4)}';
-    } else if (name == ':negate') {
-      // Dart uses 'negate' for prefix negate operators, not '!'.
-      name = 'operator negate';
-    } else if (name == ':call') {
-      name = 'operator call';
-    } else {
-      // See if it's an operator.
-      name = TokenKind.rawOperatorFromMethod(name);
-      if (name == null) {
-        name = method.name;
+      if (method.isFactory) {
+        write('factory ');
       } else {
-        name = 'operator $name';
+        write(method.isConst ? 'const ' : 'new ');
       }
+    }
+
+    if (method.constructorName == null) {
+      annotateType(host, method.returnType());
+    }
+
+    var name = method.simpleName();
+    // Translate specially-named methods: getters, setters, operators.
+    if (method.isGetter) {
+      // Getter.
+      name = 'get $name';
+    } else if (method.isSetter) {
+      // Setter.
+      name = 'set $name';
+    } else if (method.isOperator) {
+      name = 'operator ${method.operatorName}';
     }
 
     write('<strong>$name</strong>');
 
     // Named constructors.
-    if (constructorName != null && constructorName != '') {
+    if (method.constructorName != null && method.constructorName != '') {
       write('.');
-      write(constructorName);
+      write(method.constructorName);
     }
 
-    docParamList(type, method);
+    docParamList(host, method.parameters());
 
+    var prefix = host is LibraryMirror ? '' : '${typeName(host)}.';
     write(''' <a class="anchor-link" href="#${memberAnchor(method)}"
-              title="Permalink to ${typeName(type)}.$name">#</a>''');
+              title="Permalink to $prefix$name">#</a>''');
     writeln('</h4>');
 
-    docCode(method.span, getMethodComment(method), showCode: true);
+    docCode(method.location(), getMethodComment(method), showCode: true);
 
     writeln('</div>');
   }
 
   /** Documents the field [field] of type [type]. */
-  void docField(Type type, FieldMember field) {
+  void docField(ObjectMirror host, FieldMirror field) {
     _totalMembers++;
     _currentMember = field;
 
@@ -984,47 +1067,43 @@ class Dartdoc {
 
     if (field.isFinal) {
       write('final ');
-    } else if (field.type.name == 'Dynamic') {
+    } else if (field.type().isDynamic) {
       write('var ');
     }
 
-    annotateType(type, field.type);
+    annotateType(host, field.type());
+    var prefix = host is LibraryMirror ? '' : '${typeName(host)}.';
     write(
         '''
-        <strong>${field.name}</strong> <a class="anchor-link"
+        <strong>${field.simpleName()}</strong> <a class="anchor-link"
             href="#${memberAnchor(field)}"
-            title="Permalink to ${typeName(type)}.${field.name}">#</a>
+            title="Permalink to $prefix${field.simpleName()}">#</a>
         </h4>
         ''');
 
-    docCode(field.span, getFieldComment(field), showCode: true);
+    docCode(field.location(), getFieldComment(field), showCode: true);
     writeln('</div>');
   }
 
-  void docParamList(Type enclosingType, MethodMember member) {
+  void docParamList(ObjectMirror enclosingType,
+                    List<ParameterMirror> parameters) {
     write('(');
     bool first = true;
     bool inOptionals = false;
-    for (final parameter in member.parameters) {
+    for (final parameter in parameters) {
       if (!first) write(', ');
 
-      if (!inOptionals && parameter.isOptional) {
+      if (!inOptionals && parameter.isOptional()) {
         write('[');
         inOptionals = true;
       }
 
-      annotateType(enclosingType, parameter.type, parameter.name);
+      annotateType(enclosingType, parameter.type(), parameter.simpleName());
 
       // Show the default value for named optional parameters.
-      if (parameter.isOptional && parameter.hasDefaultValue) {
+      if (parameter.isOptional() && parameter.hasDefaultValue()) {
         write(' = ');
-        // TODO(rnystrom): Using the definition text here is a bit cheap.
-        // We really should be pretty-printing the AST so that if you have:
-        //   foo([arg = 1 + /* comment */ 2])
-        // the docs should just show:
-        //   foo([arg = 1 + 2])
-        // For now, we'll assume you don't do that.
-        write(parameter.definition.value.span.text);
+        write(parameter.defaultValue());
       }
 
       first = false;
@@ -1038,7 +1117,7 @@ class Dartdoc {
    * Documents the code contained within [span] with [comment]. If [showCode]
    * is `true` (and [includeSource] is set), also includes the source code.
    */
-  void docCode(SourceSpan span, String comment, [bool showCode = false]) {
+  void docCode(Location location, String comment, [bool showCode = false]) {
     writeln('<div class="doc">');
     if (comment != null) {
       writeln(comment);
@@ -1046,7 +1125,7 @@ class Dartdoc {
 
     if (includeSource && showCode) {
       writeln('<pre class="source">');
-      writeln(md.escapeHtml(unindentCode(span)));
+      writeln(md.escapeHtml(unindentCode(location)));
       writeln('</pre>');
     }
 
@@ -1055,9 +1134,9 @@ class Dartdoc {
 
 
   /** Get the doc comment associated with the given library. */
-  String getLibraryComment(Library library) {
+  String getLibraryComment(LibraryMirror library) {
     // Look for a comment for the entire library.
-    final comment = _comments.findLibrary(library.baseSource);
+    final comment = _comments.findLibrary(library.location().source());
     if (comment != null) {
       return md.markdownToHtml(comment);
     }
@@ -1065,22 +1144,22 @@ class Dartdoc {
   }
 
   /** Get the doc comment associated with the given type. */
-  String getTypeComment(Type type) {
-    String comment = _comments.find(type.span);
+  String getTypeComment(TypeMirror type) {
+    String comment = _comments.find(type.location());
     if (comment == null) return null;
     return commentToHtml(comment);
   }
 
   /** Get the doc comment associated with the given method. */
-  String getMethodComment(MethodMember method) {
-    String comment = _comments.find(method.span);
+  String getMethodComment(MethodMirror method) {
+    String comment = _comments.find(method.location());
     if (comment == null) return null;
     return commentToHtml(comment);
   }
 
   /** Get the doc comment associated with the given field. */
-  String getFieldComment(FieldMember field) {
-    String comment = _comments.find(field.span);
+  String getFieldComment(FieldMirror field) {
+    String comment = _comments.find(field.location());
     if (comment == null) return null;
     return commentToHtml(comment);
   }
@@ -1109,30 +1188,33 @@ class Dartdoc {
   }
 
   /** Gets the URL to the documentation for [library]. */
-  String libraryUrl(Library library) {
-    return '${sanitize(library.name)}.html';
+  String libraryUrl(LibraryMirror library) {
+    return '${sanitize(library.simpleName())}.html';
   }
 
   /** Gets the URL for the documentation for [type]. */
-  String typeUrl(Type type) {
-    if (type.isTop) return '${sanitize(type.library.name)}.html';
+  String typeUrl(ObjectMirror type) {
+    if (type is LibraryMirror) return '${sanitize(type.simpleName())}.html';
+    assert (type is TypeMirror);
     // Always get the generic type to strip off any type parameters or
     // arguments. If the type isn't generic, genericType returns `this`, so it
     // works for non-generic types too.
-    return '${sanitize(type.library.name)}/${type.genericType.name}.html';
+    return '${sanitize(type.library().simpleName())}/'
+           '${type.declaration.simpleName()}.html';
   }
 
   /** Gets the URL for the documentation for [member]. */
-  String memberUrl(Member member) {
-    final typeUrl = typeUrl(member.declaringType);
-    if (!member.isConstructor) return '$typeUrl#${member.name}';
-    if (member.constructorName == '') return '$typeUrl#new:${member.name}';
-    return '$typeUrl#new:${member.name}.${member.constructorName}';
+  String memberUrl(MemberMirror member) {
+    final url = typeUrl(member.surroundingDeclaration());
+    if (!member.isConstructor) return '$url#${member.simpleName()}';
+    assert (member is MethodMirror);
+    if (member.constructorName == '') return '$url#new:${member.simpleName()}';
+    return '$url#new:${member.simpleName()}.${member.constructorName}';
   }
 
   /** Gets the anchor id for the document for [member]. */
-  String memberAnchor(Member member) {
-    return '${member.name}';
+  String memberAnchor(MemberMirror member) {
+    return '${member.simpleName()}';
   }
 
   /**
@@ -1149,23 +1231,22 @@ class Dartdoc {
   /**
    * Writes a type annotation for the given type and (optional) parameter name.
    */
-  annotateType(Type enclosingType, Type type, [String paramName = null]) {
+  annotateType(ObjectMirror enclosingType,
+               TypeMirror type,
+               [String paramName = null]) {
     // Don't bother explicitly displaying Dynamic.
-    if (type.isVar) {
+    if (type.isDynamic) {
       if (paramName !== null) write(paramName);
       return;
     }
 
     // For parameters, handle non-typedefed function types.
-    if (paramName !== null) {
-      final call = type.getCallMethod();
-      if (call != null) {
-        annotateType(enclosingType, call.returnType);
-        write(paramName);
+    if (paramName !== null && type is FunctionTypeMirror) {
+      annotateType(enclosingType, type.returnType());
+      write(paramName);
 
-        docParamList(enclosingType, call);
-        return;
-      }
+      docParamList(enclosingType, type.parameters());
+      return;
     }
 
     linkToType(enclosingType, type);
@@ -1175,30 +1256,37 @@ class Dartdoc {
   }
 
   /** Writes a link to a human-friendly string representation for a type. */
-  linkToType(Type enclosingType, Type type) {
-    if (type is ParameterType) {
-      // If we're using a type parameter within the body of a generic class then
-      // just link back up to the class.
-      write(a(typeUrl(enclosingType), type.name));
+  linkToType(ObjectMirror enclosingType, TypeMirror type) {
+    if (type.isVoid) {
+      // Do not generate links for void.
+      // TODO(johnniwinter): Generate span for specific style?
+      write('void');
       return;
     }
 
-    // Link to the type.
-    // Use .genericType to avoid writing the <...> here.
-    write(a(typeUrl(type), type.genericType.name));
+    if (type.isTypeVariable) {
+      // If we're using a type parameter within the body of a generic class then
+      // just link back up to the class.
+      write(a(typeUrl(enclosingType), type.simpleName()));
+      return;
+    }
 
-    // See if it's a generic type.
-    if (type.isGeneric) {
-      // TODO(rnystrom): This relies on a weird corner case of frog. Currently,
-      // the only time we get into this case is when we have a "raw" generic
-      // that's been instantiated with Dynamic for all type arguments. It's kind
-      // of strange that frog works that way, but we take advantage of it to
-      // show raw types without any type arguments.
+    assert(type is InterfaceMirror);
+
+    // Link to the type.
+    if (includeLibrary(type.library())) {
+      write(a(typeUrl(type), type.simpleName()));
+    } else {
+      write(type.simpleName());
+    }
+
+    if (type.isDeclaration) {
+      // Avoid calling [:typeArguments():] on a declaration.
       return;
     }
 
     // See if it's an instantiation of a generic type.
-    final typeArgs = type.typeArgsInOrder;
+    final typeArgs = type.typeArguments();
     if (typeArgs.length > 0) {
       write('&lt;');
       bool first = true;
@@ -1212,49 +1300,59 @@ class Dartdoc {
   }
 
   /** Creates a linked cross reference to [type]. */
-  typeReference(Type type) {
+  typeReference(InterfaceMirror type) {
     // TODO(rnystrom): Do we need to handle ParameterTypes here like
     // annotation() does?
     return a(typeUrl(type), typeName(type), css: 'crossref');
   }
 
   /** Generates a human-friendly string representation for a type. */
-  typeName(Type type, [bool showBounds = false]) {
+  typeName(TypeMirror type, [bool showBounds = false]) {
+    if (type.isVoid) {
+      return 'void';
+    }
+    if (type is TypeVariableMirror) {
+      return type.simpleName();
+    }
+    assert (type is InterfaceMirror);
+
     // See if it's a generic type.
-    if (type.isGeneric) {
+    if (type.isDeclaration) {
       final typeParams = [];
-      for (final typeParam in type.genericType.typeParameters) {
+      for (final typeParam in type.declaration.typeVariables()) {
         if (showBounds &&
-            (typeParam.extendsType != null) &&
-            !typeParam.extendsType.isObject) {
-          final bound = typeName(typeParam.extendsType, showBounds: true);
-          typeParams.add('${typeParam.name} extends $bound');
+            (typeParam.bound() != null) &&
+            !typeParam.bound().isObject) {
+          final bound = typeName(typeParam.bound(), showBounds: true);
+          typeParams.add('${typeParam.simpleName()} extends $bound');
         } else {
-          typeParams.add(typeParam.name);
+          typeParams.add(typeParam.simpleName());
         }
       }
-
+      if (typeParams.isEmpty()) {
+        return type.simpleName();
+      }
       final params = Strings.join(typeParams, ', ');
-      return '${type.name}&lt;$params&gt;';
+      return '${type.simpleName()}&lt;$params&gt;';
     }
 
     // See if it's an instantiation of a generic type.
-    final typeArgs = type.typeArgsInOrder;
+    final typeArgs = type.typeArguments();
     if (typeArgs.length > 0) {
-      final args = Strings.join(map(typeArgs, (arg) => typeName(arg)), ', ');
-      return '${type.genericType.name}&lt;$args&gt;';
+      final args = Strings.join(typeArgs.map((arg) => typeName(arg)), ', ');
+      return '${type.declaration.simpleName()}&lt;$args&gt;';
     }
 
     // Regular type.
-    return type.name;
+    return type.simpleName();
   }
 
   /**
    * Remove leading indentation to line up with first line.
    */
-  unindentCode(SourceSpan span) {
-    final column = getSpanColumn(span);
-    final lines = span.text.split('\n');
+  unindentCode(Location span) {
+    final column = getLocationColumn(span);
+    final lines = span.text().split('\n');
     // TODO(rnystrom): Dirty hack.
     for (var i = 1; i < lines.length; i++) {
       lines[i] = unindent(lines[i], column);
@@ -1267,11 +1365,11 @@ class Dartdoc {
   /**
    * Takes a string of Dart code and turns it into sanitized HTML.
    */
-  formatCode(SourceSpan span) {
+  formatCode(Location span) {
     final code = unindentCode(span);
 
     // Syntax highlight.
-    return classifySource(new SourceFile('', code));
+    return classifySource(code);
   }
 
   /**
@@ -1279,8 +1377,10 @@ class Dartdoc {
    * brackets. It will try to figure out what the name refers to and link or
    * style it appropriately.
    */
-  md.Node resolveNameReference(String name, [Member member = null,
-      Type type = null, Library library = null]) {
+  md.Node resolveNameReference(String name,
+                               [MemberMirror member = null,
+                                ObjectMirror type = null,
+                                LibraryMirror library = null]) {
     makeLink(String href) {
       final anchor = new md.Element.text('a', name);
       anchor.attributes['href'] = relativePath(href);
@@ -1288,24 +1388,10 @@ class Dartdoc {
       return anchor;
     }
 
-    findMember(Type type, String memberName) {
-      final member = type.members[memberName];
-      if (member == null) return null;
-
-      // Special case: if the member we've resolved is a property (i.e. it wraps
-      // a getter and/or setter then *that* member itself won't be on the docs,
-      // just the getter or setter will be. So pick one of those to link to.
-      if (member.isProperty) {
-        return member.canGet ? member.getter : member.setter;
-      }
-
-      return member;
-    }
-
     // See if it's a parameter of the current method.
-    if (member != null) {
-      for (final parameter in member.parameters) {
-        if (parameter.name == name) {
+    if (member is MethodMirror) {
+      for (final parameter in member.parameters()) {
+        if (parameter.simpleName() == name) {
           final element = new md.Element.text('span', name);
           element.attributes['class'] = 'param';
           return element;
@@ -1315,7 +1401,7 @@ class Dartdoc {
 
     // See if it's another member of the current type.
     if (type != null) {
-      final member = findMember(type, name);
+      final member = findMirror(type.declaredMembers(), name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }
@@ -1326,12 +1412,14 @@ class Dartdoc {
     if (library != null) {
       // See if it's a constructor
       final constructorLink = (() {
-        final match = new RegExp(@'new (\w+)(?:\.(\w+))?').firstMatch(name);
+        final match =
+            new RegExp(@'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
         if (match == null) return;
-        final type = library.types[match[1]];
+        final type = findMirror(library.types(), match[1]);
         if (type == null) return;
-        final constructor = type.getConstructor(
-            match[2] == null ? '' : match[2]);
+        final constructor =
+            findMirror(type.constructors(),
+                            match[2] == null ? '' : match[2]);
         if (constructor == null) return;
         return makeLink(memberUrl(constructor));
       })();
@@ -1339,23 +1427,23 @@ class Dartdoc {
 
       // See if it's a member of another type
       final foreignMemberLink = (() {
-        final match = new RegExp(@'(\w+)\.(\w+)').firstMatch(name);
+        final match = new RegExp(@'([\w$]+)\.([\w$]+)').firstMatch(name);
         if (match == null) return;
-        final type = library.types[match[1]];
+        final type = findMirror(library.types(), match[1]);
         if (type == null) return;
-        final member = findMember(type, match[2]);
+        final member = findMirror(type.declaredMembers(), match[2]);
         if (member == null) return;
         return makeLink(memberUrl(member));
       })();
       if (foreignMemberLink != null) return foreignMemberLink;
 
-      final type = library.types[name];
+      final type = findMirror(library.types(), name);
       if (type != null) {
         return makeLink(typeUrl(type));
       }
 
       // See if it's a top-level member in the current library.
-      final member = findMember(library.topType, name);
+      final member = findMirror(library.declaredMembers(), name);
       if (member != null) {
         return makeLink(memberUrl(member));
       }
@@ -1366,12 +1454,6 @@ class Dartdoc {
     // * Type parameters of the enclosing type.
 
     return new md.Element.text('code', name);
-  }
-
-  // TODO(rnystrom): Move into SourceSpan?
-  int getSpanColumn(SourceSpan span) {
-    final line = span.file.getLine(span.start);
-    return span.file.getColumn(line, span.start);
   }
 
   generateAppCacheManifest() {
@@ -1394,4 +1476,12 @@ class Dartdoc {
     toCache.onDone = (done) => endFile();
     toCache.list(recursive: true);
   }
+
+  /**
+   * Returns [:true:] if [type] should be regarded as an exception.
+   */
+  bool isException(TypeMirror type) {
+    return type.simpleName().endsWith('Exception');
+  }
 }
+
