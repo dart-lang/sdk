@@ -7,10 +7,10 @@
  */
 class Emitter {
 
-  final DiagnosticListener listener;
+  final Compiler compiler;
   final StringBuffer sb;
 
-  Emitter(this.listener) : sb = new StringBuffer();
+  Emitter(this.compiler) : sb = new StringBuffer();
 
   /**
    * Outputs given class element with selected inner elements.
@@ -35,22 +35,22 @@ class Emitter {
         || element is AbstractFieldElement) return;
     if (element.isField()) {
       // Add modifiers first.
-      sb.add(element.modifiers.toString());
+      sb.add(element.modifiers.unparse());
       sb.add(' ');
       // Figure out type.
       if (element is VariableElement) {
         VariableListElement variables = element.variables;
-        if (variables.type !== null) {
+        if (variables.computeType(compiler) !== null) {
           sb.add(variables.type);
           sb.add(' ');
         }
       }
       // TODO(smok): Maybe not rely on node unparsing,
       // but unparse initializer manually.
-      sb.add(element.parseNode(listener).unparse());
+      sb.add(element.parseNode(compiler).unparse());
       sb.add(';');
     } else {
-      sb.add(element.parseNode(listener).unparse());
+      sb.add(element.parseNode(compiler).unparse());
     }
   }
 
