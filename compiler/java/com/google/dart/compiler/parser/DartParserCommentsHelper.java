@@ -174,19 +174,20 @@ public class DartParserCommentsHelper {
   }
 
   /**
-   * DartC creates both a DartField and a DartMethodDefinition for getters and setters. They have
-   * the same source location; we want to assign the DartDoc to the method definition and not the
-   * field.
+   * DartC creates both a {@link DartField} and a {@link DartMethodDefinition} for getters and
+   * setters. They have the same source location; we want to assign the DartDoc to the method
+   * definition and not the field.
    */
   private static boolean commentContainedBySibling(DartComment comment, DartDeclaration<?> node) {
-    for (DartNode child : getChildren(node.getParent())) {
-      if (child != node && !(child instanceof DartComment)) {
-        if (isContainedBy(comment, child)) {
-          return true;
+    if (node instanceof DartField) {
+      for (DartNode child : getChildren(node.getParent())) {
+        if (child != node && !(child instanceof DartComment)) {
+          if (isContainedBy(comment, child)) {
+            return true;
+          }
         }
       }
     }
-
     return false;
   }
 
