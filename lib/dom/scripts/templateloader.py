@@ -7,6 +7,7 @@
 #
 # Preprocessor language:
 #
+#   //$ Comment line removed by preprocessor
 #   $if VAR
 #   $else
 #   $endif
@@ -101,6 +102,8 @@ class TemplateLoader(object):
           # Something else, like '$!MEMBERS'
           if active:
             out.append(full_line)
+      elif line.startswith('//$'):
+        pass  # Ignore pre-processor comment.
 
       else:
         if active:
