@@ -804,7 +804,8 @@ bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
 }
 
 
-// This is called for Smi, Mint and Bigint receivers. Bigints are not handled.
+// This is called for Smi, Mint and Bigint receivers. The right argument
+// can be Smi, Mint, Bigint or double.
 bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   Label fall_through, true_label, check_for_mint;
   const Bool& bool_true = Bool::ZoneHandle(Bool::True());
@@ -824,20 +825,19 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ LoadObject(EAX, bool_true);
   __ ret();
 
-  // At least one of the arguments was not Smi, inline code for Smi/Mint
-  // equality comparison.
+  // At least one of the arguments was not Smi.
   Label receiver_not_smi;
   __ Bind(&check_for_mint);
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Receiver.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &receiver_not_smi);
 
-  // Note that an instance of Mint never contains a value that can be
+  // Left (receiver) is Smi, return false if right is not Double.
+  // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
-  // Left is Smi, return false if right is Mint, otherwise fall through.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
-  __ CompareClassId(EAX, kMint, EDI);
-  __ j(NOT_EQUAL, &fall_through);
+  __ CompareClassId(EAX, kDouble, EDI);
+  __ j(EQUAL, &fall_through);
   __ LoadObject(EAX, bool_false);  // Smi == Mint -> false.
   __ ret();
 
@@ -849,7 +849,7 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &fall_through);
-  __ LoadObject(EAX, bool_false);  // Smi == Mint -> false.
+  __ LoadObject(EAX, bool_false);
   __ ret();
   // TODO(srdjan): Implement Mint == Mint comparison.
 
@@ -890,16 +890,13 @@ bool Intrinsifier::Integer_sar(Assembler* assembler) {
 }
 
 
+// Argument is Smi (receiver).
 bool Intrinsifier::Smi_bitNegate(Assembler* assembler) {
-  Label fall_through;
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Index.
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi.
   __ notl(EAX);
   __ andl(EAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
   __ ret();
-  __ Bind(&fall_through);
-  return false;
+  return true;
 }
 
 
@@ -988,12 +985,12 @@ bool Intrinsifier::Double_toDouble(Assembler* assembler) {
 }
 
 
-// Expects EAX to contain right argument, left argument is on stack. Left
-// argument is double, right argument is of unknown type.
+// Expects left argument to be double (receiver). Right argument is unknown.
+// Both arguments are on stack.
 static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
   Label fall_through;
   TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
-  // Both arguments are double, right operand is in EAX, class in EBX.
+  // Both arguments are double, right operand is in EAX.
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
   __ movl(EAX, Address(ESP, + 2 * kWordSize));  // Left argument.
   __ movsd(XMM0, FieldAddress(EAX, Double::value_offset()));
@@ -1037,7 +1034,7 @@ bool Intrinsifier::Double_div(Assembler* assembler) {
 }
 
 
-// Left is double right is integer (bigint or Smi)
+// Left is double right is integer (Bigint, Mint or Smi)
 bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
   Label fall_through;
   // Only Smi-s allowed.
