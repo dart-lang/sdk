@@ -2534,6 +2534,15 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
 DART_EXPORT Dart_Handle Dart_LibraryImportLibrary(Dart_Handle library,
                                                   Dart_Handle import);
 
+/**
+ * Loads a source string into a library.
+ *
+ * \param library A library
+ * \param url A url identifying the origin of the source
+ * \param source A string of Dart source
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
 DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
                                         Dart_Handle url,
                                         Dart_Handle source);
