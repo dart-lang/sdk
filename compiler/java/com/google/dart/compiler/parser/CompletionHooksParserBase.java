@@ -55,7 +55,7 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
      * productions at fault. Called from begin()
      */
     public boolean assertProgress() {
-      int currentPosition = position().getPos();
+      int currentPosition = position();
       if (currentPosition > maxPositionRange) {
         minPositionRange = maxPositionRange;
         maxPositionRange = currentPosition;

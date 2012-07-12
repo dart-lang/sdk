@@ -6,9 +6,10 @@ package com.google.dart.compiler;
 import com.google.common.base.Joiner;
 import com.google.dart.compiler.CompilerConfiguration.ErrorFormat;
 import com.google.dart.compiler.parser.DartScanner.Location;
-import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
+
+import com.sun.tools.javac.util.Position;
 
 import junit.framework.TestCase;
 
@@ -41,7 +42,7 @@ public class PrettyErrorFormatterTest extends TestCase {
         return null;
       }
     };
-    Location location = new Location(new Position(-1, 1, 3));
+    Location location = new Location(2);
     DartCompilationError error =
         new DartCompilationError(emptyDartSource, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -69,7 +70,7 @@ public class PrettyErrorFormatterTest extends TestCase {
         };
       }
     };
-    Location location = new Location(new Position(-1, 1, 3));
+    Location location = new Location(2);
     DartCompilationError error =
         new DartCompilationError(badDartSource, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -84,7 +85,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    */
   public void test_emptyDartSource() throws Exception {
     Source emptyDartSource = new DartSourceTest("my/path/Test.dart", "", new MockLibrarySource());
-    Location location = new Location(new Position(-1, 1, 3));
+    Location location = new Location(2);
     DartCompilationError error =
         new DartCompilationError(emptyDartSource, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -98,7 +99,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * Error on first line, so no previous line printed.
    */
   public void test_noColor_notMachine_firstLine() throws Exception {
-    Location location = new Location(new Position(3, 1, 3), new Position(6, 1, 6));
+    Location location = new Location(2, 5);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -116,7 +117,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * {@link Location} with single {@link Position}, underline single character.
    */
   public void test_noColor_notMachine_singlePosition() throws Exception {
-    Location location = new Location(new Position(-1, 2, 3));
+    Location location = new Location(10);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -135,7 +136,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * {@link Location} with single {@link Position}, underline single character.
    */
   public void test_withColor_notMachine_singlePosition() throws Exception {
-    Location location = new Location(new Position(-1, 2, 3));
+    Location location = new Location(10);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     String errorString = getErrorString(error, true, false);
@@ -166,7 +167,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * Underline range of characters.
    */
   public void test_noColor_notMachine() throws Exception {
-    Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 6, 2, 6));
+    Location location = new Location(10, 10 + 3);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -185,7 +186,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * Use color to highlight range of characters.
    */
   public void test_withColor_notMachine() throws Exception {
-    Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 6, 2, 6));
+    Location location = new Location(10, 10 + 3);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     String errorString = getErrorString(error, true, false);
@@ -216,7 +217,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * Include all information about error context.
    */
   public void test_noColor_forMachine() throws Exception {
-    Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 7, 2, 7));
+    Location location = new Location(10, 10 + 4);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     //
@@ -235,7 +236,7 @@ public class PrettyErrorFormatterTest extends TestCase {
    * Use color to highlight range of characters. Include all information about error context.
    */
   public void test_withColor_forMachine() throws Exception {
-    Location location = new Location(new Position(8 + 3, 2, 3), new Position(8 + 7, 2, 7));
+    Location location = new Location(10, 10 + 4);
     DartCompilationError error =
         new DartCompilationError(SOURCE, location, TypeErrorCode.NO_SUCH_TYPE, "Foo");
     String errorString = getErrorString(error, true, true);

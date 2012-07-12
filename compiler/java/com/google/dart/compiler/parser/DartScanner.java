@@ -18,87 +18,33 @@ import java.util.Stack;
 public class DartScanner {
 
   /**
-   * Represents a position in a source file, including absolute character position,
-   * line, and column.
-   */
-  public static class Position {
-    private int pos;
-    private int line;
-    private int col;
-
-    public Position(int pos, int line, int col) {
-      this.pos = pos;
-      this.line = line;
-      this.col = col;
-    }
-
-    public Position copy() {
-      return new Position(pos, line, col);
-    }
-
-    public int getPos() {
-      return pos;
-    }
-
-    public int getLine() {
-      return line;
-    }
-
-    public int getCol() {
-      return col;
-    }
-
-    public void advance(boolean isNewline) {
-      ++pos;
-      if (isNewline) {
-        col = 1;
-        ++line;
-      } else {
-        ++col;
-      }
-    }
-
-    /**
-     * @return the {@link Position} which is advanced on the given number of columns, on the same
-     *         line.
-     */
-    public Position getAdvancedColumns(int cols) {
-      return new Position(pos + cols, line, col + cols);
-    }
-
-    @Override
-    public String toString() {
-      return line + "," + col + "@" + pos;
-    }
-  }
-
-  /**
    * Represents a span of characters in a source file.
    */
   public static class Location {
     public static final Location NONE = null;
-    private Position begin, end;
+    private int begin;
+    private int end;
 
-    public Location(Position begin, Position end) {
+    public Location(int begin, int end) {
       this.begin = begin;
       this.end = end;
     }
 
-    public Location(Position begin) {
+    public Location(int begin) {
       this.begin = this.end = begin;
     }
 
-    public Position getBegin() {
+    public int getBegin() {
       return begin;
     }
 
-    public Position getEnd() {
+    public int getEnd() {
       return end;
     }
 
     @Override
     public String toString() {
-      return begin.toString() + "::" + end.toString();
+      return begin + "::" + end;
     }
   }
 
@@ -252,8 +198,8 @@ public class DartScanner {
     }
 
     private int lookahead[] = new int[NUM_LOOKAHEAD];
-    private Position lookaheadPos[] = new Position[NUM_LOOKAHEAD];
-    private Position nextLookaheadPos;
+    private int lookaheadPos[] = new int[NUM_LOOKAHEAD];
+    private int nextLookaheadPos;
     private ArrayList<TokenData> tokens;
     private TokenData lastToken;
 
@@ -435,7 +381,6 @@ public class DartScanner {
     return c == ' ' || c == '\t';
   }
 
-  private int commentLineCount;
   private int commentCharCount;
   private int lastCommentStart;
   private int lastCommentStop;
@@ -455,9 +400,9 @@ public class DartScanner {
 
       // Initialize lookahead positions.
       // TODO Determine if line & column should be relative to 0 or 'start'
-      internalState.nextLookaheadPos = new Position(start, 1, 1);
+      internalState.nextLookaheadPos = start;
       for (int i = 0; i < internalState.lookaheadPos.length; ++i) {
-        internalState.lookaheadPos[i] = new Position(start, 1, 1);
+        internalState.lookaheadPos[i] = start;
       }
 
       // Fill all the characters in the look-ahead and all the peek
@@ -474,30 +419,10 @@ public class DartScanner {
   }
 
   /**
-   * Returns the number of lines of source that were scanned, excluding the number of lines
-   * consumed by comments.
-   */
-  public int getNonCommentLineCount() {
-    return getLineCount() - commentLineCount;
-  }
-
-  /**
-   * Returns the number of lines of source that were scanned.
-   */
-  public int getLineCount() {
-    int lineCount = internalState.nextLookaheadPos.line;
-    if (isEos()) {
-      // At the end of the file the next line has advanced one past the end
-      lineCount -= 1;
-    }
-    return lineCount;
-  }
-
-  /**
    * Returns the number of characters of source code that were scanned.
    */
   public int getCharCount() {
-    return internalState.nextLookaheadPos.pos;
+    return internalState.nextLookaheadPos;
   }
 
   /**
@@ -647,32 +572,28 @@ public class DartScanner {
    * invocation.
    * @param start the character position of the second character in the comment
    * @param stop the character position of the final character in the comment
-   * @param line the line number at <code>start</code>
-   * @param col the column number at <code>start</code>
    */
-  protected void recordCommentLocation(int start, int stop, int line, int col) {
+  protected void recordCommentLocation(int start, int stop) {
   }
 
   private void advance() {
     for (int i = 0; i < NUM_LOOKAHEAD - 1; ++i) {
       internalState.lookahead[i] = internalState.lookahead[i + 1];
-      internalState.lookaheadPos[i] = internalState.lookaheadPos[i + 1].copy();
+      internalState.lookaheadPos[i] = internalState.lookaheadPos[i + 1];
     }
-    if (internalState.nextLookaheadPos.pos < source.length()) {
-      int ch = source.codePointAt(internalState.nextLookaheadPos.pos);
+    if (internalState.nextLookaheadPos < source.length()) {
+      int ch = source.codePointAt(internalState.nextLookaheadPos);
       internalState.lookahead[NUM_LOOKAHEAD - 1] = ch;
-      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = internalState.nextLookaheadPos.copy();
-      internalState.nextLookaheadPos.advance(ch == '\n');
+      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = internalState.nextLookaheadPos;
+      internalState.nextLookaheadPos++;
     } else {
       // Let the last look-ahead position be past the source. This makes
       // the position information for the last token correct.
       internalState.lookahead[NUM_LOOKAHEAD - 1] = -1;
-      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = new Position(source.length(),
-        internalState.nextLookaheadPos.line, internalState.nextLookaheadPos.col);
+      internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = source.length();
 
       // Leave the nextLookahead position pointing to the line after the last line
-      internalState.nextLookaheadPos = new Position(source.length(),
-          internalState.nextLookaheadPos.line + 1, 1);
+      internalState.nextLookaheadPos = source.length();
     }
   }
 
@@ -688,17 +609,16 @@ public class DartScanner {
    * @param endLine the line number of the last line of the comment
    * @param col the column number at <code>start</code>
    */
-  private void commentLocation(int start, int stop, int startLine, int endLine, int col) {
+  private void commentLocation(int start, int stop) {
     if (start <= lastCommentStart && stop <= lastCommentStop) {
       return;
     }
 
     lastCommentStart = start;
     lastCommentStop = stop;
-    commentLineCount += endLine - startLine + 1;
     commentCharCount += stop - start + 1;
 
-    recordCommentLocation(start, stop, startLine, col);
+    recordCommentLocation(start, stop);
   }
 
   private boolean is(int c) {
@@ -715,7 +635,7 @@ public class DartScanner {
   }
 
   // Get the current source code position.
-  private Position position() {
+  private int position() {
     return internalState.lookaheadPos[0];
   }
 
@@ -727,7 +647,7 @@ public class DartScanner {
     while (true) {
       internalState.lastToken = new TokenData();
       Token token;
-      Position begin, end;
+      int begin, end;
       do {
         skipWhiteSpace();
         begin = position();
@@ -757,7 +677,7 @@ public class DartScanner {
 
   private Token scanIdentifier(boolean allowDollars) {
     assert (isIdentifierStart(lookahead(0)));
-    Position begin = position();
+    int begin = position();
     while (true) {
       int nextChar = lookahead(0);
       if (!isIdentifierPart(nextChar) || (!allowDollars && nextChar == '$')) {
@@ -765,11 +685,11 @@ public class DartScanner {
       }
       advance();
     }
-    int size = position().pos - begin.pos;
+    int size = position() - begin;
 
     // Use a substring of the source string instead of copying all the
     // characters to the token value buffer.
-    String result = source.substring(begin.pos, begin.pos + size);
+    String result = source.substring(begin, begin + size);
     internalState.lastToken.value = result;
     return Token.lookup(result);
   }
@@ -777,7 +697,7 @@ public class DartScanner {
   private Token scanNumber() {
     boolean isDouble = false;
     assert (isDecimalDigit(lookahead(0)) || is('.'));
-    Position begin = position();
+    int begin = position();
     while (isDecimalDigit(lookahead(0)))
       advance();
     if (is('.') && isDecimalDigit(lookahead(1))) {
@@ -801,8 +721,8 @@ public class DartScanner {
       // Number literals must not be followed directly by an identifier.
       return Token.ILLEGAL;
     }
-    int size = position().pos - begin.pos;
-    internalState.lastToken.value = source.substring(begin.pos, begin.pos + size);
+    int size = position() - begin;
+    internalState.lastToken.value = source.substring(begin, begin + size);
     return isDouble ? Token.DOUBLE_LITERAL : Token.INTEGER_LITERAL;
   }
 
@@ -816,7 +736,7 @@ public class DartScanner {
     advance();
     advance();
 
-    Position begin = position();
+    int begin = position();
     if (!isHexDigit(lookahead(0))) {
       return Token.ILLEGAL;
     }
@@ -827,7 +747,7 @@ public class DartScanner {
     if (isIdentifierStart(lookahead(0))) {
       return Token.ILLEGAL;
     }
-    internalState.lastToken.value = source.substring(begin.pos, position().pos);
+    internalState.lastToken.value = source.substring(begin, position());
     return Token.HEX_LITERAL;
   }
 
@@ -1316,18 +1236,16 @@ public class DartScanner {
    */
   private Token scanDirective() {
     assert (is('#'));
-    Position currPos = position();
-    int start = currPos.pos;
-    int line = currPos.line;
-    int col = currPos.col;
+    int currPos = position();
+    int start = currPos;
 
     // Skip over the #! if it exists and consider it a comment
     if (start == 0) {
       if (lookahead(1) == '!') {
         while (!isEos() && !isLineTerminator(lookahead(0)))
           advance();
-        int stop = internalState.lookaheadPos[0].pos;
-        commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
+        int stop = internalState.lookaheadPos[0];
+        commentLocation(start, stop);
         return Token.COMMENT;
       }
     }
@@ -1345,7 +1263,7 @@ public class DartScanner {
       }
       advance();
     }
-    String syntax = source.substring(start, position().pos);
+    String syntax = source.substring(start, position());
     Token token = Token.lookup(syntax);
     return token == Token.IDENTIFIER ? Token.ILLEGAL : token;
   }
@@ -1365,10 +1283,8 @@ public class DartScanner {
 
   private Token skipMultiLineComment() {
     assert (is('*'));
-    Position currPos = internalState.lookaheadPos[0];
-    int start = currPos.pos - 1;
-    int line = currPos.line;
-    int col = currPos.col;
+    int currPos = internalState.lookaheadPos[0];
+    int start = currPos - 1;
     int commentDepth = 1;
     advance();
     while (!isEos()) {
@@ -1377,8 +1293,8 @@ public class DartScanner {
       if (first == '*' && is('/')) {
         if(--commentDepth == 0) {
           Token result = select(Token.COMMENT);
-          int stop = internalState.lookaheadPos[0].pos;
-          commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
+          int stop = internalState.lookaheadPos[0];
+          commentLocation(start, stop);
           return result;
         }
         advance();
@@ -1387,23 +1303,21 @@ public class DartScanner {
         advance();
       }
     }
-    int stop = internalState.lookaheadPos[0].pos;
-    commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
+    int stop = internalState.lookaheadPos[0];
+    commentLocation(start, stop);
     // Unterminated multi-line comment.
     return Token.ILLEGAL;
   }
 
   private Token skipSingleLineComment() {
     assert (is('/'));
-    Position currPos = internalState.lookaheadPos[0];
-    int start = currPos.pos - 1;
-    int line = currPos.line;
-    int col = currPos.col;
+    int currPos = internalState.lookaheadPos[0];
+    int start = currPos - 1;
     advance();
     while (!isEos() && !isLineTerminator(lookahead(0)))
       advance();
-    int stop = internalState.lookaheadPos[0].pos;
-    commentLocation(start, stop, line, internalState.lookaheadPos[0].line, col);
+    int stop = internalState.lookaheadPos[0];
+    commentLocation(start, stop);
     return Token.COMMENT;
   }
 

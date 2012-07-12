@@ -7,7 +7,6 @@ package com.google.dart.compiler;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartScanner.Location;
-import com.google.dart.compiler.parser.DartScanner.Position;
 
 /**
  * Information about a compilation error.
@@ -109,19 +108,11 @@ public class DartCompilationError {
     this.errorCode = errorCode;
     this.message = String.format(errorCode.getMessage(), arguments);
     if (location != null) {
-      Position begin = location.getBegin();
-      if (begin != null) {
-        offset = begin.getPos();
-        lineNumber = begin.getLine();
-        columnNumber = begin.getCol();
-      }
-      Position end = location.getEnd();
-      if (end != null) {
-        length = end.getPos() - offset;
-        if (length < 0) {
-          length = 0;
-        }
-      }
+      offset = location.getBegin();
+      SourceInfo sourceInfo = new SourceInfo(source, offset, 0);
+      lineNumber = sourceInfo.getLine();
+      columnNumber = sourceInfo.getColumn();
+      length = location.getEnd() - offset;
     }
   }
 

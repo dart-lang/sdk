@@ -53,7 +53,7 @@ public class DartParserCommentsHelper {
       }
 
       @Override
-      protected void recordCommentLocation(int start, int stop, int line, int col) {
+      protected void recordCommentLocation(int start, int stop) {
         int size = commentLocs.size();
         if (size > 0) {
           // the parser may re-scan lookahead tokens

@@ -190,25 +190,24 @@ abstract class AbstractParser {
         && keyword.equals(getPeekTokenValue(n));
   }
 
-  protected DartScanner.Position position() {
+  protected int position() {
     DartScanner.Location tokenLocation = ctx.getTokenLocation();
-    return tokenLocation != null ? tokenLocation.getBegin()
-        : new DartScanner.Position(0, 1, 1);
+    return tokenLocation != null ? tokenLocation.getBegin() : 0;
   }
 
   /**
    * Report a syntax error, unless an error has already been reported at the
    * given or a later position.
    */
-  protected void reportError(DartScanner.Position position,
+  protected void reportError(int position,
                              ErrorCode errorCode, Object... arguments) {
     DartScanner.Location location = ctx.getTokenLocation();
-    if (location.getBegin().getPos() <= lastErrorPosition) {
+    if (location.getBegin() <= lastErrorPosition) {
       return;
     }
     DartCompilationError dartError = new DartCompilationError(ctx.getSource(),
         location, errorCode, arguments);
-    lastErrorPosition = position.getPos();
+    lastErrorPosition = position;
     ctx.error(dartError);
   }
 
@@ -217,11 +216,11 @@ abstract class AbstractParser {
    * uses that to prevent logging more than one error at that position. This
    * method actually uses the passed position to create the error event.
    */
-  protected void reportErrorAtPosition(DartScanner.Position startPosition,
-                                       DartScanner.Position endPosition,
+  protected void reportErrorAtPosition(int startPosition,
+                                       int endPosition,
                                        ErrorCode errorCode, Object... arguments) {
     DartScanner.Location location = ctx.getTokenLocation();
-    if (location.getBegin().getPos() <= lastErrorPosition) {
+    if (location.getBegin() <= lastErrorPosition) {
       return;
     }
     DartCompilationError dartError = new DartCompilationError(ctx.getSource(),
@@ -229,7 +228,7 @@ abstract class AbstractParser {
     ctx.error(dartError);
   }
 
-  protected void reportUnexpectedToken(DartScanner.Position position,
+  protected void reportUnexpectedToken(int position,
                                        Token expected, Token actual) {
     if (expected == Token.EOS) {
       reportError(position, ParserErrorCode.EXPECTED_EOS, actual);

@@ -96,7 +96,6 @@ import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.metrics.CompilerMetrics;
 import com.google.dart.compiler.parser.DartScanner.Location;
-import com.google.dart.compiler.parser.DartScanner.Position;
 import com.google.dart.compiler.util.Lists;
 
 import java.io.IOException;
@@ -122,7 +121,7 @@ public class DartParser extends CompletionHooksParserBase {
   private final Set<Integer> errorHistory = new HashSet<Integer>();
   private boolean isParsingInterface;
   private boolean isTopLevelAbstract;
-  private DartScanner.Position topLevelAbstractModifierPosition;
+  private int topLevelAbstractModifierPosition;
   private boolean isParsingClass;
   private int errorCount = 0;
   
@@ -304,7 +303,7 @@ public class DartParser extends CompletionHooksParserBase {
         isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
         isTopLevelAbstract = false;
-        topLevelAbstractModifierPosition = null;
+        topLevelAbstractModifierPosition = 0;
         if (optionalPseudoKeyword(ABSTRACT_KEYWORD)) {
           isTopLevelAbstract = true;
           topLevelAbstractModifierPosition = position();
@@ -332,7 +331,7 @@ public class DartParser extends CompletionHooksParserBase {
           unit.getTopLevelNodes().add(node);
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
-            Position abstractPositionEnd = topLevelAbstractModifierPosition.getAdvancedColumns(ABSTRACT_KEYWORD.length());
+            int abstractPositionEnd = topLevelAbstractModifierPosition + ABSTRACT_KEYWORD.length();
             Location location = new Location(topLevelAbstractModifierPosition, abstractPositionEnd);
             reportError(new DartCompilationError(source, location,
                 ParserErrorCode.ABSTRACT_TOP_LEVEL_ELEMENT));
@@ -1927,7 +1926,7 @@ public class DartParser extends CompletionHooksParserBase {
     } else if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
-      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      int tokenOffset = ctx.getTokenLocation().getBegin();
       result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpression()));
     } else {
       done(null);
@@ -1959,7 +1958,7 @@ public class DartParser extends CompletionHooksParserBase {
    if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
-      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      int tokenOffset = ctx.getTokenLocation().getBegin();
       result = done(new DartBinaryExpression(token, tokenOffset, result, parseExpressionWithoutCascade()));
     } else {
       done(null);
@@ -2026,7 +2025,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isAssignmentOperator()) {
       ensureAssignable(result);
       consume(token);
-      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      int tokenOffset = ctx.getTokenLocation().getBegin();
       result = doneWithoutConsuming(new DartBinaryExpression(token, tokenOffset, result, parseExpressionWithoutCascade()));
     }
     return result;
@@ -2043,7 +2042,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression result = parseExpression();
     // Must keep in sync with @Terminals above
     while (optional(Token.COMMA)) {
-      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      int tokenOffset = ctx.getTokenLocation().getBegin();
       result = new DartBinaryExpression(Token.COMMA, tokenOffset, result, parseExpression());
       if (match(Token.COMMA)) {
         result = doneWithoutConsuming(result);
@@ -2107,10 +2106,10 @@ public class DartParser extends CompletionHooksParserBase {
     DartExpression result = lastResult;
     for (int level = peek(0).getPrecedence(); level >= precedence; level--) {
       while (peek(0).getPrecedence() == level) {
-        Position prevPositionStart = ctx.getTokenLocation().getBegin();
-        Position prevPositionEnd = ctx.getTokenLocation().getEnd();
+        int prevPositionStart = ctx.getTokenLocation().getBegin();
+        int prevPositionEnd = ctx.getTokenLocation().getEnd();
         Token token = next();
-        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+        int tokenOffset = ctx.getTokenLocation().getBegin();
         if (lastResult instanceof DartSuperExpression
             && (token == Token.AND || token == Token.OR)) {
           reportErrorAtPosition(prevPositionStart, prevPositionEnd,
@@ -2120,7 +2119,7 @@ public class DartParser extends CompletionHooksParserBase {
         if (token == Token.IS) {
           beginTypeExpression();
           if (optional(Token.NOT)) {
-            int notOffset = ctx.getTokenLocation().getBegin().getPos();
+            int notOffset = ctx.getTokenLocation().getBegin();
             beginTypeExpression();
             DartTypeExpression typeExpression = done(new DartTypeExpression(parseTypeAnnotation()));
             right = done(new DartUnaryExpression(Token.NOT, notOffset, typeExpression, true));
@@ -2621,7 +2620,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (token.isCountOperator()) {
       ensureAssignable(result);
       consume(token);
-      int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+      int tokenOffset = ctx.getTokenLocation().getBegin();
       result = doneWithoutConsuming(new DartUnaryExpression(token, tokenOffset, result, false));
     }
 
@@ -3286,12 +3285,12 @@ public class DartParser extends CompletionHooksParserBase {
           reportErrorWithoutAdvancing(ParserErrorCode.UNEXPECTED_TOKEN);
           break;
         }
-        int startPosition = position().getPos();
+        int startPosition = position();
         DartStatement newStatement = parseStatement();
         if (newStatement == null) {
           break;
         }
-        if (startPosition == position().getPos()) {
+        if (startPosition == position()) {
           // The parser is not making progress.
           Set<Token> terminals = this.collectTerminalAnnotations();
           if (terminals.contains(peek(0))) {
@@ -4390,7 +4389,7 @@ public class DartParser extends CompletionHooksParserBase {
     if (optional(Token.ADD)) {
       if (peek(0) != Token.INTEGER_LITERAL && peek(0) != Token.DOUBLE_LITERAL) {
         reportError(position(), ParserErrorCode.NO_UNARY_PLUS_OPERATOR);
-      } else if (position().getPos() + 1 != peekTokenLocation(0).getBegin().getPos()) {
+      } else if (position() + 1 != peekTokenLocation(0).getBegin()) {
         reportError(position(), ParserErrorCode.NO_SPACE_AFTER_PLUS);
       }
     }
@@ -4401,14 +4400,14 @@ public class DartParser extends CompletionHooksParserBase {
         beginUnaryExpression();
         beginUnaryExpression();
         consume(token);
-        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+        int tokenOffset = ctx.getTokenLocation().getBegin();
         DartExpression unary = parseUnaryExpression();
         DartUnaryExpression unary2 = new DartUnaryExpression(Token.SUB, tokenOffset, unary, true);
         return done(new DartUnaryExpression(Token.SUB, tokenOffset, done(unary2), true));
       } else {
         beginUnaryExpression();
         consume(token);
-        int tokenOffset = ctx.getTokenLocation().getBegin().getPos();
+        int tokenOffset = ctx.getTokenLocation().getBegin();
         DartExpression unary = parseUnaryExpression();
         if (token.isCountOperator()) {
           ensureAssignable(unary);
@@ -4611,7 +4610,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
   
   @Override
-  protected void reportError(Position position, ErrorCode errorCode, Object... arguments) {
+  protected void reportError(int position, ErrorCode errorCode, Object... arguments) {
     // TODO(devoncarew): we're not correctly identifying dart:html as a core library
     if (incErrorCount()) {
       super.reportError(position, errorCode, arguments);
@@ -4619,7 +4618,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   @Override
-  protected void reportErrorAtPosition(Position startPosition, Position endPosition,
+  protected void reportErrorAtPosition(int startPosition, int endPosition,
       ErrorCode errorCode, Object... arguments) {
     if (incErrorCount()) {
       super.reportErrorAtPosition(startPosition, endPosition, errorCode, arguments);
