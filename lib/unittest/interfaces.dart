@@ -23,6 +23,9 @@ typedef String ErrorFormatter(actual, Matcher matcher, String reason);
  * some cases - e.g. language conversion.
  */
 interface Description {
+  /** Change the value of the description. */
+  Description replace(String text);
+
   /** This is used to add arbitrary text to the description. */
   Description add(String text);
 

@@ -336,12 +336,12 @@ main() {
     buildStatusString(1, 0, 0, tests[11]),
     buildStatusString(1, 0, 0, tests[12]),
     buildStatusString(0, 1, 0, tests[13],
-        message: "Expected <null>.'foo'() to be called 1 times but:"
+        message: "Expected foo() to be called 1 times but:"
             " was called 2 times."),
     buildStatusString(0, 1, 0, tests[14],
         message: 'Caught Exception: No more actions for method foo.'),
     buildStatusString(0, 1, 0, tests[15], message:
-        "Expected <null>.'sum'() to sometimes return <0> but: never did."),
+        "Expected sum() to sometimes return <0> but: never did."),
     buildStatusString(0, 1, 0, tests[16],
         message: 'Caught Exception: No behavior specified for method bar.'),
     buildStatusString(1, 0, 0, tests[17]),

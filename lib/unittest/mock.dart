@@ -138,6 +138,11 @@ class CallMatcher {
   String toString() {
     Description d = new StringDescription();
     d.addDescriptionOf(nameFilter);
+    // If the nameFilter was a simple string - i.e. just a method name -
+    // strip the quotes to make this more natural in appearance.
+    if (d.toString()[0] == "'") {
+      d.replace(d.toString().substring(1, d.toString().length - 1));
+    }
     d.add('(');
     for (var i = 0; i < argMatchers.length; i++) {
       if (i > 0) d.add(', ');
@@ -316,7 +321,7 @@ class LogEntry {
 
 /** Utility function for optionally qualified method names */
 String _qualifiedName(owner, String method) {
-  if (owner == null) {
+  if (owner == null || owner === anything) {
     return method;
   } else if (owner is Matcher) {
     Description d = new StringDescription();
@@ -348,8 +353,8 @@ class LogEntryList {
    * Create a new [LogEntryList] consisting of [LogEntry]s from
    * this list that match the specified [mockNameFilter] and [logFilter].
    * [mockNameFilter] can be null, a [String], a predicate [Function],
-   * or a [Matcher]. If [mockNameFilter] is null, only Mocks with no name
-   * will be checked.
+   * or a [Matcher]. If [mockNameFilter] is null, this is the same as
+   * [anything].
    * If [logFilter] is null, all entries in the log will be returned.
    * If [destructive] is true, the log entries are removed from the
    * original list.
@@ -358,7 +363,11 @@ class LogEntryList {
                           CallMatcher logFilter,
                           Matcher actionMatcher,
                           bool destructive = false]) {
-    mockNameFilter = wrapMatcher(mockNameFilter);
+    if (mockNameFilter == null) {
+      mockNameFilter = anything;
+    } else {
+      mockNameFilter = wrapMatcher(mockNameFilter);
+    }
     if (logFilter == null) {
       logFilter = new CallMatcher();
     }
@@ -769,6 +778,9 @@ class Mock {
                this.log,
                throwIfNoBehavior = false,
                enableLogging = true]) : _throwIfNoBehavior = throwIfNoBehavior {
+    if (log != null && name == null) {
+      throw new Exception("Mocks with shared logs must have a name.");
+    }
     logging = enableLogging;
     _behaviors = new Map<String,Behavior>();
   }
