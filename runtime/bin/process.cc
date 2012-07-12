@@ -12,11 +12,20 @@ static char** ExtractCStringList(Dart_Handle strings,
                                  Dart_Handle status_handle,
                                  const char* error_msg,
                                  intptr_t* length) {
+  static const intptr_t kMaxArgumentListLength = 1024 * 1024;
   ASSERT(Dart_IsList(strings));
   intptr_t len = 0;
   Dart_Handle result = Dart_ListLength(strings, &len);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
+  }
+  // Protect against user-defined list implementations that can have
+  // arbitrary length.
+  if (len < 0 || len > kMaxArgumentListLength) {
+    DartUtils::SetIntegerField(status_handle, "_errorCode", 0);
+    DartUtils::SetStringField(
+        status_handle, "_errorMessage", "Max argument list length exceeded");
+    return NULL;
   }
   *length = len;
   char** string_args = new char*[len];
