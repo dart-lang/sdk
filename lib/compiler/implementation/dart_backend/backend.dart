@@ -46,54 +46,6 @@ class DartBackend extends Backend {
     resolvedElementsInClass.add(element);
   }
 
-  /**
-   * Outputs given class element with given inner elements to a string buffer.
-   */
-  void outputClass(ClassElement classElement, Set<Element> innerElements,
-      StringBuffer sb) {
-    // TODO(smok): Very soon properly print out correct class declaration with
-    // extends, implements, etc.
-    sb.add('class ');
-    sb.add(classElement.name.slowToString());
-    sb.add('{');
-    innerElements.forEach((element) {
-      // TODO(smok): Filter out default constructors here.
-      outputElement(element, sb);
-    });
-    sb.add('}');
-  }
-
-  void outputElement(Element element, StringBuffer sb) {
-    // TODO(smok): Figure out why AbstractFieldElement appears here,
-    // we have used getters/setters resolved instead of it.
-    if (element is SynthesizedConstructorElement
-        || element is AbstractFieldElement) return;
-    if (element.isField()) {
-      // Add modifiers first.
-      sb.add(element.modifiers.toString());
-      sb.add(' ');
-      // Figure out type.
-      if (element is VariableElement) {
-        VariableListElement variables = element.variables;
-        if (variables.type !== null) {
-          sb.add(variables.type);
-          sb.add(' ');
-        }
-      }
-      // TODO(smok): Maybe not rely on node unparsing,
-      // but unparse initializer manually.
-      sb.add(element.parseNode(compiler).unparse());
-      sb.add(';');
-    } else {
-      if (element.isSetter()) {
-        sb.add('set ');
-      } else if (element.isGetter()) {
-        sb.add('get ');
-      }
-      sb.add(element.parseNode(compiler).unparse());
-    }
-  }
-
   void assembleProgram() {
     resolvedElements.forEach((element, treeElements) {
       unparseValidator.check(element);
@@ -114,7 +66,7 @@ class DartBackend extends Backend {
     }
 
     try {
-      StringBuffer sb = new StringBuffer();
+      Emitter emitter = new Emitter(compiler);
       resolvedElements.forEach((element, treeElements) {
         if (!shouldOutput(element)) return;
         if (element.isMember()) {
@@ -128,14 +80,12 @@ class DartBackend extends Backend {
           bailout('Cannot process non top-level $element');
         }
 
-        outputElement(element, sb);
+        emitter.outputElement(element);
       });
 
       // Now output resolved classes with inner elements we met before.
-      resolvedClassMembers.forEach((classElement, resolvedElements) {
-        outputClass(classElement, resolvedElements, sb);
-      });
-      compiler.assembledCode = sb.toString();
+      resolvedClassMembers.forEach(emitter.outputClass);
+      compiler.assembledCode = emitter.toString();
     } catch (BailoutException e) {
       compiler.assembledCode = '''
 main() {
