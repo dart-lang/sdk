@@ -254,8 +254,8 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         Joiner.on("\n").join(
             "class Object {}",
             "class A {",
-            "  static final A = B;",
-            "  static final B = A;",
+            "  static final a = b;",
+            "  static final b = a;",
             "}"),
             errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 3, 20, 1),
             errEx(ResolverErrorCode.CIRCULAR_REFERENCE, 4, 20, 1));

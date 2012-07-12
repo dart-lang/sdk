@@ -149,6 +149,7 @@ public enum ResolverErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test (requires development mode checks)
   MAP_LITERAL_ELEMENT_TYPE(
       "Map literal element type must match declaration '%s' when type checks are on."),
+  MEMBER_WITH_NAME_OF_CLASS("Class member should not have the same name as the enclosing class"),
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
