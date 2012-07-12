@@ -3361,7 +3361,7 @@ TEST_CASE(New) {
   EXPECT_ERROR(
       result,
       "Dart_New: wrong argument count for constructor 'MyClass.named': "
-      "expected 1 but saw 0.");
+      "0 passed, 1 expected.");
 
   // Pass a bad argument.  Error is passed through.
   result = Dart_New(cls, Dart_NewString("named"), 1, bad_args);
@@ -3589,7 +3589,8 @@ TEST_CASE(Invoke) {
 
   // Top-level method, wrong arg count.
   EXPECT_ERROR(Dart_Invoke(lib, name, 2, bad_args),
-               "did not find top-level function 'topMethod'");
+               "Dart_Invoke: wrong argument count for function 'topMethod': "
+               "2 passed, 1 expected.");
 
   // Hidden top-level method.
   name = Dart_NewString("_topMethod");

@@ -1464,7 +1464,9 @@ void FunctionsCache::EnterFunctionAt(int i,
                                      int num_arguments,
                                      int num_named_arguments) {
   ASSERT((i % kNumEntries) == 0);
-  ASSERT(function.AreValidArgumentCounts(num_arguments, num_named_arguments));
+  ASSERT(function.AreValidArgumentCounts(num_arguments,
+                                         num_named_arguments,
+                                         NULL));
   cache.SetAt(i + FunctionsCache::kFunctionName,
       String::Handle(function.name()));
   cache.SetAt(i + FunctionsCache::kArgCount,

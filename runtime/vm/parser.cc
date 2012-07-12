@@ -1478,7 +1478,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                                      implicit_argument);
   }
   // All dynamic getters take one argument and no named arguments.
-  ASSERT(super_getter.AreValidArgumentCounts(1, 0));
+  ASSERT(super_getter.AreValidArgumentCounts(1, 0, NULL));
   ArgumentListNode* getter_arguments = new ArgumentListNode(field_pos);
   getter_arguments->Add(implicit_argument);
   AstNode* super_field =
@@ -1495,7 +1495,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                field_name.ToCString());
     }
     // All dynamic setters take two arguments and no named arguments.
-    ASSERT(super_setter.AreValidArgumentCounts(2, 0));
+    ASSERT(super_setter.AreValidArgumentCounts(2, 0, NULL));
 
     Token::Kind assignment_op = CurrentToken();
     ConsumeToken();
@@ -1535,12 +1535,19 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   arguments->Add(phase_parameter);
   const Function& super_ctor = Function::ZoneHandle(
       super_class.LookupConstructor(ctor_name));
-  if (super_ctor.IsNull() ||
-      !super_ctor.AreValidArguments(arguments->length(),
-                                    arguments->names())) {
+  if (super_ctor.IsNull()) {
+      ErrorMsg(supercall_pos,
+               "unresolved implicit call to super constructor '%s()'",
+               String::Handle(super_class.Name()).ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!super_ctor.AreValidArguments(arguments->length(),
+                                    arguments->names(),
+                                    &error_message)) {
     ErrorMsg(supercall_pos,
-             "unresolved implicit call to super constructor '%s()'",
-             String::Handle(super_class.Name()).ToCString());
+             "invalid arguments passed to super constructor '%s()': %s",
+             String::Handle(super_class.Name()).ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(supercall_pos, super_ctor);
   current_block_->statements->Add(
@@ -1588,12 +1595,19 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   // Resolve the constructor.
   const Function& super_ctor = Function::ZoneHandle(
       super_class.LookupConstructor(ctor_name));
-  if (super_ctor.IsNull() ||
-      !super_ctor.AreValidArguments(arguments->length(),
-                                    arguments->names())) {
+  if (super_ctor.IsNull()) {
     ErrorMsg(supercall_pos,
              "super class constructor '%s' not found",
              ctor_name.ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!super_ctor.AreValidArguments(arguments->length(),
+                                    arguments->names(),
+                                    &error_message)) {
+    ErrorMsg(supercall_pos,
+             "invalid arguments passed to super class constructor '%s': %s",
+             ctor_name.ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(supercall_pos, super_ctor);
   return new StaticCallNode(supercall_pos, super_ctor, arguments);
@@ -1762,11 +1776,17 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   // Resolve the constructor.
   const Function& redirect_ctor = Function::ZoneHandle(
       cls.LookupConstructor(ctor_name));
-  if (redirect_ctor.IsNull() ||
-      !redirect_ctor.AreValidArguments(arguments->length(),
-                                       arguments->names())) {
-    ErrorMsg(call_pos, "constructor '%s' not found",
-             ctor_name.ToCString());
+  if (redirect_ctor.IsNull()) {
+    ErrorMsg(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!redirect_ctor.AreValidArguments(arguments->length(),
+                                       arguments->names(),
+                                       &error_message)) {
+    ErrorMsg(call_pos,
+             "invalid arguments passed to constructor '%s': %s",
+             ctor_name.ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(call_pos, redirect_ctor);
   current_block_->statements->Add(
@@ -2027,7 +2047,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       }
     }
     ASSERT(super_ctor.AreValidArguments(super_call_args->length(),
-                                        super_call_args->names()));
+                                        super_call_args->names(),
+                                        NULL));
     current_block_->statements->Add(
         new StaticCallNode(TokenPos(), super_ctor, super_call_args));
   }
@@ -7911,12 +7932,16 @@ AstNode* Parser::ParseNewOperator() {
                type_class_name.ToCString(),
                external_constructor_name.ToCString());
     }
-    if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
+    String& error_message = String::Handle();
+    if (!constructor.AreValidArguments(arguments_length,
+                                       arguments->names(),
+                                       &error_message)) {
       ErrorMsg(call_pos,
                "invalid arguments passed to constructor '%s' "
-               "for interface '%s'",
+               "for interface '%s': %s",
                external_constructor_name.ToCString(),
-               type_class_name.ToCString());
+               type_class_name.ToCString(),
+               error_message.ToCString());
     }
     if (!type_class.HasFactoryClass()) {
       ErrorMsg(type_pos,
@@ -7966,13 +7991,17 @@ AstNode* Parser::ParseNewOperator() {
              String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
   }
-  if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
+  String& error_message = String::Handle();
+  if (!constructor.AreValidArguments(arguments_length,
+                                     arguments->names(),
+                                     &error_message)) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : constructor_class_name);
     ErrorMsg(call_pos,
-             "invalid arguments passed to constructor '%s' for class '%s'",
+             "invalid arguments passed to constructor '%s' for class '%s': %s",
              external_constructor_name.ToCString(),
-             String::Handle(constructor_class.Name()).ToCString());
+             String::Handle(constructor_class.Name()).ToCString(),
+             error_message.ToCString());
   }
 
   // Now that the constructor to be called is identified, finalize the type

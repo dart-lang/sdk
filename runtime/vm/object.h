@@ -1460,9 +1460,20 @@ class Function : public Object {
   bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
+  intptr_t NumberOfImplicitParameters() const;
 
-  bool AreValidArgumentCounts(int num_arguments, int num_named_arguments) const;
-  bool AreValidArguments(int num_arguments, const Array& argument_names) const;
+  // Returns true if the argument counts are valid for calling this function.
+  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  bool AreValidArgumentCounts(int num_arguments,
+                              int num_named_arguments,
+                              String* error_message) const;
+
+  // Returns true if the total argument count and the names of optional
+  // arguments are valid for calling this function.
+  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  bool AreValidArguments(int num_arguments,
+                         const Array& argument_names,
+                         String* error_message) const;
 
   // Fully qualified name uniquely identifying the function under gdb and during
   // ast printing. The special ':' character, if present, is replaced by '_'.

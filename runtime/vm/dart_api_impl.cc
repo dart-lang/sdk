@@ -3019,14 +3019,16 @@ static RawObject* ResolveConstructor(const char* current_func,
     }
   }
   int extra_args = (constructor.IsConstructor() ? 2 : 1);
-  if (!constructor.AreValidArgumentCounts(num_args + extra_args, 0)) {
+  String& error_message = String::Handle();
+  if (!constructor.AreValidArgumentCounts(num_args + extra_args,
+                                          0,
+                                          &error_message)) {
     const String& message = String::Handle(
-        String::NewFormatted("%s: wrong argument count for constructor '%s': "
-                             "expected %d but saw %d.",
+        String::NewFormatted("%s: wrong argument count for "
+                             "constructor '%s': %s.",
                              current_func,
                              constr_name.ToCString(),
-                             constructor.num_fixed_parameters() - extra_args,
-                             num_args));
+                             error_message.ToCString()));
     return ApiError::New(message);
   }
   return constructor.raw();
@@ -3273,16 +3275,21 @@ DART_EXPORT Dart_Handle Dart_Invoke(Dart_Handle target,
 
     Function& function = Function::Handle(isolate);
     function = lib.LookupFunctionAllowPrivate(function_name);
-    // LookupFunctionAllowPrivate does not check argument arity, so we
-    // do it here.
-    if (!function.IsNull() &&
-        !function.AreValidArgumentCounts(number_of_arguments, 0)) {
-      function = Function::null();
-    }
     if (function.IsNull()) {
       return Api::NewError("%s: did not find top-level function '%s'.",
                            CURRENT_FUNC,
                            function_name.ToCString());
+    }
+    // LookupFunctionAllowPrivate does not check argument arity, so we
+    // do it here.
+    String& error_message = String::Handle();
+    if (!function.AreValidArgumentCounts(number_of_arguments,
+                                         0,
+                                         &error_message)) {
+      return Api::NewError("%s: wrong argument count for function '%s': %s.",
+                           CURRENT_FUNC,
+                           function_name.ToCString(),
+                           error_message.ToCString());
     }
     return Api::NewHandle(
         isolate, DartEntry::InvokeStatic(function, args, kNoArgNames));
