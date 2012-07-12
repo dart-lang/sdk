@@ -358,16 +358,6 @@ def Main(argv):
        "scriptDir, '../dart2js/'"),
     ])
 
-  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'frog_options.dart')], [
-      ("final config = \'dev\';", "final config = \'sdk\';")
-    ])
-  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'lib', 'corelib.dart')], [
-      ("../../../../corelib/src/", "../../../core/runtime/")
-    ]);
-  ReplaceInFiles([join(LIB, 'dartdoc', 'frog', 'lib', 'corelib_impl.dart')], [
-      ("../../../../corelib/src/implementation", "../../../coreimpl/runtime/")
-    ]);
-
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
            ignore=ignore_patterns('.svn'))
