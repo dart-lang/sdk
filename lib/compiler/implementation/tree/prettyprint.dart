@@ -163,7 +163,16 @@ class PrettyPrinter implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    visitNodeWithChildren(node, "FunctionExpression");
+    openNode("FunctionExpression", {
+      "getOrSet" : tokenToStringOrNull(node.getOrSet)
+    });
+    visitWithPrefix(node.modifiers, "modifiers:");
+    visitWithPrefix(node.returnType, "returnType:");
+    visitWithPrefix(node.name, "name:");
+    visitWithPrefix(node.parameters, "parameters:");
+    visitWithPrefix(node.initializers, "initializers:");
+    visitWithPrefix(node.body, "body:");
+    closeNode("FunctionExpression");
   }
 
   visitIdentifier(Identifier node) {
@@ -287,7 +296,9 @@ class PrettyPrinter implements Visitor {
     openNode(type, {
         "isPrefix" : "${node.isPrefix}",
         "isPostfix" : "${node.isPostfix}",
-        "isIndex" : "${node.isIndex}"
+        "isIndex" : "${node.isIndex}",
+        "beginToken" : tokenToStringOrNull(node.getBeginToken()),
+        "endToken" : tokenToStringOrNull(node.getEndToken())
     });
     visitWithPrefix(node.receiver, "receiver:");
     visitWithPrefix(node.selector, "selector:");
