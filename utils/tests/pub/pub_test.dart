@@ -17,8 +17,6 @@ final USAGE_STRING = """
     Global options:
     -h, --help          Prints this usage information
         --version       Prints the version of Pub
-        --cachedir      The directory containing the system-wide Pub cache
-        --sdkdir        The directory containing the Dart SDK
         --[no-]trace    Prints a stack trace when an error occurs
 
     The commands are:

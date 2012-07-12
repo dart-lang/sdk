@@ -8,6 +8,7 @@
 #library('pub');
 
 #import('../../lib/args/args.dart');
+#import('dart:io');
 #import('io.dart');
 #import('command_install.dart');
 #import('command_list.dart');
@@ -43,11 +44,6 @@ main() {
     help: 'Prints this usage information');
   parser.addFlag('version', negatable: false,
     help: 'Prints the version of Pub');
-  // TODO(rnystrom): Hack. These are temporary options to allow the pub tests to
-  // pass in relevant paths. Eventually these should be environment variables.
-  parser.addOption('cachedir', help: 'The directory containing the system-wide '
-    'Pub cache');
-  parser.addOption('sdkdir', help: 'The directory containing the Dart SDK');
   parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
 
   var globalOptions;
@@ -68,8 +64,19 @@ main() {
     return;
   }
 
-  var cache = new SystemCache(globalOptions['cachedir']);
-  cache.register(new SdkSource(globalOptions['sdkdir']));
+  // TODO(nweiz): Have a fallback for this this out automatically once 1145 is
+  // fixed.
+  var sdkDir = Platform.environment['DART_SDK'];
+  var cacheDir;
+  if (Platform.environment.containsKey('PUB_CACHE')) {
+    cacheDir = Platform.environment['PUB_CACHE'];
+  } else {
+    // TODO(nweiz): Choose a better default for Windows.
+    cacheDir = '${Platform.environment['HOME']}/.pub-cache';
+  }
+
+  var cache = new SystemCache(cacheDir);
+  cache.register(new SdkSource(sdkDir));
   cache.register(new GitSource());
   cache.register(new RepoSource());
   // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists

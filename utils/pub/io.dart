@@ -333,13 +333,15 @@ Future<List<int>> consumeInputStream(InputStream stream) {
  * piped streams won't be available in the result object.
  */
 Future<PubProcessResult> runProcess(String executable, List<String> args,
-    [workingDir, bool pipeStdout = false, bool pipeStderr = false]) {
+    [workingDir, Map<String, String> environment, bool pipeStdout = false,
+    bool pipeStderr = false]) {
   int exitCode;
 
   final options = new ProcessOptions();
   if (workingDir != null) {
     options.workingDirectory = _getDirectory(workingDir).path;
   }
+  options.environment = environment;
 
   final process = Process.start(executable, args, options);
 
