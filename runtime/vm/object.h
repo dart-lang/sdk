@@ -235,6 +235,8 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
+
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
     obj->SetRaw(raw_ptr);

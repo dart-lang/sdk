@@ -106,8 +106,14 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 
 static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
   const UnhandledException& excp = UnhandledException::Cast(obj);
-  const Instance& exception = Instance::ZoneHandle(excp.exception());
-  const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  Instance& exception = Instance::ZoneHandle(excp.exception());
+  if (exception.IsNew()) {
+    exception ^= Object::Clone(exception, Heap::kOld);
+  }
+  Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  if (stack_trace.IsNew()) {
+    stack_trace ^= Object::Clone(stack_trace, Heap::kOld);
+  }
   return new ThrowNode(token_pos,
                        new LiteralNode(token_pos, exception),
                        new LiteralNode(token_pos, stack_trace));
@@ -7044,7 +7050,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
   GrowableArray<const Object*> arg_values(arguments->length() + 2);
   Instance& instance = Instance::Handle();
   if (!constructor.IsFactory()) {
-    instance = Instance::New(type_class);
+    instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
       if (!type_arguments.IsInstantiated()) {
         ErrorMsg("type must be constant in const constructor");

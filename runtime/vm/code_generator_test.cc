@@ -24,7 +24,7 @@ static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
-  const String& variable_name = String::ZoneHandle(String::New(name));
+  const String& variable_name = String::ZoneHandle(String::NewSymbol(name));
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, variable_name, variable_type);
 }
@@ -129,10 +129,12 @@ CODEGEN_TEST_RUN(SmiAddCodegen, Smi::New(5))
 
 CODEGEN_TEST_GENERATE(GenericAddCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
-  LiteralNode* a = new LiteralNode(kPos, Double::ZoneHandle(Double::New(12.2)));
+  LiteralNode* a =
+      new LiteralNode(kPos, Double::ZoneHandle(Double::New(12.2, Heap::kOld)));
   LiteralNode* b = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));
   BinaryOpNode* add_node_1 = new BinaryOpNode(kPos, Token::kADD, a, b);
-  LiteralNode* c = new LiteralNode(kPos, Double::ZoneHandle(Double::New(0.8)));
+  LiteralNode* c =
+      new LiteralNode(kPos, Double::ZoneHandle(Double::New(0.8, Heap::kOld)));
   BinaryOpNode* add_node_2 = new BinaryOpNode(kPos, Token::kADD, add_node_1, c);
   node_seq->Add(new ReturnNode(kPos, add_node_2));
 }
@@ -179,9 +181,11 @@ CODEGEN_TEST_RUN(BoolAndCodegen, Bool::False())
 
 CODEGEN_TEST_GENERATE(BinaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
-  LiteralNode* a = new LiteralNode(kPos, Double::ZoneHandle(Double::New(12)));
+  LiteralNode* a =
+      new LiteralNode(kPos, Double::ZoneHandle(Double::New(12, Heap::kOld)));
   LiteralNode* b = new LiteralNode(kPos, Smi::ZoneHandle(Smi::New(2)));
-  LiteralNode* c = new LiteralNode(kPos, Double::ZoneHandle(Double::New(0.5)));
+  LiteralNode* c =
+      new LiteralNode(kPos, Double::ZoneHandle(Double::New(0.5, Heap::kOld)));
   BinaryOpNode* sub_node = new BinaryOpNode(kPos, Token::kSUB, a, b);
   BinaryOpNode* mul_node = new BinaryOpNode(kPos, Token::kMUL, sub_node, c);
   BinaryOpNode* div_node = new BinaryOpNode(kPos, Token::kDIV, mul_node, b);
@@ -251,7 +255,8 @@ CODEGEN_TEST_RUN(SmiUnaryOpCodegen, Smi::New(-12))
 
 CODEGEN_TEST_GENERATE(DoubleUnaryOpCodegen, test) {
   SequenceNode* node_seq = test->node_sequence();
-  LiteralNode* a = new LiteralNode(kPos, Double::ZoneHandle(Double::New(12.0)));
+  LiteralNode* a =
+      new LiteralNode(kPos, Double::ZoneHandle(Double::New(12.0, Heap::kOld)));
   UnaryOpNode* neg_node = new UnaryOpNode(kPos, Token::kSUB, a);
   node_seq->Add(new ReturnNode(kPos, neg_node));
 }

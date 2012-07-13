@@ -517,7 +517,7 @@ RawError* Object::Init(Isolate* isolate) {
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
   object_store->set_pending_classes(pending_classes);
 
-  Context& context = Context::Handle(Context::New(0));
+  Context& context = Context::Handle(Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
   // Now that the symbol table is initialized and that the core dictionary as
@@ -999,6 +999,39 @@ RawObject* Object::Allocate(const Class& cls,
   InitializeObject(address, cls.id(), size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls.id() == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+  return raw_obj;
+}
+
+
+class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
+ public:
+  explicit StoreBufferObjectPointerVisitor(Isolate* isolate) :
+      ObjectPointerVisitor(isolate) {
+  }
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** curr = first; curr <= last; ++curr) {
+      if ((*curr)->IsNewObject()) {
+        uword ptr = reinterpret_cast<uword>(curr);
+        isolate()->store_buffer()->AddPointer(ptr);
+      }
+    }
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StoreBufferObjectPointerVisitor);
+};
+
+
+RawObject* Object::Clone(const Object& src, Heap::Space space) {
+  const Class& cls = Class::Handle(src.clazz());
+  intptr_t size = src.raw()->Size();
+  RawObject* raw_obj = Object::Allocate(cls, size, space);
+  NoGCScope no_gc;
+  memmove(raw_obj->ptr(), src.raw()->ptr(), size);
+  if (space == Heap::kOld) {
+    StoreBufferObjectPointerVisitor visitor(Isolate::Current());
+    raw_obj->VisitPointers(&visitor);
+  }
   return raw_obj;
 }
 
@@ -2761,7 +2794,6 @@ RawAbstractType* Type::Canonicalize() const {
     index++;
   }
   // The type needs to be added to the list. Grow the list if it is full.
-  // TODO(srdjan): Copy type into old space if canonicalized?
   if (index == canonical_types_len) {
     const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
     const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
@@ -2772,6 +2804,7 @@ RawAbstractType* Type::Canonicalize() const {
   } else {
     canonical_types.SetAt(index, *this);
   }
+  ASSERT(IsOld());
   SetCanonical();
   return this->raw();
 }
@@ -3414,23 +3447,27 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
   Array& table = Array::Handle(object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
   intptr_t index = 0;
-  TypeArguments& other = TypeArguments::Handle();
-  other ^= table.At(index);
-  while (!other.IsNull()) {
-    if (this->Equals(other)) {
-      return other.raw();
+  TypeArguments& result = TypeArguments::Handle();
+  result ^= table.At(index);
+  while (!result.IsNull()) {
+    if (this->Equals(result)) {
+      return result.raw();
     }
-    other ^= table.At(++index);
+    result ^= table.At(++index);
   }
   // Not found. Add 'this' to table.
-  // TODO(srdjan): Copy 'this' into old space if canonicalized?
+  result ^= this->raw();
+  if (result.IsNew()) {
+    result ^= Object::Clone(result, Heap::kOld);
+  }
+  ASSERT(result.IsOld());
   if (index == table.Length() - 1) {
     table = Array::Grow(table, table.Length() + 4, Heap::kOld);
     object_store->set_canonical_type_arguments(table);
   }
-  table.SetAt(index, *this);
-  SetCanonical();
-  return this->raw();
+  table.SetAt(index, result);
+  result.SetCanonical();
+  return result.raw();
 }
 
 
@@ -4423,6 +4460,7 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
     const Integer& value = Integer::Handle(Integer::New(literal, Heap::kOld));
+    ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
     const Double& value = Double::Handle(Double::NewCanonical(literal));
@@ -7548,31 +7586,37 @@ bool Instance::Equals(const Instance& other) const {
 
 RawInstance* Instance::Canonicalize() const {
   ASSERT(!IsNull());
-  if (!IsCanonical()) {
-    const Class& cls = Class::Handle(this->clazz());
-    Array& constants = Array::Handle(cls.constants());
-    const intptr_t constants_len = constants.Length();
-    // Linear search to see whether this value is already present in the
-    // list of canonicalized constants.
-    Instance& norm_value = Instance::Handle();
-    intptr_t index = 0;
-    while (index < constants_len) {
-      norm_value ^= constants.At(index);
-      if (norm_value.IsNull()) {
-        break;
-      }
-      if (this->Equals(norm_value)) {
-        return norm_value.raw();
-      }
-      index++;
-    }
-    // The value needs to be added to the list. Grow the list if
-    // it is full.
-    // TODO(srdjan): Copy instance into old space if canonicalized?
-    cls.InsertCanonicalConstant(index, *this);
-    SetCanonical();
+  if (this->IsCanonical()) {
+    return this->raw();
   }
-  return this->raw();
+  Instance& result = Instance::Handle();
+  const Class& cls = Class::Handle(this->clazz());
+  Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  intptr_t index = 0;
+  while (index < constants_len) {
+    result ^= constants.At(index);
+    if (result.IsNull()) {
+      break;
+    }
+    if (this->Equals(result)) {
+      return result.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the list. Grow the list if
+  // it is full.
+  result ^= this->raw();
+  if (result.IsNew()) {
+    // Create a canonical object in old space.
+    result ^= Object::Clone(result, Heap::kOld);
+  }
+  ASSERT(result.IsOld());
+  cls.InsertCanonicalConstant(index, result);
+  result.SetCanonical();
+  return result.raw();
 }
 
 

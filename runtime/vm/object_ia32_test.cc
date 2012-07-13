@@ -32,7 +32,8 @@ void GenerateIncrement(Assembler* assembler) {
 // Generate a dart code sequence that embeds a string object in it.
 // This is used to test Embedded String objects in the instructions.
 void GenerateEmbedStringInCode(Assembler* assembler, const char* str) {
-  const String& string_object = String::ZoneHandle(String::New(str));
+  const String& string_object =
+      String::ZoneHandle(String::New(str, Heap::kOld));
   __ LoadObject(EAX, string_object);
   __ ret();
 }

@@ -148,6 +148,7 @@ void AssemblerBuffer::EmitObject(const Object& object) {
   // Since we are going to store the handle as part of the fixup information
   // the handle needs to be a zone handle.
   ASSERT(object.IsZoneHandle());
+  ASSERT(object.IsOld());
   EmitFixup(new PatchCodeWithHandle(pointer_offsets_, object));
   cursor_ += kWordSize;  // Reserve space for pointer.
 }

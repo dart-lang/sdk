@@ -336,6 +336,7 @@ class ConstantVal: public Value {
   explicit ConstantVal(const Object& value)
       : value_(value) {
     ASSERT(value.IsZoneHandle());
+    ASSERT(value.IsSmi() || value.IsOld());
   }
 
   DECLARE_VALUE(Constant)

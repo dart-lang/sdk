@@ -36,7 +36,7 @@ static void GenerateCallToCallRuntimeStub(Assembler* assembler,
   const Smi& smi1 = Smi::ZoneHandle(Smi::New(value1));
   const Smi& smi2 = Smi::ZoneHandle(Smi::New(value2));
   const Object& result = Object::ZoneHandle();
-  const Context& context = Context::ZoneHandle(Context::New(0));
+  const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());
   __ enter(Immediate(0));
   __ LoadObject(CTX, context);
@@ -119,7 +119,7 @@ static void GenerateCallToCallNativeCFunctionStub(Assembler* assembler,
   Dart_NativeFunction native_function =
       NativeTestEntry_Lookup(native_name, argc);
   ASSERT(native_function != NULL);
-  const Context& context = Context::ZoneHandle(Context::New(0));
+  const Context& context = Context::ZoneHandle(Context::New(0, Heap::kOld));
   ASSERT(context.isolate() == Isolate::Current());
   __ enter(Immediate(0));
   __ LoadObject(CTX, context);

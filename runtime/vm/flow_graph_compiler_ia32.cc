@@ -742,6 +742,7 @@ void FlowGraphCompiler::CopyParameters() {
       __ j(GREATER, &next_parameter, Assembler::kNearJump);
       // Check if this named parameter was passed in.
       __ movl(EAX, Address(EDI, 0));  // Load EAX with the name of the argument.
+      ASSERT(opt_param[i]->name().IsSymbol());
       __ CompareObject(EAX, opt_param[i]->name());
       __ j(NOT_EQUAL, &load_default_value, Assembler::kNearJump);
       // Load EAX with passed-in argument at provided arg_pos, i.e. at
