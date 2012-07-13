@@ -8,7 +8,7 @@
  * A random number generator. The default implementation supplies a stream of
  * pseudo-random bits which is not suitable for cryptographic purposes.
  */
-class Random {
+interface Random default _Random {
   /**
    * Creates a random-number generator. The optional parameter [seed] is used
    * to initialize the internal state of the generator. The implementation of
@@ -16,7 +16,7 @@ class Random {
    *
    * Implementation note: The default implementation uses up to 64-bits of seed.
    */
-  external factory Random([int seed]);
+  Random([int seed]);
 
   /**
    * Generates a positive random integer uniformly distributed on the range
@@ -25,16 +25,23 @@ class Random {
    * Implementation note: The default implementation supports [max] values
    * between 1 and ((1<<32) - 1) inclusive.
    */
-  abstract int nextInt(int max);
+  int nextInt(int max);
 
   /**
    * Generates a positive random floating point value uniformly distributed on
    * the range from 0.0, inclusive, to 1.0, exclusive.
    */
-  abstract double nextDouble();
+  double nextDouble();
 
   /**
    * Generates a random boolean value.
    */
-  abstract bool nextBool();
+  bool nextBool();
+}
+
+class _Random implements Random {
+  external _Random([int seed = null]);
+  external int nextInt(int max);
+  external double nextDouble();
+  external bool nextBool();
 }

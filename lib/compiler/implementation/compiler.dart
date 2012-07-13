@@ -534,7 +534,7 @@ class Compiler implements DiagnosticListener {
         Uri resolved = patchBase.resolve(argument.dartString.slowToString());
         LibraryElement importedLibrary =
             scanner.loadLibrary(resolved, argument);
-        scanner.importLibrary(original, importedLibrary, tag, patch.script);
+        scanner.importLibrary(original, importedLibrary, tag, patch);
         if (resolved.scheme == "dart") {
           delayedPatches[resolved.path] = importedLibrary;
         }
@@ -556,34 +556,43 @@ class Compiler implements DiagnosticListener {
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
       Element originalElement = lookup(patchElement.name);
-      assert(patchElement.kind !== ElementKind.ABSTRACT_FIELD);
-      if (originalElement !== null &&
-          originalElement.kind === ElementKind.ABSTRACT_FIELD) {
-        AbstractFieldElement originalField = originalElement;
-        if (patchElement.kind === ElementKind.GETTER) {
-          originalElement = originalField.getter;
-        } else if (patchElement.kind === ElementKind.SETTER) {
-          originalElement = originalField.setter;
-        } else {
-          internalError("Cannot patch a getter/setter field with a "
-                        "non-getter/setter patch", element: originalElement);
+      // Getters and setters are kept inside a synthetic field.
+      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        if (originalElement !== null &&
+            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          internalError("Cannot patch non-getter/setter with getter/setter",
+                        element: originalElement);
         }
-      }
-      if (originalElement === null) {
-        // The original library does not have an element with the same name
-        // as the patch library element.
-        // In this case, the patch library element must not be marked as
-        // "patch", and its name must make it private.
+        AbstractFieldElement patchField = patchElement;
+        AbstractFieldElement originalField = originalElement;
+        if (patchField.getter !== null) {
+          if (originalField === null || originalField.getter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.getter),
+                                       originalField,
+                                       this);
+            if (originalField === null && patchField.setter !== null) {
+              // It exists now, so find it for the setter patching.
+              originalField = lookup(patchElement.name);
+            }
+          } else {
+            patchMember(originalField.getter, patchField.getter);
+          }
+        }
+        if (patchField.setter !== null) {
+          if (originalField === null || originalField.setter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.setter),
+                                       originalField,
+                                       this);
+          } else {
+            patchMember(originalField.setter, patchField.setter);
+          }
+        }
+      } else if (originalElement === null) {
         if (isPatchElement(patchElement)) {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
         }
-        if (!patchElement.name.isPrivate()) {
-          internalError("Cannot add non-private member '"
-                        "${patchElement.name.slowToString()}' from patch.");
-        }
-        Element cloneElement = patchElement.cloneTo(original, this);
-        original.addMember(cloneElement, this);
+        original.addMember(clonePatch(patchElement), this);
       } else {
         patchMember(originalElement, patchElement);
       }
@@ -595,6 +604,20 @@ class Compiler implements DiagnosticListener {
     // TODO(lrn): More checks needed if we introduce metadata for real.
     // In that case, it must have the identifier "native" as metadata.
     return !element.metadata.isEmpty();
+  }
+
+  Element clonePatch(Element patchElement) {
+    // The original library does not have an element with the same name
+    // as the patch library element.
+    // In this case, the patch library element must not be marked as "patch",
+    // and its name must make it private.
+    if (!patchElement.name.isPrivate()) {
+      internalError("Cannot add non-private member '"
+                    "${patchElement.name.slowToString()}' from patch.");
+    }
+    // TODO(lrn): Create a copy of patchElement that isn't added to any
+    // object/library yet, but which takes its source from patchElement.
+    throw "Adding members from patch is unsupported";
   }
 
   void patchMember(Element originalElement, Element patchElement) {
@@ -955,7 +978,7 @@ class Compiler implements DiagnosticListener {
       throw 'Cannot find tokens to produce error message.';
     }
     if (uri === null && currentElement !== null) {
-      uri = currentElement.getScript().uri;
+      uri = currentElement.getCompilationUnit().script.uri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
       (beginOffset, endOffset) => new SourceSpan(uri, beginOffset, endOffset));
@@ -979,7 +1002,7 @@ class Compiler implements DiagnosticListener {
       element = currentElement;
     }
     Token position = element.position();
-    Uri uri = element.getScript().uri;
+    Uri uri = element.getCompilationUnit().script.uri;
     return (position === null)
         ? new SourceSpan(uri, 0, 0)
         : spanFromTokens(position, position, uri);
