@@ -85,7 +85,9 @@ dom_frog_native_bodies = {
 }
 
 def IsPrimitiveType(type_name):
-  return isinstance(GetIDLTypeInfo(type_name), PrimitiveIDLTypeInfo)
+  if not type_name in _idl_type_registry:
+    return False
+  return _idl_type_registry[type_name].clazz == 'Primitive'
 
 def ListImplementationInfo(interface, database):
   """Returns a tuple (elment_type, requires_indexer).
@@ -166,7 +168,7 @@ def MatchSourceFilter(thing):
 
 
 def DartType(idl_type_name):
-  return GetIDLTypeInfo(idl_type_name).dart_type()
+  return TypeRegistry().TypeInfo(idl_type_name).dart_type()
 
 
 class ParamInfo(object):
@@ -490,25 +492,18 @@ def TypeName(type_ids, interface):
 # ------------------------------------------------------------------------------
 
 class IDLTypeInfo(object):
-  def __init__(self, idl_type, dart_type=None,
-               native_type=None,
-               custom_to_native=False,
-               custom_to_dart=False, conversion_includes=[]):
+  def __init__(self, idl_type, data):
     self._idl_type = idl_type
-    self._dart_type = dart_type
-    self._native_type = native_type
-    self._custom_to_native = custom_to_native
-    self._custom_to_dart = custom_to_dart
-    self._conversion_includes = conversion_includes + [idl_type]
+    self._data = data
 
   def idl_type(self):
     return self._idl_type
 
   def dart_type(self):
-    return self._dart_type or self._idl_type
+    return self._data.dart_type or self._idl_type
 
   def native_type(self):
-    return self._native_type or self._idl_type
+    return self._data.native_type or self._idl_type
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     if 'Callback' in idl_node.ext_attrs:
@@ -548,7 +543,7 @@ class IDLTypeInfo(object):
     return argument
 
   def custom_to_native(self):
-    return self._custom_to_native
+    return self._data.custom_to_native
 
   def parameter_type(self):
     return '%s*' % self.native_type()
@@ -586,7 +581,8 @@ class IDLTypeInfo(object):
     return 'receiver->'
 
   def conversion_includes(self):
-    return ['"Dart%s.h"' % include for include in self._conversion_includes]
+    includes = [self._idl_type] + (self._data.conversion_includes or [])
+    return ['"Dart%s.h"' % include for include in includes]
 
   def to_native_includes(self):
     return ['"Dart%s.h"' % self.idl_type()]
@@ -595,12 +591,17 @@ class IDLTypeInfo(object):
     return 'Dart%s::toDart(%s)' % (self._idl_type, value)
 
   def custom_to_dart(self):
-    return self._custom_to_dart
+    return self._data.custom_to_dart
+
+
+class InterfaceIDLTypeInfo(IDLTypeInfo):
+  def __init__(self, idl_type, data):
+    super(InterfaceIDLTypeInfo, self).__init__(idl_type, data)
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, item_info):
-    super(SequenceIDLTypeInfo, self).__init__(idl_type)
+    super(SequenceIDLTypeInfo, self).__init__(idl_type, {})
     self._item_info = item_info
 
   def dart_type(self):
@@ -614,8 +615,8 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
 
 class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
-  def __init__(self):
-    super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', _dom_string_type_info)
+  def __init__(self, item_info):
+    super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', item_info)
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     emitter.Emit(
@@ -632,13 +633,8 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
 
 
 class PrimitiveIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, dart_type, native_type=None,
-               webcore_getter_name='getAttribute',
-               webcore_setter_name='setAttribute'):
-    super(PrimitiveIDLTypeInfo, self).__init__(idl_type, dart_type=dart_type,
-        native_type=native_type)
-    self._webcore_getter_name = webcore_getter_name
-    self._webcore_setter_name = webcore_setter_name
+  def __init__(self, idl_type, data):
+    super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     function_name = 'dartTo%s' % self._capitalized_native_type()
@@ -681,23 +677,22 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
 
   def webcore_getter_name(self):
-    return self._webcore_getter_name
+    return self._data.webcore_getter_name
 
   def webcore_setter_name(self):
-    return self._webcore_setter_name
+    return self._data.webcore_setter_name
 
   def _capitalized_native_type(self):
     return re.sub(r'(^| )([a-z])', lambda x: x.group(2).upper(), self.native_type())
 
 
 class SVGTearOffIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, native_type=''):
-    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type,
-                                                native_type=native_type)
+  def __init__(self, idl_type, data):
+    super(SVGTearOffIDLTypeInfo, self).__init__(idl_type, data)
 
   def native_type(self):
-    if self._native_type:
-      return self._native_type
+    if self._data.native_type:
+      return self._data.native_type
     tear_off_type = 'SVGPropertyTearOff'
     if self._idl_type.endswith('List'):
       tear_off_type = 'SVGListPropertyTearOff'
@@ -723,90 +718,103 @@ class SVGTearOffIDLTypeInfo(IDLTypeInfo):
     else:
       conversion_cast = 'static_cast<%s*>(%s)'
     conversion_cast = conversion_cast % (self.native_type(), value)
-    return 'Dart%s::toDart(%s)' %  (self._idl_type, conversion_cast)
+    return 'Dart%s::toDart(%s)' % (self._idl_type, conversion_cast)
 
-_dom_string_type_info = PrimitiveIDLTypeInfo(
-    'DOMString', dart_type='String', native_type='String')
+
+class TypeData(object):
+  def __init__(self, clazz, dart_type=None, native_type=None,
+               custom_to_dart=None, custom_to_native=None,
+               conversion_includes=None,
+               webcore_getter_name='getAttribute',
+               webcore_setter_name='setAttribute'):
+    self.clazz = clazz
+    self.dart_type = dart_type
+    self.native_type = native_type
+    self.custom_to_dart = custom_to_dart
+    self.custom_to_native = custom_to_native
+    self.conversion_includes = conversion_includes
+    self.webcore_getter_name = webcore_getter_name
+    self.webcore_setter_name = webcore_setter_name
+
 
 _idl_type_registry = {
-    'boolean': PrimitiveIDLTypeInfo('boolean', dart_type='bool', native_type='bool',
-                                    webcore_getter_name='hasAttribute',
-                                    webcore_setter_name='setBooleanAttribute'),
-    'byte': PrimitiveIDLTypeInfo('byte', dart_type='int', native_type='int'),
-    'octet': PrimitiveIDLTypeInfo('octet', dart_type='int', native_type='int'),
-    'short': PrimitiveIDLTypeInfo('short', dart_type='int', native_type='int'),
-    'unsigned short': PrimitiveIDLTypeInfo('unsigned short', dart_type='int',
+    'boolean': TypeData(clazz='Primitive', dart_type='bool', native_type='bool',
+                        webcore_getter_name='hasAttribute',
+                        webcore_setter_name='setBooleanAttribute'),
+    'byte': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
+    'octet': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
+    'short': TypeData(clazz='Primitive', dart_type='int', native_type='int'),
+    'unsigned short': TypeData(clazz='Primitive', dart_type='int',
         native_type='int'),
-    'int': PrimitiveIDLTypeInfo('int', dart_type='int'),
-    'unsigned int': PrimitiveIDLTypeInfo('unsigned int', dart_type='int',
+    'int': TypeData(clazz='Primitive', dart_type='int'),
+    'unsigned int': TypeData(clazz='Primitive', dart_type='int',
         native_type='unsigned'),
-    'long': PrimitiveIDLTypeInfo('long', dart_type='int', native_type='int',
+    'long': TypeData(clazz='Primitive', dart_type='int', native_type='int',
         webcore_getter_name='getIntegralAttribute',
         webcore_setter_name='setIntegralAttribute'),
-    'unsigned long': PrimitiveIDLTypeInfo('unsigned long', dart_type='int',
-        native_type='unsigned',
-        webcore_getter_name='getUnsignedIntegralAttribute',
-        webcore_setter_name='setUnsignedIntegralAttribute'),
-    'long long': PrimitiveIDLTypeInfo('long long', dart_type='int'),
-    'unsigned long long': PrimitiveIDLTypeInfo('unsigned long long', dart_type='int'),
-    'float': PrimitiveIDLTypeInfo('float', dart_type='num', native_type='double'),
-    'double': PrimitiveIDLTypeInfo('double', dart_type='num'),
+    'unsigned long': TypeData(clazz='Primitive', dart_type='int',
+                              native_type='unsigned',
+                              webcore_getter_name='getUnsignedIntegralAttribute',
+                              webcore_setter_name='setUnsignedIntegralAttribute'),
+    'long long': TypeData(clazz='Primitive', dart_type='int'),
+    'unsigned long long': TypeData(clazz='Primitive', dart_type='int'),
+    'float': TypeData(clazz='Primitive', dart_type='num', native_type='double'),
+    'double': TypeData(clazz='Primitive', dart_type='num'),
 
-    'any': PrimitiveIDLTypeInfo('any', dart_type='Object'),
-    'Array': PrimitiveIDLTypeInfo('Array', dart_type='List'),
-    'custom': PrimitiveIDLTypeInfo('custom', dart_type='Dynamic'),
-    'Date': PrimitiveIDLTypeInfo('Date', dart_type='Date', native_type='double'),
-    'DOMObject': PrimitiveIDLTypeInfo('DOMObject', dart_type='Object', native_type='ScriptValue'),
-    'DOMString': _dom_string_type_info,
+    'any': TypeData(clazz='Primitive', dart_type='Object'),
+    'Array': TypeData(clazz='Primitive', dart_type='List'),
+    'custom': TypeData(clazz='Primitive', dart_type='Dynamic'),
+    'Date': TypeData(clazz='Primitive', dart_type='Date', native_type='double'),
+    'DOMObject': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
+    'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
-    'Dictionary': PrimitiveIDLTypeInfo('Dictionary', dart_type='Map'),
+    'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'Flags': PrimitiveIDLTypeInfo('Flags', dart_type='Object'),
-    'DOMTimeStamp': PrimitiveIDLTypeInfo('DOMTimeStamp', dart_type='int', native_type='unsigned long long'),
-    'object': PrimitiveIDLTypeInfo('object', dart_type='Object', native_type='ScriptValue'),
-    'PositionOptions': PrimitiveIDLTypeInfo('PositionOptions', dart_type='Object'),
+    'Flags': TypeData(clazz='Primitive', dart_type='Object'),
+    'DOMTimeStamp': TypeData(clazz='Primitive', dart_type='int', native_type='unsigned long long'),
+    'object': TypeData(clazz='Primitive', dart_type='Object', native_type='ScriptValue'),
+    'PositionOptions': TypeData(clazz='Primitive', dart_type='Object'),
     # TODO(sra): Come up with some meaningful name so that where this appears in
     # the documentation, the user is made aware that only a limited subset of
     # serializable types are actually permitted.
-    'SerializedScriptValue': PrimitiveIDLTypeInfo('SerializedScriptValue', dart_type='Dynamic'),
+    'SerializedScriptValue': TypeData(clazz='Primitive', dart_type='Dynamic'),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
-    'WebKitFlags': PrimitiveIDLTypeInfo('WebKitFlags', dart_type='Object'),
+    'WebKitFlags': TypeData(clazz='Primitive', dart_type='Object'),
 
-    'sequence': PrimitiveIDLTypeInfo('sequence', dart_type='List'),
-    'void': PrimitiveIDLTypeInfo('void', dart_type='void'),
+    'sequence': TypeData(clazz='Primitive', dart_type='List'),
+    'void': TypeData(clazz='Primitive', dart_type='void'),
 
-    'CSSRule': IDLTypeInfo('CSSRule', conversion_includes=['CSSImportRule']),
-    'DOMException': IDLTypeInfo('DOMException', native_type='DOMCoreException'),
-    'DOMString[]': DOMStringArrayTypeInfo(),
-    'DOMStringList': IDLTypeInfo('DOMStringList', dart_type='List<String>', custom_to_native=True),
-    'DOMStringMap': IDLTypeInfo('DOMStringMap', dart_type='Map<String, String>'),
-    'DOMWindow': IDLTypeInfo('DOMWindow', custom_to_dart=True),
-    'Element': IDLTypeInfo('Element', custom_to_dart=True),
-    'EventListener': IDLTypeInfo('EventListener', custom_to_native=True),
-    'EventTarget': IDLTypeInfo('EventTarget', custom_to_native=True),
-    'HTMLElement': IDLTypeInfo('HTMLElement', custom_to_dart=True),
-    'IDBAny': IDLTypeInfo('IDBAny', dart_type='Dynamic', custom_to_native=True),
-    'IDBKey': IDLTypeInfo('IDBKey', dart_type='Dynamic', custom_to_native=True),
-    'StyleSheet': IDLTypeInfo('StyleSheet', conversion_includes=['CSSStyleSheet']),
-    'SVGElement': IDLTypeInfo('SVGElement', custom_to_dart=True),
+    'CSSRule': TypeData(clazz='Interface', conversion_includes=['CSSImportRule']),
+    'DOMException': TypeData(clazz='Interface', native_type='DOMCoreException'),
+    'DOMStringList': TypeData(clazz='Interface', dart_type='List<String>', custom_to_native=True),
+    'DOMStringMap': TypeData(clazz='Interface', dart_type='Map<String, String>'),
+    'DOMWindow': TypeData(clazz='Interface', custom_to_dart=True),
+    'Element': TypeData(clazz='Interface', custom_to_dart=True),
+    'EventListener': TypeData(clazz='Interface', custom_to_native=True),
+    'EventTarget': TypeData(clazz='Interface', custom_to_native=True),
+    'HTMLElement': TypeData(clazz='Interface', custom_to_dart=True),
+    'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
+    'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
-    'SVGAngle': SVGTearOffIDLTypeInfo('SVGAngle'),
-    'SVGLength': SVGTearOffIDLTypeInfo('SVGLength'),
-    'SVGLengthList': SVGTearOffIDLTypeInfo('SVGLengthList'),
-    'SVGMatrix': SVGTearOffIDLTypeInfo('SVGMatrix'),
-    'SVGNumber': SVGTearOffIDLTypeInfo('SVGNumber', native_type='SVGPropertyTearOff<float>'),
-    'SVGNumberList': SVGTearOffIDLTypeInfo('SVGNumberList'),
-    'SVGPathSegList': SVGTearOffIDLTypeInfo('SVGPathSegList', native_type='SVGPathSegListPropertyTearOff'),
-    'SVGPoint': SVGTearOffIDLTypeInfo('SVGPoint', native_type='SVGPropertyTearOff<FloatPoint>'),
-    'SVGPointList': SVGTearOffIDLTypeInfo('SVGPointList'),
-    'SVGPreserveAspectRatio': SVGTearOffIDLTypeInfo('SVGPreserveAspectRatio'),
-    'SVGRect': SVGTearOffIDLTypeInfo('SVGRect', native_type='SVGPropertyTearOff<FloatRect>'),
-    'SVGStringList': SVGTearOffIDLTypeInfo('SVGStringList', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
-    'SVGTransform': SVGTearOffIDLTypeInfo('SVGTransform'),
-    'SVGTransformList': SVGTearOffIDLTypeInfo('SVGTransformList', native_type='SVGTransformListPropertyTearOff')
+    'SVGAngle': TypeData(clazz='SVGTearOff'),
+    'SVGLength': TypeData(clazz='SVGTearOff'),
+    'SVGLengthList': TypeData(clazz='SVGTearOff'),
+    'SVGMatrix': TypeData(clazz='SVGTearOff'),
+    'SVGNumber': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<float>'),
+    'SVGNumberList': TypeData(clazz='SVGTearOff'),
+    'SVGPathSegList': TypeData(clazz='SVGTearOff', native_type='SVGPathSegListPropertyTearOff'),
+    'SVGPoint': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatPoint>'),
+    'SVGPointList': TypeData(clazz='SVGTearOff'),
+    'SVGPreserveAspectRatio': TypeData(clazz='SVGTearOff'),
+    'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatRect>'),
+    'SVGStringList': TypeData(clazz='SVGTearOff', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
+    'SVGTransform': TypeData(clazz='SVGTearOff'),
+    'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff')
 }
 
 _svg_supplemental_includes = [
@@ -818,17 +826,23 @@ _svg_supplemental_includes = [
     '"SVGPathSegListPropertyTearOff.h"',
 ]
 
-def GetIDLTypeInfo(idl_type_name):
-  type_info = _idl_type_registry.get(idl_type_name)
-  if type_info is not None:
-    return type_info
+class TypeRegistry(object):
+  def __init__(self):
+    self._cache = {}
 
-  match = re.match(r'sequence<(\w+)>$', idl_type_name)
-  if match:
-    return SequenceIDLTypeInfo(idl_type_name, GetIDLTypeInfo(match.group(1)))
+  def TypeInfo(self, type_name):
+    if not type_name in self._cache:
+      self._cache[type_name] = self._TypeInfo(type_name)
+    return self._cache[type_name]
 
-  match = re.match(r'(\w+)\[\]$', idl_type_name)
-  if match:
-    return SequenceIDLTypeInfo(idl_type_name, GetIDLTypeInfo(match.group(1)))
-
-  return IDLTypeInfo(idl_type_name)
+  def _TypeInfo(self, type_name):
+    match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
+    if match:
+      if type_name == 'DOMString[]':
+        return DOMStringArrayTypeInfo(self.TypeInfo('DOMString'))
+      return SequenceIDLTypeInfo(type_name, self.TypeInfo(match.group(1) or match.group(2)))
+    if not type_name in _idl_type_registry:
+      return InterfaceIDLTypeInfo(type_name, TypeData('Interface'))
+    type_data = _idl_type_registry.get(type_name)
+    class_name = '%sIDLTypeInfo' % type_data.clazz
+    return globals()[class_name](type_name, type_data)

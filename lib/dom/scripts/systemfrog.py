@@ -24,9 +24,8 @@ _dom_frog_omitted_members = set([
 
 class FrogSystem(System):
 
-  def __init__(self, templates, database, emitters, output_dir):
-    super(FrogSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options):
+    super(FrogSystem, self).__init__(options)
     self._impl_file_paths = []
 
   def ProcessInterface(self, interface):

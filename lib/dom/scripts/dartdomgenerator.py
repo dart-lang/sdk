@@ -14,6 +14,8 @@ import os
 import shutil
 import subprocess
 import sys
+from generator import TypeRegistry
+from systembase import GeneratorOptions
 from systemfrog import FrogSystem
 from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem
 from systeminterface import InterfacesSystem
@@ -60,6 +62,11 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
 
+  def CreateGeneratorOptions(template_paths, conditions, output_dir):
+    return GeneratorOptions(
+        TemplateLoader(template_dir, template_paths, conditions),
+        webkit_database, emitters, TypeRegistry(), output_dir)
+
   def Generate(system):
     generator.Generate(webkit_database, system,
                        super_database=common_database,
@@ -69,37 +76,35 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
 
   for system_name in system_names:
     if system_name in ['htmlfrog', 'htmldartium']:
-      output_dir = html_output_dir
       if system_name == 'htmlfrog':
-        backend = HtmlFrogSystem(
-            TemplateLoader(template_dir,
-                           ['html/frog', 'html/impl', 'html', ''],
-                           {'DARTIUM': False, 'FROG': True}),
-            webkit_database, emitters, output_dir)
+        options = CreateGeneratorOptions(
+            ['html/frog', 'html/impl', 'html', ''],
+            {'DARTIUM': False, 'FROG': True},
+            html_output_dir)
+        backend = HtmlFrogSystem(options)
       else:
-        backend = NativeImplementationSystem(
-            TemplateLoader(template_dir, ['dom/native', 'html/dartium',
-                                          'html/impl', ''],
-                           {'DARTIUM': True, 'FROG': False}),
-            webkit_database, emitters, output_dir, auxiliary_dir)
-      html_system = HtmlInterfacesSystem(
-          TemplateLoader(template_dir, ['html/interface', 'html/impl', 'html',
-                                        '']),
-          webkit_database, emitters, output_dir, backend)
+        options = CreateGeneratorOptions(
+            ['dom/native', 'html/dartium', 'html/impl', ''],
+            {'DARTIUM': True, 'FROG': False},
+            html_output_dir)
+        backend = NativeImplementationSystem(options, auxiliary_dir)
+      options = CreateGeneratorOptions(
+          ['html/interface', 'html/impl', 'html', ''], {}, html_output_dir)
+      html_system = HtmlInterfacesSystem(options, backend)
       Generate(html_system)
     else:
-      output_dir = dom_output_dir
-      interface_system = InterfacesSystem(
-          TemplateLoader(template_dir, ['dom/interface', 'dom', '']),
-          webkit_database, emitters, output_dir)
+      options = CreateGeneratorOptions(
+          ['dom/interface', 'dom', ''], {}, dom_output_dir)
+      interface_system = InterfacesSystem(options)
       if system_name == 'dummy':
+        options = CreateGeneratorOptions(
+            ['dom/dummy', 'dom', ''], {}, dom_output_dir)
         implementation_system = dartgenerator.DummyImplementationSystem(
-            TemplateLoader(template_dir, ['dom/dummy', 'dom', '']),
-            webkit_database, emitters, output_dir)
+            options)
       elif system_name == 'frog':
-        implementation_system = FrogSystem(
-            TemplateLoader(template_dir, ['dom/frog', 'dom', '']),
-            webkit_database, emitters, output_dir)
+        options = CreateGeneratorOptions(
+            ['dom/frog', 'dom', ''], {}, dom_output_dir)
+        implementation_system = FrogSystem(options)
       else:
         raise Exception('Unsupported system_name %s' % system_name)
 

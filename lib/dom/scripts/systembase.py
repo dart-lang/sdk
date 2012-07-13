@@ -24,11 +24,12 @@ class System(object):
   - Finish
   """
 
-  def __init__(self, templates, database, emitters, output_dir):
-    self._templates = templates
-    self._database = database
-    self._emitters = emitters
-    self._output_dir = output_dir
+  def __init__(self, options):
+    self._templates = options.templates
+    self._database = options.database
+    self._emitters = options.emitters
+    self._type_registry = options.type_registry
+    self._output_dir = options.output_dir
 
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
@@ -220,6 +221,14 @@ class BaseGenerator(object):
       else:
         walk(interface.parents[1:])
     return result
+
+class GeneratorOptions(object):
+  def __init__(self, templates, database, emitters, type_registry, output_dir):
+    self.templates = templates
+    self.database = database
+    self.emitters = emitters
+    self.type_registry = type_registry
+    self.output_dir = output_dir
 
 
 def IsReadOnly(attribute):

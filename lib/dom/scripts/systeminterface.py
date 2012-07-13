@@ -12,9 +12,8 @@ from generator import *
 
 class InterfacesSystem(systembase.System):
 
-  def __init__(self, templates, database, emitters, output_dir):
-    super(InterfacesSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options):
+    super(InterfacesSystem, self).__init__(options)
     self._dart_interface_file_paths = []
 
 

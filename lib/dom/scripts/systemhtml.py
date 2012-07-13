@@ -757,21 +757,19 @@ class HtmlSystemShared(object):
     return name.startswith('_')
 
   def DartType(self, idl_type):
-    type_info = GetIDLTypeInfo(idl_type)
+    type_info = TypeRegistry().TypeInfo(idl_type)
     return self._HTMLInterfaceName(type_info.dart_type())
 
 class HtmlSystem(System):
 
-  def __init__(self, templates, database, emitters, output_dir):
-    super(HtmlSystem, self).__init__(
-        templates, database, emitters, output_dir)
-    self._shared = HtmlSystemShared(database)
+  def __init__(self, options):
+    super(HtmlSystem, self).__init__(options)
+    self._shared = HtmlSystemShared(self._database)
 
 class HtmlInterfacesSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir, backend):
-    super(HtmlInterfacesSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options, backend):
+    super(HtmlInterfacesSystem, self).__init__(options)
     self._backend = backend
     self._dart_interface_file_paths = []
     self._elements_factory_emitter = None
@@ -1356,9 +1354,8 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
 class HtmlFrogSystem(HtmlSystem):
 
-  def __init__(self, templates, database, emitters, output_dir):
-    super(HtmlFrogSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options):
+    super(HtmlFrogSystem, self).__init__(options)
 
   def ImplementationGenerator(self, interface):
     return HtmlFrogClassGenerator(self, interface)
