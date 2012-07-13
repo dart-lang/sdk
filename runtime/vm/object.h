@@ -2664,6 +2664,10 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  // Returns this->raw() if num_args_tested == 1, otherwise returns a new
+  // ICData object containing only unique arg0 checks.
+  RawICData* AsUnaryClassChecks() const;
+
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
                         intptr_t id,

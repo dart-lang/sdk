@@ -7190,6 +7190,7 @@ void ICData::GetOneClassCheckAt(
 
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  ASSERT(index < NumberOfChecks());
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
@@ -7214,6 +7215,37 @@ RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
     }
   }
   return Function::null();
+}
+
+
+RawICData* ICData::AsUnaryClassChecks() const {
+  ASSERT(!IsNull());
+  ASSERT(num_args_tested() > 0);
+  if (num_args_tested() == 1) return raw();
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(function()),
+      String::Handle(target_name()),
+      id(),
+      kNumArgsTested));
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    const intptr_t class_id = GetReceiverClassIdAt(i);
+    intptr_t duplicate_class_id = -1;
+    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
+      }
+    }
+    if (duplicate_class_id >= 0) {
+      ASSERT(result.GetTargetAt(duplicate_class_id) == GetTargetAt(i));
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(GetTargetAt(i)));
+    }
+  }
+  return result.raw();
 }
 
 

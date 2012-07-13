@@ -82,10 +82,35 @@ void FlowGraphPrinter::PrintComputation(Computation* comp) {
 }
 
 
+static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
+  f->Print(" IC[%d: ", ic_data.NumberOfChecks());
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (i > 0) {
+      f->Print(" | ");
+    }
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (k > 0) {
+        f->Print(", ");
+      }
+      const Class& cls =
+          Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
+      f->Print("%s", String::Handle(cls.Name()).ToCString());
+    }
+  }
+  f->Print("]");
+}
+
+
 void Computation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s(", DebugName());
+  f->Print("%s:%d(", DebugName(), cid());
   PrintOperandsTo(f);
   f->Print(")");
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -146,18 +171,9 @@ void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
   f->Print("%s(", DebugName());
   instance_call()->PrintOperandsTo(f);
   f->Print(") ");
-  intptr_t len = HasICData() ? ic_data()->NumberOfChecks() : 0;
-  f->Print("[%d: ", len);
-  for (intptr_t i = 0; i < len; i++) {
-    intptr_t class_id = ic_data()->GetReceiverClassIdAt(i);
-    const Class& cls =
-        Class::Handle(Isolate::Current()->class_table()->At(class_id));
-    if (i > 0) {
-      f->Print(", ");
-    }
-    f->Print("%s", cls.ToCString());
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
   }
-  f->Print("]");
 }
 
 void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {

@@ -145,6 +145,15 @@ class FlowGraphCompiler : public ValueObject {
                        intptr_t token_index,
                        intptr_t try_index);
 
+  void EmitDoubleCompareBranch(Condition true_condition,
+                               XmmRegister left,
+                               XmmRegister right,
+                               BranchInstr* branch);
+  void EmitDoubleCompareBool(Condition true_condition,
+                             XmmRegister left,
+                             XmmRegister right,
+                             Register result);
+
   intptr_t StackSize() const;
 
   // Returns assembler label associated with the given block entry.

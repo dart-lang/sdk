@@ -469,7 +469,35 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
 }
 
 
+void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
+                                                XmmRegister left,
+                                                XmmRegister right,
+                                                BranchInstr* branch) {
+  ASSERT(branch != NULL);
+  assembler()->comisd(left, right);
+  BlockEntryInstr* nan_result = branch->is_negated() ?
+      branch->true_successor() : branch->false_successor();
+  assembler()->j(PARITY_EVEN, GetBlockLabel(nan_result));
+  branch->EmitBranchOnCondition(this, true_condition);
+}
 
+
+
+void FlowGraphCompiler::EmitDoubleCompareBool(Condition true_condition,
+                                              XmmRegister left,
+                                              XmmRegister right,
+                                              Register result) {
+  assembler()->comisd(left, right);
+  Label is_false, is_true, done;
+  assembler()->j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN false;
+  assembler()->j(true_condition, &is_true, Assembler::kNearJump);
+  assembler()->Bind(&is_false);
+  assembler()->LoadObject(result, bool_false());
+  assembler()->jmp(&done);
+  assembler()->Bind(&is_true);
+  assembler()->LoadObject(result, bool_true());
+  assembler()->Bind(&done);
+}
 
 
 Register FrameRegisterAllocator::AllocateFreeRegister(bool* blocked_registers) {

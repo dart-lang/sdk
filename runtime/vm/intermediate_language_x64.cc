@@ -200,16 +200,18 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (HasICData() &&
-      (ic_data()->NumberOfChecks() == 1) &&
-      (ic_data()->GetReceiverClassIdAt(0) == kSmi)) {
-    const intptr_t kNumTemps = 1;
+  if (receiver_class_id() != kObject) {
+    ASSERT((receiver_class_id() == kSmi) || (receiver_class_id() == kDouble));
+    // No temporary register needed for double comparison.
+    const intptr_t kNumTemps = (receiver_class_id() == kSmi) ? 1 : 0;
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
                                                 LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
+    if (receiver_class_id() == kSmi) {
+      locs->set_temp(0, Location::RequiresRegister());
+    }
     if (!is_fused_with_branch()) {
       locs->set_out(Location::RequiresRegister());
     }
@@ -241,6 +243,8 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
 }
 
 
+// Optional integer arguments can often be null. Null is not collected
+// by IC data. TODO(srdjan): Shall we collect null classes in ICData as well?
 static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
                                    EqualityCompareComp* comp) {
   Register left = comp->locs()->in(0).reg();
@@ -249,10 +253,9 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_pos(),
                                         comp->try_index(),
-                                        kDeoptSmiCompareSmis,
+                                        kDeoptSmiCompareSmi,
                                         left,
                                         right);
-  // TODO(srdjan): Should we always include NULL test (common case)?
   __ movq(temp, left);
   __ orq(temp, right);
   __ testq(temp, Immediate(kSmiTagMask));
@@ -269,6 +272,34 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
     __ Bind(&load_true);
     __ LoadObject(result, compiler->bool_true());
     __ Bind(&done);
+  }
+}
+
+
+// TODO(srdjan): Add support for mixed Smi/Double equality
+// (see LoadDoubleOrSmiToXmm).
+static void EmitDoubleEqualityCompare(FlowGraphCompiler* compiler,
+                                      EqualityCompareComp* comp) {
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  Label* deopt = compiler->AddDeoptStub(comp->cid(),
+                                        comp->token_pos(),
+                                        comp->try_index(),
+                                        kDeoptDoubleCompareDouble,
+                                        left,
+                                        right);
+  __ CompareClassId(left, kDouble);
+  __ j(NOT_EQUAL, deopt);
+  __ CompareClassId(right, kDouble);
+  __ j(NOT_EQUAL, deopt);
+  __ movsd(XMM0, FieldAddress(left, Double::value_offset()));
+  __ movsd(XMM1, FieldAddress(right, Double::value_offset()));
+  if (comp->is_fused_with_branch()) {
+    compiler->EmitDoubleCompareBranch(
+        EQUAL, XMM0, XMM1, comp->fused_with_branch());
+  } else {
+    compiler->EmitDoubleCompareBool(
+        EQUAL, XMM0, XMM1, comp->locs()->out().reg());
   }
 }
 
@@ -305,7 +336,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           Register left,
                                           Register right) {
   ASSERT(comp->HasICData());
-  const ICData& ic_data = *comp->ic_data();
+  const ICData& ic_data = ICData::Handle(comp->ic_data()->AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
   ASSERT(ic_data.num_args_tested() == 1);
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
@@ -415,10 +446,12 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (HasICData() &&
-      (ic_data()->NumberOfChecks() == 1) &&
-      (ic_data()->GetReceiverClassIdAt(0) == kSmi)) {
+  if (receiver_class_id() == kSmi) {
     EmitSmiEqualityCompare(compiler, this);
+    return;
+  }
+  if (receiver_class_id() == kDouble) {
+    EmitDoubleEqualityCompare(compiler, this);
     return;
   }
   EmitGenericEqualityCompare(compiler, this);
@@ -469,7 +502,7 @@ static void EmitSmiRelationalOp(FlowGraphCompiler* compiler,
   Label* deopt = compiler->AddDeoptStub(comp->cid(),
                                         comp->token_pos(),
                                         comp->try_index(),
-                                        kDeoptSmiCompareSmis,
+                                        kDeoptSmiCompareSmi,
                                         left,
                                         right);
   __ movq(temp, left);
@@ -525,25 +558,12 @@ static void EmitDoubleRelationalOp(FlowGraphCompiler* compiler,
   compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
 
   Condition true_condition = TokenKindToDoubleCondition(comp->kind());
-  __ comisd(XMM0, XMM1);
-
   if (comp->is_fused_with_branch()) {
-    BranchInstr* branch = comp->fused_with_branch();
-    BlockEntryInstr* nan_result = branch->is_negated() ?
-        branch->true_successor() : branch->false_successor();
-    __ j(PARITY_EVEN, compiler->GetBlockLabel(nan_result));
-    branch->EmitBranchOnCondition(compiler, true_condition);
+    compiler->EmitDoubleCompareBranch(
+        true_condition, XMM0, XMM1, comp->fused_with_branch());
   } else {
-    Register result = comp->locs()->out().reg();
-    Label is_false, is_true, done;
-    __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
-    __ j(true_condition, &is_true, Assembler::kNearJump);
-    __ Bind(&is_false);
-    __ LoadObject(result, compiler->bool_false());
-    __ jmp(&done);
-    __ Bind(&is_true);
-    __ LoadObject(result, compiler->bool_true());
-    __ Bind(&done);
+    compiler->EmitDoubleCompareBool(
+        true_condition, XMM0, XMM1, comp->locs()->out().reg());
   }
 }
 

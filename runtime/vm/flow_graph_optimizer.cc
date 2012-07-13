@@ -238,39 +238,6 @@ static RawField* GetField(intptr_t class_id, const String& field_name) {
 }
 
 
-// Returns ICData with num_args_checked == 1. If necessary creates a new ICData
-// object that contains unique receiver class-ids
-static RawICData* ToUnaryClassChecks(const ICData& ic_data) {
-  ASSERT(!ic_data.IsNull());
-  ASSERT(ic_data.num_args_tested() != 0);
-  if (ic_data.num_args_tested() == 1) return ic_data.raw();
-  const intptr_t kNumArgsTested = 1;
-  ICData& result = ICData::Handle(ICData::New(
-      Function::Handle(ic_data.function()),
-      String::Handle(ic_data.target_name()),
-      ic_data.id(),
-      kNumArgsTested));
-  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    const intptr_t class_id = ic_data.GetReceiverClassIdAt(i);
-    intptr_t duplicate_class_id = -1;
-    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
-      if (class_id == result.GetReceiverClassIdAt(k)) {
-        duplicate_class_id = k;
-        break;
-      }
-    }
-    if (duplicate_class_id >= 0) {
-      ASSERT(result.GetTargetAt(duplicate_class_id) == ic_data.GetTargetAt(i));
-    } else {
-      // This will make sure that Smi is first if it exists.
-      result.AddReceiverCheck(class_id,
-                              Function::Handle(ic_data.GetTargetAt(i)));
-    }
-  }
-  return result.raw();
-}
-
-
 // Only unique implicit instance getters can be currently handled.
 bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
                                                  InstanceCallComp* comp) {
@@ -409,7 +376,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
     if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
       PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
       ICData& unary_checks =
-          ICData::ZoneHandle(ToUnaryClassChecks(*comp->ic_data()));
+          ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
       call->set_ic_data(&unary_checks);
       instr->set_computation(call);
     }
@@ -600,13 +567,18 @@ void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp,
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
                                               BindInstr* instr) {
-  if (comp->HasICData()) {
-    // Replace binary checks with unary ones since EmitNative expects it.
-    ICData& unary_checks =
-        ICData::Handle(ToUnaryClassChecks(*comp->ic_data()));
-    comp->set_ic_data(&unary_checks);
+  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() == 1)) {
+    ASSERT(comp->ic_data()->num_args_tested() == 2);
+    GrowableArray<intptr_t> class_ids;
+    Function& target = Function::Handle();
+    comp->ic_data()->GetCheckAt(0, &class_ids, &target);
+    // TODO(srdjan): allow for mixed mode comparison.
+    if ((class_ids[0] == kSmi) && (class_ids[1] == kSmi)) {
+      comp->set_receiver_class_id(kSmi);
+    } else if ((class_ids[0] == kDouble) && (class_ids[1] == kDouble)) {
+      comp->set_receiver_class_id(kDouble);
+    }
   }
-
   TryFuseComparisonWithBranch(instr, comp);
 }
 

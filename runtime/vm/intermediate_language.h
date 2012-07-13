@@ -632,18 +632,23 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* right)
       : ComparisonComp(left, right),
         token_pos_(token_pos),
-        try_index_(try_index) {
+        try_index_(try_index),
+        receiver_class_id_(kObject) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
+
+  void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
+  intptr_t receiver_class_id() const { return receiver_class_id_; }
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
+  intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
