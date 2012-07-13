@@ -1833,6 +1833,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  // Determine if an instruction is a simple number computation
+  // involving only things with guaranteed number types and a given
+  // field.
+  bool isSimpleFieldNumberComputation(HInstruction value, HFieldSet node) {
+    if (value.guaranteedType.union(HType.NUMBER) == HType.NUMBER) return true;
+    if (value is HBinaryArithmetic) {
+      return (isSimpleFieldNumberComputation(value.left, node) &&
+              isSimpleFieldNumberComputation(value.right, node));
+    }
+    if (value is HFieldGet) return value.element == node.element;
+    return false;
+  }
+
   visitFieldSet(HFieldSet node) {
     if (work.element.isGenerativeConstructorBody() &&
         node.element.enclosingElement.isClass() &&
@@ -1851,8 +1864,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(node.element.name, type);
       }
-      backend.updateFieldSetters(node.element,
-                                 node.value.propagatedType);
+      // Determine the types seen so far for the field. If only number
+      // types have been seen and the value of the field set is a
+      // simple number computation only depending on that field, we
+      // can safely keep the number type for the field.
+      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
+      HType initializersType = backend.typeFromInitializersSoFar(node.element);
+      HType fieldType = fieldSettersType.union(initializersType);
+      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
+          isSimpleFieldNumberComputation(node.value, node)) {
+        backend.updateFieldSetters(node.element, HType.NUMBER);
+      } else {
+        backend.updateFieldSetters(node.element,
+                                   node.value.propagatedType);
+      }
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
