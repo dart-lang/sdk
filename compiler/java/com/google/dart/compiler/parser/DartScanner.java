@@ -7,6 +7,7 @@ package com.google.dart.compiler.parser;
 import com.google.dart.compiler.metrics.DartEventType;
 import com.google.dart.compiler.metrics.Tracer;
 import com.google.dart.compiler.metrics.Tracer.TraceEvent;
+import com.google.dart.compiler.parser.DartScanner.InternalState.Mode;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -1322,13 +1323,15 @@ public class DartScanner {
   }
 
   private void skipWhiteSpace() {
-    if ((internalState.getMode() != InternalState.Mode.DEFAULT)
-        && (internalState.getMode() != InternalState.Mode.IN_STRING_EMBEDDED_EXPRESSION)) {
+    Mode mode = internalState.getMode();
+    if ((mode != InternalState.Mode.DEFAULT)
+        && (mode != InternalState.Mode.IN_STRING_EMBEDDED_EXPRESSION)) {
       return;
     }
     while (true) {
-      if (isLineTerminator(lookahead(0))) {
-      } else if (!isWhiteSpace(lookahead(0))) {
+      int c = lookahead(0);
+      if (isLineTerminator(c)) {
+      } else if (!isWhiteSpace(c)) {
         break;
       }
       advance();
