@@ -64,8 +64,6 @@ test(param) {
 
 compileAndTest(String code) {
   String generated = compile(code, 'test');
-  print(code);
-  print(generated);
   RegExp validAdd = new RegExp("$anyIdentifier \\+ 42");
   RegExp invalidAdd = new RegExp("$anyIdentifier \\+ 53");
   Expect.isTrue(validAdd.hasMatch(generated));
