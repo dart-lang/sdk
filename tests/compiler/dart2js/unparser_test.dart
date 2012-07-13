@@ -85,6 +85,7 @@ testClosure() {
 
 testIndexedOperatorDecl() {
   testUnparseMember('operator[](int i)=> null;');
+  testUnparseMember('operator[]=(int i, int j)=> null;');
 }
 
 testNativeMethods() {
@@ -161,6 +162,13 @@ testGetSet() {
   testDart2Dart('String get foo(){return "a";}main(){foo;}');
 }
 
+testFactoryConstructor() {
+  testDart2Dart('main(){new A.fromFoo();}class A{A.fromFoo();}');
+  // Now more complicated, with normal constructor and factory parameters.
+  testDart2Dart('main(){new A.fromFoo(5);}'
+      'class A{A(this.f);A.fromFoo(foo):this("f");final String f;}');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -177,5 +185,6 @@ main() {
   testClassWithMethod();
   testVariableDefinitions();
   testGetSet();
+  testFactoryConstructor();
   testTopLevelField();
 }

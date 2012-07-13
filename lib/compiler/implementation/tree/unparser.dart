@@ -82,6 +82,11 @@ class Unparser implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
+    // Check length to not print unnecessary whitespace.
+    if (node.modifiers !== null && node.modifiers.nodes.length() > 0) {
+      visit(node.modifiers);
+      sb.add(' ');
+    }
     if (node.returnType !== null) {
       visit(node.returnType);
       sb.add(' ');
@@ -98,11 +103,16 @@ class Unparser implements Visitor {
       Send send = node.name;
       assert(send is !SendSet);
       visit(send.receiver);
+      if (!send.isOperator) {
+        // Looks like a factory method.
+        sb.add('.');
+      }
       visit(send.selector);
     } else {
       visit(node.name);
     }
     visit(node.parameters);
+    visit(node.initializers);
     visit(node.body);
   }
 

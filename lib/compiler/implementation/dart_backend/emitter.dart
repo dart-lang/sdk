@@ -18,7 +18,8 @@ class Emitter {
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
     // TODO(smok): Very soon properly print out correct class declaration with
     // extends, implements, etc.
-    sb.add('class ');
+    sb.add(classElement.beginToken.slowToString());  // 'class' or 'interface'.
+    sb.add(' ');
     sb.add(classElement.name.slowToString());
     sb.add('{');
     innerElements.forEach((element) {
