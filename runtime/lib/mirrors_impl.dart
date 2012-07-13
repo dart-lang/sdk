@@ -183,8 +183,8 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     implements InstanceMirror {
   _LocalInstanceMirrorImpl(ref,
                            this._class,
-                           this.hasSimpleValue,
-                           this._simpleValue) : super(ref) {}
+                           this._hasSimpleValue,
+                           this._reflectee) : super(ref) {}
 
   var _class;
   InterfaceMirror getClass() {
@@ -194,24 +194,19 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     return _class;
   }
 
-  bool hasSimpleValue;
+  // LocalInstanceMirrors always reflect local instances
+  bool hasReflectee = true; 
 
-  var _simpleValue;
-  get simpleValue() {
-    if (!hasSimpleValue) {
-      throw new MirrorException(
-          "Before accesing simpleValue you must check that hasSimpleValue "
-          "is true");
-    }
-    return _simpleValue;
-  }
+  var _hasSimpleValue;
+  var _reflectee;
+  get reflectee() => _reflectee;
 
   String toString() {
-    if (hasSimpleValue) {
-      if (simpleValue is String) {
-        return "InstanceMirror on <'${_dartEscape(simpleValue)}'>";
+    if (_hasSimpleValue) {
+      if (_reflectee is String) {
+        return "InstanceMirror on <'${_dartEscape(_reflectee)}'>";
       } else {
-        return "InstanceMirror on <$simpleValue>";
+        return "InstanceMirror on <$_reflectee>";
       }
     } else {
       return "InstanceMirror on instance of '${getClass().simpleName}'";

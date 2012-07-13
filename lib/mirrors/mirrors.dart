@@ -133,24 +133,27 @@ interface InstanceMirror extends ObjectMirror {
   InterfaceMirror getClass();
 
   /**
-   * Does [simpleValue] contain the value of the reflectee?
-   */
-  bool hasSimpleValue;
-
-  /**
-   * If the [InstanceMirror] refers to a simple value, we provide
-   * access to the actual value here.
+   * Does [reflectee] contain the instance reflected by this mirror? This will
+   * always be true in the local case (reflecting instances in the same 
+   * isolate), but only true in the remote case if this mirror reflects a 
+   * simple value.
    *
    * A value is simple if one of the following holds:
    *  - the value is null
    *  - the value is of type [num]
    *  - the value is of type [bool]
    *  - the value is of type [String]
+   */
+  final bool hasReflectee;
+
+  /**
+   * If the [InstanceMirror] reflects an instance it is meaningful to have a
+   * local reference to, we provide access to the actual instance here.
    *
-   * If you access [simpleValue] when [hasSimpleValue] is false an
+   * If you access [reflectee] when [hasReflectee] is false, an
    * exception is thrown.
    */
-  final simpleValue;
+  final reflectee;
 }
 
 /**

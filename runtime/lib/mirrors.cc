@@ -647,12 +647,13 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
   if (Dart_IsError(instance_cls)) {
     return instance_cls;
   }
+
   bool is_simple = IsSimpleValue(instance);
   Dart_Handle args[] = {
     CreateVMReference(instance),
     CreateLazyMirror(instance_cls),
     Dart_NewBoolean(is_simple),
-    (is_simple ? instance : Dart_Null()),
+    instance
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
   return mirror;

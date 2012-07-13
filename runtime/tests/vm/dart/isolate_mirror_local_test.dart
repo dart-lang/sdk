@@ -101,8 +101,8 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
       (InstanceMirror retval) {
         Expect.equals(123, global_var);
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(124, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(124, retval.reflectee);
         testDone('testRootLibraryMirror');
       });
 
@@ -268,16 +268,16 @@ void testIntegerInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): The mirrors api exposes internal vm
   // implementation class names.  Is this okay?
   Expect.equals('Smi', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(1001, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(1001, mirror.reflectee);
   Expect.equals("InstanceMirror on <1001>", mirror.toString());
 
   // Invoke (mirror + mirror).
   mirror.invoke('+', [ mirror ]).then(
       (InstanceMirror retval) {
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(2002, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(2002, retval.reflectee);
         testDone('testIntegerInstanceMirror');
       });
 }
@@ -286,8 +286,8 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): The mirrors api exposes internal vm
   // implementation class names.  Is this okay?
   Expect.equals('OneByteString', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals('This\nis\na\nString', mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals('This\nis\na\nString', mirror.reflectee);
   Expect.equals("InstanceMirror on <'This\\nis\\na\\nString'>",
                 mirror.toString());
 
@@ -295,16 +295,16 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   mirror.invoke('[]', [ 0 ]).then(
       (InstanceMirror retval) {
         Expect.equals('OneByteString', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals('T', retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals('T', retval.reflectee);
         testDone('testStringInstanceMirror');
       });
 }
 
 void testBoolInstanceMirror(InstanceMirror mirror) {
   Expect.equals('Bool', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(true, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(true, mirror.reflectee);
   Expect.equals("InstanceMirror on <true>", mirror.toString());
   testDone('testBoolInstanceMirror');
 }
@@ -312,8 +312,8 @@ void testBoolInstanceMirror(InstanceMirror mirror) {
 void testNullInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): This is returning the wrong class.  Fix it.
   Expect.equals('Object', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(null, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(null, mirror.reflectee);
   Expect.equals("InstanceMirror on <null>", mirror.toString());
   testDone('testNullInstanceMirror');
 }
@@ -335,14 +335,14 @@ class MyClass extends MySuperClass implements MyInterface {
 }
 
 void testCustomInstanceMirror(InstanceMirror mirror) {
-  Expect.isFalse(mirror.hasSimpleValue);
+  Expect.isTrue(mirror.hasReflectee);
   bool saw_exception = false;
   try {
-    // mirror.simpleValue;
+    mirror.reflectee;
   } catch (MirrorException me) {
     saw_exception = true;
   }
-  //Expect.isTrue(saw_exception);
+  Expect.isFalse(saw_exception);
   Expect.equals("InstanceMirror on instance of 'MyClass'", mirror.toString());
 
   InterfaceMirror cls = mirror.getClass();
@@ -360,8 +360,8 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   mirror.invoke('method', [ 1000 ]).then(
       (InstanceMirror retval) {
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(1017, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(1017, retval.reflectee);
         testDone('testCustomInstanceMirror');
       });
 
