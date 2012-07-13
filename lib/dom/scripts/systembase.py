@@ -56,8 +56,8 @@ class System(object):
     code.Emit(self._templates.Load('callback.darttemplate'))
     code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=interface.id,
-              TYPE=info.type_name,
-              PARAMS=info.ParametersImplementationDeclaration())
+              TYPE=DartType(info.type_name),
+              PARAMS=info.ParametersImplementationDeclaration(DartType))
 
 
   def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
@@ -221,6 +221,10 @@ class BaseGenerator(object):
       else:
         walk(interface.parents[1:])
     return result
+
+  def _DartType(self, type_name):
+    return self._system._type_registry.DartType(type_name)
+
 
 class GeneratorOptions(object):
   def __init__(self, templates, database, emitters, type_registry, output_dir):

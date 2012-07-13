@@ -10,7 +10,6 @@ import emitter
 import os
 import systembase
 from generator import *
-from systemhtml import HtmlSystemShared
 
 
 class NativeImplementationSystem(systembase.System):
@@ -20,7 +19,6 @@ class NativeImplementationSystem(systembase.System):
     self._auxiliary_dir = auxiliary_dir
     self._cpp_header_files = []
     self._cpp_impl_files = []
-    self._html_system = HtmlSystemShared(self._database)
 
   def ImplementationGenerator(self, interface):
     return NativeImplementationGenerator(self, interface)
@@ -167,9 +165,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         system._database, interface)
     self._system = system
     self._current_secondary_parent = None
-    self._html_system = self._system._html_system
-    self._html_interface_name = self._html_system._html_renames.get(
-        self._interface.id, self._interface.id)
+    self._html_interface_name = system._type_registry.InterfaceName(self._interface.id)
 
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
@@ -319,9 +315,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
-
-  def _DartType(self, idl_type):
-    return self._html_system.DartType(idl_type)
 
   def _BaseClassName(self):
     root_class = 'NativeFieldWrapperClass1'
@@ -644,7 +637,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def _AddOperation(self, info):
+  def AddOperation(self, info, html_name):
     """
     Arguments:
       info: An OperationInfo object.
@@ -654,16 +647,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     if 'CheckSecurityForNode' in operation.ext_attrs:
       # FIXME: exclude from interface as well.
-      return
-
-    html_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, info.name, implementation_class=True)
-
-    if not html_name and info.name == 'item':
-      # FIXME: item should be renamed to operator[], not removed.
-      html_name = '_item'
-
-    if not html_name:
       return
 
     is_custom = 'Custom' in operation.ext_attrs
@@ -753,12 +736,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           check = '%s === _null' % argument_names[position]
           GenerateCall(operation, position, [check])
       GenerateCall(operation, len(operation.arguments), [])
-
-  def AddOperation(self, info):
-    self._AddOperation(info)
-
-  def AddStaticOperation(self, info):
-    self._AddOperation(info)
 
   def SecondaryContext(self, interface):
     pass

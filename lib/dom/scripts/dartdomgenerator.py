@@ -17,7 +17,7 @@ import sys
 from generator import TypeRegistry
 from systembase import GeneratorOptions
 from systemfrog import FrogSystem
-from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem
+from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem, HtmlSystemShared
 from systeminterface import InterfacesSystem
 from systemnative import NativeImplementationSystem
 from templateloader import TemplateLoader
@@ -62,10 +62,11 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
 
-  def CreateGeneratorOptions(template_paths, conditions, output_dir):
+  def CreateGeneratorOptions(template_paths, conditions, type_registry,
+                             output_dir):
     return GeneratorOptions(
         TemplateLoader(template_dir, template_paths, conditions),
-        webkit_database, emitters, TypeRegistry(), output_dir)
+        webkit_database, emitters, type_registry, output_dir)
 
   def Generate(system):
     generator.Generate(webkit_database, system,
@@ -76,34 +77,40 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
 
   for system_name in system_names:
     if system_name in ['htmlfrog', 'htmldartium']:
+      renames = HtmlSystemShared.MakeHtmlRenames(webkit_database)
+      type_registry = TypeRegistry(renames)
       if system_name == 'htmlfrog':
         options = CreateGeneratorOptions(
             ['html/frog', 'html/impl', 'html', ''],
             {'DARTIUM': False, 'FROG': True},
+            type_registry,
             html_output_dir)
         backend = HtmlFrogSystem(options)
       else:
         options = CreateGeneratorOptions(
             ['dom/native', 'html/dartium', 'html/impl', ''],
             {'DARTIUM': True, 'FROG': False},
+            type_registry,
             html_output_dir)
         backend = NativeImplementationSystem(options, auxiliary_dir)
       options = CreateGeneratorOptions(
-          ['html/interface', 'html/impl', 'html', ''], {}, html_output_dir)
+          ['html/interface', 'html/impl', 'html', ''], {}, type_registry,
+          html_output_dir)
       html_system = HtmlInterfacesSystem(options, backend)
       Generate(html_system)
     else:
+      type_registry = TypeRegistry({})
       options = CreateGeneratorOptions(
-          ['dom/interface', 'dom', ''], {}, dom_output_dir)
+          ['dom/interface', 'dom', ''], {}, type_registry, dom_output_dir)
       interface_system = InterfacesSystem(options)
       if system_name == 'dummy':
         options = CreateGeneratorOptions(
-            ['dom/dummy', 'dom', ''], {}, dom_output_dir)
+            ['dom/dummy', 'dom', ''], {}, type_registry, dom_output_dir)
         implementation_system = dartgenerator.DummyImplementationSystem(
             options)
       elif system_name == 'frog':
         options = CreateGeneratorOptions(
-            ['dom/frog', 'dom', ''], {}, dom_output_dir)
+            ['dom/frog', 'dom', ''], {}, type_registry, dom_output_dir)
         implementation_system = FrogSystem(options)
       else:
         raise Exception('Unsupported system_name %s' % system_name)

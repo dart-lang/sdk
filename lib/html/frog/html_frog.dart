@@ -9766,6 +9766,8 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
   _NodeImpl operator[](int index) native "return this[index];";
 
+  _NodeImpl _item(int index) native "item";
+
 }
 
 class _NotationImpl extends _NodeImpl implements Notation native "*Notation" {

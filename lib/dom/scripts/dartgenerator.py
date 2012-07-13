@@ -333,7 +333,7 @@ class DummyInterfaceGenerator(systembase.BaseGenerator):
         self._system._templates.Load('factoryprovider.darttemplate'),
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration())
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(DartType))
 
   def FinishInterface(self):
     pass

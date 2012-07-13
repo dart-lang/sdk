@@ -85,7 +85,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
       # TODO(vsm): Remove source_filter.
       if MatchSourceFilter(parent):
         # Parent is a DOM type.
-        extends.append(DartType(parent.type.id))
+        extends.append(self._DartType(parent.type.id))
       elif '<' in parent.type.id:
         # Parent is a Dart collection type.
         # TODO(vsm): Make this check more robust.
@@ -125,7 +125,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
           '\n'
           '  $CTOR($PARAMS);\n',
           CTOR=typename,
-          PARAMS=constructor_info.ParametersInterfaceDeclaration())
+          PARAMS=constructor_info.ParametersInterfaceDeclaration(self._DartType))
 
     element_type = MaybeTypedArrayElementTypeInHierarchy(
         self._interface, self._system._database)
@@ -139,7 +139,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
           '  $CTOR.fromBuffer(ArrayBuffer buffer,'
                             ' [int byteOffset, int length]);\n',
           CTOR=self._interface.id,
-          TYPE=DartType(element_type))
+          TYPE=self._DartType(element_type))
 
 
   def FinishInterface(self):
@@ -165,7 +165,7 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
   def _EmitConstant(self, emitter, constant):
     emitter.Emit('\n  static final $TYPE$NAME = $VALUE;\n',
                  NAME=constant.id,
-                 TYPE=TypeOrNothing(DartType(constant.type.id),
+                 TYPE=TypeOrNothing(self._DartType(constant.type.id),
                                     constant.type.id),
                  VALUE=constant.value)
 
@@ -175,13 +175,13 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
     if getter and setter and getter.type.id == setter.type.id:
       self._members_emitter.Emit('\n  $TYPE $NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),
-                                 TYPE=TypeOrVar(DartType(getter.type.id),
+                                 TYPE=TypeOrVar(self._DartType(getter.type.id),
                                                 getter.type.id))
       return
     if getter and not setter:
       self._members_emitter.Emit('\n  final $TYPE$NAME;\n',
                                  NAME=DartDomNameOfAttribute(getter),
-                                 TYPE=TypeOrNothing(DartType(getter.type.id),
+                                 TYPE=TypeOrNothing(self._DartType(getter.type.id),
                                                     getter.type.id))
       return
     raise Exception('Unexpected getter/setter combination %s %s' %
@@ -195,6 +195,6 @@ class DartInterfaceGenerator(systembase.BaseGenerator):
     """
     self._members_emitter.Emit('\n'
                                '  $TYPE $NAME($PARAMS);\n',
-                               TYPE=info.type_name,
+                               TYPE=self._DartType(info.type_name),
                                NAME=info.name,
-                               PARAMS=info.ParametersInterfaceDeclaration())
+                               PARAMS=info.ParametersInterfaceDeclaration(self._DartType))

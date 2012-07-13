@@ -168,7 +168,9 @@ def MatchSourceFilter(thing):
 
 
 def DartType(idl_type_name):
-  return TypeRegistry().TypeInfo(idl_type_name).dart_type()
+  if idl_type_name in _idl_type_registry:
+    return _idl_type_registry[idl_type_name].dart_type or idl_type_name
+  return idl_type_name
 
 
 class ParamInfo(object):
@@ -204,9 +206,9 @@ def _DartArg(args, interface, constructor=False):
     dart_types = sorted(set(DartType(arg.type.id) for arg in args))
     if len(dart_types) == 1:
       if len(type_ids) == 1:
-        return (type_ids[0], dart_types[0])
+        return (type_ids[0], type_ids[0])
       else:
-        return (None, dart_types[0])
+        return (None, type_ids[0])
     else:
       return (None, TypeName(type_ids, interface))
 
@@ -260,7 +262,7 @@ def AnalyzeOperation(interface, operations):
   info.name = operations[0].ext_attrs.get('DartName', info.declared_name)
   info.constructor_name = None
   info.js_name = info.declared_name
-  info.type_name = DartType(operations[0].type.id)   # TODO: widen.
+  info.type_name = operations[0].type.id   # TODO: widen.
   info.param_infos = args
   return info
 
@@ -382,14 +384,14 @@ class OperationInfo(object):
     param_infos: A list of ParamInfo.
   """
 
-  def ParametersInterfaceDeclaration(self, rename_type=lambda x: x):
+  def ParametersInterfaceDeclaration(self, rename_type):
     """Returns a formatted string declaring the parameters for the interface."""
     return self._FormatParams(
         self.param_infos, None,
         lambda param: TypeOrNothing(rename_type(param.dart_type), param.type_id))
 
   def ParametersImplementationDeclaration(
-      self, rename_type=None, default_value='null'):
+      self, rename_type, default_value='null'):
     """Returns a formatted string declaring the parameters for the
     implementation.
 
@@ -397,23 +399,9 @@ class OperationInfo(object):
       rename_type: A function that allows the types to be renamed.
         The function is applied to the parameter's dart_type.
     """
-    if rename_type:
-      def renamer(param_info):
-        return TypeOrNothing(rename_type(param_info.dart_type))
-      return self._FormatParams(self.param_infos, default_value, renamer)
-    else:
-      def type_fn(param_info):
-        if param_info.dart_type == 'Dynamic':
-          if param_info.type_id:
-            # It is more informative to use a comment IDL type.
-            return '/*%s*/' % param_info.type_id
-          else:
-            return 'var'
-        else:
-          return param_info.dart_type
-      return self._FormatParams(
-          self.param_infos, default_value,
-          lambda param: TypeOrNothing(param.dart_type, param.type_id))
+    return self._FormatParams(
+        self.param_infos, default_value,
+        lambda param: TypeOrNothing(rename_type(param.dart_type)))
 
   def ParametersAsArgumentList(self):
     """Returns a string of the parameter names suitable for passing the
@@ -827,13 +815,21 @@ _svg_supplemental_includes = [
 ]
 
 class TypeRegistry(object):
-  def __init__(self):
+  def __init__(self, interface_renames):
+    self._interface_renames = interface_renames
     self._cache = {}
 
   def TypeInfo(self, type_name):
     if not type_name in self._cache:
       self._cache[type_name] = self._TypeInfo(type_name)
     return self._cache[type_name]
+
+  def DartType(self, type_name):
+    dart_type = self.TypeInfo(type_name).dart_type()
+    return self._interface_renames.get(dart_type, dart_type)
+
+  def InterfaceName(self, type_name):
+    return self._interface_renames.get(type_name, type_name)
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)

@@ -111,7 +111,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     implements = [interface_name]
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
-      implements.append('List<%s>' % DartType(element_type))
+      implements.append('List<%s>' % self._DartType(element_type))
 
     self._members_emitter = self._dart_code.Emit(
         self._template,
@@ -148,37 +148,34 @@ class FrogInterfaceGenerator(BaseGenerator):
         template,
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration(),
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         NAMEDCONSTRUCTOR=constructor_info.name or interface_name,
         ARGUMENTS=constructor_info.ParametersAsArgumentList())
 
   def _ShouldNarrowToImplementationType(self, type_name):
     # TODO(sra): Move into the 'system' and cache the result.
-    if type_name == 'EventListener':
-      # Callbacks are typedef functions so don't have a class.
+    do_not_narrow = ['DOMStringList', 'DOMStringMap', 'EventListener',
+                     'IDBAny', 'IDBKey', 'MediaQueryListListener']
+    if type_name in do_not_narrow:
       return False
     if self._system._database.HasInterface(type_name):
       interface = self._system._database.GetInterface(type_name)
       if RecognizeCallback(interface):
         # Callbacks are typedef functions so don't have a class.
         return False
-      elif type_name == 'MediaQueryListListener':
-        # Somewhat like a callback.  See Issue 3338.
-        return False
-      else:
-        return True
+      return True
     return False
 
   def _NarrowToImplementationType(self, type_name):
     if self._ShouldNarrowToImplementationType(type_name):
-      return self._ImplClassName(type_name)
-    return type_name
+      return self._ImplClassName(self._DartType(type_name))
+    return self._DartType(type_name)
 
   def _NarrowInputType(self, type_name):
-    return self._NarrowToImplementationType(DartType(type_name))
+    return self._NarrowToImplementationType(type_name)
 
   def _NarrowOutputType(self, type_name):
-    return self._NarrowToImplementationType(DartType(type_name))
+    return self._NarrowToImplementationType(type_name)
 
   def AddConstant(self, constant):
     # Since we are currently generating native classes without interfaces,
@@ -186,7 +183,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     # if we revert back to generating interfaces.
     self._members_emitter.Emit('\n  static final $TYPE $NAME = $VALUE;\n',
                                NAME=constant.id,
-                               TYPE=DartType(constant.type.id),
+                               TYPE=self._DartType(constant.type.id),
                                VALUE=constant.value)
 
     pass
@@ -213,7 +210,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     (super_setter, super_setter_interface) = self._FindShadowedAttribute(setter)
     if super_getter or super_setter:
       if getter and not setter and super_getter and not super_setter:
-        if DartType(getter.type.id) == DartType(super_getter.type.id):
+        if self._DartType(getter.type.id) == self._DartType(super_getter.type.id):
           # Compatible getter, use the superclass property.  This works because
           # JavaScript will do its own dynamic dispatch.
           self._members_emitter.Emit(
@@ -367,7 +364,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     # TODO(sra): Use separate mixins for typed array implementations of List<T>.
     template_file = 'immutable_list_mixin.darttemplate'
     template = self._system._templates.Load(template_file)
-    self._members_emitter.Emit(template, E=DartType(element_type))
+    self._members_emitter.Emit(template, E=self._DartType(element_type))
 
   def AddOperation(self, info):
     """
