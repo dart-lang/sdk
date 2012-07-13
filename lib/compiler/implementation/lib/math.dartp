@@ -7,6 +7,10 @@
 // Imports checkNum etc. used below.
 #import("js_helper.dart");
 
+// TODO(lrn): Consider not using the JS function directly, but instead calling
+// helper functions in the "js_helper" library. Then we can stop enabling JS
+// in all patched library files.
+
 patch int parseInt(str) {
   checkString(str);
   if (!JS('bool',
@@ -15,7 +19,7 @@ patch int parseInt(str) {
     throw new BadNumberFormatException(str);
   }
   var trimmed = str.trim();
-  var base = 10;;
+  var base = 10;
   if ((trimmed.length > 2 && (trimmed[1] == 'x' || trimmed[1] == 'X')) ||
     (trimmed.length > 3 && (trimmed[2] == 'x' || trimmed[2] == 'X'))) {
     base = 16;
@@ -74,24 +78,28 @@ patch num pow(num value, num exponent) {
   return JS('num', @'Math.pow(#, #)', value, exponent);
 }
 
-patch class _Random {
-  // The Dart2JS implementation of Random doesn't use the seed.
-  patch _Random([int seed]);
+patch class Random {
+  patch factory Random([int seed]) => const _Random();
+}
 
-  patch int nextInt(int max) {
+class _Random implements Random {
+  // The Dart2JS implementation of Random doesn't use a seed.
+  _Random();
+
+  int nextInt(int max) {
     if (max < 0) throw new IllegalArgumentException("negative max: $max");
-    if (max > 0x100000000) max = 0x100000000;
-    return JS("int", "Math.floor(Math.random() * #)", max);
+    if (max > 0xFFFFFFFF) max = 0xFFFFFFFF;
+    return JS("int", "(Math.random() * #) >>> 0", max);
   }
 
   /**
    * Generates a positive random floating point value uniformly distributed on
    * the range from 0.0, inclusive, to 1.0, exclusive.
    */
-  patch double nextDouble() => JS("double", "Math.random()");
+  double nextDouble() => JS("double", "Math.random()");
 
   /**
    * Generates a random boolean value.
    */
-  patch bool nextBool() => JS("bool", "Math.random() < 0.5");
+  bool nextBool() => JS("bool", "Math.random() < 0.5");
 }

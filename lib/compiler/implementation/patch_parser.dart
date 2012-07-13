@@ -12,7 +12,6 @@
 #import("elements/elements.dart");
 #import('native_handler.dart', prefix: 'native');
 
-
 class PatchParserTask extends leg.CompilerTask {
   PatchParserTask(leg.Compiler compiler): super(compiler);
   final String name = "Patching Parser";

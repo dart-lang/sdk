@@ -1867,8 +1867,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
 
   VariableDefinitionsVisitor(Compiler compiler,
                              this.definitions, this.resolver, this.kind)
-    : super(compiler)
-  {
+      : super(compiler) {
     variables = new VariableListElement.node(
         definitions, ElementKind.VARIABLE_LIST, resolver.context.element);
   }
