@@ -28,7 +28,7 @@ class DartBackend extends Backend {
     // TODO(antonm): Implement this method, if needed.
   }
 
-  CodeBlock codegen(WorkItem work) { return new CodeBlock(null, null); }
+  CodeBuffer codegen(WorkItem work) { return new CodeBuffer(); }
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {

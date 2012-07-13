@@ -5,7 +5,7 @@
 class NativeEmitter {
 
   CodeEmitterTask emitter;
-  StringBuffer nativeBuffer;
+  CodeBuffer nativeBuffer;
 
   // Classes that participate in dynamic dispatch. These are the
   // classes that contain used members.
@@ -40,7 +40,7 @@ class NativeEmitter {
         overriddenMethods = new Set<FunctionElement>(),
         nativeMethods = new Set<FunctionElement>(),
         redirectingMethods = new Map<FunctionElement, String>(),
-        nativeBuffer = new StringBuffer();
+        nativeBuffer = new CodeBuffer();
 
   Compiler get compiler() => emitter.compiler;
 
@@ -103,9 +103,7 @@ function(cls, fields, methods) {
     nativeBuffer.add(nativeCode);
     nativeBuffer.add(';\n');
 
-    void defineInstanceMember(String name,
-                              String value,
-                              [List<SourceMappingEntry> sourceMappings]) {
+    void defineInstanceMember(String name, CodeBuffer value) {
       nativeBuffer.add("$className.$name = $value;\n");
     }
 
@@ -146,10 +144,10 @@ function(cls, fields, methods) {
       return;
     }
 
-    StringBuffer fieldBuffer = new StringBuffer();
+    CodeBuffer fieldBuffer = new CodeBuffer();
     emitter.emitClassFields(classElement, fieldBuffer);
 
-    StringBuffer methodBuffer = new StringBuffer();
+    CodeBuffer methodBuffer = new CodeBuffer();
     emitter.emitInstanceMembers(classElement, methodBuffer, false);
 
     if (methodBuffer.isEmpty() && fieldBuffer.isEmpty()) return;
@@ -169,7 +167,7 @@ function(cls, fields, methods) {
     return result === null ? const<ClassElement>[] : result;
   }
 
-  void potentiallyConvertDartClosuresToJs(StringBuffer code,
+  void potentiallyConvertDartClosuresToJs(CodeBuffer code,
                                           FunctionElement member,
                                           List<String> argumentsBuffer) {
     FunctionSignature parameters = member.computeSignature(compiler);
@@ -194,7 +192,7 @@ function(cls, fields, methods) {
                                String stubParameters,
                                List<String> argumentsBuffer,
                                int indexOfLastOptionalArgumentInParameters,
-                               StringBuffer buffer) {
+                               CodeBuffer buffer) {
     // The target JS function may check arguments.length so we need to
     // make sure not to pass any unspecified optional arguments to it.
     // For example, for the following Dart method:
@@ -211,7 +209,7 @@ function(cls, fields, methods) {
     String nativeName = classElement.nativeName.slowToString();
     String nativeArguments = Strings.join(nativeArgumentsBuffer, ",");
 
-    StringBuffer code = new StringBuffer();
+    CodeBuffer code = new CodeBuffer();
     potentiallyConvertDartClosuresToJs(code, member, argumentsBuffer);
 
     if (!nativeMethods.contains(member)) {
@@ -374,7 +372,7 @@ function(cls, fields, methods) {
     return isSupertypeOfNativeClass(element);
   }
 
-  void emitIsChecks(StringBuffer checkBuffer) {
+  void emitIsChecks(CodeBuffer checkBuffer) {
     for (Element type in compiler.codegenWorld.isChecks) {
       if (!requiresNativeIsCheck(type)) continue;
       String name = compiler.namer.operatorIs(type);
@@ -383,7 +381,7 @@ function(cls, fields, methods) {
     }
   }
 
-  void assembleCode(StringBuffer targetBuffer) {
+  void assembleCode(CodeBuffer targetBuffer) {
     if (nativeClasses.isEmpty()) return;
     emitDynamicDispatchMetadata();
 
@@ -392,7 +390,7 @@ function(cls, fields, methods) {
     // attach to the JS Object prototype these methods that return
     // false, and will be overridden by subclasses when they have to
     // return true.
-    StringBuffer objectProperties = new StringBuffer();
+    CodeBuffer objectProperties = new CodeBuffer();
     emitIsChecks(objectProperties);
 
     // In order to have the toString method on every native class,

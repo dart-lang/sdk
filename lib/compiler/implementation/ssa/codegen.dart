@@ -11,9 +11,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
-  CodeBlock buildJavaScriptFunction(FunctionElement element,
-                                    String parameters,
-                                    String body) {
+  CodeBuffer buildJavaScriptFunction(FunctionElement element,
+                                     String parameters,
+                                     String body) {
     String extraSpace = "";
     // Members are emitted inside a JavaScript object literal. To line up the
     // indentation we want the closing curly brace to be indented by one space.
@@ -33,18 +33,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
       extraSpace = " ";
     }
 
-    String code = 'function($parameters) {\n$body$extraSpace}';
-    List<SourceMappingEntry> sourceMappings = new List<SourceMappingEntry>();
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
     FunctionExpression expression = element.cachedNode;
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getBeginToken().charOffset, 0));
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getEndToken().charOffset, code.length - 1));
-    return new CodeBlock(code, sourceMappings);
+    CodeBuffer buffer = new CodeBuffer();
+    buffer.setSourceLocation(element, expression.getBeginToken());
+    buffer.add('function($parameters) {\n');
+    buffer.add(body);
+    buffer.add(extraSpace);
+    buffer.setSourceLocation(element, expression.getEndToken());
+    buffer.add('}');
+    return buffer;
   }
 
-  CodeBlock generateMethod(WorkItem work, HGraph graph) {
+  CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
@@ -78,7 +78,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  CodeBlock generateBailoutMethod(WorkItem work, HGraph graph) {
+  CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -152,7 +152,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final JavaScriptBackend backend;
   final WorkItem work;
-  final StringBuffer buffer;
+  final CodeBuffer buffer;
   final String parameters;
 
   final Set<HInstruction> generateAtUseSite;
@@ -251,7 +251,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.parameterNames)
     : declaredVariables = new Set<String>(),
       delayedVariableDeclarations = new Set<String>(),
-      buffer = new StringBuffer(),
+      buffer = new CodeBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       controlFlowOperators = new Set<HInstruction>(),
       breakAction = new Map<Element, ElementAction>(),
@@ -2856,8 +2856,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
-  final StringBuffer setup;
-  final StringBuffer newParameters;
+  final CodeBuffer setup;
+  final CodeBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
 
@@ -2866,8 +2866,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames),
-      setup = new StringBuffer(),
-      newParameters = new StringBuffer(),
+      setup = new CodeBuffer(),
+      newParameters = new CodeBuffer(),
       labels = <String>[];
 
   String pushLabel() {
