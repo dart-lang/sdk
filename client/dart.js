@@ -47,31 +47,50 @@ function ReceivePortSync() {
 
 (function() {
   function serialize(message) {
-    if (message == null) {
-      return null;  // Convert undefined to null.
-    } else if (typeof(message) == 'string' ||
-               typeof(message) == 'number' ||
-               typeof(message) == 'boolean') {
-      return message;
-    } else if (message instanceof Array) {
-      var values = new Array(message.length);
-      for (var i = 0; i < message.length; i++) {
-        values[i] = serialize(message[i]);
-      }
-      return [ 'list', message.length, values ];
-    } else if (message instanceof LocalSendPortSync) {
-      return [ 'sendport', 'nativejs', message.receivePort.id ];
-    } else if (message instanceof DartSendPortSync) {
-      return [ 'sendport', 'dart', message.isolateId, message.portId ];
-    } else {
-      var id = 0;
-      var keys = Object.getOwnPropertyNames(message);
-      var values = new Array(keys.length);
-      for (var i = 0; i < keys.length; i++) {
-        values[i] = serialize(message[keys[i]]);
-      }
-      return [ 'map', id, keys, values ];
+    var visited = [];
+    function checkedSerialization(obj, serializer) {
+      // Implementation detail: for now use linear search.
+      // Another option is expando, but it may prohibit
+      // VM optimizations (like putting object into slow mode
+      // on property deletion.)
+      var id = visited.indexOf(obj);
+      if (id != -1) return [ 'ref', id ];
+      var id = visited.length;
+      visited.push(obj);
+      return serializer(id);
     }
+
+    function doSerialize(message) {
+      if (message == null) {
+        return null;  // Convert undefined to null.
+      } else if (typeof(message) == 'string' ||
+                 typeof(message) == 'number' ||
+                 typeof(message) == 'boolean') {
+        return message;
+      } else if (message instanceof Array) {
+        return checkedSerialization(message, function(id) {
+          var values = new Array(message.length);
+          for (var i = 0; i < message.length; i++) {
+            values[i] = doSerialize(message[i]);
+          }
+          return [ 'list', id, values ];
+        });
+      } else if (message instanceof LocalSendPortSync) {
+        return [ 'sendport', 'nativejs', message.receivePort.id ];
+      } else if (message instanceof DartSendPortSync) {
+        return [ 'sendport', 'dart', message.isolateId, message.portId ];
+      } else {
+        return checkedSerialization(message, function(id) {
+          var keys = Object.getOwnPropertyNames(message);
+          var values = new Array(keys.length);
+          for (var i = 0; i < keys.length; i++) {
+            values[i] = doSerialize(message[keys[i]]);
+          }
+          return [ 'map', id, keys, values ];
+        });
+      }
+    }
+    return doSerialize(message);
   }
 
   function deserialize(message) {
