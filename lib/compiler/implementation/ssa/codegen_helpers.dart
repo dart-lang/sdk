@@ -236,6 +236,25 @@ class SsaConditionMerger extends HGraphVisitor {
     //      \     /
     //       \   /
     // phi(expr, true|false)
+    //
+    // and the same for nested nodes:
+    //
+    //            If
+    //          /    \
+    //         /      \
+    //      1 expr1    \
+    //       If         \
+    //      /  \         \
+    //     /    \         goto
+    //  1 expr2            |
+    //    goto    goto     |
+    //      \     /        |
+    //       \   /         |
+    //   phi1(expr2, true|false)
+    //          \          |
+    //           \         |
+    //             phi(phi1, true|false)
+
     if (end == null) return;
     if (end.phis.isEmpty()) return;
     if (end.phis.first !== end.phis.last) return;
@@ -262,7 +281,17 @@ class SsaConditionMerger extends HGraphVisitor {
     // sequence of control flow operation.
     if (controlFlowOperators.contains(thenBlock.last)) {
       HIf otherIf = thenBlock.last;
-      if (otherIf.joinBlock !== end) return;
+      if (otherIf.joinBlock !== end) {
+        // This could be a join block that just feeds into our join block.
+        HBasicBlock otherJoin = otherIf.joinBlock;
+        if (otherJoin.successors.length != 1) return;
+        if (otherJoin.successors[0] != end) return;
+        if (otherJoin.phis.isEmpty()) return;
+        if (otherJoin.phis.first !== otherJoin.phis.last) return;
+        HPhi otherPhi = otherJoin.phis.first;
+        if (thenInput != otherPhi) return;
+        if (elseInput != otherPhi.inputs[1]) return;
+      }
       if (hasAnyStatement(thenBlock, otherIf)) return;
     } else {
       if (end.predecessors[0] !== thenBlock) return;

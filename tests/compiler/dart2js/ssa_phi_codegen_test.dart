@@ -28,9 +28,10 @@ void main() {
 """;
 
 final String TEST_THREE = @"""
-foo(b, c) {
+foo(b, c, d) {
   var val = 42;
   if (b) {
+    c = c && d;
     if (c) {
       val = 43;
     }

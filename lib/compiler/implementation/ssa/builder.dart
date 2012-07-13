@@ -1574,8 +1574,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void visitLogicalAndOr(Send node, Operator op) {
     SsaBranchBuilder branchBuilder = new SsaBranchBuilder(this, node);
-    branchBuilder.handleLogicalAndOr(
-        () { visit(node.receiver); },
+    branchBuilder.handleLogicalAndOrWithLeftNode(
+        node.receiver,
         () { visit(node.argumentsNode); },
         isAnd: (const SourceString("&&") == op.source));
   }
@@ -3456,13 +3456,11 @@ class SsaBranchBuilder {
     _handleDiamondBranch(visitCondition, visitThen, visitElse, true);
   }
 
-  void handleLogicalAndOr(void left(), void right(), [bool isAnd = true]) {
+  void handleLogicalAndOr(void left(), void right(), [bool isAnd]) {
     // x && y is transformed into:
     //   t0 = boolify(x);
     //   if (t0) {
     //     t1 = boolify(y);
-    //   } else {
-    //     t2 = t0;
     //   }
     //   result = phi(t1, false);
     //
@@ -3470,8 +3468,6 @@ class SsaBranchBuilder {
     //   t0 = boolify(x);
     //   if (not(t0)) {
     //     t1 = boolify(y);
-    //   } else {
-    //     t2 = t0;
     //   }
     //   result = phi(t1, true);
     HInstruction boolifiedLeft;
@@ -3480,14 +3476,10 @@ class SsaBranchBuilder {
     void visitCondition() {
       left();
       boolifiedLeft = builder.popBoolified();
-      HInstruction condition;
-      if (isAnd) {
-        condition = boolifiedLeft;
-      } else {
-        condition = new HNot(boolifiedLeft);
-        builder.add(condition);
+      builder.stack.add(boolifiedLeft);
+      if (!isAnd) {
+        builder.push(new HNot(builder.pop()));
       }
-      builder.stack.add(condition);
     }
 
     void visitThen() {
@@ -3500,6 +3492,39 @@ class SsaBranchBuilder {
         <HInstruction>[boolifiedRight, builder.graph.addConstantBool(!isAnd)]);
     builder.current.addPhi(result);
     builder.stack.add(result);
+  }
+
+  void handleLogicalAndOrWithLeftNode(Node left,
+                                      void visitRight(),
+                                      [bool isAnd]) {
+    // This method is similar to [handleLogicalAndOr] but optimizes the case
+    // where left is a logical "and" or logical "or".
+    //
+    // For example (x && y) && z is transformed into x && (y && z):
+    //   t0 = boolify(x);
+    //   if (t0) {
+    //     t1 = boolify(y);
+    //     if (t1) {
+    //       t2 = boolify(z);
+    //     }
+    //     t3 = phi(t2, false);
+    //   }
+    //   result = phi(t3, false);
+
+    Send send = left.asSend();
+    if (send !== null &&
+        (isAnd ? send.isLogicalAnd : send.isLogicalOr)) {
+      Node newLeft = send.receiver;
+      Link<Node> link = send.argumentsNode.nodes;
+      assert(link.tail.isEmpty());
+      Node middle = link.head;
+      handleLogicalAndOrWithLeftNode(
+          newLeft,
+          () => handleLogicalAndOrWithLeftNode(middle, visitRight, isAnd),
+          isAnd: isAnd);
+    } else {
+      handleLogicalAndOr(() => builder.visit(left), visitRight, isAnd);
+    }
   }
 
   void _handleDiamondBranch(void visitCondition(),
