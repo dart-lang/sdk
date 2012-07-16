@@ -829,7 +829,10 @@ class TypeRegistry(object):
     dart_type = self.TypeInfo(type_name).dart_type()
     if self._database.HasInterface(dart_type):
       interface = self._database.GetInterface(dart_type)
-      return self._renamer.RenameInterface(interface)
+      if self._renamer:
+        return self._renamer.RenameInterface(interface)
+      else:
+        return interface.id
     return dart_type
 
   def _TypeInfo(self, type_name):
