@@ -40,7 +40,7 @@ abstract class HType {
     }
   }
 
-  static final HType CONFLICTING = const HConflictingType();
+  static final HType CONFLICTING = const HAnalysisType("conflicting");
   static final HType UNKNOWN = const HAnalysisType("unknown");
   static final HType BOOLEAN = const HBooleanType();
   static final HType NUMBER = const HNumberType();
@@ -139,12 +139,6 @@ class HAnalysisType extends HType {
   HType intersection(HType other) => combine(other);
 }
 
-class HConflictingType extends HAnalysisType {
-  const HConflictingType() : super("conflicting");
-  bool canBePrimitive() => false;
-  bool canBeNull() => false;
-}
-
 abstract class HPrimitiveType extends HType {
   const HPrimitiveType();
   bool isPrimitive() => true;
@@ -205,7 +199,7 @@ class HBooleanOrNullType extends HPrimitiveOrNullType {
     if (other.isUnknown()) return HType.BOOLEAN_OR_NULL;
     if (other.isBooleanOrNull()) return HType.BOOLEAN_OR_NULL;
     if (other.isBoolean()) return HType.BOOLEAN;
-    if (other.canBeNull()) return HType.NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -260,7 +254,7 @@ class HNumberOrNullType extends HPrimitiveOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumberOrNull()) return HType.NUMBER_OR_NULL;
-    if (other.canBeNull()) return HType.NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -316,10 +310,10 @@ class HIntegerOrNullType extends HNumberOrNullType {
     if (other.isIntegerOrNull()) return HType.INTEGER_OR_NULL;
     if (other.isInteger()) return HType.INTEGER;
     if (other.isDouble()) return HType.CONFLICTING;
-    if (other.isDoubleOrNull()) return HType.NULL;
+    if (other.isDoubleOrNull()) return HType.CONFLICTING;
     if (other.isNumber()) return HType.INTEGER;
     if (other.isNumberOrNull()) return HType.INTEGER_OR_NULL;
-    if (other.canBeNull()) return HType.NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -376,13 +370,13 @@ class HDoubleOrNullType extends HNumberOrNullType {
 
   HType intersection(HType other) {
     if (other.isUnknown()) return HType.DOUBLE_OR_NULL;
-    if (other.isIntegerOrNull()) return HType.NULL;
+    if (other.isIntegerOrNull()) return HType.CONFLICTING;
     if (other.isInteger()) return HType.CONFLICTING;
     if (other.isDouble()) return HType.DOUBLE;
     if (other.isDoubleOrNull()) return HType.DOUBLE_OR_NULL;
     if (other.isNumber()) return HType.DOUBLE;
     if (other.isNumberOrNull()) return HType.DOUBLE_OR_NULL;
-    if (other.canBeNull()) return HType.NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -490,7 +484,7 @@ class HStringOrNullType extends HPrimitiveOrNullType {
     if (other is HBoundedPotentialPrimitiveString) {
       return other.canBeNull() ? HType.STRING_OR_NULL : HType.STRING;
     }
-    if (other.canBeNull()) return HType.NULL;
+    if (other.isNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 }
@@ -637,17 +631,18 @@ class HBoundedType extends HType {
       if (this.type === temp.type) {
         if (isExact()) {
           return this;
-        } else if (other.isExact()) {
+        } else if (other.isExact()){
           return other;
         } else if (canBeNull()) {
           return other;
         } else {
           return this;
         }
+      } else if (canBeNull() && other.canBeNull()) {
+        return HType.NULL;
       }
     }
     if (other.isUnknown()) return this;
-    if (other.canBeNull() && canBeNull()) return HType.NULL;
     return HType.CONFLICTING;
   }
 

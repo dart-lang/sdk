@@ -151,9 +151,7 @@ class Unparser implements Visitor {
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.constKeyword !== null) {
-      add(node.constKeyword.value);
-    }
+    // TODO(ahe): handle 'const'.
     if (node.type !== null) {
       sb.add('<');
       visit(node.type);
@@ -226,16 +224,11 @@ class Unparser implements Visitor {
    * Special case for assignments like "list[0] = 1".
    */
   unparseIndexedSet(SendSet node) {
-    if (node.isPrefix) {
-      add(node.assignmentOperator.token.value);
-    }
     visit(node.receiver);
     sb.add('[');
     sb.add(node.arguments.head);
     sb.add(']');
-    if (!node.isPrefix) {
-      add(node.assignmentOperator.token.value);
-    }
+    add(node.assignmentOperator.token.value);
     unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
   }
 
@@ -243,13 +236,8 @@ class Unparser implements Visitor {
     if (node.isIndex) {
       unparseIndexedSet(node);
     } else {
-      if (node.isPrefix) {
-        add(node.assignmentOperator.token.value);
-      }
       unparseSendPart(node);
-      if (!node.isPrefix) {
-        add(node.assignmentOperator.token.value);
-      }
+      add(node.assignmentOperator.token.value);
       visit(node.argumentsNode);
     }
   }
@@ -370,9 +358,7 @@ class Unparser implements Visitor {
   }
 
   visitLiteralMap(LiteralMap node) {
-    if (node.constKeyword !== null) {
-      add(node.constKeyword.value);
-    }
+    // TODO(ahe): handle 'const'.
     if (node.typeArguments !== null) visit(node.typeArguments);
     visit(node.entries);
   }

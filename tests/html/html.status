@@ -11,7 +11,6 @@ measurement_test: Pass, Fail  # Issue 1940
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 blob_constructor_test: Fail          # custom Blob constructor not implemented.
-js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) && $mode == debug ]
 native_gc_test: Skip  # Issue 2538. Too slow in debug.
@@ -21,9 +20,6 @@ audiocontext_test: Skip
 
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
-
-[ $compiler == none && $runtime == drt && $system == linux]
-documentfragment_test: Pass, Timeout
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
@@ -42,51 +38,16 @@ typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
 typed_arrays_4_test: Skip
 typed_arrays_dataview_test: Skip
+canvas_pixel_array_type_alias_test: Fail  # Verify is CanvasPixelArray.
+canvaspixelarraytypealias_test: Fail  # Verify is CanvasPixelArray.
 cssstyledeclaration_test: Fail
+documentfragment_test: Fail
 element_test: Fail
 localstorage_test: Fail
 node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
-#
-# Investigate and triage the following into bug reports.
-#
-audiocontext_test: Fail
-blob_constructor_test: Fail
-cache_test: Fail
-callbacks_test: Fail
-canvas_test: Fail
-canvas_using_html_test: Fail
-css_test: Fail
-dom_constructors_test: Fail
-exceptions_test: Fail
-hidden_dom_1_test: Fail
-hidden_dom_2_test: Fail
-history_test: Fail
-indexeddb_1_test: Fail
-indexeddb_2_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
-js_interop_1_test: Fail
-js_interop_2_test: Fail
-js_interop_3_test: Fail
-js_interop_4_test: Fail
-measurement_test: Fail
-messageevent_test: Fail
-serialized_script_value_test: Fail
-shadow_dom_layout_test: Fail
-shadow_dom_test: Fail
-storage_test: Fail
-svg_3_test: Fail
-typed_arrays_range_checks_test: Fail
-websocket_test: Fail
-window_nosuchmethod_test: Fail
-window_open_test: Skip      # BUG(4016)
-xsltprocessor_test: Skip    # BUG(4016)
-fileapi_test: Skip          # BUG(4016)
-isolates_test: Skip         # BUG(4016)
-xhr_test: Skip              # BUG(4016)
-
+xhr_test: Fail
 
 [ $runtime == safari ]
 canvas_pixel_array_type_alias_test: Fail # Caught TypeError: 'undefined' is not a function
@@ -113,8 +74,6 @@ indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 instance_of_test: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
-js_interop_3_test: Fail
-js_interop_4_test: Fail
 localstorage_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
@@ -134,11 +93,11 @@ websocket_test: Pass, Fail # FF 10 is uses MozWebSocket, FF 11 uses WebSocket.
 #    (NS_ERROR_DOM_BAD_URI) ...
 xhr_test: Fail
 
-[ $runtime == ff && $system == windows ]
-# TODO(vsm): Investigate why this is only failing on windows.
-js_interop_2_test: Fail
-
 [ $runtime == ie && ($system == linux || $system == macos) ]
+*: Skip
+
+[ $runtime == ie ]
+# TODO(vsm): Triage DOM failures.
 *: Skip
 
 [ $runtime == safari && ($system == linux || $system == windows) ]

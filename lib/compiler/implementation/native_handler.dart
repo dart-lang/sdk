@@ -81,10 +81,14 @@ void maybeEnableNative(Compiler compiler,
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
-    library.define(compiler.findHelper(const SourceString('JS')), compiler);
     if (compiler.jsIndexingBehaviorInterface !== null) {
       library.define(compiler.jsIndexingBehaviorInterface, compiler);
     }
+  }
+
+  // Additionaly, if this is a test, we allow access to foreign functions.
+  if (library.script.name.contains('dart/tests/compiler/dart2js_native')) {
+    library.define(compiler.findHelper(const SourceString('JS')), compiler);
   }
 }
 

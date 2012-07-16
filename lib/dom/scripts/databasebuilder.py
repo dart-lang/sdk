@@ -103,6 +103,32 @@ class DatabaseBuilder(object):
       # TODO: Decide which attributes are uninteresting.
       pass
 
+  def _split_declarations(self, interface, optional_argument_whitelist):
+    """Splits read-write attributes and operations with optional
+    arguments into multiple declarations"""
+
+    # split attributes into setters and getters
+    new_attributes = []
+    for attribute in interface.attributes:
+      if attribute.is_fc_getter or attribute.is_fc_setter:
+        new_attributes.append(attribute)
+        continue
+      getter_attr = copy.deepcopy(attribute)
+      getter_attr.is_fc_getter = True
+      new_attributes.append(getter_attr)
+      if not attribute.is_read_only:
+        setter_attr = copy.deepcopy(attribute)
+        setter_attr.is_fc_setter = True
+        new_attributes.append(setter_attr)
+    interface.attributes = new_attributes
+
+    # Add 'Optional' attribute to whitelisted arguments.
+    for op in interface.operations:
+      for argument in op.arguments:
+        in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
+        if in_optional_whitelist:
+          argument.ext_attrs['Optional'] = None
+
   def _rename_types(self, idl_file, import_options):
     """Rename interface and type names with names provided in the
     options. Also clears scopes from scoped names"""
@@ -178,8 +204,10 @@ class DatabaseBuilder(object):
       res.append(self._sign(node.type))
     elif isinstance(node, IDLAttribute):
       res = []
-      if node.is_read_only:
-        res.append('readonly')
+      if node.is_fc_getter:
+        res.append('getter')
+      elif node.is_fc_setter:
+        res.append('setter')
       res.append(node.id)
       res.append(self._sign(node.type))
     elif isinstance(node, IDLConstant):
@@ -380,12 +408,7 @@ class DatabaseBuilder(object):
 
     # Step 1: Pre process imported interfaces
     for interface, module_name, import_options in self._imported_interfaces:
-      # Add 'Optional' attribute to whitelisted arguments.
-      for op in interface.operations:
-        for argument in op.arguments:
-          in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
-          if in_optional_whitelist:
-            argument.ext_attrs['Optional'] = None
+      self._split_declarations(interface, optional_argument_whitelist)
       self._annotate(interface, module_name, import_options)
 
     # Step 2: Add all new interfaces and merge overlapping ones
@@ -543,6 +566,8 @@ class DatabaseBuilder(object):
   def fetch_constructor_data(self, options):
     window_interface = self._database.GetInterface('Window')
     for attr in window_interface.attributes:
+      if not attr.is_fc_getter:
+        continue
       type = attr.type.id
       if not type.endswith('Constructor'):
         continue

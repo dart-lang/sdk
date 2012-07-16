@@ -287,13 +287,12 @@ class IDLParser(object):
       return re.compile(r'(\[\])+')
 
     def _Type():
-      return OR(
-          [OR(AnyType, ObjectType), MAYBE([ArrayModifiers, MAYBE(Nullable)])],
-          [_NullableNonArrayType(), MAYBE(ArrayModifiers), MAYBE(Nullable)])
+      return [OR(AnyType, ObjectType, _NullableType), MAYBE(ArrayModifiers)]
 
-    def _NullableNonArrayType():
+    def _NullableType():
       return [OR(_IntegerType, BooleanType, OctetType, FloatType,
-             DoubleType, SequenceType, ScopedName)]
+             DoubleType, SequenceType, ScopedName),
+          MAYBE(Nullable)]
 
     def Nullable():
       return '?'
@@ -409,7 +408,7 @@ class IDLParser(object):
     """
     # FIXME: Handle gcc not found, or any other processing errors
     gcc = 'gcc'
-    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++']
+    cmd = [gcc, '-E', '-P', '-C', '-x', 'c++'];
     for define in defines:
       cmd.append('-D%s' % define)
     cmd.append('-')

@@ -172,7 +172,7 @@ class FutureImpl<T> implements Future<T> {
   Future transform(Function transformation) {
     final completer = new Completer();
     handleException((e) {
-      completer.completeException(e, this.stackTrace);
+      completer.completeException(e);
       return true;
     });
     then((v) {
@@ -191,7 +191,7 @@ class FutureImpl<T> implements Future<T> {
   Future chain(Function transformation) {
     final completer = new Completer();
     handleException((e) {
-      completer.completeException(e, this.stackTrace);
+      completer.completeException(e);
       return true;
     });
     then((v) {
@@ -203,7 +203,7 @@ class FutureImpl<T> implements Future<T> {
         return;
       }
       future.handleException((e) {
-        completer.completeException(e, future.stackTrace);
+        completer.completeException(e);
         return true;
       });
       future.then((b) => completer.complete(b));

@@ -89,7 +89,7 @@ public class MemberBuilder {
     boolean isFactoryContext() {
       return isFactory;
     }
-
+    
     @Override
     protected EnclosingElement getEnclosingElement() {
       return enclosingElement;
@@ -219,7 +219,7 @@ public class MemberBuilder {
       }
       return null;
     }
-
+    
     @Override
     protected void resolveFunctionWithParameters(DartFunction node, MethodElement element) {
       super.resolveFunctionWithParameters(node, element);
@@ -464,8 +464,8 @@ public class MemberBuilder {
           fieldElement.setSetter(accessorElement);
           List<VariableElement> parameters = accessorElement.getParameters();
           Type type;
-          if (parameters.size() == 0) {
-            // Error flagged in parser
+          if (parameters.size() != 1) {
+            resolutionError(fieldNode, ResolverErrorCode.EXPECTED_ONE_ARGUMENT);
             type = getTypeProvider().getDynamicType();
           } else {
             type = parameters.get(0).getType();
@@ -569,10 +569,17 @@ public class MemberBuilder {
       }
 
       if (modifiers.isFactory()) {
+        if (modifiers.isStatic()) {
+          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_STATIC);
+        }
+        if (modifiers.isAbstract()) {
+          resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_ABSTRACT);
+        }
+
         if (modifiers.isConstant()) {
           // Allow const factory ... native ... ; type of constructors, used in core libraries
           DartBlock dartBlock = method.getFunction().getBody();
-          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) {
+          if (dartBlock == null  || !(dartBlock instanceof DartNativeBlock)) { 
             resolutionError(method.getName(), ResolverErrorCode.FACTORY_CANNOT_BE_CONST);
           }
         }
@@ -584,8 +591,7 @@ public class MemberBuilder {
     private void checkConstructor(MethodElement element, DartMethodDefinition method) {
       if (Elements.isNonFactoryConstructor(element) && method.getFunction() != null
           && method.getFunction().getReturnTypeNode() != null) {
-        resolutionError(method.getFunction().getReturnTypeNode(),
-            ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE);
+        resolutionError(method, ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE);
       }
     }
 

@@ -99,7 +99,7 @@ class System(object):
 
     result = set()
     WalkParentChain(interface)
-    return result
+    return result;
 
 class BaseGenerator(object):
   def __init__(self, database, interface):
@@ -116,9 +116,10 @@ class BaseGenerator(object):
     for const in sorted(interface.constants, ConstantOutputOrder):
       self.AddConstant(const)
 
-    for attr in interface.attributes:
-      if attr.type.id != 'EventListener':
-        self.AddAttribute(attr)
+    attributes = [attr for attr in interface.attributes
+                  if attr.type.id != 'EventListener']
+    for (getter, setter) in  _PairUpAttributes(attributes):
+      self.AddAttribute(getter, setter)
 
     # The implementation should define an indexer if the interface directly
     # extends List.
@@ -154,9 +155,10 @@ class BaseGenerator(object):
     for parent_interface in secondary_parents:
       if isinstance(parent_interface, str):  # IsDartCollectionType(parent_interface)
         continue
-      for attr in parent_interface.attributes:
-        if not FindMatchingAttribute(interface, attr):
-          self.AddSecondaryAttribute(parent_interface, attr)
+      attributes = [attr for attr in parent_interface.attributes
+                    if not FindMatchingAttribute(interface, attr)]
+      for (getter, setter) in _PairUpAttributes(attributes):
+        self.AddSecondaryAttribute(parent_interface, getter, setter)
 
       # Group overloaded operations by id
       operationsById = {}
@@ -175,7 +177,7 @@ class BaseGenerator(object):
   def AddConstant(self, constant):
     pass
 
-  def AddAttribute(self, attribute):
+  def AddAttribute(self, getter, setter):
     pass
 
   def AddIndexer(self, element_type):
@@ -190,10 +192,10 @@ class BaseGenerator(object):
   def AddStaticOperation(self, info):
     pass
 
-  def AddSecondaryAttribute(self, interface, attribute):
+  def AddSecondaryAttribute(self, interface, getter, setter):
     pass
 
-  def AddSecondaryOperation(self, interface, info):
+  def AddSecondaryOperation(self, interface, attr):
     pass
 
   def _TransitiveSecondaryParents(self, interface):
@@ -219,8 +221,20 @@ class BaseGenerator(object):
         walk(interface.parents)
       else:
         walk(interface.parents[1:])
-    return result
+    return result;
 
 
-def IsReadOnly(attribute):
-  return attribute.is_read_only or 'Replaceable' in attribute.ext_attrs
+def _PairUpAttributes(attributes):
+  """Returns a list of (getter, setter) pairs sorted by name.
+
+  One element of the pair may be None.
+  """
+  names = sorted(set(attr.id for attr in attributes))
+  getters = {}
+  setters = {}
+  for attr in attributes:
+    if attr.is_fc_getter:
+      getters[attr.id] = attr
+    elif attr.is_fc_setter and 'Replaceable' not in attr.ext_attrs:
+      setters[attr.id] = attr
+  return [(getters.get(id), setters.get(id)) for id in names]

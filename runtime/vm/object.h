@@ -92,9 +92,6 @@ class LocalScope;
   static object& CheckedZoneHandle(RawObject* raw_ptr) {                       \
     return CheckedZoneHandle(Isolate::Current(), raw_ptr);                     \
   }                                                                            \
-  /* T::Cast cannot be applied to a null Object, because the object vtable */  \
-  /* is not setup for type T, although some methods are supposed to work   */  \
-  /* with null, for example Instance::Equals().                            */  \
   static const object& Cast(const Object& obj) {                               \
     ASSERT(obj.Is##object());                                                  \
     return reinterpret_cast<const object&>(obj);                               \
@@ -375,7 +372,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     // TODO(iposva): Implement real store barrier here.
     *addr = value;
     // Filter stores based on source and target.
-    if (!value->IsHeapObject()) return;
     if (value->IsNewObject() && raw()->IsOldObject()) {
       uword ptr = reinterpret_cast<uword>(addr);
       Isolate::Current()->store_buffer()->AddPointer(ptr);
@@ -2887,8 +2883,8 @@ class Number : public Instance {
 
 class Integer : public Number {
  public:
-  static RawInteger* New(const String& str, Heap::Space space = Heap::kNew);
-  static RawInteger* New(int64_t value, Heap::Space space = Heap::kNew);
+  static RawInteger* New(const String& str);
+  static RawInteger* New(int64_t value);
 
   virtual double AsDoubleValue() const;
   virtual int64_t AsInt64Value() const;
@@ -5078,9 +5074,12 @@ intptr_t TokenStream::Length() const {
 Token::Kind TokenStream::KindAt(intptr_t index) const {
   const Object& obj = Object::Handle(TokenAt(index));
   if (obj.IsSmi()) {
-    return static_cast<Token::Kind>(Smi::Cast(obj).Value());
+    return static_cast<Token::Kind>(
+        Smi::Value(reinterpret_cast<RawSmi*>(obj.raw())));
   } else if (obj.IsLiteralToken()) {
-    return LiteralToken::Cast(obj).kind();
+    LiteralToken& token = LiteralToken::Handle();
+    token ^= obj.raw();
+    return token.kind();
   }
   ASSERT(obj.IsString());  // Must be an identifier.
   return Token::kIDENT;

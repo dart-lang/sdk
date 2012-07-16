@@ -54,8 +54,8 @@ RECOGNIZED_LIST(KIND_TO_STRING)
 
 // ==== Support for visiting flow graphs.
 #define DEFINE_ACCEPT(ShortName, ClassName)                                    \
-void ClassName::Accept(FlowGraphVisitor* visitor, BindInstr* instr) {          \
-  visitor->Visit##ShortName(this, instr);                                      \
+void ClassName::Accept(FlowGraphVisitor* visitor) {                            \
+  visitor->Visit##ShortName(this);                                             \
 }
 
 FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
@@ -64,8 +64,9 @@ FOR_EACH_COMPUTATION(DEFINE_ACCEPT)
 
 
 #define DEFINE_ACCEPT(ShortName)                                               \
-void ShortName##Instr::Accept(FlowGraphVisitor* visitor) {                     \
+Instruction* ShortName##Instr::Accept(FlowGraphVisitor* visitor) {             \
   visitor->Visit##ShortName(this);                                             \
+  return successor();                                                          \
 }
 
 FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
@@ -84,12 +85,20 @@ static bool VerifyValues(Value* v1, Value* v2) {
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
-    BlockEntryInstr* entry = block_order_[i];
-    entry->Accept(this);
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      it.Current()->Accept(this);
+    Instruction* current = block_order_[i]->Accept(this);
+    while ((current != NULL) && !current->IsBlockEntry()) {
+      current = current->Accept(this);
     }
   }
+}
+
+
+void Computation::ReplaceWith(Computation* other) {
+  ASSERT(other->instr() == NULL);
+  ASSERT(instr() != NULL);
+  other->set_instr(other->instr());
+  instr()->replace_computation(other);
+  set_instr(NULL);
 }
 
 
@@ -277,19 +286,18 @@ void PhiInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
-intptr_t ParameterInstr::InputCount() const {
-  return 0;
+intptr_t DoInstr::InputCount() const {
+  return computation()->InputCount();
 }
 
 
-Value* ParameterInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
+Value* DoInstr::InputAt(intptr_t i) const {
+  return computation()->InputAt(i);
 }
 
 
-void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
+void DoInstr::SetInputAt(intptr_t i, Value* value) {
+  computation()->SetInputAt(i, value);
 }
 
 
@@ -356,6 +364,11 @@ void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
 
 void Instruction::RecordAssignedVars(BitVector* assigned_vars) {
   // Nothing to do for the base class.
+}
+
+
+void DoInstr::RecordAssignedVars(BitVector* assigned_vars) {
+  computation()->RecordAssignedVars(assigned_vars);
 }
 
 
@@ -428,12 +441,13 @@ void BlockEntryInstr::DiscoverBlocks(
   ASSERT(!IsTargetEntry() || (preorder_number() == -1));
   if (preorder_number() >= 0) return;
 
-  // 3. The current block is the spanning-tree parent.
-  parent->Add(current_block->preorder_number());
+  // 3. The last entry in the preorder array is the spanning-tree parent.
+  intptr_t parent_number = preorder->length() - 1;
+  parent->Add(parent_number);
 
   // 4. Assign preorder number and add the block entry to the list.
   // Allocate an empty set of assigned variables for the block.
-  set_preorder_number(preorder->length());
+  set_preorder_number(parent_number + 1);
   preorder->Add(this);
   BitVector* vars =
       (variable_count == 0) ? NULL : new BitVector(variable_count);
@@ -445,22 +459,20 @@ void BlockEntryInstr::DiscoverBlocks(
 
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
-  ASSERT(next() != NULL);
-  Instruction* next_instr = next();
-  if (next_instr->IsBlockEntry()) {
+  ASSERT(successor() != NULL);
+  Instruction* next = successor();
+  if (next->IsBlockEntry()) {
     set_last_instruction(this);
   } else {
-    while ((next_instr != NULL) &&
-           !next_instr->IsBlockEntry() &&
-           !next_instr->IsBranch()) {
-      if (vars != NULL) next_instr->RecordAssignedVars(vars);
-      set_last_instruction(next_instr);
-      next_instr = next_instr->next();
+    while ((next != NULL) && !next->IsBlockEntry() && !next->IsBranch()) {
+      if (vars != NULL) next->RecordAssignedVars(vars);
+      set_last_instruction(next);
+      next = next->successor();
     }
   }
-  if (next_instr != NULL) {
-    next_instr->DiscoverBlocks(this, preorder, postorder,
-                               parent, assigned_vars, variable_count);
+  if (next != NULL) {
+    next->DiscoverBlocks(this, preorder, postorder,
+                         parent, assigned_vars, variable_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -509,13 +521,44 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 intptr_t Instruction::SuccessorCount() const {
   ASSERT(!IsBranch());
   ASSERT(!IsGraphEntry());
-  ASSERT(next() == NULL || next()->IsBlockEntry());
-  return (next() != NULL) ? 1 : 0;
+  ASSERT(successor() == NULL ||
+         successor()->IsBlockEntry());
+  return successor() != NULL ? 1 : 0;
 }
 
 
 BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
-  return next()->AsBlockEntry();
+  return successor()->AsBlockEntry();
+}
+
+
+void Instruction::RemoveFromGraph() {
+  ASSERT(!IsBlockEntry());
+  ASSERT(!IsBranch());
+  ASSERT(!IsThrow());
+  ASSERT(!IsReturn());
+  ASSERT(!IsReThrow());
+  ASSERT(previous() != NULL);
+  Instruction* next = successor();
+  previous()->set_successor(next);
+  if (next != NULL) {
+    if (!next->IsBlockEntry()) {
+      next->set_previous(previous());
+    } else {
+      // Removing the last instruction of a block.
+      // Update last_instruction of the current basic block.
+      Instruction* current = this;
+      while (!current->IsBlockEntry()) {
+        current = current->previous();
+      }
+      ASSERT(current->AsBlockEntry()->last_instruction() == this);
+      current->AsBlockEntry()->set_last_instruction(previous());
+    }
+  }
+  // Reset successor and previous instruction to indicate
+  // that the instruction is removed from the graph.
+  set_successor(NULL);
+  set_previous(NULL);
 }
 
 
@@ -546,7 +589,9 @@ BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
 // ==== Support for propagating static type.
 RawAbstractType* ConstantVal::StaticType() const {
   if (value().IsInstance()) {
-    return Instance::Cast(value()).GetType();
+    Instance& instance = Instance::Handle();
+    instance ^= value().raw();
+    return instance.GetType();
   } else {
     UNREACHABLE();
     return AbstractType::null();
@@ -582,11 +627,22 @@ RawAbstractType* StoreContextComp::StaticType() const {
 
 
 RawAbstractType* ClosureCallComp::StaticType() const {
-  // Because of function subtyping rules, the static return type of a closure
-  // call cannot be relied upon for static type analysis. For example, a
-  // function returning Dynamic can be assigned to a closure variable declared
-  // to return int and may actually return a double at run-time.
-  return Type::DynamicType();
+  // The closure is the first argument to the call.
+  const AbstractType& function_type =
+      AbstractType::Handle(ArgumentAt(0)->StaticType());
+  if (function_type.IsDynamicType() || function_type.IsFunctionInterface()) {
+    // The function type is not statically known or simply Function.
+    return Type::DynamicType();
+  }
+  const Class& signature_class = Class::Handle(function_type.type_class());
+  const Function& signature_function =
+      Function::Handle(signature_class.signature_function());
+  if (signature_function.IsNull()) {
+    // Attempting to invoke a non-closure object.
+    return Type::DynamicType();
+  }
+  // TODO(regis): The result type may be generic. Consider upper bounds.
+  return signature_function.result_type();
 }
 
 

@@ -1039,10 +1039,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitTypeNode(DartTypeNode node) {
-      return validateTypeNode(node);
+      return validateTypeNode(node, false);
     }
 
-    private Type validateTypeNode(DartTypeNode node) {
+    private Type validateTypeNode(DartTypeNode node, boolean badBoundIsError) {
       Type type = node.getType(); // Already calculated by resolver.
       switch (TypeKind.of(type)) {
         case NONE:
@@ -1052,7 +1052,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
           InterfaceType itype = (InterfaceType) type;
           validateBounds(node.getTypeArguments(),
                          itype.getArguments(),
-                         itype.getElement().getTypeParameters());
+                         itype.getElement().getTypeParameters(),
+                         badBoundIsError);
           return itype;
         }
         default:
@@ -1062,7 +1063,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     private void validateBounds(List<? extends DartNode> diagnosticNodes,
                                 List<Type> arguments,
-                                List<Type> parameters) {
+                                List<Type> parameters,
+                                boolean badBoundIsError) {
       if (arguments.size() == parameters.size() && arguments.size() == diagnosticNodes.size()) {
         List<Type> bounds = Lists.newArrayListWithCapacity(parameters.size());
         for (Type parameter : parameters) {
@@ -1078,8 +1080,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type t = bounds.get(i);
           Type s = arguments.get(i);
           if (!types.isAssignable(t, s)) {
-            onError(diagnosticNodes.get(i),
-                TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+            if (badBoundIsError) {
+              onError(diagnosticNodes.get(i),
+                        ResolverErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+            } else {
+              onError(diagnosticNodes.get(i),
+                        TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, s, t);
+            }
           }
         }
       }
@@ -1288,11 +1295,11 @@ public class TypeAnalyzer implements DartCompilationPhase {
       setCurrentClass(type);
       visit(node.getTypeParameters());
       if (node.getSuperclass() != null) {
-        validateTypeNode(node.getSuperclass());
+        validateTypeNode(node.getSuperclass(), false);
       }
       if (node.getInterfaces() != null) {
         for (DartTypeNode interfaceNode : node.getInterfaces()) {
-          validateTypeNode(interfaceNode);
+          validateTypeNode(interfaceNode, false);
         }
       }
       visit(node.getMembers());
@@ -1692,8 +1699,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       MethodElement methodElement = node.getElement();
       Modifiers modifiers = methodElement.getModifiers();
       DartTypeNode returnTypeNode = node.getFunction().getReturnTypeNode();
-      if (modifiers.isFactory()
-          && ElementKind.of(methodElement).equals(ElementKind.CONSTRUCTOR)) {
+      if (modifiers.isFactory()) {
         analyzeFactory(node.getName(), (ConstructorElement) methodElement);
       } else if (modifiers.isSetter()) {
         if (returnTypeNode != null && returnTypeNode.getType() != voidType) {
@@ -1826,12 +1832,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (defaultClassType != null && defaultClassType.getElement() != null) {
           validateBounds(typeNode.getTypeArguments(),
                          itype.getArguments(),
-                         defaultClassType.getElement().getTypeParameters());
+                         defaultClassType.getElement().getTypeParameters(),
+                         false);
           type = itype;
         }
       }
       if (type == null) {
-        type = validateTypeNode(typeNode);
+        type = validateTypeNode(typeNode, false);
       }
 
       DartNode typeName = typeNode.getIdentifier();
@@ -2431,7 +2438,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     @Override
     public Type visitTypeParameter(DartTypeParameter node) {
       if (node.getBound() != null) {
-        validateTypeNode(node.getBound());
+        validateTypeNode(node.getBound(), true);
       }
       return voidType;
     }

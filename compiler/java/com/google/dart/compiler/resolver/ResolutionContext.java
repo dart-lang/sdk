@@ -91,12 +91,11 @@ public class ResolutionContext implements ResolutionErrorListener {
             && !existingElement.getModifiers().isAbstractField()
             && !Elements.isArtificialAssertMethod(existingElement)) {
           SourceInfo nameSourceInfo = element.getNameLocation();
-          String existingTitle = Elements.getUserElementTitle(existingElement);
           String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
           if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
             onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
           } else {
-            onError(nameSourceInfo, warningCode, name, existingTitle, existingLocation);
+            onError(nameSourceInfo, warningCode, name, existingElement, existingLocation);
           }
         }
       }

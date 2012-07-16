@@ -655,11 +655,12 @@ static RawFunction* ResolveLibraryFunction(
                         const Library& library,
                         const String& fname) {
   ASSERT(!library.IsNull());
+  Function& function = Function::Handle();
   const Object& object = Object::Handle(library.LookupObject(fname));
   if (!object.IsNull() && object.IsFunction()) {
-    return Function::Cast(object).raw();
+    function ^= object.raw();
   }
-  return Function::null();
+  return function.raw();
 }
 
 

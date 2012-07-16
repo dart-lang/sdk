@@ -99,18 +99,16 @@ installCommand() {
       file('pubspec.yaml', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
-    schedulePub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
-
     dir(packagesPath, [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
       ])
     ]).scheduleValidate();
 
-    run();
+    runPub(args: ['install'],
+        output: '''
+        Dependencies installed!
+        ''');
   });
 
   test('adds a transitively dependent package', () {
@@ -130,11 +128,6 @@ installCommand() {
       file('pubspec.yaml', 'dependencies:\n  foo:')
     ]).scheduleCreate();
 
-    schedulePub(args: ['install'],
-        output: '''
-        Dependencies installed!
-        ''');
-
     dir(packagesPath, [
       dir('foo', [
         file('foo.dart', 'main() => "foo";')
@@ -144,7 +137,10 @@ installCommand() {
       ])
     ]).scheduleValidate();
 
-    run();
+    runPub(args: ['install'],
+        output: '''
+        Dependencies installed!
+        ''');
   });
 
   test('checks out a package from Git', () {
@@ -161,16 +157,14 @@ dependencies:
 ''')
       ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
-
       dir(packagesPath, [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
         ])
       ]).scheduleValidate();
 
-      run();
+      runPub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
     });
   });
 
@@ -197,9 +191,6 @@ dependencies:
 ''')
       ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp("Dependencies installed!\$"));
-
       dir(packagesPath, [
         dir('foo', [
           file('foo.dart', 'main() => "foo";')
@@ -209,7 +200,8 @@ dependencies:
         ])
       ]).scheduleValidate();
 
-      run();
+      runPub(args: ['install'],
+          output: const RegExp("Dependencies installed!\$"));
     });
   });
 
@@ -226,9 +218,6 @@ dependencies:
     version: 1.2.3
 ''')
     ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: const RegExp("Dependencies installed!\$"));
 
     dir(cachePath, [
       dir('repo', [
@@ -248,7 +237,8 @@ dependencies:
       ])
     ]).scheduleValidate();
 
-    run();
+    runPub(args: ['install'],
+        output: const RegExp("Dependencies installed!\$"));
   });
 
   test('checks out packages transitively from a pub server', () {
@@ -276,9 +266,6 @@ dependencies:
     version: 1.2.3
 ''')
     ]).scheduleCreate();
-
-    schedulePub(args: ['install'],
-        output: const RegExp("Dependencies installed!\$"));
 
     dir(cachePath, [
       dir('repo', [
@@ -320,7 +307,8 @@ dependencies:
       ])
     ]).scheduleValidate();
 
-    run();
+    runPub(args: ['install'],
+        output: const RegExp("Dependencies installed!\$"));
   });
 }
 

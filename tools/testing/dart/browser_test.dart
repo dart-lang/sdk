@@ -4,7 +4,6 @@
 
 String getHtmlContents(String title,
                        String controllerScript,
-                       String dartJsScript,
                        String scriptType,
                        String sourceScript) =>
 """
@@ -24,7 +23,6 @@ String getHtmlContents(String title,
   <h1> Running $title </h1>
   <script type="text/javascript" src="$controllerScript"></script>
   <script type="$scriptType" src="$sourceScript"></script>
-  <script type="text/javascript" src="$dartJsScript"></script>
 </body>
 </html>
 """;

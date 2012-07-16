@@ -93,23 +93,22 @@ void FlowGraphCompiler::VisitBlocks() {
     ASSERT(frame_register_allocator()->IsSpilled());
     assembler()->Comment("B%d", i);
     // Compile the block entry.
-    BlockEntryInstr* entry = block_order()[i];
-    set_current_block(entry);
-    entry->PrepareEntry(this);
+    set_current_block(block_order()[i]);
+    current_block()->PrepareEntry(this);
+    Instruction* instr = current_block()->successor();
     // Compile all successors until an exit, branch, or a block entry.
-    Instruction* instr = entry;
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      instr = it.Current();
+    while ((instr != NULL) && !instr->IsBlockEntry()) {
       if (FLAG_code_comments) EmitComment(instr);
       ASSERT(instr->locs() != NULL);
       EmitInstructionPrologue(instr);
       instr->EmitNativeCode(this);
+      instr = instr->successor();
     }
-    if (instr->next() != NULL) {
-      BlockEntryInstr* successor = instr->next()->AsBlockEntry();
-      ASSERT(successor != NULL);
+    BlockEntryInstr* successor =
+        (instr == NULL) ? NULL : instr->AsBlockEntry();
+    if (successor != NULL) {
       frame_register_allocator()->Spill();
-      // The block ended with a "goto".  We can fall through if it is the
+      // Block ended with a "goto".  We can fall through if it is the
       // next block in the list.  Otherwise, we need a jump.
       if ((i == block_order().length() - 1) ||
           (block_order()[i + 1] != successor)) {

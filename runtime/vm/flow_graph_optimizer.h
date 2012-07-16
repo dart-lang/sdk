@@ -19,32 +19,29 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   void ApplyICData();
 
-  virtual void VisitStaticCall(StaticCallComp* comp, BindInstr* instr);
-  virtual void VisitInstanceCall(InstanceCallComp* comp, BindInstr* instr);
-  virtual void VisitInstanceSetter(InstanceSetterComp* comp, BindInstr* instr);
-  virtual void VisitLoadIndexed(LoadIndexedComp* comp, BindInstr* instr);
-  virtual void VisitStoreIndexed(StoreIndexedComp* comp, BindInstr* instr);
-  virtual void VisitRelationalOp(RelationalOpComp* comp, BindInstr* instr);
+  virtual void VisitStaticCall(StaticCallComp* comp);
+  virtual void VisitInstanceCall(InstanceCallComp* comp);
+  virtual void VisitInstanceSetter(InstanceSetterComp* comp);
+  virtual void VisitLoadIndexed(LoadIndexedComp* comp);
+  virtual void VisitStoreIndexed(StoreIndexedComp* comp);
+  virtual void VisitRelationalOp(RelationalOpComp* comp);
 
-  virtual void VisitStrictCompare(StrictCompareComp* comp, BindInstr* instr);
-  virtual void VisitEqualityCompare(EqualityCompareComp* comp,
-                                    BindInstr* instr);
+  virtual void VisitStrictCompare(StrictCompareComp* comp);
+  virtual void VisitEqualityCompare(EqualityCompareComp* comp);
 
+  virtual void VisitDo(DoInstr* instr);
   virtual void VisitBind(BindInstr* instr);
 
  private:
-  bool TryReplaceWithBinaryOp(BindInstr* instr,
-                              InstanceCallComp* comp,
-                              Token::Kind op_kind);
-  bool TryReplaceWithUnaryOp(BindInstr* instr,
-                             InstanceCallComp* comp,
-                             Token::Kind op_kind);
+  void VisitBlocks();
 
-  bool TryInlineInstanceGetter(BindInstr* instr,
-                               InstanceCallComp* comp);
-  bool TryInlineInstanceSetter(BindInstr* instr, InstanceSetterComp* comp);
+  bool TryReplaceWithBinaryOp(InstanceCallComp* comp, Token::Kind op_kind);
+  bool TryReplaceWithUnaryOp(InstanceCallComp* comp, Token::Kind op_kind);
 
-  bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
+  bool TryInlineInstanceGetter(InstanceCallComp* comp);
+  bool TryInlineInstanceSetter(InstanceSetterComp* comp);
+
+  bool TryInlineInstanceMethod(InstanceCallComp* comp);
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };
@@ -54,8 +51,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 // method, i.e., does not contain any calls to runtime or other Dart code.
 class FlowGraphAnalyzer : public ValueObject {
  public:
-  explicit FlowGraphAnalyzer(const GrowableArray<BlockEntryInstr*>& blocks)
-      : blocks_(blocks), is_leaf_(false) {}
+  explicit FlowGraphAnalyzer(const GrowableArray<BlockEntryInstr*>& blocks);
   virtual ~FlowGraphAnalyzer() {}
 
   void Analyze();

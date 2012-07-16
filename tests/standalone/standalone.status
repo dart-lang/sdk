@@ -38,6 +38,9 @@ io/*: Skip # Don't run tests using dart:io in the browser
 crypto/*: Skip # Don't run tests using dart:io in the browser
 package/*: Skip # Do not run those in Dartium.
 
+[ $compiler == none && $runtime == drt && $system == linux ]
+medium_integer_test: Fail # Issue 1146.  linux => x64.
+
 [ $compiler == dartc]
 *: Skip
 

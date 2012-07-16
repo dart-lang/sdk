@@ -321,7 +321,9 @@ def IsDartCollectionType(type):
 
 def FindMatchingAttribute(interface, attr1):
   matches = [attr2 for attr2 in interface.attributes
-             if attr1.id == attr2.id]
+             if attr1.id == attr2.id
+             and attr1.is_fc_getter == attr2.is_fc_getter
+             and attr1.is_fc_setter == attr2.is_fc_setter]
   if matches:
     assert len(matches) == 1
     return matches[0]
@@ -453,6 +455,15 @@ class OperationInfo(object):
     else:
       return self.type_name
 
+
+def AttributeOutputOrder(a, b):
+  """Canonical output ordering for attributes."""
+    # Getters before setters:
+  if a.id < b.id: return -1
+  if a.id > b.id: return 1
+  if a.is_fc_setter < b.is_fc_setter: return -1
+  if a.is_fc_setter > b.is_fc_setter: return 1
+  return 0
 
 def ConstantOutputOrder(a, b):
   """Canonical output ordering for constants."""

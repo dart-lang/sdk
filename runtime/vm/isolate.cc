@@ -109,7 +109,9 @@ bool IsolateMessageHandler::HandleMessage(Message* message) {
             message->dest_port(), message->reply_port(), msg));
     delete message;
     if (result.IsError()) {
-      isolate_->object_store()->set_sticky_error(Error::Cast(result));
+      Error& error = Error::Handle();
+      error ^= result.raw();
+      isolate_->object_store()->set_sticky_error(error);
       return false;
     }
     ASSERT(result.IsNull());
@@ -139,8 +141,7 @@ void BaseIsolate::AssertCurrent(BaseIsolate* isolate) {
 
 
 Isolate::Isolate()
-    : store_buffer_block_(),
-      store_buffer_(),
+    : store_buffer_(),
       message_notify_callback_(NULL),
       name_(NULL),
       main_port_(0),

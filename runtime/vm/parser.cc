@@ -102,7 +102,8 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 
 
 static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
-  const UnhandledException& excp = UnhandledException::Cast(obj);
+  UnhandledException& excp = UnhandledException::Handle();
+  excp ^= obj.raw();
   const Instance& exception = Instance::ZoneHandle(excp.exception());
   const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
   return new ThrowNode(token_pos,
@@ -750,7 +751,8 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     // receiver was captured.
     const bool kTestOnly = true;
     LocalVariable* receiver =
-        parser.LookupReceiver(node_sequence->scope(), kTestOnly);
+        parser.LookupReceiver(node_sequence->scope(),
+                              kTestOnly);
     if (!parser.current_function().IsLocalFunction() ||
         ((receiver != NULL) && receiver->is_captured())) {
       parsed_function->set_instantiator(
@@ -4026,15 +4028,16 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
   // Now add the NativeBodyNode and return statement.
   current_block_->statements->Add(
       new ReturnNode(TokenPos(), new NativeBodyNode(TokenPos(),
-                                                    native_name,
-                                                    native_function,
-                                                    num_parameters,
-                                                    has_opt_params,
-                                                    is_instance_closure)));
+                                                      native_name,
+                                                      native_function,
+                                                      num_parameters,
+                                                      has_opt_params,
+                                                      is_instance_closure)));
 }
 
 
-LocalVariable* Parser::LookupReceiver(LocalScope* from_scope, bool test_only) {
+LocalVariable* Parser::LookupReceiver(LocalScope* from_scope,
+                                      bool test_only) {
   const String& this_name = String::Handle(String::NewSymbol(kThisName));
   return from_scope->LookupVariable(this_name, test_only);
 }
@@ -5765,22 +5768,6 @@ void Parser::FormatMessage(const Script& script,
 }
 
 
-void Parser::PrintMessage(const Script& script,
-                          intptr_t token_pos,
-                          const char* message_header,
-                          const char* format, ...) {
-  va_list args;
-  va_start(args, format);
-  const intptr_t kMessageBufferSize = 512;
-  char message_buffer[kMessageBufferSize];
-  FormatMessage(script, token_pos, message_header,
-                message_buffer, kMessageBufferSize,
-                format, args);
-  va_end(args);
-  OS::Print("%s", message_buffer);
-}
-
-
 void Parser::ErrorMsg(intptr_t token_pos, const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -6090,11 +6077,13 @@ AstNode* Parser::OptimizeBinaryOpNode(intptr_t op_pos,
   if ((lhs_literal != NULL) && (rhs_literal != NULL)) {
     if (lhs_literal->literal().IsDouble() &&
         rhs_literal->literal().IsDouble()) {
-      double left_double = Double::Cast(lhs_literal->literal()).value();
-      double right_double = Double::Cast(rhs_literal->literal()).value();
+      Double& dbl_obj = Double::ZoneHandle();
+      dbl_obj ^= lhs_literal->literal().raw();
+      double left_double = dbl_obj.value();
+      dbl_obj ^= rhs_literal->literal().raw();
+      double right_double = dbl_obj.value();
       if (binary_op == Token::kDIV) {
-        const Double& dbl_obj = Double::ZoneHandle(
-            Double::NewCanonical((left_double / right_double)));
+        dbl_obj = Double::NewCanonical((left_double / right_double));
         return new LiteralNode(op_pos, dbl_obj);
       }
     }
@@ -6424,7 +6413,6 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         EnsureExpressionTemp();
         closure = new StaticGetterNode(call_pos,
-                                       NULL,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
         return new ClosureCallNode(call_pos, closure, arguments);
@@ -6561,7 +6549,6 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       // is used as part of, e.g., "+=", and the explicit getter does not
       // exist, and error will be reported by the code generator.
       load_access = new StaticGetterNode(call_pos,
-                                         NULL,
                                          Class::ZoneHandle(cls.raw()),
                                          String::ZoneHandle(field_name.raw()));
     } else {
@@ -6604,7 +6591,6 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       } else {
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         access = new StaticGetterNode(call_pos,
-                                      NULL,
                                       Class::ZoneHandle(cls.raw()),
                                       field_name);
       }
@@ -6882,8 +6868,9 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
     Type& parameterized_type = Type::Handle();
     parameterized_type ^= type->raw();
     if (!resolved_type_class.IsNull()) {
+      Object& type_class = Object::Handle(resolved_type_class.raw());
       // Replace unresolved class with resolved type class.
-      parameterized_type.set_type_class(resolved_type_class);
+      parameterized_type.set_type_class(type_class);
     } else if (finalization >= ClassFinalizer::kFinalize) {
       // The type is malformed.
       ClassFinalizer::FinalizeMalformedType(
@@ -6981,7 +6968,6 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     } else {
       // The implicit static getter will throw the exception if necessary.
       return new StaticGetterNode(TokenPos(),
-                                  NULL,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7009,8 +6995,9 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       Object& const_value = Object::Handle(
           DartEntry::InvokeStatic(func, arguments, kNoArgumentNames));
       if (const_value.IsError()) {
-        const Error& error = Error::Cast(const_value);
-        if (error.IsUnhandledException()) {
+        Error& error = Error::Handle();
+        error ^= const_value.raw();
+        if (const_value.IsUnhandledException()) {
           field.set_value(Instance::Handle());
           // It is a compile-time error if evaluation of a compile-time constant
           // would raise an exception.
@@ -7030,7 +7017,6 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       field.set_value(instance);
     } else {
       return new StaticGetterNode(TokenPos(),
-                                  NULL,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7076,7 +7062,9 @@ RawObject* Parser::EvaluateConstConstructorCall(
       if (result.IsUnhandledException()) {
         return result.raw();
       } else {
-        Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
+        Error& error = Error::Handle();
+        error ^= result.raw();
+        Isolate::Current()->long_jump_base()->Jump(1, error);
         UNREACHABLE();
         return Object::null();
       }
@@ -7154,16 +7142,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        // The static getter may be changed later into an instance setter.
-        AstNode* receiver = NULL;
-        const bool kTestOnly = true;
-        if ((!current_function().is_static() ||
-             current_function().IsInFactoryScope()) &&
-            (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
-          receiver = LoadReceiver(ident_pos);
-        }
         *node = new StaticGetterNode(ident_pos,
-                                     receiver,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7190,7 +7169,6 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // a setter node. If there is no assignment we will get an error
         // when we try to invoke the getter.
         *node = new StaticGetterNode(ident_pos,
-                                     NULL,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7220,16 +7198,19 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     obj = lib.LookupObject(*qual_ident.ident);
   }
   if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
+    Class& cls = Class::Handle();
+    cls ^= obj.raw();
     return new PrimaryNode(qual_ident.ident_pos, Class::ZoneHandle(cls.raw()));
   }
   if (obj.IsField()) {
-    const Field& field = Field::Cast(obj);
+    Field& field = Field::Handle();
+    field ^= obj.raw();
     ASSERT(field.is_static());
     return GenerateStaticFieldLookup(field, qual_ident.ident_pos);
   }
+  Function& func = Function::Handle();
   if (obj.IsFunction()) {
-    const Function& func = Function::Cast(obj);
+    func ^= obj.raw();
     ASSERT(func.is_static());
     return new PrimaryNode(qual_ident.ident_pos,
                            Function::ZoneHandle(func.raw()));
@@ -7258,11 +7239,10 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
   }
   if (!obj.IsNull()) {
     ASSERT(obj.IsFunction());
-    const Function& func = Function::Cast(obj);
+    func ^= obj.raw();
     ASSERT(func.is_static());
     ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
-                                NULL,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
   }
@@ -7786,9 +7766,9 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     if (constructor_result.IsUnhandledException()) {
       return GenerateRethrow(literal_pos, constructor_result);
     } else {
-      const Instance& const_instance = Instance::Cast(constructor_result);
-      return new LiteralNode(literal_pos,
-                             Instance::ZoneHandle(const_instance.raw()));
+      Instance& const_instance = Instance::ZoneHandle();
+      const_instance ^= constructor_result.raw();
+      return new LiteralNode(literal_pos, const_instance);
     }
   } else {
     // Factory call at runtime.
@@ -8064,9 +8044,9 @@ AstNode* Parser::ParseNewOperator() {
     if (constructor_result.IsUnhandledException()) {
       new_object = GenerateRethrow(new_pos, constructor_result);
     } else {
-      const Instance& const_instance = Instance::Cast(constructor_result);
-      new_object = new LiteralNode(new_pos,
-                                   Instance::ZoneHandle(const_instance.raw()));
+      Instance& const_instance = Instance::ZoneHandle();
+      const_instance ^= constructor_result.raw();
+      new_object = new LiteralNode(new_pos, const_instance);
     }
   } else {
     CheckFunctionIsCallable(new_pos, constructor);
@@ -8118,6 +8098,7 @@ String& Parser::Interpolate(ArrayNode* values) {
                                           interpolate_arg,
                                           kNoArgumentNames);
   if (concatenated.IsUnhandledException()) {
+    // TODO(regis): Report
     ErrorMsg("Exception thrown in Parser::Interpolate");
   }
   concatenated = String::NewSymbol(concatenated);
@@ -8392,13 +8373,15 @@ const Instance& Parser::EvaluateConstExpr(AstNode* expr) {
     Object& result = Object::Handle(Compiler::ExecuteOnce(seq));
     if (result.IsError()) {
       // Propagate the compilation error.
-      Isolate::Current()->long_jump_base()->Jump(1, Error::Cast(result));
+      Error& error = Error::Handle();
+      error ^= result.raw();
+      Isolate::Current()->long_jump_base()->Jump(1, error);
       UNREACHABLE();
     }
     ASSERT(result.IsInstance());
     Instance& value = Instance::ZoneHandle();
     value ^= result.raw();
-    if (!value.IsNull()) {
+    if (value.IsNull()) {
       value ^= value.Canonicalize();
     }
     return value;

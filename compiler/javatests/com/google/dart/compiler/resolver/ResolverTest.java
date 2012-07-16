@@ -19,6 +19,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 import junit.framework.Assert;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * Basic tests of the resolver.
@@ -572,15 +573,6 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.TYPE_PARAMETERS_MUST_MATCH_EXACTLY);
   }
 
-  public void test_constFactory() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  const factory A() { }",
-        "}"),
-        errEx(ResolverErrorCode.FACTORY_CANNOT_BE_CONST, 3, 17, 1));
-  }
-
   public void testFactoryBadTypeArgs11() {
     // Invoke constructor in factory method with (wrong) type args
     resolveAndTest(Joiner.on("\n").join(
@@ -606,7 +598,6 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         ResolverErrorCode.DEFAULT_CLASS_MUST_HAVE_SAME_TYPE_PARAMS);
   }
-
   public void testBadDefaultTypeArgs11() {
     // Example from spec v0.6
     resolveAndTest(Joiner.on("\n").join(
@@ -1159,26 +1150,17 @@ public class ResolverTest extends ResolverTestCase {
         ResolverErrorCode.CANNOT_USE_TYPE);
   }
 
-  public void test_classUsedAsExpression() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "main() {",
-        "    0.25 - Object;",
-        "}"),
-        ResolverErrorCode.IS_A_CLASS);
-  }
-
   public void test_typeVariableUsedAsExpression() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "class A<B> {",
-        "  var field = B;",
         "  f() {",
-        "    0.25 - B;",
+        "    try {",
+        "      0.25 - B;",
+        "    } catch(var e) {}",
         "  }",
         "}"),
-        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER,
-    ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
+        ResolverErrorCode.TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER);
   }
 
   public void test_shadowType_withVariable() throws Exception {
@@ -1525,7 +1507,7 @@ public class ResolverTest extends ResolverTestCase {
             errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_INITIALIZER, 5, 13, 3));
   }
 
-  public void test_redirectConstructor() {
+  public void testRedirectConstructor() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",
         "interface int {}",
@@ -1541,238 +1523,5 @@ public class ResolverTest extends ResolverTestCase {
         "  method() {}",
         "}"),
         errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_REDIRECT, 10, 21, 8));
-  }
-
-  public void test_unresolvedRedirectConstructor() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  A() : this.named();",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_CONSTRUCTOR, 3, 9, 12));
-  }
-
-  public void test_unresolvedSuperConstructor() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  A() : super.named() {}",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_SUPER_CONSTRUCTOR, 3, 9, 13));
-  }
-
-  public void test_unresolvedFieldInInitializer() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  const A() : this.field = 1;",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_RESOLVE_FIELD, 3, 20, 5));
-  }
-
-  public void test_illegalConstructorModifiers() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  abstract A();",
-        "  abstract A.named();",
-        "}",
-        "class B {",
-        "  static B() {}",
-        "  static B.named() {}",
-        "}"),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 3, 12, 1),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_ABSTRACT, 4, 12, 7),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 7, 10, 1),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_BE_STATIC, 8, 10, 7));
-  }
-
-  public void test_illegalConstructorReturnType() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface int {}",
-        "class A {",
-        "  void A();",
-        "  void A.named();",
-        "}",
-        "class B {",
-        "  int B();",
-        "  int B.named();",
-        "}"),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 4, 3, 4),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 5, 3, 4),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 8, 3, 3),
-        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 9, 3, 3));
-  }
-
-  public void test_fieldAccessInInitializer() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  var f1;",
-        "  var f2;",
-        "  A() : this.f2 = f1;",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_ACCESS_FIELD_IN_INIT, 5, 19, 2));
-  }
-
-  public void test_cannotBeResolved() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  static var field = B;",
-        " }",
-        "method() {",
-        "  A.noField = 1;",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
-  }
-
-  public void test_invokeTypeAlias() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "typedef Object func();",
-        "method() {",
-        "  func();",
-        "}"),
-        errEx(ResolverErrorCode.CANNOT_CALL_FUNCTION_TYPE_ALIAS, 4, 3, 6));
-  }
-
-  public void test_defaultTargetInterface() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface A default B {",
-        "  A();",
-        "}",
-        "interface B {",
-        "}"),
-        errEx(ResolverErrorCode.DEFAULT_MUST_SPECIFY_CLASS, 2, 21, 1),
-        errEx(ResolverErrorCode.DEFAULT_CONSTRUCTOR_UNRESOLVED, 3, 3, 4));
-  }
-
-  public void test_initializerErrors() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A { }",
-        "class B<T> {",
-        "  method() { }",
-        "  B(arg) : A = 1, ",
-        "           method = 2,",
-        "           arg = 3,",
-        "           T = 4 {}",
-        "}"),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_CLASS, 5, 12, 1),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_METHOD, 6, 12, 6),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_PARAMETER, 7, 12, 3),
-        errEx(ResolverErrorCode.EXPECTED_FIELD_NOT_TYPE_VAR, 8, 12, 1));
-  }
-
-  public void test_noDefaultOnInterface() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "interface I {",
-        "  I();",
-        "}"),
-        errEx(ResolverErrorCode.ILLEGAL_CONSTRUCTOR_NO_DEFAULT_IN_INTERFACE, 3, 3, 1));
-  }
-
-  public void test_illegalAccessFromStatic() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  var f;",
-        "  m() {}",
-        "  static method () {",
-        "    f = 1;",
-        "    m();",
-        "    var func = m;",
-        "  }",
-        "}"),
-        errEx(ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, 6, 5, 1),
-        errEx(ResolverErrorCode.INSTANCE_METHOD_FROM_STATIC, 7, 5, 3),
-        errEx(ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC, 8, 16, 1));
-  }
-
-  public void test_invalidGenerativeConstructorReturn() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  C() { return 5 + 7; }",
-        "}"),
-        errEx(ResolverErrorCode.INVALID_RETURN_IN_CONSTRUCTOR, 3, 9, 13));
-  }
-
-  public void test_isAClass() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "method () {",
-        "  var a = Object;",
-        "}"),
-        errEx(ResolverErrorCode.IS_A_CLASS, 3, 11, 6));
-  }
-
-  public void test_isAnInstanceMethod() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  method() {}",
-        "}",
-        "method () {",
-        "  var a = C.method();",
-        "}"),
-        errEx(ResolverErrorCode.IS_AN_INSTANCE_METHOD, 6, 13, 6));
-  }
-
-  public void test_methodMustHaveBody() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  method();",
-        "}"),
-        errEx(ResolverErrorCode.METHOD_MUST_HAVE_BODY, 3, 3, 9));
-  }
-
-  public void test_staticAccess() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class C {",
-        "  var field;",
-        "  method() {}",
-        "}",
-        "method() {",
-        "  C.method = 1;",
-        "  C.field();",
-        "  var a = C.field;",
-        "}"),
-        errEx(ResolverErrorCode.NOT_A_STATIC_METHOD, 7, 5, 6),
-        errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_METHOD, 7, 3, 8),
-        errEx(ResolverErrorCode.IS_AN_INSTANCE_FIELD, 8, 5, 5),
-        errEx(ResolverErrorCode.NOT_A_STATIC_FIELD, 9, 13, 5));
-  }
-
-  public void test_redirectedConstructor() throws Exception {
-  resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  A() : this.named1();",
-        "  A.named1() : this.named2();",
-        "  A.named2() : this.named1();",
-        "}"),
-        errEx(ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE, 3, 3, 20),
-        errEx(ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE, 4, 3, 27),
-        errEx(ResolverErrorCode.REDIRECTED_CONSTRUCTOR_CYCLE, 5, 3, 27));
-  }
-
-  public void test_tooFewArgumentsInImplicitSuper() throws Exception {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class A {",
-        "  A(arg) {}",
-        "}",
-        "class B extends A {",
-        "  B() { }",
-        "}"),
-        errEx(ResolverErrorCode.TOO_FEW_ARGUMENTS_IN_IMPLICIT_SUPER, 6, 3, 7));
   }
 }

@@ -11,9 +11,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
-  CodeBlock buildJavaScriptFunction(FunctionElement element,
-                                    String parameters,
-                                    String body) {
+  String buildJavaScriptFunction(FunctionElement element,
+                                 String parameters,
+                                 String body) {
     String extraSpace = "";
     // Members are emitted inside a JavaScript object literal. To line up the
     // indentation we want the closing curly brace to be indented by one space.
@@ -32,19 +32,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
         element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
       extraSpace = " ";
     }
-
-    String code = 'function($parameters) {\n$body$extraSpace}';
-    List<SourceMappingEntry> sourceMappings = new List<SourceMappingEntry>();
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
-    FunctionExpression expression = element.cachedNode;
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getBeginToken().charOffset, 0));
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getEndToken().charOffset, code.length - 1));
-    return new CodeBlock(code, sourceMappings);
+    return 'function($parameters) {\n$body$extraSpace}';
   }
 
-  CodeBlock generateMethod(WorkItem work, HGraph graph) {
+  String generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
@@ -78,7 +69,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  CodeBlock generateBailoutMethod(WorkItem work, HGraph graph) {
+  String generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -217,20 +208,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return false;
   }
 
-  bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
-    for (HInstruction use in instruction.usedBy) {
-      if (use is HPhi) {
-        if (!phiSet.contains(use)) {
-          phiSet.add(use);
-          if (hasNonBitOpUser(use, phiSet)) return true;
-        }
-      } else if (use is! HBitNot && use is! HBinaryBitOp) {
-        return true;
-      }
-    }
-    return false;
-  }
-
   // We want the outcome of bit-operations to be positive. However, if
   // the result of a bit-operation is only used by other bit
   // operations we do not have to convert to an unsigned
@@ -242,7 +219,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
          isNonNegativeInt32Constant(instruction.right))) {
       return false;
     }
-    return hasNonBitOpUser(instruction, new Set<HPhi>());
+    bool result = false;
+    for (HInstruction use in instruction.usedBy) {
+      if (use is! HBitNot && use is! HBinaryBitOp) {
+        result = true;
+        break;
+      }
+    }
+    return result;
   }
 
   SsaCodeGenerator(this.backend,
@@ -257,6 +241,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       breakAction = new Map<Element, ElementAction>(),
       continueAction = new Map<Element, ElementAction>(),
       unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
+
+    Interceptors interceptors = backend.builder.interceptors;
+    equalsNullElement = interceptors.getEqualsNullInterceptor();
+    boolifiedEqualsNullElement =
+        interceptors.getBoolifiedVersionOf(equalsNullElement);
   }
 
   abstract visitTypeGuard(HTypeGuard node);
@@ -1276,6 +1265,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitEquals(HEquals node) {
     if (node.builtin) {
       emitIdentityComparison(node.left, node.right);
+    } else if (node.element === equalsNullElement ||
+               node.element === boolifiedEqualsNullElement) {
+      beginExpression(JSPrecedence.CALL_PRECEDENCE);
+      use(node.target, JSPrecedence.CALL_PRECEDENCE);
+      buffer.add('(');
+      use(node.left, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      buffer.add(')');
+      endExpression(JSPrecedence.CALL_PRECEDENCE);
     } else {
       visitInvokeStatic(node);
     }
@@ -1861,11 +1858,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add(name);
     Type type = node.receiver.propagatedType.computeType(compiler);
     if (type != null) {
-      if (!work.element.isGenerativeConstructorBody()) {
-        world.registerFieldSetter(node.element.name, type);
-      }
-      backend.updateFieldSetters(node.element,
-                                 node.value.propagatedType);
+      world.registerFieldSetter(node.element.name, type);
+      backend.updateFieldIntegerSetters(node.element,
+                                        node.value.isInteger());
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);

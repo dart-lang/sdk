@@ -931,50 +931,12 @@ class HInstruction implements Hashable {
       }
     }
     List<HInstruction> oldInputUsers = oldInput.usedBy;
-    int i = 0;
-    while (i < oldInputUsers.length) {
+    for (int i = 0; i < oldInputUsers.length; i++) {
       if (oldInputUsers[i] == this) {
         oldInputUsers[i] = oldInputUsers[oldInput.usedBy.length - 1];
-        oldInputUsers.length--;
-      } else {
-        i++;
+        oldInputUsers.length = oldInputUsers.length - 1;
       }
     }
-  }
-
-  // Compute the set of users of this instruction that is dominated by
-  // [other].
-  Set<HInstruction> dominatedUsers(HInstruction other) {
-    // Keep track of all instructions that we have to deal with later
-    // and count the number of them that are in the current block.
-    Set<HInstruction> users = new Set<HInstruction>();
-    int usersInCurrentBlock = 0;
-
-    // Run through all the users and see if they are dominated or
-    // potentially dominated by [other].
-    HBasicBlock otherBlock = other.block;
-    for (int i = 0, length = usedBy.length; i < length; i++) {
-      HInstruction current = usedBy[i];
-      if (current !== other && otherBlock.dominates(current.block)) {
-        if (current.block === otherBlock) usersInCurrentBlock++;
-        users.add(current);
-      }
-    }
-
-    // Run through all the instructions before [other] and remove them
-    // from the users set.
-    if (usersInCurrentBlock > 0) {
-      HInstruction current = otherBlock.first;
-      while (current !== other) {
-        if (users.contains(current)) {
-          users.remove(current);
-          if (--usersInCurrentBlock == 0) break;
-        }
-        current = current.next;
-      }
-    }
-
-    return users;
   }
 
   bool isConstant() => false;
@@ -2045,9 +2007,7 @@ class HEquals extends HRelational {
     // All primitive types have === semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
-    return left.propagatedType.isPrimitive() ||
-        left.isConstantNull() ||
-        right.isConstantNull();
+    return left.isConstantNull() || left.propagatedType.isPrimitive();
   }
 
   HType computeTypeFromInputTypes() {

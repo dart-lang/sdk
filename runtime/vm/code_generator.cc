@@ -324,7 +324,7 @@ DEFINE_RUNTIME_ENTRY(CloneContext, 1) {
 static void PrintTypeCheck(
     const char* message,
     const Instance& instance,
-    const AbstractType& type,
+    const AbstractType&type,
     const AbstractTypeArguments& instantiator_type_arguments,
     const Bool& result) {
   DartFrameIterator iterator;
@@ -377,8 +377,9 @@ static bool OptimizeTypeArguments(const Instance& instance,
   }
   if (type_arguments.IsInstantiatedTypeArguments()) {
     do {
-      const InstantiatedTypeArguments& instantiated_type_arguments =
-          InstantiatedTypeArguments::Cast(type_arguments);
+      InstantiatedTypeArguments& instantiated_type_arguments =
+          InstantiatedTypeArguments::Handle();
+      instantiated_type_arguments ^= type_arguments.raw();
       const AbstractTypeArguments& uninstantiated =
           AbstractTypeArguments::Handle(
               instantiated_type_arguments.uninstantiated_type_arguments());
@@ -387,13 +388,15 @@ static bool OptimizeTypeArguments(const Instance& instance,
               instantiated_type_arguments.instantiator_type_arguments());
       type_arguments = uninstantiated.InstantiateFrom(instantiator);
     } while (type_arguments.IsInstantiatedTypeArguments());
-    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
-    new_type_arguments = type_arguments.Canonicalize();
+    TypeArguments& new_type_arguments = TypeArguments::Handle();
+    new_type_arguments ^= type_arguments.raw();
+    new_type_arguments ^= new_type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
     *type_arguments_replaced = true;
   } else if (!type_arguments.IsCanonical()) {
-    AbstractTypeArguments& new_type_arguments = AbstractTypeArguments::Handle();
-    new_type_arguments = type_arguments.Canonicalize();
+    AbstractTypeArguments& new_type_arguments =
+        AbstractTypeArguments::Handle();
+    new_type_arguments ^= type_arguments.Canonicalize();
     instance.SetTypeArguments(new_type_arguments);
     *type_arguments_replaced = true;
   }
@@ -455,7 +458,7 @@ static void UpdateTypeTestCache(
     if (replaced) {
       type_arguments_replaced = true;
     }
-    instantiator_type_arguments = instantiator.GetTypeArguments();
+    instantiator_type_arguments ^= instantiator.GetTypeArguments();
   }
 
   Class& last_instance_class = Class::Handle();
@@ -786,7 +789,7 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
 // rethrow it.
 static void CheckResultError(const Object& result) {
   if (result.IsError()) {
-    Exceptions::PropagateError(Error::Cast(result));
+    Exceptions::PropagateError(result);
   }
 }
 
@@ -1002,7 +1005,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
     arguments.SetReturn(closure);
     return;
   }
-  const Class& receiver_class = Class::Handle(receiver.clazz());
+  Class& receiver_class = Class::Handle();
+  receiver_class ^= receiver.clazz();
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
   func_name = String::SubString(original_function_name, getter_prefix.Length());
@@ -1070,7 +1074,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureThroughGetter, 2) {
       arguments.SetReturn(code);
       return;
     } else {
-      Exceptions::PropagateError(Error::Cast(result));
+      Exceptions::PropagateError(result);
     }
   }
   if (!result.IsSmi()) {
@@ -1527,5 +1531,13 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
   UNREACHABLE();
   return Code::null();
 }
+
+
+// Adds a pointer to the store buffer.
+// ptr: the address of a field being stored into.
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBuffer, uword ptr) {
+  Isolate::Current()->store_buffer()->AddPointer(ptr);
+}
+END_LEAF_RUNTIME_ENTRY
 
 }  // namespace dart

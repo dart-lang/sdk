@@ -6,7 +6,6 @@
 unicode_test: Fail        # Bug 5163868
 *dartc_test: Skip
 expando_test: Fail
-compare_to2_test: Fail    # Bug 4018
 
 [ $compiler == dartc ]
 *vm_test: Skip
@@ -20,7 +19,6 @@ expando_test: Fail
 *dartc_negative_test: Skip
 # Note: Correctly skips 4 VMTests that rely on VM internals
 
-compare_to2_test: Fail, Ok    # Requires bigint support.
 const_list_*: Fail # 'const' is not currently checked.
 core_runtime_types_test: Fail
 for_in_test: Fail
@@ -73,7 +71,6 @@ reg_exp_all_matches_test: Fail, OK # NoSuchMethodException : method not found: '
 reg_exp4_test: Fail, OK # Expects exception from const constructor.
 
 big_integer_vm_test: Fail, OK # VM specific test.
-compare_to2_test: Fail, OK    # Requires bigint support.
 growable_object_array2_vm_test: Fail, OK # VM specific test.
 growable_object_array_vm_test: Fail, OK # VM specific test.
 string_base_vm_test: Fail, OK # VM specific test.
@@ -81,12 +78,17 @@ string_base_vm_test: Fail, OK # VM specific test.
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
+[ $compiler == dart2js && $runtime == drt ]
+list_sort_test: Fail, Pass # Issue 2667
+
 [ $compiler == dart2js && $runtime == safari ]
 core_runtime_types_test: Fail
 
 [ $compiler == dart2js && $runtime == ie ]
 const_list_literal_test: Fail # BUG(3304): Maybe this doesn't time out?
 date_time7_test: Fail # BUG(3304): Maybe this doesn't time out?
+list_sort_test: Fail # BUG(3304): Maybe this doesn't time out?
 reg_exp_all_matches_test: Fail # BUG(3304): Maybe this doesn't time out?
+sort_test: Fail # BUG(3304): Maybe this doesn't time out?
 string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 core_runtime_types_test: Fail

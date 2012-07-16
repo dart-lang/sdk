@@ -70,14 +70,7 @@ class PrettyPrinter implements Visitor {
     sb.add("${type}");
     if (params != null) {
       // TODO(smok): Escape doublequotes in values.
-      params.forEach((k, v) {
-        sb.add(' $k=');
-        if (v !== null) {
-          sb.add('"$v"');
-        } else {
-          sb.add('null');
-        }
-      });
+      params.forEach((k, v) => sb.add(' $k="$v"'));
     }
   }
 
@@ -199,16 +192,8 @@ class PrettyPrinter implements Visitor {
     visitLiteral(node, "LiteralInt");
   }
 
-  /** Returns token string value or [null] if token is [null]. */
-  tokenToStringOrNull(Token token) => token === null ? null : token.stringValue;
-
   visitLiteralList(LiteralList node) {
-    openNode("LiteralList", {
-      "constKeyword" : tokenToStringOrNull(node.constKeyword)
-    });
-    visitWithPrefix(node.type, "type:");
-    visitWithPrefix(node.elements, "elements:");
-    closeNode("LiteralList");
+    visitNodeWithChildren(node, "LiteralList");
   }
 
   visitLiteralMap(LiteralMap node) {
@@ -240,17 +225,10 @@ class PrettyPrinter implements Visitor {
   }
 
   visitNodeList(NodeList node) {
-    var params = {
-        "delimiter" :
-            node.delimiter !== null ? node.delimiter.stringValue : null,
-        "beginToken" : tokenToStringOrNull(node.getBeginToken()),
-        "endToken" : tokenToStringOrNull(node.getEndToken())};
     if (node.nodes.toList().length == 0) {
-      openAndCloseNode("NodeList", params);
+      openAndCloseNode("NodeList");
     } else {
-      openNode("NodeList", params);
-      node.visitChildren(this);
-      closeNode("NodeList");
+      visitNodeWithChildren(node, "NodeList");
     }
   }
 
@@ -263,12 +241,11 @@ class PrettyPrinter implements Visitor {
   }
 
   visitReturn(Return node) {
-    var beginToken = node.getBeginToken() !== null
-        ? node.getBeginToken().stringValue : "null";
-    var endToken = node.getEndToken() !== null
-        ? node.getEndToken().stringValue : "null";
+    var beginToken =
+        node.beginToken !== null ? node.beginToken.stringValue : "null";
+    var endToken = node.endToken !== null ? node.endToken.stringValue : "null";
     openNode("Return", {"beginToken" : beginToken, "endToken" : endToken});
-    visitWithPrefix(node.expression, "expression:");
+    if (node.hasExpression) visitWithPrefix(node.expression, "expression:");
     closeNode("Return");
   }
 
@@ -278,7 +255,6 @@ class PrettyPrinter implements Visitor {
 
   /** Custom helper to visit given node and print its type with prefix. */
   visitWithPrefix(Node node, String prefix) {
-    if (node === null) return;
     nextTypePrefix = prefix;
     node.accept(this);
   }
@@ -289,9 +265,10 @@ class PrettyPrinter implements Visitor {
         "isPostfix" : "${node.isPostfix}",
         "isIndex" : "${node.isIndex}"
     });
-    visitWithPrefix(node.receiver, "receiver:");
-    visitWithPrefix(node.selector, "selector:");
-    visitWithPrefix(node.argumentsNode, "argumentsNode:");
+    if (node.receiver !== null) visitWithPrefix(node.receiver, "receiver:");
+    if (node.selector !== null) visitWithPrefix(node.selector, "selector:");
+    if (node.argumentsNode !== null)
+        visitWithPrefix(node.argumentsNode, "argumentsNode:");
   }
 
   visitSend(Send node) {
@@ -301,7 +278,8 @@ class PrettyPrinter implements Visitor {
 
   visitSendSet(SendSet node) {
     openSendNodeWithFields(node, "SendSet");
-    visitWithPrefix(node.assignmentOperator, "assignmentOperator:");
+    if (node.assignmentOperator !== null)
+        visitWithPrefix(node.assignmentOperator, "assignmentOperator:");
     closeNode("SendSet");
   }
 
@@ -346,14 +324,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    openNode("VariableDefinitions", {
-      "beginToken" : "${node.getBeginToken().stringValue}",
-      "endToken" : "${node.getEndToken().stringValue}"
-    });
-    visitWithPrefix(node.type, "type:");
-    visitWithPrefix(node.modifiers, "modifiers:");
-    visitWithPrefix(node.definitions, "definitions:");
-    closeNode("VariableDefinitions");
+    visitNodeWithChildren(node, "VariableDefinitions");
   }
 
   visitWhile(While node) {

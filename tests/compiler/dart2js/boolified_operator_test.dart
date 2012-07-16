@@ -55,7 +55,7 @@ main() {
 
   generated = compile(TEST_EQUAL_NULL, 'foo');
   Expect.isFalse(generated.contains('=== true'));
-  Expect.isTrue(generated.contains('== null'));
+  Expect.isTrue(generated.contains('eqNullB'));
 
   generated = compile(TEST_LESS, 'foo');
   Expect.isFalse(generated.contains('=== true'));

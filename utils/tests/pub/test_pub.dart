@@ -16,31 +16,30 @@
 #import('../../../lib/unittest/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
 #import('../../pub/io.dart');
-#import('../../pub/utils.dart');
 #import('../../pub/yaml/yaml.dart');
 
 /**
  * Creates a new [FileDescriptor] with [name] and [contents].
  */
-FileDescriptor file(Pattern name, String contents) =>
+FileDescriptor file(String name, String contents) =>
     new FileDescriptor(name, contents);
 
 /**
  * Creates a new [DirectoryDescriptor] with [name] and [contents].
  */
-DirectoryDescriptor dir(Pattern name, [List<Descriptor> contents]) =>
+DirectoryDescriptor dir(String name, [List<Descriptor> contents]) =>
     new DirectoryDescriptor(name, contents);
 
 /**
  * Creates a new [GitRepoDescriptor] with [name] and [contents].
  */
-DirectoryDescriptor git(Pattern name, [List<Descriptor> contents]) =>
+DirectoryDescriptor git(String name, [List<Descriptor> contents]) =>
     new GitRepoDescriptor(name, contents);
 
 /**
  * Creates a new [TarFileDescriptor] with [name] and [contents].
  */
-TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
+TarFileDescriptor tar(String name, [List<Descriptor> contents]) =>
     new TarFileDescriptor(name, contents);
 
 /**
@@ -53,7 +52,7 @@ void serve(String host, int port, [List<Descriptor> contents]) {
     host = '127.0.0.1';
   }
 
-  _schedule((_) {
+  _scheduleBeforePub((_) {
     var server = new HttpServer();
     server.defaultRequestHandler = (request, response) {
       var path = request.uri.replaceFirst("/", "").split("/");
@@ -146,37 +145,66 @@ final String packagesPath = "$appPath/packages";
 typedef Future _ScheduledEvent(Directory parentDir);
 
 /**
- * The list of events that are scheduled to run as part of the test case.
+ * The list of events that are scheduled to run after the sandbox directory has
+ * been created but before Pub is run.
  */
-List<_ScheduledEvent> _scheduled;
+List<_ScheduledEvent> _scheduledBeforePub;
 
 /**
- * The list of events that are scheduled to run after the test case, even if it
- * failed.
+ * The list of events that are scheduled to run after Pub has been run.
+ */
+List<_ScheduledEvent> _scheduledAfterPub;
+
+/**
+ * The list of events that are scheduled to run after Pub has been run, even if
+ * it failed.
  */
 List<_ScheduledEvent> _scheduledCleanup;
 
-/**
- * Runs all the scheduled events for a test case. This should only be called
- * once per test case.
- */
-void run() {
+void runPub([List<String> args, Pattern output, Pattern error,
+    int exitCode = 0]) {
   var createdSandboxDir;
 
   var asyncDone = expectAsync0(() {});
 
   Future cleanup() {
     return _runScheduled(createdSandboxDir, _scheduledCleanup).chain((_) {
-      _scheduled = null;
+      _scheduledBeforePub = null;
+      _scheduledAfterPub = null;
       if (createdSandboxDir != null) return deleteDir(createdSandboxDir);
       return new Future.immediate(null);
     });
   }
 
+  String pathInSandbox(path) => join(getFullPath(createdSandboxDir), path);
+
   final future = _setUpSandbox().chain((sandboxDir) {
     createdSandboxDir = sandboxDir;
-    return _runScheduled(sandboxDir, _scheduled);
+    return _runScheduled(sandboxDir, _scheduledBeforePub);
+  }).chain((_) {
+    return ensureDir(pathInSandbox(appPath));
+  }).chain((_) {
+    // TODO(rnystrom): Hack in the cache directory path. Should pass this
+    // in using environment var once #752 is done.
+    args.add('--cachedir=${pathInSandbox(cachePath)}');
+
+    // TODO(rnystrom): Hack in the SDK path. Should pass this in using
+    // environment var once #752 is done.
+    args.add('--sdkdir=${pathInSandbox(sdkPath)}');
+
+    return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
+        pipeStderr: error == null);
+  }).chain((result) {
+    _validateOutput(output, result.stdout);
+    _validateOutput(error, result.stderr);
+
+    Expect.equals(result.exitCode, exitCode,
+        'Pub returned exit code ${result.exitCode}, expected $exitCode.');
+
+    return _runScheduled(createdSandboxDir, _scheduledAfterPub);
   });
+
+  future.chain((_) => cleanup()).then((_) => asyncDone());
 
   future.handleException((error) {
     // If an error occurs during testing, delete the sandbox, throw the error so
@@ -187,51 +215,8 @@ void run() {
     });
     return true;
   });
-
-  future.chain((_) => cleanup()).then((_) => asyncDone());
 }
 
-/**
- * Schedules a call to the Pub command-line utility. Runs Pub with [args] and
- * validates that its results match [output], [error], and [exitCode].
- */
-void schedulePub([List<String> args, Pattern output, Pattern error,
-    int exitCode = 0]) {
-  _schedule((sandboxDir) {
-    String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
-
-    return ensureDir(pathInSandbox(appPath)).chain((_) {
-      // TODO(rnystrom): Hack in the cache directory path. Should pass this in
-      // using environment var once #752 is done.
-      args.add('--cachedir=${pathInSandbox(cachePath)}');
-
-      // TODO(rnystrom): Hack in the SDK path. Should pass this in using
-      // environment var once #752 is done.
-      args.add('--sdkdir=${pathInSandbox(sdkPath)}');
-
-      return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
-          pipeStderr: error == null);
-    }).transform((result) {
-      _validateOutput(output, result.stdout);
-      _validateOutput(error, result.stderr);
-
-      Expect.equals(result.exitCode, exitCode,
-          'Pub returned exit code ${result.exitCode}, expected $exitCode.');
-
-      return null;
-    });
-  });
-}
-
-/**
- * A shorthand for [schedulePub] and [run] when no validation needs to be done
- * after Pub has been run.
- */
-void runPub([List<String> args, Pattern output, Pattern error,
-    int exitCode = 0]) {
-  schedulePub(args, output, error, exitCode);
-  run();
-}
 
 /**
  * Wraps a test that needs git in order to run. This validates that the test is
@@ -252,25 +237,14 @@ Future<Directory> _setUpSandbox() {
   return createTempDir('pub-test-sandbox-');
 }
 
-Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
+_runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   if (scheduled == null) return new Future.immediate(null);
-  var iterator = scheduled.iterator();
-
-  Future runNextEvent([_]) {
-    if (!iterator.hasNext()) {
-      scheduled.clear();
-      return new Future.immediate(null);
-    }
-
-    var future = iterator.next()(parentDir);
-    if (future != null) {
-      return future.chain(runNextEvent);
-    } else {
-      return runNextEvent();
-    }
-  }
-
-  return runNextEvent();
+  var future = Futures.wait(scheduled.map((event) {
+    var subFuture = event(parentDir);
+    return subFuture == null ? new Future.immediate(null) : subFuture;
+  }));
+  scheduled.clear();
+  return future;
 }
 
 Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir,
@@ -352,10 +326,9 @@ void _validateOutputString(String expectedText, List<String> actual) {
  */
 class Descriptor {
   /**
-   * The name of this file or directory. This must be a [String] if the fiel or
-   * directory is going to be created.
+   * The short name of this file or directory.
    */
-  final Pattern name;
+  final String name;
 
   Descriptor(this.name);
 
@@ -373,12 +346,6 @@ class Descriptor {
   abstract Future validate(String dir);
 
   /**
-   * Deletes the file or directory within [dir]. Returns a [Future] that is
-   * completed after the deletion is done.
-   */
-  abstract Future delete(String dir);
-
-  /**
    * Loads the file at [path] from within this descriptor. If [path] is empty,
    * loads the contents of the descriptor itself.
    */
@@ -389,72 +356,14 @@ class Descriptor {
    * directory will be created relative to the sandbox directory.
    */
   // TODO(nweiz): Use implicit closurization once issue 2984 is fixed.
-  void scheduleCreate() => _schedule((dir) => this.create(dir));
-
-  /**
-   * Schedules the file or directory to be deleted recursively.
-   */
-  void scheduleDelete() => _schedule((dir) => this.delete(dir));
+  void scheduleCreate() => _scheduleBeforePub((dir) => this.create(dir));
 
   /**
    * Schedules the directory to be validated after Pub is run with [runPub]. The
    * directory will be validated relative to the sandbox directory.
    */
-  void scheduleValidate() => _schedule((parentDir) => validate(parentDir.path));
-
-  /**
-   * Asserts that the name of the descriptor is a [String] and returns it.
-   */
-  String get _stringName() {
-    if (name is String) return name;
-    throw 'Pattern $name must be a string.';
-  }
-
-  /**
-   * Validates that at least one file in [dir] matching [name] is valid
-   * according to [validate]. [validate] should complete to an exception if the
-   * input path is invalid.
-   */
-  Future _validateOneMatch(String dir, Future validate(String path)) {
-    // Special-case strings to support multi-level names like "myapp/packages".
-    if (name is String) {
-      var path = join(dir, name);
-      return exists(path).chain((exists) {
-        if (!exists) Expect.fail('File $name in $dir not found.');
-        return validate(path);
-      });
-    }
-
-    return listDir(dir).chain((files) {
-      var matches = files.filter((file) => endsWithPattern(file, name));
-      if (matches.length == 0) {
-        Expect.fail('No files in $dir match pattern $name.');
-      }
-      if (matches.length == 1) return validate(matches[0]);
-
-      var failures = [];
-      var completer = new Completer();
-      for (var match in matches) {
-        var future = validate(match);
-
-        future.handleException((e) {
-          failures.add(e);
-          if (failures.length != matches.length) return true;
-
-          var error = new StringBuffer();
-          error.add("No files named $name in $dir were valid:\n");
-          for (var failure in failures) {
-            error.add("  ").add(failure).add("\n");
-          }
-          completer.completeException(new ExpectException(error.toString()));
-          return true;
-        });
-
-        future.then(completer.complete);
-      }
-      return completer.future;
-    });
-  }
+  void scheduleValidate() =>
+    _scheduleAfterPub((parentDir) => validate(parentDir.path));
 }
 
 /**
@@ -468,33 +377,28 @@ class FileDescriptor extends Descriptor {
    */
   final String contents;
 
-  FileDescriptor(Pattern name, this.contents) : super(name);
+  FileDescriptor(String name, this.contents) : super(name);
 
   /**
    * Creates the file within [dir]. Returns a [Future] that is completed after
    * the creation is done.
    */
   Future<File> create(dir) {
-    return writeTextFile(join(dir, _stringName), contents);
-  }
-
-  /**
-   * Deletes the file within [dir]. Returns a [Future] that is completed after
-   * the deletion is done.
-   */
-  Future delete(dir) {
-    return deleteFile(join(dir, _stringName));
+    return writeTextFile(join(dir, name), contents);
   }
 
   /**
    * Validates that this file correctly matches the actual file at [path].
    */
   Future validate(String path) {
-    return _validateOneMatch(path, (file) {
-      return readTextFile(file).transform((text) {
+    path = join(path, name);
+    return fileExists(path).chain((exists) {
+      if (!exists) Expect.fail('Expected file $path does not exist.');
+
+      return readTextFile(path).transform((text) {
         if (text == contents) return null;
 
-        Expect.fail('File $file should contain:\n\n$contents\n\n'
+        Expect.fail('File $path should contain:\n\n$contents\n\n'
                     'but contained:\n\n$text');
       });
     });
@@ -526,7 +430,7 @@ class DirectoryDescriptor extends Descriptor {
    */
   final List<Descriptor> contents;
 
-  DirectoryDescriptor(Pattern name, this.contents) : super(name);
+  DirectoryDescriptor(String name, this.contents) : super(name);
 
   /**
    * Creates the file within [dir]. Returns a [Future] that is completed after
@@ -536,7 +440,7 @@ class DirectoryDescriptor extends Descriptor {
     final completer = new Completer<Directory>();
 
     // Create the directory.
-    ensureDir(join(parentDir, _stringName)).then((dir) {
+    createDir(join(parentDir, name)).then((dir) {
       if (contents == null) {
         completer.complete(dir);
       } else {
@@ -553,27 +457,18 @@ class DirectoryDescriptor extends Descriptor {
   }
 
   /**
-   * Deletes the directory within [dir]. Returns a [Future] that is completed
-   * after the deletion is done.
-   */
-  Future delete(dir) {
-    return deleteDir(join(dir, _stringName));
-  }
-
-  /**
    * Validates that the directory at [path] contains all of the expected
    * contents in this descriptor. Note that this does *not* check that the
    * directory doesn't contain other unexpected stuff, just that it *does*
    * contain the stuff we do expect.
    */
   Future validate(String path) {
-    return _validateOneMatch(path, (dir) {
-      // Validate each of the items in this directory.
-      final entryFutures = contents.map((entry) => entry.validate(dir));
+    // Validate each of the items in this directory.
+    final entryFutures = contents.map(
+        (entry) => entry.validate(join(path, name)));
 
-      // If they are all valid, the directory is valid.
-      return Futures.wait(entryFutures).transform((entries) => null);
-    });
+    // If they are all valid, the directory is valid.
+    return Futures.wait(entryFutures).transform((entries) => null);
   }
 
   /**
@@ -598,7 +493,7 @@ class DirectoryDescriptor extends Descriptor {
  * Describes a Git repository and its contents.
  */
 class GitRepoDescriptor extends DirectoryDescriptor {
-  GitRepoDescriptor(Pattern name, List<Descriptor> contents)
+  GitRepoDescriptor(String name, List<Descriptor> contents)
   : super(name, contents);
 
   /**
@@ -606,7 +501,13 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    */
   Future<Directory> create(parentDir) {
     var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
+    Future runGit(List<String> args) {
+      return runProcess('git', args, workingDir: workingDir.path).
+        transform((result) {
+          if (!result.success) throw "Error running git: ${result.stderr}";
+          return null;
+        });
+    }
 
     return super.create(parentDir).chain((rootDir) {
       workingDir = rootDir;
@@ -614,32 +515,6 @@ class GitRepoDescriptor extends DirectoryDescriptor {
     }).chain((_) => runGit(['add', '.']))
       .chain((_) => runGit(['commit', '-m', 'initial commit']))
       .transform((_) => workingDir);
-  }
-
-  /**
-   * Commits any changes to the Git repository.
-   */
-  Future commit(parentDir) {
-    var workingDir;
-    Future runGit(List<String> args) => _runGit(args, workingDir);
-
-    return super.create(parentDir).chain((rootDir) {
-      workingDir = rootDir;
-      return runGit(['add', '.']);
-    }).chain((_) => runGit(['commit', '-m', 'update']));
-  }
-
-  /**
-   * Schedules changes to be committed to the Git repository.
-   */
-  void scheduleCommit() => _schedule((dir) => this.commit(dir));
-
-  Future _runGit(List<String> args, Directory workingDir) {
-    return runProcess('git', args, workingDir: workingDir.path).
-      transform((result) {
-        if (!result.success) throw "Error running git: ${result.stderr}";
-        return null;
-      });
   }
 }
 
@@ -649,7 +524,7 @@ class GitRepoDescriptor extends DirectoryDescriptor {
 class TarFileDescriptor extends Descriptor {
   final List<Descriptor> contents;
 
-  TarFileDescriptor(Pattern name, this.contents)
+  TarFileDescriptor(String name, this.contents)
   : super(name);
 
   /**
@@ -663,7 +538,7 @@ class TarFileDescriptor extends Descriptor {
       return Futures.wait(contents.map((child) => child.create(tempDir)));
     }).chain((_) {
       var args = ["--directory", tempDir.path, "--create", "--gzip", "--file",
-          join(parentDir, _stringName)];
+          join(parentDir, name)];
       args.addAll(contents.map((child) => child.name));
       return runProcess("tar", args);
     }).chain((result) {
@@ -673,7 +548,7 @@ class TarFileDescriptor extends Descriptor {
       }
       return deleteDir(tempDir);
     }).transform((_) {
-      return new File(join(parentDir, _stringName));
+      return new File(join(parentDir, name));
     });
   }
 
@@ -709,11 +584,19 @@ class TarFileDescriptor extends Descriptor {
 }
 
 /**
- * Schedules a callback to be called as part of the test case.
+ * Schedules a callback to be called before Pub is run with [runPub].
  */
-void _schedule(_ScheduledEvent event) {
-  if (_scheduled == null) _scheduled = [];
-  _scheduled.add(event);
+void _scheduleBeforePub(_ScheduledEvent event) {
+  if (_scheduledBeforePub == null) _scheduledBeforePub = [];
+  _scheduledBeforePub.add(event);
+}
+
+/**
+ * Schedules a callback to be called after Pub is run with [runPub].
+ */
+void _scheduleAfterPub(_ScheduledEvent event) {
+  if (_scheduledAfterPub == null) _scheduledAfterPub = [];
+  _scheduledAfterPub.add(event);
 }
 
 /**

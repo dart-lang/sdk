@@ -182,7 +182,6 @@ abstract class ResolverTestCase extends TestCase {
     private final InterfaceType dynamicType;
     private final InterfaceType defaultMapLiteralType;
     private final InterfaceType defaultListType;
-    private final Type voidType;
     private final ClassElement objectElement;
 
     {
@@ -222,8 +221,6 @@ abstract class ResolverTestCase extends TestCase {
       ClassElement listElement = Elements.classNamed("List");
       defaultListType = Types.interfaceType(listElement, Lists.<Type>newArrayList(dynamicType));
       listElement.setType(defaultListType);
-
-      voidType = Types.newVoidType();
     }
 
     MockCoreTypeProvider(ClassElement objectElement) {
@@ -272,7 +269,7 @@ abstract class ResolverTestCase extends TestCase {
 
     @Override
     public Type getVoidType() {
-      return voidType;
+      throw new AssertionError();
     }
 
     @Override
@@ -485,8 +482,8 @@ abstract class ResolverTestCase extends TestCase {
     checkExpectedErrors(resolveErrors, errorCodes, source);
     return resolveErrors;
   }
-
-  protected List<DartCompilationError> resolveAndTest(String source,
+  
+  protected List<DartCompilationError> resolveAndTest(String source, 
                                                       ErrorExpectation... expectedErrors) {
     // parse DartUnit
     DartUnit unit = parseUnit(source);
