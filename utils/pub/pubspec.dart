@@ -42,6 +42,8 @@ class Pubspec {
     if (contents.trim() == '') return new Pubspec.empty();
 
     var parsedPubspec = loadYaml(contents);
+    if (parsedPubspec == null) return new Pubspec.empty();
+
     if (parsedPubspec is! Map) {
       throw new FormatException('The pubspec must be a YAML mapping.');
     }
