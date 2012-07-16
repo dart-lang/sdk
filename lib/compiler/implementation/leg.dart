@@ -19,6 +19,7 @@
 #import('util/characters.dart');
 #import('util/util.dart');
 #import('../compiler.dart', prefix: 'api');
+#import('patch_parser.dart');
 
 #source('compile_time_constants.dart');
 #source('compiler.dart');

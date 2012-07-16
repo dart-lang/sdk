@@ -12,34 +12,38 @@
 
 namespace dart {
 
-#define UNWRAP_AND_CHECK_PARAM(type, var, param)                              \
-  do {                                                                        \
-    const Object& tmp = Object::Handle(Api::UnwrapHandle(param));             \
-    if (tmp.IsNull()) {                                                       \
-      return Api::NewError("%s expects argument '%s' to be non-null.",        \
-                           CURRENT_FUNC, #param);                             \
-    } else if (tmp.IsApiError()) {                                            \
-      return param;                                                           \
-    } else if (!tmp.Is##type()) {                                             \
-      return Api::NewError("%s expects argument '%s' to be of type %s.",      \
-                           CURRENT_FUNC, #param, #type);                      \
-    }                                                                         \
-    var ^= tmp.raw();                                                         \
-  } while (0);
+#define UNWRAP_AND_CHECK_PARAM(type, var, param)                               \
+  type& var = type::Handle();                                                  \
+  do {                                                                         \
+    const Object& tmp = Object::Handle(Api::UnwrapHandle(param));              \
+    if (tmp.IsNull()) {                                                        \
+      return Api::NewError("%s expects argument '%s' to be non-null.",         \
+                           CURRENT_FUNC, #param);                              \
+    } else if (tmp.IsApiError()) {                                             \
+      return param;                                                            \
+    } else if (!tmp.Is##type()) {                                              \
+      return Api::NewError("%s expects argument '%s' to be of type %s.",       \
+                           CURRENT_FUNC, #param, #type);                       \
+    }                                                                          \
+    var ^= tmp.raw();                                                          \
+  } while (0)
 
 
-#define CHECK_AND_CAST(type, var, param)                                      \
-  if (param == NULL) {                                                        \
-    return Api::NewError("%s expects argument '%s' to be non-null.",          \
-                         CURRENT_FUNC, #param);                               \
-  }                                                                           \
-  type* var = reinterpret_cast<type*>(param);
+#define CHECK_AND_CAST(type, var, param)                                       \
+  type* var = NULL;                                                            \
+  do {                                                                         \
+    if (param == NULL) {                                                       \
+      return Api::NewError("%s expects argument '%s' to be non-null.",         \
+                           CURRENT_FUNC, #param);                              \
+    }                                                                          \
+    var = reinterpret_cast<type*>(param);                                      \
+  } while (0)
 
 
-#define CHECK_NOT_NULL(param)                                                 \
-  if (param == NULL) {                                                        \
-    return Api::NewError("%s expects argument '%s' to be non-null.",          \
-                         CURRENT_FUNC, #param);                               \
+#define CHECK_NOT_NULL(param)                                                  \
+  if (param == NULL) {                                                         \
+    return Api::NewError("%s expects argument '%s' to be non-null.",           \
+                         CURRENT_FUNC, #param);                                \
   }
 
 
@@ -209,10 +213,7 @@ DART_EXPORT Dart_Handle Dart_SetBreakpoint(
                             intptr_t line_number) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-
-  String& script_url = String::Handle();
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
-
   Debugger* debugger = isolate->debugger();
   ASSERT(debugger != NULL);
   SourceBreakpoint* bpt =
@@ -232,9 +233,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtLine(
                             Dart_Breakpoint* breakpoint) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-
-  String& script_url = String::Handle();
-  Integer& line_number = Integer::Handle();
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
   UNWRAP_AND_CHECK_PARAM(Integer, line_number, line_number_in);
   CHECK_NOT_NULL(breakpoint);
@@ -302,10 +300,6 @@ DART_EXPORT Dart_Handle Dart_SetBreakpointAtEntry(
                             Dart_Breakpoint* breakpoint) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-
-  Library& library = Library::Handle();
-  String& class_name = String::Handle();
-  String& function_name = String::Handle();
   UNWRAP_AND_CHECK_PARAM(Library, library, library_in);
   UNWRAP_AND_CHECK_PARAM(String, class_name, class_name_in);
   UNWRAP_AND_CHECK_PARAM(String, function_name, function_name_in);
@@ -393,7 +387,6 @@ DART_EXPORT Dart_Handle Dart_SetStepOut() {
 DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   return Api::NewHandle(isolate, isolate->debugger()->GetInstanceFields(obj));
 }
@@ -402,7 +395,6 @@ DART_EXPORT Dart_Handle Dart_GetInstanceFields(Dart_Handle object_in) {
 DART_EXPORT Dart_Handle Dart_GetStaticFields(Dart_Handle cls_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   return Api::NewHandle(isolate, isolate->debugger()->GetStaticFields(cls));
 }
@@ -437,7 +429,6 @@ DART_EXPORT Dart_Handle Dart_GetGlobalVariables(intptr_t library_id) {
 DART_EXPORT Dart_Handle Dart_GetObjClass(Dart_Handle object_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   return Api::NewHandle(isolate, obj.clazz());
 }
@@ -447,7 +438,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
                                            intptr_t* class_id) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Instance& obj = Instance::Handle();
   UNWRAP_AND_CHECK_PARAM(Instance, obj, object_in);
   CHECK_NOT_NULL(class_id);
   *class_id = Class::Handle(obj.clazz()).id();
@@ -458,7 +448,6 @@ DART_EXPORT Dart_Handle Dart_GetObjClassId(Dart_Handle object_in,
 DART_EXPORT Dart_Handle Dart_GetSuperclass(Dart_Handle cls_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  Class& cls = Class::Handle();
   UNWRAP_AND_CHECK_PARAM(Class, cls, cls_in);
   return Api::NewHandle(isolate, cls.SuperClass());
 }
@@ -509,7 +498,6 @@ DART_EXPORT Dart_Handle Dart_ScriptGetSource(
     return Api::NewError("%s: %d is not a valid library id",
                          CURRENT_FUNC, library_id);
   }
-  String& script_url = String::Handle();
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
   const Script& script = Script::Handle(lib.LookupScript(script_url));
   if (script.IsNull()) {
@@ -526,9 +514,7 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
                             Dart_Handle script_url_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  String& library_url = String::Handle();
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
-  String& script_url = String::Handle();
   UNWRAP_AND_CHECK_PARAM(String, script_url, script_url_in);
 
   const Library& library = Library::Handle(Library::LookupLibrary(library_url));
@@ -551,7 +537,6 @@ DART_EXPORT Dart_Handle Dart_GetScriptSource(
 DART_EXPORT Dart_Handle Dart_GetScriptURLs(Dart_Handle library_url_in) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  String& library_url = String::Handle();
   UNWRAP_AND_CHECK_PARAM(String, library_url, library_url_in);
 
   const Library& library = Library::Handle(Library::LookupLibrary(library_url));

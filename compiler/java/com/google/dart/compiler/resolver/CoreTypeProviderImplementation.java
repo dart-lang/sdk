@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -61,7 +61,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     if (element == null) {
       DartCompilationError error =
           new DartCompilationError(null, Location.NONE,
-              ResolverErrorCode.CANNOT_BE_RESOLVED, name);
+              ResolverErrorCode.CANNOT_RESOLVE_SDK_TYPE, name);
       listener.onError(error);
       return Types.newDynamicType();
     }
@@ -78,7 +78,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
     if (element == null) {
       DartCompilationError error =
           new DartCompilationError(null, Location.NONE,
-              ResolverErrorCode.CANNOT_BE_RESOLVED, names[0]);
+              ResolverErrorCode.CANNOT_RESOLVE_SDK_TYPE, names[0]);
       listener.onError(error);
       return Types.newDynamicType();
     }
@@ -174,7 +174,7 @@ public class CoreTypeProviderImplementation implements CoreTypeProvider {
 
   @Override
   public InterfaceType getIteratorType(Type elementType) {
-    return iteratorType.subst(Arrays.asList(elementType), 
+    return iteratorType.subst(Arrays.asList(elementType),
         iteratorType.getElement().getTypeParameters());
   }
 }

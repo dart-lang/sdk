@@ -215,7 +215,7 @@ class ExitCodeHandler {
   static void ExitCodeHandlerEntry(uword param) {
     struct pollfd pollfds;
     pollfds.fd = param;
-    pollfds.events |= POLLIN;
+    pollfds.events = POLLIN;
     while (true) {
       int result = TEMP_FAILURE_RETRY(poll(&pollfds, 1, -1));
       if (result == -1) {

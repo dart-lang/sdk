@@ -460,28 +460,6 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (right.isConstantNull()) {
       if (left.propagatedType.isPrimitive()) {
         return graph.addConstantBool(false);
-      } else {
-        // TODO(floitsch): cache interceptors.
-        Interceptors interceptors = backend.builder.interceptors;
-        Element equalsElement = interceptors.getEqualsInterceptor();
-        // If we have a different element than [equalsElement], we
-        // don't need to optimize this instruction to use another
-        // element: we know the element is either eqNull or eqNullB.
-        if (node.element === equalsElement) {
-          Element targetElement = interceptors.getEqualsNullInterceptor();
-          bool onlyUsedInBoolify = allUsersAreBoolifies(node);
-          if (onlyUsedInBoolify) {
-            targetElement = interceptors.getBoolifiedVersionOf(targetElement);
-          }
-          HStatic target = new HStatic(targetElement);
-          node.block.addBefore(node, target);
-          HEquals result = new HEquals(target, node.left, node.right);
-          if (onlyUsedInBoolify) {
-            result.usesBoolifiedInterceptor = true;
-            result.propagatedType = HType.BOOLEAN;
-          }
-          return result;
-        }
       }
     }
 
@@ -685,6 +663,10 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
     HIntegerCheck check = new HIntegerCheck(value);
     node.block.addBefore(node, check);
+    Set<HInstruction> dominatedUsers = value.dominatedUsers(check);
+    for (HInstruction user in dominatedUsers) {
+      user.changeUse(value, check);
+    }
     return check;
   }
 
@@ -1123,21 +1105,20 @@ class SsaTypeConversionInserter extends HBaseVisitor
     visitDominatorTree(graph);
   }
 
+
+  // Update users of [input] that are dominated by [:dominator.first:]
+  // to use [newInput] instead.
   void changeUsesDominatedBy(HBasicBlock dominator,
                              HInstruction input,
                              HType convertedType) {
     HTypeConversion newInput;
-
-    // Update users of [input] that are dominated by [dominator] to
-    // use [newInput] instead.
-    for (HInstruction user in input.usedBy) {
-      if (dominator.dominates(user.block)) {
-        if (newInput === null) {
-          newInput = new HTypeConversion(convertedType, input);
-          dominator.addBefore(dominator.first, newInput);
-        }
-        user.changeUse(input, newInput);
+    Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
+    for (HInstruction user in dominatedUsers) {
+      if (newInput === null) {
+        newInput = new HTypeConversion(convertedType, input);
+        dominator.addBefore(dominator.first, newInput);
       }
+      user.changeUse(input, newInput);
     }
   }
 
@@ -1207,12 +1188,15 @@ class SsaProcessRecompileCandidates
           // body.
           if (backend.hasConstructorBodyFieldSetter(field)) {
             // There is at least one field setter from the constructor.
-            // TODO(sgjesse): Collect the type for all the field setters so that
-            // this could be a guarenteed type if all field setters have the
-            // same type and there are no invoked setters.
-            node.propagatedType = type;
+            if (!compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
+              node.guaranteedType =
+                  type.union(backend.fieldSettersTypeSoFar(node.element));
+            } else {
+              node.propagatedType =
+                  type.union(backend.fieldSettersTypeSoFar(node.element));
+            }
           } else {
-            // Optimistic type is based in field initializer list.
+            // Optimistic type is based on field initializer list.
             if (!compiler.codegenWorld.hasFieldSetter(field, compiler) &&
                 !compiler.codegenWorld.hasInvokedSetter(field, compiler)) {
               node.guaranteedType = type;
@@ -1226,40 +1210,46 @@ class SsaProcessRecompileCandidates
   }
 
   HInstruction visitEquals(HEquals node) {
+    // Determine if one of the operands is an HFieldGet.
+    HFieldGet field;
+    HInstruction other;
+    if (node.left is HFieldGet) {
+      field = node.left;
+      other = node.right;
+    } else if (node.right is HFieldGet) {
+      field = node.right;
+      other = node.left;
+    }
     // Try to optimize the case where a field which is known to always be an
     // integer is compared with a constant integer literal.
-    if (node.left is HFieldGet &&
-        node.right is HConstant &&
-        node.right.isInteger()) {
-      HFieldGet left = node.left;
-      HConstant right = node.right;
-      if (left.element != null && left.element.enclosingElement.isClass()) {
+    if (other != null &&
+        other is HConstant &&
+        other.isInteger() &&
+        field.element != null &&
+        field.element.enclosingElement.isClass()) {
+      // Calculate the field type from the information available.
+      HType type =
+          backend.fieldSettersTypeSoFar(field.element).union(
+              backend.typeFromInitializersSoFar(field.element));
+      if (!type.isConflicting()) {
         switch (compiler.phase) {
           case Compiler.PHASE_COMPILING:
-            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
-                backend.couldHaveFieldSingleTypeInitializers(
-                    left.element, HType.INTEGER)) {
-              compiler.enqueuer.codegen.registerRecompilationCandidate(
-                  work.element);
-            }
+            compiler.enqueuer.codegen.registerRecompilationCandidate(
+                work.element);
             break;
           case Compiler.PHASE_RECOMPILING:
-            if (backend.onlyFieldIntegerSettersSoFar(left.element) &&
-                backend.hasFieldSingleTypeInitializers(
-                    left.element, HType.INTEGER)) {
-              if (compiler.codegenWorld.hasInvokedSetter(left.element,
-                                                         compiler)) {
-                // If there are invoked setters we don't know for sure that the
-                // field will hold an integer, but the fact that the class
-                // itself always sets an integer in the fiels is still a strong
-                // signal to indiate the expected type of the field.
-                left.propagatedType = HType.INTEGER;
-                graph.highTypeLikelyhood = true;
-              } else {
-                // If there are no invoked setters we know the type of this
-                // field for sure.
-                left.guaranteedType = HType.INTEGER;
-              }
+            if (compiler.codegenWorld.hasInvokedSetter(field.element,
+                                                       compiler)) {
+              // If there are invoked setters we don't know for sure that the
+              // field will hold the calculated, but the fact that the class
+              // itself stick to this type in the field is still a strong
+              // signal to indicate the expected type of the field.
+              field.propagatedType = type;
+              graph.highTypeLikelyhood = true;
+            } else {
+              // If there are no invoked setters we know the type of this
+              // field for sure.
+              field.guaranteedType = type;
             }
             break;
           default:
@@ -1270,4 +1260,58 @@ class SsaProcessRecompileCandidates
     }
   }
 
+  HInstruction visitBinaryArithmetic(HBinaryArithmetic node) {
+    // Determine if one of the operands is an HFieldGet.
+    HFieldGet field;
+    HInstruction other;
+    if (node.left is HFieldGet) {
+      field = node.left;
+      other = node.right;
+    } else if (node.right is HFieldGet) {
+      field = node.right;
+      other = node.left;
+    }
+    // Check that the other operand is a number and that we have type
+    // information for the field get.
+    if (other != null &&
+        other is HConstant &&
+        other.isNumber() &&
+        field.element != null &&
+        field.element.enclosingElement.isClass()) {
+      // If we have type information for the field and it contains
+      // NUMBER, we mark for recompilation.
+      Element fieldElement = field.element;
+      HType fieldSettersType = backend.fieldSettersTypeSoFar(fieldElement);
+      HType initializersType = backend.typeFromInitializersSoFar(fieldElement);
+      HType fieldType = fieldSettersType.union(initializersType);
+      HType type = HType.NUMBER.union(fieldType);
+      if (!type.isConflicting()) {
+        switch (compiler.phase) {
+          case Compiler.PHASE_COMPILING:
+            compiler.enqueuer.codegen.registerRecompilationCandidate(
+                work.element);
+            break;
+          case Compiler.PHASE_RECOMPILING:
+            if (compiler.codegenWorld.hasInvokedSetter(fieldElement,
+                                                       compiler)) {
+              // If there are invoked setters we don't know for sure
+              // that the field will hold a value of the calculated
+              // type, but the fact that the class itself sticks to
+              // this type for the field is still a strong signal
+              // indicating the expected type of the field.
+              field.propagatedType = type;
+              graph.highTypeLikelyhood = true;
+            } else {
+              // If there are no invoked setters we know the type of
+              // this field for sure.
+              field.guaranteedType = type;
+            }
+            break;
+          default:
+            assert(false);
+            break;
+        }
+      }
+    }
+  }
 }

@@ -66,9 +66,9 @@ void FlowGraphAllocator::ComputeInitialSets() {
       }
     }
 
-    Instruction* current = block->successor();
     // TODO(vegorov): iterate backwards.
-    while ((current != NULL) && !current->IsBlockEntry()) {
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
       for (intptr_t j = 0; j < current->InputCount(); j++) {
         Value* input = current->InputAt(j);
         if (!input->IsUse()) continue;
@@ -78,8 +78,6 @@ void FlowGraphAllocator::ComputeInitialSets() {
 
       const intptr_t def = ToVirtualRegister(current);
       if (def >= 0) kill->Add(def);
-
-      current = current->successor();
     }
   }
 

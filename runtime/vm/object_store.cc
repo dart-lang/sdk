@@ -110,21 +110,18 @@ bool ObjectStore::PreallocateObjects() {
   ASSERT(this->out_of_memory() == Instance::null());
   GrowableArray<const Object*> args;
   Object& result = Object::Handle();
-  Instance& exception = Instance::Handle();
 
   result = Exceptions::Create(Exceptions::kStackOverflow, args);
   if (result.IsError()) {
     return false;
   }
-  exception ^= result.raw();
-  set_stack_overflow(exception);
+  set_stack_overflow(Instance::Cast(result));
 
   result = Exceptions::Create(Exceptions::kOutOfMemory, args);
   if (result.IsError()) {
     return false;
   }
-  exception ^= result.raw();
-  set_out_of_memory(exception);
+  set_out_of_memory(Instance::Cast(result));
   return true;
 }
 

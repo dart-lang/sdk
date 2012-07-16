@@ -31,6 +31,7 @@ assign_top_method_negative_test: Pass # For the wrong reasons.
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 default_factory2_test/01: Fail # Type bounds for type variable not checked.
+closure_type_test: Fail # does not detect type error in checked mode.
 function_type_test: Fail # does not detect type error in checked mode.
 function_malformed_result_type_test: Fail # does not detect type error in checked mode.
 
@@ -70,6 +71,7 @@ generic_instanceof2_test: Fail # fails an instance of test at run time
 generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
+getter_no_setter_test/01: Crash # Internal error: NullPointerException : method: 'get:enclosingElement'
 getters_setters_test: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 implicit_scope_test: Fail # duplicate definition of a="bar"
 library_prefixes_test: Fail # other is not a type
@@ -234,51 +236,25 @@ double_to_string_as_fixed_test: Fail
 
 
 [ $compiler == dart2js && $runtime == ie ]
-arithmetic2_test: Fail # BUG(3304)
-bad_named_parameters2_test: Fail # BUG(3304)
-bad_named_parameters_test: Fail # BUG(3304)
-call_through_getter_test: Fail # BUG(3304)
-call_through_null_getter_test: Fail # BUG(3304)
-div_by_zero_test: Fail # BUG(3304)
+arithmetic2_test: Fail
+bad_named_parameters2_test: Fail
+bad_named_parameters_test: Fail
+call_through_getter_test: Fail
+call_through_null_getter_test: Fail
+div_by_zero_test: Fail
 double_to_string_as_fixed_test: Fail
-dynamic_field_test: Fail # BUG(3304)
-exception_test: Fail # BUG(3304)
-execute_finally7_test: Fail # BUG(3304)
-expect_test: Fail # BUG(3304)
-factory3_test: Fail # BUG(3304)
-fannkuch_test: Fail # BUG(3304)
-generics2_test: Fail # BUG(3304)
-hello_dart_test: Fail # BUG(3304)
-hello_script_test: Fail # BUG(3304)
-implicit_closure1_test: Fail # BUG(3304)
-implied_interface_test: Fail # BUG(3304)
-import_core_impl_no_prefix_test: Fail # BUG(3304)
-import_core_no_prefix_test: Fail # BUG(3304)
-interface_inherit_field_test: Fail # BUG(3304)
-library_private_in_constructor_test: Fail # BUG(3304)
-list_test: Fail # BUG(3304)
-local_function3_test: Fail # BUG(3304)
-local_function_test: Fail # BUG(3304)
-naming_test: Fail # BUG(3304)
-native_test: Fail # BUG(3304)
-private2_test: Fail # BUG(3304)
-private3_test: Fail # BUG(3304)
-reg_ex2_test: Fail # BUG(3304)
-reg_exp2_test: Fail # BUG(3304)
-savannah_test: Fail # BUG(3304)
-stack_overflow_test: Fail # BUG(3304)
-stack_trace_test: Fail # BUG(3304)
-string_interpolate_test: Fail # BUG(3304)
-throw1_test: Fail # BUG(3304)
-throw2_test: Fail # BUG(3304)
-throw3_test: Fail # BUG(3304)
-throw4_test: Fail # BUG(3304)
-throw5_test: Fail # BUG(3304)
-throw6_test: Fail # BUG(3304)
-throw_test: Fail # BUG(3304)
-type_checks_in_factory_method_test: Fail # BUG(3304)
-typed_message_test: Fail # BUG(3304)
-unbound_getter_test: Fail # BUG(3304)
+expect_test: Fail
+factory3_test: Fail
+implied_interface_test: Fail
+library_private_in_constructor_test: Fail
+list_test: Fail
+local_function3_test: Fail
+local_function_test: Fail
+naming_test: Fail
+private3_test: Fail
+savannah_test: Fail
+stack_overflow_test: Fail
+type_checks_in_factory_method_test: Fail
 is_nan_test: Fail # BUG(3542)
 
 

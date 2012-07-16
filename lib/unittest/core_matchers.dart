@@ -129,7 +129,7 @@ class _DeepMatcher extends BaseMatcher {
     if (expected == actual) {
       // Do nothing.
     } else if (depth > _limit) {
-      reason =  new StringDescription('recursion depth limit exceeded');
+      reason = new StringDescription('recursion depth limit exceeded');
     } else {
       if (expected is Iterable && canRecurse) {
         String r = _compareIterables(expected, actual,

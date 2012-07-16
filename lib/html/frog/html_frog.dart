@@ -1,11 +1,14 @@
 #library('html');
 
+#import('dart:isolate');
+#import('dart:json');
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // DO NOT EDIT
 // Auto-generated dart:html library.
+
 
 
 
@@ -25,6 +28,19 @@ ElementList queryAll(String selector) => _document.queryAll(selector);
 // Workaround for tags like <cite> that lack their own Element subclass --
 // Dart issue 1990.
 class _HTMLElementImpl extends _ElementImpl native "*HTMLElement" {
+}
+
+// Support for Send/ReceivePortSync.
+int _getNewIsolateId() native @'''
+  if (!window.$dart$isolate$counter) {
+    window.$dart$isolate$counter = 1;
+  }
+  return window.$dart$isolate$counter++;
+''';
+
+// Fast path to invoke JS send port.
+_callPortSync(int id, message) {
+  return JS('var', @'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
@@ -16447,6 +16463,17 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
 
   _IDBFactoryImpl _get_indexedDB() native
       'return this.indexedDB || this.webkitIndexedDB || this.mozIndexedDB';
+
+  // TODO(kasperl): Document these.
+  lookupPort(String name) {
+    var port = JSON.parse(localStorage['dart-port:$name']);
+    return _deserialize(port);
+  }
+
+  registerPort(String name, var port) {
+    var serialized = _serialize(port);
+    localStorage['dart-port:$name'] = JSON.stringify(serialized);
+  }
 
 
   _WindowEventsImpl get on() =>
@@ -36674,6 +36701,207 @@ interface IDBOpenDBRequestEvents extends IDBRequestEvents {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+_serialize(var message) {
+  return new _JsSerializer().traverse(message);
+}
+
+class _JsSerializer extends _Serializer {
+
+  visitSendPortSync(SendPortSync x) {
+    if (x is _JsSendPortSync) return visitJsSendPortSync(x);
+    if (x is _LocalSendPortSync) return visitLocalSendPortSync(x);
+    if (x is _RemoteSendPortSync) return visitRemoteSendPortSync(x);
+    throw "Illegal underlying port $x";
+  }
+
+  visitJsSendPortSync(_JsSendPortSync x) {
+    return [ 'sendport', 'nativejs', x._id ];
+  }
+
+  visitLocalSendPortSync(_LocalSendPortSync x) {
+    return [ 'sendport', 'dart',
+             ReceivePortSync._isolateId, x._receivePort._portId ];
+  }
+
+  visitRemoteSendPortSync(_RemoteSendPortSync x) {
+    return [ 'sendport', 'dart',
+             x._receivePort._isolateId, x._receivePort._portId ];
+  }
+}
+
+_deserialize(var message) {
+  return new _JsDeserializer().deserialize(message);
+}
+
+class _JsDeserializer extends _Deserializer {
+
+  deserializeSendPort(List x) {
+    String tag = x[1];
+    switch (tag) {
+      case 'nativejs':
+        num id = x[2];
+        return new _JsSendPortSync(id);
+      case 'dart':
+        num isolateId = x[2];
+        num portId = x[3];
+        return ReceivePortSync._lookup(isolateId, portId);
+      default:
+        throw 'Illegal SendPortSync type: $tag';
+    }
+  }
+
+}
+
+// The receiver is JS.
+class _JsSendPortSync implements SendPortSync {
+
+  num _id;
+  _JsSendPortSync(this._id);
+
+  callSync(var message) {
+    var serialized = _serialize(message);
+    var result = _callPortSync(_id, serialized);
+    return _deserialize(result);
+  }
+
+}
+
+// TODO(vsm): Differentiate between Dart2Js and Dartium isolates.
+// The receiver is a different Dart isolate, compiled to JS.
+class _RemoteSendPortSync implements SendPortSync {
+
+  int _isolateId;
+  int _portId;
+  _RemoteSendPortSync(this._isolateId, this._portId);
+
+  callSync(var message) {
+    var serialized = _serialize(message);
+    var result = _call(_isolateId, _portId, serialized);
+    return _deserialize(result);
+  }
+
+  static _call(int isolateId, int portId, var message) {
+    var target = 'dart-port-$isolateId-$portId'; 
+    // TODO(vsm): Make this re-entrant.
+    // TODO(vsm): Set this up set once, on the first call.
+    var source = '$target-result';
+    var result = null;
+    var listener = (TextEvent e) {
+      result = JSON.parse(e.data);
+    };
+    window.on[source].add(listener);
+    _dispatchEvent(target, [source, message]);
+    window.on[source].remove(listener);
+    return result;
+  }
+}
+
+// The receiver is in the same Dart isolate, compiled to JS.
+class _LocalSendPortSync implements SendPortSync {
+
+  ReceivePortSync _receivePort;
+
+  _LocalSendPortSync._internal(this._receivePort);
+
+  callSync(var message) {
+    // TODO(vsm): Do a more efficient deep copy.
+    var copy = _deserialize(_serialize(message));
+    var result = _receivePort._callback(copy);
+    return _deserialize(_serialize(result));
+  }
+}
+
+// TODO(vsm): Move this to dart:isolate.  This will take some
+// refactoring as there are dependences here on the DOM.  Users
+// interact with this class (or interface if we change it) directly -
+// new ReceivePortSync.  I think most of the DOM logic could be
+// delayed until the corresponding SendPort is registered on the
+// window.
+
+// A Dart ReceivePortSync (tagged 'dart' when serialized) is
+// identifiable / resolvable by the combination of its isolateid and
+// portid.  When a corresponding SendPort is used within the same
+// isolate, the _portMap below can be used to obtain the
+// ReceivePortSync directly.  Across isolates (or from JS), an
+// EventListener can be used to communicate with the port indirectly.
+class ReceivePortSync {
+
+  static Map<int, ReceivePortSync> _portMap;
+  static int _portIdCount;
+  static int _cachedIsolateId;
+
+  num _portId;
+  Function _callback;
+  EventListener _listener;
+
+  ReceivePortSync() {
+    if (_portIdCount == null) {
+      _portIdCount = 0;
+      _portMap = new Map<int, ReceivePortSync>();
+    }
+    _portId = _portIdCount++;
+    _portMap[_portId] = this;
+  }
+
+  static int get _isolateId() {
+    // TODO(vsm): Make this coherent with existing isolate code.
+    if (_cachedIsolateId == null) {
+      _cachedIsolateId = _getNewIsolateId();      
+    }
+    return _cachedIsolateId;
+  }
+
+  static String _getListenerName(isolateId, portId) =>
+      'dart-port-$isolateId-$portId'; 
+  String get _listenerName() => _getListenerName(_isolateId, _portId);
+
+  void receive(callback(var message)) {
+    // Clear old listener.
+    if (_callback != null) {
+      window.on[_listenerName].remove(_listener);
+    }
+
+    _callback = callback;
+
+    // Install new listener.
+    var sendport = toSendPort();
+    _listener = (TextEvent e) {
+      var data = JSON.parse(e.data);
+      var replyTo = data[0];
+      var message = _deserialize(data[1]);
+      var result = sendport.callSync(message);
+      _dispatchEvent(replyTo, _serialize(result));
+    };
+    window.on[_listenerName].add(_listener);
+  }
+
+  void close() {
+    _portMap.remove(_portId);
+    window.on[_listenerName].remove(_listener);
+  }
+
+  SendPortSync toSendPort() {
+    return new _LocalSendPortSync._internal(this);
+  }
+
+  static SendPortSync _lookup(int isolateId, int portId) {
+    if (isolateId == _isolateId) {
+      return _portMap[portId].toSendPort();
+    } else {
+      return new _RemoteSendPortSync(isolateId, portId);
+    }
+  }
+}
+
+void _dispatchEvent(String receiver, var message) {
+  var event = document.$dom_createEvent('TextEvent');
+  event.initTextEvent(receiver, false, false, window, JSON.stringify(message));
+  window.$dom_dispatchEvent(event);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 typedef Object ComputeValue();
 
 class _MeasurementRequest<T> {
@@ -37388,4 +37616,202 @@ class _Lists {
     }
     return accumulator;
   }
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MessageTraverserVisitedMap {
+
+  operator[](var object) => null;
+  void operator[]=(var object, var info) { }
+
+  void reset() { }
+  void cleanup() { }
+
+}
+
+/** Abstract visitor for dart objects that can be sent as isolate messages. */
+class _MessageTraverser {
+
+  _MessageTraverserVisitedMap _visited;
+  _MessageTraverser() : _visited = new _MessageTraverserVisitedMap();
+
+  /** Visitor's entry point. */
+  traverse(var x) {
+    if (isPrimitive(x)) return visitPrimitive(x);
+    _visited.reset();
+    var result;
+    try {
+      result = _dispatch(x);
+    } finally {
+      _visited.cleanup();
+    }
+    return result;
+  }
+
+  _dispatch(var x) {
+    if (isPrimitive(x)) return visitPrimitive(x);
+    if (x is List) return visitList(x);
+    if (x is Map) return visitMap(x);
+    if (x is SendPort) return visitSendPort(x);
+    if (x is SendPortSync) return visitSendPortSync(x);
+
+    // TODO(floitsch): make this a real exception. (which one)?
+    throw "Message serialization: Illegal value $x passed";
+  }
+
+  abstract visitPrimitive(x);
+  abstract visitList(List x);
+  abstract visitMap(Map x);
+  abstract visitSendPort(SendPort x);
+  abstract visitSendPortSync(SendPortSync x);
+
+  static bool isPrimitive(x) {
+    return (x === null) || (x is String) || (x is num) || (x is bool);
+  }
+}
+
+
+/** A visitor that recursively copies a message. */
+class _Copier extends _MessageTraverser {
+
+  visitPrimitive(x) => x;
+
+  List visitList(List list) {
+    List copy = _visited[list];
+    if (copy !== null) return copy;
+
+    int len = list.length;
+
+    // TODO(floitsch): we loose the generic type of the List.
+    copy = new List(len);
+    _visited[list] = copy;
+    for (int i = 0; i < len; i++) {
+      copy[i] = _dispatch(list[i]);
+    }
+    return copy;
+  }
+
+  Map visitMap(Map map) {
+    Map copy = _visited[map];
+    if (copy !== null) return copy;
+
+    // TODO(floitsch): we loose the generic type of the map.
+    copy = new Map();
+    _visited[map] = copy;
+    map.forEach((key, val) {
+      copy[_dispatch(key)] = _dispatch(val);
+    });
+    return copy;
+  }
+
+}
+
+/** Visitor that serializes a message as a JSON array. */
+class _Serializer extends _MessageTraverser {
+  int _nextFreeRefId = 0;
+
+  visitPrimitive(x) => x;
+
+  visitList(List list) {
+    int copyId = _visited[list];
+    if (copyId !== null) return ['ref', copyId];
+
+    int id = _nextFreeRefId++;
+    _visited[list] = id;
+    var jsArray = _serializeList(list);
+    // TODO(floitsch): we are losing the generic type.
+    return ['list', id, jsArray];
+  }
+
+  visitMap(Map map) {
+    int copyId = _visited[map];
+    if (copyId !== null) return ['ref', copyId];
+
+    int id = _nextFreeRefId++;
+    _visited[map] = id;
+    var keys = _serializeList(map.getKeys());
+    var values = _serializeList(map.getValues());
+    // TODO(floitsch): we are losing the generic type.
+    return ['map', id, keys, values];
+  }
+
+  _serializeList(List list) {
+    int len = list.length;
+    var result = new List(len);
+    for (int i = 0; i < len; i++) {
+      result[i] = _dispatch(list[i]);
+    }
+    return result;
+  }
+}
+
+/** Deserializes arrays created with [_Serializer]. */
+class _Deserializer {
+  Map<int, Dynamic> _deserialized;
+
+  _Deserializer();
+
+  static bool isPrimitive(x) {
+    return (x === null) || (x is String) || (x is num) || (x is bool);
+  }
+
+  deserialize(x) {
+    if (isPrimitive(x)) return x;
+    // TODO(floitsch): this should be new HashMap<int, var|Dynamic>()
+    _deserialized = new HashMap();
+    return _deserializeHelper(x);
+  }
+
+  _deserializeHelper(x) {
+    if (isPrimitive(x)) return x;
+    assert(x is List);
+    switch (x[0]) {
+      case 'ref': return _deserializeRef(x);
+      case 'list': return _deserializeList(x);
+      case 'map': return _deserializeMap(x);
+      case 'sendport': return deserializeSendPort(x);
+      // TODO(floitsch): Use real exception (which one?).
+      default: throw "Unexpected serialized object";
+    }
+  }
+
+  _deserializeRef(List x) {
+    int id = x[1];
+    var result = _deserialized[id];
+    assert(result !== null);
+    return result;
+  }
+
+  List _deserializeList(List x) {
+    int id = x[1];
+    // We rely on the fact that Dart-lists are directly mapped to Js-arrays.
+    List dartList = x[2];
+    _deserialized[id] = dartList;
+    int len = dartList.length;
+    for (int i = 0; i < len; i++) {
+      dartList[i] = _deserializeHelper(dartList[i]);
+    }
+    return dartList;
+  }
+
+  Map _deserializeMap(List x) {
+    Map result = new Map();
+    int id = x[1];
+    _deserialized[id] = result;
+    List keys = x[2];
+    List values = x[3];
+    int len = keys.length;
+    assert(len == values.length);
+    for (int i = 0; i < len; i++) {
+      var key = _deserializeHelper(keys[i]);
+      var value = _deserializeHelper(values[i]);
+      result[key] = value;
+    }
+    return result;
+  }
+
+  abstract deserializeSendPort(List x);
+
 }

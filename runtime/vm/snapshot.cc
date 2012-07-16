@@ -106,7 +106,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
   intptr_t class_header = ReadIntptrValue();
   ASSERT((class_header & kSmiTagMask) != 0);
   Class& cls = Class::ZoneHandle(isolate(), Class::null());
-  cls ^= LookupInternalClass(class_header);
+  cls = LookupInternalClass(class_header);
   AddBackRef(object_id, &cls, kIsDeserialized);
   if (cls.IsNull()) {
     // Read the library/class information and lookup the class.
@@ -114,7 +114,7 @@ RawClass* SnapshotReader::ReadClassId(intptr_t object_id) {
     library_ = Library::LookupLibrary(str_);
     ASSERT(!library_.IsNull());
     str_ ^= ReadObjectImpl();
-    cls ^= library_.LookupClass(str_);
+    cls = library_.LookupClass(str_);
   }
   ASSERT(!cls.IsNull());
   return cls.raw();
@@ -181,7 +181,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     return result.raw();
   } else {
     ASSERT((class_header & kSmiTagMask) != 0);
-    cls_ ^= LookupInternalClass(class_header);
+    cls_ = LookupInternalClass(class_header);
     ASSERT(!cls_.IsNull());
   }
 
@@ -576,7 +576,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
     return result->raw();
   } else {
     ASSERT((class_header & kSmiTagMask) != 0);
-    cls_ ^= LookupInternalClass(class_header);
+    cls_ = LookupInternalClass(class_header);
     ASSERT(!cls_.IsNull());
   }
   switch (cls_.instance_kind()) {

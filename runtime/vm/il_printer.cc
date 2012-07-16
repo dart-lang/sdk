@@ -9,6 +9,8 @@
 
 namespace dart {
 
+DEFINE_FLAG(bool, print_environments, false, "Print SSA environments.");
+
 
 void BufferFormatter::Print(const char* format, ...) {
   va_list args;
@@ -37,17 +39,18 @@ void FlowGraphPrinter::PrintBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     // Print the block entry.
     PrintInstruction(block_order_[i]);
-    Instruction* current = block_order_[i]->successor();
     // And all the successors until an exit, branch, or a block entry.
-    while ((current != NULL) && !current->IsBlockEntry()) {
+    Instruction* current = block_order_[i];
+    for (ForwardInstructionIterator it(current->AsBlockEntry());
+         !it.Done();
+         it.Advance()) {
+      current = it.Current();
       OS::Print("\n");
       PrintInstruction(current);
-      current = current->successor();
     }
-    BlockEntryInstr* successor =
-        (current == NULL) ? NULL : current->AsBlockEntry();
-    if (successor != NULL) {
-      OS::Print(" goto %d", successor->block_id());
+    if (current->next() != NULL) {
+      ASSERT(current->next()->IsBlockEntry());
+      OS::Print(" goto %d", current->next()->AsBlockEntry()->block_id());
     }
     OS::Print("\n");
   }
@@ -55,15 +58,18 @@ void FlowGraphPrinter::PrintBlocks() {
 
 
 void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintTo(&f);
+  if (FLAG_print_environments && (instr->env() != NULL)) {
+    instr->env()->PrintTo(&f);
+  }
   OS::Print("%s", str);
 }
 
 
 void FlowGraphPrinter::PrintComputation(Computation* comp) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   comp->PrintTo(&f);
   OS::Print("%s", str);
@@ -104,10 +110,10 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'",
             String::Handle(dst_type().Name()).ToCString(),
             dst_name().ToCString());
-  f->Print(" (instantiator:");
+  f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
-  f->Print(" (instantiator_type_arguments:");
+  f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
 }
@@ -201,10 +207,10 @@ void InstanceOfComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(" %s %s",
             negate_result() ? "ISNOT" : "IS",
             String::Handle(type().Name()).ToCString());
-  f->Print(" (instantiator:");
+  f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
-  f->Print(" (type-arg:");
+  f->Print(" type-arg(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
 }
@@ -320,10 +326,7 @@ void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
   if (start_env_ != NULL) {
-    for (intptr_t i = 0; i < start_env_->length(); ++i) {
-      f->Print("\n  ");
-      (*start_env_)[i]->PrintTo(f);
-    }
+    start_env_->PrintTo(f);
   }
 }
 
@@ -350,6 +353,11 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void ParameterInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    v%d <- parameter(%d)", index());
+}
+
+
 void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [target", block_id());
   if (HasTryIndex()) {
@@ -360,14 +368,10 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
-void DoInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    ");
-  computation()->PrintTo(f);
-}
-
-
 void BindInstr::PrintTo(BufferFormatter* f) const {
-  if (ssa_temp_index() != -1) {
+  if (!is_used()) {
+    f->Print("    ");
+  } else if (ssa_temp_index() != -1) {
     f->Print("    v%d <- ", ssa_temp_index());
   } else {
     f->Print("    t%d <- ", temp_index());
@@ -418,7 +422,7 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
 
 
 void FlowGraphVisualizer::Print(const char* format, ...) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   f.Print("%*s", 2 * indent_, "");
   va_list args;
@@ -430,9 +434,12 @@ void FlowGraphVisualizer::Print(const char* format, ...) {
 
 
 void FlowGraphVisualizer::PrintInstruction(Instruction* instr) {
-  char str[120];
+  char str[1000];
   BufferFormatter f(str, sizeof(str));
   instr->PrintToVisualizer(&f);
+  if (FLAG_print_environments && (instr->env() != NULL)) {
+    instr->env()->PrintTo(&f);
+  }
   f.Print(" <|@\n");
   (*Dart::flow_graph_writer())(str, strlen(str));
 }
@@ -522,19 +529,19 @@ void FlowGraphVisualizer::PrintFunction() {
         BEGIN("HIR");
         // Print the block entry.
         Print("0 0 ");  // Required fields "bci" and "use". Unused.
-        Instruction* current = block_order_[i];
-        PrintInstruction(current);
-        current = current->successor();
+        PrintInstruction(block_order_[i]);
         // And all the successors until an exit, branch, or a block entry.
-        while ((current != NULL) && !current->IsBlockEntry()) {
+        BlockEntryInstr* entry = block_order_[i];
+        Instruction* current = entry;
+        for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+          current = it.Current();
           Print("0 0 ");
           PrintInstruction(current);
-          current = current->successor();
         }
-        BlockEntryInstr* successor =
-            (current == NULL) ? NULL : current->AsBlockEntry();
-        if (successor != NULL) {
-          Print("0 0 _ Goto B%d <|@\n", successor->block_id());
+        if (current->next() != NULL) {
+          ASSERT(current->next()->IsBlockEntry());
+          Print("0 0 _ Goto B%d <|@\n",
+                current->next()->AsBlockEntry()->block_id());
         }
         END("HIR");
       }
@@ -552,6 +559,9 @@ void FlowGraphVisualizer::PrintFunction() {
 // or _ for instruction without result.
 void GraphEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [graph]");
+  if (start_env_ != NULL) {
+    start_env_->PrintTo(f);
+  }
 }
 
 
@@ -588,6 +598,13 @@ void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
+void ParameterInstr::PrintToVisualizer(BufferFormatter* f) const {
+  ASSERT(ssa_temp_index() != -1);
+  ASSERT(temp_index() == -1);
+  f->Print("v%d Parameter(%d)", ssa_temp_index(), index());
+}
+
+
 void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ [target");
   if (HasTryIndex()) {
@@ -598,14 +615,10 @@ void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
-void DoInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ ");
-  computation()->PrintTo(f);
-}
-
-
 void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
-  if (ssa_temp_index() != -1) {
+  if (!is_used()) {
+    f->Print("_ ");
+  } else if (ssa_temp_index() != -1) {
     f->Print("v%d ", ssa_temp_index());
   } else {
     f->Print("t%d ", temp_index());
@@ -649,5 +662,13 @@ void ParallelMoveInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
+void Environment::PrintTo(BufferFormatter* f) const {
+  f->Print(" env={ ");
+  for (intptr_t i = 0; i < values_.length(); ++i) {
+    if (i > 0) f->Print(", ");
+    values_[i]->PrintTo(f);
+  }
+  f->Print(" }");
+}
 
 }  // namespace dart

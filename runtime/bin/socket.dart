@@ -74,8 +74,10 @@ interface Socket extends Hashable default _Socket {
   void set onData(void callback());
 
   /**
-   * The write handler gets called when the socket becomes available for
-   * writing.
+   * The write handler gets called once when the socket becomes
+   * available for writing. Then the handler is automatically reset to null.
+   * This handler is mainly used when writeList has reported an incomplete
+   * write, to schedule writing the remaining data to the socket.
    */
   void set onWrite(void callback());
 

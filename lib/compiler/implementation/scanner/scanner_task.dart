@@ -130,7 +130,7 @@ class ScannerTask extends CompilerTask {
   }
 
   void importLibrary(LibraryElement library, LibraryElement imported,
-                     ScriptTag tag) {
+                     ScriptTag tag, [CompilationUnitElement patch]) {
     if (!imported.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
         compiler.reportError(tag === null ? null : tag.argument,
@@ -142,7 +142,7 @@ class ScannerTask extends CompilerTask {
           new SourceString(tag.prefix.dartString.slowToString());
       Element e = library.find(prefix);
       if (e === null) {
-        e = new PrefixElement(prefix, library, tag.getBeginToken());
+        e = new PrefixElement(prefix, library, tag.getBeginToken(), patch);
         library.define(e, compiler);
       }
       if (e.kind !== ElementKind.PREFIX) {

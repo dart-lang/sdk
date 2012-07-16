@@ -93,8 +93,7 @@ class Enqueuer {
     // of closures. They are processed as part of the enclosing function and not
     // present as a separate element (the call to the closure will be a member
     // function).
-    var closure = const SourceString("Closure");
-    return element.isMember() && element.getEnclosingClass().name != closure;
+    return element.isMember() && !element.getEnclosingClass().isClosure();
   }
 
   void registerRecompilationCandidate(Element element,

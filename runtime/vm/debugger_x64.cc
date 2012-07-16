@@ -12,10 +12,11 @@
 
 namespace dart {
 
-// TODO(hausner): Implement this. For now just return null instead
-// of hitting UNIMPLEMENTED.
+// TODO(hausner): Handle captured variables.
 RawInstance* ActivationFrame::GetLocalVarValue(intptr_t slot_index) {
-  return Instance::null();
+  uword var_address = fp() + slot_index * kWordSize;
+  return reinterpret_cast<RawInstance*>(
+             *reinterpret_cast<uword*>(var_address));
 }
 
 

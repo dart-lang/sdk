@@ -324,15 +324,12 @@ void Exceptions::ReThrow(const Instance& exception,
 }
 
 
-void Exceptions::PropagateError(const Object& obj) {
+void Exceptions::PropagateError(const Error& error) {
   ASSERT(Isolate::Current()->top_exit_frame_info() != 0);
-  Error& error = Error::Handle();
-  error ^= obj.raw();
   if (error.IsUnhandledException()) {
     // If the error object represents an unhandled exception, then
     // rethrow the exception in the normal fashion.
-    UnhandledException& uhe = UnhandledException::Handle();
-    uhe ^= error.raw();
+    const UnhandledException& uhe = UnhandledException::Cast(error);
     const Instance& exc = Instance::Handle(uhe.exception());
     const Instance& stk = Instance::Handle(uhe.stacktrace());
     Exceptions::ReThrow(exc, stk);
@@ -356,14 +353,10 @@ void Exceptions::ThrowByType(
   if (result.IsError()) {
     // We got an error while constructing the exception object.
     // Propagate the error instead of throwing the exception.
-    Error& error = Error::Handle();
-    error ^= result.raw();
-    PropagateError(error);
+    PropagateError(Error::Cast(result));
   } else {
     ASSERT(result.IsInstance());
-    Instance& exception = Instance::Handle();
-    exception ^= result.raw();
-    Throw(exception);
+    Throw(Instance::Cast(result));
   }
 }
 

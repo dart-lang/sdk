@@ -21,7 +21,6 @@ namespace dart {
   V(TypeNode, "type")                                                          \
   V(AssignableNode, "assignable")                                              \
   V(BinaryOpNode, "binop")                                                     \
-  V(StringConcatNode, "concat")                                                \
   V(ComparisonNode, "compare")                                                 \
   V(UnaryOpNode, "unaryop")                                                    \
   V(ConditionalExprNode, "?:")                                                 \
@@ -312,9 +311,7 @@ class LiteralNode : public AstNode {
     ASSERT(literal.IsZoneHandle());
 #if defined(DEBUG)
     if (literal.IsString()) {
-      String& str = String::Handle();
-      str ^= literal.raw();
-      ASSERT(str.IsSymbol());
+      ASSERT(String::Cast(literal).IsSymbol());
     }
 #endif  // defined(DEBUG)
     ASSERT(literal.IsNull() ||
@@ -573,33 +570,6 @@ class BinaryOpNode : public AstNode {
   bool IsKindValid() const;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(BinaryOpNode);
-};
-
-
-class StringConcatNode : public AstNode {
- public:
-  explicit StringConcatNode(intptr_t token_pos)
-      : AstNode(token_pos),
-        values_(new ArrayNode(token_pos, TypeArguments::ZoneHandle())) {
-  }
-
-  ArrayNode* values() const { return values_; }
-
-  virtual const Instance* EvalConstExpr() const;
-
-  void AddExpr(AstNode* expr) const {
-    values_->AddElement(expr);
-  }
-
-  virtual void VisitChildren(AstNodeVisitor* visitor) const {
-    values_->Visit(visitor);
-  }
-
-  DECLARE_COMMON_NODE_FUNCTIONS(StringConcatNode);
-
- private:
-  ArrayNode* values_;
-  DISALLOW_IMPLICIT_CONSTRUCTORS(StringConcatNode);
 };
 
 
@@ -1293,9 +1263,11 @@ class InstanceSetterNode : public AstNode {
 class StaticGetterNode : public AstNode {
  public:
   StaticGetterNode(intptr_t token_pos,
+                   AstNode* receiver,  // Null if called from static context.
                    const Class& cls,
                    const String& field_name)
       : AstNode(token_pos),
+        receiver_(receiver),
         cls_(cls),
         field_name_(field_name) {
     ASSERT(cls_.IsZoneHandle());
@@ -1303,6 +1275,10 @@ class StaticGetterNode : public AstNode {
     ASSERT(field_name_.IsSymbol());
   }
 
+  // The receiver is required when transforming this StaticGetterNode issued in
+  // a non-static context to an InstanceSetterNode. This occurs when no field
+  // and no setter are declared.
+  AstNode* receiver() const { return receiver_; }
   const Class& cls() const { return cls_; }
   const String& field_name() const { return field_name_; }
 
@@ -1315,6 +1291,7 @@ class StaticGetterNode : public AstNode {
   DECLARE_COMMON_NODE_FUNCTIONS(StaticGetterNode);
 
  private:
+  AstNode* receiver_;
   const Class& cls_;
   const String& field_name_;
 

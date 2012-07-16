@@ -8,6 +8,7 @@
 #library("html");
 
 #import("dart:isolate");
+#import("dart:json");
 #import("dart:nativewrappers");
 
 $!GENERATED_DART_FILES
@@ -21,11 +22,13 @@ $!GENERATED_DART_FILES
 #source('$AUXILIARY_DIR/../../html/src/shared_FactoryProviders.dart');
 #source('$AUXILIARY_DIR/../../html/src/dartium_FactoryProviders.dart');
 #source('$AUXILIARY_DIR/../../html/src/IDBOpenDBRequest.dart');
+#source('$AUXILIARY_DIR/../../html/src/Isolates.dart');
 #source('$AUXILIARY_DIR/../../html/src/Measurement.dart');
 #source('$AUXILIARY_DIR/../../html/src/Device.dart');
 #source('$AUXILIARY_DIR/../../html/src/_Testing.dart');
 #source('$AUXILIARY_DIR/_ListIterators.dart');
 #source('$AUXILIARY_DIR/_Lists.dart');
+#source('$AUXILIARY_DIR/../../isolate/serialization.dart');
 
 #source('$AUXILIARY_DIR/native_DOMPublic.dart');
 #source('$AUXILIARY_DIR/native_DOMImplementation.dart');
@@ -62,3 +65,28 @@ class _Null {
 }
 
 final _null = const _Null();
+
+int _getNewIsolateId() {
+  // TODO(vsm): We need a Dartium native for this.
+  return 1;
+}
+
+bool _callPortInitialized = false;
+var _callPortLastResult = null;
+
+_callPortSync(num id, var message) {
+  if (!_callPortInitialized) {
+    window.on['js-result'].add((event) {
+      _callPortLastResult = JSON.parse(event.data);
+    }, false);
+    _callPortInitialized = true;
+  }
+  var data = JSON.stringify({ 'id': id, 'message': message });
+  var event = document.$dom_createEvent('TextEvent');
+  event.initTextEvent('js-sync-message', false, false, window, data);
+  assert(_callPortLastResult == null);
+  window.$dom_dispatchEvent(event);
+  var result = _callPortLastResult;
+  _callPortLastResult = null;
+  return result;
+}

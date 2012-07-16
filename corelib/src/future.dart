@@ -217,7 +217,9 @@ class Futures {
         }
       });
       future.handleException((exception) {
-        if (!result.isComplete) completer.completeException(exception);
+        if (!result.isComplete) {
+          completer.completeException(exception, future.stackTrace);
+        }
         return true;
       });
     }

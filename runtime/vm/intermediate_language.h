@@ -108,17 +108,17 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 #undef FORWARD_DECLARATION
 
 // Forward declarations.
-class BufferFormatter;
+class BindInstr;
 class BranchInstr;
+class BufferFormatter;
 class Instruction;
 class Value;
-
 
 class Computation : public ZoneAllocated {
  public:
   static const int kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), instr_(NULL), locs_(NULL) {
+  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = GetNextCid(isolate);
     ic_data_ = GetICDataForCid(cid_, isolate);
@@ -134,7 +134,7 @@ class Computation : public ZoneAllocated {
   }
 
   // Visiting support.
-  virtual void Accept(FlowGraphVisitor* visitor) = 0;
+  virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr) = 0;
 
   virtual intptr_t InputCount() const = 0;
   virtual Value* InputAt(intptr_t i) const = 0;
@@ -163,11 +163,6 @@ class Computation : public ZoneAllocated {
     return locs_;
   }
 
-  // TODO(srdjan): Eliminate Instructions hierarchy. If 'use' is NULL
-  // it acts as a DoInstr, otherwise a BindInstr.
-  void set_instr(Instruction* value) { instr_ = value; }
-  Instruction* instr() const { return instr_; }
-
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
   // that are not yet converted to the location based code generation.
@@ -177,8 +172,6 @@ class Computation : public ZoneAllocated {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
   static LocationSummary* MakeCallSummary();
-
-  void ReplaceWith(Computation* other);
 
   // Declare an enum value used to define type-test predicates.
   enum ComputationType {
@@ -222,7 +215,6 @@ class Computation : public ZoneAllocated {
 
   intptr_t cid_;
   ICData* ic_data_;
-  Instruction* instr_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -303,7 +295,7 @@ class Value : public TemplateComputation<0> {
 
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
-  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr);            \
   virtual ComputationType computation_type() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
@@ -319,7 +311,6 @@ class Value : public TemplateComputation<0> {
 
 
 class Definition;
-class BindInstr;
 class PhiInstr;
 
 class UseVal : public Value {
@@ -1685,13 +1676,6 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
 
 
 // Instructions.
-//
-// <Instruction> ::= JoinEntry <Instruction>
-//                 | TargetEntry <Instruction>
-//                 | Do <Computation> <Instruction>
-//                 | Return <Value>
-//                 | Branch <Value> <Instruction> <Instruction>
-// <Definition>  ::= Bind <int> <Computation> <Instruction>
 
 // M is a single argument macro.  It is applied to each concrete instruction
 // type name.  The concrete instruction classes are the name with Instr
@@ -1700,19 +1684,20 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
-  M(Do)                                                                        \
   M(Bind)                                                                      \
   M(Phi)                                                                       \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
   M(Branch)                                                                    \
-  M(ParallelMove)
+  M(ParallelMove)                                                              \
+  M(Parameter)
 
 
 // Forward declarations for Instruction classes.
 class BlockEntryInstr;
 class FlowGraphBuilder;
+class Environment;
 
 #define FORWARD_DECLARATION(type) class type##Instr;
 FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
@@ -1721,7 +1706,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 // Functions required in all concrete instruction classes.
 #define DECLARE_INSTRUCTION(type)                                              \
-  virtual Instruction* Accept(FlowGraphVisitor* visitor);                      \
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
   virtual intptr_t InputCount() const;                                         \
@@ -1734,7 +1719,12 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 
 class Instruction : public ZoneAllocated {
  public:
-  Instruction() : cid_(-1), ic_data_(NULL), successor_(NULL), previous_(NULL) {
+  Instruction()
+      : cid_(-1),
+        ic_data_(NULL),
+        previous_(NULL),
+        next_(NULL),
+        env_(NULL) {
     Isolate* isolate = Isolate::Current();
     cid_ = Computation::GetNextCid(isolate);
     ic_data_ = Computation::GetICDataForCid(cid_, isolate);
@@ -1758,10 +1748,16 @@ class Instruction : public ZoneAllocated {
   virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
   // Visiting support.
-  virtual Instruction* Accept(FlowGraphVisitor* visitor) = 0;
+  virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
-  Instruction* successor() const { return successor_; }
-  void set_successor(Instruction* instr) {
+  Instruction* previous() const { return previous_; }
+  void set_previous(Instruction* instr) {
+    ASSERT(!IsBlockEntry());
+    previous_ = instr;
+  }
+
+  Instruction* next() const { return next_; }
+  void set_next(Instruction* instr) {
     ASSERT(!IsGraphEntry());
     ASSERT(!IsReturn());
     ASSERT(!IsBranch());
@@ -1770,17 +1766,8 @@ class Instruction : public ZoneAllocated {
     // that do not have a successor. Currently, the graph builder will continue
     // to append instruction in case of a Throw inside an expression. This
     // condition should be handled in the graph builder
-    successor_ = instr;
+    next_ = instr;
   }
-
-  Instruction* previous() const { return previous_; }
-  void set_previous(Instruction* instr) {
-    ASSERT(!IsBlockEntry());
-    previous_ = instr;
-  }
-
-  // Remove instruction from the graph.
-  void RemoveFromGraph();
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
@@ -1788,9 +1775,6 @@ class Instruction : public ZoneAllocated {
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
 
-  virtual void replace_computation(Computation* value) {
-    UNREACHABLE();
-  }
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
   // a side effect, the block entry instructions in the graph are assigned
@@ -1848,11 +1832,15 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
     UNIMPLEMENTED();
   }
 
+  Environment* env() const { return env_; }
+  void set_env(Environment* env) { env_ = env; }
+
  private:
   intptr_t cid_;
   ICData* ic_data_;
-  Instruction* successor_;
   Instruction* previous_;
+  Instruction* next_;
+  Environment* env_;
   DISALLOW_COPY_AND_ASSIGN(Instruction);
 };
 
@@ -1944,6 +1932,56 @@ class BlockEntryInstr : public Instruction {
 };
 
 
+class ForwardInstructionIterator : public ValueObject {
+ public:
+  explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry) {
+    Advance();
+  }
+
+  void Advance() {
+    if (!Done()) current_ = current_->next();
+  }
+
+  bool Done() const {
+    return current_ == block_entry_->last_instruction()->next();
+  }
+
+  void RemoveCurrentFromGraph() {
+    ASSERT(!current_->IsBlockEntry());
+    ASSERT(!current_->IsBranch());
+    ASSERT(!current_->IsThrow());
+    ASSERT(!current_->IsReturn());
+    ASSERT(!current_->IsReThrow());
+    ASSERT(current_->previous() != NULL);
+    Instruction* prev = current_->previous();
+    Instruction* next = current_->next();
+    prev->set_next(next);
+    ASSERT(next != NULL);
+    if (current_ != block_entry_->last_instruction()) {
+      ASSERT(!next->IsBlockEntry());
+      next->set_previous(prev);
+    } else {
+      ASSERT(current_->IsBind());
+      // Removing the last instruction of a block.
+      // Update last_instruction of the current basic block.
+      block_entry_->set_last_instruction(prev);
+    }
+    // Reset successor and previous instruction to indicate
+    // that the instruction is removed from the graph.
+    current_->set_previous(NULL);
+    current_->set_next(NULL);
+    current_ = prev;
+  }
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
+};
+
+
 class GraphEntryInstr : public BlockEntryInstr {
  public:
   explicit GraphEntryInstr(TargetEntryInstr* normal_entry)
@@ -1976,13 +2014,13 @@ class GraphEntryInstr : public BlockEntryInstr {
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
-  ZoneGrowableArray<Value*>* start_env() const { return start_env_; }
-  void set_start_env(ZoneGrowableArray<Value*>* env) { start_env_ = env; }
+  Environment* start_env() const { return start_env_; }
+  void set_start_env(Environment* env) { start_env_ = env; }
 
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
-  ZoneGrowableArray<Value*>* start_env_;
+  Environment* start_env_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -2069,36 +2107,6 @@ class TargetEntryInstr : public BlockEntryInstr {
 };
 
 
-class DoInstr : public Instruction {
- public:
-  explicit DoInstr(Computation* computation)
-      : computation_(computation) {
-    ASSERT(computation != NULL);
-    computation->set_instr(this);
-  }
-
-  DECLARE_INSTRUCTION(Do)
-
-  Computation* computation() const { return computation_; }
-  virtual void replace_computation(Computation* value) { computation_ = value; }
-
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
-
-  virtual LocationSummary* locs() {
-    return computation()->locs();
-  }
-
-  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
-    computation()->EmitNativeCode(compiler);
-  }
-
- private:
-  Computation* computation_;
-
-  DISALLOW_COPY_AND_ASSIGN(DoInstr);
-};
-
-
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
@@ -2130,16 +2138,18 @@ Definition* UseVal::definition() const {
 
 class BindInstr : public Definition {
  public:
-  explicit BindInstr(Computation* computation)
-      : computation_(computation) {
+  enum UseKind { kUnused, kUsed };
+
+  BindInstr(UseKind used, Computation* computation)
+      : computation_(computation), is_used_(used != kUnused) {
     ASSERT(computation != NULL);
-    computation->set_instr(this);
   }
 
   DECLARE_INSTRUCTION(Bind)
 
   Computation* computation() const { return computation_; }
-  virtual void replace_computation(Computation* value) { computation_ = value; }
+  void set_computation(Computation* value) { computation_ = value; }
+  bool is_used() const { return is_used_; }
 
   // Static type of the underlying computation.
   virtual RawAbstractType* StaticType() const {
@@ -2156,6 +2166,7 @@ class BindInstr : public Definition {
 
  private:
   Computation* computation_;
+  bool is_used_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
@@ -2175,6 +2186,21 @@ class PhiInstr: public Definition {
   GrowableArray<Value*> inputs_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
+};
+
+
+class ParameterInstr: public Definition {
+ public:
+  explicit ParameterInstr(intptr_t index) : index_(index) { }
+
+  intptr_t index() const { return index_; }
+
+  DECLARE_INSTRUCTION(Parameter)
+
+ private:
+  intptr_t index_;
+
+  DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
 
 
@@ -2359,6 +2385,26 @@ class ParallelMoveInstr : public Instruction {
 #undef DECLARE_INSTRUCTION
 
 
+class Environment : public ZoneAllocated {
+ public:
+  // Construct an environment by copying from an array of values.
+  explicit Environment(ZoneGrowableArray<Value*>* values)
+      : values_(values->length()) {
+          values_.AddArray(*values);
+        }
+
+  const ZoneGrowableArray<Value*>& values() const {
+    return values_;
+  }
+
+  void PrintTo(BufferFormatter* f) const;
+
+ private:
+  ZoneGrowableArray<Value*> values_;
+  DISALLOW_COPY_AND_ASSIGN(Environment);
+};
+
+
 // Visitor base class to visit each instruction and computation in a flow
 // graph as defined by a reversed list of basic blocks.
 class FlowGraphVisitor : public ValueObject {
@@ -2374,7 +2420,7 @@ class FlowGraphVisitor : public ValueObject {
   // Visit functions for instruction and computation classes, with empty
   // default implementations.
 #define DECLARE_VISIT_COMPUTATION(ShortName, ClassName)                        \
-  virtual void Visit##ShortName(ClassName* comp) { }
+  virtual void Visit##ShortName(ClassName* comp, BindInstr* instr) { }
 
 #define DECLARE_VISIT_INSTRUCTION(ShortName)                                   \
   virtual void Visit##ShortName(ShortName##Instr* instr) { }

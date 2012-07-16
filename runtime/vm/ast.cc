@@ -83,15 +83,13 @@ void ArrayNode::VisitChildren(AstNodeVisitor* visitor) const {
 AstNode* LiteralNode::ApplyUnaryOp(Token::Kind unary_op_kind) {
   if (unary_op_kind == Token::kSUB) {
     if (literal().IsSmi()) {
-      Smi& smi = Smi::Handle();
-      smi ^= literal().raw();
+      const Smi& smi = Smi::Cast(literal());
       const Instance& literal =
           Instance::ZoneHandle(Integer::New(-smi.Value()));
       return new LiteralNode(this->token_pos(), literal);
     }
     if (literal().IsDouble()) {
-      Double& dbl = Double::Handle();
-      dbl ^= literal().raw();
+      const Double& dbl = Double::Cast(literal());
       // Preserve negative zero.
       double new_value = (dbl.value() == 0.0) ? -0.0 : (0.0 - dbl.value());
       Double& double_instance =
@@ -182,18 +180,6 @@ bool BinaryOpNode::IsKindValid() const {
 
 const char* BinaryOpNode::Name() const {
   return Token::Str(kind_);
-}
-
-
-const Instance* StringConcatNode::EvalConstExpr() const {
-  for (int i = 0; i < values()->length(); i++) {
-    if (!values()->ElementAt(i)->IsLiteralNode()) {
-      return NULL;
-    }
-  }
-  // All nodes are literals, so this is a compile time constant string.
-  // We just return the first literal as value approximation.
-  return &values()->ElementAt(0)->AsLiteralNode()->literal();
 }
 
 
@@ -336,6 +322,18 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
   const Function& setter =
       Function::ZoneHandle(cls().LookupStaticFunction(setter_name));
   if (setter.IsNull()) {
+    const Field& field = Field::ZoneHandle(
+        cls().LookupStaticField(field_name()));
+    if (field.IsNull()) {
+      // A static getter is declared, but no setter and no field.
+      if (receiver() != NULL) {
+        return new InstanceSetterNode(token_pos(),
+                                      receiver(),
+                                      field_name(),
+                                      rhs);
+      }
+      return NULL;
+    }
     // Access to a lazily initialized static field that has not yet been
     // initialized is compiled to a static implicit getter.
     // A setter may not exist for such a field.
@@ -346,9 +344,6 @@ AstNode* StaticGetterNode::MakeAssignmentNode(AstNode* rhs) {
     ASSERT(!getter.IsNull() &&
            (getter.kind() == RawFunction::kConstImplicitGetter));
 #endif
-    const Field& field = Field::ZoneHandle(
-        cls().LookupStaticField(field_name()));
-    ASSERT(!field.IsNull());
     return new StoreStaticFieldNode(token_pos(), field, rhs);
   } else {
     return new StaticSetterNode(token_pos(), cls(), field_name(), rhs);
@@ -376,9 +371,7 @@ const Instance* StaticGetterNode::EvalConstExpr() const {
     // replumbing all of the EvalConstExpr methods.
     return NULL;
   }
-  Instance& field_value = Instance::ZoneHandle();
-  field_value ^= result.raw();
-  return &field_value;
+  return &Instance::ZoneHandle(Instance::Cast(result).raw());
 }
 
 }  // namespace dart

@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/globals.h"
+#include "vm/hash_set.h"
 
 namespace dart {
 
@@ -40,6 +41,42 @@ class StoreBufferBlock {
  private:
   int32_t top_;
   uword pointers_[kSize];
+
+  friend class StoreBuffer;
+};
+
+
+class StoreBuffer {
+ public:
+  StoreBuffer() : dedup_sets_(new DedupSet()) {}
+  ~StoreBuffer();
+
+  void AddPointer(uword address);
+
+  void ProcessBlock(StoreBufferBlock* block);
+
+ private:
+  // Simple linked list element containing a HashSet of old->new pointers.
+  class DedupSet {
+   public:
+    enum {
+      kSetSize = 1024,
+      kFillRatio = 80
+    };
+
+    DedupSet() : next_(NULL), set_(new HashSet(kSetSize, kFillRatio)) {}
+    ~DedupSet() {
+      delete set_;
+    }
+
+    DedupSet* next_;
+    HashSet* set_;
+
+   private:
+    DISALLOW_COPY_AND_ASSIGN(DedupSet);
+  };
+
+  DedupSet* dedup_sets_;
 };
 
 }  // namespace dart

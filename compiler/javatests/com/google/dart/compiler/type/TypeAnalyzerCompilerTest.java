@@ -347,7 +347,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     List<DartCompilationError> compilationErrors = libraryResult.getCompilationErrors();
     assertEquals(1, compilationErrors.size());
     DartCompilationError compilationError = compilationErrors.get(0);
-    assertEquals(ParserErrorCode.DISALLOWED_FACTORY_KEYWORD, compilationError.getErrorCode());
+    assertEquals(ParserErrorCode.FACTORY_CANNOT_BE_TOP_LEVEL, compilationError.getErrorCode());
     assertEquals(1, compilationError.getLineNumber());
     assertEquals(1, compilationError.getColumnNumber());
     assertEquals("factory".length(), compilationError.getLength());
@@ -1719,6 +1719,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
             "class A<T extends num> extends C<T> { }",
             "class B<T> extends C<T> { }"); // static type error B.T not assignable to num
     assertErrors(result.getErrors(), errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 4, 22, 1));
+  }
+
+  public void test_typeVariableBoundsCheckNew() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class Object {}",
+        "class A { }",
+        "class B { }",
+        "class C<T extends A> { }",
+        "method() {",
+        "  new C<B>();", // B not assignable to A
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 6, 9, 1));
   }
 
   /**
@@ -3133,6 +3147,22 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.CANNOT_OVERRIDE_TYPED_MEMBER, 6, 10, 3));
   }
 
+  public void test_overrideInstanceMember() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class A {",
+        "  var field;",
+        "  method() {}",
+        "}",
+        "class B extends A {",
+        "  static var field;",
+        "  static method() {}",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER, 6, 14, 5),
+        errEx(ResolverErrorCode.CANNOT_OVERRIDE_INSTANCE_MEMBER, 7, 10, 6));
+  }
+
   public void test_overrideStaticMember() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -3148,6 +3178,17 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 7, 7, 3),
         errEx(TypeErrorCode.OVERRIDING_STATIC_MEMBER, 8, 3, 3));
+  }
+
+  public void test_rethrowNotInCatch() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "class Object {}",
+        "method() {",
+        "  throw;",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 6));
   }
 
   private static <T extends DartNode> T findNode(

@@ -10,12 +10,11 @@ namespace dart {
 TEST_CASE(InstructionTests) {
   TargetEntryInstr* target_instr = new TargetEntryInstr();
   EXPECT(target_instr->IsBlockEntry());
-  EXPECT(!target_instr->IsDo());
   EXPECT(!target_instr->IsBind());
-  DoInstr* do_instr = new DoInstr(new CurrentContextComp());
-  EXPECT(do_instr->IsDo());
-  EXPECT(!do_instr->IsBlockEntry());
-  EXPECT(!do_instr->IsBind());
+  BindInstr* bind_instr =
+      new BindInstr(BindInstr::kUnused, new CurrentContextComp());
+  EXPECT(bind_instr->IsBind());
+  EXPECT(!bind_instr->IsBlockEntry());
 }
 
 }  // namespace dart

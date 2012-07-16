@@ -330,10 +330,10 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 1, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 7, 3));
     assertEquals(
-        "duplicate top-level declaration 'CLASS foo' at Test.dart:foo:3:7",
+        "duplicate top-level declaration class 'foo' at Test.dart line:3 col:7",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'METHOD foo' at Test.dart::2:1",
+        "duplicate top-level declaration top-level function 'foo' at Test.dart line:2 col:1",
         errors.get(1).getMessage());
   }
 
@@ -368,16 +368,16 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 7, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 5, 5, 3));
     assertEquals(
-        "duplicate top-level declaration 'FIELD foo' at Test.dart::4:5",
+        "duplicate top-level declaration top-level variable 'foo' at Test.dart line:4 col:5",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'CLASS foo' at Test.dart:foo:2:7",
+        "duplicate top-level declaration class 'foo' at Test.dart line:2 col:7",
         errors.get(1).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'FIELD bar' at Test.dart::5:5",
+        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:5 col:5",
         errors.get(2).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'CLASS bar' at Test.dart:bar:3:7",
+        "duplicate top-level declaration class 'bar' at Test.dart line:3 col:7",
         errors.get(3).getMessage());
   }
 
@@ -404,10 +404,10 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
     assertEquals(
-        "duplicate top-level declaration 'FIELD bar' at Test.dart::3:5",
+        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:3 col:5",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'FIELD bar' at Test.dart::2:5",
+        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:2 col:5",
         errors.get(1).getMessage());
   }
 
@@ -420,10 +420,10 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 3, 5, 3));
     assertEquals(
-        "duplicate top-level declaration 'FIELD bar' at Test.dart::3:5",
+        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:3 col:5",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'FIELD bar' at Test.dart::2:5",
+        "duplicate top-level declaration top-level variable 'bar' at Test.dart line:2 col:5",
         errors.get(1).getMessage());
   }
 
@@ -437,10 +437,10 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 2, 5, 3),
         errEx(ResolverErrorCode.DUPLICATE_TOP_LEVEL_DECLARATION, 4, 5, 3));
     assertEquals(
-        "duplicate top-level declaration 'FIELD foo' at Test.dart::4:5",
+        "duplicate top-level declaration top-level variable 'foo' at Test.dart line:4 col:5",
         errors.get(0).getMessage());
     assertEquals(
-        "duplicate top-level declaration 'FIELD foo' at Test.dart::2:5",
+        "duplicate top-level declaration top-level variable 'foo' at Test.dart line:2 col:5",
         errors.get(1).getMessage());
   }
 
@@ -466,13 +466,13 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 7, 7, 1),
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 7, 3));
     assertEquals(
-        "Local variable 'A' is hiding 'CLASS A' at Test.dart:A:2:7",
+        "Local variable 'A' is hiding class 'A' at Test.dart line:2 col:7",
         errors.get(0).getMessage());
     assertEquals(
-        "Local variable 'B' is hiding 'CLASS B' at Test.dart:B:3:11",
+        "Local variable 'B' is hiding interface 'B' at Test.dart line:3 col:11",
         errors.get(1).getMessage());
     assertEquals(
-        "Local variable 'foo' is hiding 'FIELD foo' at Test.dart::4:5",
+        "Local variable 'foo' is hiding top-level variable 'foo' at Test.dart line:4 col:5",
         errors.get(2).getMessage());
   }
 
@@ -500,13 +500,13 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 9, 1),
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 9, 9, 3));
     assertEquals(
-        "Local variable 'A' is hiding 'CLASS A' at Test.dart:A:2:7",
+        "Local variable 'A' is hiding class 'A' at Test.dart line:2 col:7",
         errors.get(0).getMessage());
     assertEquals(
-        "Local variable 'B' is hiding 'CLASS B' at Test.dart:B:3:11",
+        "Local variable 'B' is hiding interface 'B' at Test.dart line:3 col:11",
         errors.get(1).getMessage());
     assertEquals(
-        "Local variable 'foo' is hiding 'FIELD foo' at Test.dart::4:5",
+        "Local variable 'foo' is hiding top-level variable 'foo' at Test.dart line:4 col:5",
         errors.get(2).getMessage());
   }
 
@@ -707,7 +707,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 5, 9, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Local variable 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+      assertEquals("Local variable 'a' is hiding field 'a' at Test.dart class:A line:3 col:7", message);
     }
   }
 
@@ -723,7 +723,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Local variable 'A' is hiding 'TYPE_VARIABLE A' at Test.dart:C:2:9", message);
+      assertEquals(
+          "Local variable 'A' is hiding type variable 'A' at Test.dart class:C line:2 col:9",
+          message);
     }
   }
 
@@ -750,7 +752,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 7, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Parameter 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+      assertEquals("Parameter 'a' is hiding field 'a' at Test.dart class:A line:3 col:7", message);
     }
   }
 
@@ -792,7 +794,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Parameter 'a' is hiding 'FIELD a' at Test.dart::2:5", message);
+      assertEquals(
+          "Parameter 'a' is hiding top-level variable 'a' at Test.dart line:2 col:5",
+          message);
     }
   }
 
@@ -850,7 +854,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 6, 18, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Parameter 'a' is hiding 'VARIABLE a' at Test.dart:A:4:9", message);
+      assertEquals(
+          "Parameter 'a' is hiding variable 'a' at Test.dart class:A line:4 col:9",
+          message);
     }
   }
 
@@ -874,7 +880,7 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING, 4, 12, 2));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Type variable 'BB' is hiding 'CLASS BB' at Test.dart:BB:2:7", message);
+      assertEquals("Type variable 'BB' is hiding class 'BB' at Test.dart line:2 col:7", message);
     }
   }
 
@@ -1055,7 +1061,9 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING, 5, 5, 1));
     {
       String message = errors.get(0).getMessage();
-      assertEquals("Function expression 'a' is hiding 'FIELD a' at Test.dart:A:3:7", message);
+      assertEquals(
+          "Function expression 'a' is hiding field 'a' at Test.dart class:A line:3 col:7",
+          message);
     }
   }
 

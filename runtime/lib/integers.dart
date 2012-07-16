@@ -95,17 +95,34 @@ class IntegerImplementation {
   bool isNegative() { return this < 0; }
   bool isInfinite() { return false; }
 
-  int compareTo(Comparable other) {
+  int compareTo(num other) {
     final int EQUAL = 0, LESS = -1, GREATER = 1;
+    if (other is double) {
+      // TODO(floitsch): the following locals should be 'const'.
+      int MAX_EXACT_INT_TO_DOUBLE = 9007199254740992;  // 2^53.
+      int MIN_EXACT_INT_TO_DOUBLE = -MAX_EXACT_INT_TO_DOUBLE;
+      double d = other;
+      if (d.isInfinite()) {
+        return d == double.NEGATIVE_INFINITY ? GREATER : LESS;
+      }
+      if (d.isNaN()) {
+        return LESS;
+      }
+      if (MIN_EXACT_INT_TO_DOUBLE <= this && this <= MAX_EXACT_INT_TO_DOUBLE) {
+        // Let the double implementation deal with -0.0.
+        return -(d.compareTo(this.toDouble()));
+      } else {
+        // If abs(other) > MAX_EXACT_INT_TO_DOUBLE, then other has an integer
+        // value (no bits below the decimal point).
+        other = d.toInt();
+      }
+    }
     if (this < other) {
       return LESS;
     } else if (this > other) {
       return GREATER;
-    } else if (this == other) {
-      return EQUAL;
     } else {
-      // Other is NaN.
-      return LESS;
+      return EQUAL;
     }
   }
 

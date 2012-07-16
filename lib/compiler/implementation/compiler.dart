@@ -25,8 +25,8 @@ class WorkItem {
   bool isAnalyzed() => resolutionTree !== null;
 
   String run(Compiler compiler, Enqueuer world) {
-    String code = world.universe.generatedCode[element];
-    if (code !== null) return code;
+    CodeBlock codeBlock = world.universe.generatedCode[element];
+    if (codeBlock !== null) return codeBlock.code;
     resolutionTree = compiler.analyze(this, world);
     return compiler.codegen(this, world);
   }
@@ -44,7 +44,7 @@ class Backend {
   }
 
   abstract void enqueueHelpers(Enqueuer world);
-  abstract String codegen(WorkItem work);
+  abstract CodeBlock codegen(WorkItem work);
   abstract void processNativeClasses(Enqueuer world,
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
@@ -58,7 +58,7 @@ class JavaScriptBackend extends Backend {
   CodeEmitterTask emitter;
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
-  final Map<Element, Map<Element, bool>> fieldIntegerSetters;
+  final Map<Element, Map<Element, HType>> fieldSettersType;
 
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -68,7 +68,7 @@ class JavaScriptBackend extends Backend {
       : emitter = new CodeEmitterTask(compiler, generateSourceMap),
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
-        fieldIntegerSetters = new Map<Element, Map<Element, bool>>(),
+        fieldSettersType = new Map<Element, Map<Element, HType>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -86,13 +86,13 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  String codegen(WorkItem work) {
+  CodeBlock codegen(WorkItem work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      String code = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, code);
+      CodeBlock codeBlock = generator.generateBailoutMethod(work, graph);
+      compiler.codegenWorld.addBailoutCode(work, codeBlock);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
@@ -121,27 +121,14 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  bool couldHaveFieldSingleTypeInitializers(Element field,
-                                            HType requestedType) {
+  HType typeFromInitializersSoFar(Element field) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    // If there is no information on the initializer it might still be
-    // initialized to integers only.
-    if (!fieldInitializers.containsKey(field.enclosingElement)) return true;
+    if (!fieldInitializers.containsKey(field.enclosingElement)) {
+      return HType.UNKNOWN;
+    }
     Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
-    HType propagatedType = fields[field];
-    if (propagatedType == null) return true;
-    return propagatedType == requestedType;
-  }
-
-  bool hasFieldSingleTypeInitializers(Element field, HType requestedType) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldInitializers.containsKey(field.enclosingElement)) return false;
-    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
-    HType propagatedType = fields[field];
-    if (propagatedType == null) return false;
-    return propagatedType == requestedType;
+    return fields[field];
   }
 
   void updateFieldConstructorSetters(Element field, HType type) {
@@ -190,27 +177,29 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  void updateFieldIntegerSetters(Element field, bool isInteger) {
+  void updateFieldSetters(Element field, HType type) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    Map<Element, bool> fields =
-        fieldIntegerSetters.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, bool>());
+    Map<Element, HType> fields =
+        fieldSettersType.putIfAbsent(
+          field.enclosingElement, () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
-      fields[field] = isInteger;
+      fields[field] = type;
     } else {
-      fields[field] = fields[field] && isInteger;
+      fields[field] = fields[field].union(type);
     }
   }
 
-  // Returns whether nothing but setters setting the field to an integer have
-  // been seen during compilation so far.
-  bool onlyFieldIntegerSettersSoFar(Element field) {
+  // Returns the type that field setters are setting the field to based on what
+  // have been seen during compilation so far.
+  HType fieldSettersTypeSoFar(Element field) {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
-    if (!fieldIntegerSetters.containsKey(field.enclosingElement)) return true;
-    Map<Element, bool> fields = fieldIntegerSetters[field.enclosingElement];
-    if (!fields.containsKey(field)) return false;
+    if (!fieldSettersType.containsKey(field.enclosingElement)) {
+      return HType.UNKNOWN;
+    }
+    Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
+    if (!fields.containsKey(field)) return HType.UNKNOWN;
     return fields[field];
   }
 }
@@ -269,7 +258,11 @@ class Compiler implements DiagnosticListener {
       // do not have enough stack space.
       throw;
     } catch (var ex) {
-      unhandledExceptionOnElement(element);
+      try {
+        unhandledExceptionOnElement(element);
+      } catch (var doubleFault) {
+        // Ignoring exceptions in exception handling.
+      }
       throw;
     } finally {
       _currentElement = old;
@@ -280,6 +273,7 @@ class Compiler implements DiagnosticListener {
   ScannerTask scanner;
   DietParserTask dietParser;
   ParserTask parser;
+  PatchParserTask patchParser;
   TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
@@ -319,6 +313,7 @@ class Compiler implements DiagnosticListener {
     scanner = new ScannerTask(this);
     dietParser = new DietParserTask(this);
     parser = new ParserTask(this);
+    patchParser = new PatchParserTask(this);
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
@@ -516,39 +511,125 @@ class Compiler implements DiagnosticListener {
     if (library.isPatched) return;
     Uri patchUri = resolvePatchUri(dartLibraryPath);
     if (patchUri !== null) {
-      // TODO(lrn): Use a different parser to allow for "patch" annotations.
-      // For now just assume everything in the patch library is a patch
-      // function.
-      LibraryElement patchLibrary = scanner.loadLibrary(patchUri, null);
+      LibraryElement patchLibrary =
+          patchParser.loadPatchLibrary(patchUri);
+      // We allow foreign functions in patched libraries.
+      addForeignFunctions(library);  // Is safe even if already added.
       applyLibraryPatch(library, patchLibrary);
     }
   }
 
-  void applyLibraryPatch(LibraryElement library, LibraryElement patch) {
+  void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
     Link<Element> patches = patch.topLevelElements;
+
+    // Copy/patch top-level elements.
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
-      Element originalElement = library.elements[patchElement.name];
-      if (originalElement !== null) {
-        // Assume that we are patching if the original exists.
-        if (originalElement is! FunctionElement) {
-          // TODO(lrn): Handle class declarations too.
-          internalError("Can only patch functions", element: originalElement);
-        }
-        // TODO(lrn): Abort if the original isn't marked external, when
-        // that is added to the language.
-        if (patchElement is! FunctionElement ||
-            !patchSignatureMatches(originalElement, patchElement)) {
-          internalError("Can only patch functions with matching signatures",
+      Element originalElement = original.elements[patchElement.name];
+      // Getters and setters are kept inside a synthetic field.
+      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        if (originalElement !== null &&
+            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          internalError("Cannot patch non-getter/setter with getter/setter",
                         element: originalElement);
         }
-        applyFunctionPatch(originalElement, patchElement);
+        AbstractFieldElement patchField = patchElement;
+        AbstractFieldElement originalField = originalElement;
+        if (patchField.getter !== null) {
+          if (originalField === null || originalField.getter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.getter));
+          } else {
+            patchMember(originalField.getter, patchField.getter);
+          }
+        }
+        if (patchField.setter !== null) {
+          if (originalField === null || originalField.setter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.setter));
+          } else {
+            patchMember(originalField.setter, patchField.setter);
+          }
+        }
+      } else if (originalElement === null) {
+        original.addMember(clonePatch(patchElement));
       } else {
-        // TODO(lrn): Allow adding private elements to the original library.
+        patchMember(originalElement, patchElement);
       }
       patches = patches.tail;
     }
-    library.patch = patch;
+
+    // Copy imports.
+    Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
+    Uri patchBase = patch.script.uri;
+    for (ScriptTag tag in patch.tags.reverse()) {
+      if (tag.isImport()) {
+        StringNode argument = tag.argument;
+        Uri resolved = patchBase.resolve(argument.dartString.slowToString());
+        LibraryElement importedLibrary =
+            scanner.loadLibrary(resolved, argument);
+        scanner.importLibrary(original, importedLibrary, tag, patch);
+        if (resolved.scheme == "dart") {
+          delayedPatches[resolved.path] = importedLibrary;
+        }
+      }
+    }
+
+    // Mark library as already patched.
+    original.patch = patch;
+
+    // We patch imported libraries after marking the current library as
+    // patched, to avoid problems with cyclic dependencies.
+    delayedPatches.forEach((String path, LibraryElement importedLibrary) {
+      patchDartLibrary(importedLibrary, path);
+    });
+  }
+
+  bool isPatchElement(Element element) {
+    // TODO(lrn): More checks needed if we introduce metadata for real.
+    // In that case, it must have the identifier "native" as metadata.
+    return !element.metadata.isEmpty();
+  }
+
+  Element clonePatch(Element patchElement) {
+    // The original library does not have an element with the same name
+    // as the patch library element.
+    // In this case, the patch library element must not be marked as "patch",
+    // and its name must make it private.
+    if (isPatchElement(patchElement)) {
+      internalError("Cannot patch non-existing member '"
+                      "${patchElement.name.slowToString()}'.");
+
+    }
+    if (!patchElement.name.isPrivate()) {
+      internalError("Cannot add non-private member '"
+                    "${patchElement.name.slowToString()}' from patch.");
+    }
+    // TODO(lrn): Create a copy of patchElement that isn't added to anything,
+    // but which takes its source from patchElement.
+    throw "Adding members from patch is unsupported";
+  }
+
+  void patchMember(Element originalElement,
+                   Element patchElement) {
+    // The original library has an element with the same name as the patch
+    // library element.
+    // In this case, the patch library element must be a function marked as
+    // "patch" and it must have the same signature as the function it patches.
+    if (!isPatchElement(patchElement)) {
+      internalError("Cannot overwrite existing '"
+                    "${originalElement.name.slowToString()}' with non-patch.");
+    }
+    if (originalElement is! FunctionElement) {
+      // TODO(lrn): Handle class declarations too.
+      internalError("Can only patch functions", element: originalElement);
+    }
+    // TODO(lrn): Abort if the original isn't marked external, when
+    // that is added to the language.
+    if (patchElement is! FunctionElement ||
+        !patchSignatureMatches(originalElement, patchElement)) {
+      internalError("Can only patch functions with matching signatures",
+                    element: originalElement);
+    }
+    applyFunctionPatch(originalElement, patchElement);
   }
 
   bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
@@ -652,11 +733,11 @@ class Compiler implements DiagnosticListener {
     assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
-      String oldCode = world.universe.generatedCode[work.element];
+      String oldCode = world.universe.generatedCode[work.element].code;
       world.universe.generatedCode.remove(work.element);
       world.universe.generatedBailoutCode.remove(work.element);
       withCurrentElement(work.element, () => work.run(this, world));
-      String newCode = world.universe.generatedCode[work.element];
+      String newCode = world.universe.generatedCode[work.element].code;
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
         log("Pass 2 optimization:");
         log("Before:\n$oldCode");
@@ -776,9 +857,9 @@ class Compiler implements DiagnosticListener {
       constantHandler.compileWorkItem(work);
       return null;
     } else {
-      String code = backend.codegen(work);
-      codegenWorld.addGeneratedCode(work, code);
-      return code;
+      CodeBlock codeBlock = backend.codegen(work);
+      codegenWorld.addGeneratedCode(work, codeBlock);
+      return codeBlock.code;
     }
   }
 

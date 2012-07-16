@@ -269,10 +269,10 @@ static void StackFrame_accessFrame(Dart_NativeArguments args) {
     StackFrame* frame = frames.NextFrame();
     while (frame != NULL) {
       if (frame->IsStubFrame()) {
-        code ^= frame->LookupDartCode();
+        code = frame->LookupDartCode();
         EXPECT(code.function() == Function::null());
       } else if (frame->IsDartFrame()) {
-        code ^= frame->LookupDartCode();
+        code = frame->LookupDartCode();
         EXPECT(code.function() != Function::null());
       }
       frame = frames.NextFrame();

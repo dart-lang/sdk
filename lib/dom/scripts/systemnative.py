@@ -10,9 +10,8 @@ import emitter
 import os
 import systembase
 from generator import *
-from systemhtml import DomToHtmlEvent, DomToHtmlEvents, HtmlSystemShared
-from systemhtml import HtmlElementConstructorInfos
-from systemhtml import EmitHtmlElementFactoryConstructors
+from systemhtml import HtmlSystemShared
+
 
 class NativeImplementationSystem(systembase.System):
 
@@ -20,11 +19,9 @@ class NativeImplementationSystem(systembase.System):
     super(NativeImplementationSystem, self).__init__(
         templates, database, emitters, output_dir)
     self._auxiliary_dir = auxiliary_dir
-    self._dom_impl_files = []
     self._cpp_header_files = []
     self._cpp_impl_files = []
     self._html_system = HtmlSystemShared(database)
-    self._factory_provider_emitters = {}
 
   def ImplementationGenerator(self, interface):
     return NativeImplementationGenerator(self, interface)
@@ -106,7 +103,7 @@ class NativeImplementationSystem(systembase.System):
     self._GenerateLibFile(
         'html_dartium.darttemplate',
         os.path.join(self._output_dir, 'html_dartium.dart'),
-        interface_files + self._dom_impl_files,
+        interface_files,
         AUXILIARY_DIR=systembase.MassagePath(auxiliary_dir))
 
     # Generate DartDerivedSourcesXX.cpp.
@@ -148,24 +145,11 @@ class NativeImplementationSystem(systembase.System):
   def Finish(self):
     pass
 
-  def _FilePathForDartFactoryProviderImplementation(self, interface_name):
-    return os.path.join(self._output_dir, 'dart',
-                        '%sFactoryProviderImplementation.dart' % interface_name)
-
   def _FilePathForCppHeader(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.h' % interface_name)
 
   def _FilePathForCppImplementation(self, interface_name):
     return os.path.join(self._output_dir, 'cpp', 'Dart%s.cpp' % interface_name)
-
-  def _EmitterForFactoryProviderBody(self, name):
-    if name not in self._factory_provider_emitters:
-      file_name = self._FilePathForDartFactoryProviderImplementation(name)
-      self._dom_impl_files.append(file_name)
-      template = self._templates.Load('factoryprovider_%s.darttemplate' % name)
-      file_emitter = self._emitters.FileEmitter(file_name)
-      self._factory_provider_emitters[name] = file_emitter.Emit(template)
-    return self._factory_provider_emitters[name]
 
 
 class NativeImplementationGenerator(systembase.BaseGenerator):
@@ -185,7 +169,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._system = system
     self._current_secondary_parent = None
     self._html_system = self._system._html_system
-    self._html_renames = self._html_system._html_renames
+    self._html_interface_name = self._html_system._html_renames.get(
+        self._interface.id, self._interface.id)
 
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
@@ -197,8 +182,22 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return os.path.join(self._system._output_dir, 'dart',
                         '%sImplementation.dart' % self._interface.id)
 
+  def FilePathForDartFactoryProviderImplementation(self):
+    file_name = '%sFactoryProviderImplementation.dart' % self._interface.id
+    return os.path.join(self._system._output_dir, 'dart', file_name)
+
+  def FilePathForDartElementsFactoryProviderImplementation(self):
+    return os.path.join(self._system._output_dir, 'dart',
+                        '_ElementsFactoryProviderImplementation.dart')
+
   def SetImplementationEmitter(self, implementation_emitter):
     self._dart_impl_emitter = implementation_emitter
+
+  def ImplementsMergedMembers(self):
+    # We could not add merged functions to implementation class because
+    # underlying c++ object doesn't implement them. Merged functions are
+    # generated on merged interface implementation instead.
+    return False
 
   def StartInterface(self):
     # Create emitters for c++ implementation.
@@ -221,11 +220,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._cpp_resolver_emitter = emitter.Emitter()
 
     self._GenerateConstructors()
-    self._GenerateEvents()
+    return self._members_emitter
 
   def _GenerateConstructors(self):
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
-
     if not self._IsConstructable():
       return
 
@@ -238,8 +235,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
 
     constructor_info = AnalyzeConstructor(self._interface)
-    if constructor_info:
-      self._EmitFactoryProvider(self._interface.id, constructor_info)
 
     ext_attrs = self._interface.ext_attrs
 
@@ -299,6 +294,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if 'synthesizedV8EnabledPerContext' in ext_attrs:
       raises_exceptions = True
       self._cpp_impl_includes.add('"ContextFeatures.h"')
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       runtime_check = emitter.Format(
           '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
           '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
@@ -321,68 +317,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         needs_receiver=False, invocation=invocation,
         raises_exceptions=raises_exceptions,
         runtime_check=runtime_check)
-
-  def _GenerateEvents(self):
-    if self._interface.id == 'DocumentFragment':
-      # Interface DocumentFragment extends Element in dart:html but this fact
-      # is not reflected in idls.
-      self._EmitEventGetter('_ElementEventsImpl')
-      return
-
-    events_attributes = [attr for attr in self._interface.attributes
-                         if attr.type.id == 'EventListener']
-    if not 'EventTarget' in self._interface.ext_attrs and not events_attributes:
-      return
-
-    def IsEventTarget(interface):
-      return ('EventTarget' in interface.ext_attrs and
-              interface.id != 'EventTarget')
-    is_root = not _FindParent(self._interface, self._database, IsEventTarget)
-    if is_root:
-      self._members_emitter.Emit('  _EventsImpl _on;\n')
-
-    if not events_attributes:
-      if is_root:
-        self._EmitEventGetter('_EventsImpl')
-      return
-
-    events_class = '_%sEventsImpl' % self._interface.id
-    self._EmitEventGetter(events_class)
-
-    def HasEventAttributes(interface):
-      return any([a.type.id == 'EventListener' for a in interface.attributes])
-    parent = _FindParent(self._interface, self._database, HasEventAttributes)
-    if parent:
-      parent_events_class = '_%sEventsImpl' % parent.id
-    else:
-      parent_events_class = '_EventsImpl'
-
-    html_inteface = self._HTMLInterfaceName(self._interface.id)
-    events_members = self._dart_impl_emitter.Emit(
-        '\n'
-        'class $EVENTS_CLASS extends $PARENT_EVENTS_CLASS implements $EVENTS_INTERFACE {\n'
-        '  $EVENTS_CLASS(_ptr) : super(_ptr);\n'
-        '$!MEMBERS\n'
-        '}\n',
-        EVENTS_CLASS=events_class,
-        PARENT_EVENTS_CLASS=parent_events_class,
-        EVENTS_INTERFACE='%sEvents' % html_inteface)
-
-    events_attributes = DomToHtmlEvents(self._interface.id, events_attributes)
-    for event_name in events_attributes:
-      events_members.Emit(
-          '  EventListenerList get $HTML_NAME() => this[\'$DOM_NAME\'];\n',
-          HTML_NAME=DomToHtmlEvent(event_name),
-          DOM_NAME=event_name)
-
-  def _EmitEventGetter(self, events_class):
-    self._members_emitter.Emit(
-        '\n'
-        '  $EVENTS_CLASS get on() {\n'
-        '    if (_on === null) _on = new $EVENTS_CLASS(this);\n'
-        '    return _on;\n'
-        '  }\n',
-        EVENTS_CLASS=events_class)
 
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
@@ -409,51 +343,31 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if IsDartListType(supertype) or IsDartCollectionType(supertype):
       return root_class
 
-    if supertype == 'EventTarget':
-      # Most implementors of EventTarget specify the EventListener operations
-      # again.  If the operations are not specified, try to inherit from the
-      # EventTarget implementation.
-      #
-      # Applies to MessagePort.
-      if not [op for op in self._interface.operations if op.id == 'addEventListener']:
-        return self._ImplClassName(supertype)
-      return root_class
-
     return self._ImplClassName(supertype)
-
-  def _HTMLInterfaceName(self, interface_name):
-    return self._html_renames.get(interface_name, interface_name)
 
   def _IsConstructable(self):
     # FIXME: support ConstructorTemplate.
     return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
 
-  def _EmitFactoryProvider(self, interface_name, constructor_info):
-    dart_impl_path = self._system._FilePathForDartFactoryProviderImplementation(
-        interface_name)
-    self._system._dom_impl_files.append(dart_impl_path)
-
-    html_interface_name = self._HTMLInterfaceName(interface_name)
-    template_file = 'factoryprovider_%s.darttemplate' % html_interface_name
+  def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
+    template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name
     template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('factoryprovider.darttemplate')
 
-    native_implementation_function = '%s_constructor_Callback' % interface_name
-    emitter = self._system._emitters.FileEmitter(dart_impl_path)
+    native_binding = '%s_constructor_Callback' % self._interface.id
     emitter.Emit(
         template,
-        FACTORYPROVIDER='_%sFactoryProvider' % html_interface_name,
-        INTERFACE=html_interface_name,
+        FACTORYPROVIDER=factory_provider,
+        INTERFACE=self._html_interface_name,
         PARAMETERS=constructor_info.ParametersImplementationDeclaration(self._DartType),
         ARGUMENTS=constructor_info.ParametersAsArgumentList(),
-        NATIVE_NAME=native_implementation_function)
+        NATIVE_NAME=native_binding)
 
   def FinishInterface(self):
-    html_interface_name = self._HTMLInterfaceName(self._interface.id)
     template = None
-    if html_interface_name == self._interface.id or not self._database.HasInterface(html_interface_name):
-      template_file = 'impl_%s.darttemplate' % html_interface_name
+    if self._html_interface_name == self._interface.id or not self._database.HasInterface(self._html_interface_name):
+      template_file = 'impl_%s.darttemplate' % self._html_interface_name
       template = self._system._templates.TryLoad(template_file)
     if not template:
       template = self._system._templates.Load('dart_implementation.darttemplate')
@@ -463,7 +377,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         template,
         CLASSNAME=class_name,
         EXTENDS=' extends ' + self._BaseClassName(),
-        IMPLEMENTS=' implements ' + html_interface_name,
+        IMPLEMENTS=' implements ' + self._html_interface_name,
         NATIVESPEC='')
     members_emitter.Emit(''.join(self._members_emitter.Fragments()))
 
@@ -555,28 +469,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     return False
 
-  def AddConstant(self, constant):
-    # Constants are already defined on the interface.
-    pass
-
-  def AddAttribute(self, getter, setter):
-    if 'CheckSecurityForNode' in (getter or setter).ext_attrs:
+  def AddAttribute(self, attribute, html_name, read_only):
+    if 'CheckSecurityForNode' in attribute.ext_attrs:
       # FIXME: exclude from interface as well.
       return
 
-    dom_name = DartDomNameOfAttribute(getter or setter)
-    html_getter_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, dom_name, 'get:', implementation_class=True)
-    html_setter_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, dom_name, 'set:', implementation_class=True)
-
-    if getter and html_getter_name:
-      self._AddGetter(getter, html_getter_name)
-    if setter and html_setter_name:
-      self._AddSetter(setter, html_setter_name)
-
-  def AddSecondaryAttribute(self, interface, getter, setter):
-    self.AddAttribute(getter, setter)
+    self._AddGetter(attribute, html_name)
+    if not read_only:
+      self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
     type_info = GetIDLTypeInfo(attr.type.id)
@@ -853,8 +753,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def AddStaticOperation(self, info):
     self._AddOperation(info)
 
-  def AddSecondaryOperation(self, interface, info):
-    self.AddOperation(info)
+  def SecondaryContext(self, interface):
+    pass
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)

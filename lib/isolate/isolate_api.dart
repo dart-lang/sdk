@@ -90,7 +90,7 @@ interface SendPort extends Hashable {
    * Tests whether [other] is a [SendPort] pointing to the same
    * [ReceivePort] as this one.
    */
-   bool operator==(var other);
+  bool operator==(var other);
 
   /**
    * Returns an immutable hash code for this send port that is
@@ -137,6 +137,13 @@ interface ReceivePort default _ReceivePortFactory {
    * create several [SendPort]s from the same [ReceivePort].
    */
   SendPort toSendPort();
+
+}
+
+// TODO(kasperl): Make this hashable and document it.
+interface SendPortSync {
+
+  callSync(var message);
 
 }
 
