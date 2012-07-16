@@ -514,7 +514,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, attr.type.id, attr.ext_attrs, attr.get_raises)
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=raises_exceptions)
+        True, invocation, raises_exceptions=raises_exceptions, runtime_check=None)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -550,7 +550,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         arguments, 'void', attr.ext_attrs, attr.set_raises)
 
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=True)
+        True, invocation, raises_exceptions=True, runtime_check=None)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -785,10 +785,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateNativeCallback(cpp_callback_name,
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=not operation.is_static, invocation=invocation,
-        raises_exceptions=raises_exceptions)
+        raises_exceptions=raises_exceptions,
+        runtime_check=None)
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
-      needs_receiver, invocation, raises_exceptions, runtime_check=None):
+      needs_receiver, invocation, raises_exceptions, runtime_check):
 
     head = parameter_definitions
 
