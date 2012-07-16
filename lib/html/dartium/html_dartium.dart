@@ -13166,6 +13166,15 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent {
 
 // WARNING: Do not edit - generated code.
 
+class _MutationCallbackImpl extends NativeFieldWrapperClass1 implements MutationCallback {
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _MutationEventImpl extends _EventImpl implements MutationEvent {
 
   int get attrChange() native "MutationEvent_attrChange_Getter";
@@ -30738,7 +30747,9 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
+/// @domName MutationCallback
+interface MutationCallback {
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
