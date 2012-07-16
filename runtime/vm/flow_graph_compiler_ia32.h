@@ -227,7 +227,7 @@ class FlowGraphCompiler : public ValueObject {
       Label* is_instance_lbl,
       Label* is_not_instance_lbl);
 
-  void GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
+  bool GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
                                                intptr_t token_pos,
                                                const AbstractType& dst_type,
                                                Label* is_instance_lbl,

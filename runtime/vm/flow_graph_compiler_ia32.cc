@@ -218,7 +218,8 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 // SubtypeTestCache.
 // EAX: instance to test against (preserved).
 // Clobbers ECX, EDI.
-void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+// Returns true if there is a fallthrough.
+bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
@@ -258,7 +259,7 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ cmpl(kClassIdReg, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
-    return;
+    return false;
   }
   if (type.IsFunctionInterface()) {
     // Check if instance is a closure.
@@ -269,21 +270,22 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ cmpl(EDI, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
-    return;
+    return false;
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
-  // Note that instance is not Smi(checked above).
+  // Note that instance is not Smi (checked above).
   if (type.IsSubtypeOf(
           Type::Handle(Type::NumberInterface()), &malformed_error)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
-    return;
+    return false;
   }
   if (type.IsStringInterface()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
-    return;
+    return false;
   }
   // Otherwise fallthrough.
+  return true;
 }
 
 
@@ -439,16 +441,21 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
                                                        is_not_instance_lbl);
       // Fall through to runtime call.
     }
-    GenerateInstantiatedTypeNoArgumentsTest(cid,
-                                            token_pos,
-                                            type,
-                                            is_instance_lbl,
-                                            is_not_instance_lbl);
-    // If test non-conclusive so far, try the inlined type-test cache.
-    // 'type' is known at compile time.
-    return GenerateSubtype1TestCacheLookup(
-        cid, token_pos, type_class,
-        is_instance_lbl, is_not_instance_lbl);
+    const bool has_fall_through =
+        GenerateInstantiatedTypeNoArgumentsTest(cid,
+                                                token_pos,
+                                                type,
+                                                is_instance_lbl,
+                                                is_not_instance_lbl);
+    if (has_fall_through) {
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          cid, token_pos, type_class,
+          is_instance_lbl, is_not_instance_lbl);
+    } else {
+      return SubtypeTestCache::null();
+    }
   }
   return GenerateUninstantiatedTypeTest(cid,
                                         token_pos,
@@ -501,33 +508,35 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   test_cache = GenerateInlineInstanceof(cid, token_pos, type,
                                         &is_instance, &is_not_instance);
 
-  // Generate runtime call.
-  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
-  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
-  __ pushl(EAX);  // Push the instance.
-  __ PushObject(type);  // Push the type.
-  __ pushl(ECX);  // TODO(srdjan): Pass instantiator instead of null.
-  __ pushl(EDX);  // Instantiator type arguments.
-  __ LoadObject(EAX, test_cache);
-  __ pushl(EAX);
-  GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // instanceof runtime call will be left as the result of the operation.
-  __ Drop(6);
+  // test_cache is null if there is no fall-through.
   Label done;
-  if (negate_result) {
-    __ popl(EDX);
-    __ LoadObject(EAX, bool_true());
-    __ cmpl(EDX, EAX);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    __ LoadObject(EAX, bool_false());
-  } else {
-    __ popl(EAX);
+  if (!test_cache.IsNull()) {
+    // Generate runtime call.
+    __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+    __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+    __ pushl(EAX);  // Push the instance.
+    __ PushObject(type);  // Push the type.
+    __ pushl(ECX);  // Instantiator.
+    __ pushl(EDX);  // Instantiator type arguments.
+    __ LoadObject(EAX, test_cache);
+    __ pushl(EAX);
+    GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
+    // Pop the parameters supplied to the runtime entry. The result of the
+    // instanceof runtime call will be left as the result of the operation.
+    __ Drop(6);
+    if (negate_result) {
+      __ popl(EDX);
+      __ LoadObject(EAX, bool_true());
+      __ cmpl(EDX, EAX);
+      __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+      __ LoadObject(EAX, bool_false());
+    } else {
+      __ popl(EAX);
+    }
+    __ jmp(&done, Assembler::kNearJump);
   }
-  __ jmp(&done, Assembler::kNearJump);
-
   __ Bind(&is_not_instance);
   __ LoadObject(EAX, negate_result ? bool_true() : bool_false());
   __ jmp(&done, Assembler::kNearJump);
