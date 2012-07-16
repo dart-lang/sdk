@@ -132,7 +132,7 @@ static Dart_NativeFunction PropagateError_native_lookup(
 
 TEST_CASE(Dart_PropagateError) {
   const char* kScriptChars =
-      "void raiseCompileError() {\n"
+      "raiseCompileError() {\n"
       "  return badIdent;\n"
       "}\n"
       "\n"

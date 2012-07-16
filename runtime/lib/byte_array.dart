@@ -1025,7 +1025,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt8(value));
   }
 
@@ -1068,7 +1068,7 @@ class _Int8Array extends _ByteArrayBase implements Int8List {
   static _Int8Array _new(int length) native "Int8Array_new";
 
   int _getIndexed(int index) native "Int8Array_getIndexed";
-  void _setIndexed(int index, int value) native "Int8Array_setIndexed";
+  int _setIndexed(int index, int value) native "Int8Array_setIndexed";
 }
 
 
@@ -1088,7 +1088,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint8(value));
   }
 
@@ -1131,7 +1131,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   static _Uint8Array _new(int length) native "Uint8Array_new";
 
   int _getIndexed(int index) native "Uint8Array_getIndexed";
-  void _setIndexed(int index, int value) native "Uint8Array_setIndexed";
+  int _setIndexed(int index, int value) native "Uint8Array_setIndexed";
 }
 
 
@@ -1151,7 +1151,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt16(value));
   }
 
@@ -1194,7 +1194,7 @@ class _Int16Array extends _ByteArrayBase implements Int16List {
   static _Int16Array _new(int length) native "Int16Array_new";
 
   int _getIndexed(int index) native "Int16Array_getIndexed";
-  void _setIndexed(int index, int value) native "Int16Array_setIndexed";
+  int _setIndexed(int index, int value) native "Int16Array_setIndexed";
 }
 
 
@@ -1214,7 +1214,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint16(value));
   }
 
@@ -1257,7 +1257,7 @@ class _Uint16Array extends _ByteArrayBase implements Uint16List {
   static _Uint16Array _new(int length) native "Uint16Array_new";
 
   int _getIndexed(int index) native "Uint16Array_getIndexed";
-  void _setIndexed(int index, int value) native "Uint16Array_setIndexed";
+  int _setIndexed(int index, int value) native "Uint16Array_setIndexed";
 }
 
 
@@ -1277,7 +1277,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt32(value));
   }
 
@@ -1320,7 +1320,7 @@ class _Int32Array extends _ByteArrayBase implements Int32List {
   static _Int32Array _new(int length) native "Int32Array_new";
 
   int _getIndexed(int index) native "Int32Array_getIndexed";
-  void _setIndexed(int index, int value) native "Int32Array_setIndexed";
+  int _setIndexed(int index, int value) native "Int32Array_setIndexed";
 }
 
 
@@ -1340,7 +1340,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint32(value));
   }
 
@@ -1383,7 +1383,7 @@ class _Uint32Array extends _ByteArrayBase implements Uint32List {
   static _Uint32Array _new(int length) native "Uint32Array_new";
 
   int _getIndexed(int index) native "Uint32Array_getIndexed";
-  void _setIndexed(int index, int value) native "Uint32Array_setIndexed";
+  int _setIndexed(int index, int value) native "Uint32Array_setIndexed";
 }
 
 
@@ -1403,7 +1403,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt64(value));
   }
 
@@ -1446,7 +1446,7 @@ class _Int64Array extends _ByteArrayBase implements Int64List {
   static _Int64Array _new(int length) native "Int64Array_new";
 
   int _getIndexed(int index) native "Int64Array_getIndexed";
-  void _setIndexed(int index, int value) native "Int64Array_setIndexed";
+  int _setIndexed(int index, int value) native "Int64Array_setIndexed";
 }
 
 
@@ -1466,7 +1466,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint64(value));
   }
 
@@ -1509,7 +1509,7 @@ class _Uint64Array extends _ByteArrayBase implements Uint64List {
   static _Uint64Array _new(int length) native "Uint64Array_new";
 
   int _getIndexed(int index) native "Uint64Array_getIndexed";
-  void _setIndexed(int index, int value) native "Uint64Array_setIndexed";
+  int _setIndexed(int index, int value) native "Uint64Array_setIndexed";
 }
 
 
@@ -1529,7 +1529,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, double value) {
+  int operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -1572,7 +1572,7 @@ class _Float32Array extends _ByteArrayBase implements Float32List {
   static _Float32Array _new(int length) native "Float32Array_new";
 
   double _getIndexed(int index) native "Float32Array_getIndexed";
-  void _setIndexed(int index, double value) native "Float32Array_setIndexed";
+  int _setIndexed(int index, double value) native "Float32Array_setIndexed";
 }
 
 
@@ -1592,7 +1592,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, double value) {
+  int operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -1635,7 +1635,7 @@ class _Float64Array extends _ByteArrayBase implements Float64List {
   static _Float64Array _new(int length) native "Float64Array_new";
 
   double _getIndexed(int index) native "Float64Array_getIndexed";
-  void _setIndexed(int index, double value) native "Float64Array_setIndexed";
+  int _setIndexed(int index, double value) native "Float64Array_setIndexed";
 }
 
 
@@ -1644,7 +1644,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt8(value));
   }
 
@@ -1685,7 +1685,7 @@ class _ExternalInt8Array extends _ByteArrayBase implements Int8List {
   static final int _BYTES_PER_ELEMENT = 1;
 
   int _getIndexed(int index) native "ExternalInt8Array_getIndexed";
-  void _setIndexed(int index, int value) native "ExternalInt8Array_setIndexed";
+  int _setIndexed(int index, int value) native "ExternalInt8Array_setIndexed";
 }
 
 
@@ -1694,7 +1694,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint8(value));
   }
 
@@ -1735,7 +1735,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
   static final int _BYTES_PER_ELEMENT = 1;
 
   int _getIndexed(int index) native "ExternalUint8Array_getIndexed";
-  void _setIndexed(int index, int value) native "ExternalUint8Array_setIndexed";
+  int _setIndexed(int index, int value) native "ExternalUint8Array_setIndexed";
 }
 
 
@@ -1744,7 +1744,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt16(value));
   }
 
@@ -1785,7 +1785,7 @@ class _ExternalInt16Array extends _ByteArrayBase implements Int16List {
   static final int _BYTES_PER_ELEMENT = 2;
 
   int _getIndexed(int index) native "ExternalInt16Array_getIndexed";
-  void _setIndexed(int index, int value) native "ExternalInt16Array_setIndexed";
+  int _setIndexed(int index, int value) native "ExternalInt16Array_setIndexed";
 }
 
 
@@ -1794,7 +1794,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint16(value));
   }
 
@@ -1836,7 +1836,7 @@ class _ExternalUint16Array extends _ByteArrayBase implements Uint16List {
 
   int _getIndexed(int index)
       native "ExternalUint16Array_getIndexed";
-  void _setIndexed(int index, int value)
+  int _setIndexed(int index, int value)
       native "ExternalUint16Array_setIndexed";
 }
 
@@ -1846,7 +1846,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt32(value));
   }
 
@@ -1888,7 +1888,7 @@ class _ExternalInt32Array extends _ByteArrayBase implements Int32List {
 
   int _getIndexed(int index)
       native "ExternalInt32Array_getIndexed";
-  void _setIndexed(int index, int value)
+  int _setIndexed(int index, int value)
       native "ExternalInt32Array_setIndexed";
 }
 
@@ -1898,7 +1898,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint32(value));
   }
 
@@ -1940,7 +1940,7 @@ class _ExternalUint32Array extends _ByteArrayBase implements Uint32List {
 
   int _getIndexed(int index)
       native "ExternalUint32Array_getIndexed";
-  void _setIndexed(int index, int value)
+  int _setIndexed(int index, int value)
       native "ExternalUint32Array_setIndexed";
 }
 
@@ -1950,7 +1950,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toInt64(value));
   }
 
@@ -1992,7 +1992,7 @@ class _ExternalInt64Array extends _ByteArrayBase implements Int64List {
 
   int _getIndexed(int index)
       native "ExternalInt64Array_getIndexed";
-  void _setIndexed(int index, int value)
+  int _setIndexed(int index, int value)
       native "ExternalInt64Array_setIndexed";
 }
 
@@ -2002,7 +2002,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, int value) {
+  int operator[]=(int index, int value) {
     _setIndexed(index, _toUint64(value));
   }
 
@@ -2044,7 +2044,7 @@ class _ExternalUint64Array extends _ByteArrayBase implements Uint64List {
 
   int _getIndexed(int index)
       native "ExternalUint64Array_getIndexed";
-  void _setIndexed(int index, int value)
+  int _setIndexed(int index, int value)
       native "ExternalUint64Array_setIndexed";
 }
 
@@ -2054,7 +2054,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, double value) {
+  int operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -2096,7 +2096,7 @@ class _ExternalFloat32Array extends _ByteArrayBase implements Float32List {
 
   double _getIndexed(int index)
       native "ExternalFloat32Array_getIndexed";
-  void _setIndexed(int index, double value)
+  int _setIndexed(int index, double value)
       native "ExternalFloat32Array_setIndexed";
 }
 
@@ -2106,7 +2106,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
     return _getIndexed(index);
   }
 
-  void operator[]=(int index, double value) {
+  int operator[]=(int index, double value) {
     _setIndexed(index, value);
   }
 
@@ -2148,7 +2148,7 @@ class _ExternalFloat64Array extends _ByteArrayBase implements Float64List {
 
   double _getIndexed(int index)
       native "ExternalFloat64Array_getIndexed";
-  void _setIndexed(int index, double value)
+  int _setIndexed(int index, double value)
       native "ExternalFloat64Array_setIndexed";
 }
 

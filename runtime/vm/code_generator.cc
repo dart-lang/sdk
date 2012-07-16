@@ -586,11 +586,13 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
 }
 
 
-// For error reporting simplify type name, e.g, all integer types (Smi, Mint,
-// Bigint) a re reported as 'int'.
+// For error reporting, simplify type name, e.g, all integer types (Smi, Mint,
+// Bigint) are reported as 'int' and all String types are mapped to 'String'.
 static RawString* GetSimpleTypeName(const Instance& value) {
   if (value.IsInteger()) {
     return String::NewSymbol("int");
+  } else if (value.IsString()) {
+    return String::NewSymbol("String");
   } else {
     return Type::Handle(value.GetType()).Name();
   }

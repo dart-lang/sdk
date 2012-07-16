@@ -1475,7 +1475,7 @@ UNIT_TEST_CASE(PostCObject) {
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
       "#import('dart:isolate');\n"
-      "void main() {\n"
+      "main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
       "  var port = new ReceivePort();\n"
