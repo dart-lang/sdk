@@ -791,21 +791,21 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
       needs_receiver, invocation, raises_exceptions, runtime_check):
 
-    head = parameter_definitions
-
-    if needs_receiver:
-      head = emitter.Format(
-          '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n'
-          '$HEAD\n',
-          WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
-          HEAD=head)
+    head_emitter = emitter.Emitter()
 
     if runtime_check:
-      head = emitter.Format(
-          '$RUNTIME_CHECK\n'
-          '$HEAD\n',
-          RUNTIME_CHECK=runtime_check,
-          HEAD=head)
+      head_emitter.Emit(
+          '$RUNTIME_CHECK\n',
+          RUNTIME_CHECK=runtime_check)
+
+    if needs_receiver:
+      head_emitter.Emit(
+          '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n',
+          WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
+
+    head_emitter.Emit(
+        '$PARAMETE_DEFINITIONS\n',
+        PARAMETE_DEFINITIONS=parameter_definitions)
 
     body = emitter.Format(
         '    {\n'
@@ -813,7 +813,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         '$INVOCATION'
         '        return;\n'
         '    }\n',
-        HEAD=head,
+        HEAD=head_emitter.Fragments(),
         INVOCATION=invocation)
 
     if raises_exceptions:
