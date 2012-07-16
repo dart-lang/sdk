@@ -165,7 +165,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         system._database, interface)
     self._system = system
     self._current_secondary_parent = None
-    self._html_interface_name = system._type_registry.InterfaceName(self._interface.id)
+    self._html_interface_name = system._renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
@@ -418,7 +418,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
     is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
     def TypeCheckHelper(test):
-      return 'true' if _FindInHierarchy(self._database, self._interface, test) else 'false'
+      return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
 
     self._cpp_header_emitter.Emit(
         self._system._templates.Load('cpp_header.template'),

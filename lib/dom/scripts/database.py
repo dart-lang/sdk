@@ -225,3 +225,12 @@ class Database(object):
     if os.path.exists(file_path):
       _logger.debug('deleting %s' % file_path)
       os.remove(file_path)
+
+  def Hierarchy(self, interface):
+    yield interface
+    for parent in interface.parents:
+      parent_name = parent.type.id
+      if not self.HasInterface(parent.type.id):
+        continue
+      for parent_interface in self.Hierarchy(self.GetInterface(parent.type.id)):
+        yield parent_interface

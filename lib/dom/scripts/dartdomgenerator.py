@@ -15,9 +15,10 @@ import shutil
 import subprocess
 import sys
 from generator import TypeRegistry
+from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
 from systemfrog import FrogSystem
-from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem, HtmlSystemShared
+from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem
 from systeminterface import InterfacesSystem
 from systemnative import NativeImplementationSystem
 from templateloader import TemplateLoader
@@ -62,11 +63,12 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
 
-  def CreateGeneratorOptions(template_paths, conditions, type_registry,
-                             output_dir):
+  def CreateGeneratorOptions(template_paths, conditions, type_registry, output_dir,
+                             renamer=None):
+    template_loader = TemplateLoader(template_dir, template_paths, conditions)
     return GeneratorOptions(
-        TemplateLoader(template_dir, template_paths, conditions),
-        webkit_database, emitters, type_registry, output_dir)
+        template_loader, webkit_database, emitters, type_registry, renamer,
+        output_dir)
 
   def Generate(system):
     generator.Generate(webkit_database, system,
@@ -77,29 +79,27 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
 
   for system_name in system_names:
     if system_name in ['htmlfrog', 'htmldartium']:
-      renames = HtmlSystemShared.MakeHtmlRenames(webkit_database)
-      type_registry = TypeRegistry(renames)
+      renamer = HtmlRenamer(webkit_database)
+      type_registry = TypeRegistry(webkit_database, renamer)
       if system_name == 'htmlfrog':
         options = CreateGeneratorOptions(
             ['html/frog', 'html/impl', 'html', ''],
             {'DARTIUM': False, 'FROG': True},
-            type_registry,
-            html_output_dir)
+            type_registry, html_output_dir, renamer)
         backend = HtmlFrogSystem(options)
       else:
         options = CreateGeneratorOptions(
             ['dom/native', 'html/dartium', 'html/impl', ''],
             {'DARTIUM': True, 'FROG': False},
-            type_registry,
-            html_output_dir)
+            type_registry, html_output_dir, renamer)
         backend = NativeImplementationSystem(options, auxiliary_dir)
       options = CreateGeneratorOptions(
-          ['html/interface', 'html/impl', 'html', ''], {}, type_registry,
-          html_output_dir)
+          ['html/interface', 'html/impl', 'html', ''], {},
+          type_registry, html_output_dir, renamer)
       html_system = HtmlInterfacesSystem(options, backend)
       Generate(html_system)
     else:
-      type_registry = TypeRegistry({})
+      type_registry = TypeRegistry(webkit_database)
       options = CreateGeneratorOptions(
           ['dom/interface', 'dom', ''], {}, type_registry, dom_output_dir)
       interface_system = InterfacesSystem(options)

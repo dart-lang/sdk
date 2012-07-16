@@ -287,8 +287,8 @@ class DummyImplementationSystem(systembase.System):
   All the code comes from hand-written library files.
   """
 
-  def __init__(self, context):
-    super(DummyImplementationSystem, self).__init__(context)
+  def __init__(self, options):
+    super(DummyImplementationSystem, self).__init__(options)
     factory_providers_file = os.path.join(self._output_dir, 'src', 'dummy',
                                           'RegularFactoryProviders.dart')
     self._factory_providers_emitter = self._emitters.FileEmitter(

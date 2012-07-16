@@ -815,8 +815,9 @@ _svg_supplemental_includes = [
 ]
 
 class TypeRegistry(object):
-  def __init__(self, interface_renames):
-    self._interface_renames = interface_renames
+  def __init__(self, database, renamer=None):
+    self._database = database
+    self._renamer = renamer
     self._cache = {}
 
   def TypeInfo(self, type_name):
@@ -826,10 +827,10 @@ class TypeRegistry(object):
 
   def DartType(self, type_name):
     dart_type = self.TypeInfo(type_name).dart_type()
-    return self._interface_renames.get(dart_type, dart_type)
-
-  def InterfaceName(self, type_name):
-    return self._interface_renames.get(type_name, type_name)
+    if self._database.HasInterface(dart_type):
+      interface = self._database.GetInterface(dart_type)
+      return self._renamer.RenameInterface(interface)
+    return dart_type
 
   def _TypeInfo(self, type_name):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)

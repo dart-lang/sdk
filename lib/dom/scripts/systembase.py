@@ -29,6 +29,7 @@ class System(object):
     self._database = options.database
     self._emitters = options.emitters
     self._type_registry = options.type_registry
+    self._renamer = options.renamer
     self._output_dir = options.output_dir
 
   def ProcessInterface(self, interface):
@@ -227,11 +228,13 @@ class BaseGenerator(object):
 
 
 class GeneratorOptions(object):
-  def __init__(self, templates, database, emitters, type_registry, output_dir):
+  def __init__(self, templates, database, emitters, type_registry, renamer,
+               output_dir):
     self.templates = templates
     self.database = database
     self.emitters = emitters
     self.type_registry = type_registry
+    self.renamer = renamer
     self.output_dir = output_dir
 
 

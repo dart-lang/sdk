@@ -11,266 +11,6 @@ import emitter
 from systemfrog import *
 from systeminterface import *
 
-_html_strip_webkit_prefix_classes = [
-    'Animation',
-    'AnimationEvent',
-    'AnimationList',
-    'BlobBuilder',
-    'CSSKeyframeRule',
-    'CSSKeyframesRule',
-    'CSSMatrix',
-    'CSSTransformValue',
-    'Flags',
-    'LoseContext',
-    'Point',
-    'TransitionEvent']
-
-# Members from the standard dom that should not be exposed publicly in dart:html
-# but need to be exposed internally to implement dart:html on top of a standard
-# browser.
-_private_html_members = set([
-  'Document.createElement',
-  'Document.createElementNS',
-  'Document.createEvent',
-  'Document.createTextNode',
-  'Document.createTouchList',
-  'Document.getElementById',
-  'Document.getElementsByClassName',
-  'Document.getElementsByName',
-  'Document.getElementsByTagName',
-  'Document.querySelector',
-  'Document.querySelectorAll',
-  'DocumentFragment.querySelector',
-  'DocumentFragment.querySelectorAll',
-  'Element.childElementCount',
-  'Element.children',
-  'Element.className',
-  'Element.clientHeight',
-  'Element.clientLeft',
-  'Element.clientTop',
-  'Element.clientWidth',
-  'Element.firstElementChild',
-  'Element.getAttribute',
-  'Element.getBoundingClientRect',
-  'Element.getClientRects',
-  'Element.getElementsByClassName',
-  'Element.getElementsByTagName',
-  'Element.hasAttribute',
-  'Element.lastElementChild',
-  'Element.offsetHeight',
-  'Element.offsetLeft',
-  'Element.offsetTop',
-  'Element.offsetWidth',
-  'Element.querySelector',
-  'Element.querySelectorAll',
-  'Element.removeAttribute',
-  'Element.scrollHeight',
-  'Element.scrollLeft',
-  'Element.scrollTop',
-  'Element.scrollWidth',
-  'Element.setAttribute',
-  'Event.initEvent',
-  'EventTarget.addEventListener',
-  'EventTarget.dispatchEvent',
-  'EventTarget.removeEventListener',
-  'MouseEvent.initMouseEvent',
-  'Node.appendChild',
-  'Node.attributes',
-  'Node.childNodes',
-  'Node.firstChild',
-  'Node.lastChild',
-  "Node.nodeType",
-  'Node.removeChild',
-  'Node.replaceChild',
-  'Storage.length',
-  'Storage.clear',
-  'Storage.getItem',
-  'Storage.key',
-  'Storage.removeItem',
-  'Storage.setItem',
-  'Window.getComputedStyle',
-])
-
-# Members from the standard dom that exist in the dart:html library with
-# identical functionality but with cleaner names.
-_html_library_renames = {
-    'Document.defaultView': 'window',
-    'Element.webkitMatchesSelector' : 'matchesSelector',
-    'Element.scrollIntoViewIfNeeded': 'scrollIntoView',
-    'Node.cloneNode': 'clone',
-    'Node.nextSibling': 'nextNode',
-    'Node.ownerDocument': 'document',
-    'Node.parentNode': 'parent',
-    'Node.previousSibling': 'previousNode',
-    'Node.textContent': 'text',
-    'SVGElement.className': '$dom_svgClassName',
-    'SVGAnimatedString.className': '$dom_svgClassName',
-    'SVGStylable.className': '$dom_svgClassName',
-}
-
-# Members and classes from the dom that should be removed completelly from
-# dart:html.  These could be expressed in the IDL instead but expressing this
-# as a simple table instead is more concise.
-# Syntax is: ClassName.(get\.|set\.)?MemberName
-# Using get: and set: is optional and should only be used when a getter needs
-# to be suppressed but not the setter, etc.
-# TODO(jacobr): cleanup and augment this list.
-_html_library_remove = set([
-    'NodeList.item',
-    "Attr.*",
-#    "BarProp.*",
-#    "BarInfo.*",
-#    "Blob.webkitSlice",
-#    "CDATASection.*",
-#    "Comment.*",
-#    "DOMImplementation.*",
-    "Document.get:forms",
-#    "Document.get:selectedStylesheetSet",
-#    "Document.set:selectedStylesheetSet",
-#    "Document.get:preferredStylesheetSet",
-    "Document.get:links",
-    "Document.set:domain",
-    "Document.get:implementation",
-    "Document.createAttributeNS",
-    "Document.get:inputEncoding",
-    "Document.get:height",
-    "Document.get:width",
-    "Element.getElementsByTagNameNS",
-    "Document.get:compatMode",
-    "Document.importNode",
-    "Document.evaluate",
-    "Document.get:images",
-    "Document.createExpression",
-    "Document.getOverrideStyle",
-    "Document.xmlStandalone",
-    "Document.createComment",
-    "Document.adoptNode",
-    "Document.get:characterSet",
-    "Document.createAttribute",
-    "Document.get:URL",
-    "Document.createEntityReference",
-    "Document.get:documentURI",
-    "Document.set:documentURI",
-    "Document.createNodeIterator",
-    "Document.createProcessingInstruction",
-    "Document.get:doctype",
-    "Document.createTreeWalker",
-    "Document.location",
-    "Document.createNSResolver",
-    "Document.get:xmlEncoding",
-    "Document.get:defaultCharset",
-    "Document.get:applets",
-    "Document.getSelection",
-    "Document.xmlVersion",
-    "Document.get:anchors",
-    "Document.getElementsByTagNameNS",
-    "DocumentType.*",
-    "Element.hasAttributeNS",
-    "Element.getAttributeNS",
-    "Element.setAttributeNode",
-    "Element.getAttributeNode",
-    "Element.removeAttributeNode",
-    "Element.removeAttributeNS",
-    "Element.setAttributeNodeNS",
-    "Element.getAttributeNodeNS",
-    "Element.setAttributeNS",
-    "BodyElement.text",
-    "AnchorElement.text",
-    "OptionElement.text",
-    "ScriptElement.text",
-    "TitleElement.text",
-#    "EventSource.get:url",
-# TODO(jacobr): should these be removed?
-    "Document.close",
-    "Document.hasFocus",
-
-    "Document.vlinkColor",
-    "Document.captureEvents",
-    "Document.releaseEvents",
-    "Document.get:compatMode",
-    "Document.designMode",
-    "Document.dir",
-    "Document.all",
-    "Document.write",
-    "Document.fgColor",
-    "Document.bgColor",
-    "Document.get:plugins",
-    "Document.alinkColor",
-    "Document.get:embeds",
-    "Document.open",
-    "Document.clear",
-    "Document.get:scripts",
-    "Document.writeln",
-    "Document.linkColor",
-    "Element.get:itemRef",
-    "Element.outerText",
-    "Element.accessKey",
-    "Element.get:itemType",
-    "Element.innerText",
-    "Element.set:outerHTML",
-    "Element.itemScope",
-    "Element.itemValue",
-    "Element.itemId",
-    "Element.get:itemProp",
-    'Element.scrollIntoView',
-    'Element.get:classList',
-    "EmbedElement.getSVGDocument",
-    "FormElement.get:elements",
-    "HTMLFrameElement.*",
-    "HTMLFrameSetElement.*",
-    "HtmlElement.version",
-    "HtmlElement.manifest",
-    "Document.version",
-    "Document.manifest",
-#    "IFrameElement.getSVGDocument",  #TODO(jacobr): should this be removed
-    "InputElement.dirName",
-    "HTMLIsIndexElement.*",
-    "ObjectElement.getSVGDocument",
-    "HTMLOptionsCollection.*",
-    "HTMLPropertiesCollection.*",
-    "SelectElement.remove",
-    "TextAreaElement.dirName",
-    "NamedNodeMap.*",
-    "Node.isEqualNode",
-    "Node.get:TEXT_NODE",
-    "Node.hasAttributes",
-    "Node.get:DOCUMENT_TYPE_NODE",
-    "Node.get:DOCUMENT_POSITION_FOLLOWING",
-    "Node.lookupNamespaceURI",
-    "Node.get:ELEMENT_NODE",
-    "Node.get:namespaceURI",
-    "Node.get:DOCUMENT_FRAGMENT_NODE",
-    "Node.get:localName",
-    "Node.isDefaultNamespace",
-    "Node.compareDocumentPosition",
-    "Node.get:baseURI",
-    "Node.isSameNode",
-    "Node.get:DOCUMENT_POSITION_DISCONNECTED",
-    "Node.get:DOCUMENT_NODE",
-    "Node.get:DOCUMENT_POSITION_CONTAINS",
-    "Node.get:COMMENT_NODE",
-    "Node.get:ENTITY_REFERENCE_NODE",
-    "Node.isSupported",
-    "Node.get:DOCUMENT_POSITION_IMPLEMENTATION_SPECIFIC",
-    "Node.get:NOTATION_NODE",
-    "Node.normalize",
-    "Node.get:parentElement",
-    "Node.get:ATTRIBUTE_NODE",
-    "Node.get:ENTITY_NODE",
-    "Node.get:DOCUMENT_POSITION_CONTAINED_BY",
-    "Node.get:prefix",
-    "Node.set:prefix",
-    "Node.get:DOCUMENT_POSITION_PRECEDING",
-    "Node.get:nodeValue",
-    "Node.set:nodeValue",
-    "Node.get:CDATA_SECTION_NODE",
-    "Node.get:nodeName",
-    "Node.lookupPrefix",
-    "Node.get:PROCESSING_INSTRUCTION_NODE",
-    "IFrameElement.get:contentDocument",
-    "Window.get:frameElement",
-    ])
-
 _js_custom_members = set([
     'IFrameElement.contentWindow',
     'Window.document',
@@ -626,80 +366,6 @@ class HtmlSystemShared(object):
     self._event_classes = set()
     self._seen_event_names = {}
     self._database = context.database
-    self._type_registry = context.type_registry
-    self._inheritance_closure = _ComputeInheritanceClosure(self._database)
-
-  @staticmethod
-  def _HasAncestor(database, interface, names_to_match):
-    for parent in interface.parents:
-      if parent.type.id in names_to_match:
-        return True
-      if not database.HasInterface(parent.type.id):
-        continue
-      parent_interface = database.GetInterface(parent.type.id)
-      if HtmlSystemShared._HasAncestor(database, parent_interface, names_to_match):
-        return True
-    return False
-
-  @staticmethod
-  def MakeHtmlRenames(database):
-    html_renames = {}
-
-    for interface in database.GetInterfaces():
-      if (interface.id.startswith('HTML') and
-          HtmlSystemShared._HasAncestor(database, interface, ['Element', 'Document'])):
-        html_renames[interface.id] = interface.id[4:]
-
-    for subclass in _html_strip_webkit_prefix_classes:
-      html_renames['WebKit' + subclass] = subclass
-
-    # TODO(jacobr): we almost want to add this commented out line back.
-    #    html_renames['HTMLCollection'] = 'ElementList'
-    #    html_renames['NodeList'] = 'ElementList'
-    #    html_renames['HTMLOptionsCollection'] = 'ElementList'
-    html_renames['DOMWindow'] = 'Window'
-
-    return html_renames
-
-  def _FindMatch(self, interface_name, member, member_prefix, candidates):
-    for ancestor_name in self._AllAncestorInterfaces(interface_name):
-      name = self._DartType(ancestor_name) + '.' + member
-      if name in candidates:
-        return name
-      name = (self._DartType(interface_name) + '.' + member_prefix +
-              member)
-      if name in candidates:
-        return name
-    return None
-
-  def _AllAncestorInterfaces(self, interface_name):
-    return [interface_name] + self._inheritance_closure[interface_name]
-
-  def RenameInHtmlLibrary(self, interface_name, member, member_prefix='',
-                          implementation_class=False):
-    """
-    Returns the name of the member in the HTML library or None if the member is
-    suppressed in the HTML library
-    """
-    if self._FindMatch(interface_name, member, member_prefix,
-                     _html_library_remove):
-      return None
-
-    name = self._FindMatch(interface_name, member, member_prefix,
-                         _html_library_renames)
-    target_name = _html_library_renames[name] if name else member
-
-    if not target_name.startswith('_'):
-      if self._FindMatch(interface_name, member, member_prefix,
-                       _private_html_members):
-        if not target_name.startswith('$dom_'):  # e.g. $dom_svgClassName
-          target_name = '$dom_' + target_name
-
-    return target_name
-
-  def IsCustomInHtmlLibrary(self, interface, member, member_prefix=''):
-    return self._FindMatch(interface.id, member, member_prefix,
-        _html_library_custom)
 
   # TODO(jacobr): this already exists
   def _TraverseParents(self, interface, callback):
@@ -752,9 +418,6 @@ class HtmlSystemShared(object):
   def IsPrivate(self, name):
     return name.startswith('_')
 
-  def _DartType(self, type_name):
-    return self._type_registry.DartType(type_name)
-
 
 class HtmlInterfacesSystem(System):
   def __init__(self, options, backend):
@@ -793,7 +456,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
         system._database, interface)
     self._system = system
     self._shared = system._shared
-    self._html_interface_name = system._type_registry.InterfaceName(self._interface.id)
+    self._html_interface_name = system._renamer.RenameInterface(self._interface)
     self._backend = system._backend.ImplementationGenerator(self._interface)
 
   def StartInterface(self):
@@ -934,13 +597,13 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
 
   def AddAttribute(self, attribute, is_secondary=False):
     dom_name = DartDomNameOfAttribute(attribute)
-    html_name = self._shared.RenameInHtmlLibrary(
+    html_name = self._system._renamer.RenameMember(
       self._interface.id, dom_name, 'get:')
     if not html_name or self._shared.IsPrivate(html_name):
       return
 
 
-    html_setter_name = self._shared.RenameInHtmlLibrary(
+    html_setter_name = self._system._renamer.RenameMember(
         self._interface.id, dom_name, 'set:')
     read_only = IsReadOnly(attribute) or not html_setter_name
 
@@ -968,7 +631,7 @@ class HtmlDartInterfaceGenerator(BaseGenerator):
       operations - contains the overloads, one or more operations with the same
         name.
     """
-    html_name = self._shared.RenameInHtmlLibrary(self._interface.id, info.name)
+    html_name = self._system._renamer.RenameMember(self._interface.id, info.name)
     if not html_name:
       if info.name == 'item':
         # FIXME: item should be renamed to operator[], not removed.
@@ -1085,7 +748,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
   def __init__(self, system, interface):
     super(HtmlFrogClassGenerator, self).__init__(
         system, interface, None, None)
-    self._html_interface_name = system._type_registry.InterfaceName(self._interface.id)
+    self._html_interface_name = system._renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
     return not (IsPureInterface(self._interface.id) or
@@ -1352,29 +1015,3 @@ class HtmlFrogSystem(System):
 
   def Finish(self):
     pass
-
-# -----------------------------------------------------------------------------
-
-def _ComputeInheritanceClosure(database):
-  def Collect(interface, seen, collected):
-    name = interface.id
-    if '<' in name:
-      # TODO(sra): Handle parameterized types.
-      return
-    if not name in seen:
-      seen.add(name)
-      collected.append(name)
-      for parent in interface.parents:
-        # TODO(sra): Handle parameterized types.
-        if not '<' in parent.type.id:
-          if database.HasInterface(parent.type.id):
-            Collect(database.GetInterface(parent.type.id),
-                    seen, collected)
-
-  inheritance_closure = {}
-  for interface in database.GetInterfaces():
-    seen = set()
-    collected = []
-    Collect(interface, seen, collected)
-    inheritance_closure[interface.id] = collected
-  return inheritance_closure
