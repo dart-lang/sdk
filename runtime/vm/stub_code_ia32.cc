@@ -1562,8 +1562,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   if (FlowGraphCompiler::CanOptimize()) {
     __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
-    Label not_yet_hot;
-    __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+    Label not_yet_hot, already_optimized;
+    __ j(LESS, &not_yet_hot, Assembler::kNearJump);
+    __ j(GREATER, &already_optimized, Assembler::kNearJump);
     // Create a stub frame as we are pushing some objects on the stack before
     // calling into the runtime.
     AssemblerMacros::EnterStubFrame(assembler);
@@ -1576,6 +1577,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ popl(ECX);  // Restore inline cache data object.
     __ LeaveFrame();
     __ Bind(&not_yet_hot);
+    __ Bind(&already_optimized);
   }
 
   ASSERT(num_args > 0);

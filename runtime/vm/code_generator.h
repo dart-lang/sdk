@@ -64,6 +64,7 @@ DECLARE_RUNTIME_ENTRY(TraceFunctionExit);
   V(DeoptInstanceSetter) \
   V(DeoptSmiEquality) \
   V(DeoptEquality) \
+  V(DeoptRelationalOp) \
   V(DeoptSmiCompareSmi) \
   V(DeoptSmiCompareAny) \
   V(DeoptDoubleCompareDouble) \

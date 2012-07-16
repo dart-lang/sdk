@@ -380,12 +380,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
       call->set_ic_data(&unary_checks);
       instr->set_computation(call);
     }
-  } else {
-    // Mark it for deopt.
-    PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
-    call->set_ic_data(&ICData::ZoneHandle());
-    instr->set_computation(call);
   }
+  // An instance call without ICData should continue calling via IC calls
+  // which should trigger reoptimization of optimized code.
 }
 
 

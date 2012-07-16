@@ -22,18 +22,20 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, inline_cache, true, "enable inline caches");
+DEFINE_FLAG(bool, inline_cache, true, "Enable inline caches");
 DEFINE_FLAG(bool, trace_deopt, false, "Trace deoptimization");
-DEFINE_FLAG(bool, trace_ic, false, "trace IC handling");
+DEFINE_FLAG(bool, trace_ic, false, "Trace IC handling");
 DEFINE_FLAG(bool, trace_patching, false, "Trace patching of code.");
-DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls.");
+DEFINE_FLAG(bool, trace_runtime_calls, false, "Trace runtime calls");
 DEFINE_FLAG(int, optimization_counter_threshold, 2000,
-    "function's usage-counter value before it is optimized, -1 means never.");
+    "Function's usage-counter value before it is optimized, -1 means never");
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_type_checks);
 DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(int, deoptimization_counter_threshold);
 DEFINE_FLAG(charp, optimization_filter, NULL, "Optimize only named function");
+DEFINE_FLAG(bool, trace_failed_optimization_attempts, false,
+    "Traces all failed optimization attempts");
 
 
 DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
@@ -1273,6 +1275,27 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
 }
 
 
+static void PrintCaller(const char* msg) {
+  DartFrameIterator iterator;
+  StackFrame* top_frame = iterator.NextFrame();
+  ASSERT(top_frame != NULL);
+  const Function& top_function = Function::Handle(
+      top_frame->LookupDartFunction());
+  OS::Print("Failed: '%s' %s @ 0x%x\n",
+      msg, top_function.ToFullyQualifiedCString(), top_frame->pc());
+  StackFrame* caller_frame = iterator.NextFrame();
+  if (caller_frame != NULL) {
+    const Function& caller_function = Function::Handle(
+        caller_frame->LookupDartFunction());
+    const Code& code = Code::Handle(caller_frame->LookupDartCode());
+    OS::Print("  -> caller: %s (%s)\n",
+        caller_function.ToFullyQualifiedCString(),
+        code.is_optimized() ? "optimized" : "unoptimized");
+  }
+}
+
+
+
 // Only unoptimized code has invocation counter threshold checking.
 // Once the invocation counter threshold is reached any entry into the
 // unoptimized code is redirected to this function.
@@ -1289,17 +1312,23 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
   }
   if (function.deoptimization_counter() >=
       FLAG_deoptimization_counter_threshold) {
+    if (FLAG_trace_failed_optimization_attempts) {
+      PrintCaller("Too Many Deoptimizations");
+    }
     // TODO(srdjan): Investigate excessive deoptimization.
     function.set_usage_counter(kLowInvocationCount);
     return;
   }
   if (function.HasOptimizedCode()) {
-    // The caller has been already optimized.
-    // TODO(srdjan): This is a significant slowdown, the caller is probably in
-    // a loop. Maybe test if the code has been optimized before calling.
-    // If this happens from optimized code, then it means that the optimized
-    // code needs to be reoptimized.
-    function.set_usage_counter(kLowInvocationCount);
+    // The caller has been already optimized, the caller is probably in
+    // a loop or in a recursive call chain.
+    // Leave the usage_counter at the limit so that the count test knows that
+    // method is optimized.
+    if (FLAG_trace_failed_optimization_attempts) {
+      PrintCaller("Has Optimized Code");
+    }
+    // TODO(srdjan): Enable reoptimizing optimized code, but most recognize
+    // that reoptimization was not already applied.
     return;
   }
   if ((FLAG_optimization_filter != NULL) &&
@@ -1310,9 +1339,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     return;
   }
   if (function.is_optimizable()) {
-    ASSERT(!function.HasOptimizedCode());
-    const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
     // Compilation patches the entry of unoptimized code.
+    ASSERT(!function.HasOptimizedCode());
     const Error& error =
         Error::Handle(Compiler::CompileOptimizedFunction(function));
     if (!error.IsNull()) {
@@ -1320,8 +1348,11 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     }
     const Code& optimized_code = Code::Handle(function.CurrentCode());
     ASSERT(!optimized_code.IsNull());
-    ASSERT(!unoptimized_code.IsNull());
+    function.set_usage_counter(0);
   } else {
+    if (FLAG_trace_failed_optimization_attempts) {
+      PrintCaller("Not Optimizable");
+    }
     // TODO(5442338): Abort as this should not happen.
     function.set_usage_counter(kLowInvocationCount);
   }

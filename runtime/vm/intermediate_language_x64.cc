@@ -68,14 +68,16 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
       // Do not optimize if usage count must be reported.
       __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
-      Label not_yet_hot;
-      __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+      Label not_yet_hot, already_optimized;
+      __ j(LESS, &not_yet_hot, Assembler::kNearJump);
+      __ j(GREATER, &already_optimized, Assembler::kNearJump);
       __ pushq(result);  // Preserve result.
       __ pushq(temp);  // Argument for runtime: function to optimize.
       __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
       __ popq(temp);  // Remove argument.
       __ popq(result);  // Restore result.
       __ Bind(&not_yet_hot);
+      __ Bind(&already_optimized);
     }
   }
   if (FLAG_trace_functions) {
@@ -577,6 +579,31 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     EmitDoubleRelationalOp(compiler, this);
     return;
   }
+  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    Label* deopt = compiler->AddDeoptStub(cid(),
+                                          token_pos(),
+                                          try_index(),
+                                          kDeoptRelationalOp);
+    // Load receiver into RAX, class into RDI.
+    Label done;
+    const intptr_t kNumArguments = 2;
+    __ movq(RDI, Immediate(kSmi));
+    __ movq(RAX, Address(RSP, (kNumArguments - 1) * kWordSize));
+    __ testq(RAX, Immediate(kSmiTagMask));
+    __ j(ZERO, &done);
+    __ LoadClassId(RDI, RAX);
+    __ Bind(&done);
+    compiler->EmitTestAndCall(ICData::Handle(ic_data()->AsUnaryClassChecks()),
+                              RDI,  // Class id register.
+                              kNumArguments,
+                              Array::Handle(),  // No named arguments.
+                              deopt,  // Deoptimize target.
+                              NULL,   // Fallthrough when done.
+                              cid(),
+                              token_pos(),
+                              try_index());
+    return;
+  }
   const String& function_name =
       String::ZoneHandle(String::NewSymbol(Token::Str(kind())));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
@@ -665,10 +692,7 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
                                         comp->token_pos(),
                                         comp->try_index(),
                                         kDeoptLoadIndexedPolymorphic);
-  if (comp->ic_data()->NumberOfChecks() == 0) {
-    __ jmp(deopt);
-    return;
-  }
+  ASSERT(comp->ic_data()->NumberOfChecks() > 0);
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   ASSERT(ic_data.num_args_tested() == 1);
@@ -694,7 +718,7 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
 
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_type() == kIllegalObjectKind) {
-    if (HasICData()) {
+    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       EmitLoadIndexedPolymorphic(compiler, this);
     } else {
       compiler->EmitLoadIndexedGeneric(this);
@@ -803,10 +827,7 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
                                         comp->token_pos(),
                                         comp->try_index(),
                                         kDeoptStoreIndexedPolymorphic);
-  if (comp->ic_data()->NumberOfChecks() == 0) {
-    __ jmp(deopt);
-    return;
-  }
+  ASSERT(comp->ic_data()->NumberOfChecks() > 0);
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   ASSERT(ic_data.num_args_tested() == 1);
@@ -832,7 +853,7 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
 
 void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_type() == kIllegalObjectKind) {
-    if (HasICData()) {
+    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       EmitStoreIndexedPolymorphic(compiler, this);
     } else {
       EmitStoreIndexedGeneric(compiler, this);
@@ -899,22 +920,54 @@ LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
 
 
 void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const String& function_name =
-      String::ZoneHandle(Field::SetterSymbol(field_name()));
+  Label* deopt = NULL;
+  if (compiler->is_optimizing()) {
+    deopt = compiler->AddDeoptStub(cid(),
+                                   token_pos(),
+                                   try_index(),
+                                   kDeoptInstanceSetter);
+  }
+  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    // No index-setter on Smi's.
+    ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmi);
+    // Load receiver into RAX.
+    const intptr_t kNumArguments = 2;
+    __ movq(RAX, Address(RSP, (kNumArguments - 1) * kWordSize));
+    __ testq(RAX, Immediate(kSmiTagMask));
+    __ j(ZERO, deopt);
+    __ LoadClassId(RDI, RAX);
+    compiler->EmitTestAndCall(*ic_data(),
+                              RDI,  // Class id register.
+                              kNumArguments,
+                              Array::Handle(),  // No named arguments.
+                              deopt,  // Deoptimize target.
+                              NULL,   // Fallthrough when done.
+                              cid(),
+                              token_pos(),
+                              try_index());
 
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 cid(),
-                                 token_pos(),
-                                 try_index());
-  const intptr_t kArgumentCount = 2;
-  const intptr_t kCheckedArgumentCount = 1;
-  compiler->GenerateInstanceCall(cid(),
-                                 token_pos(),
-                                 try_index(),
-                                 function_name,
-                                 kArgumentCount,
-                                 Array::ZoneHandle(),
-                                 kCheckedArgumentCount);
+  } else if (compiler->is_optimizing()) {
+    // Get some IC data then optimize again.
+    __ jmp(deopt);
+  } else {
+    // Unoptimized code.
+    const String& function_name =
+        String::ZoneHandle(Field::SetterSymbol(field_name()));
+
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   cid(),
+                                   token_pos(),
+                                   try_index());
+    const intptr_t kArgumentCount = 2;
+    const intptr_t kCheckedArgumentCount = 1;
+    compiler->GenerateInstanceCall(cid(),
+                                   token_pos(),
+                                   try_index(),
+                                   function_name,
+                                   kArgumentCount,
+                                   Array::ZoneHandle(),
+                                   kCheckedArgumentCount);
+  }
 }
 
 

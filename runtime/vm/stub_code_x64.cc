@@ -1536,8 +1536,9 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   if (FlowGraphCompiler::CanOptimize()) {
     __ cmpq(FieldAddress(RCX, Function::usage_counter_offset()),
         Immediate(FLAG_optimization_counter_threshold));
-    Label not_yet_hot;
-    __ j(LESS_EQUAL, &not_yet_hot, Assembler::kNearJump);
+    Label not_yet_hot, already_optimized;
+    __ j(LESS, &not_yet_hot, Assembler::kNearJump);
+    __ j(GREATER, &already_optimized, Assembler::kNearJump);
     AssemblerMacros::EnterStubFrame(assembler);
     __ pushq(RBX);  // Preserve inline cache data object.
     __ pushq(R10);  // Preserve arguments array.
@@ -1548,6 +1549,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ popq(RBX);  // Restore inline cache data object.
     __ LeaveFrame();
     __ Bind(&not_yet_hot);
+    __ Bind(&already_optimized);
   }
   ASSERT(num_args > 0);
   // Get receiver (first read number of arguments from argument descriptor array

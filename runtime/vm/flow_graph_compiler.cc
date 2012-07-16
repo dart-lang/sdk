@@ -440,6 +440,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         intptr_t cid,
                                         intptr_t token_index,
                                         intptr_t try_index) {
+  ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     const bool is_last_check = (i == (ic_data.NumberOfChecks() - 1));
