@@ -167,6 +167,11 @@ testFactoryConstructor() {
   // Now more complicated, with normal constructor and factory parameters.
   testDart2Dart('main(){new A.fromFoo(5);}'
       'class A{A(this.f);A.fromFoo(foo):this("f");final String f;}');
+  // Now even more complicated, with interface and default factory.
+  testDart2Dart('main(){new A.fromFoo(5); new I.fromFoo();}'
+      'class IFactory{factory I.fromFoo()=> new A(5);}'
+      'interface I default IFactory{I.fromFoo();}'
+      'class A implements I{A(this.f);A.fromFoo(foo):this("f");final String f;}');
 }
 
 main() {

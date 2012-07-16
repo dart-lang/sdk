@@ -21,6 +21,14 @@ class Emitter {
     sb.add(classElement.beginToken.slowToString());  // 'class' or 'interface'.
     sb.add(' ');
     sb.add(classElement.name.slowToString());
+    if (classElement.isInterface() && classElement.defaultClause !== null) {
+      sb.add(' default ');
+      sb.add(classElement.defaultClause.unparse());
+    }
+    if (!classElement.interfaces.isEmpty()) {
+      sb.add(' implements ');
+      classElement.interfaces.printOn(sb, ',');
+    }
     sb.add('{');
     innerElements.forEach((element) {
       // TODO(smok): Filter out default constructors here.

@@ -798,6 +798,7 @@ class ClassElement extends ContainerElement {
 
   Link<Type> allSupertypes;
   ClassElement patch = null;
+  Node defaultClause;  // Only for interfaces.
 
   ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
