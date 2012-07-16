@@ -3943,12 +3943,20 @@ static void BuildFunctionDescription(TextBuffer* buffer, Dart_Handle func) {
   bool is_getter = false;
   bool is_setter = false;
   bool is_constructor = false;
+  int64_t fixed_param_count = -1;
+  int64_t opt_param_count = -1;
   EXPECT_VALID(Dart_FunctionIsAbstract(func, &is_abstract));
   EXPECT_VALID(Dart_FunctionIsStatic(func, &is_static));
   EXPECT_VALID(Dart_FunctionIsGetter(func, &is_getter));
   EXPECT_VALID(Dart_FunctionIsSetter(func, &is_setter));
   EXPECT_VALID(Dart_FunctionIsConstructor(func, &is_constructor));
-  buffer->Printf("%s", name_cstr);
+  EXPECT_VALID(Dart_FunctionParameterCounts(func,
+    &fixed_param_count, &opt_param_count));
+
+  buffer->Printf("%s %lld %lld",
+    name_cstr,
+    fixed_param_count,
+    opt_param_count);
   if (is_abstract) {
     buffer->Printf(" abstract");
   }
@@ -3996,6 +4004,8 @@ TEST_CASE(FunctionReflection) {
       "  abstract set p(x);\n"
       "  abstract get _q();\n"
       "  abstract set _r(x);\n"
+      "  s(x, [y, z]) {}\n"
+      "  t([x, y, z]) {}\n"
       "  operator ==(x) {}\n"
       "}\n"
       "class _PrivateClass {\n"
@@ -4016,63 +4026,63 @@ TEST_CASE(FunctionReflection) {
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("a static", buffer.buf());
+  EXPECT_STREQ("a 0 0 static", buffer.buf());
 
   // Lookup a private top-level function.
   func = Dart_LookupFunction(lib, Dart_NewString("_b"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_b static", buffer.buf());
+  EXPECT_STREQ("_b 0 0 static", buffer.buf());
 
   // Lookup a top-level getter.
   func = Dart_LookupFunction(lib, Dart_NewString("c"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("c static getter", buffer.buf());
+  EXPECT_STREQ("c 0 0 static getter", buffer.buf());
 
   // Lookup a top-level setter.
   func = Dart_LookupFunction(lib, Dart_NewString("d="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("d= static setter", buffer.buf());
+  EXPECT_STREQ("d= 1 0 static setter", buffer.buf());
 
   // Lookup a private top-level getter.
   func = Dart_LookupFunction(lib, Dart_NewString("_e"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_e static getter", buffer.buf());
+  EXPECT_STREQ("_e 0 0 static getter", buffer.buf());
 
   // Lookup a private top-level setter.
   func = Dart_LookupFunction(lib, Dart_NewString("_f="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_f= static setter", buffer.buf());
+  EXPECT_STREQ("_f= 1 0 static setter", buffer.buf());
 
   // Lookup an unnamed constructor
   func = Dart_LookupFunction(cls, Dart_NewString("MyClass"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("MyClass constructor", buffer.buf());
+  EXPECT_STREQ("MyClass 0 0 constructor", buffer.buf());
 
   // Lookup a named constructor
   func = Dart_LookupFunction(cls, Dart_NewString("MyClass.named"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("MyClass.named constructor", buffer.buf());
+  EXPECT_STREQ("MyClass.named 0 0 constructor", buffer.buf());
 
   // Lookup an private unnamed constructor
   func = Dart_LookupFunction(private_cls, Dart_NewString("_PrivateClass"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_PrivateClass constructor", buffer.buf());
+  EXPECT_STREQ("_PrivateClass 0 0 constructor", buffer.buf());
 
   // Lookup a private named constructor
   func = Dart_LookupFunction(private_cls,
@@ -4080,140 +4090,154 @@ TEST_CASE(FunctionReflection) {
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_PrivateClass.named constructor", buffer.buf());
+  EXPECT_STREQ("_PrivateClass.named 0 0 constructor", buffer.buf());
 
   // Lookup a method.
   func = Dart_LookupFunction(cls, Dart_NewString("a"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("a", buffer.buf());
+  EXPECT_STREQ("a 0 0", buffer.buf());
 
   // Lookup a private method.
   func = Dart_LookupFunction(cls, Dart_NewString("_b"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_b", buffer.buf());
+  EXPECT_STREQ("_b 0 0", buffer.buf());
 
   // Lookup a instance getter.
   func = Dart_LookupFunction(cls, Dart_NewString("c"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("c getter", buffer.buf());
+  EXPECT_STREQ("c 0 0 getter", buffer.buf());
 
   // Lookup a instance setter.
   func = Dart_LookupFunction(cls, Dart_NewString("d="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("d= setter", buffer.buf());
+  EXPECT_STREQ("d= 1 0 setter", buffer.buf());
 
   // Lookup a private instance getter.
   func = Dart_LookupFunction(cls, Dart_NewString("_e"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_e getter", buffer.buf());
+  EXPECT_STREQ("_e 0 0 getter", buffer.buf());
 
   // Lookup a private instance setter.
   func = Dart_LookupFunction(cls, Dart_NewString("_f="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_f= setter", buffer.buf());
+  EXPECT_STREQ("_f= 1 0 setter", buffer.buf());
 
   // Lookup a static method.
   func = Dart_LookupFunction(cls, Dart_NewString("g"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("g static", buffer.buf());
+  EXPECT_STREQ("g 0 0 static", buffer.buf());
 
   // Lookup a private static method.
   func = Dart_LookupFunction(cls, Dart_NewString("_h"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_h static", buffer.buf());
+  EXPECT_STREQ("_h 0 0 static", buffer.buf());
 
   // Lookup a static getter.
   func = Dart_LookupFunction(cls, Dart_NewString("i"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("i static getter", buffer.buf());
+  EXPECT_STREQ("i 0 0 static getter", buffer.buf());
 
   // Lookup a static setter.
   func = Dart_LookupFunction(cls, Dart_NewString("j="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("j= static setter", buffer.buf());
+  EXPECT_STREQ("j= 1 0 static setter", buffer.buf());
 
   // Lookup a private static getter.
   func = Dart_LookupFunction(cls, Dart_NewString("_k"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_k static getter", buffer.buf());
+  EXPECT_STREQ("_k 0 0 static getter", buffer.buf());
 
   // Lookup a private static setter.
   func = Dart_LookupFunction(cls, Dart_NewString("_l="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_l= static setter", buffer.buf());
+  EXPECT_STREQ("_l= 1 0 static setter", buffer.buf());
 
   // Lookup an abstract method.
   func = Dart_LookupFunction(cls, Dart_NewString("m"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("m abstract", buffer.buf());
+  EXPECT_STREQ("m 0 0 abstract", buffer.buf());
 
   // Lookup a private abstract method.
   func = Dart_LookupFunction(cls, Dart_NewString("_n"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_n abstract", buffer.buf());
+  EXPECT_STREQ("_n 0 0 abstract", buffer.buf());
 
   // Lookup a abstract getter.
   func = Dart_LookupFunction(cls, Dart_NewString("o"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("o abstract getter", buffer.buf());
+  EXPECT_STREQ("o 0 0 abstract getter", buffer.buf());
 
   // Lookup a abstract setter.
   func = Dart_LookupFunction(cls, Dart_NewString("p="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("p= abstract setter", buffer.buf());
+  EXPECT_STREQ("p= 1 0 abstract setter", buffer.buf());
 
   // Lookup a private abstract getter.
   func = Dart_LookupFunction(cls, Dart_NewString("_q"));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_q abstract getter", buffer.buf());
+  EXPECT_STREQ("_q 0 0 abstract getter", buffer.buf());
 
   // Lookup a private abstract setter.
   func = Dart_LookupFunction(cls, Dart_NewString("_r="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("_r= abstract setter", buffer.buf());
+  EXPECT_STREQ("_r= 1 0 abstract setter", buffer.buf());
+
+  // Lookup a method with fixed and optional parameters.
+  func = Dart_LookupFunction(cls, Dart_NewString("s"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("s 1 2", buffer.buf());
+
+  // Lookup a method with only optional parameters.
+  func = Dart_LookupFunction(cls, Dart_NewString("t"));
+  EXPECT_VALID(func);
+  EXPECT(Dart_IsFunction(func));
+  BuildFunctionDescription(&buffer, func);
+  EXPECT_STREQ("t 0 3", buffer.buf());
 
   // Lookup an operator
   func = Dart_LookupFunction(cls, Dart_NewString("=="));
   EXPECT_VALID(func);
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
-  EXPECT_STREQ("==", buffer.buf());
+  EXPECT_STREQ("== 1 0", buffer.buf());
 
   // Lookup a function that does not exist from a library.
   func = Dart_LookupFunction(lib, Dart_NewString("DoesNotExist"));

@@ -2857,6 +2857,34 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
 }
 
 
+DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
+    Dart_Handle function,
+    int64_t* fixed_param_count,
+    int64_t* opt_param_count) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  if (fixed_param_count == NULL) {
+    RETURN_NULL_ERROR(fixed_param_count);
+  }
+  if (opt_param_count == NULL) {
+    RETURN_NULL_ERROR(opt_param_count);
+  }
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+
+  // We hide implicit parameters, such as a method's receiver. This is
+  // consistent with Invoke or New, which don't expect their callers to
+  // provide them in the argument lists they are handed.
+  *fixed_param_count = (func.num_fixed_parameters() -
+                        func.NumberOfImplicitParameters());
+  *opt_param_count = func.num_optional_parameters();
+
+  return Api::Success(isolate);
+}
+
+
 DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
