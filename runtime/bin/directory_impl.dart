@@ -88,7 +88,7 @@ class _Directory implements Directory {
     });
   }
 
-  void createTempSync() {
+  Directory createTempSync() {
     if (_path is !String) {
       throw new IllegalArgumentException();
     }

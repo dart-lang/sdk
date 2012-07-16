@@ -1782,6 +1782,7 @@ bool Class::TypeTest(
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
+  ASSERT(!IsVoidClass());
   // Check for DynamicType.
   // Each occurrence of DynamicType in type T is interpreted as the Dynamic
   // type, a supertype of all types.
@@ -2352,6 +2353,10 @@ RawAbstractType* AbstractType::Canonicalize() const {
 }
 
 
+// TODO(regis): Investigate if we can safely map internal integer types (Smi,
+// Mint, and Bigint) to 'int' and internal String types (OneByteString, etc...)
+// to 'String' here. It may be too early. Also consider the upcoming type()
+// method.
 RawString* AbstractType::Name() const {
   // If the type is still being finalized, we may be reporting an error about
   // an illformed type, so proceed with caution.
@@ -7659,9 +7664,14 @@ bool Instance::IsInstanceOf(const AbstractType& other,
                             Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
-  ASSERT(!other.IsVoidType());
   ASSERT(!other.IsMalformed());
   if (IsNull()) {
+    // The null instance can be returned from a void function.
+    if (other.IsVoidType()) {
+      return true;
+    }
+    // Otherwise, null is only an instance of Object and of Dynamic.
+    // It is not necessary to fully instantiate the other type for this test.
     Class& other_class = Class::Handle();
     if (other.IsTypeParameter()) {
       if (other_instantiator.IsNull()) {
@@ -7676,6 +7686,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       other_class = other.type_class();
     }
     return other_class.IsObjectClass() || other_class.IsDynamicClass();
+  }
+  if (other.IsVoidType()) {
+    return false;
   }
   const Class& cls = Class::Handle(clazz());
   // We must not encounter Object::sentinel() or Object::transition_sentinel(),

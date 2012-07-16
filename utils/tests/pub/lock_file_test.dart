@@ -16,7 +16,9 @@ class MockSource extends Source {
   final String name = 'mock';
   final bool shouldCache = false;
 
-  void validateDescription(String description) => description.endsWith(' desc');
+  void validateDescription(String description) {
+    description.endsWith(' desc');
+  }
 
   String packageName(String description) {
     // Strip off ' desc'.
