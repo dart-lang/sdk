@@ -13,7 +13,7 @@ class TypeTest {
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("i", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -54,7 +54,7 @@ class TypeTest {
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("i", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -78,7 +78,7 @@ class TypeTest {
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("function result", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -100,7 +100,7 @@ class TypeTest {
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("field", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -210,7 +210,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -226,7 +226,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -242,7 +242,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -258,7 +258,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -274,7 +274,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -290,7 +290,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -306,7 +306,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -322,7 +322,7 @@ class TypeTest {
     } catch (TypeError error) {
       result++;
       Expect.equals("bool", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("boolean expression", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {

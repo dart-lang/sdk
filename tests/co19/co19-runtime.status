@@ -456,10 +456,6 @@ Language/03_Overview/1_Scoping_A02_t30: Fail
 Language/03_Overview/1_Scoping_A02_t31: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t02: Fail
 Language/10_Expressions/08_Function_Expressions_A03_t05: Fail
-Language/13_Types/7_Type_Void_A04_t02: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t03: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t04: Fail # co19 issue 158
-Language/13_Types/7_Type_Void_A04_t05: Fail # co19 issue 158
 
 
 [ $runtime == vm && $mode == debug && $unchecked ]

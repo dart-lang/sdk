@@ -421,11 +421,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
-  if (type.IsVoidType()) {
-    // A non-null value is returned from a void function, which will result in a
-    // type error. A null value is handled prior to executing this inline code.
-    return SubtypeTestCache::null();
-  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A Smi object cannot be the instance of a parameterized class.
@@ -438,23 +433,26 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
                                                        is_instance_lbl,
                                                        is_not_instance_lbl);
       // Fall through to runtime call.
+    } else {
+      GenerateInstantiatedTypeNoArgumentsTest(cid,
+                                              token_pos,
+                                              type,
+                                              is_instance_lbl,
+                                              is_not_instance_lbl);
+      // If test non-conclusive so far, try the inlined type-test cache.
+      // 'type' is known at compile time.
+      return GenerateSubtype1TestCacheLookup(
+          cid, token_pos, type_class,
+          is_instance_lbl, is_not_instance_lbl);
     }
-    GenerateInstantiatedTypeNoArgumentsTest(cid,
-                                            token_pos,
-                                            type,
-                                            is_instance_lbl,
-                                            is_not_instance_lbl);
-    // If test non-conclusive so far, try the inlined type-test cache.
-    // 'type' is known at compile time.
-    return GenerateSubtype1TestCacheLookup(
-        cid, token_pos, type_class,
-        is_instance_lbl, is_not_instance_lbl);
+  } else {
+    return GenerateUninstantiatedTypeTest(cid,
+                                          token_pos,
+                                          type,
+                                          is_instance_lbl,
+                                          is_not_instance_lbl);
   }
-  return GenerateUninstantiatedTypeTest(cid,
-                                        token_pos,
-                                        type,
-                                        is_instance_lbl,
-                                        is_not_instance_lbl);
+  return SubtypeTestCache::null();
 }
 
 
@@ -563,6 +561,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformed() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
+  ASSERT(!dst_type.IsVoidType());
   __ pushl(ECX);  // Store instantiator.
   __ pushl(EDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.

@@ -22,6 +22,7 @@ class GenericsTest<T,V> implements Map<int, int> {
 
     takesVoidMethod(void _(int a) {
       Expect.equals(2, a);
+      return 99;
     });
 
     takesGenericMapMethod(Map<int, int> _(int a) {
@@ -41,7 +42,7 @@ class GenericsTest<T,V> implements Map<int, int> {
   }
 
   static void takesVoidMethod(void f(int a)) {
-    f(2);
+    Expect.equals(99, f(2));
   }
 
   static void takesIntMethod(int f(int a)) {

@@ -340,6 +340,16 @@ static bool IsStaticTypeMoreSpecific(Value* value,
     return true;
   }
 
+  // It is a compile-time error to explicitly return a value (including null)
+  // from a void function. However, functions that do not explicitly return a
+  // value, implicitly return null. This includes void functions. Therefore, we
+  // skip the type test here and trust the parser to only return null in void
+  // function.
+  if (dst_type.IsVoidType()) {
+    // TODO(regis): Should we perform this null test at run-time?
+    return true;
+  }
+
   // Do not perform type check elimination if this optimization is turned off.
   if (!FLAG_eliminate_type_checks) {
     return false;
@@ -352,31 +362,15 @@ static bool IsStaticTypeMoreSpecific(Value* value,
     return false;
   }
 
-  // If the value is the null constant, its type (NullType) is more specific
-  // than the destination type, even if the destination type is the void type,
-  // since a void function is allowed to return null.
-  if (value->IsConstant() && value->AsConstant()->value().IsNull()) {
-    return true;
-  }
-
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  // In case of a null constant, we have already returned true above, else we
-  // return false here.
-  if (dst_type.IsVoidType()) {
-    return false;
-  }
-
   // Consider the static type of the value.
   const AbstractType& static_type = AbstractType::Handle(value->StaticType());
   ASSERT(!static_type.IsMalformed());
 
-  // If the static type of the value is void, we are type checking the result of
-  // a void function, which was checked to be null at the return statement
-  // inside the function.
+  // If the static type of the value is void, the only allowed value is null,
+  // which must be verified by the type test.
+  // TODO(regis): Eliminate the test if the value is constant null.
   if (static_type.IsVoidType()) {
-    return true;
+    return false;
   }
 
   // If the static type of the value is NullType, the type test is eliminated.

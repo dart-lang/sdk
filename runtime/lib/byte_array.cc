@@ -46,7 +46,7 @@ static void RangeCheck(const ByteArray& array,
 #define SETTER(ArrayT, ObjectT, Getter, ValueT)                         \
   SETTER_ARGUMENTS(ArrayT, ObjectT, ValueT);                            \
   RangeCheck(array, index.Value() * sizeof(ValueT), sizeof(ValueT));    \
-  ValueT value = value_object.Getter();                                 \
+  ValueT value = value_object.Getter();                                \
   array.SetAt(index.Value(), value);
 
 

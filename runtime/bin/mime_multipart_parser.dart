@@ -53,7 +53,7 @@ class _MimeMultipartParser {
     _headerValue = new StringBuffer();
   }
 
-  int update(List<int> buffer, int offset, int count) {
+  void update(List<int> buffer, int offset, int count) {
     // Current index in the data buffer. If index is negative then it
     // is the index into the artificial prefix of the boundary string.
     int index;

@@ -13,7 +13,7 @@ class TypeTest {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("type cast", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -55,7 +55,7 @@ class TypeTest {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("type cast", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -80,7 +80,7 @@ class TypeTest {
       result = 1;
       Expect.isTrue(error is CastException);
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("type cast", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {
@@ -103,7 +103,7 @@ class TypeTest {
     } catch (TypeError error) {
       result = 1;
       Expect.equals("int", error.dstType);
-      Expect.equals("String", error.srcType);
+      Expect.equals("OneByteString", error.srcType);
       Expect.equals("type cast", error.dstName);
       int pos = error.url.lastIndexOf("/", error.url.length);
       if (pos == -1) {

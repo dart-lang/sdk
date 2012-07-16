@@ -241,7 +241,7 @@ class _Process extends Process {
     return;
   }
 
-  bool _kill(int pid, int signal) native "Process_Kill";
+  void _kill(int pid, int signal) native "Process_Kill";
 
   void close() {
     if (_closed) {
