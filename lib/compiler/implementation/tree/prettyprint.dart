@@ -345,7 +345,13 @@ class PrettyPrinter implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    visitNodeWithChildren(node, "TypeAnnotation");
+    openNode("TypeAnnotation", {
+      "beginToken" : tokenToStringOrNull(node.getBeginToken()),
+      "endToken" : tokenToStringOrNull(node.getEndToken())
+    });
+    visitWithPrefix(node.typeName, "typeName:");
+    visitWithPrefix(node.typeArguments, "typeArguments:");
+    closeNode("TypeAnnotation");
   }
 
   visitTypedef(Typedef node) {
