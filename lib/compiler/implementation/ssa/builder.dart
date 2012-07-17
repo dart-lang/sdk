@@ -1184,6 +1184,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     return boolified;
   }
 
+  HInstruction attachPosition(HInstruction target, Node node) {
+    target.sourcePosition = node.getBeginToken();
+    return target;
+  }
+
   void visit(Node node) {
     if (node !== null) node.accept(this);
   }
@@ -1594,8 +1599,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(op.token.kind !== PLUS_TOKEN);
     HInstruction operand = pop();
 
-    HInstruction target =
-        new HStatic(interceptors.getPrefixOperatorInterceptor(op));
+    HInstruction target = attachPosition(
+        new HStatic(interceptors.getPrefixOperatorInterceptor(op)), node);
     add(target);
     HInvokeUnary result;
     String value = op.source.stringValue;

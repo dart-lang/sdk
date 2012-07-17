@@ -704,6 +704,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
 
 class HInstruction implements Hashable {
   Element sourceElement;
+  Token sourcePosition;
 
   final int id;
   static int idCounter;

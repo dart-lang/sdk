@@ -13,7 +13,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer buildJavaScriptFunction(FunctionElement element,
                                      String parameters,
-                                     String body) {
+                                     CodeBuffer body) {
     String extraSpace = "";
     // Members are emitted inside a JavaScript object literal. To line up the
     // indentation we want the closing curly brace to be indented by one space.
@@ -57,7 +57,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
-      String code;
+      CodeBuffer code;
       if (element.isInstanceMember()
           && element.enclosingElement.isClass()
           && element.enclosingElement.isNative()
@@ -70,9 +70,10 @@ class SsaCodeGeneratorTask extends CompilerTask {
         StringBuffer buffer = new StringBuffer();
         native.generateMethodWithPrototypeCheckForElement(
             compiler, buffer, element, '${codegen.buffer}', parameters);
-        code = buffer.toString();
+        code = new CodeBuffer();
+        code.add(buffer);
       } else {
-        code = codegen.buffer.toString();
+        code = codegen.buffer;
       }
       return buildJavaScriptFunction(element, parameters, code);
     });
@@ -88,9 +89,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
-      String body = '${codegen.setup}${codegen.buffer}';
+      CodeBuffer code = new CodeBuffer();
+      code.add(codegen.setup);
+      code.add(codegen.buffer);
       return buildJavaScriptFunction(
-          work.element, codegen.newParameters.toString(), body);
+          work.element, codegen.newParameters.toString(), code);
     });
   }
 
@@ -655,6 +658,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visit(HInstruction node, int expectedPrecedenceForNode) {
     int oldPrecedence = this.expectedPrecedence;
     this.expectedPrecedence = expectedPrecedenceForNode;
+    if (node.sourcePosition !== null) {
+      buffer.setSourceLocation(work.element, node.sourcePosition);
+    }
     node.accept(this);
     this.expectedPrecedence = oldPrecedence;
   }
