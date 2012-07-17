@@ -1558,27 +1558,24 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
 
   __ movl(EBX, FieldAddress(ECX, ICData::function_offset()));
-  __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
+  Label is_hot;
   if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    // The usage_counter is always less than FLAG_optimization_counter_threshold
+    // except when the function gets optimized.
     __ cmpl(FieldAddress(EBX, Function::usage_counter_offset()),
-        Immediate(FLAG_optimization_counter_threshold));
-    Label not_yet_hot, already_optimized;
-    __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-    __ j(GREATER, &already_optimized, Assembler::kNearJump);
-    // Create a stub frame as we are pushing some objects on the stack before
-    // calling into the runtime.
-    AssemblerMacros::EnterStubFrame(assembler);
-    __ pushl(ECX);  // Preserve inline cache data object.
-    __ pushl(EDX);  // Preserve arguments array.
-    __ pushl(EBX);  // Argument for runtime: function object.
-    __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-    __ popl(EBX);  // Remove argument.
-    __ popl(EDX);  // Restore arguments array.
-    __ popl(ECX);  // Restore inline cache data object.
-    __ LeaveFrame();
-    __ Bind(&not_yet_hot);
-    __ Bind(&already_optimized);
+        Immediate(FLAG_optimization_counter_threshold - 1));
+    // Do not increment to equality with threshold, since a counter greater
+    // than threshold denotes a function that was already optimized.
+    // The equality should be reached only at exit of the method
+    // (return instruction).
+    __ j(EQUAL, &is_hot, Assembler::kNearJump);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
   }
+  __ incl(FieldAddress(EBX, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
 
   ASSERT(num_args > 0);
   // Get receiver (first read number of arguments from argument descriptor array

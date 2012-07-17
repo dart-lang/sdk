@@ -1532,25 +1532,25 @@ void StubCode::GenerateCallNoSuchMethodFunctionStub(Assembler* assembler) {
 void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
                                                  intptr_t num_args) {
   __ movq(RCX, FieldAddress(RBX, ICData::function_offset()));
-  __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
+    Label is_hot;
   if (FlowGraphCompiler::CanOptimize()) {
+    ASSERT(FLAG_optimization_counter_threshold > 1);
+    // The usage_counter is always less than FLAG_optimization_counter_threshold
+    // except when the function gets optimized.
     __ cmpq(FieldAddress(RCX, Function::usage_counter_offset()),
-        Immediate(FLAG_optimization_counter_threshold));
-    Label not_yet_hot, already_optimized;
-    __ j(LESS, &not_yet_hot, Assembler::kNearJump);
-    __ j(GREATER, &already_optimized, Assembler::kNearJump);
-    AssemblerMacros::EnterStubFrame(assembler);
-    __ pushq(RBX);  // Preserve inline cache data object.
-    __ pushq(R10);  // Preserve arguments array.
-    __ pushq(RCX);  // Argument for runtime: function object.
-    __ CallRuntime(kOptimizeInvokedFunctionRuntimeEntry);
-    __ popq(RCX);  // Remove argument.
-    __ popq(R10);  // Restore arguments array.
-    __ popq(RBX);  // Restore inline cache data object.
-    __ LeaveFrame();
-    __ Bind(&not_yet_hot);
-    __ Bind(&already_optimized);
+        Immediate(FLAG_optimization_counter_threshold - 1));
+    // Do not increment to equality with threshold, since a counter greater
+    // than threshold denotes a function that was already optimized.
+    // The equality should be reached only at exit of the method
+    // (return instruction).
+    __ j(EQUAL, &is_hot, Assembler::kNearJump);
+    // As long as VM has no OSR do not optimize in the middle of the function
+    // but only at exit so that we have collected all type feedback before
+    // optimizing.
   }
+  __ incq(FieldAddress(RCX, Function::usage_counter_offset()));
+  __ Bind(&is_hot);
+
   ASSERT(num_args > 0);
   // Get receiver (first read number of arguments from argument descriptor array
   // and then access the receiver from the stack).
