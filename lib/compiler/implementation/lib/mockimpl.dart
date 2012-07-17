@@ -388,7 +388,7 @@ class DateImplementation implements Date {
   }
 
   // Lazily keep a JS Date stored in the dart object.
-  var _asJs() => Primitives.lazyAsJsDate(this);
+  Dynamic _asJs() => Primitives.lazyAsJsDate(this);
 }
 
 class ListFactory<E> {
