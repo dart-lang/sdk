@@ -117,223 +117,260 @@ installCommand() {
   });
 
   test('checks out a package from Git', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
-      ]).scheduleCreate();
+    ensureGit();
 
-      dir(appPath, [
-        file('pubspec.yaml', '''
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-      ]).scheduleCreate();
+    ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
           dir(new RegExp(@'foo-[a-f0-9]+'), [
             file('foo.dart', 'main() => "foo";')
           ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
           file('foo.dart', 'main() => "foo";')
         ])
-      ]).scheduleValidate();
+      ])
+    ]).scheduleValidate();
 
-      run();
-    });
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
   });
 
   test('checks out packages transitively from Git', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";'),
-        file('pubspec.yaml', '''
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";'),
+      file('pubspec.yaml', '''
 dependencies:
   bar:
     git: ../bar.git
 ''')
-      ]).scheduleCreate();
+    ]).scheduleCreate();
 
-      git('bar.git', [
-        file('bar.dart', 'main() => "bar";')
-      ]).scheduleCreate();
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar";')
+    ]).scheduleCreate();
 
-      dir(appPath, [
-        file('pubspec.yaml', '''
+    dir(appPath, [
+      file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-      ]).scheduleCreate();
+    ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp("Dependencies installed!\$"));
+    schedulePub(args: ['install'],
+        output: const RegExp("Dependencies installed!\$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ]),
-            dir(new RegExp(@'bar-[a-f0-9]+'), [
-              file('bar.dart', 'main() => "bar";')
-            ])
-          ]),
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
           dir(new RegExp(@'foo-[a-f0-9]+'), [
             file('foo.dart', 'main() => "foo";')
           ]),
           dir(new RegExp(@'bar-[a-f0-9]+'), [
             file('bar.dart', 'main() => "bar";')
           ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
           file('foo.dart', 'main() => "foo";')
         ]),
-        dir('bar', [
+        dir(new RegExp(@'bar-[a-f0-9]+'), [
           file('bar.dart', 'main() => "bar";')
         ])
-      ]).scheduleValidate();
+      ])
+    ]).scheduleValidate();
 
-      run();
-    });
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";')
+      ])
+    ]).scheduleValidate();
+
+    run();
   });
 
   test('checks out and updates a package from Git', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
-      ]).scheduleCreate();
+    ensureGit();
 
-      dir(appPath, [
-        file('pubspec.yaml', '''
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-      ]).scheduleCreate();
+    ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
           dir(new RegExp(@'foo-[a-f0-9]+'), [
             file('foo.dart', 'main() => "foo";')
           ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
           file('foo.dart', 'main() => "foo";')
         ])
-      ]).scheduleValidate();
+      ])
+    ]).scheduleValidate();
 
-      // TODO(nweiz): remove this once we support pub update
-      dir(packagesPath).scheduleDelete();
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
 
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo 2";')
-      ]).scheduleCommit();
+    // TODO(nweiz): remove this once we support pub update
+    dir(packagesPath).scheduleDelete();
 
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
 
-      // When we download a new version of the git package, we should re-use the
-      // git/cache directory but create a new git/ directory.
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo 2";')
-            ])
-          ]),
-          dir(new RegExp(@'foo-[a-f0-9]+'), [
-            file('foo.dart', 'main() => "foo";')
-          ]),
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    // When we download a new version of the git package, we should re-use the
+    // git/cache directory but create a new git/ directory.
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
           dir(new RegExp(@'foo-[a-f0-9]+'), [
             file('foo.dart', 'main() => "foo 2";')
           ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
+          file('foo.dart', 'main() => "foo";')
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
           file('foo.dart', 'main() => "foo 2";')
         ])
-      ]).scheduleValidate();
+      ])
+    ]).scheduleValidate();
 
-      run();
-    });
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 2";')
+      ])
+    ]).scheduleValidate();
+
+    run();
   });
 
   test('checks out a package from Git twice', () {
-    withGit(() {
-      git('foo.git', [
-        file('foo.dart', 'main() => "foo";')
-      ]).scheduleCreate();
+    ensureGit();
 
-      dir(appPath, [
-        file('pubspec.yaml', '''
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
 dependencies:
   foo:
     git: ../foo.git
 ''')
-      ]).scheduleCreate();
+    ]).scheduleCreate();
 
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
 
-      dir(cachePath, [
-        dir('git', [
-          dir('cache', [
-            dir(new RegExp(@'foo-[a-f0-9]+'), [
-              file('foo.dart', 'main() => "foo";')
-            ])
-          ]),
+    dir(cachePath, [
+      dir('git', [
+        dir('cache', [
           dir(new RegExp(@'foo-[a-f0-9]+'), [
             file('foo.dart', 'main() => "foo";')
           ])
-        ])
-      ]).scheduleValidate();
-
-      dir(packagesPath, [
-        dir('foo', [
+        ]),
+        dir(new RegExp(@'foo-[a-f0-9]+'), [
           file('foo.dart', 'main() => "foo";')
         ])
-      ]).scheduleValidate();
+      ])
+    ]).scheduleValidate();
 
-      // TODO(nweiz): remove this once we support pub update
-      dir(packagesPath).scheduleDelete();
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
 
-      // Verify that nothing breaks if we install a Git revision that's already
-      // in the cache.
-      schedulePub(args: ['install'],
-          output: const RegExp(@"Dependencies installed!$"));
+    // TODO(nweiz): remove this once we support pub update
+    dir(packagesPath).scheduleDelete();
 
-      run();
-    });
+    // Verify that nothing breaks if we install a Git revision that's already
+    // in the cache.
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    run();
+  });
+
+  test('checks out a package at a specific revision from Git', () {
+    ensureGit();
+
+    var repo = git('foo.git', [
+      file('foo.dart', 'main() => "foo 1";')
+    ]);
+    repo.scheduleCreate();
+    var commitFuture = repo.revParse('HEAD');
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
+
+    dir(appPath, [
+      async(commitFuture.transform((commit) {
+        return file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git:
+      url: ../foo.git
+      ref: $commit
+''');
+      }))
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1";')
+      ])
+    ]).scheduleValidate();
+
+    run();
   });
 
   test('checks out a package from a pub server', () {
