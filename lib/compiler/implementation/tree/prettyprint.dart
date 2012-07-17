@@ -127,7 +127,17 @@ class PrettyPrinter implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    visitNodeWithChildren(node, "ClassNode");
+    openNode("ClassNode", {
+      "beginToken" : tokenToStringOrNull(node.getBeginToken()),
+      "endToken" : tokenToStringOrNull(node.getEndToken()),
+      "extendsKeyword" : tokenToStringOrNull(node.extendsKeyword)
+    });
+    visitWithPrefix(node.name, "name:");
+    visitWithPrefix(node.superclass, "superclass:");
+    visitWithPrefix(node.interfaces, "interfaces:");
+    visitWithPrefix(node.typeParameters, "typeParameters:");
+    visitWithPrefix(node.defaultClause, "defaultClause:");
+    closeNode("ClassNode");
   }
 
   visitConditional(Conditional node) {
