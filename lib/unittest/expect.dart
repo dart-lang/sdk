@@ -26,7 +26,7 @@
  * library.
  *
  * See [Hamcrest] http://en.wikipedia.org/wiki/Hamcrest
- *     [Hamcrest] http://http://code.google.com/p/hamcrest/
+ *     [Hamcrest] http://code.google.com/p/hamcrest/
  *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
 void expect(actual, [matcher = isTrue, String reason = null,
