@@ -2682,102 +2682,102 @@ bool EqualsIgnoringPrivate(const String& name, const String& private_name);
 
 
 TEST_CASE(EqualsIgnoringPrivate) {
-  String& mangled_name = String::Handle();
-  String& bare_name = String::Handle();
+  OneByteString& mangled_name = OneByteString::Handle();
+  OneByteString& bare_name = OneByteString::Handle();
 
   // Simple matches.
-  mangled_name = String::New("foo");
-  bare_name = String::New("foo");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo");
+  bare_name = OneByteString::New("foo");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo.");
-  bare_name = String::New("foo.");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo.");
+  bare_name = OneByteString::New("foo.");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo.named");
-  bare_name = String::New("foo.named");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo.named");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Simple mismatches.
-  mangled_name = String::New("bar");
-  bare_name = String::New("foo");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("bar");
+  bare_name = OneByteString::New("foo");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo.");
-  bare_name = String::New("foo");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo.");
+  bare_name = OneByteString::New("foo");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo");
-  bare_name = String::New("foo.");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo");
+  bare_name = OneByteString::New("foo.");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo.name");
-  bare_name = String::New("foo.named");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo.name");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
-  mangled_name = String::New("foo.named");
-  bare_name = String::New("foo.name");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo.named");
+  bare_name = OneByteString::New("foo.name");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private match.
-  mangled_name = String::New("foo@12345");
-  bare_name = String::New("foo");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345");
+  bare_name = OneByteString::New("foo");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private mismatch.
-  mangled_name = String::New("food@12345");
-  bare_name = String::New("foo");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("food@12345");
+  bare_name = OneByteString::New("foo");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private mismatch 2.
-  mangled_name = String::New("foo@12345");
-  bare_name = String::New("food");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345");
+  bare_name = OneByteString::New("food");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private constructor match.
-  mangled_name = String::New("foo@12345.");
-  bare_name = String::New("foo.");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.");
+  bare_name = OneByteString::New("foo.");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private constructor mismatch.
-  mangled_name = String::New("foo@12345.");
-  bare_name = String::New("foo");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.");
+  bare_name = OneByteString::New("foo");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Private constructor mismatch 2.
-  mangled_name = String::New("foo@12345");
-  bare_name = String::New("foo.");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345");
+  bare_name = OneByteString::New("foo.");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named private constructor match.
-  mangled_name = String::New("foo@12345.named");
-  bare_name = String::New("foo.named");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.named");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named private constructor mismatch.
-  mangled_name = String::New("foo@12345.name");
-  bare_name = String::New("foo.named");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.name");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named private constructor mismatch 2.
-  mangled_name = String::New("foo@12345.named");
-  bare_name = String::New("foo.name");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.named");
+  bare_name = OneByteString::New("foo.name");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named double-private constructor match.  Yes, this happens.
-  mangled_name = String::New("foo@12345.named@12345");
-  bare_name = String::New("foo.named");
-  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.named@12345");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named double-private constructor mismatch.
-  mangled_name = String::New("foo@12345.name@12345");
-  bare_name = String::New("foo.named");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.name@12345");
+  bare_name = OneByteString::New("foo.named");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 
   // Named double-private constructor mismatch.
-  mangled_name = String::New("foo@12345.named@12345");
-  bare_name = String::New("foo.name");
-  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+  mangled_name = OneByteString::New("foo@12345.named@12345");
+  bare_name = OneByteString::New("foo.name");
+  EXPECT(!mangled_name.EqualsIgnoringPrivateKey(bare_name));
 }
 
 

@@ -1963,65 +1963,19 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-// Check to see if mangled_name is equal to bare_name once the private
-// key separator is stripped from mangled_name.
-//
-// Things are made more complicated by the fact that constructors are
-// added *after* the private suffix, so "foo@123.named" should match
-// "foo.named".
-//
-// Also, the private suffix can occur more than once in the name, as in:
-//
-//    _ReceivePortImpl@6be832b._internal@6be832b
-//
-bool EqualsIgnoringPrivate(const String& mangled_name,
-                           const String& bare_name) {
-  intptr_t mangled_len = mangled_name.Length();
-  intptr_t bare_len = bare_name.Length();
-  if (mangled_len < bare_len) {
-    // No way they can match.
-    return false;
-  }
-
-  intptr_t mangled_pos = 0;
-  intptr_t bare_pos = 0;
-  while (mangled_pos < mangled_len) {
-    int32_t mangled_char = mangled_name.CharAt(mangled_pos);
-    mangled_pos++;
-
-    if (mangled_char == Scanner::kPrivateKeySeparator) {
-      // Consume a private key separator.
-      while (mangled_pos < mangled_len &&
-             mangled_name.CharAt(mangled_pos) != '.') {
-        mangled_pos++;
-      }
-
-      // Resume matching characters.
-      continue;
-    }
-    if (bare_pos == bare_len || mangled_char != bare_name.CharAt(bare_pos)) {
-      return false;
-    }
-    bare_pos++;
-  }
-
-  // The strings match if we have reached the end of both strings.
-  return (mangled_pos == mangled_len &&
-          bare_pos == bare_len);
-}
-
-
 RawFunction* Class::LookupFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  ASSERT(name.IsOneByteString());
+  const OneByteString& lookup_name = OneByteString::Cast(name);
   Array& funcs = Array::Handle(isolate, functions());
   Function& function = Function::Handle(isolate, Function::null());
-  String& function_name = String::Handle(isolate, String::null());
+  OneByteString& function_name =
+      OneByteString::Handle(isolate, OneByteString::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
-    if (function_name.Equals(name) ||
-        EqualsIgnoringPrivate(function_name, name)) {
+    if (function_name.EqualsIgnoringPrivateKey(lookup_name)) {
       return function.raw();
     }
   }
@@ -2116,14 +2070,17 @@ RawField* Class::LookupStaticField(const String& name) const {
 
 RawField* Class::LookupField(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  ASSERT(name.IsOneByteString());
+  const OneByteString& lookup_name = OneByteString::Cast(name);
   const Array& flds = Array::Handle(isolate, fields());
   Field& field = Field::Handle(isolate, Field::null());
-  String& field_name = String::Handle(isolate, String::null());
+  OneByteString& field_name =
+      OneByteString::Handle(isolate, OneByteString::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
-    if (field_name.Equals(name) || EqualsIgnoringPrivate(field_name, name)) {
+    if (field_name.EqualsIgnoringPrivateKey(lookup_name)) {
       return field.raw();
     }
   }
@@ -4052,6 +4009,7 @@ RawFunction* Function::New(const String& name,
                            bool is_static,
                            bool is_const,
                            intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Array::Handle(Array::Empty()));
   result.set_parameter_names(Array::Handle(Array::Empty()));
@@ -4074,6 +4032,7 @@ RawFunction* Function::New(const String& name,
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
                                           intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
   const Class& parent_class = Class::Handle(parent.owner());
   ASSERT(!parent_class.IsNull());
@@ -4409,6 +4368,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
@@ -8360,43 +8320,9 @@ bool String::Equals(const Instance& other) const {
   const String& other_string = String::Cast(other);
   if (this->HasHash() && other_string.HasHash() &&
       (this->Hash() != other_string.Hash())) {
-    // Both sides have a hash code and it does not match.
-    return false;
+    return false;  // Both sides have a hash code and it does not match.
   }
-
-  intptr_t len = this->Length();
-  if (len != other_string.Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != other_string.CharAt(i)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool String::Equals(const String& str,
-                    intptr_t begin_index,
-                    intptr_t len) const {
-  ASSERT(begin_index >= 0);
-  ASSERT(begin_index == 0 || begin_index < str.Length());
-  ASSERT(len >= 0);
-  ASSERT(len <= str.Length());
-  if (len != this->Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != str.CharAt(begin_index + i)) {
-      return false;
-    }
-  }
-  return true;
+  return Equals(other_string, 0, other_string.Length());
 }
 
 
@@ -9123,6 +9049,60 @@ RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
     return dststr.raw();
   }
   return OneByteString::null();
+}
+
+
+// Check to see if 'name' matches 'this' as is or
+// once the private key separator is stripped from name.
+//
+// Things are made more complicated by the fact that constructors are
+// added *after* the private suffix, so "foo@123.named" should match
+// "foo.named".
+//
+// Also, the private suffix can occur more than once in the name, as in:
+//
+//    _ReceivePortImpl@6be832b._internal@6be832b
+//
+bool OneByteString::EqualsIgnoringPrivateKey(const OneByteString& name) const {
+  if (raw() == name.raw()) {
+    return true;  // Both handles point to the same raw instance.
+  }
+  intptr_t len = Length();
+  intptr_t name_len = name.Length();
+  if (len == name_len) {
+    for (intptr_t i = 0; i < len; i++) {
+      if (*(CharAddr(i)) != *(name.CharAddr(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (len < name_len) {
+    return false;  // No way they can match.
+  }
+  intptr_t pos = 0;
+  intptr_t name_pos = 0;
+  while (pos < len) {
+    int32_t ch = *(CharAddr(pos));
+    pos++;
+
+    if (ch == Scanner::kPrivateKeySeparator) {
+      // Consume a private key separator.
+      while (pos < len && *(CharAddr(pos)) != '.') {
+        pos++;
+      }
+      // Resume matching characters.
+      continue;
+    }
+    if (name_pos == name_len || ch != *(name.CharAddr(name_pos))) {
+      return false;
+    }
+    name_pos++;
+  }
+
+  // We have reached the end of mangled_name string.
+  ASSERT(pos == len);
+  return (name_pos == name_len);
 }
 
 

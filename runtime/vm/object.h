@@ -3190,16 +3190,10 @@ class String : public Instance {
 
   virtual intptr_t CharSize() const;
 
-  bool Equals(const String& str) const {
-    if (raw() == str.raw()) {
-      return true;  // Both handles point to the same raw instance.
-    }
-    if (str.IsNull()) {
-      return false;
-    }
-    return Equals(str, 0, str.Length());
-  }
-  bool Equals(const String& str, intptr_t begin_index, intptr_t len) const;
+  inline bool Equals(const String& str) const;
+  inline bool Equals(const String& str,
+                     intptr_t begin_index,  // begin index on 'str'.
+                     intptr_t len) const;  // len on 'str'.
   bool Equals(const char* str) const;
   bool Equals(const uint8_t* characters, intptr_t len) const;
   bool Equals(const uint16_t* characters, intptr_t len) const;
@@ -3342,6 +3336,8 @@ class OneByteString : public String {
 
   RawOneByteString* EscapeDoubleQuotes() const;
 
+  bool EqualsIgnoringPrivateKey(const OneByteString& str) const;
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -3355,6 +3351,12 @@ class OneByteString : public String {
 
   static RawOneByteString* New(intptr_t len,
                                Heap::Space space);
+  static RawOneByteString* New(const char* c_string,
+                               Heap::Space space = Heap::kNew) {
+    return New(reinterpret_cast<const uint8_t*>(c_string),
+               strlen(c_string),
+               space);
+  }
   static RawOneByteString* New(const uint8_t* characters,
                                intptr_t len,
                                Heap::Space space);
@@ -5138,6 +5140,36 @@ void Context::SetAt(intptr_t index, const Instance& value) const {
 
 intptr_t Stackmap::SizeInBits() const {
   return (Smi::Value(raw_ptr()->bitmap_size_in_bytes_) * kBitsPerByte);
+}
+
+
+bool String::Equals(const String& str) const {
+  if (raw() == str.raw()) {
+    return true;  // Both handles point to the same raw instance.
+  }
+  if (str.IsNull()) {
+    return false;
+  }
+  return Equals(str, 0, str.Length());
+}
+
+
+bool String::Equals(const String& str,
+                    intptr_t begin_index,
+                    intptr_t len) const {
+  ASSERT(begin_index >= 0);
+  ASSERT((begin_index == 0) || (begin_index < str.Length()));
+  ASSERT(len >= 0);
+  ASSERT(len <= str.Length());
+  if (len != this->Length()) {
+    return false;  // Lengths don't match.
+  }
+  for (intptr_t i = 0; i < len; i++) {
+    if (this->CharAt(i) != str.CharAt(begin_index + i)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 }  // namespace dart

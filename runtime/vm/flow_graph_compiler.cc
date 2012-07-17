@@ -76,7 +76,7 @@ bool FlowGraphCompiler::IsLeaf() const {
 
 
 void FlowGraphCompiler::InitCompiler() {
-  pc_descriptors_list_ = new DescriptorList();
+  pc_descriptors_list_ = new DescriptorList(64);
   exception_handlers_list_ = new ExceptionHandlerList();
   block_info_.Clear();
   for (int i = 0; i < block_order_.length(); ++i) {
