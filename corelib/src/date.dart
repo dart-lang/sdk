@@ -43,7 +43,7 @@ interface Date extends Comparable, Hashable default DateImplementation {
    * in the local time zone if [isUtc] is false.
    *
    * [month] and [day] are one-based. For example
-   * [:new Date(1038, 1, 10)] represents the 10th of January 1938.
+   * [:new Date(1938, 1, 10)] represents the 10th of January 1938.
    */
   // TODO(floitsch): the spec allows default values in interfaces, but our
   // tools don't yet. Eventually we want to have default values here.
