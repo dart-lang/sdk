@@ -5230,9 +5230,6 @@ class _MouseEventJs extends _UIEventJs implements MouseEvent native "*MouseEvent
   void initMouseEvent(String type, bool canBubble, bool cancelable, _DOMWindowJs view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetJs relatedTarget) native;
 }
 
-class _MutationCallbackJs extends _DOMTypeJs implements MutationCallback native "*MutationCallback" {
-}
-
 class _MutationEventJs extends _EventJs implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
@@ -17989,8 +17986,7 @@ interface MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface MutationCallback {
-}
+typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

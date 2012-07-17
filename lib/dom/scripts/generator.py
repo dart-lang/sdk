@@ -84,10 +84,8 @@ dom_frog_native_bodies = {
       """,
 }
 
-def IsPrimitiveType(type_name):
-  if not type_name in _idl_type_registry:
-    return False
-  return _idl_type_registry[type_name].clazz == 'Primitive'
+def IsRegisteredType(type_name):
+  return type_name in _idl_type_registry
 
 def ListImplementationInfo(interface, database):
   """Returns a tuple (elment_type, requires_indexer).
@@ -786,6 +784,9 @@ _idl_type_registry = {
     'HTMLElement': TypeData(clazz='Interface', custom_to_dart=True),
     'IDBAny': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
     'IDBKey': TypeData(clazz='Interface', dart_type='Dynamic', custom_to_native=True),
+    'MutationRecordArray': TypeData(clazz='Interface',  # C++ pass by pointer.
+                                    native_type='MutationRecordArray',
+                                    dart_type='List<MutationRecord>'),
     'StyleSheet': TypeData(clazz='Interface', conversion_includes=['CSSStyleSheet']),
     'SVGElement': TypeData(clazz='Interface', custom_to_dart=True),
 
@@ -802,7 +803,7 @@ _idl_type_registry = {
     'SVGRect': TypeData(clazz='SVGTearOff', native_type='SVGPropertyTearOff<FloatRect>'),
     'SVGStringList': TypeData(clazz='SVGTearOff', native_type='SVGStaticListPropertyTearOff<SVGStringList>'),
     'SVGTransform': TypeData(clazz='SVGTearOff'),
-    'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff')
+    'SVGTransformList': TypeData(clazz='SVGTearOff', native_type='SVGTransformListPropertyTearOff'),
 }
 
 _svg_supplemental_includes = [

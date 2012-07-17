@@ -9116,9 +9116,6 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
-class _MutationCallbackImpl implements MutationCallback native "*MutationCallback" {
-}
-
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
@@ -26808,9 +26805,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName MutationCallback
-interface MutationCallback {
-}
+typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

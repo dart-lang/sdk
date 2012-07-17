@@ -43,12 +43,13 @@ class NativeImplementationSystem(systembase.System):
 
       parameters = []
       arguments = []
+      conversion_includes = []
       for argument in operation.arguments:
         argument_type_info = self._type_registry.TypeInfo(argument.type.id)
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
-        cpp_impl_includes |= set(argument_type_info.conversion_includes())
+        conversion_includes.extend(argument_type_info.conversion_includes())
 
       native_return_type = self._type_registry.TypeInfo(operation.type.id).native_type()
       cpp_header_handlers_emitter.Emit(
@@ -56,6 +57,10 @@ class NativeImplementationSystem(systembase.System):
           '    virtual $TYPE handleEvent($PARAMETERS);\n',
           TYPE=native_return_type, PARAMETERS=', '.join(parameters))
 
+      if 'Custom' in operation.ext_attrs:
+        continue
+
+      cpp_impl_includes |= set(conversion_includes)
       arguments_declaration = 'Dart_Handle arguments[] = { %s }' % ', '.join(arguments)
       if not len(arguments):
         arguments_declaration = 'Dart_Handle* arguments = 0'
