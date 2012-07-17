@@ -88,7 +88,7 @@ class OS {
   // the failure could be because of underflow/overflow or invalid characters.
   // On success the function returns true and 'value' contains the converted
   // value.
-  static bool StringToInteger(const char* str, int64_t* value);
+  static bool StringToInt64(const char* str, int64_t* value);
 
   // Initialize the OS class.
   static void InitOnce();

@@ -7790,7 +7790,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   const OneByteString& onestr = OneByteString::Cast(str);
   int64_t value;
-  if (!OS::StringToInteger(onestr.ToCString(), &value)) {
+  if (!OS::StringToInt64(onestr.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::New(onestr, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     ASSERT(!BigintOperations::FitsIntoMint(big));
