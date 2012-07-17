@@ -115,6 +115,14 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _ArrayBufferFactoryProvider {
+  factory ArrayBuffer(int length) => _createArrayBuffer(length);
+  static ArrayBuffer _createArrayBuffer(int length) native "ArrayBuffer_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
@@ -21931,7 +21939,9 @@ interface AreaElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName ArrayBuffer
-interface ArrayBuffer {
+interface ArrayBuffer default _ArrayBufferFactoryProvider {
+
+  ArrayBuffer(int length);
 
   /** @domName ArrayBuffer.byteLength */
   final int byteLength;

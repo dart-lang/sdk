@@ -17156,6 +17156,14 @@ class _XSLTProcessorImpl implements XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _ArrayBufferFactoryProvider {
+  factory ArrayBuffer(int length) native
+      '''return new ArrayBuffer(length);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _AudioElementFactoryProvider {
   factory AudioElement([String src = null]) native '''
       if (src == null) return new Audio();
@@ -17998,7 +18006,9 @@ interface AreaElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName ArrayBuffer
-interface ArrayBuffer {
+interface ArrayBuffer default _ArrayBufferFactoryProvider {
+
+  ArrayBuffer(int length);
 
   /** @domName ArrayBuffer.byteLength */
   final int byteLength;

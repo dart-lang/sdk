@@ -12,6 +12,7 @@ measurement_test: Pass, Fail  # Issue 1940
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 blob_constructor_test: Fail          # custom Blob constructor not implemented.
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
+typed_arrays_arraybuffer_test: Fail  # Issue 2682 constructor not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -38,7 +39,10 @@ typed_arrays_1_test: Skip   # ie9 does not have typed arrays.
 typed_arrays_2_test: Skip
 typed_arrays_3_test: Skip
 typed_arrays_4_test: Skip
+typed_arrays_5_test: Skip
+typed_arrays_arraybuffer_test: Skip
 typed_arrays_dataview_test: Skip
+typed_arrays_range_checks_test: Fail
 cssstyledeclaration_test: Fail
 element_test: Fail
 localstorage_test: Fail
@@ -75,7 +79,6 @@ shadow_dom_layout_test: Fail
 shadow_dom_test: Fail
 storage_test: Fail
 svg_3_test: Fail
-typed_arrays_range_checks_test: Fail
 websocket_test: Fail
 window_nosuchmethod_test: Fail
 window_open_test: Skip      # BUG(4016)

@@ -141,7 +141,10 @@ module html {
 
 
 module canvas {
-  // TODO(dstockwell): Define these manually.
+  [Supplemental,
+   Constructor(in long length)]  // Add constructor signature.
+  interface ArrayBuffer {
+  };
   [Supplemental]
   interface Float32Array {
     [Suppressed] void set();

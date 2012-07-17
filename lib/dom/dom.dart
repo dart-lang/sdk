@@ -13,6 +13,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _ArrayBufferFactoryProvider {
+  factory ArrayBuffer(int length) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _BlobFactoryProvider {
   factory Blob(List blobParts, [String type, String endings]) => _dummy();
 }
@@ -232,7 +239,9 @@ interface AbstractWorker extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-interface ArrayBuffer {
+interface ArrayBuffer default _ArrayBufferFactoryProvider {
+
+  ArrayBuffer(int length);
 
   final int byteLength;
 
