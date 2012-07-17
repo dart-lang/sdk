@@ -1311,7 +1311,7 @@ class HFieldGet extends HFieldAccess {
   int typeCode() => 27;
   bool typeEquals(other) => other is HFieldGet;
   bool dataEquals(HFieldGet other) => element == other.element;
-  String toString() => "FieldGet $element.name";
+  String toString() => "FieldGet $element";
 }
 
 class HFieldSet extends HFieldAccess {
@@ -1328,7 +1328,7 @@ class HFieldSet extends HFieldAccess {
   }
 
   final bool isStatement = true;
-  String toString() => "FieldSet $element.name";
+  String toString() => "FieldSet $element";
 }
 
 class HLocalGet extends HFieldGet {

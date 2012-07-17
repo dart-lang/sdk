@@ -886,6 +886,11 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
           preheader.moveAtExit(instruction);
         }
       }
+      int oldChangesFlags = changesFlags;
+      changesFlags |= instruction.getChangesFlags();
+      if (oldChangesFlags != changesFlags) {
+        dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
+      }
       instruction = next;
     }
   }
