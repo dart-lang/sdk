@@ -321,7 +321,8 @@ class Debugger {
 
   void CollectLibraryFields(const GrowableObjectArray& field_list,
                             const Library& lib,
-                            const String& prefix);
+                            const String& prefix,
+                            bool include_private_fields);
 
   Isolate* isolate_;
   bool initialized_;

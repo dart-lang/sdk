@@ -41,7 +41,7 @@ void printHelp() {
   ll  List loaded libraries
   plib <id> Print library info for given library id
   pg <id> Print all global variables visible within given library id
-  ls <libname> List loaded scripts in library
+  ls <lib_id> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
   epi <none|all|unhandled>  Set exception pause info
   h   Print help

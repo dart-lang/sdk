@@ -1143,7 +1143,8 @@ RawArray* Debugger::GetStaticFields(const Class& cls) {
 
 void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
                                     const Library& lib,
-                                    const String& prefix) {
+                                    const String& prefix,
+                                    bool include_private_fields) {
   DictionaryIterator it(lib);
   Object& entry = Object::Handle(isolate_);
   Field& field = Field::Handle(isolate_);
@@ -1157,6 +1158,10 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
       cls = field.owner();
       ASSERT(field.is_static());
       field_name = field.name();
+      if ((field_name.CharAt(0) == '_') && !include_private_fields) {
+        // Skip library-private field.
+        continue;
+      }
       field_value = GetStaticField(cls, field_name);
       if (!prefix.IsNull()) {
         field_name = String::Concat(prefix, field_name);
@@ -1171,7 +1176,7 @@ void Debugger::CollectLibraryFields(const GrowableObjectArray& field_list,
 RawArray* Debugger::GetLibraryFields(const Library& lib) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
-  CollectLibraryFields(field_list, lib, String::Handle(isolate_));
+  CollectLibraryFields(field_list, lib, String::Handle(isolate_), true);
   return Array::MakeArray(field_list);
 }
 
@@ -1180,13 +1185,13 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
   const GrowableObjectArray& field_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New(8));
   String& prefix_name = String::Handle(isolate_);
-  CollectLibraryFields(field_list, lib, prefix_name);
+  CollectLibraryFields(field_list, lib, prefix_name, true);
   Library& imported = Library::Handle(isolate_);
   intptr_t num_imports = lib.num_imports();
   for (int i = 0; i < num_imports; i++) {
     imported = lib.ImportAt(i);
     ASSERT(!imported.IsNull());
-    CollectLibraryFields(field_list, imported, prefix_name);
+    CollectLibraryFields(field_list, imported, prefix_name, false);
   }
   LibraryPrefix& prefix = LibraryPrefix::Handle(isolate_);
   LibraryPrefixIterator it(lib);
@@ -1198,7 +1203,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
                                  String::Handle(isolate_, String::New(".")));
     for (int i = 0; i < prefix.num_libs(); i++) {
       imported = prefix.GetLibrary(i);
-      CollectLibraryFields(field_list, imported, prefix_name);
+      CollectLibraryFields(field_list, imported, prefix_name, false);
     }
   }
   return Array::MakeArray(field_list);
