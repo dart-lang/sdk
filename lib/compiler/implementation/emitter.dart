@@ -60,6 +60,8 @@ class CodeEmitterTask extends CompilerTask {
       => '${namer.ISOLATE}.\$pendingClasses';
   String get isolatePropertiesName()
       => '${namer.ISOLATE}.${namer.ISOLATE_PROPERTIES}';
+  String get supportsProtoName()
+      => 'supportsProto';
 
   final String GETTER_SUFFIX = "?";
   final String SETTER_SUFFIX = "!";
@@ -75,6 +77,8 @@ function(field, prototype) {
   if (needsGetter || needsSetter) field = field.substring(0, len - 1);
   if (needsGetter) {
     var getterString = "return this." + field + ";";
+""" /* The supportsProtoCheck below depends on the getter/setter convention.
+       When changing here, update the protoCheck too. */ """
     prototype["get\$" + field] = new Function(getterString);
   }
   if (needsSetter) {
@@ -100,7 +104,7 @@ function(field, prototype) {
     //  },
     // });
     return """
-function(cls, superclass, fields, prototype) {
+function(cls, fields, prototype) {
   var generateGetterSetter = $generateGetterSetterFunction;
   var constructor;
   if (typeof fields == 'function') {
@@ -119,12 +123,28 @@ function(cls, superclass, fields, prototype) {
     str += "return " + cls + ";";
     constructor = new Function(str)();
   }
-  $isolatePropertiesName[cls] = constructor;
   constructor.prototype = prototype;
-  if (superclass !== "") {
-    $pendingClassesName[cls] = superclass;
-  }
+  return constructor;
 }""";
+  }
+
+  /** Needs defineClass to be defined. */
+  String get protoSupportCheck() {
+    // On Firefox and Webkit browsers we can manipulate the __proto__
+    // directly. Opera claims to have __proto__ support, but it is buggy.
+    // So we have to do more checks.
+    // If the browser does not support __proto__ we need to instantiate an
+    // object with the correct (internal) prototype set up correctly, and then
+    // copy the members.
+
+    return '''
+var $supportsProtoName = false;
+var tmp = $defineClassName('c', ['f?'], {}).prototype;
+if (tmp.__proto__) {
+  tmp.__proto__ = {};
+  if (typeof tmp.get\$f !== "undefined") $supportsProtoName = true;
+}
+''';
   }
 
   String get finishClassesFunction() {
@@ -142,10 +162,11 @@ function(cls, superclass, fields, prototype) {
     // object and copy over the members.
     return '''
 function(collectedClasses) {
-  for (var collected in collectedClasses) {
-    if (Object.prototype.hasOwnProperty.call(collectedClasses, collected)) {
-      var desc = collectedClasses[collected];
-      $defineClassName(collected, desc.super, desc[''], desc);
+  for (var cls in collectedClasses) {
+    if (Object.prototype.hasOwnProperty.call(collectedClasses, cls)) {
+      var desc = collectedClasses[cls];
+      $isolatePropertiesName[cls] = $defineClassName(cls, desc[''], desc);
+      if (desc['super'] !== "") $pendingClassesName[cls] = desc['super'];
     }
   }
   var pendingClasses = $pendingClassesName;
@@ -163,15 +184,10 @@ function(collectedClasses) {
     var constructor = $isolatePropertiesName[cls];
     var superConstructor = $isolatePropertiesName[superclass];
     var prototype = constructor.prototype;
-    if (prototype.__proto__) {
-'''/* On Firefox and Webkit browsers we can manipulate the __proto__
-      directly. */'''
+    if ($supportsProtoName) {
       prototype.__proto__ = superConstructor.prototype;
       prototype.constructor = constructor;
     } else {
-'''/* On the remaining browsers we need to instantiate an object with the
-      correct (internal) prototype set up correctly, and then copy the
-      members. */'''
       function tmp() {};
       tmp.prototype = superConstructor.prototype;
       var newPrototype = new tmp();
@@ -237,6 +253,7 @@ function(collectedClasses) {
     if (needsDefineClass) {
       String isolate = namer.ISOLATE;
       buffer.add("$defineClassName = $defineClassFunction;\n");
+      buffer.add(protoSupportCheck);
       buffer.add("$pendingClassesName = {};\n");
       buffer.add("$finishClassesName = $finishClassesFunction;\n");
     }
@@ -711,9 +728,11 @@ function(collectedClasses) {
 
       // Define the constructor with a name so that Object.toString can
       // find the class name of the closure class.
-      boundClosureBuffer.add("$defineClassName('$mangledName', '$superName', ");
-      boundClosureBuffer.add("['self', 'target'], {\n");
-
+      boundClosureBuffer.add("""
+$classesCollector.$mangledName = {'':
+ ['self', 'target'],
+ 'super': '$superName',
+""");
       // Now add the methods on the closure class. The instance method does not
       // have the correct name. Since [addParameterStubs] use the name to create
       // its stubs we simply create a fake element with the correct name.
@@ -736,7 +755,7 @@ function(collectedClasses) {
       addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n $stubName: $memberValue');
       });
-      boundClosureBuffer.add("\n});\n");
+      boundClosureBuffer.add("\n};\n");
 
       closureClass = namer.isolateAccess(closureClassElement);
 
@@ -1040,7 +1059,7 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
       nativeEmitter.assembleCode(mainBuffer);
       emitMain(mainBuffer);
       mainBuffer.add('function init() {\n');
-      mainBuffer.add('  $isolateProperties = {};\n');
+      mainBuffer.add('$isolateProperties = {};\n');
       addDefineClassAndFinishClassFunctionsIfNecessary(mainBuffer);
       emitFinishIsolateConstructor(mainBuffer);
       mainBuffer.add('}\n');
