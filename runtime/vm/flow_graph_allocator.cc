@@ -385,60 +385,68 @@ void FlowGraphAllocator::BuildLiveRanges() {
       range->AddUseInterval(block->start_pos(), block->end_pos());
     }
 
-    // Position corresponding to the end of the last instruction in the block.
+    // Position corresponding to the beginning of the last instruction in the
+    // block.
     intptr_t pos = block->end_pos() - 1;
-
     Instruction* current = block->last_instruction();
 
-    // If last instruction is a parallel move we need to perform phi resolution.
-    if (current->IsParallelMove()) {
-      ParallelMoveInstr* parallel_move = current->AsParallelMove();
-      JoinEntryInstr* join = current->next()->AsJoinEntry();
-      ASSERT(join != NULL);
-
-      // Find index of the current block in predecessors of join.
-      intptr_t pred_idx = -1;
-      for (intptr_t j = 0; j < join->PredecessorCount(); j++) {
-        BlockEntryInstr* pred = join->PredecessorAt(j);
-        if (pred == block) {
-          pred_idx = j;
-          break;
-        }
-      }
-      ASSERT(pred_idx != -1);
-
-      // For every phi we have a reserved phi resolution move and we need
-      // to either initialize its source with constant or to register a use, so
-      // that register allocator will populate source slot with location of
-      // the appropriate SSA value.
-      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-      intptr_t move_idx = 0;
-      for (intptr_t j = 0; j < phis->length(); j++) {
-        PhiInstr* phi = (*phis)[j];
-        if (phi == NULL) continue;
-
-        Value* val = phi->InputAt(pred_idx);
-
-        MoveOperands move = parallel_move->moves()[move_idx];
-        if (val->IsUse()) {
-          const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-          Location* slot = move.src_slot();
-          *slot = Location::RequiresRegister();
-          GetLiveRange(use)->head()->AddUse(NULL, pos, slot);
-        } else {
-          ASSERT(val->IsConstant());
-          move.set_src(Location::Constant(val->AsConstant()->value()));
-        }
-
-        move_idx++;
-      }
-
+    // Goto instructions do not contribute liveness information.
+    GotoInstr* goto_instr = current->AsGoto();
+    if (goto_instr != NULL) {
       current = current->previous();
+      // If we have a parallel move here then the successor block must be a
+      // join with phis.  The phi inputs contribute uses to each predecessor
+      // block (and the phi outputs contribute definitions in the successor
+      // block).
+      //
+      // We record those uses at the end of the instruction preceding the
+      // parallel move.  This position is 'pos', because we do not assign
+      // instruction numbers to parallel moves.
+      ParallelMoveInstr* parallel_move = current->AsParallelMove();
+      if (parallel_move != NULL) {
+        JoinEntryInstr* join = goto_instr->successor();
+        ASSERT(join != NULL);
+
+        // Search for the index of the current block in the predecessors of
+        // the join.
+        // TODO(kmillikin): record the predecessor index in the goto when
+        // building the predecessor list to avoid this search.
+        intptr_t pred_idx = 0;
+        for (; pred_idx < join->PredecessorCount(); pred_idx++) {
+          if (join->PredecessorAt(pred_idx) == block) break;
+        }
+        ASSERT(pred_idx < join->PredecessorCount());
+
+        // Record the corresponding phi input use for each phi.
+        ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+        intptr_t move_idx = 0;
+        for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
+          PhiInstr* phi = (*phis)[phi_idx];
+          if (phi == NULL) continue;
+
+          Value* val = phi->InputAt(pred_idx);
+          MoveOperands move = parallel_move->moves()[move_idx];
+          if (val->IsUse()) {
+            const intptr_t virtual_register =
+                val->AsUse()->definition()->ssa_temp_index();
+            Location* slot = move.src_slot();
+            *slot = Location::RequiresRegister();
+            GetLiveRange(virtual_register)->head()->AddUse(NULL, pos, slot);
+          } else {
+            ASSERT(val->IsConstant());
+            move.set_src(Location::Constant(val->AsConstant()->value()));
+          }
+          move_idx++;
+        }
+
+        // Begin backward iteration with the instruction before the parallel
+        // move.
+        current = current->previous();
+      }
     }
 
     // Now process all instructions in reverse order.
-    // Advance position to the start of the last instruction in the block.
-    pos -= 1;
+    --pos;  // 'pos' is now the start position for the current instruction.
     while (current != block) {
       LocationSummary* locs = current->locs();
 
@@ -527,80 +535,95 @@ void FlowGraphAllocator::BuildLiveRanges() {
     // If this block is a join we need to add destinations of phi
     // resolution moves to phi's live range so that register allocator will
     // fill them with moves.
-    if (block->IsJoinEntry() && block->AsJoinEntry()->phis() != NULL) {
-      ZoneGrowableArray<PhiInstr*>* phis = block->AsJoinEntry()->phis();
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if (join != NULL) {
+      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+      if (phis != NULL) {
+        intptr_t move_idx = 0;
+        for (intptr_t j = 0; j < phis->length(); j++) {
+          PhiInstr* phi = (*phis)[j];
+          if (phi == NULL) continue;
 
-      intptr_t move_idx = 0;
-      for (intptr_t j = 0; j < phis->length(); j++) {
-        PhiInstr* phi = (*phis)[j];
-        if (phi == NULL) continue;
+          const intptr_t virtual_register = phi->ssa_temp_index();
+          ASSERT(virtual_register != -1);
 
-        const intptr_t def = phi->ssa_temp_index();
-        ASSERT(def != -1);
+          LiveRange* range = GetLiveRange(virtual_register);
+          range->DefineAt(NULL, pos, NULL);
+          UseInterval* interval = GetLiveRange(virtual_register)->head();
 
-        LiveRange* range = GetLiveRange(def);
-        range->DefineAt(NULL, pos, NULL);
-        UseInterval* interval = GetLiveRange(def)->head();
+          for (intptr_t k = 0; k < phi->InputCount(); k++) {
+            BlockEntryInstr* pred = block->PredecessorAt(k);
+            ASSERT(pred->last_instruction()->IsGoto());
+            Instruction* move_instr = pred->last_instruction()->previous();
+            ASSERT(move_instr->IsParallelMove());
 
-        for (intptr_t k = 0; k < phi->InputCount(); k++) {
-          BlockEntryInstr* pred = block->PredecessorAt(k);
-          ASSERT(pred->last_instruction()->IsParallelMove());
+            Location* slot =
+                move_instr->AsParallelMove()->moves()[move_idx].dest_slot();
+            *slot = Location::RequiresRegister();
+            interval->AddUse(NULL, pos, slot);
+          }
 
-          Location* slot = pred->last_instruction()->AsParallelMove()->
-            moves()[move_idx].dest_slot();
-          *slot = Location::RequiresRegister();
-          interval->AddUse(NULL, pos, slot);
+          // All phi resolution moves are connected. Phi's live range is
+          // complete.
+          AddToUnallocated(interval);
+
+          move_idx++;
         }
-
-        // All phi resolution moves are connected. Phi's live range is complete.
-        AddToUnallocated(interval);
-
-        move_idx++;
       }
     }
   }
 }
 
 
+// Linearize the control flow graph.  The chosen order will be used by the
+// linear-scan register allocator.  Number most instructions with a pair of
+// numbers representing lifetime positions.  Introduce explicit parallel
+// move instructions in the predecessors of join nodes.  The moves are used
+// for phi resolution.
 void FlowGraphAllocator::NumberInstructions() {
   intptr_t pos = 0;
 
+  // The basic block order is reverse postorder.
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = block_count - 1; i >= 0; i--) {
     BlockEntryInstr* block = postorder_[i];
-
     block->set_start_pos(pos);
+    block->set_lifetime_position(pos);
     pos += 2;
-    Instruction* current = block->next();
-
-    Instruction* last = block->last_instruction();
-    if (!last->IsParallelMove()) last = last->next();
-
-    while (current != last) {
-      current->set_lifetime_position(pos);
-      current = current->next();
-      pos += 2;
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      // Do not assign numbers to parallel moves or goto instructions.
+      if (!current->IsParallelMove() && !current->IsGoto()) {
+        current->set_lifetime_position(pos);
+        pos += 2;
+      }
     }
     block->set_end_pos(pos);
 
     // For join entry predecessors create phi resolution moves if
     // necessary. They will be populated by the register allocator.
-    if (block->IsJoinEntry() && (block->AsJoinEntry()->phi_count() > 0)) {
-      const intptr_t phi_count = block->AsJoinEntry()->phi_count();
+    JoinEntryInstr* join = block->AsJoinEntry();
+    if ((join != NULL) && (join->phi_count() > 0)) {
+      const intptr_t phi_count = join->phi_count();
       for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
-        BlockEntryInstr* pred = block->PredecessorAt(i);
-        ASSERT(!pred->last_instruction()->IsParallelMove());
-
         ParallelMoveInstr* move = new ParallelMoveInstr();
-        move->set_next(block);
-        move->set_previous(pred->last_instruction());
-        pred->last_instruction()->set_next(move);
-        pred->set_last_instruction(move);
-
-        // Populate ParallelMove with empty moves.
+        // Populate the ParallelMove with empty moves.
         for (intptr_t j = 0; j < phi_count; j++) {
           move->AddMove(Location::NoLocation(), Location::NoLocation());
         }
+
+        // Insert the move between the last two instructions of the
+        // predecessor block (all such blocks have at least two instructions:
+        // the block entry and goto instructions.)
+        BlockEntryInstr* pred = block->PredecessorAt(i);
+        Instruction* next = pred->last_instruction();
+        Instruction* previous = next->previous();
+        ASSERT(next->IsGoto());
+        ASSERT(!previous->IsParallelMove());
+        previous->set_next(move);
+        move->set_previous(previous);
+        move->set_next(next);
+        next->set_previous(move);
       }
     }
   }
