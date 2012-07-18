@@ -324,18 +324,21 @@ void DebuggerConnectionHandler::HandleStepOverCmd(const char* json_msg) {
 
 
 static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
-  ASSERT(Dart_IsString8(str));
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
-  uint8_t* codepoints = reinterpret_cast<uint8_t*>(malloc(str_len));
+  uint32_t* codepoints =
+      reinterpret_cast<uint32_t*>(malloc(str_len * sizeof(uint32_t)));
   ASSERT(codepoints != NULL);
   intptr_t actual_len = str_len;
-  res = Dart_StringGet8(str, codepoints, &actual_len);
+  res = Dart_StringGet32(str, codepoints, &actual_len);
+  ASSERT_NOT_ERROR(res);
   ASSERT(str_len == actual_len);
-  buf->Printf("\"");
-  buf->PrintJsonString8(codepoints, str_len);
-  buf->Printf("\"");
+  buf->AddChar('\"');
+  for (int i = 0; i < str_len; i++) {
+    buf->AddEscapedChar(codepoints[i]);
+  }
+  buf->AddChar('\"');
   free(codepoints);
 }
 

@@ -7,6 +7,8 @@
 
 #import("dart:io");
 #import("dart:json");
+#import("dart:utf");
+
 
 Map<int, Completer> outstandingCommands;
 
@@ -428,7 +430,7 @@ void main() {
   };
   var vmInStream = new SocketInputStream(vmSock);
   vmInStream.onData = () {
-    var s = new String.fromCharCodes(vmInStream.read());
+    String s = decodeUtf8(vmInStream.read());
     processVmData(s);
   };
   vmInStream.onError = (err) {

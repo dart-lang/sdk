@@ -97,11 +97,6 @@ void JSONScanner::ScanString() {
         // Consume escaped double quote.
         ++current_pos_;
       }
-    } else if (*current_pos_ < 0) {
-      // UTF-8 not supported.
-      token_length_ = 0;
-      token_ = TokenIllegal;
-      return;
     } else {
       ++current_pos_;
     }
@@ -352,6 +347,53 @@ void TextBuffer::Clear() {
 }
 
 
+void TextBuffer::AddChar(char ch) {
+  EnsureCapacity(sizeof(ch));
+  buf_[msg_len_] = ch;
+  msg_len_++;
+  buf_[msg_len_] = '\0';
+}
+
+
+void TextBuffer::AddUTF8(uint32_t ch) {
+  static const uint32_t kMaxOneByteChar   = 0x7F;
+  static const uint32_t kMaxTwoByteChar   = 0x7FF;
+  static const uint32_t kMaxThreeByteChar = 0xFFFF;
+  static const uint32_t kMaxFourByteChar  = 0x10FFFF;
+  static const uint32_t kMask = ~(1 << 6);
+
+  EnsureCapacity(sizeof(ch));
+  if (ch <= kMaxOneByteChar) {
+    EnsureCapacity(1);
+    buf_[msg_len_++] = ch;
+    buf_[msg_len_] = '\0';
+    return;
+  }
+  if (ch <= kMaxTwoByteChar) {
+    EnsureCapacity(2);
+    buf_[msg_len_++] = 0xC0 | (ch >> 6);
+    buf_[msg_len_++] = 0x80 | (ch & kMask);
+    buf_[msg_len_] = '\0';
+    return;
+  }
+  if (ch <= kMaxThreeByteChar) {
+    EnsureCapacity(3);
+    buf_[msg_len_++] = 0xE0 | (ch >> 12);
+    buf_[msg_len_++] = 0x80 | ((ch >> 6) & kMask);
+    buf_[msg_len_++] = 0x80 | (ch & kMask);
+    buf_[msg_len_] = '\0';
+    return;
+  }
+  ASSERT(ch <= kMaxFourByteChar);
+  EnsureCapacity(4);
+  buf_[msg_len_++] = 0xF0 | (ch >> 18);
+  buf_[msg_len_++] = 0x80 | ((ch >> 12) & kMask);
+  buf_[msg_len_++] = 0x80 | ((ch >> 6) & kMask);
+  buf_[msg_len_++] = 0x80 | (ch & kMask);
+  buf_[msg_len_] = '\0';
+}
+
+
 intptr_t TextBuffer::Printf(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -360,8 +402,7 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
   intptr_t len = OS::VSNPrint(buf_ + msg_len_, remaining, format, args);
   va_end(args);
   if (len >= remaining) {
-    const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
-    GrowBuffer(len + kBufferSpareCapacity);
+    EnsureCapacity(len);
     remaining = buf_size_ - msg_len_;
     ASSERT(remaining > len);
     va_list args2;
@@ -376,56 +417,57 @@ intptr_t TextBuffer::Printf(const char* format, ...) {
 }
 
 
-void TextBuffer::PrintJsonString8(const uint8_t* codepoints, intptr_t length) {
-  for (intptr_t i = 0; i < length; i++) {
-    uint8_t cp = codepoints[i];
-    switch (cp) {
-      case '"':
-        Printf("%s", "\\\"");
-        break;
-      case '\\':
-        Printf("%s", "\\\\");
-        break;
-      case '/':
-        Printf("%s", "\\/");
-        break;
-      case '\b':
-        Printf("%s", "\\b");
-        break;
-      case '\f':
-        Printf("%s", "\\f");
-        break;
-      case '\n':
-        Printf("%s", "\\n");
-        break;
-      case '\r':
-        Printf("%s", "\\r");
-        break;
-      case '\t':
-        Printf("%s", "\\t");
-        break;
-      default:
-        if ((0x20 <= cp) && (cp <= 0x7e)) {
-          Printf("%c", cp);
-        } else {
-          // Encode character as \u00HH.
-          uint8_t digit2 = (cp & 0xf0) >> 4;
-          uint8_t digit3 = cp & 0xf;
-          Printf("\\u00%c%c",
-            digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
-            digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
-        }
-    }
+void TextBuffer::AddEscapedChar(uint32_t cp) {
+  switch (cp) {
+    case '"':
+      Printf("%s", "\\\"");
+      break;
+    case '\\':
+      Printf("%s", "\\\\");
+      break;
+    case '/':
+      Printf("%s", "\\/");
+      break;
+    case '\b':
+      Printf("%s", "\\b");
+      break;
+    case '\f':
+      Printf("%s", "\\f");
+      break;
+    case '\n':
+      Printf("%s", "\\n");
+      break;
+    case '\r':
+      Printf("%s", "\\r");
+      break;
+    case '\t':
+      Printf("%s", "\\t");
+      break;
+    default:
+      if (cp < 0x20) {
+        // Encode character as \u00HH.
+        uint32_t digit2 = (cp >> 4) & 0xf;
+        uint32_t digit3 = (cp & 0xf);
+        Printf("\\u00%c%c",
+               digit2 > 9 ? 'A' + (digit2 - 10) : '0' + digit2,
+               digit3 > 9 ? 'A' + (digit3 - 10) : '0' + digit3);
+      } else {
+        AddUTF8(cp);
+      }
   }
 }
 
 
-void TextBuffer::GrowBuffer(intptr_t len) {
-  intptr_t new_size = buf_size_ + len;
-  char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
-  ASSERT(new_buf != NULL);
-  buf_ = new_buf;
-  buf_size_ = new_size;
+void TextBuffer::EnsureCapacity(intptr_t len) {
+  intptr_t remaining = buf_size_ - msg_len_;
+  if (remaining <= len) {
+    const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
+    intptr_t new_size = buf_size_ + len + kBufferSpareCapacity;
+    char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
+    ASSERT(new_buf != NULL);
+    buf_ = new_buf;
+    buf_size_ = new_size;
+  }
 }
 
 }  // namespace dart
