@@ -226,12 +226,11 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      info = RecognizeCallback(interface)
-      if info:
-       system.ProcessCallback(interface, info)
+      if 'Callback' in interface.ext_attrs:
+        handlers = [op for op in interface.operations if op.id == 'handleEvent']
+        info = AnalyzeOperation(interface, handlers)
+        system.ProcessCallback(interface, info)
       else:
-        if 'Callback' in interface.ext_attrs:
-          _logger.info('Malformed callback: %s' % interface.id)
         _logger.info('Generating %s' % interface.id)
         system.ProcessInterface(interface)
 

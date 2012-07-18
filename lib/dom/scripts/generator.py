@@ -304,17 +304,6 @@ def AnalyzeConstructor(interface):
   info.param_infos = args
   return info
 
-
-def RecognizeCallback(interface):
-  """Returns the info for the callback method if the interface smells like a
-  callback.
-  """
-  if 'Callback' not in interface.ext_attrs: return None
-  handlers = [op for op in interface.operations if op.id == 'handleEvent']
-  if not handlers: return None
-  if not (handlers == interface.operations): return None
-  return AnalyzeOperation(interface, handlers)
-
 def IsDartListType(type):
   return type == 'List' or type.startswith('sequence<')
 
