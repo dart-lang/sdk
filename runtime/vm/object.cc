@@ -8,6 +8,7 @@
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
+#include "vm/datastream.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -321,6 +322,9 @@ void Object::InitOnce() {
   // Therefore, it cannot have a heap allocated name (the name is hard coded,
   // see GetSingletonClassIndex) and its array fields cannot be set to the empty
   // array, but remain null.
+  //
+  // TODO(turnidge): Once the empty array is allocated in the vm
+  // isolate, use it here.
   cls = Class::New<Instance>(kDynamicClassId);
   cls.set_is_finalized();
   cls.set_is_interface();
@@ -513,7 +517,7 @@ RawError* Object::Init(Isolate* isolate) {
       GrowableObjectArray::Handle(GrowableObjectArray::New(Heap::kOld));
   object_store->set_pending_classes(pending_classes);
 
-  Context& context = Context::Handle(Context::New(0));
+  Context& context = Context::Handle(Context::New(0, Heap::kOld));
   object_store->set_empty_context(context);
 
   // Now that the symbol table is initialized and that the core dictionary as
@@ -995,6 +999,39 @@ RawObject* Object::Allocate(const Class& cls,
   InitializeObject(address, cls.id(), size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   ASSERT(cls.id() == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+  return raw_obj;
+}
+
+
+class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
+ public:
+  explicit StoreBufferObjectPointerVisitor(Isolate* isolate) :
+      ObjectPointerVisitor(isolate) {
+  }
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** curr = first; curr <= last; ++curr) {
+      if ((*curr)->IsNewObject()) {
+        uword ptr = reinterpret_cast<uword>(curr);
+        isolate()->store_buffer()->AddPointer(ptr);
+      }
+    }
+  }
+
+ private:
+  DISALLOW_COPY_AND_ASSIGN(StoreBufferObjectPointerVisitor);
+};
+
+
+RawObject* Object::Clone(const Object& src, Heap::Space space) {
+  const Class& cls = Class::Handle(src.clazz());
+  intptr_t size = src.raw()->Size();
+  RawObject* raw_obj = Object::Allocate(cls, size, space);
+  NoGCScope no_gc;
+  memmove(raw_obj->ptr(), src.raw()->ptr(), size);
+  if (space == Heap::kOld) {
+    StoreBufferObjectPointerVisitor visitor(Isolate::Current());
+    raw_obj->VisitPointers(&visitor);
+  }
   return raw_obj;
 }
 
@@ -1925,26 +1962,51 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-static bool MatchesPrivateName(const String& name, const String& private_name) {
-  intptr_t name_len = name.Length();
-  intptr_t private_len = private_name.Length();
-  // The private_name must at least have room for the separator and one key
-  // character.
-  if ((name_len < (private_len + 2)) || (name_len == 0) || (private_len == 0)) {
+// Check to see if mangled_name is equal to bare_name once the private
+// key separator is stripped from mangled_name.
+//
+// Things are made more complicated by the fact that constructors are
+// added *after* the private suffix, so "foo@123.named" should match
+// "foo.named".
+//
+// Also, the private suffix can occur more than once in the name, as in:
+//
+//    _ReceivePortImpl@6be832b._internal@6be832b
+//
+bool EqualsIgnoringPrivate(const String& mangled_name,
+                           const String& bare_name) {
+  intptr_t mangled_len = mangled_name.Length();
+  intptr_t bare_len = bare_name.Length();
+  if (mangled_len < bare_len) {
+    // No way they can match.
     return false;
   }
 
-  // Check for the private key separator.
-  if (name.CharAt(private_len) != Scanner::kPrivateKeySeparator) {
-    return false;
-  }
+  intptr_t mangled_pos = 0;
+  intptr_t bare_pos = 0;
+  while (mangled_pos < mangled_len) {
+    int32_t mangled_char = mangled_name.CharAt(mangled_pos);
+    mangled_pos++;
 
-  for (intptr_t i = 0; i < private_len; i++) {
-    if (name.CharAt(i) != private_name.CharAt(i)) {
+    if (mangled_char == Scanner::kPrivateKeySeparator) {
+      // Consume a private key separator.
+      while (mangled_pos < mangled_len &&
+             mangled_name.CharAt(mangled_pos) != '.') {
+        mangled_pos++;
+      }
+
+      // Resume matching characters.
+      continue;
+    }
+    if (bare_pos == bare_len || mangled_char != bare_name.CharAt(bare_pos)) {
       return false;
     }
+    bare_pos++;
   }
-  return true;
+
+  // The strings match if we have reached the end of both strings.
+  return (mangled_pos == mangled_len &&
+          bare_pos == bare_len);
 }
 
 
@@ -1957,7 +2019,8 @@ RawFunction* Class::LookupFunction(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
-    if (function_name.Equals(name) || MatchesPrivateName(function_name, name)) {
+    if (function_name.Equals(name) ||
+        EqualsIgnoringPrivate(function_name, name)) {
       return function.raw();
     }
   }
@@ -2059,7 +2122,7 @@ RawField* Class::LookupField(const String& name) const {
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
-    if (field_name.Equals(name) || MatchesPrivateName(field_name, name)) {
+    if (field_name.Equals(name) || EqualsIgnoringPrivate(field_name, name)) {
       return field.raw();
     }
   }
@@ -2699,48 +2762,50 @@ bool Type::IsIdentical(const AbstractType& other,
 
 RawAbstractType* Type::Canonicalize() const {
   ASSERT(IsFinalized());
+  if (IsCanonical() || IsMalformed()) {
+    return this->raw();
+  }
   const Class& cls = Class::Handle(type_class());
   Array& canonical_types = Array::Handle(cls.canonical_types());
   if (canonical_types.IsNull()) {
     // Types defined in the VM isolate are canonicalized via the object store.
     return this->raw();
   }
-  if (!IsCanonical()) {
-    const intptr_t canonical_types_len = canonical_types.Length();
-    // Linear search to see whether this type is already present in the
-    // list of canonicalized types.
-    // TODO(asiva): Try to re-factor this lookup code to make sharing
-    // easy between the 4 versions of this loop.
-    Type& type = Type::Handle();
-    intptr_t index = 0;
-    while (index < canonical_types_len) {
-      type ^= canonical_types.At(index);
-      if (type.IsNull()) {
-        break;
-      }
-      if (!type.IsFinalized()) {
-        ASSERT((index == 0) && cls.IsSignatureClass());
-        index++;
-        continue;
-      }
-      if (this->Equals(type)) {
-        return type.raw();
-      }
+  const intptr_t canonical_types_len = canonical_types.Length();
+  // Linear search to see whether this type is already present in the
+  // list of canonicalized types.
+  // TODO(asiva): Try to re-factor this lookup code to make sharing
+  // easy between the 4 versions of this loop.
+  Type& type = Type::Handle();
+  intptr_t index = 0;
+  while (index < canonical_types_len) {
+    type ^= canonical_types.At(index);
+    if (type.IsNull()) {
+      break;
+    }
+    if (!type.IsFinalized()) {
+      ASSERT((index == 0) && cls.IsSignatureClass());
       index++;
+      continue;
     }
-    // The type needs to be added to the list. Grow the list if it is full.
-    if (index == canonical_types_len) {
-      const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
-      const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
-      const Array& new_canonical_types =
-          Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
-      cls.set_canonical_types(new_canonical_types);
-      new_canonical_types.SetAt(index, *this);
-    } else {
-      canonical_types.SetAt(index, *this);
+    if (this->Equals(type)) {
+      return type.raw();
     }
-    SetCanonical();
+    index++;
   }
+  // The type needs to be added to the list. Grow the list if it is full.
+  if (index == canonical_types_len) {
+    const intptr_t kLengthIncrement = 2;  // Raw and parameterized.
+    const intptr_t new_length = canonical_types.Length() + kLengthIncrement;
+    const Array& new_canonical_types =
+        Array::Handle(Array::Grow(canonical_types, new_length, Heap::kOld));
+    cls.set_canonical_types(new_canonical_types);
+    new_canonical_types.SetAt(index, *this);
+  } else {
+    canonical_types.SetAt(index, *this);
+  }
+  ASSERT(IsOld());
+  SetCanonical();
   return this->raw();
 }
 
@@ -2756,19 +2821,20 @@ void Type::set_arguments(const AbstractTypeArguments& value) const {
 }
 
 
-RawType* Type::New() {
+RawType* Type::New(Heap::Space space) {
   const Class& type_class = Class::Handle(Object::type_class());
   RawObject* raw = Object::Allocate(type_class,
                                     Type::InstanceSize(),
-                                    Heap::kOld);
+                                    space);
   return reinterpret_cast<RawType*>(raw);
 }
 
 
 RawType* Type::New(const Object& clazz,
                    const AbstractTypeArguments& arguments,
-                   intptr_t token_pos) {
-  const Type& result = Type::Handle(Type::New());
+                   intptr_t token_pos,
+                   Heap::Space space) {
+  const Type& result = Type::Handle(Type::New(space));
   result.set_type_class(clazz);
   result.set_arguments(arguments);
   result.set_token_pos(token_pos);
@@ -3320,7 +3386,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
   }
   const intptr_t num_types = Length();
   TypeArguments& instantiated_array =
-      TypeArguments::Handle(TypeArguments::New(num_types));
+      TypeArguments::Handle(TypeArguments::New(num_types, Heap::kNew));
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < num_types; i++) {
     type = TypeAt(i);
@@ -3333,7 +3399,7 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 }
 
 
-RawTypeArguments* TypeArguments::New(intptr_t len) {
+RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   if ((len < 0) || (len > kMaxTypes)) {
     // TODO(iposva): Should we throw an illegal parameter exception?
     UNIMPLEMENTED();
@@ -3346,7 +3412,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len) {
   {
     RawObject* raw = Object::Allocate(type_arguments_class,
                                       TypeArguments::InstanceSize(len),
-                                      Heap::kOld);
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
     // Length must be set before we start storing into the array.
@@ -3381,22 +3447,27 @@ RawAbstractTypeArguments* TypeArguments::Canonicalize() const {
   Array& table = Array::Handle(object_store->canonical_type_arguments());
   ASSERT(table.Length() > 0);
   intptr_t index = 0;
-  TypeArguments& other = TypeArguments::Handle();
-  other ^= table.At(index);
-  while (!other.IsNull()) {
-    if (this->Equals(other)) {
-      return other.raw();
+  TypeArguments& result = TypeArguments::Handle();
+  result ^= table.At(index);
+  while (!result.IsNull()) {
+    if (this->Equals(result)) {
+      return result.raw();
     }
-    other ^= table.At(++index);
+    result ^= table.At(++index);
   }
   // Not found. Add 'this' to table.
+  result ^= this->raw();
+  if (result.IsNew()) {
+    result ^= Object::Clone(result, Heap::kOld);
+  }
+  ASSERT(result.IsOld());
   if (index == table.Length() - 1) {
     table = Array::Grow(table, table.Length() + 4, Heap::kOld);
     object_store->set_canonical_type_arguments(table);
   }
-  table.SetAt(index, *this);
-  SetCanonical();
-  return this->raw();
+  table.SetAt(index, result);
+  result.SetCanonical();
+  return result.raw();
 }
 
 
@@ -3656,26 +3727,71 @@ intptr_t Function::NumberOfParameters() const {
 }
 
 
+intptr_t Function::NumberOfImplicitParameters() const {
+  if (kind() == RawFunction::kConstructor) {
+    if (is_static()) {
+      ASSERT(IsFactory());
+      return 1;  // Type arguments.
+    } else {
+      ASSERT(IsConstructor());
+      return 2;  // Instance, phase.
+    }
+  }
+  if (!is_static()) {
+    return 1;  // Receiver.
+  }
+  return 0;  // No implicit parameters.
+}
+
+
 bool Function::AreValidArgumentCounts(int num_arguments,
-                                      int num_named_arguments) const {
+                                      int num_named_arguments,
+                                      String* error_message) const {
   if (num_arguments > NumberOfParameters()) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      // Hide implicit parameters to the user.
+      const intptr_t num_hidden_params = NumberOfImplicitParameters();
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "%d passed, %s%d expected",
+                  num_arguments - num_hidden_params,
+                  num_optional_parameters() > 0 ? "at most " : "",
+                  NumberOfParameters() - num_hidden_params);
+      *error_message = String::New(message_buffer);
+    }
     return false;  // Too many arguments.
   }
   const int num_positional_args = num_arguments - num_named_arguments;
   if (num_positional_args < num_fixed_parameters()) {
+    if (error_message != NULL) {
+      const intptr_t kMessageBufferSize = 64;
+      char message_buffer[kMessageBufferSize];
+      // Hide implicit parameters to the user.
+      const intptr_t num_hidden_params = NumberOfImplicitParameters();
+      OS::SNPrint(message_buffer,
+                  kMessageBufferSize,
+                  "%d %spassed, %d expected",
+                  num_positional_args - num_hidden_params,
+                  num_optional_parameters() > 0 ? "positional " : "",
+                  num_fixed_parameters() - num_hidden_params);
+      *error_message = String::New(message_buffer);
+    }
     return false;  // Too few arguments.
   }
   return true;
 }
 
 
-// TODO(regis): Return some sort of diagnosis information so that we
-// can improve the error messages generated by the parser.
 bool Function::AreValidArguments(int num_arguments,
-                                 const Array& argument_names) const {
+                                 const Array& argument_names,
+                                 String* error_message) const {
   const int num_named_arguments =
       argument_names.IsNull() ? 0 : argument_names.Length();
-  if (!AreValidArgumentCounts(num_arguments, num_named_arguments)) {
+  if (!AreValidArgumentCounts(num_arguments,
+                              num_named_arguments,
+                              error_message)) {
     return false;
   }
   // Verify that all argument names are valid parameter names.
@@ -3695,6 +3811,15 @@ bool Function::AreValidArguments(int num_arguments,
       }
     }
     if (!found) {
+      if (error_message != NULL) {
+        const intptr_t kMessageBufferSize = 64;
+        char message_buffer[kMessageBufferSize];
+        OS::SNPrint(message_buffer,
+                    kMessageBufferSize,
+                    "no optional formal parameter named '%s'",
+                    argument_name.ToCString());
+        *error_message = String::New(message_buffer);
+      }
       return false;
     }
   }
@@ -4024,7 +4149,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
   const Type& signature_type = Type::Handle(signature_class.SignatureType());
   if (!signature_type.IsFinalized()) {
     ClassFinalizer::FinalizeType(
-        signature_class, signature_type, ClassFinalizer::kFinalize);
+        signature_class, signature_type, ClassFinalizer::kCanonicalize);
   }
   ASSERT(closure_function.signature_class() == signature_class.raw());
   set_implicit_closure_function(closure_function);
@@ -4335,6 +4460,7 @@ RawLiteralToken* LiteralToken::New(Token::Kind kind, const String& literal) {
   result.set_literal(literal);
   if (kind == Token::kINTEGER) {
     const Integer& value = Integer::Handle(Integer::New(literal, Heap::kOld));
+    ASSERT(value.IsSmi() || value.IsOld());
     result.set_value(value);
   } else if (kind == Token::kDOUBLE) {
     const Double& value = Double::Handle(Double::NewCanonical(literal));
@@ -4353,45 +4479,378 @@ const char* LiteralToken::ToCString() const {
 }
 
 
+RawArray* TokenStream::TokenObjects() const {
+  return raw_ptr()->token_objects_;
+}
+
+
+void TokenStream::SetTokenObjects(const Array& value) const {
+  StorePointer(&raw_ptr()->token_objects_, value.raw());
+}
+
+
 void TokenStream::SetLength(intptr_t value) const {
   raw_ptr()->length_ = Smi::New(value);
 }
 
 
-void TokenStream::SetTokenAt(intptr_t index,
-                             Token::Kind kind,
-                             const String& literal) {
-  if (kind == Token::kIDENT) {
-    if (FLAG_compiler_stats) {
-      CompilerStats::num_ident_tokens_total += 1;
+RawString* TokenStream::GenerateSource() const {
+  Iterator iterator(*this, 0);
+  GrowableObjectArray& literals =
+      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
+  String& literal = String::Handle();
+  String& blank = String::Handle(String::New(" "));
+  String& newline = String::Handle(String::New("\n"));
+  String& double_quotes = String::Handle(String::New("\""));
+  Object& obj = Object::Handle();
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (kind != Token::kEOS) {
+    obj = iterator.CurrentToken();
+    literal = iterator.MakeLiteralToken(obj);
+    if (kind == Token::kSTRING) {
+      bool escape_quotes = false;
+      for (intptr_t i = 0; i < literal.Length(); i++) {
+        if (literal.CharAt(i) == '"') {
+          escape_quotes = true;
+          break;
+        }
+      }
+      literals.Add(double_quotes);
+      if (escape_quotes) {
+        literal = String::EscapeDoubleQuotes(literal);
+        literals.Add(literal);
+      } else {
+        literals.Add(literal);
+      }
+      literals.Add(double_quotes);
+    } else {
+      literals.Add(literal);
     }
-    StorePointer(EntryAddr(index), reinterpret_cast<RawObject*>(literal.raw()));
-  } else if (Token::NeedsLiteralToken(kind)) {
-    if (FLAG_compiler_stats) {
-      CompilerStats::num_literal_tokens_total += 1;
+    if (kind == Token::kLBRACE) {
+      literals.Add(newline);
+    } else {
+      literals.Add(blank);
     }
-    StorePointer(
-        EntryAddr(index),
-        reinterpret_cast<RawObject*>(LiteralToken::New(kind, literal)));
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
+  }
+  const Array& source = Array::Handle(Array::MakeArray(literals));
+  return String::ConcatAll(source);
+}
+
+
+intptr_t TokenStream::ComputeSourcePosition(intptr_t tok_pos) const {
+  Iterator iterator(*this, 0);
+  intptr_t src_pos = 0;
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (iterator.CurrentPosition() < tok_pos && kind != Token::kEOS) {
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
+    src_pos += 1;
+  }
+  return src_pos;
+}
+
+
+intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
+  Iterator iterator(*this, 0);
+  intptr_t index = 0;
+  Token::Kind kind = iterator.CurrentTokenKind();
+  while (index < src_pos && kind != Token::kEOS) {
+    iterator.Advance();
+    kind = iterator.CurrentTokenKind();
+    index += 1;
+  }
+  return iterator.CurrentPosition();
+}
+
+
+RawTokenStream* TokenStream::New(intptr_t len) {
+  const Class& token_stream_class = Class::Handle(Object::token_stream_class());
+  TokenStream& result = TokenStream::Handle();
+  {
+    RawObject* raw = Object::Allocate(token_stream_class,
+                                      TokenStream::InstanceSize(len),
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(len);
+  }
+  return result.raw();
+}
+
+
+// Helper class for creation of compressed token stream data.
+class CompressedTokenStreamData : public ValueObject {
+ public:
+  CompressedTokenStreamData() :
+      buffer_(NULL),
+      stream_(&buffer_, Reallocate),
+      token_objects_(GrowableObjectArray::Handle(
+          GrowableObjectArray::New(kInitialTokenCount, Heap::kOld))),
+      token_obj_(Object::Handle()),
+      literal_token_(LiteralToken::Handle()),
+      literal_str_(String::Handle()) {
+    const String& empty_literal = String::Handle();
+    token_objects_.Add(empty_literal);
+  }
+  ~CompressedTokenStreamData() {
+    free(buffer_);
+  }
+
+  // Add an IDENT token into the stream and the token objects array.
+  void AddIdentToken(String* ident) {
+    if (ident != NULL) {
+      // If the IDENT token is already in the tokens object array use the
+      // same index instead of duplicating it.
+      intptr_t index = FindIdentIndex(ident);
+      if (index == -1) {
+        WriteIndex(token_objects_.Length());
+        ASSERT(ident != NULL);
+        token_objects_.Add(*ident);
+      } else {
+        WriteIndex(index);
+      }
+    } else {
+      WriteIndex(0);
+    }
+  }
+
+  // Add a LITERAL token into the stream and the token objects array.
+  void AddLiteralToken(Token::Kind kind, String* literal) {
+    if (literal != NULL) {
+      // If the literal token is already in the tokens object array use the
+      // same index instead of duplicating it.
+      intptr_t index = FindLiteralIndex(kind, literal);
+      if (index == -1) {
+        WriteIndex(token_objects_.Length());
+        ASSERT(literal != NULL);
+        literal_token_ = LiteralToken::New(kind, *literal);
+        token_objects_.Add(literal_token_);
+      } else {
+        WriteIndex(index);
+      }
+    } else {
+      WriteIndex(0);
+    }
+  }
+
+  // Add a simple token into the stream.
+  void AddSimpleToken(intptr_t kind) {
+    stream_.WriteUnsigned(kind);
+  }
+
+  // Return the compressed token stream.
+  uint8_t* GetStream() const { return buffer_; }
+
+  // Return the compressed token stream length.
+  intptr_t Length() const { return stream_.bytes_written(); }
+
+  // Return the token objects array.
+  const GrowableObjectArray& TokenObjects() const {
+    return token_objects_;
+  }
+
+ private:
+  intptr_t FindIdentIndex(String* ident) {
+    ASSERT(ident != NULL);
+    intptr_t hash_value = ident->Hash() % kTableSize;
+    GrowableArray<intptr_t>& value = ident_table_[hash_value];
+    for (intptr_t i = 0; i < value.length(); i++) {
+      intptr_t index = value[i];
+      token_obj_ = token_objects_.At(index);
+      if (token_obj_.IsString()) {
+        const String& ident_str = String::Cast(token_obj_);
+        if (ident->Equals(ident_str)) {
+          return index;
+        }
+      }
+    }
+    value.Add(token_objects_.Length());
+    return -1;
+  }
+
+  intptr_t FindLiteralIndex(Token::Kind kind, String* literal) {
+    ASSERT(literal != NULL);
+    intptr_t hash_value = literal->Hash() % kTableSize;
+    GrowableArray<intptr_t>& value = literal_table_[hash_value];
+    for (intptr_t i = 0; i < value.length(); i++) {
+      intptr_t index = value[i];
+      token_obj_ = token_objects_.At(index);
+      if (token_obj_.IsLiteralToken()) {
+        const LiteralToken& token = LiteralToken::Cast(token_obj_);
+        literal_str_ = token.literal();
+        if (kind == token.kind() && literal->Equals(literal_str_)) {
+          return index;
+        }
+      }
+    }
+    value.Add(token_objects_.Length());
+    return -1;
+  }
+
+  void WriteIndex(intptr_t value) {
+    stream_.WriteUnsigned(value + Token::kNumTokens);
+  }
+
+  static uint8_t* Reallocate(uint8_t* ptr,
+                             intptr_t old_size,
+                             intptr_t new_size) {
+    void* new_ptr = ::realloc(reinterpret_cast<void*>(ptr), new_size);
+    return reinterpret_cast<uint8_t*>(new_ptr);
+  }
+
+  static const int kInitialTokenCount = 32;
+  static const intptr_t kTableSize = 128;
+
+  uint8_t* buffer_;
+  WriteStream stream_;
+  GrowableArray<intptr_t> ident_table_[kTableSize];
+  GrowableArray<intptr_t> literal_table_[kTableSize];
+  const GrowableObjectArray& token_objects_;
+  Object& token_obj_;
+  LiteralToken& literal_token_;
+  String& literal_str_;
+
+  DISALLOW_COPY_AND_ASSIGN(CompressedTokenStreamData);
+};
+
+
+RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
+  // Copy the relevant data out of the scanner into a compressed stream of
+  // tokens.
+  CompressedTokenStreamData data;
+  intptr_t len = tokens.length();
+  for (intptr_t i = 0; i < len; i++) {
+    Scanner::TokenDescriptor token = tokens[i];
+    if (token.kind == Token::kIDENT) {  // Identifier token.
+      if (FLAG_compiler_stats) {
+        CompilerStats::num_ident_tokens_total += 1;
+      }
+      data.AddIdentToken(token.literal);
+    } else if (Token::NeedsLiteralToken(token.kind)) {  // Literal token.
+      if (FLAG_compiler_stats) {
+        CompilerStats::num_literal_tokens_total += 1;
+      }
+      data.AddLiteralToken(token.kind, token.literal);
+    } else {  // Keyword, pseudo keyword etc.
+      ASSERT(token.kind < Token::kNumTokens);
+      data.AddSimpleToken(token.kind);
+    }
+  }
+  if (FLAG_compiler_stats) {
+    CompilerStats::num_tokens_total += len;
+  }
+  data.AddSimpleToken(Token::kEOS);  // End of stream.
+
+  // Create and setup the token stream object.
+  const TokenStream& result = TokenStream::Handle(New(data.Length()));
+  {
+    NoGCScope no_gc;
+    memmove(result.EntryAddr(0), data.GetStream(), data.Length());
+    const Array& tokens = Array::Handle(Array::MakeArray(data.TokenObjects()));
+    result.SetTokenObjects(tokens);
+  }
+  return result.raw();
+}
+
+
+const char* TokenStream::ToCString() const {
+  return "TokenStream";
+}
+
+
+TokenStream::Iterator::Iterator(const TokenStream& tokens, intptr_t token_pos)
+    : tokens_(tokens),
+      token_objects_(Array::Handle(tokens.TokenObjects())),
+      obj_(Object::Handle()),
+      cur_token_pos_(token_pos),
+      stream_token_pos_(token_pos),
+      cur_token_kind_(Token::kILLEGAL),
+      cur_token_obj_index_(-1) {
+  SetCurrentPosition(token_pos);
+}
+
+
+bool TokenStream::Iterator::IsValid() const {
+  return !tokens_.IsNull();
+}
+
+
+Token::Kind TokenStream::Iterator::LookaheadTokenKind(intptr_t num_tokens) {
+  intptr_t saved_position = stream_token_pos_;
+  Token::Kind kind = Token::kILLEGAL;
+  intptr_t value = -1;
+  intptr_t count = 0;
+  while (count < num_tokens && value != Token::kEOS) {
+    value = ReadToken();
+    count += 1;
+  }
+  if (value < Token::kNumTokens) {
+    kind = static_cast<Token::Kind>(value);
   } else {
-    ASSERT(kind < Token::kNumTokens);
-    *(SmiAddr(index)) = Smi::New(kind);
+    value = value - Token::kNumTokens;
+    obj_ = token_objects_.At(value);
+    if (obj_.IsLiteralToken()) {
+      const LiteralToken& literal_token = LiteralToken::Cast(obj_);
+      kind = literal_token.kind();
+    } else {
+      ASSERT(obj_.IsString());  // Must be an identifier.
+      kind = Token::kIDENT;
+    }
+  }
+  stream_token_pos_ = saved_position;
+  return kind;
+}
+
+
+intptr_t TokenStream::Iterator::CurrentPosition() const {
+  return cur_token_pos_;
+}
+
+
+void TokenStream::Iterator::SetCurrentPosition(intptr_t value) {
+  stream_token_pos_ = value;
+  Advance();
+}
+
+
+void TokenStream::Iterator::Advance() {
+  cur_token_pos_ = stream_token_pos_;
+  intptr_t value = ReadToken();
+  if (value < Token::kNumTokens) {
+    cur_token_kind_ = static_cast<Token::Kind>(value);
+    cur_token_obj_index_ = -1;
+    return;
+  }
+  cur_token_obj_index_ = value - Token::kNumTokens;
+  obj_ = token_objects_.At(cur_token_obj_index_);
+  if (obj_.IsLiteralToken()) {
+    const LiteralToken& literal_token = LiteralToken::Cast(obj_);
+    cur_token_kind_ = literal_token.kind();
+    return;
+  }
+  ASSERT(obj_.IsString());  // Must be an identifier.
+  cur_token_kind_ = Token::kIDENT;
+}
+
+
+RawObject* TokenStream::Iterator::CurrentToken() const {
+  if (cur_token_obj_index_ != -1) {
+    return token_objects_.At(cur_token_obj_index_);
+  } else {
+    return Smi::New(cur_token_kind_);
   }
 }
 
 
-void TokenStream::SetTokenAt(intptr_t index, const Object& token) {
-  StorePointer(EntryAddr(index), token.raw());
+RawString* TokenStream::Iterator::CurrentLiteral() const {
+  obj_ = CurrentToken();
+  return MakeLiteralToken(obj_);
 }
 
 
-RawObject* TokenStream::TokenAt(intptr_t index) const {
-  return *EntryAddr(index);
-}
-
-
-RawString* TokenStream::LiteralAt(intptr_t index) const {
-  const Object& obj = Object::Handle(TokenAt(index));
+RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
   if (obj.IsString()) {
     return reinterpret_cast<RawString*>(obj.raw());
   } else if (obj.IsSmi()) {
@@ -4411,72 +4870,43 @@ RawString* TokenStream::LiteralAt(intptr_t index) const {
     }
     return String::NewSymbol(Token::Str(kind));
   } else {
-    // Must be a literal token.
-    return LiteralToken::Cast(obj).literal();
+    ASSERT(obj.IsLiteralToken());  // Must be a literal token.
+    const LiteralToken& literal_token = LiteralToken::Cast(obj);
+    return literal_token.literal();
   }
 }
 
 
-RawString* TokenStream::GenerateSource() const {
-  GrowableObjectArray& literals =
-      GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
-  String& literal = String::Handle();
-  String& blank = String::Handle(String::New(" "));
-  String& newline = String::Handle(String::New("\n"));
-  for (intptr_t i = 0; i < Length(); i++) {
-    Token::Kind kind = KindAt(i);
-    literal = LiteralAt(i);
-    literals.Add(literal);
-    if (kind == Token::kLBRACE) {
-      literals.Add(newline);
-    } else {
-      literals.Add(blank);
-    }
+intptr_t TokenStream::Iterator::ReadToken() {
+  uint8_t b = ReadByte();
+  if (b > kMaxUnsignedDataPerByte) {
+    return static_cast<intptr_t>(b) - kEndUnsignedByteMarker;
   }
-  const Array& source = Array::Handle(Array::MakeArray(literals));
-  return String::ConcatAll(source);
+  intptr_t value = 0;
+  uint8_t s = 0;
+  do {
+    value |= static_cast<intptr_t>(b) << s;
+    s += kDataBitsPerByte;
+    b = ReadByte();
+  } while (b <= kMaxUnsignedDataPerByte);
+  value |= ((static_cast<intptr_t>(b) - kEndUnsignedByteMarker) << s);
+  ASSERT((value >= 0) && (value <= kIntptrMax));
+  return value;
 }
 
 
-RawTokenStream* TokenStream::New(intptr_t len) {
-  const Class& token_stream_class = Class::Handle(Object::token_stream_class());
-  TokenStream& result = TokenStream::Handle();
-  {
-    RawObject* raw = Object::Allocate(token_stream_class,
-                                      TokenStream::InstanceSize(len),
-                                      Heap::kOld);
-    NoGCScope no_gc;
-    result ^= raw;
-    result.SetLength(len);
-  }
-  return result.raw();
+uint8_t TokenStream::Iterator::ReadByte() {
+  ASSERT(stream_token_pos_ < tokens_.Length());
+  return *(tokens_.EntryAddr(stream_token_pos_++));
 }
 
 
-RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
-  intptr_t len = tokens.length();
-
-  TokenStream& result = TokenStream::Handle(New(len));
-  // Copy the relevant data out of the scanner's token stream.
-  const String& empty_literal = String::Handle();
-  for (intptr_t i = 0; i < len; i++) {
-    Scanner::TokenDescriptor token = tokens[i];
-    if (token.literal != NULL) {
-      result.SetTokenAt(i, token.kind, *(token.literal));
-    } else {
-      result.SetTokenAt(i, token.kind, empty_literal);
-    }
-  }
-  return result.raw();
+bool Script::HasSource() const {
+  return raw_ptr()->source_ != String::null();
 }
 
 
-const char* TokenStream::ToCString() const {
-  return "TokenStream";
-}
-
-
-RawString* Script::source() const {
+RawString* Script::Source() const {
   String& source = String::Handle(raw_ptr()->source_);
   if (source.IsNull()) {
     const TokenStream& token_stream = TokenStream::Handle(tokens());
@@ -4516,7 +4946,7 @@ void Script::Tokenize(const String& private_key) const {
 
   // Get the source, scan and allocate the token stream.
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   Scanner scanner(src, private_key);
   set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream())));
   if (FLAG_compiler_stats) {
@@ -4528,10 +4958,12 @@ void Script::Tokenize(const String& private_key) const {
 void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
+  const TokenStream& tkns = TokenStream::Handle(tokens());
+  intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
   Scanner scanner(src, dummy_key);
-  scanner.ScanTo(token_pos);
+  scanner.ScanTo(src_pos);
   *line = scanner.CurrentPosition().line;
   *column = scanner.CurrentPosition().column;
 }
@@ -4540,15 +4972,20 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  const String& src = String::Handle(source());
+  intptr_t first_src_pos;
+  intptr_t last_src_pos;
+  const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(String::New(""));
+  const TokenStream& tkns = TokenStream::Handle(tokens());
   Scanner scanner(src, dummy_key);
-  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
+  scanner.TokenRangeAtLine(line_number, &first_src_pos, &last_src_pos);
+  *first_token_index = tkns.ComputeTokenPosition(first_src_pos);
+  *last_token_index = tkns.ComputeTokenPosition(last_src_pos);
 }
 
 
 RawString* Script::GetLine(intptr_t line_number) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   intptr_t current_line = 1;
   intptr_t line_start = -1;
   intptr_t last_char = -1;
@@ -4581,7 +5018,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
                               intptr_t from_column,
                               intptr_t to_line,
                               intptr_t to_column) const {
-  const String& src = String::Handle(source());
+  const String& src = String::Handle(Source());
   intptr_t length = src.Length();
   intptr_t line = 1;
   intptr_t column = 1;
@@ -6791,6 +7228,7 @@ void ICData::GetOneClassCheckAt(
 
 
 intptr_t ICData::GetReceiverClassIdAt(intptr_t index) const {
+  ASSERT(index < NumberOfChecks());
   const Array& data = Array::Handle(ic_data());
   const intptr_t data_pos = index * TestEntryLength();
   Smi& smi = Smi::Handle();
@@ -6815,6 +7253,37 @@ RawFunction* ICData::GetTargetForReceiverClassId(intptr_t class_id) const {
     }
   }
   return Function::null();
+}
+
+
+RawICData* ICData::AsUnaryClassChecks() const {
+  ASSERT(!IsNull());
+  ASSERT(num_args_tested() > 0);
+  if (num_args_tested() == 1) return raw();
+  const intptr_t kNumArgsTested = 1;
+  ICData& result = ICData::Handle(ICData::New(
+      Function::Handle(function()),
+      String::Handle(target_name()),
+      id(),
+      kNumArgsTested));
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    const intptr_t class_id = GetReceiverClassIdAt(i);
+    intptr_t duplicate_class_id = -1;
+    for (intptr_t k = 0; k < result.NumberOfChecks(); k++) {
+      if (class_id == result.GetReceiverClassIdAt(k)) {
+        duplicate_class_id = k;
+        break;
+      }
+    }
+    if (duplicate_class_id >= 0) {
+      ASSERT(result.GetTargetAt(duplicate_class_id) == GetTargetAt(i));
+    } else {
+      // This will make sure that Smi is first if it exists.
+      result.AddReceiverCheck(class_id,
+                              Function::Handle(GetTargetAt(i)));
+    }
+  }
+  return result.raw();
 }
 
 
@@ -6875,7 +7344,7 @@ intptr_t SubtypeTestCache::NumberOfChecks() const {
 
 
 void SubtypeTestCache::AddCheck(
-    const Class& instance_class,
+    intptr_t instance_class_id,
     const AbstractTypeArguments& instance_type_arguments,
     const AbstractTypeArguments& instantiator_type_arguments,
     const Bool& test_result) const {
@@ -6885,7 +7354,8 @@ void SubtypeTestCache::AddCheck(
   data = Array::Grow(data, new_len);
   set_cache(data);
   intptr_t data_pos = old_num * kTestEntryLength;
-  data.SetAt(data_pos + kInstanceClass, instance_class);
+  data.SetAt(data_pos + kInstanceClassId,
+      Smi::Handle(Smi::New(instance_class_id)));
   data.SetAt(data_pos + kInstanceTypeArguments, instance_type_arguments);
   data.SetAt(data_pos + kInstantiatorTypeArguments,
       instantiator_type_arguments);
@@ -6895,13 +7365,15 @@ void SubtypeTestCache::AddCheck(
 
 void SubtypeTestCache::GetCheck(
     intptr_t ix,
-    Class* instance_class,
+    intptr_t* instance_class_id,
     AbstractTypeArguments* instance_type_arguments,
     AbstractTypeArguments* instantiator_type_arguments,
     Bool* test_result) const {
   Array& data = Array::Handle(cache());
   intptr_t data_pos = ix * kTestEntryLength;
-  *instance_class ^= data.At(data_pos + kInstanceClass);
+  Smi& instance_class_id_handle = Smi::Handle();
+  instance_class_id_handle ^= data.At(data_pos + kInstanceClassId);
+  *instance_class_id = instance_class_id_handle.Value();
   *instance_type_arguments ^= data.At(data_pos + kInstanceTypeArguments);
   *instantiator_type_arguments ^=
       data.At(data_pos + kInstantiatorTypeArguments);
@@ -7114,31 +7586,37 @@ bool Instance::Equals(const Instance& other) const {
 
 RawInstance* Instance::Canonicalize() const {
   ASSERT(!IsNull());
-  if (!IsCanonical()) {
-    const Class& cls = Class::Handle(this->clazz());
-    Array& constants = Array::Handle(cls.constants());
-    const intptr_t constants_len = constants.Length();
-    // Linear search to see whether this value is already present in the
-    // list of canonicalized constants.
-    Instance& norm_value = Instance::Handle();
-    intptr_t index = 0;
-    while (index < constants_len) {
-      norm_value ^= constants.At(index);
-      if (norm_value.IsNull()) {
-        break;
-      }
-      if (this->Equals(norm_value)) {
-        return norm_value.raw();
-      }
-      index++;
-    }
-    // The value needs to be added to the list. Grow the list if
-    // it is full.
-    // TODO(srdjan): Copy instance into old space if canonicalized?
-    cls.InsertCanonicalConstant(index, *this);
-    SetCanonical();
+  if (this->IsCanonical()) {
+    return this->raw();
   }
-  return this->raw();
+  Instance& result = Instance::Handle();
+  const Class& cls = Class::Handle(this->clazz());
+  Array& constants = Array::Handle(cls.constants());
+  const intptr_t constants_len = constants.Length();
+  // Linear search to see whether this value is already present in the
+  // list of canonicalized constants.
+  intptr_t index = 0;
+  while (index < constants_len) {
+    result ^= constants.At(index);
+    if (result.IsNull()) {
+      break;
+    }
+    if (this->Equals(result)) {
+      return result.raw();
+    }
+    index++;
+  }
+  // The value needs to be added to the list. Grow the list if
+  // it is full.
+  result ^= this->raw();
+  if (result.IsNew()) {
+    // Create a canonical object in old space.
+    result ^= Object::Clone(result, Heap::kOld);
+  }
+  ASSERT(result.IsOld());
+  cls.InsertCanonicalConstant(index, result);
+  result.SetCanonical();
+  return result.raw();
 }
 
 
@@ -7334,16 +7812,18 @@ const char* Integer::ToCString() const {
 
 
 RawInteger* Integer::New(const String& str, Heap::Space space) {
-  // TODO(iposva): If returning a big integer it will not necessarily be in the
-  // requested space.
-  const Bigint& big = Bigint::Handle(Bigint::New(str));
-  if (BigintOperations::FitsIntoSmi(big)) {
-    return BigintOperations::ToSmi(big);
-  } else if (BigintOperations::FitsIntoMint(big)) {
-    return Mint::New(BigintOperations::ToMint(big), space);
-  } else {
+  // We are not supposed to have integers represented as two byte or
+  // four byte strings.
+  ASSERT(str.IsOneByteString());
+  const OneByteString& onestr = OneByteString::Cast(str);
+  int64_t value;
+  if (!OS::StringToInteger(onestr.ToCString(), &value)) {
+    const Bigint& big = Bigint::Handle(Bigint::New(onestr, space));
+    ASSERT(!BigintOperations::FitsIntoSmi(big));
+    ASSERT(!BigintOperations::FitsIntoMint(big));
     return big.raw();
   }
+  return Integer::New(value, space);
 }
 
 
@@ -8273,6 +8753,21 @@ void String::Copy(const String& dst, intptr_t dst_offset,
 }
 
 
+RawString* String::EscapeDoubleQuotes(const String& str) {
+  if (str.IsOneByteString()) {
+    const OneByteString& onestr = OneByteString::Cast(str);
+    return onestr.EscapeDoubleQuotes();
+  }
+  if (str.IsTwoByteString()) {
+    const TwoByteString& twostr = TwoByteString::Cast(str);
+    return twostr.EscapeDoubleQuotes();
+  }
+  ASSERT(str.IsFourByteString());
+  const FourByteString& fourstr = FourByteString::Cast(str);
+  return fourstr.EscapeDoubleQuotes();
+}
+
+
 static void GrowSymbolTable(const Array& symbol_table, intptr_t table_size) {
   // TODO(iposva): Avoid exponential growth.
   intptr_t new_table_size = table_size * 2;
@@ -8590,6 +9085,34 @@ RawString* String::ToLowerCase(const String& str, Heap::Space space) {
 }
 
 
+RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const OneByteString& dststr = OneByteString::Handle(
+        OneByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return OneByteString::null();
+}
+
+
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -8703,6 +9226,34 @@ const char* OneByteString::ToCString() const {
 }
 
 
+RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const TwoByteString& dststr = TwoByteString::Handle(
+        TwoByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return TwoByteString::null();
+}
+
+
 RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
   Isolate* isolate = Isolate::Current();
@@ -8803,6 +9354,34 @@ RawTwoByteString* TwoByteString::Transform(int32_t (*mapping)(int32_t ch),
 
 const char* TwoByteString::ToCString() const {
   return String::ToCString();
+}
+
+
+RawFourByteString* FourByteString::EscapeDoubleQuotes() const {
+  intptr_t len = Length();
+  if (len > 0) {
+    intptr_t num_quotes = 0;
+    intptr_t index = 0;
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        num_quotes += 1;
+      }
+    }
+    const FourByteString& dststr = FourByteString::Handle(
+        FourByteString::New(len + num_quotes, Heap::kNew));
+    for (intptr_t i = 0; i < len; i++) {
+      if (*CharAddr(i) == '"') {
+        *(dststr.CharAddr(index)) = '\\';
+        *(dststr.CharAddr(index + 1)) = '"';
+        index += 2;
+      } else {
+        *(dststr.CharAddr(index)) = *CharAddr(i);
+        index += 1;
+      }
+    }
+    return dststr.raw();
+  }
+  return FourByteString::null();
 }
 
 

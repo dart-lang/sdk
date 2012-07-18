@@ -638,7 +638,7 @@ class Parser {
     assert((optional('external', token) && optional('factory', token.next)) ||
            optional('factory', token));
     Token start = token;
-    if (start.stringValue === 'external') token = token.next;
+    if (token.stringValue === 'external') token = token.next;
     Token factoryKeyword = token;
     listener.beginFactoryMethod(factoryKeyword);
     token = token.next; // Skip 'factory'.
@@ -652,7 +652,7 @@ class Parser {
     }
     token = parseFormalParameters(token);
     token = parseFunctionBody(token, false);
-    listener.endFactoryMethod(factoryKeyword, period, start);
+    listener.endFactoryMethod(start, period, token);
     return token.next;
   }
 

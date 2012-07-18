@@ -4,7 +4,7 @@
 
 #library('classify');
 
-#import('frog/lang.dart');
+#import('../compiler/implementation/scanner/scannerlib.dart');
 #import('markdown.dart', prefix: 'md');
 
 /**
@@ -33,40 +33,41 @@ class Classification {
   static final STRING_INTERPOLATION = 'si';
 }
 
-String classifySource(SourceFile src) {
+String classifySource(String text) {
   var html = new StringBuffer();
-  var tokenizer = new Tokenizer(src, /*skipWhitespace:*/false);
+  var tokenizer = new StringScanner(text, includeComments: true);
 
-  var token;
+  var whitespaceOffset = 0;
+  var token = tokenizer.tokenize();
   var inString = false;
-  while ((token = tokenizer.next()).kind != TokenKind.END_OF_FILE) {
+  while (token.kind != EOF_TOKEN) {
+    html.add(text.substring(whitespaceOffset, token.charOffset));
+    whitespaceOffset = token.charOffset + token.slowCharCount;
 
     // Track whether or not we're in a string.
     switch (token.kind) {
-      case TokenKind.STRING:
-      case TokenKind.STRING_PART:
-      case TokenKind.INCOMPLETE_STRING:
-      case TokenKind.INCOMPLETE_MULTILINE_STRING_DQ:
-      case TokenKind.INCOMPLETE_MULTILINE_STRING_SQ:
+      case STRING_TOKEN:
+      case STRING_INTERPOLATION_TOKEN:
         inString = true;
         break;
     }
 
     final kind = classify(token);
-    final text = md.escapeHtml(token.text);
+    final escapedText = md.escapeHtml(token.slowToString());
     if (kind != null) {
       // Add a secondary class to tokens appearing within a string so that
       // we can highlight tokens in an interpolation specially.
       var stringClass = inString ? Classification.STRING_INTERPOLATION : '';
-      html.add('<span class="$kind $stringClass">$text</span>');
+      html.add('<span class="$kind $stringClass">$escapedText</span>');
     } else {
-      html.add('<span>$text</span>');
+      html.add(escapedText);
     }
 
     // Track whether or not we're in a string.
-    if (token.kind == TokenKind.STRING) {
+    if (token.kind == STRING_TOKEN) {
       inString = false;
     }
+    token = token.next;
   }
   return html.toString();
 }
@@ -93,154 +94,108 @@ bool isLower(String s) => s.toUpperCase() != s;
 
 String classify(Token token) {
   switch (token.kind) {
-    case TokenKind.ERROR:
+    case UNKNOWN_TOKEN:
       return Classification.ERROR;
 
-    case TokenKind.IDENTIFIER:
+    case IDENTIFIER_TOKEN:
       // Special case for names that look like types.
-      if (_looksLikeType(token.text)
-          || token.text == 'num'
-          || token.text == 'bool'
-          || token.text == 'int'
-          || token.text == 'double') {
+      final text = token.slowToString();
+      if (_looksLikeType(text)
+          || text == 'num'
+          || text == 'bool'
+          || text == 'int'
+          || text == 'double') {
         return Classification.TYPE_IDENTIFIER;
       }
       return Classification.IDENTIFIER;
 
-    // Even though it's a reserved word, let's try coloring it like a type.
-    case TokenKind.VOID:
-      return Classification.TYPE_IDENTIFIER;
-
-    case TokenKind.THIS:
-    case TokenKind.SUPER:
-      return Classification.SPECIAL_IDENTIFIER;
-
-    case TokenKind.STRING:
-    case TokenKind.STRING_PART:
-    case TokenKind.INCOMPLETE_STRING:
-    case TokenKind.INCOMPLETE_MULTILINE_STRING_DQ:
-    case TokenKind.INCOMPLETE_MULTILINE_STRING_SQ:
+    case STRING_TOKEN:
+    case STRING_INTERPOLATION_TOKEN:
       return Classification.STRING;
 
-    case TokenKind.INTEGER:
-    case TokenKind.HEX_INTEGER:
-    case TokenKind.DOUBLE:
+    case INT_TOKEN:
+    case HEXADECIMAL_TOKEN:
+    case DOUBLE_TOKEN:
       return Classification.NUMBER;
 
-    case TokenKind.COMMENT:
-    case TokenKind.INCOMPLETE_COMMENT:
+    case COMMENT_TOKEN:
       return Classification.COMMENT;
 
     // => is so awesome it is in a class of its own.
-    case TokenKind.ARROW:
+    case FUNCTION_TOKEN:
       return Classification.ARROW_OPERATOR;
 
-    case TokenKind.HASHBANG:
-    case TokenKind.LPAREN:
-    case TokenKind.RPAREN:
-    case TokenKind.LBRACK:
-    case TokenKind.RBRACK:
-    case TokenKind.LBRACE:
-    case TokenKind.RBRACE:
-    case TokenKind.COLON:
-    case TokenKind.SEMICOLON:
-    case TokenKind.COMMA:
-    case TokenKind.DOT:
-    case TokenKind.ELLIPSIS:
+    case OPEN_PAREN_TOKEN:
+    case CLOSE_PAREN_TOKEN:
+    case OPEN_SQUARE_BRACKET_TOKEN:
+    case CLOSE_SQUARE_BRACKET_TOKEN:
+    case OPEN_CURLY_BRACKET_TOKEN:
+    case CLOSE_CURLY_BRACKET_TOKEN:
+    case COLON_TOKEN:
+    case SEMICOLON_TOKEN:
+    case COMMA_TOKEN:
+    case PERIOD_TOKEN:
+    case PERIOD_PERIOD_TOKEN:
       return Classification.PUNCTUATION;
 
-    case TokenKind.INCR:
-    case TokenKind.DECR:
-    case TokenKind.BIT_NOT:
-    case TokenKind.NOT:
-    case TokenKind.ASSIGN:
-    case TokenKind.ASSIGN_OR:
-    case TokenKind.ASSIGN_XOR:
-    case TokenKind.ASSIGN_AND:
-    case TokenKind.ASSIGN_SHL:
-    case TokenKind.ASSIGN_SAR:
-    case TokenKind.ASSIGN_SHR:
-    case TokenKind.ASSIGN_ADD:
-    case TokenKind.ASSIGN_SUB:
-    case TokenKind.ASSIGN_MUL:
-    case TokenKind.ASSIGN_DIV:
-    case TokenKind.ASSIGN_TRUNCDIV:
-    case TokenKind.ASSIGN_MOD:
-    case TokenKind.CONDITIONAL:
-    case TokenKind.OR:
-    case TokenKind.AND:
-    case TokenKind.BIT_OR:
-    case TokenKind.BIT_XOR:
-    case TokenKind.BIT_AND:
-    case TokenKind.SHL:
-    case TokenKind.SAR:
-    case TokenKind.SHR:
-    case TokenKind.ADD:
-    case TokenKind.SUB:
-    case TokenKind.MUL:
-    case TokenKind.DIV:
-    case TokenKind.TRUNCDIV:
-    case TokenKind.MOD:
-    case TokenKind.EQ:
-    case TokenKind.NE:
-    case TokenKind.EQ_STRICT:
-    case TokenKind.NE_STRICT:
-    case TokenKind.LT:
-    case TokenKind.GT:
-    case TokenKind.LTE:
-    case TokenKind.GTE:
-    case TokenKind.INDEX:
-    case TokenKind.SETINDEX:
+    case PLUS_PLUS_TOKEN:
+    case MINUS_MINUS_TOKEN:
+    case TILDE_TOKEN:
+    case BANG_TOKEN:
+    case EQ_TOKEN:
+    case BAR_EQ_TOKEN:
+    case CARET_EQ_TOKEN:
+    case AMPERSAND_EQ_TOKEN:
+    case LT_LT_EQ_TOKEN:
+    case GT_GT_GT_EQ_TOKEN:
+    case GT_GT_EQ_TOKEN:
+    case PLUS_EQ_TOKEN:
+    case MINUS_EQ_TOKEN:
+    case STAR_EQ_TOKEN:
+    case SLASH_EQ_TOKEN:
+    case TILDE_SLASH_EQ_TOKEN:
+    case PERCENT_EQ_TOKEN:
+    case QUESTION_TOKEN:
+    case BAR_BAR_TOKEN:
+    case AMPERSAND_AMPERSAND_TOKEN:
+    case BAR_TOKEN:
+    case CARET_TOKEN:
+    case AMPERSAND_TOKEN:
+    case LT_LT_TOKEN:
+    case GT_GT_GT_TOKEN:
+    case GT_GT_TOKEN:
+    case PLUS_TOKEN:
+    case MINUS_TOKEN:
+    case STAR_TOKEN:
+    case SLASH_TOKEN:
+    case TILDE_SLASH_TOKEN:
+    case PERCENT_TOKEN:
+    case EQ_EQ_TOKEN:
+    case BANG_EQ_TOKEN:
+    case EQ_EQ_EQ_TOKEN:
+    case BANG_EQ_EQ_TOKEN:
+    case LT_TOKEN:
+    case GT_TOKEN:
+    case LT_EQ_TOKEN:
+    case GT_EQ_TOKEN:
+    case INDEX_TOKEN:
+    case INDEX_EQ_TOKEN:
       return Classification.OPERATOR;
 
-    // Color this like a keyword
-    case TokenKind.HASH:
-
-    case TokenKind.ABSTRACT:
-    case TokenKind.ASSERT:
-    case TokenKind.CLASS:
-    case TokenKind.EXTENDS:
-    case TokenKind.FACTORY:
-    case TokenKind.GET:
-    case TokenKind.IMPLEMENTS:
-    case TokenKind.IMPORT:
-    case TokenKind.INTERFACE:
-    case TokenKind.LIBRARY:
-    case TokenKind.NATIVE:
-    case TokenKind.NEGATE:
-    case TokenKind.OPERATOR:
-    case TokenKind.SET:
-    case TokenKind.SOURCE:
-    case TokenKind.STATIC:
-    case TokenKind.TYPEDEF:
-    case TokenKind.BREAK:
-    case TokenKind.CASE:
-    case TokenKind.CATCH:
-    case TokenKind.CONST:
-    case TokenKind.CONTINUE:
-    case TokenKind.DEFAULT:
-    case TokenKind.DO:
-    case TokenKind.ELSE:
-    case TokenKind.FALSE:
-    case TokenKind.FINALLY:
-    case TokenKind.FOR:
-    case TokenKind.IF:
-    case TokenKind.IN:
-    case TokenKind.IS:
-    case TokenKind.NEW:
-    case TokenKind.NULL:
-    case TokenKind.RETURN:
-    case TokenKind.SWITCH:
-    case TokenKind.THROW:
-    case TokenKind.TRUE:
-    case TokenKind.TRY:
-    case TokenKind.WHILE:
-    case TokenKind.VAR:
-    case TokenKind.FINAL:
+    // Color keyword token. Most are colored as keywords.
+    case HASH_TOKEN:
+    case KEYWORD_TOKEN:
+      if (token.stringValue === 'void') {
+        // Color "void" as a type.
+        return Classification.TYPE_IDENTIFIER;
+      }
+      if (token.stringValue === 'this' || token.stringValue === 'super') {
+        // Color "this" and "super" as identifiers.
+        return Classification.SPECIAL_IDENTIFIER;
+      }
       return Classification.KEYWORD;
 
-    case TokenKind.WHITESPACE:
-    case TokenKind.END_OF_FILE:
+    case EOF_TOKEN:
       return Classification.NONE;
 
     default:

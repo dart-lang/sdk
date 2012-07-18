@@ -52,16 +52,26 @@ class SsaInstructionMerger extends HBaseVisitor {
   // they would not be alive.
   void visitTypeGuard(HTypeGuard instruction) {}
 
-  // If an equality operation is builtin it must not have its input generated at
-  // use site, because it's using it multiple times (because of null/undefined).
+  // If an equality operation is builtin it must only have its inputs generated
+  // at use site if it does not require an expression with repeated uses
+  // (because of null / undefined).
   void visitEquals(HEquals instruction) {
-    if (!instruction.builtin) super.visitEquals(instruction);
-    // Otherwise do nothing.
+    if (!instruction.builtin ||
+        singleIdentityComparison(instruction.left, instruction.right) != null) {
+      super.visitEquals(instruction);
+    }
+    // Do nothing.
   }
 
-  // Identity operations must not have its input generated at use site, because
-  // it's using it multiple times (because of null/undefined).
-  void visitIdentity(HIdentity instruction) {}
+  // An identity operation must only have its inputs generated at use site if
+  // does not require an expression with multiple uses (because of null /
+  // undefined).
+  void visitIdentity(HIdentity instruction) {
+    if (singleIdentityComparison(instruction.left, instruction.right) != null) {
+      super.visitIdentity(instruction);
+    }
+    // Do nothing.
+  }
 
   void visitTypeConversion(HTypeConversion instruction) {
     if (!instruction.isChecked) {
@@ -226,6 +236,25 @@ class SsaConditionMerger extends HGraphVisitor {
     //      \     /
     //       \   /
     // phi(expr, true|false)
+    //
+    // and the same for nested nodes:
+    //
+    //            If
+    //          /    \
+    //         /      \
+    //      1 expr1    \
+    //       If         \
+    //      /  \         \
+    //     /    \         goto
+    //  1 expr2            |
+    //    goto    goto     |
+    //      \     /        |
+    //       \   /         |
+    //   phi1(expr2, true|false)
+    //          \          |
+    //           \         |
+    //             phi(phi1, true|false)
+
     if (end == null) return;
     if (end.phis.isEmpty()) return;
     if (end.phis.first !== end.phis.last) return;
@@ -252,7 +281,17 @@ class SsaConditionMerger extends HGraphVisitor {
     // sequence of control flow operation.
     if (controlFlowOperators.contains(thenBlock.last)) {
       HIf otherIf = thenBlock.last;
-      if (otherIf.joinBlock !== end) return;
+      if (otherIf.joinBlock !== end) {
+        // This could be a join block that just feeds into our join block.
+        HBasicBlock otherJoin = otherIf.joinBlock;
+        if (otherJoin.successors.length != 1) return;
+        if (otherJoin.successors[0] != end) return;
+        if (otherJoin.phis.isEmpty()) return;
+        if (otherJoin.phis.first !== otherJoin.phis.last) return;
+        HPhi otherPhi = otherJoin.phis.first;
+        if (thenInput != otherPhi) return;
+        if (elseInput != otherPhi.inputs[1]) return;
+      }
       if (hasAnyStatement(thenBlock, otherIf)) return;
     } else {
       if (end.predecessors[0] !== thenBlock) return;

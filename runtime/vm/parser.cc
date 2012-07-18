@@ -61,11 +61,14 @@ class TraceParser : public ValueObject {
  public:
   TraceParser(intptr_t token_pos, const Script& script, const char* msg) {
     if (FLAG_trace_parser) {
-      intptr_t line, column;
-      script.GetTokenLocation(token_pos, &line, &column);
-      PrintIndent();
-      OS::Print("%s (line %d, col %d, token %d)\n",
-                msg, line, column, token_pos);
+      // Skips tracing of bootstrap libraries.
+      if (script.HasSource()) {
+        intptr_t line, column;
+        script.GetTokenLocation(token_pos, &line, &column);
+        PrintIndent();
+        OS::Print("%s (line %d, col %d, token %d)\n",
+                  msg, line, column, token_pos);
+      }
       indent_++;
     }
   }
@@ -103,8 +106,14 @@ static RawTypeArguments* NewTypeArguments(const GrowableObjectArray& objs) {
 
 static ThrowNode* GenerateRethrow(intptr_t token_pos, const Object& obj) {
   const UnhandledException& excp = UnhandledException::Cast(obj);
-  const Instance& exception = Instance::ZoneHandle(excp.exception());
-  const Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  Instance& exception = Instance::ZoneHandle(excp.exception());
+  if (exception.IsNew()) {
+    exception ^= Object::Clone(exception, Heap::kOld);
+  }
+  Instance& stack_trace = Instance::ZoneHandle(excp.stacktrace());
+  if (stack_trace.IsNew()) {
+    stack_trace ^= Object::Clone(stack_trace, Heap::kOld);
+  }
   return new ThrowNode(token_pos,
                        new LiteralNode(token_pos, exception),
                        new LiteralNode(token_pos, stack_trace));
@@ -192,31 +201,6 @@ void ParsedFunction::AllocateVariables() {
   // Frame indices are relative to the frame pointer and are decreasing.
   ASSERT(next_free_frame_index <= first_stack_local_index_);
   stack_local_count_ = first_stack_local_index_ - next_free_frame_index;
-}
-
-
-bool TokenStreamIterator::IsValid() const {
-  return !tokens_.IsNull();
-}
-
-
-Token::Kind TokenStreamIterator::CurrentTokenKind() const {
-  return tokens_.KindAt(token_position_);
-}
-
-
-Token::Kind TokenStreamIterator::LookaheadTokenKind(intptr_t num_tokens) const {
-  return tokens_.KindAt(token_position_ + num_tokens);
-}
-
-
-RawObject* TokenStreamIterator::CurrentToken() const {
-  return tokens_.TokenAt(token_position_);
-}
-
-
-RawString* TokenStreamIterator::CurrentLiteral() const {
-  return tokens_.LiteralAt(token_position_);
 }
 
 
@@ -355,9 +339,6 @@ void Parser::ParseCompilationUnit(const Library& library,
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Parser parser(script, library);
   parser.ParseTopLevel();
-  if (FLAG_compiler_stats) {
-    CompilerStats::num_tokens_total += parser.tokens_iterator_.NumberOfTokens();
-  }
 }
 
 
@@ -1050,7 +1031,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       // functions appearing in type tests with typedefs.
       parameter.type = &AbstractType::ZoneHandle(
           ParseType(is_top_level_ ? ClassFinalizer::kTryResolve :
-                                    ClassFinalizer::kFinalize));
+                                    ClassFinalizer::kCanonicalize));
     } else {
       parameter.type = &Type::ZoneHandle(Type::DynamicType());
     }
@@ -1123,7 +1104,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
       Type& signature_type = Type::ZoneHandle(signature_class.SignatureType());
       if (!is_top_level_ && !signature_type.IsFinalized()) {
         signature_type ^= ClassFinalizer::FinalizeType(
-            signature_class, signature_type, ClassFinalizer::kFinalize);
+            signature_class, signature_type, ClassFinalizer::kCanonicalize);
       }
       // The type of the parameter is now the signature type.
       parameter.type = &signature_type;
@@ -1503,7 +1484,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                                      implicit_argument);
   }
   // All dynamic getters take one argument and no named arguments.
-  ASSERT(super_getter.AreValidArgumentCounts(1, 0));
+  ASSERT(super_getter.AreValidArgumentCounts(1, 0, NULL));
   ArgumentListNode* getter_arguments = new ArgumentListNode(field_pos);
   getter_arguments->Add(implicit_argument);
   AstNode* super_field =
@@ -1520,7 +1501,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                field_name.ToCString());
     }
     // All dynamic setters take two arguments and no named arguments.
-    ASSERT(super_setter.AreValidArgumentCounts(2, 0));
+    ASSERT(super_setter.AreValidArgumentCounts(2, 0, NULL));
 
     Token::Kind assignment_op = CurrentToken();
     ConsumeToken();
@@ -1560,12 +1541,19 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   arguments->Add(phase_parameter);
   const Function& super_ctor = Function::ZoneHandle(
       super_class.LookupConstructor(ctor_name));
-  if (super_ctor.IsNull() ||
-      !super_ctor.AreValidArguments(arguments->length(),
-                                    arguments->names())) {
+  if (super_ctor.IsNull()) {
+      ErrorMsg(supercall_pos,
+               "unresolved implicit call to super constructor '%s()'",
+               String::Handle(super_class.Name()).ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!super_ctor.AreValidArguments(arguments->length(),
+                                    arguments->names(),
+                                    &error_message)) {
     ErrorMsg(supercall_pos,
-             "unresolved implicit call to super constructor '%s()'",
-             String::Handle(super_class.Name()).ToCString());
+             "invalid arguments passed to super constructor '%s()': %s",
+             String::Handle(super_class.Name()).ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(supercall_pos, super_ctor);
   current_block_->statements->Add(
@@ -1613,12 +1601,19 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
   // Resolve the constructor.
   const Function& super_ctor = Function::ZoneHandle(
       super_class.LookupConstructor(ctor_name));
-  if (super_ctor.IsNull() ||
-      !super_ctor.AreValidArguments(arguments->length(),
-                                    arguments->names())) {
+  if (super_ctor.IsNull()) {
     ErrorMsg(supercall_pos,
              "super class constructor '%s' not found",
              ctor_name.ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!super_ctor.AreValidArguments(arguments->length(),
+                                    arguments->names(),
+                                    &error_message)) {
+    ErrorMsg(supercall_pos,
+             "invalid arguments passed to super class constructor '%s': %s",
+             ctor_name.ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(supercall_pos, super_ctor);
   return new StaticCallNode(supercall_pos, super_ctor, arguments);
@@ -1787,11 +1782,17 @@ void Parser::ParseConstructorRedirection(const Class& cls,
   // Resolve the constructor.
   const Function& redirect_ctor = Function::ZoneHandle(
       cls.LookupConstructor(ctor_name));
-  if (redirect_ctor.IsNull() ||
-      !redirect_ctor.AreValidArguments(arguments->length(),
-                                       arguments->names())) {
-    ErrorMsg(call_pos, "constructor '%s' not found",
-             ctor_name.ToCString());
+  if (redirect_ctor.IsNull()) {
+    ErrorMsg(call_pos, "constructor '%s' not found", ctor_name.ToCString());
+  }
+  String& error_message = String::Handle();
+  if (!redirect_ctor.AreValidArguments(arguments->length(),
+                                       arguments->names(),
+                                       &error_message)) {
+    ErrorMsg(call_pos,
+             "invalid arguments passed to constructor '%s': %s",
+             ctor_name.ToCString(),
+             error_message.ToCString());
   }
   CheckFunctionIsCallable(call_pos, redirect_ctor);
   current_block_->statements->Add(
@@ -2052,7 +2053,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       }
     }
     ASSERT(super_ctor.AreValidArguments(super_call_args->length(),
-                                        super_call_args->names()));
+                                        super_call_args->names(),
+                                        NULL));
     current_block_->statements->Add(
         new StaticCallNode(TokenPos(), super_ctor, super_call_args));
   }
@@ -4162,7 +4164,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
   const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
-      FLAG_enable_type_checks ? ClassFinalizer::kFinalize :
+      FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
                                 ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ErrorMsg("identifier expected");
@@ -4199,7 +4201,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     result_type = Type::VoidType();
   } else if ((CurrentToken() == Token::kIDENT) &&
              (LookaheadToken(1) != Token::kLPAREN)) {
-    result_type = ParseType(ClassFinalizer::kFinalize);
+    result_type = ParseType(ClassFinalizer::kCanonicalize);
   }
   const intptr_t ident_pos = TokenPos();
   if (IsIdentifier()) {
@@ -4326,7 +4328,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     // been finalized already.
     if (!signature_type.IsFinalized()) {
       signature_type ^= ClassFinalizer::FinalizeType(
-          signature_class, signature_type, ClassFinalizer::kFinalize);
+          signature_class, signature_type, ClassFinalizer::kCanonicalize);
       // The call to ClassFinalizer::FinalizeType may have
       // extended the vector of type arguments.
       ASSERT(signature_type_arguments.IsNull() ||
@@ -4893,7 +4895,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   } else {
     // The case without a type is handled above, so require a type here.
     const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
-      FLAG_enable_type_checks ? ClassFinalizer::kFinalize :
+      FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
                                 ClassFinalizer::kIgnore));
     loop_var_pos = TokenPos();
     loop_var_name = ExpectIdentifier("variable name expected");
@@ -5149,7 +5151,7 @@ void Parser::ParseCatchParameter(CatchParamDesc* catch_param) {
   // The type of the catch parameter must always be resolved, even in unchecked
   // mode.
   catch_param->type = &AbstractType::ZoneHandle(
-      ParseFinalVarOrType(ClassFinalizer::kFinalizeWellFormed));
+      ParseFinalVarOrType(ClassFinalizer::kCanonicalizeWellFormed));
   catch_param->token_pos = TokenPos();
   catch_param->var = ExpectIdentifier("identifier expected");
 }
@@ -5984,7 +5986,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         }
         const intptr_t type_pos = TokenPos();
         const AbstractType& type =
-            AbstractType::ZoneHandle(ParseType(ClassFinalizer::kFinalize));
+            AbstractType::ZoneHandle(ParseType(ClassFinalizer::kCanonicalize));
         if (!type.IsInstantiated() &&
             (current_block_->scope->function_level() > 0)) {
           // Make sure that the instantiator is captured.
@@ -6884,7 +6886,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
     if (!resolved_type_class.IsNull()) {
       // Replace unresolved class with resolved type class.
       parameterized_type.set_type_class(resolved_type_class);
-    } else if (finalization >= ClassFinalizer::kFinalize) {
+    } else if (finalization >= ClassFinalizer::kCanonicalize) {
       // The type is malformed.
       ClassFinalizer::FinalizeMalformedType(
           Error::Handle(),  // No previous error.
@@ -7048,7 +7050,7 @@ RawObject* Parser::EvaluateConstConstructorCall(
   GrowableArray<const Object*> arg_values(arguments->length() + 2);
   Instance& instance = Instance::Handle();
   if (!constructor.IsFactory()) {
-    instance = Instance::New(type_class);
+    instance = Instance::New(type_class, Heap::kOld);
     if (!type_arguments.IsNull()) {
       if (!type_arguments.IsInstantiated()) {
         ErrorMsg("type must be constant in const constructor");
@@ -7447,7 +7449,7 @@ RawAbstractType* Parser::ParseType(
   if (finalization >= ClassFinalizer::kTryResolve) {
     const Class& scope_class = Class::Handle(TypeParametersScopeClass());
     ResolveTypeFromClass(scope_class, finalization, &type);
-    if (finalization >= ClassFinalizer::kFinalize) {
+    if (finalization >= ClassFinalizer::kCanonicalize) {
       type ^= ClassFinalizer::FinalizeType(current_class(), type, finalization);
     }
   }
@@ -7829,11 +7831,11 @@ AstNode* Parser::ParseCompoundLiteral() {
   Error& malformed_error = Error::Handle();
   AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle(
       ParseTypeArguments(&malformed_error,
-                         ClassFinalizer::kFinalizeWellFormed));
+                         ClassFinalizer::kCanonicalizeWellFormed));
   // Map and List interfaces do not declare bounds on their type parameters, so
   // we should never see a malformed type error here.
   // Note that a bound error is the only possible malformed type error returned
-  // when requesting kFinalizeWellFormed type finalization.
+  // when requesting kCanonicalizeWellFormed type finalization.
   ASSERT(malformed_error.IsNull());
   AstNode* primary = NULL;
   if ((CurrentToken() == Token::kLBRACK) ||
@@ -7875,9 +7877,9 @@ AstNode* Parser::ParseNewOperator() {
   }
   intptr_t type_pos = TokenPos();
   const AbstractType& type = AbstractType::Handle(
-      ParseType(ClassFinalizer::kFinalizeWellFormed));
+      ParseType(ClassFinalizer::kCanonicalizeWellFormed));
   // Malformed bounds never result in a compile time error, therefore, the
-  // parsed type may be malformed although we requested kFinalizeWellFormed.
+  // parsed type may be malformed although we requested kCanonicalizeWellFormed.
   // In that case, we throw a dynamic type error instead of calling the
   // constructor.
   if (type.IsTypeParameter()) {
@@ -7936,12 +7938,16 @@ AstNode* Parser::ParseNewOperator() {
                type_class_name.ToCString(),
                external_constructor_name.ToCString());
     }
-    if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
+    String& error_message = String::Handle();
+    if (!constructor.AreValidArguments(arguments_length,
+                                       arguments->names(),
+                                       &error_message)) {
       ErrorMsg(call_pos,
                "invalid arguments passed to constructor '%s' "
-               "for interface '%s'",
+               "for interface '%s': %s",
                external_constructor_name.ToCString(),
-               type_class_name.ToCString());
+               type_class_name.ToCString(),
+               error_message.ToCString());
     }
     if (!type_class.HasFactoryClass()) {
       ErrorMsg(type_pos,
@@ -7991,13 +7997,17 @@ AstNode* Parser::ParseNewOperator() {
              String::Handle(constructor_class.Name()).ToCString(),
              external_constructor_name.ToCString());
   }
-  if (!constructor.AreValidArguments(arguments_length, arguments->names())) {
+  String& error_message = String::Handle();
+  if (!constructor.AreValidArguments(arguments_length,
+                                     arguments->names(),
+                                     &error_message)) {
     const String& external_constructor_name =
         (named_constructor ? constructor_name : constructor_class_name);
     ErrorMsg(call_pos,
-             "invalid arguments passed to constructor '%s' for class '%s'",
+             "invalid arguments passed to constructor '%s' for class '%s': %s",
              external_constructor_name.ToCString(),
-             String::Handle(constructor_class.Name()).ToCString());
+             String::Handle(constructor_class.Name()).ToCString(),
+             error_message.ToCString());
   }
 
   // Now that the constructor to be called is identified, finalize the type
@@ -8009,14 +8019,13 @@ AstNode* Parser::ParseNewOperator() {
   // the bounds on the factory class may be tighter than on the interface.
   if (constructor_class.raw() != type_class.raw()) {
     const intptr_t num_type_parameters = constructor_class.NumTypeParameters();
-    // TODO(regis): Temporary type args should be allocated in new gen heap.
     TypeArguments& temp_type_arguments = TypeArguments::Handle();
     if (!type_arguments.IsNull()) {
       // Copy the parsed type arguments starting at offset 0, because interfaces
       // have no super types.
       ASSERT(type_class.NumTypeArguments() == type_class.NumTypeParameters());
       const intptr_t num_type_arguments = type_arguments.Length();
-      temp_type_arguments = TypeArguments::New(num_type_parameters);
+      temp_type_arguments = TypeArguments::New(num_type_parameters, Heap::kNew);
       AbstractType& type_argument = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         if (i < num_type_arguments) {
@@ -8027,9 +8036,9 @@ AstNode* Parser::ParseNewOperator() {
         temp_type_arguments.SetTypeAt(i, type_argument);
       }
     }
-    // TODO(regis): Temporary type should be allocated in new gen heap.
-    Type& temp_type = Type::Handle(
-        Type::New(constructor_class, temp_type_arguments, type.token_pos()));
+    Type& temp_type = Type::Handle(Type::New(
+         constructor_class, temp_type_arguments, type.token_pos(), Heap::kNew));
+    // No need to canonicalize temporary type.
     temp_type ^= ClassFinalizer::FinalizeType(
         current_class(), temp_type, ClassFinalizer::kFinalize);
     // The type argument vector may have been expanded with the type arguments

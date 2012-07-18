@@ -382,7 +382,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   NoHandleScope no_handles(isolate);
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before Scavenge... ");
+    OS::PrintErr("Verifying before Scavenge...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }
@@ -404,7 +404,7 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   }
 
   if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after Scavenge... ");
+    OS::PrintErr("Verifying after Scavenge...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }

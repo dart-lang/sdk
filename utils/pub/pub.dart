@@ -7,6 +7,8 @@
  */
 #library('pub');
 
+#import('../../lib/args/args.dart');
+#import('dart:io');
 #import('io.dart');
 #import('command_install.dart');
 #import('command_list.dart');
@@ -27,8 +29,6 @@
 Version get pubVersion() => new Version(0, 0, 0);
 
 main() {
-  var args = new Options().arguments;
-
   // TODO(rnystrom): In addition to explicit "help" and "version" commands,
   // should also add special-case support for --help and --version arguments to
   // be consistent with other Unix apps.
@@ -39,71 +39,74 @@ main() {
     'version': new VersionCommand()
   };
 
-  // TODO(rnystrom): Hack. This is temporary code to allow the pub tests to
-  // pass in relevant paths. Eventually these should be either environment
-  // variables or at least a cleaner arg parser.
-  var cacheDir, sdkDir;
-  for (var i = 0; i < args.length; i++) {
-    if (args[i].startsWith('--cachedir=')) {
-      cacheDir = args[i].substring('--cachedir='.length);
-      args.removeRange(i, 1);
-      i--;
-    } else if (args[i].startsWith('--sdkdir=')) {
-      sdkDir = args[i].substring('--sdkdir='.length);
-      args.removeRange(i, 1);
-      i--;
-    }
-  }
+  var parser = new ArgParser();
+  parser.addFlag('help', abbr: 'h', negatable: false,
+    help: 'Prints this usage information');
+  parser.addFlag('version', negatable: false,
+    help: 'Prints the version of Pub');
+  parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
 
-  if (args.length == 0) {
-    printUsage(commands);
+  var globalOptions;
+  try {
+    globalOptions = parser.parse(new Options().arguments);
+  } catch (ArgFormatException e) {
+    printUsage(parser, commands, description: e.message);
     return;
   }
 
-  // For consistency with expected unix idioms, support --help, -h, and
-  // --version in addition to the regular commands.
-  if (args.length == 1) {
-    if (args[0] == '--help' || args[0] == '-h') {
-      printUsage(commands);
-      return;
-    }
+  if (globalOptions['version']) {
+    printVersion();
+    return;
+  }
 
-    if (args[0] == '--version') {
-      printVersion();
-      return;
-    }
+  if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
+    printUsage(parser, commands);
+    return;
+  }
+
+  // TODO(nweiz): Have a fallback for this this out automatically once 1145 is
+  // fixed.
+  var sdkDir = Platform.environment['DART_SDK'];
+  var cacheDir;
+  if (Platform.environment.containsKey('PUB_CACHE')) {
+    cacheDir = Platform.environment['PUB_CACHE'];
+  } else {
+    // TODO(nweiz): Choose a better default for Windows.
+    cacheDir = '${Platform.environment['HOME']}/.pub-cache';
   }
 
   var cache = new SystemCache(cacheDir);
-  cache.sources.register(new SdkSource(sdkDir));
-  cache.sources.register(new GitSource());
-  cache.sources.register(new RepoSource());
+  cache.register(new SdkSource(sdkDir));
+  cache.register(new GitSource());
+  cache.register(new RepoSource());
   // TODO(nweiz): Make 'repo' the default once pub.dartlang.org exists
   cache.sources.setDefault('sdk');
 
   // Select the command.
-  var command = commands[args[0]];
+  var command = commands[globalOptions.rest[0]];
   if (command == null) {
-    printError('Unknown command "${args[0]}".');
+    printError('Unknown command "${globalOptions.rest[0]}".');
     printError('Run "pub help" to see available commands.');
     exit(64); // See http://www.freebsd.org/cgi/man.cgi?query=sysexits.
     return;
   }
 
-  args.removeRange(0, 1);
-  command.run(cache, args);
+  var commandArgs =
+    globalOptions.rest.getRange(1, globalOptions.rest.length - 1);
+  command.run(cache, globalOptions, commandArgs);
 }
 
 /** Displays usage information for the app. */
-void printUsage(Map<String, PubCommand> commands) {
-  print('Pub is a package manager for Dart.');
+void printUsage(ArgParser parser, Map<String, PubCommand> commands,
+    [String description = 'Pub is a package manager for Dart.']) {
+  print(description);
   print('');
-  print('Usage:');
+  print('Usage: pub command [arguments]');
   print('');
-  print('  pub command [arguments]');
+  print('Global options:');
+  print(parser.getUsage());
   print('');
   print('The commands are:');
-  print('');
 
   // Show the commands sorted.
   // TODO(rnystrom): A sorted map would be nice.
@@ -135,13 +138,14 @@ class PubCommand {
 
   abstract String get description();
 
-  void run(SystemCache cache_, List<String> args) {
+  void run(SystemCache cache_, ArgResults globalOptions,
+      List<String> commandArgs) {
     cache = cache_;
 
     // TODO(rnystrom): Each command should define the arguments it expects and
     // we can handle them generically here.
 
-    handleError(error) {
+    handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
       // spew a stack trace on our users.
       // TODO(rnystrom): Add --trace flag so stack traces can be enabled for
@@ -155,13 +159,16 @@ class PubCommand {
       }
 
       printError(message);
+      if (globalOptions['trace'] && trace != null) {
+        printError(trace);
+      }
       return true;
     }
 
     // TODO(rnystrom): Will eventually need better logic to walk up
     // subdirectories until we hit one that looks package-like. For now, just
     // assume the cwd is it.
-    Package.load(workingDir, cache.sources).chain((package) {
+    var future = Package.load(workingDir, cache.sources).chain((package) {
       entrypoint = new Entrypoint(package, cache);
 
       try {
@@ -169,11 +176,12 @@ class PubCommand {
         if (commandFuture == null) return new Future.immediate(true);
 
         return commandFuture;
-      } catch (var error) {
-        handleError(error);
+      } catch (var error, var trace) {
+        handleError(error, trace);
         return new Future.immediate(null);
       }
-    }).handleException(handleError);
+    });
+    future.handleException((e) => handleError(e, future.stackTrace));
   }
 
   /**

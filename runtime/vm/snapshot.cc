@@ -82,6 +82,7 @@ SnapshotReader::SnapshotReader(const Snapshot* snapshot, Isolate* isolate)
       library_(Library::Handle()),
       type_(AbstractType::Handle()),
       type_arguments_(AbstractTypeArguments::Handle()),
+      tokens_(Array::Handle()),
       backward_references_((snapshot->kind() == Snapshot::kFull) ?
                            kNumInitialReferencesInFullSnapshot :
                            kNumInitialReferences) {

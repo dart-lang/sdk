@@ -1309,6 +1309,28 @@ public class NegativeResolverTest extends CompilerTestCase {
     Type boundType = typeParameter.getBound().getType();
     assertEquals("A", boundType.getElement().getName());
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3986
+   */
+  public void test_memberWithNameOfClass() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  A() {}",
+            "}",
+            "class B {",
+            "  var B;",
+            "}",
+            "class C {",
+            "  void C() {}",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.MEMBER_WITH_NAME_OF_CLASS, 6, 7, 1),
+        errEx(ResolverErrorCode.CONSTRUCTOR_CANNOT_HAVE_RETURN_TYPE, 9, 3, 4));
+  }
 
   public void test_methodCannotBeResolved() throws Exception {
     checkSourceErrors(

@@ -10,10 +10,9 @@
 
 #import('dart:coreimpl');
 
-#import('../../lib/dartdoc/frog/lang.dart');
-#import('../../lib/dartdoc/frog/file_system_vm.dart');
-#import('../../lib/dartdoc/frog/file_system.dart');
 #import('../../lib/dartdoc/dartdoc.dart');
+#import('../../lib/dartdoc/mirrors/mirrors.dart');
+#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
 
 /**
  * A class for computing a many-to-many mapping between the types and
@@ -44,45 +43,54 @@
 class HtmlDiff {
   /** A map from `dart:dom_deprecated` members to corresponding
    * `dart:html` members. */
-  final Map<Member, Set<Member>> domToHtml;
+  final Map<MemberMirror, Set<MemberMirror>> domToHtml;
 
   /** A map from `dart:html` members to corresponding
    * `dart:dom_deprecated` members. */
-  final Map<Member, Set<Member>> htmlToDom;
+  final Map<MemberMirror, Set<MemberMirror>> htmlToDom;
 
   /** A map from `dart:dom_deprecated` types to corresponding
-   * `dart:html` types. */
-  final Map<Type, Set<Type>> domTypesToHtml;
+   * `dart:html` types.
+   * TODO(johnniwinther): We use qualified names as keys, since mirrors
+   * (currently) are not equal between different mirror systems.
+   */
+  final Map<String, Set<InterfaceMirror>> domTypesToHtml;
 
   /** A map from `dart:html` types to corresponding
-   * `dart:dom_deprecated` types. */
-  final Map<Type, Set<Type>> htmlTypesToDom;
+   * `dart:dom_deprecated` types.
+   * TODO(johnniwinther): We use qualified names as keys, since mirrors
+   * (currently) are not equal between different mirror systems.
+   */
+  final Map<String, Set<InterfaceMirror>> htmlTypesToDom;
 
   final CommentMap comments;
 
   /** If true, then print warning messages. */
   final bool _printWarnings;
 
-  static Library dom;
+  static Compilation _compilation;
+  static MirrorSystem _mirrors;
+  static LibraryMirror dom;
 
   /**
    * Perform static initialization of [world]. This should be run before
    * calling [HtmlDiff.run].
    */
-  static void initialize() {
-    world.getOrAddLibrary('dart:dom_deprecated');
-    world.getOrAddLibrary('dart:html');
-    world.process();
+  static void initialize(String libDir) {
+    _compilation = new Compilation.library(
+        const <String>['dart:dom_deprecated', 'dart:html'], libDir);
+    _mirrors = _compilation.mirrors();
 
-    dom = world.libraries['dart:dom_deprecated'];
+    // Find 'dart:dom_deprecated' by its library tag 'dom'.
+    dom = findMirror(_mirrors.libraries(), 'dom');
   }
 
   HtmlDiff([bool printWarnings = false]) :
     _printWarnings = printWarnings,
-    domToHtml = new Map<Member, Set<Member>>(),
-    htmlToDom = new Map<Member, Set<Member>>(),
-    domTypesToHtml = new Map<Type, Set<Type>>(),
-    htmlTypesToDom = new Map<Type, Set<Type>>(),
+    domToHtml = new Map<MemberMirror, Set<MemberMirror>>(),
+    htmlToDom = new Map<MemberMirror, Set<MemberMirror>>(),
+    domTypesToHtml = new Map<String, Set<InterfaceMirror>>(),
+    htmlTypesToDom = new Map<String, Set<InterfaceMirror>>(),
     comments = new CommentMap();
 
   void warn(String s) {
@@ -99,20 +107,23 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    final htmlLib = world.libraries['dart:html'];
-    for (Type htmlType in htmlLib.types.getValues()) {
+    LibraryMirror htmlLib = findMirror(_mirrors.libraries(), 'html');
+    if (htmlLib === null) {
+      warn('Could not find dart:html');
+      return;
+    }
+    for (InterfaceMirror htmlType in htmlLib.types().getValues()) {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty()) continue;
 
-      htmlTypesToDom.putIfAbsent(htmlType,
+      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName(),
           () => new Set()).addAll(domTypes);
       domTypes.forEach((t) =>
-          domTypesToHtml.putIfAbsent(t, () => new Set()).add(htmlType));
+          domTypesToHtml.putIfAbsent(t.qualifiedName(),
+            () => new Set()).add(htmlType));
 
-      final members = new List.from(htmlType.members.getValues());
-      members.addAll(htmlType.constructors.getValues());
-      htmlType.factories.forEach((f) => members.add(f));
-      members.forEach((m) => _addMemberDiff(m, domTypes));
+      htmlType.declaredMembers().forEach(
+          (_, m) => _addMemberDiff(m, domTypes));
     }
   }
 
@@ -122,16 +133,12 @@ class HtmlDiff {
    * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
    * defining [Type].
    */
-  void _addMemberDiff(Member htmlMember, List<Type> domTypes) {
-    if (htmlMember.isProperty) {
-      if (htmlMember.canGet) _addMemberDiff(htmlMember.getter, domTypes);
-      if (htmlMember.canSet) _addMemberDiff(htmlMember.setter, domTypes);
-    }
-
+  void _addMemberDiff(MemberMirror htmlMember, List<TypeMirror> domTypes) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
-      warn('dart:html member ${htmlMember.declaringType.name}.'
-          '${htmlMember.name} has no corresponding dart:html member.');
+      warn('dart:html member '
+           '${htmlMember.surroundingDeclaration().simpleName()}.'
+           '${htmlMember.simpleName()} has no corresponding dart:html member.');
     }
 
     if (htmlMember == null) return;
@@ -145,20 +152,27 @@ class HtmlDiff {
    * [htmlType] from `dart:html`. This can be the empty list if no
    * correspondence is found.
    */
-  List<Type> htmlToDomTypes(Type htmlType) {
-    if (htmlType.name == null) return [];
-    final tags = _getTags(comments.find(htmlType.span));
-
+  List<InterfaceMirror> htmlToDomTypes(InterfaceMirror htmlType) {
+    if (htmlType.simpleName() == null) return [];
+    final tags = _getTags(comments.find(htmlType.location()));
     if (tags.containsKey('domName')) {
-      var domNames = map(tags['domName'].split(','), (s) => s.trim());
+      var domNames = <String>[];
+      for (var s in tags['domName'].split(',')) {
+        domNames.add(s.trim());
+      }
       if (domNames.length == 1 && domNames[0] == 'none') return [];
-      return map(domNames, (domName) {
-        final domType = dom.types[domName];
-        if (domType == null) warn('no dart:dom_deprecated type named $domName');
-        return domType;
-      });
+      var domTypes = <InterfaceMirror>[];
+      for (var domName in domNames) {
+        final domType = findMirror(dom.types(), domName);
+        if (domType == null) {
+          warn('no dart:dom_deprecated type named $domName');
+        } else {
+          domTypes.add(domType);
+        }
+      }
+      return domTypes;
     }
-    return <Type>[];
+    return <InterfaceMirror>[];
   }
 
   /**
@@ -168,11 +182,15 @@ class HtmlDiff {
    * `dart:dom_deprecated` [Type]s that correspond to [implMember]'s
    * defining [Type].
    */
-  Set<Member> htmlToDomMembers(Member htmlMember, List<Type> domTypes) {
+  Set<MemberMirror> htmlToDomMembers(MemberMirror htmlMember,
+                                     List<InterfaceMirror> domTypes) {
     if (htmlMember.isPrivate) return new Set();
-    final tags = _getTags(comments.find(htmlMember.span));
+    final tags = _getTags(comments.find(htmlMember.location()));
     if (tags.containsKey('domName')) {
-      final domNames = map(tags['domName'].split(','), (s) => s.trim());
+      var domNames = <String>[];
+      for (var s in tags['domName'].split(',')) {
+        domNames.add(s.trim());
+      }
       if (domNames.length == 1 && domNames[0] == 'none') return new Set();
       final members = new Set();
       domNames.forEach((name) {
@@ -181,8 +199,11 @@ class HtmlDiff {
           if (name.contains('.')) {
             warn('no member $name');
           } else {
-            final options = Strings.join(
-                map(domTypes, (t) => "${t.name}.$name"), ' or ');
+            final options = <String>[];
+            for (var t in domTypes) {
+              options.add('${t.simpleName()}.${name}');
+            }
+            Strings.join(options, ' or ');
             warn('no member $options');
           }
         }
@@ -202,15 +223,19 @@ class HtmlDiff {
    * name (e.g. `Document.createElement`), in which case it's looked
    * up in `dart:dom_deprecated` and [defaultTypes] is ignored.
    */
-  Set<Member> _membersFromName(String name, List<Type> defaultTypes) {
+  Set<MemberMirror> _membersFromName(String name,
+                                     List<InterfaceMirror> defaultTypes) {
     if (!name.contains('.', 0)) {
       if (defaultTypes.isEmpty()) {
         warn('no default type for ${name}');
         return new Set();
       }
-      final members = new Set<Member>();
+      final members = new Set<MemberMirror>();
       defaultTypes.forEach((t) {
-        if (t.members.containsKey(name)) members.add(t.members[name]);
+        MemberMirror member = findMirror(t.declaredMembers(), name);
+        if (member !== null) {
+          members.add(member);
+        }
       });
       return members;
     }
@@ -223,10 +248,10 @@ class HtmlDiff {
 
     var typeName = splitName[0];
 
-    final type = dom.types[typeName];
+    InterfaceMirror type = findMirror(dom.types(), typeName);
     if (type == null) return new Set();
 
-    final member = type.members[splitName[1]];
+    MemberMirror member = findMirror(type.declaredMembers(), splitName[1]);
     if (member == null) return new Set();
 
     return new Set.from([member]);

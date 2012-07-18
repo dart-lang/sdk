@@ -309,6 +309,7 @@ class LiteralNode : public AstNode {
   LiteralNode(intptr_t token_pos, const Instance& literal)
       : AstNode(token_pos), literal_(literal) {
     ASSERT(literal.IsZoneHandle());
+    ASSERT(literal.IsSmi() || literal.IsOld());
 #if defined(DEBUG)
     if (literal.IsString()) {
       ASSERT(String::Cast(literal).IsSymbol());

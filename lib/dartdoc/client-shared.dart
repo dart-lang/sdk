@@ -24,7 +24,7 @@ enableCodeBlocks() {
       } else {
         // Syntax highlight.
         if (!pre.classes.contains('formatted')) {
-          pre.innerHTML = classifySource(new frog.SourceFile('', pre.text));
+          pre.innerHTML = classifySource(pre.text);
           pre.classes.add('formatted');
         };
         pre.classes.add('expanded');

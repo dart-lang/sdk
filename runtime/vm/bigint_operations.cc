@@ -114,7 +114,7 @@ RawBigint* BigintOperations::NewFromCString(const char* str,
     ASSERT(IsClamped(result));
     return result.raw();
   } else {
-    return FromDecimalCString(str);
+    return FromDecimalCString(str, space);
   }
 }
 
@@ -169,14 +169,14 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
     ASSERT(('0' <= c) && (c <= '9'));
     digit = digit * 10 + c - '0';
   }
-  Bigint& result = Bigint::Handle(Bigint::Allocate(1, space));
+  Bigint& result = Bigint::Handle(Bigint::Allocate(1));
   result.SetChunkAt(0, digit);
   Clamp(result);  // Multiplication requires the inputs to be clamped.
 
   // Read kDigitsPerIteration at a time, and store it in 'increment'.
   // Then multiply the temporary result by 10^kDigitsPerIteration and add
   // 'increment' to the new result.
-  const Bigint& increment = Bigint::Handle(Bigint::Allocate(1, space));
+  const Bigint& increment = Bigint::Handle(Bigint::Allocate(1));
   while (str_pos < str_length - 1) {
     Chunk digit = 0;
     for (intptr_t i = 0; i < kDigitsPerIteration; i++) {
@@ -191,6 +191,9 @@ RawBigint* BigintOperations::FromDecimalCString(const char* str,
     }
   }
   Clamp(result);
+  if ((space == Heap::kOld) && !result.IsOld()) {
+    result ^= Object::Clone(result, Heap::kOld);
+  }
   return result.raw();
 }
 

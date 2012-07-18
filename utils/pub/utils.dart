@@ -7,6 +7,8 @@
  */
 #library('utils');
 
+#import('dart:crypto');
+
 /** Thrown by methods that parse text when the text isn't a valid. */
 class FormatException implements Exception {
   final String message;
@@ -110,3 +112,9 @@ bool endsWithPattern(String str, Pattern matcher) {
   }
   return false;
 }
+
+/**
+ * Returns the hex-encoded sha1 hash of [source].
+ */
+String sha1(String source) =>
+  CryptoUtils.bytesToHex(new SHA1().update(source.charCodes()).digest());

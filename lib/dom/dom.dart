@@ -290,7 +290,7 @@ interface AudioBuffer {
 
   Float32Array getChannelData(int channelIndex);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -1254,6 +1254,8 @@ interface Console {
 
   final MemoryInfo memory;
 
+  final List<ScriptProfile> profiles;
+
   void assertCondition(bool condition, Object arg);
 
   void count();
@@ -2028,7 +2030,7 @@ interface Database {
 
   void transaction(SQLTransactionCallback callback, [SQLTransactionErrorCallback errorCallback, VoidCallback successCallback]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2602,7 +2604,7 @@ interface Entity extends Node {
 
 interface EntityReference extends Node {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2663,7 +2665,7 @@ interface EntryArraySync {
 
   EntrySync item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2700,7 +2702,7 @@ interface EntrySync {
 
   String toURL();
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -2879,7 +2881,7 @@ interface File extends Blob {
 
   final String webkitRelativePath;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -3052,7 +3054,7 @@ interface FileReaderSync default _FileReaderSyncFactoryProvider {
 
   String readAsText(Blob blob, [String encoding]);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -3095,7 +3097,7 @@ interface FileWriter extends EventTarget {
 
   void write(Blob data);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -4636,6 +4638,8 @@ interface HTMLSelectElement extends HTMLElement {
 
   int selectedIndex;
 
+  final HTMLCollection selectedOptions;
+
   int size;
 
   final String type;
@@ -5388,7 +5392,7 @@ interface IDBVersionChangeEvent extends Event {
 
 interface IDBVersionChangeRequest extends IDBRequest, EventTarget {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -5534,6 +5538,8 @@ interface JavaScriptCallFrame {
   final String type;
 
   void evaluate(String script);
+
+  Object restart();
 
   int scopeType(int scopeIndex);
 }
@@ -5835,11 +5841,31 @@ interface MediaStreamTrack {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamTrackList {
+interface MediaStreamTrackEvent extends Event {
+
+  final MediaStreamTrack track;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamTrackList extends EventTarget {
 
   final int length;
 
+  void add(MediaStreamTrack track);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
   MediaStreamTrack item(int index);
+
+  void remove(MediaStreamTrack track);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5925,7 +5951,7 @@ interface Metadata {
 
   final int size;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6126,14 +6152,14 @@ interface NavigatorUserMediaError {
 
   final int code;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 typedef bool NavigatorUserMediaErrorCallback(NavigatorUserMediaError error);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6392,7 +6418,7 @@ interface NotificationCenter {
 
   void requestPermission(VoidCallback callback);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6605,7 +6631,7 @@ interface PeerConnection00 extends EventTarget default _PeerConnection00FactoryP
 
 // WARNING: Do not edit - generated code.
 
-interface Performance {
+interface Performance extends EventTarget {
 
   final MemoryInfo memory;
 
@@ -6709,7 +6735,7 @@ interface PopStateEvent extends Event {
 
   final Object state;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6734,7 +6760,7 @@ interface PositionError {
 
   final String message;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -6939,7 +6965,7 @@ interface Rect {
 
   final CSSPrimitiveValue top;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7028,14 +7054,14 @@ interface SQLResultSetRowList {
 
   Object item(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 typedef bool SQLStatementCallback(SQLTransaction transaction, SQLResultSet resultSet);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7050,14 +7076,14 @@ typedef bool SQLStatementErrorCallback(SQLTransaction transaction, SQLError erro
 
 interface SQLTransaction {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
 typedef bool SQLTransactionCallback(SQLTransaction transaction);
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -7072,7 +7098,7 @@ typedef bool SQLTransactionErrorCallback(SQLError error);
 
 interface SQLTransactionSync {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9735,8 +9761,6 @@ interface ShadowRoot extends DocumentFragment default _ShadowRootFactoryProvider
 
   bool applyAuthorStyles;
 
-  final Element host;
-
   String innerHTML;
 
   bool resetStyleInheritance;
@@ -9776,7 +9800,7 @@ interface SharedWorkerGlobalScope extends WorkerContext {
 
 interface SharedWorkerContext extends SharedWorkerGlobalScope {
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9864,6 +9888,8 @@ interface SpeechRecognition extends EventTarget default _SpeechRecognitionFactor
   SpeechGrammarList grammars;
 
   String lang;
+
+  int maxAlternatives;
 
   void abort();
 
@@ -9999,7 +10025,7 @@ interface StorageEvent extends Event {
 
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, Storage storageAreaArg);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10212,7 +10238,7 @@ interface TimeRanges {
 
   num start(int index);
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10469,7 +10495,7 @@ interface ValidityState {
 
   final bool valueMissing;
 }
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -10591,6 +10617,8 @@ interface WebGLDebugShaders {
 // WARNING: Do not edit - generated code.
 
 interface WebGLDepthTexture {
+
+  static final int UNSIGNED_INT_24_8_WEBGL = 0x84FA;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11816,6 +11844,8 @@ interface WebKitMutationObserver {
 
   void disconnect();
 
+  void observe(Node target, Map options);
+
   List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11826,11 +11856,11 @@ interface WebKitMutationObserver {
 
 interface WebKitNamedFlow {
 
-  final NodeList contentNodes;
-
   final String name;
 
   final bool overset;
+
+  NodeList getContent();
 
   NodeList getRegionsByContentNode(Node contentNode);
 }
@@ -11908,27 +11938,7 @@ interface WebSocket extends EventTarget default _WebSocketFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-interface WheelEvent extends UIEvent {
-
-  final bool altKey;
-
-  final int clientX;
-
-  final int clientY;
-
-  final bool ctrlKey;
-
-  final bool metaKey;
-
-  final int offsetX;
-
-  final int offsetY;
-
-  final int screenX;
-
-  final int screenY;
-
-  final bool shiftKey;
+interface WheelEvent extends MouseEvent {
 
   final bool webkitDirectionInvertedFromDevice;
 
@@ -11937,10 +11947,6 @@ interface WheelEvent extends UIEvent {
   final int wheelDeltaX;
 
   final int wheelDeltaY;
-
-  final int x;
-
-  final int y;
 
   void initWebKitWheelEvent(int wheelDeltaX, int wheelDeltaY, DOMWindow view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey);
 }
@@ -12082,8 +12088,6 @@ interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvi
   final int readyState;
 
   final Object response;
-
-  final Blob responseBlob;
 
   final String responseText;
 

@@ -10,18 +10,15 @@ import emitter
 import os
 import systembase
 from generator import *
-from systemhtml import HtmlSystemShared
 
 
 class NativeImplementationSystem(systembase.System):
 
-  def __init__(self, templates, database, emitters, output_dir, auxiliary_dir):
-    super(NativeImplementationSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options, auxiliary_dir):
+    super(NativeImplementationSystem, self).__init__(options)
     self._auxiliary_dir = auxiliary_dir
     self._cpp_header_files = []
     self._cpp_impl_files = []
-    self._html_system = HtmlSystemShared(database)
 
   def ImplementationGenerator(self, interface):
     return NativeImplementationGenerator(self, interface)
@@ -47,13 +44,13 @@ class NativeImplementationSystem(systembase.System):
       parameters = []
       arguments = []
       for argument in operation.arguments:
-        argument_type_info = GetIDLTypeInfo(argument.type.id)
+        argument_type_info = self._type_registry.TypeInfo(argument.type.id)
         parameters.append('%s %s' % (argument_type_info.parameter_type(),
                                      argument.id))
         arguments.append(argument_type_info.to_dart_conversion(argument.id))
         cpp_impl_includes |= set(argument_type_info.conversion_includes())
 
-      native_return_type = GetIDLTypeInfo(operation.type.id).native_type()
+      native_return_type = self._type_registry.TypeInfo(operation.type.id).native_type()
       cpp_header_handlers_emitter.Emit(
           '\n'
           '    virtual $TYPE handleEvent($PARAMETERS);\n',
@@ -168,9 +165,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         system._database, interface)
     self._system = system
     self._current_secondary_parent = None
-    self._html_system = self._system._html_system
-    self._html_interface_name = self._html_system._html_renames.get(
-        self._interface.id, self._interface.id)
+    self._html_interface_name = system._renamer.RenameInterface(self._interface)
 
   def HasImplementation(self):
     return not IsPureInterface(self._interface.id)
@@ -212,7 +207,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       self._cpp_header_emitter = emitter.Emitter()
       self._cpp_impl_emitter = emitter.Emitter()
 
-    self._interface_type_info = GetIDLTypeInfo(self._interface.id)
+    self._interface_type_info = self._TypeInfo(self._interface.id)
     self._members_emitter = emitter.Emitter()
     self._cpp_declarations_emitter = emitter.Emitter()
     self._cpp_impl_includes = set()
@@ -321,9 +316,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
 
-  def _DartType(self, idl_type):
-    return self._html_system.DartType(idl_type)
-
   def _BaseClassName(self):
     root_class = 'NativeFieldWrapperClass1'
 
@@ -421,14 +413,22 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INTERFACE=self._interface.id)
 
     webcore_includes = _GenerateCPPIncludes(self._interface_type_info.webcore_includes())
-    wrapper_type = _DOMWrapperType(self._database, self._interface)
+
+    is_node_test = lambda interface: interface.id == 'Node'
+    is_active_test = lambda interface: 'ActiveDOMObject' in interface.ext_attrs
+    is_event_target_test = lambda interface: 'EventTarget' in interface.ext_attrs
+    def TypeCheckHelper(test):
+      return 'true' if any(map(test, self._database.Hierarchy(self._interface))) else 'false'
+
     self._cpp_header_emitter.Emit(
         self._system._templates.Load('cpp_header.template'),
         INTERFACE=self._interface.id,
         WEBCORE_INCLUDES=webcore_includes,
         WEBCORE_CLASS_NAME=self._interface_type_info.native_type(),
         DECLARATIONS=self._cpp_declarations_emitter.Fragments(),
-        NATIVE_TRAITS_TYPE='DartDOMWrapper::%sTraits' % wrapper_type,
+        IS_NODE=TypeCheckHelper(is_node_test),
+        IS_ACTIVE=TypeCheckHelper(is_active_test),
+        IS_EVENT_TARGET=TypeCheckHelper(is_event_target_test),
         TO_NATIVE=to_native_emitter.Fragments(),
         TO_DART=to_dart_emitter.Fragments())
 
@@ -479,7 +479,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       self._AddSetter(attribute, html_name)
 
   def _AddGetter(self, attr, html_name):
-    type_info = GetIDLTypeInfo(attr.type.id)
+    type_info = self._TypeInfo(attr.type.id)
     dart_declaration = '%s get %s()' % (self._DartType(attr.type.id), html_name)
     is_custom = 'Custom' in attr.ext_attrs or 'CustomGetter' in attr.ext_attrs
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 1,
@@ -493,7 +493,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     raises_exceptions = raises_exceptions or attr.get_raises
 
     if 'Reflect' in attr.ext_attrs:
-      webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_getter_name()
+      webcore_function_name = self._TypeInfo(attr.type.id).webcore_getter_name()
       if 'URL' in attr.ext_attrs:
         if 'NonEmpty' in attr.ext_attrs:
           webcore_function_name = 'getNonEmptyURLAttribute'
@@ -517,7 +517,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         True, invocation, raises_exceptions=raises_exceptions)
 
   def _AddSetter(self, attr, html_name):
-    type_info = GetIDLTypeInfo(attr.type.id)
+    type_info = self._TypeInfo(attr.type.id)
     dart_declaration = 'void set %s(%s)' % (html_name, self._DartType(attr.type.id))
     is_custom = set(['Custom', 'CustomSetter', 'V8CustomSetter']) & set(attr.ext_attrs)
     cpp_callback_name = self._GenerateNativeBinding(attr.id, 2,
@@ -530,7 +530,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateCallWithHandling(attr, parameter_definitions_emitter, arguments)
 
     if 'Reflect' in attr.ext_attrs:
-      webcore_function_name = GetIDLTypeInfo(attr.type.id).webcore_setter_name()
+      webcore_function_name = self._TypeInfo(attr.type.id).webcore_setter_name()
       arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
       webcore_function_name = re.sub(r'^(xml(?=[A-Z])|\w)',
@@ -637,7 +637,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     self._GenerateNativeBinding('numericIndexSetter', 3, dart_declaration,
         'Callback', True)
 
-  def _AddOperation(self, info):
+  def AddOperation(self, info, html_name):
     """
     Arguments:
       info: An OperationInfo object.
@@ -647,16 +647,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     if 'CheckSecurityForNode' in operation.ext_attrs:
       # FIXME: exclude from interface as well.
-      return
-
-    html_name = self._html_system.RenameInHtmlLibrary(
-        self._interface.id, info.name, implementation_class=True)
-
-    if not html_name and info.name == 'item':
-      # FIXME: item should be renamed to operator[], not removed.
-      html_name = '_item'
-
-    if not html_name:
       return
 
     is_custom = 'Custom' in operation.ext_attrs
@@ -746,12 +736,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           check = '%s === _null' % argument_names[position]
           GenerateCall(operation, position, [check])
       GenerateCall(operation, len(operation.arguments), [])
-
-  def AddOperation(self, info):
-    self._AddOperation(info)
-
-  def AddStaticOperation(self, info):
-    self._AddOperation(info)
 
   def SecondaryContext(self, interface):
     pass
@@ -854,7 +838,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def _GenerateToNative(self, emitter, idl_node, index,
                                 argument_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
-    type_info = GetIDLTypeInfo(idl_node.type.id)
+    type_info = self._TypeInfo(idl_node.type.id)
     self._cpp_impl_includes |= set(type_info.to_native_includes())
     argument_name = argument_name or idl_node.id
     handle = 'Dart_GetNativeArgument(args, %i)' % index
@@ -908,7 +892,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       idl_return_type, attributes, raises_dom_exceptions):
     invocation_template = '        $FUNCTION_CALL;\n'
     if idl_return_type != 'void':
-      return_type_info = GetIDLTypeInfo(idl_return_type)
+      return_type_info = self._TypeInfo(idl_return_type)
       self._cpp_impl_includes |= set(return_type_info.conversion_includes())
 
       # Generate to Dart conversion of C++ value.
@@ -938,32 +922,22 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
 
+  def _TypeInfo(self, type_name):
+    return self._system._type_registry.TypeInfo(type_name)
+
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in sorted(includes)])
 
-def _DOMWrapperType(database, interface):
-  if interface.id == 'MessagePort':
-    return 'MessagePort'
-
-  type = 'Object'
-  def is_node(interface):
-    return interface.id == 'Node'
-  if is_node(interface) or _FindParent(interface, database, is_node):
-    type = 'Node'
-  if 'ActiveDOMObject' in interface.ext_attrs:
-    type = 'Active%s' % type
-  return type
-
-def _FindParent(interface, database, callback):
+def _FindInHierarchy(database, interface, test):
+  if test(interface):
+    return interface
   for parent in interface.parents:
     parent_name = parent.type.id
     if not database.HasInterface(parent.type.id):
       continue
     parent_interface = database.GetInterface(parent.type.id)
-    if callback(parent_interface):
-      return parent_interface
-    parent_interface = _FindParent(parent_interface, database, callback)
+    parent_interface = _FindInHierarchy(database, parent_interface, test)
     if parent_interface:
       return parent_interface
 

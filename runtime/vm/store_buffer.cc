@@ -5,12 +5,28 @@
 #include "vm/store_buffer.h"
 
 #include "platform/assert.h"
+#include "vm/runtime_entry.h"
 
 namespace dart {
 
+DEFINE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate) {
+  isolate->store_buffer_block()->ProcessBuffer(isolate);
+}
+END_LEAF_RUNTIME_ENTRY
+
+
 void StoreBufferBlock::ProcessBuffer() {
-  // TODO(iposva): Do the right thing for store buffer overflow.
-  top_ = 0;  // Currently just reset back to the beginning.
+  ProcessBuffer(Isolate::Current());
+}
+
+
+void StoreBufferBlock::ProcessBuffer(Isolate* isolate) {
+  StoreBuffer* buffer = isolate->store_buffer();
+  int32_t end = top_;
+  for (int32_t i = 0; i < end; i++) {
+    buffer->AddPointer(pointers_[i]);
+  }
+  top_ = 0;  // Reset back to the beginning.
 }
 
 

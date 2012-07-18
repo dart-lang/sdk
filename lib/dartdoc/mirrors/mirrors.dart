@@ -14,10 +14,18 @@ class Compilation {
   /**
    * Creates a new compilation which has [script] as its entry point.
    */
-  factory Compilation(String script, String libraryRoot,
+  factory Compilation(String script,
+                      String libraryRoot,
                       [String packageRoot,
                        List<String> opts = const <String>[]]) {
-    return new Dart2jsCompilation(script, libraryRoot, packageRoot, opts);
+    return new Dart2JsCompilation(script, libraryRoot, packageRoot, opts);
+  }
+  factory Compilation.library(List<String> libraries,
+                              String libraryRoot,
+                              [String packageRoot,
+                               List<String> opts = const []]) {
+    return new Dart2JsCompilation.library(libraries, libraryRoot,
+                                          packageRoot, opts);
   }
 
   /**
@@ -40,7 +48,7 @@ interface MirrorSystem {
 /**
  * An entity in the mirror system.
  */
-interface Mirror {
+interface Mirror extends Hashable {
   /**
    * The simple name of the entity. The simple name is in most cases the
    * the declared single identifier name of the entity, such as 'method' for
@@ -54,6 +62,11 @@ interface Mirror {
    * library 'library' is 'library.Class.method'.
    */
   String qualifiedName();
+
+  /**
+   * Returns the mirror system which contains this mirror.
+   */
+  final MirrorSystem system;
 }
 
 /**

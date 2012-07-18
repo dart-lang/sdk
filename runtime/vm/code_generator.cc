@@ -133,33 +133,50 @@ DEFINE_RUNTIME_ENTRY(AllocateObject, 3) {
 }
 
 
+// Helper returning the token position of the Dart caller.
+static intptr_t GetCallerLocation() {
+  DartFrameIterator iterator;
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Code& code = Code::Handle(caller_frame->LookupDartCode());
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  ASSERT(!descriptors.IsNull());
+  for (int i = 0; i < descriptors.Length(); i++) {
+    if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
+      return descriptors.TokenIndex(i);
+    }
+  }
+  return -1;
+}
+
+
 // Allocate a new object of a generic type and check that the instantiated type
 // arguments are within the declared bounds or throw a dynamic type error.
-// Arg0: index of the token of the instance creation (source location).
-// Arg1: class of the object that needs to be allocated.
-// Arg2: type arguments of the object that needs to be allocated.
-// Arg3: type arguments of the instantiator or kNoInstantiator.
+// Arg0: class of the object that needs to be allocated.
+// Arg1: type arguments of the object that needs to be allocated.
+// Arg2: type arguments of the instantiator or kNoInstantiator.
 // Return value: newly allocated object.
-DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 4) {
+DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
   ASSERT(FLAG_enable_type_checks);
   ASSERT(arguments.Count() ==
          kAllocateObjectWithBoundsCheckRuntimeEntry.argument_count());
-  const Class& cls = Class::CheckedHandle(arguments.At(1));
+  const Class& cls = Class::CheckedHandle(arguments.At(0));
   const Instance& instance = Instance::Handle(Instance::New(cls));
   arguments.SetReturn(instance);
   ASSERT(cls.HasTypeArguments());
   AbstractTypeArguments& type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(2));
+      AbstractTypeArguments::CheckedHandle(arguments.At(1));
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.Length() == cls.NumTypeArguments()));
   AbstractTypeArguments& bounds_instantiator = AbstractTypeArguments::Handle();
-  if (Object::Handle(arguments.At(3)).IsSmi()) {
-    ASSERT(Smi::CheckedHandle(arguments.At(3)).Value() ==
+  if (Object::Handle(arguments.At(2)).IsSmi()) {
+    ASSERT(Smi::CheckedHandle(arguments.At(2)).Value() ==
            StubCode::kNoInstantiator);
   } else {
     ASSERT(!type_arguments.IsInstantiated());
     const AbstractTypeArguments& instantiator =
-        AbstractTypeArguments::CheckedHandle(arguments.At(3));
+        AbstractTypeArguments::CheckedHandle(arguments.At(2));
     ASSERT(instantiator.IsNull() || instantiator.IsInstantiated());
     if (instantiator.IsNull()) {
       type_arguments =
@@ -192,7 +209,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 4) {
                                          &malformed_error)) {
       ASSERT(!malformed_error.IsNull());
       // Throw a dynamic type error.
-      intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
+      const intptr_t location = GetCallerLocation();
       String& malformed_error_message =  String::Handle(
           String::New(malformed_error.ToErrorCString()));
       const String& no_name = String::Handle(String::NewSymbol(""));
@@ -334,11 +351,13 @@ static void PrintTypeCheck(
   const Type& instance_type = Type::Handle(instance.GetType());
   ASSERT(instance_type.IsInstantiated());
   if (type.IsInstantiated()) {
-    OS::Print("%s: '%s' %s '%s' (pc: 0x%x).\n",
+    OS::Print("%s: '%s' %d %s '%s' %d (pc: 0x%x).\n",
               message,
               String::Handle(instance_type.Name()).ToCString(),
+              Class::Handle(instance_type.type_class()).id(),
               (result.raw() == Bool::True()) ? "is" : "is !",
               String::Handle(type.Name()).ToCString(),
+              Class::Handle(type.type_class()).id(),
               caller_frame->pc());
   } else {
     // Instantiate type before printing.
@@ -458,7 +477,7 @@ static void UpdateTypeTestCache(
     instantiator_type_arguments = instantiator.GetTypeArguments();
   }
 
-  Class& last_instance_class = Class::Handle();
+  intptr_t last_instance_class_id = -1;
   AbstractTypeArguments& last_instance_type_arguments =
       AbstractTypeArguments::Handle();
   AbstractTypeArguments& last_instantiator_type_arguments =
@@ -468,11 +487,11 @@ static void UpdateTypeTestCache(
   for (intptr_t i = 0; i < len; ++i) {
     new_cache.GetCheck(
         i,
-        &last_instance_class,
+        &last_instance_class_id,
         &last_instance_type_arguments,
         &last_instantiator_type_arguments,
         &last_result);
-    if ((last_instance_class.raw() == instance_class.raw()) &&
+    if ((last_instance_class_id == instance_class.id()) &&
         (last_instance_type_arguments.raw() == instance_type_arguments.raw()) &&
         (last_instantiator_type_arguments.raw() ==
          instantiator_type_arguments.raw())) {
@@ -492,7 +511,7 @@ static void UpdateTypeTestCache(
       return;
     }
   }
-  new_cache.AddCheck(instance_class,
+  new_cache.AddCheck(instance_class.id(),
                      instance_type_arguments,
                      instantiator_type_arguments,
                      result);
@@ -502,16 +521,18 @@ static void UpdateTypeTestCache(
       test_type = type.InstantiateFrom(instantiator_type_arguments);
     }
     OS::Print("  Updated test cache 0x%x ix:%d:\n"
-        "    [0x%x %s, 0x%x %s]\n"
-        "    [0x%x %s, 0x%x %s] %s\n",
+        "    [0x%x %s %d, 0x%x %s]\n"
+        "    [0x%x %s %d, 0x%x %s] %s\n",
         new_cache.raw(),
         len,
         instance_class.raw(),
         instance_class.ToCString(),
+        instance_class.id(),
         instance_type_arguments.raw(),
         instance_type_arguments.ToCString(),
         test_type.type_class(),
         Class::Handle(test_type.type_class()).ToCString(),
+        Class::Handle(test_type.type_class()).id(),
         instantiator_type_arguments.raw(),
         instantiator_type_arguments.ToCString(),
         result.ToCString());
@@ -521,26 +542,23 @@ static void UpdateTypeTestCache(
 
 // Check that the given instance is an instance of the given type.
 // Tested instance may not be null, because the null test is inlined.
-// Arg0: index of the token of the instanceof test (source location).
-// Arg1: node id of the instanceof node.
-// Arg2: instance being checked.
-// Arg3: type.
-// Arg4: instantiator (or null).
-// Arg5: type arguments of the instantiator of the type.
-// Arg6: SubtypeTestCache.
+// Arg0: node id of the instanceof node.
+// Arg1: instance being checked.
+// Arg2: type.
+// Arg3: instantiator (or null).
+// Arg4: type arguments of the instantiator of the type.
+// Arg5: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 7) {
+DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
-  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  intptr_t node_id = Smi::CheckedHandle(arguments.At(1)).Value();
-  const Instance& instance = Instance::CheckedHandle(arguments.At(2));
-  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(3));
-  const Instance& instantiator = Instance::CheckedHandle(arguments.At(4));
+  intptr_t node_id = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& instance = Instance::CheckedHandle(arguments.At(1));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(2));
+  const Instance& instantiator = Instance::CheckedHandle(arguments.At(3));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(5));
+      AbstractTypeArguments::CheckedHandle(arguments.At(4));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(6));
+      SubtypeTestCache::CheckedHandle(arguments.At(5));
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
   const Bool& result = Bool::Handle(
@@ -554,6 +572,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 7) {
   }
   if (!result.value() && !malformed_error.IsNull()) {
     // Throw a dynamic type error only if the instanceof test fails.
+    const intptr_t location = GetCallerLocation();
     String& malformed_error_message =  String::Handle(
         String::New(malformed_error.ToErrorCString()));
     const String& no_name = String::Handle(String::NewSymbol(""));
@@ -580,28 +599,25 @@ static RawString* GetSimpleTypeName(const Instance& value) {
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
-// Arg0: index of the token of the assignment (source location).
-// Arg1: node-id of the assignment.
-// Arg2: instance being assigned.
-// Arg3: type being assigned to.
-// Arg4: instantiator (or null).
-// Arg5: type arguments of the instantiator of the type being assigned to.
-// Arg6: name of variable being assigned to.
-// Arg7: SubtypeTestCache.
+// Arg0: node-id of the assignment.
+// Arg1: instance being assigned.
+// Arg2: type being assigned to.
+// Arg3: instantiator (or null).
+// Arg4: type arguments of the instantiator of the type being assigned to.
+// Arg5: name of variable being assigned to.
+// Arg6: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
-  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  intptr_t node_id = Smi::CheckedHandle(arguments.At(1)).Value();
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(2));
-  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(3));
-  const Instance& dst_instantiator = Instance::CheckedHandle(arguments.At(4));
+  intptr_t node_id = Smi::CheckedHandle(arguments.At(0)).Value();
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
+  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
+  const Instance& dst_instantiator = Instance::CheckedHandle(arguments.At(3));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(5));
-  const String& dst_name = String::CheckedHandle(arguments.At(6));
+      AbstractTypeArguments::CheckedHandle(arguments.At(4));
+  const String& dst_name = String::CheckedHandle(arguments.At(5));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(7));
+      SubtypeTestCache::CheckedHandle(arguments.At(6));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -616,6 +632,8 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
         Bool::Handle(is_instance_of ? Bool::True() : Bool::False()));
   }
   if (!is_instance_of) {
+    // Throw a dynamic type error.
+    const intptr_t location = GetCallerLocation();
     String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
     String& dst_type_name = String::Handle();
     if (!dst_type.IsInstantiated()) {
@@ -643,15 +661,13 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 8) {
 
 
 // Report that the type of the given object is not bool in conditional context.
-// Arg0: index of the token of the assignment (source location).
-// Arg1: bad object.
+// Arg0: bad object.
 // Return value: none, throws a TypeError.
-DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
+DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   ASSERT(arguments.Count() ==
       kConditionTypeErrorRuntimeEntry.argument_count());
-  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
+  const intptr_t location = GetCallerLocation();
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolInterface());
   const String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
@@ -665,19 +681,17 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 2) {
 
 
 // Report that the type of the type check is malformed.
-// Arg0: index of the token of the failed type check.
-// Arg1: src value.
-// Arg2: name of instance being assigned to.
-// Arg3: malformed type error message.
+// Arg0: src value.
+// Arg1: name of instance being assigned to.
+// Arg2: malformed type error message.
 // Return value: none, throws an exception.
-DEFINE_RUNTIME_ENTRY(MalformedTypeError, 4) {
+DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
   ASSERT(arguments.Count() ==
       kMalformedTypeErrorRuntimeEntry.argument_count());
-  // TODO(regis): Get the token index from the PcDesc (via DartFrame).
-  intptr_t location = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& src_value = Instance::CheckedHandle(arguments.At(1));
-  const String& dst_name = String::CheckedHandle(arguments.At(2));
-  const String& malformed_error = String::CheckedHandle(arguments.At(3));
+  const intptr_t location = GetCallerLocation();
+  const Instance& src_value = Instance::CheckedHandle(arguments.At(0));
+  const String& dst_name = String::CheckedHandle(arguments.At(1));
+  const String& malformed_error = String::CheckedHandle(arguments.At(2));
   const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
   const String& src_type_name = String::Handle(GetSimpleTypeName(src_value));
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
@@ -1450,7 +1464,9 @@ void FunctionsCache::EnterFunctionAt(int i,
                                      int num_arguments,
                                      int num_named_arguments) {
   ASSERT((i % kNumEntries) == 0);
-  ASSERT(function.AreValidArgumentCounts(num_arguments, num_named_arguments));
+  ASSERT(function.AreValidArgumentCounts(num_arguments,
+                                         num_named_arguments,
+                                         NULL));
   cache.SetAt(i + FunctionsCache::kFunctionName,
       String::Handle(function.name()));
   cache.SetAt(i + FunctionsCache::kArgCount,

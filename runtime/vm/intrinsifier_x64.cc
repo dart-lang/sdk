@@ -8,6 +8,7 @@
 #include "vm/intrinsifier.h"
 
 #include "vm/assembler.h"
+#include "vm/assembler_macros.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
 
@@ -485,33 +486,69 @@ static void TestBothArgumentsSmis(Assembler* assembler, Label* not_smi) {
 
 
 bool Intrinsifier::Integer_addFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains right argument.
+  __ addq(RAX, Address(RSP, + 2 * kWordSize));
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_add(Assembler* assembler) {
-  return false;
+  return Integer_addFromInteger(assembler);
 }
 
 
 bool Intrinsifier::Integer_subFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains right argument, which is the actual minuend of subtraction.
+  __ subq(RAX, Address(RSP, + 2 * kWordSize));
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_sub(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains right argument, which is the actual subtrahend of subtraction.
+  __ movq(RCX, RAX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));
+  __ subq(RAX, RCX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 
 bool Intrinsifier::Integer_mulFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX is the right argument.
+  ASSERT(kSmiTag == 0);  // Adjust code below if not the case.
+  __ SmiUntag(RAX);
+  __ imulq(RAX, Address(RSP, + 2 * kWordSize));
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_mul(Assembler* assembler) {
-  return false;
+  return Integer_mulFromInteger(assembler);
 }
 
 
@@ -550,117 +587,337 @@ bool Intrinsifier::Integer_modulo(Assembler* assembler) {
 
 
 bool Intrinsifier::Integer_truncDivide(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX: right argument (divisor)
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ movq(RCX, RAX);
+  __ SmiUntag(RCX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument (dividend).
+  __ SmiUntag(RAX);
+  __ pushq(RDX);  // Preserve RDX in case of 'fall_through'.
+  __ cqo();
+  __ idivq(RCX);
+  __ popq(RDX);
+  // Check the corner case of dividing the 'MIN_SMI' with -1, in which case we
+  // cannot tag the result.
+  __ cmpq(RAX, Immediate(0x4000000000000000));
+  __ j(EQUAL, &fall_through);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_negate(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi value.
+  __ negq(RAX);
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_bitAndFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX is the right argument.
+  __ andq(RAX, Address(RSP, + 2 * kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_bitAnd(Assembler* assembler) {
-  return false;
+  return Integer_bitAndFromInteger(assembler);
 }
 
 
 bool Intrinsifier::Integer_bitOrFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX is the right argument.
+  __ orq(RAX, Address(RSP, + 2 * kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_bitOr(Assembler* assembler) {
-  return false;
+  return Integer_bitOrFromInteger(assembler);
 }
 
 
 bool Intrinsifier::Integer_bitXorFromInteger(Assembler* assembler) {
+  Label fall_through;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX is the right argument.
+  __ xorq(RAX, Address(RSP, + 2 * kWordSize));
+  // Result is in RAX.
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_bitXor(Assembler* assembler) {
-  return false;
+  return Integer_bitXorFromInteger(assembler);
 }
 
 
 bool Intrinsifier::Integer_shl(Assembler* assembler) {
+  ASSERT(kSmiTagShift == 1);
+  ASSERT(kSmiTag == 0);
+  Label fall_through, overflow;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // Shift value is in RAX. Compare with tagged Smi.
+  __ cmpq(RAX, Immediate(Smi::RawValue(Smi::kBits)));
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  __ SmiUntag(RAX);
+  __ movq(RCX, RAX);  // Shift amount must be in RCX.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Value.
+
+  // Overflow test - all the shifted-out bits must be same as the sign bit.
+  __ movq(RDI, RAX);
+  __ shlq(RAX, RCX);
+  __ sarq(RAX, RCX);
+  __ cmpq(RAX, RDI);
+  __ j(NOT_EQUAL, &overflow, Assembler::kNearJump);
+
+  __ shlq(RAX, RCX);  // Shift for result now we know there is no overflow.
+
+  // RAX is a correctly tagged Smi.
+  __ ret();
+
+  __ Bind(&overflow);
+  // Mint is rarely used on x64 (only for integers requiring 64 bit instead of
+  // 63 bits as represented by Smi).
+  __ Bind(&fall_through);
   return false;
 }
 
 
-bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+static bool CompareIntegers(Assembler* assembler, Condition true_condition) {
+  Label fall_through, true_label;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  TestBothArgumentsSmis(assembler, &fall_through);
+  // RAX contains the right argument.
+  __ cmpq(Address(RSP, + 2 * kWordSize), RAX);
+  __ j(true_condition, &true_label, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&true_label);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
+}
+
+
+
+bool Intrinsifier::Integer_lessThan(Assembler* assembler) {
+  return CompareIntegers(assembler, LESS);
 }
 
 
 bool Intrinsifier::Integer_greaterThanFromInt(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, LESS);
 }
 
 
 bool Intrinsifier::Integer_greaterThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, GREATER);
 }
 
 
 bool Intrinsifier::Integer_lessEqualThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, LESS_EQUAL);
 }
 
 
 bool Intrinsifier::Integer_greaterEqualThan(Assembler* assembler) {
-  return false;
+  return CompareIntegers(assembler, GREATER_EQUAL);
 }
 
 
+// This is called for Smi, Mint and Bigint receivers. The right argument
+// can be Smi, Mint, Bigint or double.
 bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
+  Label fall_through, true_label, check_for_mint;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  // For integer receiver '===' check first.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ movq(RCX, Address(RSP, + 2 * kWordSize));
+  __ cmpq(RAX, RCX);
+  __ j(EQUAL, &true_label, Assembler::kNearJump);
+  __ orq(RAX, RCX);
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &check_for_mint, Assembler::kNearJump);
+  // Both arguments are smi, '===' is good enough.
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&true_label);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+
+  // At least one of the arguments was not Smi.
+  Label receiver_not_smi;
+  __ Bind(&check_for_mint);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Receiver.
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &receiver_not_smi);
+
+  // Left (receiver) is Smi, return false if right is not Double.
+  // Note that an instance of Mint or Bigint never contains a value that can be
+  // represented by Smi.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ CompareClassId(RAX, kDouble);
+  __ j(EQUAL, &fall_through);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+
+  __ Bind(&receiver_not_smi);
+  // RAX:: receiver.
+  __ CompareClassId(RAX, kMint);
+  __ j(NOT_EQUAL, &fall_through);
+  // Receiver is Mint, return false if right is Smi.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Right argument.
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through);
+  __ LoadObject(RAX, bool_false);  // Smi == Mint -> false.
+  __ ret();
+  // TODO(srdjan): Implement Mint == Mint comparison.
+
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Integer_equal(Assembler* assembler) {
-  return false;
+  return Integer_equalToInteger(assembler);
 }
 
 
 bool Intrinsifier::Integer_sar(Assembler* assembler) {
+  Label fall_through, shift_count_ok;
+  TestBothArgumentsSmis(assembler, &fall_through);
+  Immediate count_limit = Immediate(0x3F);
+  // Check that the count is not larger than what the hardware can handle.
+  // For shifting right a Smi the result is the same for all numbers
+  // >= count_limit.
+  __ SmiUntag(RAX);
+  // Negative counts throw exception.
+  __ cmpq(RAX, Immediate(0));
+  __ j(LESS, &fall_through, Assembler::kNearJump);
+  __ cmpq(RAX, count_limit);
+  __ j(LESS_EQUAL, &shift_count_ok, Assembler::kNearJump);
+  __ movq(RAX, count_limit);
+  __ Bind(&shift_count_ok);
+  __ movq(RCX, RAX);  // Shift amount must be in RCX.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Value.
+  __ SmiUntag(RAX);  // Value.
+  __ sarq(RAX, RCX);
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
+// Argument is Smi (receiver).
 bool Intrinsifier::Smi_bitNegate(Assembler* assembler) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ notq(RAX);
+  __ andq(RAX, Immediate(~kSmiTagMask));  // Remove inverted smi-tag.
+  __ ret();
+  return true;
+}
+
+
+// Check if the last argument is a double, jump to label 'is_smi' if smi
+// (easy to convert to double), otherwise jump to label 'not_double_smi',
+// Returns the last argument in RAX.
+static void TestLastArgumentIsDouble(Assembler* assembler,
+                                     Label* is_smi,
+                                     Label* not_double_smi) {
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
+  __ CompareClassId(RAX, kDouble);
+  __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
+  // Fall through if double.
+}
+
+
+// Both arguments on stack, left argument is a double, right argument is of
+// unknown type. Return true or false object in RAX. Any NaN argument
+// returns false. Any non-double argument causes control flow to fall through
+// to the slow case (compiled method body).
+static bool CompareDoubles(Assembler* assembler, Condition true_condition) {
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label fall_through, is_false, is_true, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+  // Both arguments are double, right operand is in RAX.
+  __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
+  __ Bind(&double_op);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument.
+  __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
+  __ comisd(XMM0, XMM1);
+  __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false;
+  __ j(true_condition, &is_true, Assembler::kNearJump);
+  // Fall through false.
+  __ Bind(&is_false);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(RAX);
+  __ cvtsi2sd(XMM1, RAX);
+  __ jmp(&double_op);
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Double_greaterThan(Assembler* assembler) {
-  return false;
+  return CompareDoubles(assembler, ABOVE);
 }
 
 
 bool Intrinsifier::Double_greaterEqualThan(Assembler* assembler) {
-  return false;
+  return CompareDoubles(assembler, ABOVE_EQUAL);
 }
 
 
 bool Intrinsifier::Double_lessThan(Assembler* assembler) {
-  return false;
+  return CompareDoubles(assembler, BELOW);
 }
 
 
 bool Intrinsifier::Double_equal(Assembler* assembler) {
-  return false;
+  return CompareDoubles(assembler, EQUAL);
 }
 
 
 bool Intrinsifier::Double_lessEqualThan(Assembler* assembler) {
-  return false;
+  return CompareDoubles(assembler, BELOW_EQUAL);
 }
 
 
@@ -673,32 +930,99 @@ bool Intrinsifier::Double_toDouble(Assembler* assembler) {
   return true;
 }
 
-bool Intrinsifier::Double_add(Assembler* assembler) {
+
+// Expects left argument to be double (receiver). Right argument is unknown.
+// Both arguments are on stack.
+static bool DoubleArithmeticOperations(Assembler* assembler, Token::Kind kind) {
+  Label fall_through;
+  TestLastArgumentIsDouble(assembler, &fall_through, &fall_through);
+  // Both arguments are double, right operand is in RAX.
+  __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // Left argument.
+  __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
+  switch (kind) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               RAX);  // Result register.
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
+}
+
+
+bool Intrinsifier::Double_add(Assembler* assembler) {
+  return DoubleArithmeticOperations(assembler, Token::kADD);
 }
 
 
 bool Intrinsifier::Double_mul(Assembler* assembler) {
-  return false;
+  return DoubleArithmeticOperations(assembler, Token::kMUL);
 }
 
 
 bool Intrinsifier::Double_sub(Assembler* assembler) {
-  return false;
+  return DoubleArithmeticOperations(assembler, Token::kSUB);
 }
 
 
 bool Intrinsifier::Double_div(Assembler* assembler) {
-  return false;
+  return DoubleArithmeticOperations(assembler, Token::kDIV);
 }
 
 
 bool Intrinsifier::Double_mulFromInteger(Assembler* assembler) {
+  Label fall_through;
+  // Only Smi-s allowed.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  // Is Smi.
+  __ SmiUntag(RAX);
+  __ cvtsi2sd(XMM1, RAX);
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));
+  __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
+  __ mulsd(XMM0, XMM1);
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               RAX);  // Result register.
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
+// Left is double right is integer (Bigint, Mint or Smi)
 bool Intrinsifier::Double_fromInteger(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, +1 * kWordSize));
+  __ testq(RAX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);
+  // Is Smi.
+  __ SmiUntag(RAX);
+  __ cvtsi2sd(XMM0, RAX);
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               RAX);  // Result register.
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
@@ -721,57 +1045,279 @@ bool Intrinsifier::Double_isNaN(Assembler* assembler) {
 
 
 bool Intrinsifier::Double_isNegative(Assembler* assembler) {
-  return false;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  Label is_false, is_true, is_zero;
+  __ movq(RAX, Address(RSP, +1 * kWordSize));
+  __ movsd(XMM0, FieldAddress(RAX, Double::value_offset()));
+  __ xorpd(XMM1, XMM1);  // 0.0 -> XMM1.
+  __ comisd(XMM0, XMM1);
+  __ j(PARITY_EVEN, &is_false, Assembler::kNearJump);  // NaN -> false.
+  __ j(EQUAL, &is_zero, Assembler::kNearJump);  // Check for negative zero.
+  __ j(ABOVE_EQUAL, &is_false, Assembler::kNearJump);  // >= 0 -> false.
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  __ Bind(&is_false);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_zero);
+  // Check for negative zero (get the sign bit).
+  __ movmskpd(RAX, XMM0);
+  __ testq(RAX, Immediate(1));
+  __ j(NOT_ZERO, &is_true, Assembler::kNearJump);
+  __ jmp(&is_false, Assembler::kNearJump);
+  return true;  // Method is complete, no slow case.
+}
+
+
+enum TrigonometricFunctions {
+  kSine,
+  kCosine,
+};
+
+
+static void EmitTrigonometric(Assembler* assembler,
+                              TrigonometricFunctions kind) {
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+  // Argument is double and is in EAX.
+  __ fldl(FieldAddress(RAX, Double::value_offset()));
+  __ Bind(&double_op);
+  switch (kind) {
+    case kSine:   __ fsin(); break;
+    case kCosine: __ fcos(); break;
+    default:
+      UNREACHABLE();
+  }
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  Label alloc_failed;
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &alloc_failed,
+                               RAX);  // Result register.
+  __ fstpl(FieldAddress(RAX, Double::value_offset()));
+  __ ret();
+
+  __ Bind(&is_smi);  // smi -> double.
+  __ SmiUntag(RAX);
+  __ pushq(RAX);
+  __ fildl(Address(RSP, 0));
+  __ popq(RAX);
+  __ jmp(&double_op);
+
+  __ Bind(&alloc_failed);
+  __ ffree(0);
+  __ fincstp();
+
+  __ Bind(&fall_through);
 }
 
 
 bool Intrinsifier::Math_sqrt(Assembler* assembler) {
+  Label fall_through, is_smi, double_op;
+  TestLastArgumentIsDouble(assembler, &is_smi, &fall_through);
+  // Argument is double and is in RAX.
+  __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
+  __ Bind(&double_op);
+  __ sqrtsd(XMM0, XMM1);
+  const Class& double_class = Class::Handle(
+      Isolate::Current()->object_store()->double_class());
+  AssemblerMacros::TryAllocate(assembler,
+                               double_class,
+                               &fall_through,
+                               RAX);  // Result register.
+  __ movsd(FieldAddress(RAX, Double::value_offset()), XMM0);
+  __ ret();
+  __ Bind(&is_smi);
+  __ SmiUntag(RAX);
+  __ cvtsi2sd(XMM1, RAX);
+  __ jmp(&double_op);
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::Math_sin(Assembler* assembler) {
-  return false;
+  EmitTrigonometric(assembler, kSine);
+  return false;  // Compile method for slow case.
 }
 
 
 bool Intrinsifier::Math_cos(Assembler* assembler) {
-  return false;
+  EmitTrigonometric(assembler, kCosine);
+  return false;  // Compile method for slow case.
 }
 
 
+// Identity comparison.
 bool Intrinsifier::Object_equal(Assembler* assembler) {
-  return false;
+  Label is_true;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));
+  __ cmpq(RAX, Address(RSP, + 2 * kWordSize));
+  __ j(EQUAL, &is_true, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  return true;
 }
 
 
+static intptr_t GetOffsetForField(const char* class_name_p,
+                                  const char* field_name_p) {
+  const String& class_name = String::Handle(String::NewSymbol(class_name_p));
+  const String& field_name = String::Handle(String::NewSymbol(field_name_p));
+  const Class& cls = Class::Handle(Library::Handle(
+      Library::CoreImplLibrary()).LookupClass(class_name));
+  ASSERT(!cls.IsNull());
+  const Field& field = Field::ZoneHandle(cls.LookupInstanceField(field_name));
+  ASSERT(!field.IsNull());
+  return field.Offset();
+}
+
+static const char* kFixedSizeArrayIteratorClassName = "FixedSizeArrayIterator";
+
+// Class 'FixedSizeArrayIterator':
+//   T next() {
+//     return _array[_pos++];
+//   }
+// Intrinsify: return _array[_pos++];
+// TODO(srdjan): Throw a 'NoMoreElementsException' exception if the iterator
+// has no more elements.
 bool Intrinsifier::FixedSizeArrayIterator_next(Assembler* assembler) {
+  Label fall_through;
+  const intptr_t array_offset =
+      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_array");
+  const intptr_t pos_offset =
+      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
+  ASSERT((array_offset >= 0) && (pos_offset >= 0));
+  // Receiver is not NULL.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
+  __ movq(RCX, FieldAddress(RAX, pos_offset));  // Field _pos.
+  // '_pos' cannot be greater than array length and therefore is always Smi.
+#if defined(DEBUG)
+  Label pos_ok;
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(ZERO, &pos_ok, Assembler::kNearJump);
+  __ Stop("pos must be Smi");
+  __ Bind(&pos_ok);
+#endif
+  // Check that we are not trying to call 'next' when 'hasNext' is false.
+  __ movq(RAX, FieldAddress(RAX, array_offset));  // Field _array.
+  __ cmpq(RCX, FieldAddress(RAX, Array::length_offset()));  // Range check.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+
+  // RCX is Smi, i.e, times 2.
+  ASSERT(kSmiTagShift == 1);
+  __ movq(RDI, FieldAddress(RAX, RCX, TIMES_4, sizeof(RawArray)));  // Result.
+  const Immediate value = Immediate(reinterpret_cast<int64_t>(Smi::New(1)));
+  __ addq(RCX, value);  // _pos++.
+  __ j(OVERFLOW, &fall_through, Assembler::kNearJump);
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Receiver.
+  __ StoreIntoObjectNoBarrier(RAX,
+                              FieldAddress(RAX, pos_offset),
+                              RCX);  // Store _pos.
+  __ movq(RAX, RDI);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
+// Class 'FixedSizeArrayIterator':
+//   bool hasNext() {
+//     return _length > _pos;
+//   }
 bool Intrinsifier::FixedSizeArrayIterator_hasNext(Assembler* assembler) {
+  Label fall_through, is_true;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  const intptr_t length_offset =
+      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_length");
+  const intptr_t pos_offset =
+      GetOffsetForField(kFixedSizeArrayIteratorClassName, "_pos");
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));     // Receiver.
+  __ movq(RCX, FieldAddress(RAX, length_offset));  // Field _length.
+  __ movq(RAX, FieldAddress(RAX, pos_offset));     // Field _pos.
+  __ movq(RDI, RAX);
+  __ orq(RDI, RCX);
+  __ testq(RDI, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi _length/_pos.
+  __ cmpq(RCX, RAX);     // _length > _pos.
+  __ j(GREATER, &is_true, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::String_getLength(Assembler* assembler) {
-  return false;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
+  __ movq(RAX, FieldAddress(RAX, String::length_offset()));
+  __ ret();
+  return true;
 }
 
 
+// TODO(srdjan): Implement for two and four byte strings as well.
 bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RCX, Address(RSP, + 1 * kWordSize));  // Index.
+  __ movq(RAX, Address(RSP, + 2 * kWordSize));  // String.
+  __ testq(RCX, Immediate(kSmiTagMask));
+  __ j(NOT_ZERO, &fall_through, Assembler::kNearJump);  // Non-smi index.
+  // Range check.
+  __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
+  // Runtime throws exception.
+  __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
+  __ CompareClassId(RAX, kOneByteString);
+  __ j(NOT_EQUAL, &fall_through);
+  __ SmiUntag(RCX);
+  __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));
+  __ SmiTag(RAX);
+  __ ret();
+  __ Bind(&fall_through);
   return false;
 }
 
 
 bool Intrinsifier::String_hashCode(Assembler* assembler) {
+  Label fall_through;
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
+  __ movq(RAX, FieldAddress(RAX, String::hash_offset()));
+  __ cmpq(RAX, Immediate(0));
+  __ j(EQUAL, &fall_through, Assembler::kNearJump);
+  __ ret();
+  __ Bind(&fall_through);
+  // Hash not yet computed.
   return false;
 }
 
 
 bool Intrinsifier::String_isEmpty(Assembler* assembler) {
-  return false;
+  Label is_true;
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  const Bool& bool_false = Bool::ZoneHandle(Bool::False());
+  // Get length.
+  __ movq(RAX, Address(RSP, + 1 * kWordSize));  // String object.
+  __ movq(RAX, FieldAddress(RAX, String::length_offset()));
+  __ cmpq(RAX, Immediate(Smi::RawValue(0)));
+  __ j(EQUAL, &is_true, Assembler::kNearJump);
+  __ LoadObject(RAX, bool_false);
+  __ ret();
+  __ Bind(&is_true);
+  __ LoadObject(RAX, bool_true);
+  __ ret();
+  return true;
 }
 
 #undef __

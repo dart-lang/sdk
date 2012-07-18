@@ -14,10 +14,12 @@ class DartBackend extends Backend {
 
   Map<Element, TreeElements> get resolvedElements() =>
       compiler.enqueuer.resolution.resolvedElements;
+  Map<ClassElement, Set<Element>> resolvedClassMembers;
 
   DartBackend(Compiler compiler, [bool validateUnparse = false])
       : tasks = <CompilerTask>[],
       unparseValidator = new UnparseValidator(compiler, validateUnparse),
+      resolvedClassMembers = new Map<ClassElement, Set<Element>>(),
       super(compiler) {
     tasks.add(unparseValidator);
   }
@@ -26,10 +28,22 @@ class DartBackend extends Backend {
     // TODO(antonm): Implement this method, if needed.
   }
 
-  CodeBlock codegen(WorkItem work) { return new CodeBlock(null, null); }
+  CodeBuffer codegen(WorkItem work) { return new CodeBuffer(); }
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {
+  }
+
+  /**
+   * Adds given class element with its member element to resolved classes
+   * collections.
+   */
+  void addMemberToClass(Element element, ClassElement classElement) {
+    // ${element} should have ${classElement} as enclosing.
+    assert(element.enclosingElement == classElement);
+    Set<Element> resolvedElementsInClass = resolvedClassMembers.putIfAbsent(
+        classElement, () => new Set<Element>());
+    resolvedElementsInClass.add(element);
   }
 
   void assembleProgram() {
@@ -42,34 +56,36 @@ class DartBackend extends Backend {
       throw new BailoutException(reason);
     }
 
+    /**
+     * Tells whether we should output given element. Corelib classes like
+     * Object should not be in the resulting code.
+     */
+    bool shouldOutput(Element element) {
+      return element.kind !== ElementKind.VOID
+          && element.getLibrary() !== compiler.coreLibrary;
+    }
+
     try {
-      StringBuffer sb = new StringBuffer();
+      Emitter emitter = new Emitter(compiler);
       resolvedElements.forEach((element, treeElements) {
+        if (!shouldOutput(element)) return;
+        if (element.isMember()) {
+          var enclosingClass = element.enclosingElement;
+          assert(enclosingClass.isClass());
+          assert(enclosingClass.isTopLevel());
+          addMemberToClass(element, enclosingClass);
+          return;
+        }
         if (!element.isTopLevel()) {
           bailout('Cannot process non top-level $element');
         }
 
-        if (element.isField()) {
-          // Add modifiers first.
-          sb.add(element.modifiers.toString());
-          sb.add(' ');
-          // Figure out type.
-          if (element is VariableElement) {
-            VariableListElement variables = element.variables;
-            if (variables.type !== null) {
-              sb.add(variables.type);
-              sb.add(' ');
-            }
-          }
-          // TODO(smok): Maybe not rely on node unparsing,
-          // but unparse initializer manually.
-          sb.add(element.parseNode(compiler).unparse());
-          sb.add(';');
-        } else {
-          sb.add(element.parseNode(compiler).unparse());
-        }
+        emitter.outputElement(element);
       });
-      compiler.assembledCode = sb.toString();
+
+      // Now output resolved classes with inner elements we met before.
+      resolvedClassMembers.forEach(emitter.outputClass);
+      compiler.assembledCode = emitter.toString();
     } catch (BailoutException e) {
       compiler.assembledCode = '''
 main() {

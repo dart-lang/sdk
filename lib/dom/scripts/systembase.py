@@ -24,11 +24,13 @@ class System(object):
   - Finish
   """
 
-  def __init__(self, templates, database, emitters, output_dir):
-    self._templates = templates
-    self._database = database
-    self._emitters = emitters
-    self._output_dir = output_dir
+  def __init__(self, options):
+    self._templates = options.templates
+    self._database = options.database
+    self._emitters = options.emitters
+    self._type_registry = options.type_registry
+    self._renamer = options.renamer
+    self._output_dir = options.output_dir
 
   def ProcessInterface(self, interface):
     """Processes an interface that is not a callback function."""
@@ -55,8 +57,8 @@ class System(object):
     code.Emit(self._templates.Load('callback.darttemplate'))
     code.Emit('typedef $TYPE $NAME($PARAMS);\n',
               NAME=interface.id,
-              TYPE=info.type_name,
-              PARAMS=info.ParametersImplementationDeclaration())
+              TYPE=DartType(info.type_name),
+              PARAMS=info.ParametersImplementationDeclaration(DartType))
 
 
   def _GenerateLibFile(self, lib_template, lib_file_path, file_paths,
@@ -220,6 +222,20 @@ class BaseGenerator(object):
       else:
         walk(interface.parents[1:])
     return result
+
+  def _DartType(self, type_name):
+    return self._system._type_registry.DartType(type_name)
+
+
+class GeneratorOptions(object):
+  def __init__(self, templates, database, emitters, type_registry, renamer,
+               output_dir):
+    self.templates = templates
+    self.database = database
+    self.emitters = emitters
+    self.type_registry = type_registry
+    self.renamer = renamer
+    self.output_dir = output_dir
 
 
 def IsReadOnly(attribute):

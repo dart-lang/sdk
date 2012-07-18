@@ -1104,7 +1104,7 @@ class _Uint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    if (from is _Uint8Array) {
+    if (from is _Uint8Array || from is _ExternalUint8Array) {
       _setRange(start * _BYTES_PER_ELEMENT,
                 length * _BYTES_PER_ELEMENT,
                 from,
@@ -1710,7 +1710,7 @@ class _ExternalUint8Array extends _ByteArrayBase implements Uint8List {
   }
 
   void setRange(int start, int length, List<int> from, [int startFrom = 0]) {
-    if (from is _ExternalUint8Array) {
+    if (from is _ExternalUint8Array || from is _Uint8Array) {
       _setRange(start * _BYTES_PER_ELEMENT,
                 length * _BYTES_PER_ELEMENT,
                 from,

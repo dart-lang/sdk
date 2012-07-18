@@ -95,7 +95,7 @@ runTest() {
     } else if (testName == 'single failing test') {
       test(testName, () => expect(2 + 2, equals(5)));
     } else if (testName == 'exception test') {
-      test(testName, () { throw new Exception('fail'); });
+      test(testName, () { throw new Exception('Fail.'); });
     } else if (testName == 'group name test') {
       group('a', () {
         test('a', () {});
@@ -139,9 +139,11 @@ runTest() {
              () => (_testconfig.count == 10));
              _defer(_callback);
       });
-    } else if (testName == 'mock test 1 (Mock)') {
+    } else if (testName.startsWith('mock test 1 ')) {
       test(testName, () {
         var m = new Mock();
+        print(m.length);
+        m.getLogs(callsTo('get length')).verify(happenedOnce);
 
         m.when(callsTo('foo', 1, 2)).thenReturn('A').thenReturn('B');
         m.when(callsTo('foo', 1, 1)).thenReturn('C');
@@ -151,21 +153,24 @@ runTest() {
 
         var s = '${m.foo(1,2)}${m.foo(1,1)}${m.foo(9,10)}'
             '${m.bar(1,1)}${m.foo(1,2)}';
-        getLogs(m, callsTo('foo', anything, anything)).verify(calledExactly(4));
-        getLogs(m, callsTo('foo', 1, anything)).verify(calledExactly(3));
-        getLogs(m, callsTo('foo', 9, anything)).verify(calledOnce);
-        getLogs(m, callsTo('foo', anything, 2)).verify(calledExactly(2));
-        getLogs(m, callsTo('foobar')).verify(neverCalled);
-        getLogs(m, callsTo('foo', 10, anything)).verify(neverCalled);
+        m.getLogs(callsTo('foo', anything, anything)).
+            verify(happenedExactly(4));
+        m.getLogs(callsTo('foo', 1, anything)).verify(happenedExactly(3));
+        m.getLogs(callsTo('foo', 9, anything)).verify(happenedOnce);
+        m.getLogs(callsTo('foo', anything, 2)).verify(happenedExactly(2));
+        m.getLogs(callsTo('foobar')).verify(neverHappened);
+        m.getLogs(callsTo('foo', 10, anything)).verify(neverHappened);
+        m.getLogs(callsTo('foo'), returning(anyOf('A', 'C'))).
+              verify(happenedExactly(2));
         expect(s, 'ACDEB');
       });
-    } else if (testName == 'mock test 2 (MockList)') {
+    } else if (testName.startsWith('mock test 2 ')) {
       test(testName, () {
         var l = new MockList();
-        l.when(callsTo('length')).thenReturn(1);
+        l.when(callsTo('get length')).thenReturn(1);
         l.when(callsTo('add', anything)).alwaysReturn(0);
         l.add('foo');
-        expect(l.length(), 1);
+        expect(l.length, 1);
 
         var m = new MockList();
         m.when(callsTo('add', anything)).alwaysReturn(0);
@@ -173,42 +178,101 @@ runTest() {
         m.add('foo');
         m.add('bar');
 
-        getLogs(m, callsTo('add')).verify(calledExactly(2));
-        getLogs(m, callsTo('add', 'foo')).verify(calledOnce);
+        m.getLogs(callsTo('add')).verify(happenedExactly(2));
+        m.getLogs(callsTo('add', 'foo')).verify(happenedOnce);
       });
-    } else if (testName == 'mock test 3 (Spy)') {
+    } else if (testName.startsWith('mock test 3 ')) {
       test(testName, () {
         var p = new FooSpy();
         p.sum(1, 2, 3);
-        getLogs(p, callsTo('sum')).verify(calledOnce);
+        p.getLogs(callsTo('sum')).verify(happenedOnce);
         p.sum(2, 2, 2);
-        getLogs(p, callsTo('sum')).verify(calledExactly(2));
-        getLogs(p, callsTo('sum')).verify(sometimeReturned(6));
-        getLogs(p, callsTo('sum')).verify(alwaysReturned(6));
-        getLogs(p, callsTo('sum')).verify(neverReturned(5));
+        p.getLogs(callsTo('sum')).verify(happenedExactly(2));
+        p.getLogs(callsTo('sum')).verify(sometimeReturned(6));
+        p.getLogs(callsTo('sum')).verify(alwaysReturned(6));
+        p.getLogs(callsTo('sum')).verify(neverReturned(5));
         p.sum(2, 2, 1);
-        getLogs(p, callsTo('sum')).verify(sometimeReturned(5));
+        p.getLogs(callsTo('sum')).verify(sometimeReturned(5));
       });
-    } else if (testName == 'mock test 4 (Excess calls)') {
+    } else if (testName.startsWith('mock test 4 ')) {
       test(testName, () {
         var m = new Mock();
         m.when(callsTo('foo')).alwaysReturn(null);
         m.foo();
         m.foo();
-        getLogs(m, callsTo('foo')).verify(calledOnce);
+        m.getLogs(callsTo('foo')).verify(happenedOnce);
       });
-    } else if (testName == 'mock test 5 (No behavior)') {
+    } else if (testName.startsWith('mock test 5 ')) {
       test(testName, () {
         var m = new Mock();
         m.when(callsTo('foo')).thenReturn(null);
         m.foo();
         m.foo();
       });
-    } else if (testName == 'mock test 6 (No matching return)') {
+    } else if (testName.startsWith('mock test 6 ')) {
       test(testName, () {
         var p = new FooSpy();
         p.sum(1, 2, 3);
-        getLogs(p, callsTo('sum')).verify(sometimeReturned(0));
+        p.getLogs(callsTo('sum')).verify(sometimeReturned(0));
+      });
+    } else if (testName.startsWith('mock test 7 ')) {
+      test(testName, () {
+        var m = new Mock.custom(throwIfNoBehavior:true);
+        m.when(callsTo('foo')).thenReturn(null);
+        m.foo();
+        m.bar();
+      });
+    } else if (testName.startsWith('mock test 8 ')) {
+      test(testName, () {
+        var log = new LogEntryList();
+        var m1 = new Mock.custom(name:'m1', log:log);
+        var m2 = new Mock.custom(name:'m2', log:log);
+        m1.foo();
+        m2.foo();
+        m1.bar();
+        m2.bar();
+        expect(log.logs.length, 4);
+        log.getMatches(anything, callsTo('foo')).verify(happenedExactly(2));
+        log.getMatches('m1', callsTo('foo')).verify(happenedOnce);
+        log.getMatches('m1', callsTo('bar')).verify(happenedOnce);
+        m2.getLogs(callsTo('foo')).verify(happenedOnce);
+        m2.getLogs(callsTo('bar')).verify(happenedOnce);
+      });
+    } else if (testName.startsWith('mock test 9 ')) {
+      test(testName, () {
+        var m = new Mock();
+        m.when(callsTo(null, 1)).alwaysReturn(2);
+        m.when(callsTo(null, 2)).alwaysReturn(4);
+        expect(m.foo(1), 2);
+        expect(m.foo(2), 4);
+        expect(m.bar(1), 2);
+        expect(m.bar(2), 4);
+        m.getLogs(callsTo()).verify(happenedExactly(4));
+        m.getLogs(callsTo(null, 1)).verify(happenedExactly(2));
+        m.getLogs(callsTo(null, 2)).verify(happenedExactly(2));
+        m.getLogs(null, returning(1)).verify(neverHappened);
+        m.getLogs(null, returning(2)).verify(happenedExactly(2));
+        m.getLogs(null, returning(4)).verify(happenedExactly(2));
+      });
+    } else if (testName.startsWith('mock test 10 ')) {
+      test(testName, () {
+        var m = new Mock();
+        m.when(callsTo(matches('^[A-Z]'))).
+            alwaysThrow('Method names must start with lower case.');
+        m.test();
+      });
+    } else if (testName.startsWith('mock test 11 ')) {
+      test(testName, () {
+        var m = new Mock();
+        m.when(callsTo(matches('^[A-Z]'))).
+            alwaysThrow('Method names must start with lower case.');
+        m.Test();
+      });
+    } else if (testName.startsWith('mock test 12 ')) {
+      test(testName, () {
+        var m = new Mock.custom(enableLogging:false);
+        m.Test();
+        print(m.getLogs(callsTo('Test')).toString());
       });
     }
   });
@@ -220,7 +284,7 @@ void nextTest(int testNum) {
     actual.add(msg);
     if (actual.length == expected.length) {
       for (var i = 0; i < tests.length; i++) {
-        test(tests[i], () => expect(actual[i], equals(expected[i])));
+        test(tests[i], () => expect(actual[i].trim(), equals(expected[i])));
       }
     } else {
       nextTest(testNum+1);
@@ -244,14 +308,21 @@ main() {
     'mock test 2 (MockList)',
     'mock test 3 (Spy)',
     'mock test 4 (Excess calls)',
-    'mock test 5 (No behavior)',
-    'mock test 6 (No matching return)'
+    'mock test 5 (No action)',
+    'mock test 6 (No matching return)',
+    'mock test 7 (No behavior)',
+    'mock test 8 (Shared log)',
+    'mock test 9 (Null CallMatcher)',
+    'mock test 10 (RegExp CallMatcher Good)',
+    'mock test 11 (RegExp CallMatcher Bad)',
+    'mock test 12 (No logging)'
   ];
 
   expected = [
     buildStatusString(1, 0, 0, tests[0]),
-    buildStatusString(0, 1, 0, tests[1], message: 'Expected: <5> but: was <4>'),
-    buildStatusString(0, 1, 0, tests[2], message: 'Caught Exception: fail'),
+    buildStatusString(0, 1, 0, tests[1],
+        message: 'Expected: <5> but: was <4>.'),
+    buildStatusString(0, 1, 0, tests[2], message: 'Caught Exception: Fail.'),
     buildStatusString(2, 0, 0, 'a a::a b b'),
     buildStatusString(1, 0, 0, 'a ${tests[4]}', 0, 'setup'),
     buildStatusString(1, 0, 0, 'a ${tests[5]}', 0, '', 'teardown'),
@@ -259,18 +330,27 @@ main() {
         'setup', 'teardown'),
     buildStatusString(1, 0, 0, tests[7], 1),
     buildStatusString(0, 0, 1, tests[8], 1,
-        message: 'Callback called more times than expected (2 > 1)'),
+        message: 'Callback called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], 10),
     buildStatusString(1, 0, 0, tests[10]),
     buildStatusString(1, 0, 0, tests[11]),
     buildStatusString(1, 0, 0, tests[12]),
     buildStatusString(0, 1, 0, tests[13],
-        message: 'Expected foo() to be called 1 times but:'
-            ' was called 2 times'),
+        message: "Expected foo() to be called 1 times but:"
+            " was called 2 times."),
     buildStatusString(0, 1, 0, tests[14],
-        message: 'Caught Exception: No behavior specified for method foo'),
-    buildStatusString(0, 1, 0, tests[15],
-        message: 'Expected sum() to sometimes return <0> but: never did')
+        message: 'Caught Exception: No more actions for method foo.'),
+    buildStatusString(0, 1, 0, tests[15], message:
+        "Expected sum() to sometimes return <0> but: never did."),
+    buildStatusString(0, 1, 0, tests[16],
+        message: 'Caught Exception: No behavior specified for method bar.'),
+    buildStatusString(1, 0, 0, tests[17]),
+    buildStatusString(1, 0, 0, tests[18]),
+    buildStatusString(1, 0, 0, tests[19]),
+    buildStatusString(0, 1, 0, tests[20],
+        message:'Caught Method names must start with lower case.'),
+    buildStatusString(0, 1, 0, tests[21], message:
+      "Caught Exception: Can't retrieve logs when logging was never enabled."),
   ];
 
   actual = [];

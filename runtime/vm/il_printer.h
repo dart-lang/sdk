@@ -32,19 +32,23 @@ class BufferFormatter : public ValueObject {
 class FlowGraphPrinter : public ValueObject {
  public:
   FlowGraphPrinter(const Function& function,
-                   const GrowableArray<BlockEntryInstr*>& block_order)
-      : function_(function), block_order_(block_order) { }
+                   const GrowableArray<BlockEntryInstr*>& block_order,
+                   bool print_locations = false)
+      : function_(function),
+        block_order_(block_order),
+        print_locations_(print_locations) { }
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
   // to the end of the block if it ends with an unconditional jump to
   // another block and that block is not next in reverse postorder.
   void PrintBlocks();
-  static void PrintInstruction(Instruction* instr);
+  void PrintInstruction(Instruction* instr);
   static void PrintComputation(Computation* comp);
 
  private:
   const Function& function_;
   const GrowableArray<BlockEntryInstr*>& block_order_;
+  const bool print_locations_;
 };
 
 

@@ -380,18 +380,22 @@ class Assembler : public ValueObject {
   void xorl(Register dst, Register src);
 
   void andq(Register dst, Register src);
+  void andq(Register dst, const Address& address);
   void andq(Register dst, const Immediate& imm);
 
   void orq(Register dst, Register src);
+  void orq(Register dst, const Address& address);
   void orq(Register dst, const Immediate& imm);
 
   void xorq(Register dst, Register src);
+  void xorq(Register dst, const Address& address);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);
 
   void addq(Register dst, Register src);
   void addq(Register reg, const Immediate& imm);
+  void addq(Register reg, const Address& address);
   void addq(const Address& address, const Immediate& imm);
   void addq(const Address& address, Register reg);
 
@@ -409,6 +413,7 @@ class Assembler : public ValueObject {
   void imull(Register reg, const Immediate& imm);
 
   void imulq(Register dst, Register src);
+  void imulq(Register dst, const Address& address);
 
   void subq(Register dst, Register src);
   void subq(Register reg, const Immediate& imm);
@@ -444,9 +449,23 @@ class Assembler : public ValueObject {
   void leave();
   void ret();
 
+  void movmskpd(Register dst, XmmRegister src);
+
   void sqrtsd(XmmRegister dst, XmmRegister src);
 
   void xorpd(XmmRegister dst, const Address& src);
+  void xorpd(XmmRegister dst, XmmRegister src);
+
+  void fldl(const Address& src);
+  void fstpl(const Address& dst);
+
+  void fildl(const Address& src);
+
+  void fincstp();
+  void ffree(intptr_t value);
+
+  void fsin();
+  void fcos();
 
   // 'size' indicates size in bytes and must be in the range 1..8.
   void nop(int size = 1);
@@ -518,6 +537,10 @@ class Assembler : public ValueObject {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  // Preserve and restore caller save registers according to the C ABI.
+  void PreserveCallerSavedRegisters();
+  void RestoreCallerSavedRegisters();
+
   void CallRuntime(const RuntimeEntry& entry);
 
   /*
@@ -566,6 +589,8 @@ class Assembler : public ValueObject {
   void Unreachable(const char* message);
 
   static void InitializeMemoryWithBreakpoints(uword data, int length);
+
+  static const char* RegisterName(Register reg);
 
  private:
   AssemblerBuffer buffer_;

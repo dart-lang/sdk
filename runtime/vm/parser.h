@@ -105,34 +105,6 @@ class ParsedFunction : ValueObject {
 };
 
 
-// The class TokenStreamIterator encapsulates iteration over the TokenStream
-// object. The parser uses this to iterate over tokens while parsing a script
-// or a function.
-class TokenStreamIterator : ValueObject {
- public:
-  TokenStreamIterator(const TokenStream& tokens, intptr_t token_pos)
-      : tokens_(tokens), token_position_(token_pos) { }
-
-  intptr_t NumberOfTokens() const { return tokens_.Length(); }
-  bool IsValid() const;
-
-  inline Token::Kind CurrentTokenKind() const;
-  Token::Kind LookaheadTokenKind(intptr_t num_tokens) const;
-
-  intptr_t CurrentPosition() const { return token_position_; }
-  void SetCurrentPosition(intptr_t value) { token_position_ = value; }
-
-  void Advance() { token_position_ += 1; }
-
-  RawObject* CurrentToken() const;
-  RawString* CurrentLiteral() const;
-
- private:
-  const TokenStream& tokens_;
-  intptr_t token_position_;
-};
-
-
 class Parser : ValueObject {
  public:
   Parser(const Script& script, const Library& library);
@@ -540,7 +512,7 @@ class Parser : ValueObject {
 
 
   const Script& script_;
-  TokenStreamIterator tokens_iterator_;
+  TokenStream::Iterator tokens_iterator_;
   Token::Kind token_kind_;  // Cached token kind for current token.
   Block* current_block_;
 

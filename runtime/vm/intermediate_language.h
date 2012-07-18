@@ -336,6 +336,7 @@ class ConstantVal: public Value {
   explicit ConstantVal(const Object& value)
       : value_(value) {
     ASSERT(value.IsZoneHandle());
+    ASSERT(value.IsSmi() || value.IsOld());
   }
 
   DECLARE_VALUE(Constant)
@@ -562,9 +563,7 @@ class PolymorphicInstanceCallComp : public Computation {
     instance_call()->SetInputAt(index, value);
   }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const {
-    instance_call()->PrintOperandsTo(f);
-  }
+  void PrintTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(PolymorphicInstanceCall)
 
@@ -634,18 +633,23 @@ class EqualityCompareComp : public ComparisonComp {
                       Value* right)
       : ComparisonComp(left, right),
         token_pos_(token_pos),
-        try_index_(try_index) {
+        try_index_(try_index),
+        receiver_class_id_(kObject) {
   }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
+
+  void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
+  intptr_t receiver_class_id() const { return receiver_class_id_; }
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
+  intptr_t receiver_class_id_;  // Set by optimizer.
 
   DISALLOW_COPY_AND_ASSIGN(EqualityCompareComp);
 };
@@ -1721,6 +1725,7 @@ class Instruction : public ZoneAllocated {
  public:
   Instruction()
       : cid_(-1),
+        lifetime_position_(-1),
         ic_data_(NULL),
         previous_(NULL),
         next_(NULL),
@@ -1835,8 +1840,14 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   Environment* env() const { return env_; }
   void set_env(Environment* env) { env_ = env; }
 
+  intptr_t lifetime_position() const { return lifetime_position_; }
+  void set_lifetime_position(intptr_t pos) {
+    lifetime_position_ = pos;
+  }
+
  private:
-  intptr_t cid_;
+  intptr_t cid_;  // Computation id.
+  intptr_t lifetime_position_;  // Position used by register allocator.
   ICData* ic_data_;
   Instruction* previous_;
   Instruction* next_;
@@ -1888,6 +1899,11 @@ class BlockEntryInstr : public Instruction {
   intptr_t block_id() const { return block_id_; }
   void set_block_id(intptr_t value) { block_id_ = value; }
 
+  void set_start_pos(intptr_t pos) { start_pos_ = pos; }
+  intptr_t start_pos() const { return start_pos_; }
+  void  set_end_pos(intptr_t pos) { end_pos_ = pos; }
+  intptr_t end_pos() const { return end_pos_; }
+
   BlockEntryInstr* dominator() const { return dominator_; }
   void set_dominator(BlockEntryInstr* instr) { dominator_ = instr; }
 
@@ -1922,7 +1938,11 @@ class BlockEntryInstr : public Instruction {
  private:
   intptr_t preorder_number_;
   intptr_t postorder_number_;
+  // Starting and ending lifetime positions for this block.  Used by
+  // the linear scan register allocator.
   intptr_t block_id_;
+  intptr_t start_pos_;
+  intptr_t end_pos_;
   BlockEntryInstr* dominator_;  // Immediate dominator, NULL for graph entry.
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
@@ -1940,39 +1960,16 @@ class ForwardInstructionIterator : public ValueObject {
   }
 
   void Advance() {
-    if (!Done()) current_ = current_->next();
+    ASSERT(!Done());
+    current_ = current_->next();
   }
 
   bool Done() const {
     return current_ == block_entry_->last_instruction()->next();
   }
 
-  void RemoveCurrentFromGraph() {
-    ASSERT(!current_->IsBlockEntry());
-    ASSERT(!current_->IsBranch());
-    ASSERT(!current_->IsThrow());
-    ASSERT(!current_->IsReturn());
-    ASSERT(!current_->IsReThrow());
-    ASSERT(current_->previous() != NULL);
-    Instruction* prev = current_->previous();
-    Instruction* next = current_->next();
-    prev->set_next(next);
-    ASSERT(next != NULL);
-    if (current_ != block_entry_->last_instruction()) {
-      ASSERT(!next->IsBlockEntry());
-      next->set_previous(prev);
-    } else {
-      ASSERT(current_->IsBind());
-      // Removing the last instruction of a block.
-      // Update last_instruction of the current basic block.
-      block_entry_->set_last_instruction(prev);
-    }
-    // Reset successor and previous instruction to indicate
-    // that the instruction is removed from the graph.
-    current_->set_previous(NULL);
-    current_->set_next(NULL);
-    current_ = prev;
-  }
+  // Removes 'current_' from graph and sets 'current_' to previous instruction.
+  void RemoveCurrentFromGraph();
 
   Instruction* Current() const { return current_; }
 
@@ -2166,13 +2163,13 @@ class BindInstr : public Definition {
 
  private:
   Computation* computation_;
-  bool is_used_;
+  const bool is_used_;
 
   DISALLOW_COPY_AND_ASSIGN(BindInstr);
 };
 
 
-class PhiInstr: public Definition {
+class PhiInstr : public Definition {
  public:
   explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
@@ -2189,7 +2186,7 @@ class PhiInstr: public Definition {
 };
 
 
-class ParameterInstr: public Definition {
+class ParameterInstr : public Definition {
  public:
   explicit ParameterInstr(intptr_t index) : index_(index) { }
 
@@ -2198,7 +2195,7 @@ class ParameterInstr: public Definition {
   DECLARE_INSTRUCTION(Parameter)
 
  private:
-  intptr_t index_;
+  const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
 };
@@ -2302,7 +2299,7 @@ class BranchInstr : public InstructionWithInputs {
         value_(value),
         true_successor_(NULL),
         false_successor_(NULL),
-        is_fused_with_comparison_(false),
+        fused_with_comparison_(NULL),
         is_negated_(false) { }
 
   DECLARE_INSTRUCTION(Branch)
@@ -2332,11 +2329,13 @@ class BranchInstr : public InstructionWithInputs {
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
 
-  void MarkFusedWithComparison() {
-    is_fused_with_comparison_ = true;
+  void MarkFusedWithComparison(ComparisonComp* comp) {
+    fused_with_comparison_ = comp;
   }
 
-  bool is_fused_with_comparison() const { return is_fused_with_comparison_; }
+  bool is_fused_with_comparison() const {
+    return fused_with_comparison_ != NULL;
+  }
   bool is_negated() const { return is_negated_; }
   void set_is_negated(bool value) { is_negated_ = value; }
 
@@ -2344,19 +2343,62 @@ class BranchInstr : public InstructionWithInputs {
   Value* value_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
-  bool is_fused_with_comparison_;
+  ComparisonComp* fused_with_comparison_;
   bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
 
+// This class is often passed by value. Add additional fields with caution.
 class MoveOperands : public ValueObject {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
 
   Location src() const { return src_; }
   Location dest() const { return dest_; }
+
+  Location* src_slot() { return &src_; }
+  Location* dest_slot() { return &dest_; }
+
+  void set_src(Location src) { src_ = src; }
+
+  // The parallel move resolver marks moves as "in-progress" by clearing the
+  // destination (but not the source).
+  Location MarkPending() {
+    ASSERT(!IsPending());
+    Location dest = dest_;
+    dest_ = Location::NoLocation();
+    return dest;
+  }
+
+  void ClearPending(Location dest) {
+    ASSERT(IsPending());
+    dest_ = dest;
+  }
+
+  bool IsPending() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return dest_.IsInvalid() && !src_.IsInvalid();
+  }
+
+  // True if this move a move from the given location.
+  bool Blocks(Location loc) const {
+    return !IsEliminated() && src_.Equals(loc);
+  }
+
+  // A move is redundant if it's been eliminated, if its source and
+  // destination are the same, or if its destination is unneeded.
+  bool IsRedundant() const {
+    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
+  }
+
+  // We clear both operands to indicate move that's been eliminated.
+  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
+  bool IsEliminated() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return src_.IsInvalid();
+  }
 
  private:
   Location dest_;
@@ -2366,7 +2408,8 @@ class MoveOperands : public ValueObject {
 
 class ParallelMoveInstr : public Instruction {
  public:
-  ParallelMoveInstr() : moves_(1) { }
+  explicit ParallelMoveInstr() : moves_(4) {
+  }
 
   DECLARE_INSTRUCTION(ParallelMove)
 
@@ -2388,19 +2431,31 @@ class ParallelMoveInstr : public Instruction {
 class Environment : public ZoneAllocated {
  public:
   // Construct an environment by copying from an array of values.
-  explicit Environment(ZoneGrowableArray<Value*>* values)
-      : values_(values->length()) {
-          values_.AddArray(*values);
-        }
+  // TODO(vegorov): it's absolutely crucial that locations_ backing store
+  // is preallocated and never reallocated.  We use pointers into it
+  // during register allocation.
+  explicit Environment(const GrowableArray<Value*>& values)
+      : values_(values.length()), locations_(values.length()) {
+    values_.AddArray(values);
+  }
 
-  const ZoneGrowableArray<Value*>& values() const {
+  const GrowableArray<Value*>& values() const {
     return values_;
+  }
+
+  GrowableArray<Location>* locations() {
+    return &locations_;
+  }
+
+  const GrowableArray<Location>* locations() const {
+    return &locations_;
   }
 
   void PrintTo(BufferFormatter* f) const;
 
  private:
-  ZoneGrowableArray<Value*> values_;
+  GrowableArray<Value*> values_;
+  GrowableArray<Location> locations_;
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
 

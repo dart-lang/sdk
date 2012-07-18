@@ -266,6 +266,23 @@ bool PageSpace::Contains(uword addr) const {
 }
 
 
+void PageSpace::StartEndAddress(uword* start, uword* end) const {
+  ASSERT(pages_ != NULL || large_pages_ != NULL);
+  *start = static_cast<uword>(~0);
+  *end = 0;
+  for (HeapPage* page = pages_; page != NULL; page = page->next()) {
+    *start = Utils::Minimum(*start, page->start());
+    *end = Utils::Maximum(*end, page->end());
+  }
+  for (HeapPage* page = large_pages_; page != NULL; page = page->next()) {
+    *start = Utils::Minimum(*start, page->start());
+    *end = Utils::Maximum(*end, page->end());
+  }
+  ASSERT(*start != static_cast<uword>(~0));
+  ASSERT(*end != 0);
+}
+
+
 void PageSpace::VisitObjects(ObjectVisitor* visitor) const {
   HeapPage* page = pages_;
   while (page != NULL) {
@@ -327,7 +344,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   NoHandleScope no_handles(isolate);
 
   if (FLAG_verify_before_gc) {
-    OS::PrintErr("Verifying before MarkSweep... ");
+    OS::PrintErr("Verifying before MarkSweep...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }
@@ -399,7 +416,7 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   }
 
   if (FLAG_verify_after_gc) {
-    OS::PrintErr("Verifying after MarkSweep... ");
+    OS::PrintErr("Verifying after MarkSweep...");
     heap_->Verify();
     OS::PrintErr(" done.\n");
   }

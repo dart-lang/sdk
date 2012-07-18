@@ -142,10 +142,16 @@ TEST_CASE(TokenStream) {
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
   const TokenStream& token_stream = TokenStream::Handle(TokenStream::New(ts));
-  EXPECT_EQ(6, token_stream.Length());
-  EXPECT_EQ(Token::kLPAREN, token_stream.KindAt(1));
-  EXPECT_EQ(Token::kPERIOD, token_stream.KindAt(4));
-  EXPECT_EQ(Token::kEOS, token_stream.KindAt(5));
+  TokenStream::Iterator iterator(token_stream, 0);
+  // EXPECT_EQ(6, token_stream.Length());
+  iterator.Advance();  // Advance to '(' token.
+  EXPECT_EQ(Token::kLPAREN, iterator.CurrentTokenKind());
+  iterator.Advance();
+  iterator.Advance();
+  iterator.Advance();  // Advance to '.' token.
+  EXPECT_EQ(Token::kPERIOD, iterator.CurrentTokenKind());
+  iterator.Advance();  // Advance to end of stream.
+  EXPECT_EQ(Token::kEOS, iterator.CurrentTokenKind());
 }
 
 
@@ -2184,7 +2190,7 @@ TEST_CASE(Script) {
   EXPECT_EQ('b', str.CharAt(0));
   EXPECT_EQ(':', str.CharAt(7));
   EXPECT_EQ('e', str.CharAt(16));
-  str = script.source();
+  str = script.Source();
   EXPECT_EQ(22, str.Length());
   EXPECT_EQ('T', str.CharAt(0));
   EXPECT_EQ('n', str.CharAt(10));
@@ -2640,14 +2646,14 @@ TEST_CASE(SubtypeTestCache) {
   EXPECT_EQ(0, cache.NumberOfChecks());
   const TypeArguments& targ_0 = TypeArguments::Handle(TypeArguments::New(2));
   const TypeArguments& targ_1 = TypeArguments::Handle(TypeArguments::New(3));
-  cache.AddCheck(empty_class, targ_0, targ_1, Bool::Handle(Bool::True()));
+  cache.AddCheck(empty_class.id(), targ_0, targ_1, Bool::Handle(Bool::True()));
   EXPECT_EQ(1, cache.NumberOfChecks());
-  Class& test_class = Class::Handle();
+  intptr_t test_class_id = -1;
   AbstractTypeArguments& test_targ_0 = AbstractTypeArguments::Handle();
   AbstractTypeArguments& test_targ_1 = AbstractTypeArguments::Handle();
   Bool& test_result = Bool::Handle();
-  cache.GetCheck(0, &test_class, &test_targ_0, &test_targ_1, &test_result);
-  EXPECT_EQ(empty_class.raw(), test_class.raw());
+  cache.GetCheck(0, &test_class_id, &test_targ_0, &test_targ_1, &test_result);
+  EXPECT_EQ(empty_class.id(), test_class_id);
   EXPECT_EQ(targ_0.raw(), test_targ_0.raw());
   EXPECT_EQ(targ_1.raw(), test_targ_1.raw());
   EXPECT_EQ(Bool::True(), test_result.raw());
@@ -2669,6 +2675,111 @@ TEST_CASE(FieldTests) {
   EXPECT_STREQ(f.ToCString(),
                String::Handle(Field::NameFromSetter(setter_f)).ToCString());
 }
+
+
+// Expose helper function from object.cc for testing.
+bool EqualsIgnoringPrivate(const String& name, const String& private_name);
+
+
+TEST_CASE(EqualsIgnoringPrivate) {
+  String& mangled_name = String::Handle();
+  String& bare_name = String::Handle();
+
+  // Simple matches.
+  mangled_name = String::New("foo");
+  bare_name = String::New("foo");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.");
+  bare_name = String::New("foo.");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.named");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Simple mismatches.
+  mangled_name = String::New("bar");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo");
+  bare_name = String::New("foo.");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.name");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  mangled_name = String::New("foo.named");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private match.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("foo");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private mismatch.
+  mangled_name = String::New("food@12345");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private mismatch 2.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("food");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor match.
+  mangled_name = String::New("foo@12345.");
+  bare_name = String::New("foo.");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor mismatch.
+  mangled_name = String::New("foo@12345.");
+  bare_name = String::New("foo");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Private constructor mismatch 2.
+  mangled_name = String::New("foo@12345");
+  bare_name = String::New("foo.");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor match.
+  mangled_name = String::New("foo@12345.named");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor mismatch.
+  mangled_name = String::New("foo@12345.name");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named private constructor mismatch 2.
+  mangled_name = String::New("foo@12345.named");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor match.  Yes, this happens.
+  mangled_name = String::New("foo@12345.named@12345");
+  bare_name = String::New("foo.named");
+  EXPECT(EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor mismatch.
+  mangled_name = String::New("foo@12345.name@12345");
+  bare_name = String::New("foo.named");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+
+  // Named double-private constructor mismatch.
+  mangled_name = String::New("foo@12345.named@12345");
+  bare_name = String::New("foo.name");
+  EXPECT(!EqualsIgnoringPrivate(mangled_name, bare_name));
+}
+
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 

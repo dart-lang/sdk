@@ -21,6 +21,7 @@
 #import('../compiler.dart', prefix: 'api');
 #import('patch_parser.dart');
 
+#source('code_buffer.dart');
 #source('compile_time_constants.dart');
 #source('compiler.dart');
 #source('diagnostic_listener.dart');

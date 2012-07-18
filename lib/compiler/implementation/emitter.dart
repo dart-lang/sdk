@@ -26,8 +26,8 @@ class CodeEmitterTask extends CompilerTask {
   bool needsClosureClass = false;
   final Namer namer;
   NativeEmitter nativeEmitter;
-  StringBuffer boundClosureBuffer;
-  StringBuffer mainBuffer;
+  CodeBuffer boundClosureBuffer;
+  CodeBuffer mainBuffer;
   /** Shorter access to [isolatePropertiesName]. Both here in the code, as
       well as in the generated code. */
   String isolateProperties;
@@ -39,8 +39,8 @@ class CodeEmitterTask extends CompilerTask {
 
   CodeEmitterTask(Compiler compiler, [bool generateSourceMap = false])
       : namer = compiler.namer,
-        boundClosureBuffer = new StringBuffer(),
-        mainBuffer = new StringBuffer(),
+        boundClosureBuffer = new CodeBuffer(),
+        mainBuffer = new CodeBuffer(),
         boundClosureCache = new Map<int, String>(),
         generateSourceMap = generateSourceMap,
         sourceMapBuilder = new SourceMapBuilder(),
@@ -233,7 +233,7 @@ function(collectedClasses) {
 }""";
   }
 
-  void addDefineClassAndFinishClassFunctionsIfNecessary(StringBuffer buffer) {
+  void addDefineClassAndFinishClassFunctionsIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
       String isolate = namer.ISOLATE;
       buffer.add("$defineClassName = $defineClassFunction;\n");
@@ -242,13 +242,13 @@ function(collectedClasses) {
     }
   }
 
-  void emitFinishIsolateConstructor(StringBuffer buffer) {
+  void emitFinishIsolateConstructor(CodeBuffer buffer) {
     String name = finishIsolateConstructorName;
     String value = finishIsolateConstructorFunction;
     buffer.add("$name = $value;\n");
   }
 
-  void emitFinishIsolateConstructorInvocation(StringBuffer buffer) {
+  void emitFinishIsolateConstructorInvocation(CodeBuffer buffer) {
     String isolate = namer.ISOLATE;
     buffer.add("$isolate = $finishIsolateConstructorName($isolate);\n");
   }
@@ -268,7 +268,7 @@ function(collectedClasses) {
     String invocationName =
         namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                            selector);
-    StringBuffer buffer = new StringBuffer();
+    CodeBuffer buffer = new CodeBuffer();
     buffer.add('function(');
 
     // The parameters that this stub takes.
@@ -335,7 +335,7 @@ function(collectedClasses) {
               // down to the native method.
               indexOfLastOptionalArgumentInParameters = count;
             }
-            StringBuffer argumentBuffer = new StringBuffer();
+            CodeBuffer argumentBuffer = new CodeBuffer();
             handler.writeConstant(argumentBuffer, value);
             argumentsBuffer[count] = argumentBuffer.toString();
           }
@@ -355,7 +355,7 @@ function(collectedClasses) {
       buffer.add('  return this.${namer.getName(member)}($arguments)');
     }
     buffer.add('\n}');
-    defineInstanceMember(invocationName, buffer.toString());
+    defineInstanceMember(invocationName, buffer);
   }
 
   void addParameterStubs(FunctionElement member,
@@ -396,16 +396,12 @@ function(collectedClasses) {
         || member.kind === ElementKind.GETTER
         || member.kind === ElementKind.SETTER) {
       if (member.modifiers !== null && member.modifiers.isAbstract()) return;
-      CodeBlock codeBlock = compiler.codegenWorld.generatedCode[member];
-      if (codeBlock == null) return;
-      defineInstanceMember(namer.getName(member),
-                           codeBlock.code,
-                           codeBlock.sourceMappings);
-      codeBlock = compiler.codegenWorld.generatedBailoutCode[member];
-      if (codeBlock !== null) {
-        defineInstanceMember(compiler.namer.getBailoutName(member),
-                             codeBlock.code,
-                             codeBlock.sourceMappings);
+      CodeBuffer codeBuffer = compiler.codegenWorld.generatedCode[member];
+      if (codeBuffer == null) return;
+      defineInstanceMember(namer.getName(member), codeBuffer);
+      codeBuffer = compiler.codegenWorld.generatedBailoutCode[member];
+      if (codeBuffer !== null) {
+        defineInstanceMember(compiler.namer.getBailoutName(member), codeBuffer);
       }
       FunctionElement function = member;
       FunctionSignature parameters = function.computeSignature(compiler);
@@ -417,10 +413,14 @@ function(collectedClasses) {
       ClassElement cls = member.getEnclosingClass();
       if (cls.lookupSuperMember(name) !== null) {
         String fieldName = namer.instanceFieldName(cls, name);
+        CodeBuffer getterBuffer = new CodeBuffer();
+        getterBuffer.add('function() {\n  return this.$fieldName;\n }');
         defineInstanceMember(namer.getterName(cls.getLibrary(), name),
-                             'function() {\n  return this.$fieldName;\n }');
+                             getterBuffer);
+        CodeBuffer setterBuffer = new CodeBuffer();
+        setterBuffer.add('function(x) {\n  this.$fieldName = x;\n }');
         defineInstanceMember(namer.setterName(cls.getLibrary(), name),
-                             'function(x) {\n  this.$fieldName = x;\n }');
+                             setterBuffer);
       }
     } else {
       compiler.internalError('unexpected kind: "${member.kind}"',
@@ -429,7 +429,7 @@ function(collectedClasses) {
     emitExtraAccessors(member, defineInstanceMember);
   }
 
-  Set<Element> emitClassFields(ClassElement classElement, StringBuffer buffer) {
+  Set<Element> emitClassFields(ClassElement classElement, CodeBuffer buffer) {
     // If the class is never instantiated we still need to set it up for
     // inheritance purposes, but we can simplify its JavaScript constructor.
     bool isInstantiated =
@@ -486,18 +486,16 @@ function(collectedClasses) {
   }
 
   void emitInstanceMembers(ClassElement classElement,
-                           StringBuffer buffer,
+                           CodeBuffer buffer,
                            bool needsLeadingComma) {
     bool needsComma = needsLeadingComma;
-    void defineInstanceMember(String name,
-                              String value,
-                              [List<SourceMappingEntry> sourceMappings]) {
+    void defineInstanceMember(String name, CodeBuffer memberBuffer) {
       if (needsComma) buffer.add(',');
       needsComma = true;
       buffer.add('\n');
       buffer.add(' $name: ');
-      sourceMapBuilder.addCodeBlock(sourceMappings, buffer.length);
-      buffer.add('$value');
+      addMappings(memberBuffer, buffer.length);
+      buffer.add(memberBuffer);
     }
 
     classElement.forEachMember(includeBackendMembers: true,
@@ -508,12 +506,15 @@ function(collectedClasses) {
     });
 
     generateTypeTests(classElement, (Element other) {
+      String code;
       if (nativeEmitter.requiresNativeIsCheck(other)) {
-        defineInstanceMember(namer.operatorIs(other),
-                             'function() { return true; }');
+        code = 'function() { return true; }';
       } else {
-        defineInstanceMember(namer.operatorIs(other), 'true');
+        code = 'true';
       }
+      CodeBuffer buffer = new CodeBuffer();
+      buffer.add(code);
+      defineInstanceMember(namer.operatorIs(other), buffer);
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
@@ -525,7 +526,7 @@ function(collectedClasses) {
     }
   }
 
-  void generateClass(ClassElement classElement, StringBuffer buffer) {
+  void generateClass(ClassElement classElement, CodeBuffer buffer) {
     if (classElement.isNative()) {
       nativeEmitter.generateNativeClass(classElement);
       return;
@@ -579,7 +580,7 @@ function(collectedClasses) {
     }
   }
 
-  void emitClasses(StringBuffer buffer) {
+  void emitClasses(CodeBuffer buffer) {
     Set<ClassElement> instantiatedClasses =
         compiler.codegenWorld.instantiatedClasses;
     Set<ClassElement> neededClasses =
@@ -612,7 +613,7 @@ function(collectedClasses) {
     }
   }
 
-  void emitFinishClassesInvocationIfNecessary(StringBuffer buffer) {
+  void emitFinishClassesInvocationIfNecessary(CodeBuffer buffer) {
     if (needsDefineClass) {
       buffer.add("$finishClassesName($classesCollector);\n");
       // Reset the map.
@@ -620,20 +621,21 @@ function(collectedClasses) {
     }
   }
 
-  void emitStaticFunctionsWithNamer(StringBuffer buffer,
-                                    Map<Element, CodeBlock> generatedCode,
+  void emitStaticFunctionsWithNamer(CodeBuffer buffer,
+                                    Map<Element, CodeBuffer> generatedCode,
                                     String functionNamer(Element element)) {
-    generatedCode.forEach((Element element, CodeBlock codeBlock) {
+    generatedCode.forEach((Element element, CodeBuffer functionBuffer) {
       if (!element.isInstanceMember()) {
         String functionName = functionNamer(element);
         buffer.add('$isolateProperties.$functionName = ');
-        sourceMapBuilder.addCodeBlock(codeBlock.sourceMappings, buffer.length);
-        buffer.add('${codeBlock.code};\n\n');
+        addMappings(functionBuffer, buffer.length);
+        buffer.add(functionBuffer);
+        buffer.add(';\n\n');
       }
     });
   }
 
-  void emitStaticFunctions(StringBuffer buffer) {
+  void emitStaticFunctions(CodeBuffer buffer) {
     emitStaticFunctionsWithNamer(buffer,
                                  compiler.codegenWorld.generatedCode,
                                  namer.getName);
@@ -642,7 +644,7 @@ function(collectedClasses) {
                                  namer.getBailoutName);
   }
 
-  void emitStaticFunctionGetters(StringBuffer buffer) {
+  void emitStaticFunctionGetters(CodeBuffer buffer) {
     Set<FunctionElement> functionsNeedingGetter =
         compiler.codegenWorld.staticFunctionsNeedingGetter;
     for (FunctionElement element in functionsNeedingGetter) {
@@ -659,9 +661,7 @@ function(collectedClasses) {
                                    parameterCount);
       String fieldAccess = '$isolateProperties.$staticName';
       buffer.add("$fieldAccess.$invocationName = $fieldAccess;\n");
-      addParameterStubs(callElement, (
-          String name, String value,
-          [List<SourceMappingEntry> sourceMappings]) {
+      addParameterStubs(callElement, (String name, CodeBuffer value) {
         buffer.add('$fieldAccess.$name = $value;\n');
       });
       // If a static function is used as a closure we need to add its name
@@ -733,9 +733,7 @@ function(collectedClasses) {
           "$invocationName: function($joinedArgs) {");
       boundClosureBuffer.add(" return this.self[this.target]($joinedArgs);");
       boundClosureBuffer.add(" }");
-      addParameterStubs(callElement, (
-          String stubName, String memberValue,
-          [List<SourceMappingEntry> sourceMappings]) {
+      addParameterStubs(callElement, (String stubName, CodeBuffer memberValue) {
         boundClosureBuffer.add(',\n $stubName: $memberValue');
       });
       boundClosureBuffer.add("\n});\n");
@@ -752,9 +750,10 @@ function(collectedClasses) {
     String getterName = namer.getterName(member.getLibrary(), member.name);
     String targetName = namer.instanceMethodName(member.getLibrary(),
                                                  member.name, parameterCount);
-    defineInstanceMember(
-        getterName,
+    CodeBuffer getterBuffer = new CodeBuffer();
+    getterBuffer.add(
         "function() { return new $closureClass(this, '$targetName'); }");
+    defineInstanceMember(getterName, getterBuffer);
   }
 
   void emitCallStubForGetter(Element member,
@@ -782,14 +781,15 @@ function(collectedClasses) {
           arguments.add("arg$i");
         }
         String joined = Strings.join(arguments, ", ");
-        defineInstanceMember(
-            invocationName,
+        CodeBuffer getterBuffer = new CodeBuffer();
+        getterBuffer.add(
             "function($joined) { return $getter.$closureCallName($joined); }");
+        defineInstanceMember(invocationName, getterBuffer);
       }
     }
   }
 
-  void emitStaticNonFinalFieldInitializations(StringBuffer buffer) {
+  void emitStaticNonFinalFieldInitializations(CodeBuffer buffer) {
     ConstantHandler handler = compiler.constantHandler;
     List<VariableElement> staticNonFinalFields =
         handler.getStaticNonFinalFieldsForEmission();
@@ -802,7 +802,7 @@ function(collectedClasses) {
     }
   }
 
-  void emitCompileTimeConstants(StringBuffer buffer) {
+  void emitCompileTimeConstants(CodeBuffer buffer) {
     ConstantHandler handler = compiler.constantHandler;
     List<Constant> constants = handler.getConstantsForEmission();
     bool addedMakeConstantList = false;
@@ -822,7 +822,7 @@ function(collectedClasses) {
     }
   }
 
-  void emitMakeConstantList(StringBuffer buffer) {
+  void emitMakeConstantList(CodeBuffer buffer) {
     buffer.add(namer.ISOLATE);
     buffer.add(@'''.makeConstantList = function(list) {
   list.immutable$list = true;
@@ -858,10 +858,10 @@ function(collectedClasses) {
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
     Collection<LibraryElement> libraries = compiler.libraries.getValues();
 
-    String generateMethod(String methodName, Selector selector) {
-      StringBuffer buffer = new StringBuffer();
+    CodeBuffer generateMethod(String methodName, Selector selector) {
+      CodeBuffer buffer = new CodeBuffer();
       buffer.add('function');
-      StringBuffer args = new StringBuffer();
+      CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
         args.add('arg$i');
@@ -876,7 +876,7 @@ function(collectedClasses) {
       buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
       buffer.add("this, '$methodName', [$args])\n");
       buffer.add('}');
-      return buffer.toString();
+      return buffer;
     }
 
     compiler.codegenWorld.invokedNames.forEach((SourceString methodName,
@@ -888,14 +888,15 @@ function(collectedClasses) {
             for (LibraryElement lib in libraries) {
               String jsName =
                 namer.instanceMethodInvocationName(lib, methodName, selector);
-              String method =
+              CodeBuffer method =
                   generateMethod(methodName.slowToString(), selector);
               defineInstanceMember(jsName, method);
             }
           } else {
             String jsName =
               namer.instanceMethodInvocationName(null, methodName, selector);
-            String method = generateMethod(methodName.slowToString(), selector);
+            CodeBuffer method = generateMethod(methodName.slowToString(),
+                                               selector);
             defineInstanceMember(jsName, method);
           }
         }
@@ -907,14 +908,14 @@ function(collectedClasses) {
       if (getterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.getterName(lib, getterName);
-          String method = generateMethod('get ${getterName.slowToString()}',
-                                         Selector.GETTER);
+          CodeBuffer method = generateMethod('get ${getterName.slowToString()}',
+                                             Selector.GETTER);
           defineInstanceMember(jsName, method);
         }
       } else {
         String jsName = namer.getterName(null, getterName);
-        String method = generateMethod('get ${getterName.slowToString()}',
-                                       Selector.GETTER);
+        CodeBuffer method = generateMethod('get ${getterName.slowToString()}',
+                                           Selector.GETTER);
         defineInstanceMember(jsName, method);
       }
     });
@@ -924,20 +925,20 @@ function(collectedClasses) {
       if (setterName.isPrivate()) {
         for (LibraryElement lib in libraries) {
           String jsName = namer.setterName(lib, setterName);
-          String method = generateMethod('set ${setterName.slowToString()}',
-                                         Selector.SETTER);
+          CodeBuffer method = generateMethod('set ${setterName.slowToString()}',
+                                             Selector.SETTER);
           defineInstanceMember(jsName, method);
         }
       } else {
         String jsName = namer.setterName(null, setterName);
-        String method = generateMethod('set ${setterName.slowToString()}',
-                                       Selector.SETTER);
+        CodeBuffer method = generateMethod('set ${setterName.slowToString()}',
+                                           Selector.SETTER);
         defineInstanceMember(jsName, method);
       }
     });
   }
 
-  String buildIsolateSetup(StringBuffer buffer,
+  String buildIsolateSetup(CodeBuffer buffer,
                            Element appMain,
                            Element isolateMain) {
     String mainAccess = "${namer.isolateAccess(appMain)}";
@@ -975,7 +976,7 @@ $mainEnsureGetter
   return "${namer.isolateAccess(isolateMain)}($mainAccess)";
   }
 
-  emitMain(StringBuffer buffer) {
+  emitMain(CodeBuffer buffer) {
     if (compiler.isMockCompilation) return;
     Element main = compiler.mainApp.find(Compiler.MAIN);
     String mainCall = null;
@@ -1057,8 +1058,19 @@ if (typeof window != 'undefined' && typeof document != 'undefined' &&
     });
     return compiler.assembledCode;
   }
+
+  void addMappings(CodeBuffer buffer, int bufferOffset) {
+    buffer.forEachSourceLocation((Element element, Token token, int offset) {
+      SourceFile sourceFile = element.getCompilationUnit().script.file;
+      String sourceName = null;
+      if (token.kind === IDENTIFIER_TOKEN) {
+        sourceName = token.slowToString();
+      }
+      int totalOffset = bufferOffset + offset;
+      sourceMapBuilder.addMapping(
+          sourceFile, token.charOffset, sourceName, totalOffset);
+    });
+  }
 }
 
-typedef void DefineMemberFunction(String invocationName,
-                                  String definition,
-                                  [List<SourceMappingEntry> sourceMappings]);
+typedef void DefineMemberFunction(String invocationName, CodeBuffer definition);

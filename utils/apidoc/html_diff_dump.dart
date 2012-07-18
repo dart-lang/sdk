@@ -27,109 +27,90 @@
 
 #import('dart:json');
 #import('html_diff.dart');
-#import('../../frog/lang.dart');
+#import('../../lib/dartdoc/mirrors/mirrors.dart');
+#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
 
 HtmlDiff diff;
 
 /** Whether or not a domType represents the same type as an htmlType. */
-bool sameType(Type domType, Type htmlType) {
+bool sameType(MemberMirror domMember, MemberMirror htmlMember) {
+  TypeMirror domType = domMember is FieldMirror
+      ? domMember.type()
+      : domMember.returnType();
+  TypeMirror htmlType = htmlMember is FieldMirror
+      ? htmlMember.type()
+      : htmlMember.returnType();
   if (domType.isVoid || htmlType.isVoid) {
     return domType.isVoid && htmlType.isVoid;
   }
 
-  final htmlTypes = diff.domTypesToHtml[domType];
+  final htmlTypes = diff.domTypesToHtml[domType.qualifiedName()];
   return htmlTypes != null && htmlTypes.some((t) => t == htmlType);
 }
 
 /** Returns the name of a member, including `get:` if it's a field. */
-String memberName(Member m) => m is FieldMember ? 'get:${m.name}' : m.name;
+String memberName(MemberMirror m) => m.simpleName();
 
 /**
  * Returns a string describing the name of a member. If [type] is passed, it's
  * used in place of the member's real type name.
  */
-String memberDesc(Member m, [Type type = null]) {
-  if (type == null) type = m.declaringType;
-  return '${type.name}.${memberName(m)}';
+String memberDesc(MemberMirror m, [ObjectMirror type = null]) {
+  if (type == null) type = m.surroundingDeclaration();
+  return '${type.simpleName()}.${memberName(m)}';
 }
 
 /**
  * Same as [memberDesc], but if [m] is a `dart:dom_deprecated` type
  * its `dart:html` typename is used instead.
  */
-String htmlishMemberDesc(Member m) {
-  var type = m.declaringType;
-  final htmlTypes = diff.domTypesToHtml[type];
+String htmlishMemberDesc(MemberMirror m) {
+  var type = m.surroundingDeclaration();
+  final htmlTypes = diff.domTypesToHtml[type.qualifiedName()];
   if (htmlTypes != null && htmlTypes.length == 1) {
     type = htmlTypes.iterator().next();
   }
   return memberDesc(m, type);
 }
 
-bool isGetter(Member member) => member.name.startsWith('get:');
-bool isSetter(Member member) => member.name.startsWith('set:');
-
 /**
  * Add an entry to the map of `dart:dom_deprecated` names to
  * `dart:html` names if [domMember] was renamed to [htmlMembers] with
  * the same semantics.
  */
-void maybeAddRename(Map<String, String> renamed, Member domMember,
-    Collection<Member> htmlMembers) {
+void maybeAddRename(Map<String, String> renamed,
+                    MemberMirror domMember,
+                    Collection<MemberMirror> htmlMembers) {
   if (htmlMembers.length != 1) return;
   final htmlMember = htmlMembers.iterator().next();
   if (memberName(domMember) != memberName(htmlMember) &&
-    sameType(domMember.returnType, htmlMember.returnType)) {
+    sameType(domMember, htmlMember)) {
     renamed[memberDesc(domMember)] = memberDesc(htmlMember);
   }
 }
 
 void main() {
-  var files = new NodeFileSystem();
-  parseOptions('../../frog', [] /* args */, files);
-  initializeWorld(files);
-
-  HtmlDiff.initialize();
+  var libPath = '../../';
+  HtmlDiff.initialize(libPath);
   diff = new HtmlDiff();
   diff.run();
 
   final renamed = <String>{};
-  diff.domToHtml.forEach((domMember, htmlMembers) {
-    if (domMember is PropertyMember) {
-      if (domMember.canGet) {
-        maybeAddRename(renamed, domMember.getter, htmlMembers.filter(isGetter));
-      }
-      if (domMember.canSet) {
-        maybeAddRename(renamed, domMember.setter, htmlMembers.filter(isSetter));
-      }
-    } else {
-      maybeAddRename(renamed, domMember, htmlMembers);
-      return;
-    }
+  diff.domToHtml.forEach((MemberMirror domMember,
+                          Set<MemberMirror> htmlMembers) {
+    maybeAddRename(renamed, domMember, htmlMembers);
   });
 
-  final removed = <Set>[];
-  for (final type in world.libraries['dart:dom_deprecated'].types.getValues()) {
-    if (type.members.getValues().every((m) =>
+  final removed = <String>[];
+
+  for (InterfaceMirror type in HtmlDiff.dom.types().getValues()) {
+    if (type.declaredMembers().getValues().every((m) =>
           !diff.domToHtml.containsKey(m))) {
-      removed.add('${type.name}.*');
+      removed.add('${type.simpleName()}.*');
     } else {
-      for (final member in type.members.getValues()) {
+      for (MemberMirror member in type.declaredMembers().getValues()) {
         if (!diff.domToHtml.containsKey(member)) {
-          if (member is PropertyMember) {
-            if (member.canGet) removed.add(htmlishMemberDesc(member.getter));
-            if (member.canSet) removed.add(htmlishMemberDesc(member.setter));
-          } else {
             removed.add(htmlishMemberDesc(member));
-          }
-        } else if (member is PropertyMember) {
-          final htmlMembers = diff.domToHtml[member];
-          if (member.canGet && !htmlMembers.some((m) => m.name.startsWith('get:'))) {
-            removed.add(htmlishMemberDesc(member.getter));
-          }
-          if (member.canSet && !htmlMembers.some((m) => m.name.startsWith('set:'))) {
-            removed.add(htmlishMemberDesc(member.setter));
-          }
         }
       }
     }

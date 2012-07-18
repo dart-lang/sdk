@@ -18,6 +18,7 @@ static const int8_t kMaxUnsignedDataPerByte = kByteMask;
 static const int8_t kMinDataPerByte = -(1 << (kDataBitsPerByte - 1));
 static const int8_t kMaxDataPerByte = (~kMinDataPerByte & kByteMask);
 static const uint8_t kEndByteMarker = (255 - kMaxDataPerByte);
+static const uint8_t kEndUnsignedByteMarker = (255 - kMaxUnsignedDataPerByte);
 
 typedef uint8_t* (*ReAlloc)(uint8_t* ptr, intptr_t old_size, intptr_t new_size);
 
@@ -63,18 +64,28 @@ class ReadStream : public ValueObject {
     }
   };
 
+  // Reads 'len' bytes from the stream.
   void ReadBytes(uint8_t* addr, intptr_t len) {
     ASSERT((end_ - current_) >= len);
     memmove(addr, current_, len);
     current_ += len;
   }
 
+  intptr_t ReadUnsigned() {
+    return Read<intptr_t>(kEndUnsignedByteMarker);
+  }
+
  private:
   template<typename T>
   T Read() {
+    return Read<T>(kEndByteMarker);
+  }
+
+  template<typename T>
+  T Read(uint8_t end_byte_marker) {
     uint8_t b = ReadByte();
     if (b > kMaxUnsignedDataPerByte) {
-      return static_cast<T>(b) - kEndByteMarker;
+      return static_cast<T>(b) - end_byte_marker;
     }
     T r = 0;
     uint8_t s = 0;
@@ -83,7 +94,7 @@ class ReadStream : public ValueObject {
       s += kDataBitsPerByte;
       b = ReadByte();
     } while (b <= kMaxUnsignedDataPerByte);
-    return r | ((static_cast<T>(b) - kEndByteMarker) << s);
+    return r | ((static_cast<T>(b) - end_byte_marker) << s);
   }
 
   uint8_t ReadByte() {
@@ -161,6 +172,15 @@ class WriteStream : public ValueObject {
       st->Write<int64_t>(bit_cast<int64_t>(value));
     }
   };
+
+  void WriteUnsigned(intptr_t value) {
+    ASSERT((value >= 0) && (value <= kIntptrMax));
+    while (value > kMaxUnsignedDataPerByte) {
+      WriteByte(static_cast<uint8_t>(value & kByteMask));
+      value = value >> kDataBitsPerByte;
+    }
+    WriteByte(static_cast<uint8_t>(value + kEndUnsignedByteMarker));
+  }
 
   void WriteBytes(const uint8_t* addr, intptr_t len) {
     if ((end_ - current_) < len) {

@@ -11,15 +11,6 @@ class SortHelper {
     testSortDoubleLists();
   }
 
-  void printList(List a) {
-    StringBuffer buffer = new StringBuffer();
-    for (int i = 0; i < a.length; i++) {
-      if (i != 0) buffer.add(",");
-      buffer.add(a[i]);
-    }
-    print("[$buffer]");
-  }
-
   bool isSorted(List a) {
     for (int i = 1; i < a.length; i++) {
       if (compareFunction(a[i - 1], a[i]) > 0) {
@@ -122,13 +113,8 @@ class SortHelper {
   }
 
   void testSort(List a) {
-    final bool log = false;
-    if (log) printList(a);
     sortFunction(a);
-    if (log) printList(a);
-    bool sorted = isSorted(a);
-    Expect.equals(true, sorted);
-    if (log) print(sorted);
+    Expect.isTrue(isSorted(a));
   }
 
   void testInsertionSort(int i1, int i2, int i3, int i4) {

@@ -9,3 +9,4 @@
 #import('../tree/tree.dart');
 
 #source('backend.dart');
+#source('emitter.dart');

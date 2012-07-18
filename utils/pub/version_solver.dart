@@ -54,8 +54,7 @@
  * it fails, the future will complete with a [NoVersionException],
  * [DisjointConstraintException], or [CouldNotSolveException].
  */
-Future<Map<String, Version>> resolveVersions(
-    SourceRegistry sources, Package root) {
+Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root) {
   return new VersionSolver(sources, root).solve();
 }
 
@@ -129,15 +128,10 @@ class VersionSolver {
     _packages[package].version = version;
   }
 
-  Map<String, Version> buildResults() {
-    var results = <Version>{};
-    _packages.forEach((name, dependency) {
-      if (dependency.isDependedOn) {
-        results[name] = dependency.version;
-      }
-    });
-
-    return results;
+  List<PackageId> buildResults() {
+    return _packages.getValues()
+      .filter((dep) => dep.isDependedOn)
+      .map((dep) => new PackageId(dep.source, dep.version, dep.description));
   }
 }
 

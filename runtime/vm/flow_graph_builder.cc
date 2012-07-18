@@ -1555,12 +1555,14 @@ Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
-    // TODO(regis): Temporary type should be allocated in new gen heap.
+    // Type is temporary. Only its type arguments are preserved.
     Type& type = Type::Handle(
-        Type::New(instantiator_class, type_arguments, token_pos));
+        Type::New(instantiator_class, type_arguments, token_pos, Heap::kNew));
     type ^= ClassFinalizer::FinalizeType(
-        instantiator_class, type, ClassFinalizer::kFinalizeWellFormed);
+        instantiator_class, type, ClassFinalizer::kFinalize);
+    ASSERT(!type.IsMalformed());
     type_arguments = type.arguments();
+    type_arguments = type_arguments.Canonicalize();
     return Bind(new ConstantVal(type_arguments));
   }
   Function& outer_function =
@@ -2259,7 +2261,8 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   for (intptr_t i = 0; i < block_count; ++i) {
     postorder_block_entries_[i]->set_block_id(block_count - i - 1);
   }
-  if (for_optimized && use_ssa) {
+
+  if (for_optimized) {
     // Link instructions backwards for optimized compilation.
     for (intptr_t i = 0; i < block_count; ++i) {
       BlockEntryInstr* entry = postorder_block_entries_[i];
@@ -2270,6 +2273,9 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
         previous = current;
       }
     }
+  }
+
+  if (for_optimized && use_ssa) {
     GrowableArray<BitVector*> dominance_frontier;
     ComputeDominators(&preorder_block_entries_, &parent, &dominance_frontier);
     InsertPhis(preorder_block_entries_,
@@ -2493,27 +2499,26 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
                        parsed_function().function().num_fixed_parameters()));
 
   // Initialize start environment.
-  ZoneGrowableArray<Value*>* start_env =
-      new ZoneGrowableArray<Value*>(var_count);
+  GrowableArray<Value*> start_env(var_count);
   intptr_t i = 0;
   for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
     ParameterInstr* param = new ParameterInstr(i);
-    param->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
-    start_env->Add(new UseVal(param));
+    param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+    start_env.Add(new UseVal(param));
   }
 
   // All locals are initialized with #null.
   Value* null_value = new ConstantVal(Object::ZoneHandle());
   for (; i < var_count; i++) {
-    start_env->Add(null_value);
+    start_env.Add(null_value);
   }
   graph_entry_->set_start_env(new Environment(start_env));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  ZoneGrowableArray<Value*>* env = new ZoneGrowableArray<Value*>(var_count);
-  env->AddArray(*start_env);
-  RenameRecursive(normal_entry, env, var_count);
+  GrowableArray<Value*> env(var_count);
+  env.AddArray(start_env);
+  RenameRecursive(normal_entry, &env, var_count);
 }
 
 
@@ -2536,7 +2541,7 @@ static Value* CopyValue(Value* value) {
 
 
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
-                                       ZoneGrowableArray<Value*>* env,
+                                       GrowableArray<Value*>* env,
                                        intptr_t var_count) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
@@ -2546,7 +2551,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*join->phis())[i];
         if (phi != NULL) {
           (*env)[i] = new UseVal(phi);
-          phi->set_ssa_temp_index(current_ssa_temp_index_++);  // New SSA temp.
+          phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
         }
       }
     }
@@ -2559,7 +2564,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // TODO(fschneider): Currently each instruction gets a full copy of the
     // enviroment. This should be optimized: Only instructions that can
     // deoptimize will should have uses of the environment values.
-    current->set_env(new Environment(env));
+    current->set_env(new Environment(*env));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -2615,7 +2620,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
         // Not a load or store.
         if (bind->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
-          bind->set_ssa_temp_index(current_ssa_temp_index_++);
+          bind->set_ssa_temp_index(alloc_ssa_temp_index());
           env->Add(new UseVal(bind));
         }
       }
@@ -2625,10 +2630,9 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   // 3. Process dominated blocks.
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
-    ZoneGrowableArray<Value*>* new_env =
-        new ZoneGrowableArray<Value*>(env->length());
-    new_env->AddArray(*env);
-    RenameRecursive(block, new_env, var_count);
+    GrowableArray<Value*> new_env(env->length());
+    new_env.AddArray(*env);
+    RenameRecursive(block, &new_env, var_count);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks

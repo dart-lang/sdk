@@ -301,7 +301,7 @@ class FixedSizeArrayIterator<E> implements Iterator<E> {
   }
 
   bool hasNext() {
-   return _length > _pos;
+    return _length > _pos;
   }
 
   E next() {

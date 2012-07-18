@@ -112,8 +112,9 @@ String _defaultErrorFormatter(actual, Matcher matcher, String reason) {
   description.add('Expected: ').addDescriptionOf(matcher).
       add('\n     but: ');
   matcher.describeMismatch(actual, description);
+  description.add('.\n');
   if (reason != null) {
-    description.add('\n').add(reason).add('\n');
+    description.add(reason).add('\n');
   }
   return description.toString();
 }

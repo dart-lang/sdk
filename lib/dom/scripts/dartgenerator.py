@@ -287,9 +287,8 @@ class DummyImplementationSystem(systembase.System):
   All the code comes from hand-written library files.
   """
 
-  def __init__(self, templates, database, emitters, output_dir):
-    super(DummyImplementationSystem, self).__init__(
-        templates, database, emitters, output_dir)
+  def __init__(self, options):
+    super(DummyImplementationSystem, self).__init__(options)
     factory_providers_file = os.path.join(self._output_dir, 'src', 'dummy',
                                           'RegularFactoryProviders.dart')
     self._factory_providers_emitter = self._emitters.FileEmitter(
@@ -334,7 +333,7 @@ class DummyInterfaceGenerator(systembase.BaseGenerator):
         self._system._templates.Load('factoryprovider.darttemplate'),
         FACTORYPROVIDER=factory_provider,
         CONSTRUCTOR=interface_name,
-        PARAMETERS=constructor_info.ParametersImplementationDeclaration())
+        PARAMETERS=constructor_info.ParametersImplementationDeclaration(DartType))
 
   def FinishInterface(self):
     pass

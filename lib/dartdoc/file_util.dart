@@ -2,26 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/** Abstraction for file systems and utility functions to manipulate paths. */
-#library('file_system');
+/**
+ * TODO(johnniwinther): Path manipulation copied from frog/file_system.dart.
+ * Should be converted to use Path from dart:io when this is completed.
+ */
+#library('file_util');
 
 /**
- * Abstraction around file system access to work in a variety of different
- * environments.
- */
-interface FileSystem {
-  String readAll(String filename);
-
-  void writeString(String outfile, String text);
-
-  bool fileExists(String filename);
-
-  void createDirectory(String path, [bool recursive]);
-  void removeDirectory(String path, [bool recursive]);
-}
-
-/** 
- * Replaces all back slashes (\) with forward slashes (/) in [path] and 
+ * Replaces all back slashes (\) with forward slashes (/) in [path] and
  * return the result.
  */
 String canonicalizePath(String path) {

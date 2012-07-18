@@ -34,7 +34,6 @@ Dart_NativeFunction NativeTestEntry_Lookup(const String& name,
         return entry->function_;
       } else {
         // Wrong number of arguments.
-        // TODO(regis): Should we pass a buffer for error reporting?
         return NULL;
       }
     }

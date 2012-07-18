@@ -62,14 +62,21 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
   }
   if (function.IsNull() ||
       !function.AreValidArgumentCounts(num_arguments,
-                                       num_named_arguments)) {
+                                       num_named_arguments,
+                                       NULL)) {
     // Return a null function to signal to the upper levels to dispatch to
     // "noSuchMethod" function.
     if (FLAG_trace_resolving) {
+      String& error_message = String::Handle(String::New("function not found"));
+      if (!function.IsNull()) {
+        // Obtain more detailed error message.
+        function.AreValidArgumentCounts(num_arguments,
+                                        num_named_arguments,
+                                        &error_message);
+      }
       OS::Print("ResolveDynamic error '%s': %s.\n",
                 function_name.ToCString(),
-                function.IsNull() ?
-                    "function not found" : "argument count mismatch");
+                error_message.ToCString());
     }
     return Function::null();
   }
@@ -90,10 +97,16 @@ RawFunction* Resolver::ResolveStatic(const Library& library,
     const Object& object = Object::Handle(library.LookupObject(function_name));
     if (!object.IsNull() && object.IsFunction()) {
       function ^= object.raw();
-      if (!function.AreValidArguments(num_arguments, argument_names)) {
+      if (!function.AreValidArguments(num_arguments, argument_names, NULL)) {
         if (FLAG_trace_resolving) {
+          String& error_message = String::Handle();
+          // Obtain more detailed error message.
+          function.AreValidArguments(num_arguments,
+                                     argument_names,
+                                     &error_message);
           OS::Print("ResolveStatic error '%s': %s.\n",
-                    function_name.ToCString(), "arguments mismatch");
+                    function_name.ToCString(),
+                    error_message.ToCString());
         }
         function = Function::null();
       }
@@ -156,14 +169,20 @@ RawFunction* Resolver::ResolveStatic(const Class&  cls,
   const Function& function = Function::Handle(
       ResolveStaticByName(cls, function_name, resolve_type));
   if (function.IsNull() ||
-      !function.AreValidArguments(num_arguments, argument_names)) {
+      !function.AreValidArguments(num_arguments, argument_names, NULL)) {
     // Return a null function to signal to the upper levels to throw a
     // resolution error or maybe throw the error right here.
     if (FLAG_trace_resolving) {
+      String& error_message = String::Handle(String::New("function not found"));
+      if (!function.IsNull()) {
+        // Obtain more detailed error message.
+        function.AreValidArguments(num_arguments,
+                                   argument_names,
+                                   &error_message);
+      }
       OS::Print("ResolveStatic error '%s': %s.\n",
                 function_name.ToCString(),
-                function.IsNull() ?
-                    "function not found" : "arguments mismatch");
+                error_message.ToCString());
     }
     return Function::null();
   }

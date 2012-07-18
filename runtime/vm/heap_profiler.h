@@ -297,8 +297,8 @@ class HeapProfilerWeakRootVisitor : public HandleVisitor {
 // Writes a sub-record to the heap dump for every object in the heap.
 class HeapProfilerObjectVisitor : public ObjectVisitor {
  public:
-  explicit HeapProfilerObjectVisitor(HeapProfiler* profiler)
-      : profiler_(profiler) {
+  HeapProfilerObjectVisitor(Isolate* isolate, HeapProfiler* profiler)
+      : ObjectVisitor(isolate), profiler_(profiler) {
   }
 
   virtual void VisitObject(RawObject* obj);

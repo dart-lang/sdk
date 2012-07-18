@@ -42,7 +42,7 @@ final Map<String,LibraryPatchPath> DART2JS_LIBRARY_MAP
   "json": const LibraryPatchPath(
       "lib/json/json.dart", null),
   "math": const LibraryPatchPath(
-      "lib/math/math.dart",
+      "corelib/unified/math/math.dart",
       "lib/compiler/implementation/lib/math.dartp"),
   "uri": const LibraryPatchPath(
       "lib/uri/uri.dart", null),

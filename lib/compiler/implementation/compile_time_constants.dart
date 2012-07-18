@@ -23,12 +23,12 @@ class Constant implements Hashable {
 
   bool isNaN() => false;
 
-  abstract void _writeJsCode(StringBuffer buffer, ConstantHandler handler);
+  abstract void _writeJsCode(CodeBuffer buffer, ConstantHandler handler);
   /**
     * Unless the constant can be emitted multiple times (as for numbers and
     * strings) adds its canonical name to the buffer.
     */
-  abstract void _writeCanonicalizedJsCode(StringBuffer buffer,
+  abstract void _writeCanonicalizedJsCode(CodeBuffer buffer,
                                           ConstantHandler handler);
   abstract List<Constant> getDependencies();
 }
@@ -50,7 +50,7 @@ class PrimitiveConstant extends Constant {
   List<Constant> getDependencies() => const <Constant>[];
   abstract DartString toDartString();
 
-  void _writeCanonicalizedJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
     _writeJsCode(buffer, handler);
   }
 }
@@ -64,7 +64,7 @@ class NullConstant extends PrimitiveConstant {
   bool isNull() => true;
   get value() => null;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add(JsNull);
   }
 
@@ -102,7 +102,7 @@ class IntConstant extends NumConstant {
   const IntConstant._internal(this.value);
   bool isInt() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add("$value");
   }
 
@@ -141,7 +141,7 @@ class DoubleConstant extends NumConstant {
   bool isDouble() => true;
   bool isNaN() => value.isNaN();
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     if (value.isNaN()) {
       buffer.add("(0/0)");
     } else if (value == double.INFINITY) {
@@ -192,7 +192,7 @@ class TrueConstant extends BoolConstant {
   const TrueConstant._internal() : super._internal();
   bool isTrue() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add("true");
   }
 
@@ -212,7 +212,7 @@ class FalseConstant extends BoolConstant {
   const FalseConstant._internal() : super._internal();
   bool isFalse() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add("false");
   }
 
@@ -238,7 +238,7 @@ class StringConstant extends PrimitiveConstant {
   }
   bool isString() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add("'");
     ConstantHandler.writeEscapedString(value, buffer, (reason) {
       handler.compiler.reportError(node, reason);
@@ -267,7 +267,7 @@ class ObjectConstant extends Constant {
   // currently allow this.
   abstract int hashCode();
 
-  void _writeCanonicalizedJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeCanonicalizedJsCode(CodeBuffer buffer, ConstantHandler handler) {
     String name = handler.getNameForConstant(this);
     buffer.add(handler.compiler.namer.isolatePropertiesAccessForConstant(name));
   }
@@ -285,7 +285,7 @@ class ListConstant extends ObjectConstant {
   }
   bool isList() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     // TODO(floitsch): we should not need to go through the compiler to make
     // the list constant.
     buffer.add("${handler.compiler.namer.ISOLATE}.makeConstantList");
@@ -347,7 +347,7 @@ class MapConstant extends ObjectConstant {
   }
   bool isMap() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
 
     void writeJsMap() {
       buffer.add("{");
@@ -446,7 +446,7 @@ class ConstructedConstant extends ObjectConstant {
   }
   bool isConstructedObject() => true;
 
-  void _writeJsCode(StringBuffer buffer, ConstantHandler handler) {
+  void _writeJsCode(CodeBuffer buffer, ConstantHandler handler) {
     buffer.add("new ");
     buffer.add(handler.getJsConstructor(type.element));
     buffer.add("(");
@@ -633,18 +633,18 @@ class ConstantHandler extends CompilerTask {
   }
 
   /** This function writes the constant in non-canonicalized form. */
-  StringBuffer writeJsCode(StringBuffer buffer, Constant value) {
+  CodeBuffer writeJsCode(CodeBuffer buffer, Constant value) {
     value._writeJsCode(buffer, this);
     return buffer;
   }
 
-  StringBuffer writeConstant(StringBuffer buffer, Constant value) {
+  CodeBuffer writeConstant(CodeBuffer buffer, Constant value) {
     value._writeCanonicalizedJsCode(buffer, this);
     return buffer;
   }
 
-  StringBuffer writeJsCodeForVariable(StringBuffer buffer,
-                                      VariableElement element) {
+  CodeBuffer writeJsCodeForVariable(CodeBuffer buffer,
+                                    VariableElement element) {
     if (!initialVariableValues.containsKey(element)) {
       compiler.internalError("No initial value for given element",
                              element: element);
@@ -655,12 +655,12 @@ class ConstantHandler extends CompilerTask {
   }
 
   /**
-   * Write the contents of the quoted string to a [StringBuffer] in
+   * Write the contents of the quoted string to a [CodeBuffer] in
    * a form that is valid as JavaScript string literal content.
    * The string is assumed quoted by single quote characters.
    */
   static void writeEscapedString(DartString string,
-                                 StringBuffer buffer,
+                                 CodeBuffer buffer,
                                  void cancel(String reason)) {
     Iterator<int> iterator = string.iterator();
     while (iterator.hasNext()) {

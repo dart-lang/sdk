@@ -25,8 +25,8 @@ class WorkItem {
   bool isAnalyzed() => resolutionTree !== null;
 
   String run(Compiler compiler, Enqueuer world) {
-    CodeBlock codeBlock = world.universe.generatedCode[element];
-    if (codeBlock !== null) return codeBlock.code;
+    CodeBuffer codeBuffer = world.universe.generatedCode[element];
+    if (codeBuffer !== null) return codeBuffer.toString();
     resolutionTree = compiler.analyze(this, world);
     return compiler.codegen(this, world);
   }
@@ -44,7 +44,7 @@ class Backend {
   }
 
   abstract void enqueueHelpers(Enqueuer world);
-  abstract CodeBlock codegen(WorkItem work);
+  abstract CodeBuffer codegen(WorkItem work);
   abstract void processNativeClasses(Enqueuer world,
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
@@ -86,13 +86,13 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  CodeBlock codegen(WorkItem work) {
+  CodeBuffer codegen(WorkItem work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     if (work.allowSpeculativeOptimization
         && optimizer.trySpeculativeOptimizations(work, graph)) {
-      CodeBlock codeBlock = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, codeBlock);
+      CodeBuffer codeBuffer = generator.generateBailoutMethod(work, graph);
+      compiler.codegenWorld.addBailoutCode(work, codeBuffer);
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
@@ -125,7 +125,7 @@ class JavaScriptBackend extends Backend {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
     if (!fieldInitializers.containsKey(field.enclosingElement)) {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
     Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
     return fields[field];
@@ -153,6 +153,7 @@ class JavaScriptBackend extends Backend {
   }
 
   // Provide an optimistic estimate of the type of a field after construction.
+  // If the constructor body has setters for fields returns HType.UNKNOWN.
   // This only takes the initializer lists and field assignments in the
   // constructor body into account. The constructor body might have method calls
   // that could alter the field.
@@ -161,19 +162,20 @@ class JavaScriptBackend extends Backend {
     assert(field.enclosingElement.isClass());
 
     if (hasConstructorBodyFieldSetter(field)) {
-      // If there are field setters for this field in some constructor only one
-      // constructor then the type set will be the field type after
-      // construction.
-      if (field.enclosingElement.constructors.length == 1) {
+      // If there are field setters but there is only constructor then the type
+      // of the field is determined by the assignments in the constructor
+      // body.
+      ClassElement classElement = field.enclosingElement;
+      if (classElement.constructors.length == 1) {
         return fieldConstructorSetters[field.enclosingElement][field];
       } else {
         return HType.UNKNOWN;
       }
     } else if (fieldInitializers.containsKey(field.enclosingElement)) {
       HType type = fieldInitializers[field.enclosingElement][field];
-      return type == null ? HType.UNKNOWN : type;
+      return type == null ? HType.CONFLICTING : type;
     } else {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
   }
 
@@ -196,10 +198,10 @@ class JavaScriptBackend extends Backend {
     assert(field.isField());
     assert(field.enclosingElement.isClass());
     if (!fieldSettersType.containsKey(field.enclosingElement)) {
-      return HType.UNKNOWN;
+      return HType.CONFLICTING;
     }
     Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
-    if (!fields.containsKey(field)) return HType.UNKNOWN;
+    if (!fields.containsKey(field)) return HType.CONFLICTING;
     return fields[field];
   }
 }
@@ -521,43 +523,9 @@ class Compiler implements DiagnosticListener {
 
   void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
     Link<Element> patches = patch.topLevelElements;
+    applyContainerPatch(original, patches, original.findLocal);
 
-    // Copy/patch top-level elements.
-    while (!patches.isEmpty()) {
-      Element patchElement = patches.head;
-      Element originalElement = original.elements[patchElement.name];
-      // Getters and setters are kept inside a synthetic field.
-      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
-        if (originalElement !== null &&
-            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
-          internalError("Cannot patch non-getter/setter with getter/setter",
-                        element: originalElement);
-        }
-        AbstractFieldElement patchField = patchElement;
-        AbstractFieldElement originalField = originalElement;
-        if (patchField.getter !== null) {
-          if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter));
-          } else {
-            patchMember(originalField.getter, patchField.getter);
-          }
-        }
-        if (patchField.setter !== null) {
-          if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter));
-          } else {
-            patchMember(originalField.setter, patchField.setter);
-          }
-        }
-      } else if (originalElement === null) {
-        original.addMember(clonePatch(patchElement));
-      } else {
-        patchMember(originalElement, patchElement);
-      }
-      patches = patches.tail;
-    }
-
-    // Copy imports.
+    // Copy imports from patch to original library.
     Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
     Uri patchBase = patch.script.uri;
     for (ScriptTag tag in patch.tags.reverse()) {
@@ -583,6 +551,55 @@ class Compiler implements DiagnosticListener {
     });
   }
 
+  void applyContainerPatch(ContainerElement original, Link<Element> patches,
+                           Element lookup(SourceString name)) {
+    while (!patches.isEmpty()) {
+      Element patchElement = patches.head;
+      Element originalElement = lookup(patchElement.name);
+      // Getters and setters are kept inside a synthetic field.
+      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        if (originalElement !== null &&
+            originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
+          internalError("Cannot patch non-getter/setter with getter/setter",
+                        element: originalElement);
+        }
+        AbstractFieldElement patchField = patchElement;
+        AbstractFieldElement originalField = originalElement;
+        if (patchField.getter !== null) {
+          if (originalField === null || originalField.getter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.getter),
+                                       originalField,
+                                       this);
+            if (originalField === null && patchField.setter !== null) {
+              // It exists now, so find it for the setter patching.
+              originalField = lookup(patchElement.name);
+            }
+          } else {
+            patchMember(originalField.getter, patchField.getter);
+          }
+        }
+        if (patchField.setter !== null) {
+          if (originalField === null || originalField.setter === null) {
+            original.addGetterOrSetter(clonePatch(patchField.setter),
+                                       originalField,
+                                       this);
+          } else {
+            patchMember(originalField.setter, patchField.setter);
+          }
+        }
+      } else if (originalElement === null) {
+        if (isPatchElement(patchElement)) {
+          internalError("Cannot patch non-existing member '"
+                        "${patchElement.name.slowToString()}'.");
+        }
+        original.addMember(clonePatch(patchElement), this);
+      } else {
+        patchMember(originalElement, patchElement);
+      }
+      patches = patches.tail;
+    }
+  }
+
   bool isPatchElement(Element element) {
     // TODO(lrn): More checks needed if we introduce metadata for real.
     // In that case, it must have the identifier "native" as metadata.
@@ -594,22 +611,16 @@ class Compiler implements DiagnosticListener {
     // as the patch library element.
     // In this case, the patch library element must not be marked as "patch",
     // and its name must make it private.
-    if (isPatchElement(patchElement)) {
-      internalError("Cannot patch non-existing member '"
-                      "${patchElement.name.slowToString()}'.");
-
-    }
     if (!patchElement.name.isPrivate()) {
       internalError("Cannot add non-private member '"
                     "${patchElement.name.slowToString()}' from patch.");
     }
-    // TODO(lrn): Create a copy of patchElement that isn't added to anything,
-    // but which takes its source from patchElement.
+    // TODO(lrn): Create a copy of patchElement that isn't added to any
+    // object/library yet, but which takes its source from patchElement.
     throw "Adding members from patch is unsupported";
   }
 
-  void patchMember(Element originalElement,
-                   Element patchElement) {
+  void patchMember(Element originalElement, Element patchElement) {
     // The original library has an element with the same name as the patch
     // library element.
     // In this case, the patch library element must be a function marked as
@@ -618,18 +629,30 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot overwrite existing '"
                     "${originalElement.name.slowToString()}' with non-patch.");
     }
+    if (originalElement is PartialClassElement) {
+      // Only happens when patching a library. Dart does not, yet, have nested
+      // classes.
+      if (patchElement is! PartialClassElement) {
+        internalError("Trying to patch class with non-class",
+                      element:originalElement);
+      }
+      applyClassPatch(originalElement, patchElement);
+      return;
+    }
     if (originalElement is! FunctionElement) {
       // TODO(lrn): Handle class declarations too.
       internalError("Can only patch functions", element: originalElement);
     }
-    // TODO(lrn): Abort if the original isn't marked external, when
-    // that is added to the language.
-    if (patchElement is! FunctionElement ||
-        !patchSignatureMatches(originalElement, patchElement)) {
-      internalError("Can only patch functions with matching signatures",
-                    element: originalElement);
+    FunctionElement original = originalElement;
+    if (!original.modifiers.isExternal()) {
+      internalError("Can only patch external functions.", element: original);
     }
-    applyFunctionPatch(originalElement, patchElement);
+    if (patchElement is! FunctionElement ||
+        !patchSignatureMatches(original, patchElement)) {
+      internalError("Can only patch functions with matching signatures",
+                    element: original);
+    }
+    applyFunctionPatch(original, patchElement);
   }
 
   bool patchSignatureMatches(FunctionElement original, FunctionElement patch) {
@@ -640,7 +663,6 @@ class Compiler implements DiagnosticListener {
 
   void applyFunctionPatch(FunctionElement element,
                           FunctionElement patchElement) {
-    // Don't just assign the patch field. This also updates the cachedNode.
     if (element.isPatched) {
       internalError("Trying to patch a function more than once.",
                     element: element);
@@ -649,7 +671,25 @@ class Compiler implements DiagnosticListener {
       internalError("Trying to patch an already compiled function.",
                     element: element);
     }
+    // Don't just assign the patch field. This also updates the cachedNode.
     element.setPatch(patchElement);
+  }
+
+  void applyClassPatch(PartialClassElement original,
+                       PartialClassElement patch) {
+    // Eagerly parse the class so we can patch it.
+    // TODO(lrn): Perhaps find a way to delay parsing until the class is needed,
+    // i.e., until [parseNode] is called on [original].
+    ClassNode node = original.parseNode(this);
+    // Parse patch class with "patch" parser.
+    ClassNode patchNode = patchParser.parsePatchClassNode(patch);
+    Link<Element> patches = patch.members;
+    Element lookupMemberOrConstructor(SourceString name) {
+      Element result = original.lookupLocalMember(name);
+      if (result !== null) return result;
+      return original.lookupConstructor(name);
+    }
+    applyContainerPatch(original, patches, lookupMemberOrConstructor);
   }
 
   /**
@@ -733,11 +773,11 @@ class Compiler implements DiagnosticListener {
     assert(phase == PHASE_RECOMPILING);
     while (!world.recompilationCandidates.isEmpty()) {
       WorkItem work = world.recompilationCandidates.next();
-      String oldCode = world.universe.generatedCode[work.element].code;
+      CodeBuffer oldCode = world.universe.generatedCode[work.element];
       world.universe.generatedCode.remove(work.element);
       world.universe.generatedBailoutCode.remove(work.element);
       withCurrentElement(work.element, () => work.run(this, world));
-      String newCode = world.universe.generatedCode[work.element].code;
+      CodeBuffer newCode = world.universe.generatedCode[work.element];
       if (REPORT_PASS2_OPTIMIZATIONS && newCode != oldCode) {
         log("Pass 2 optimization:");
         log("Before:\n$oldCode");
@@ -857,9 +897,9 @@ class Compiler implements DiagnosticListener {
       constantHandler.compileWorkItem(work);
       return null;
     } else {
-      CodeBlock codeBlock = backend.codegen(work);
-      codegenWorld.addGeneratedCode(work, codeBlock);
-      return codeBlock.code;
+      CodeBuffer codeBuffer = backend.codegen(work);
+      codegenWorld.addGeneratedCode(work, codeBuffer);
+      return codeBuffer.toString();
     }
   }
 
@@ -937,7 +977,7 @@ class Compiler implements DiagnosticListener {
       // URI.
       throw 'Cannot find tokens to produce error message.';
     }
-    if (uri === null) {
+    if (uri === null && currentElement !== null) {
       uri = currentElement.getCompilationUnit().script.uri;
     }
     return SourceSpan.withCharacterOffsets(begin, end,
@@ -1049,4 +1089,6 @@ class SourceSpan {
     assert(endOffset >= beginOffset);
     return f(beginOffset, endOffset);
   }
+
+  String toString() => 'SourceSpan($uri, $begin, $end)';
 }

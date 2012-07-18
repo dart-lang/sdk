@@ -525,6 +525,10 @@ class Assembler : public ValueObject {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
+  // Preserve and restore caller save registers according to the C ABI.
+  void PreserveCallerSavedRegisters();
+  void RestoreCallerSavedRegisters();
+
   void CallRuntime(const RuntimeEntry& entry);
 
   /*
@@ -573,6 +577,8 @@ class Assembler : public ValueObject {
 
   void Comment(const char* format, ...);
   const Code::Comments& GetCodeComments() const;
+
+  static const char* RegisterName(Register reg);
 
  private:
   AssemblerBuffer buffer_;

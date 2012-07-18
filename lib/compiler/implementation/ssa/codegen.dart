@@ -11,9 +11,9 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
-  CodeBlock buildJavaScriptFunction(FunctionElement element,
-                                    String parameters,
-                                    String body) {
+  CodeBuffer buildJavaScriptFunction(FunctionElement element,
+                                     String parameters,
+                                     String body) {
     String extraSpace = "";
     // Members are emitted inside a JavaScript object literal. To line up the
     // indentation we want the closing curly brace to be indented by one space.
@@ -33,18 +33,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
       extraSpace = " ";
     }
 
-    String code = 'function($parameters) {\n$body$extraSpace}';
-    List<SourceMappingEntry> sourceMappings = new List<SourceMappingEntry>();
-    SourceFile sourceFile = element.getCompilationUnit().script.file;
     FunctionExpression expression = element.cachedNode;
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getBeginToken().charOffset, 0));
-    sourceMappings.add(new SourceMappingEntry(
-      sourceFile, expression.getEndToken().charOffset, code.length - 1));
-    return new CodeBlock(code, sourceMappings);
+    CodeBuffer buffer = new CodeBuffer();
+    buffer.setSourceLocation(element, expression.getBeginToken());
+    buffer.add('function($parameters) {\n');
+    buffer.add(body);
+    buffer.add(extraSpace);
+    buffer.setSourceLocation(element, expression.getEndToken());
+    buffer.add('}');
+    return buffer;
   }
 
-  CodeBlock generateMethod(WorkItem work, HGraph graph) {
+  CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
@@ -78,7 +78,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
     });
   }
 
-  CodeBlock generateBailoutMethod(WorkItem work, HGraph graph) {
+  CodeBuffer generateBailoutMethod(WorkItem work, HGraph graph) {
     return measure(() {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
@@ -152,7 +152,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final JavaScriptBackend backend;
   final WorkItem work;
-  final StringBuffer buffer;
+  final CodeBuffer buffer;
   final String parameters;
 
   final Set<HInstruction> generateAtUseSite;
@@ -251,7 +251,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                    this.parameterNames)
     : declaredVariables = new Set<String>(),
       delayedVariableDeclarations = new Set<String>(),
-      buffer = new StringBuffer(),
+      buffer = new CodeBuffer(),
       generateAtUseSite = new Set<HInstruction>(),
       controlFlowOperators = new Set<HInstruction>(),
       breakAction = new Map<Element, ElementAction>(),
@@ -1231,45 +1231,35 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitIdentityComparison(HInstruction left, HInstruction right) {
-    HType leftType = left.propagatedType;
-    HType rightType = right.propagatedType;
-    if (leftType.canBeNull() && rightType.canBeNull()) {
-      if (left.isConstantNull() || right.isConstantNull() ||
-          (leftType.isPrimitive() && leftType == rightType)) {
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(' == ');
-        use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      } else {
-        assert(NullConstant.JsNull == 'null');
-        withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
-          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' == null');
-          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' ? ');
-          this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
-          withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
-            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
-            buffer.add(' == null');
-            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-            buffer.add(" : ");
-            beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-            use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-            buffer.add(' === ');
-            use(right, JSPrecedence.EQUALITY_PRECEDENCE);
-            endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          });
-        });
-      }
-    } else {
+    String op = singleIdentityComparison(left, right);
+    if (op != null) {
       beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
       use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' === ');
+      buffer.add(' $op ');
       use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
       endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    } else {
+      assert(NullConstant.JsNull == 'null');
+      withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
+        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(' == null');
+        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        buffer.add(' ? ');
+        this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
+        withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
+          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' == null');
+          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(" : ");
+          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+          use(left, JSPrecedence.EQUALITY_PRECEDENCE);
+          buffer.add(' === ');
+          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
+          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+        });
+      });
     }
   }
 
@@ -1739,12 +1729,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
         world.registerDynamicInvocationOf(node.element);
       } else {
-        if (inLoop) {
-          backend.builder.selectorsCalledInLoop[node.name] = node.selector;
-        }
-        world.registerDynamicInvocation(
-            node.name,
-            getOptimizedSelectorFor(node, node.selector));
+        Selector selector = getOptimizedSelectorFor(node, node.selector);
+        world.registerDynamicInvocation(node.name, selector);
+        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
@@ -1846,6 +1833,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  // Determine if an instruction is a simple number computation
+  // involving only things with guaranteed number types and a given
+  // field.
+  bool isSimpleFieldNumberComputation(HInstruction value, HFieldSet node) {
+    if (value.guaranteedType.union(HType.NUMBER) == HType.NUMBER) return true;
+    if (value is HBinaryArithmetic) {
+      return (isSimpleFieldNumberComputation(value.left, node) &&
+              isSimpleFieldNumberComputation(value.right, node));
+    }
+    if (value is HFieldGet) return value.element == node.element;
+    return false;
+  }
+
   visitFieldSet(HFieldSet node) {
     if (work.element.isGenerativeConstructorBody() &&
         node.element.enclosingElement.isClass() &&
@@ -1864,8 +1864,20 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       if (!work.element.isGenerativeConstructorBody()) {
         world.registerFieldSetter(node.element.name, type);
       }
-      backend.updateFieldSetters(node.element,
-                                 node.value.propagatedType);
+      // Determine the types seen so far for the field. If only number
+      // types have been seen and the value of the field set is a
+      // simple number computation only depending on that field, we
+      // can safely keep the number type for the field.
+      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
+      HType initializersType = backend.typeFromInitializersSoFar(node.element);
+      HType fieldType = fieldSettersType.union(initializersType);
+      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
+          isSimpleFieldNumberComputation(node.value, node)) {
+        backend.updateFieldSetters(node.element, HType.NUMBER);
+      } else {
+        backend.updateFieldSetters(node.element,
+                                   node.value.propagatedType);
+      }
     }
     buffer.add(' = ');
     use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
@@ -2844,8 +2856,8 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
-  final StringBuffer setup;
-  final StringBuffer newParameters;
+  final CodeBuffer setup;
+  final CodeBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
 
@@ -2854,8 +2866,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameters, parameterNames),
-      setup = new StringBuffer(),
-      newParameters = new StringBuffer(),
+      setup = new CodeBuffer(),
+      newParameters = new CodeBuffer(),
       labels = <String>[];
 
   String pushLabel() {
@@ -3113,5 +3125,21 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     if (labeledBlockInfo.body.start.hasGuards()) {
       endBailoutSwitch();
     }
+  }
+}
+
+String singleIdentityComparison(HInstruction left, HInstruction right) {
+  // Returns the single identity comparison (== or ===) or null if a more
+  // complex expression is required.
+  HType leftType = left.propagatedType;
+  HType rightType = right.propagatedType;
+  if (leftType.canBeNull() && rightType.canBeNull()) {
+    if (left.isConstantNull() || right.isConstantNull() ||
+        (leftType.isPrimitive() && leftType == rightType)) {
+      return '==';
+    }
+    return null;
+  } else {
+    return '===';
   }
 }

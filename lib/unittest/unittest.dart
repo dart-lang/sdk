@@ -360,7 +360,7 @@ class _SpreadArgsHelper {
     // Always run except if the test is done.
     if (_testCase.isComplete) {
       _testCase.error(
-          'Callback called after already being marked as done ($_calls)',
+          'Callback called after already being marked as done ($_calls).',
           '');
       _state = _UNCAUGHT_ERROR;
       return false;
@@ -387,7 +387,8 @@ class _SpreadArgsHelper {
         return _callback(arg0, arg1, arg2, arg3);
       } else {
         _testCase.error(
-           'unittest lib does not support callbacks with more than 4 arguments',
+           'unittest lib does not support callbacks with more than'
+              ' 4 arguments.',
            '');
         _state = _UNCAUGHT_ERROR;
       }
@@ -433,7 +434,7 @@ class _SpreadArgsHelper {
     if (_calls > _expectedCalls) {
       _testCase.error(
           'Callback called more times than expected '
-             '($_calls > $_expectedCalls)',
+             '($_calls > $_expectedCalls).',
           '');
       _state = _UNCAUGHT_ERROR;
       return false;
@@ -592,7 +593,7 @@ void _handleAllCallbacksDone() {
         final expected = testCase.callbacks;
         testCase.error(
             'More calls to _handleAllCallbacksDone() than expected. '
-            'Actual: ${_callbacksCalled}, expected: ${expected}', '');
+            'Actual: ${_callbacksCalled}, expected: ${expected}.', '');
         _state = _UNCAUGHT_ERROR;
       } else if ((_callbacksCalled == testCase.callbacks) &&
           (_state != _RUNNING_TEST)) {
@@ -669,13 +670,25 @@ _runTests() {
 guardAsync(tryBody, [finallyBody]) {
   try {
     return tryBody();
-  } catch (ExpectException e, var trace) {
+  } catch (var e, var trace) {
+    registerException(e, trace);
+  } finally {
+    _state = _READY;
+    if (finallyBody != null) finallyBody();
+  }
+}
+
+/**
+ * Registers that an exception was caught for the current test.
+ */
+registerException(e, [trace]) {
+  if (e is ExpectException) {
     Expect.isTrue(_currentTest < _tests.length);
     if (_state != _UNCAUGHT_ERROR) {
       _tests[_currentTest].fail(e.message,
           trace == null ? '' : trace.toString());
     }
-  } catch (var e, var trace) {
+  } else {
     if (_state == _RUNNING_TEST) {
       // If a random exception is thrown from within a test, we consider that
       // a test failure too. A test case implicitly has an expectation that it
@@ -686,9 +699,6 @@ guardAsync(tryBody, [finallyBody]) {
       _tests[_currentTest].error('Caught $e',
           trace == null ? '' : trace.toString());
     }
-  } finally {
-    _state = _READY;
-    if (finallyBody != null) finallyBody();
   }
 }
 

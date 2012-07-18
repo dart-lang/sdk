@@ -10,23 +10,23 @@
 class StringDescription implements Description {
   var _out;
 
-  /**
-   * Initialize the description with initial contents [init].
-   */
+  /** Initialize the description with initial contents [init]. */
   StringDescription([String init = '']) {
     _out = init;
   }
 
-  /**
-   * Get the description as a string.
-   */
+  /** Get the description as a string. */
   String toString() => _out;
 
-  /**
-   * Append some plain [text] to the description.
-   */
+  /** Append some plain [text] to the description.  */
   Description add(String text) {
     _out = '${_out}${text}';
+    return this;
+  }
+
+  /** Change the value of the description. */
+  Description replace(String text) {
+    _out = text;
     return this;
   }
 

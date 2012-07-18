@@ -32,11 +32,13 @@ class DeoptimizationStub;
 class FrameRegisterAllocator : public ValueObject {
  public:
   FrameRegisterAllocator(FlowGraphCompiler* compiler,
-                         bool keep_values_in_registers)
+                         bool keep_values_in_registers,
+                         bool is_ssa)
       : compiler_(compiler),
         stack_(kNumberOfCpuRegisters),
         registers_(),
-        keep_values_in_registers_(keep_values_in_registers) {
+        keep_values_in_registers_(keep_values_in_registers && !is_ssa),
+        is_ssa_(is_ssa) {
     for (int i = 0; i < kNumberOfCpuRegisters; i++) {
       registers_[i] = NULL;
     }
@@ -90,8 +92,78 @@ class FrameRegisterAllocator : public ValueObject {
   BindInstr* registers_[kNumberOfCpuRegisters];
 
   const bool keep_values_in_registers_;
+  const bool is_ssa_;
 
   DISALLOW_COPY_AND_ASSIGN(FrameRegisterAllocator);
+};
+
+
+class ParallelMoveResolver : public ValueObject {
+ public:
+  explicit ParallelMoveResolver(FlowGraphCompiler* compiler);
+
+  // Resolve a set of parallel moves, emitting assembler instructions.
+  void EmitNativeCode(ParallelMoveInstr* parallel_move);
+
+ private:
+  // Build the initial list of moves.
+  void BuildInitialMoveList(ParallelMoveInstr* parallel_move);
+
+  // Perform the move at the moves_ index in question (possibly requiring
+  // other moves to satisfy dependencies).
+  void PerformMove(int index);
+
+  // Emit a move and remove it from the move graph.
+  void EmitMove(int index);
+
+  // Execute a move by emitting a swap of two operands.  The move from
+  // source to destination is removed from the move graph.
+  void EmitSwap(int index);
+
+  // Verify the move list before performing moves.
+  void Verify();
+
+  FlowGraphCompiler* compiler_;
+
+  // List of moves not yet resolved.
+  GrowableArray<MoveOperands> moves_;
+};
+
+
+class DeoptimizationStub : public ZoneAllocated {
+ public:
+  DeoptimizationStub(intptr_t deopt_id,
+                     intptr_t deopt_token_pos,
+                     intptr_t try_index,
+                     DeoptReasonId reason)
+      : deopt_id_(deopt_id),
+        deopt_token_pos_(deopt_token_pos),
+        try_index_(try_index),
+        reason_(reason),
+        registers_(2),
+        deoptimization_env_(NULL),
+        entry_label_() {}
+
+  void Push(Register reg) { registers_.Add(reg); }
+  Label* entry_label() { return &entry_label_; }
+
+  // Implementation is in architecture specific file.
+  void GenerateCode(FlowGraphCompiler* compiler);
+
+  void set_deoptimization_env(Environment* env) {
+    deoptimization_env_ = env;
+  }
+
+ private:
+  const intptr_t deopt_id_;
+  const intptr_t deopt_token_pos_;
+  const intptr_t try_index_;
+  const DeoptReasonId reason_;
+  GrowableArray<Register> registers_;
+  const Environment* deoptimization_env_;
+  Label entry_label_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
 };
 
 }  // namespace dart

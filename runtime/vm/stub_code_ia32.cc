@@ -89,9 +89,10 @@ void StubCode::GenerateCallToRuntimeStub(Assembler* assembler) {
 
 
 // Print the stop message.
-static void PrintStopMessage(const char* message) {
+DEFINE_LEAF_RUNTIME_ENTRY(void, PrintStopMessage, const char* message) {
   OS::Print("Stop message: %s\n", message);
 }
+END_LEAF_RUNTIME_ENTRY
 
 
 // Input parameters:
@@ -99,33 +100,16 @@ static void PrintStopMessage(const char* message) {
 //   EAX : stop message (const char*).
 // Must preserve all registers, except EAX.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  // Preserve caller-saved registers.
-  __ pushl(ECX);
-  __ pushl(EDX);
+  __ enter(Immediate(0));
+  __ PreserveCallerSavedRegisters();
 
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
-
-  // Reserve space for the native argument and align frame before entering
-  // the C++ world.
-  __ AddImmediate(ESP, Immediate(-sizeof(kWordSize)));
-  if (OS::ActivationFrameAlignment() > 0) {
-    __ andl(ESP, Immediate(~(OS::ActivationFrameAlignment() - 1)));
-  }
-
-  // Pass argument and call native function.
+  // Call the runtime leaf function.
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), EAX);
-  __ movl(EAX, Immediate(reinterpret_cast<uword>(&PrintStopMessage)));
-  __ call(EAX);
-  __ popl(EAX);
+  __ CallRuntime(kPrintStopMessageRuntimeEntry);
 
-  __ LeaveFrame();
-
-  // Restore caller-saved registers.
-  __ popl(EDX);
-  __ popl(ECX);
-
+  __ RestoreCallerSavedRegisters();
+  __ leave();
   __ ret();
 }
 
@@ -1079,49 +1063,61 @@ void StubCode::GenerateAllocateContextStub(Assembler* assembler) {
   __ ret();
 }
 
+DECLARE_LEAF_RUNTIME_ENTRY(void, StoreBufferBlockProcess, Isolate* isolate);
 
 // Helper stub to implement Assembler::StoreIntoObject.
 // Input parameters:
 //   EAX: Address being stored
 void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Save values being destroyed.
-  __ pushl(CTX);
-  __ pushl(EBX);
+  __ pushl(EDX);
+  __ pushl(ECX);
 
   // Load the isolate out of the context.
+  // Spilled: EDX, ECX
   // EAX: Address being stored
-  __ movl(CTX, FieldAddress(CTX, Context::isolate_offset()));
+  __ movl(EDX, FieldAddress(CTX, Context::isolate_offset()));
 
   // Load top_ out of the StoreBufferBlock and add the address to the pointers_.
+  // Spilled: EDX, ECX
   // EAX: Address being stored
-  // CTX: Isolate
+  // EDX: Isolate
   intptr_t store_buffer_offset = Isolate::store_buffer_block_offset();
-  __ movl(EBX,
-          Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()));
-  __ movl(Address(CTX,
-                  EBX, TIMES_4,
+  __ movl(ECX,
+          Address(EDX, store_buffer_offset + StoreBufferBlock::top_offset()));
+  __ movl(Address(EDX,
+                  ECX, TIMES_4,
                   store_buffer_offset + StoreBufferBlock::pointers_offset()),
           EAX);
 
   // Increment top_ and check for overflow.
-  // EBX: top_
-  // CTX: Isolate
+  // Spilled: EDX, ECX
+  // ECX: top_
+  // EDX: Isolate
   Label L;
-  __ incl(EBX);
-  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          EBX);
-  __ cmpl(EBX, Immediate(StoreBufferBlock::kSize));
-  __ j(NOT_EQUAL, &L, Assembler::kNearJump);
-
-  // Handle overflow: Reset the top_ pointer.
-  // CTX: Isolate
-  __ movl(Address(CTX, store_buffer_offset + StoreBufferBlock::top_offset()),
-          Immediate(0));
-
-  __ Bind(&L);
+  __ incl(ECX);
+  __ movl(Address(EDX, store_buffer_offset + StoreBufferBlock::top_offset()),
+          ECX);
+  __ cmpl(ECX, Immediate(StoreBufferBlock::kSize));
   // Restore values.
-  __ popl(EBX);
-  __ popl(CTX);
+  // Spilled: EDX, ECX
+  __ popl(ECX);
+  __ popl(EDX);
+  __ j(EQUAL, &L, Assembler::kNearJump);
+  __ ret();
+
+  // Handle overflow: Call the runtime leaf function.
+  __ Bind(&L);
+  // Setup frame, push callee-saved registers.
+  __ enter(Immediate(0));
+  __ PreserveCallerSavedRegisters();
+  __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
+  __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
+  __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
+  // Restore callee-saved registers, tear down frame.
+  __ RestoreCallerSavedRegisters();
+  __ leave();
   __ ret();
 }
 
@@ -1813,10 +1809,9 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
   __ movl(EAX, Address(ESP, kInstanceOffsetInBytes));
-  __ LoadClass(ECX, EAX, EBX);
-  // EAX: instance, ECX: instance-class.
-  // Get instance type arguments
   if (n > 1) {
+    // Get instance type arguments.
+    __ LoadClass(ECX, EAX, EBX);
     // Compute instance type arguments into EBX.
     Label has_no_type_arguments;
     __ movl(EBX, raw_null);
@@ -1827,6 +1822,8 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
     __ movl(EBX, FieldAddress(EAX, EDI, TIMES_1, 0));
     __ Bind(&has_no_type_arguments);
   }
+  __ LoadClassId(ECX, EAX);
+  // EAX: instance, ECX: instance class id.
   // EBX: instance type arguments (null if none), used only if n > 1.
   __ movl(EDX, Address(ESP, kCacheOffsetInBytes));
   // EDX: SubtypeTestCache.
@@ -1835,10 +1832,11 @@ static void GenerateSubtypeNTestCacheStub(Assembler* assembler, int n) {
 
   Label loop, found, not_found, next_iteration;
   // EDX: Entry start.
-  // ECX: instance class.
-  // EBX: instance type arguments
+  // ECX: instance class id.
+  // EBX: instance type arguments.
+  __ SmiTag(ECX);
   __ Bind(&loop);
-  __ movl(EDI, Address(EDX, kWordSize * SubtypeTestCache::kInstanceClass));
+  __ movl(EDI, Address(EDX, kWordSize * SubtypeTestCache::kInstanceClassId));
   __ cmpl(EDI, raw_null);
   __ j(EQUAL, &not_found, Assembler::kNearJump);
   __ cmpl(EDI, ECX);

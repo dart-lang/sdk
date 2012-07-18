@@ -64,6 +64,12 @@ void FlowGraphPrinter::PrintInstruction(Instruction* instr) {
   if (FLAG_print_environments && (instr->env() != NULL)) {
     instr->env()->PrintTo(&f);
   }
+  if (print_locations_ && (instr->locs() != NULL)) {
+    instr->locs()->PrintTo(&f);
+  }
+  if (instr->lifetime_position() != -1) {
+    OS::Print("%3d: ", instr->lifetime_position());
+  }
   OS::Print("%s", str);
 }
 
@@ -76,10 +82,35 @@ void FlowGraphPrinter::PrintComputation(Computation* comp) {
 }
 
 
+static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
+  f->Print(" IC[%d: ", ic_data.NumberOfChecks());
+  Function& target = Function::Handle();
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    GrowableArray<intptr_t> class_ids;
+    ic_data.GetCheckAt(i, &class_ids, &target);
+    if (i > 0) {
+      f->Print(" | ");
+    }
+    for (intptr_t k = 0; k < class_ids.length(); k++) {
+      if (k > 0) {
+        f->Print(", ");
+      }
+      const Class& cls =
+          Class::Handle(Isolate::Current()->class_table()->At(class_ids[k]));
+      f->Print("%s", String::Handle(cls.Name()).ToCString());
+    }
+  }
+  f->Print("]");
+}
+
+
 void Computation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s(", DebugName());
+  f->Print("%s:%d(", DebugName(), cid());
   PrintOperandsTo(f);
   f->Print(")");
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -135,6 +166,15 @@ void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
   }
 }
 
+
+void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
+  f->Print("%s(", DebugName());
+  instance_call()->PrintOperandsTo(f);
+  f->Print(") ");
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
+}
 
 void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
@@ -403,13 +443,13 @@ void ReThrowInstr::PrintTo(BufferFormatter* f) const {
 void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   f->Print("if ");
-  value()->PrintTo(f);
   if (is_fused_with_comparison()) {
-    f->Print(" (fused)");
+    if (is_negated()) f->Print(" not ");
+    fused_with_comparison_->PrintTo(f);
+  } else {
+    value()->PrintTo(f);
   }
-  if (is_negated()) {
-    f->Print(" (negated)");
-  }
+
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());
@@ -417,7 +457,11 @@ void BranchInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
-  UNIMPLEMENTED();
+  f->Print("    %s ", DebugName());
+  for (intptr_t i = 0; i < moves_.length(); i++) {
+    if (i != 0) f->Print(", ");
+    f->Print("%s = %s", moves_[i].dest().Name(), moves_[i].src().Name());
+  }
 }
 
 
@@ -667,6 +711,9 @@ void Environment::PrintTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
+    if ((i < locations_.length()) && !locations_[i].IsInvalid()) {
+      f->Print(" [%s]", locations_[i].Name());
+    }
   }
   f->Print(" }");
 }

@@ -1525,6 +1525,20 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
+void Assembler::PreserveCallerSavedRegisters() {
+  pushl(EAX);
+  pushl(ECX);
+  pushl(EDX);
+}
+
+
+void Assembler::RestoreCallerSavedRegisters() {
+  popl(EDX);
+  popl(ECX);
+  popl(EAX);
+}
+
+
 void Assembler::CallRuntime(const RuntimeEntry& entry) {
   entry.Call(this);
 }
@@ -1741,6 +1755,17 @@ const Code::Comments& Assembler::GetCodeComments() const {
   }
 
   return comments;
+}
+
+
+static const char* cpu_reg_names[kNumberOfCpuRegisters] = {
+  "eax", "ecx", "edx", "ebx", "esp", "ebp", "esi", "edi"
+};
+
+
+const char* Assembler::RegisterName(Register reg) {
+  ASSERT((0 <= reg) && (reg < kNumberOfCpuRegisters));
+  return cpu_reg_names[reg];
 }
 
 

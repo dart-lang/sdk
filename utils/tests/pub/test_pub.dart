@@ -11,6 +11,8 @@
 #library('test_pub');
 
 #import('dart:io');
+#import('dart:isolate');
+#import('dart:json');
 #import('dart:uri');
 
 #import('../../../lib/unittest/unittest.dart');
@@ -57,10 +59,13 @@ void serve(String host, int port, [List<Descriptor> contents]) {
     var server = new HttpServer();
     server.defaultRequestHandler = (request, response) {
       var path = request.uri.replaceFirst("/", "").split("/");
-      var stream = baseDir.load(path);
       response.persistentConnection = false;
-      if (stream == null) {
+      var stream;
+      try {
+        stream = baseDir.load(path);
+      } catch (var e) {
         response.statusCode = 404;
+        response.contentLength = 0;
         response.outputStream.close();
         return;
       }
@@ -102,16 +107,23 @@ void servePackages(String host, int port, List<String> pubspecs) {
   });
 
   serve(host, port, [
-    dir('packages', packages.getKeys().map((name) {
-      return dir(name, [
-        dir('versions', packages[name].getKeys().map((version) {
-          return tar('$version.tar.gz', [
-            file('pubspec.yaml', packages[name][version]),
-            file('$name.dart', 'main() => print("$name $version");')
-          ]);
-        }))
-      ]);
-    }))
+    dir('packages', flatten(packages.getKeys().map((name) {
+      return [
+        file('$name.json',
+          JSON.stringify({'versions': packages[name].getKeys()})),
+        dir(name, [
+          dir('versions', flatten(packages[name].getKeys().map((version) {
+            return [
+              file('$version.yaml', packages[name][version]),
+              tar('$version.tar.gz', [
+                file('pubspec.yaml', packages[name][version]),
+                file('$name.dart', 'main() => print("$name $version");')
+              ])
+            ];
+          })))
+        ])
+      ];
+    })))
   ]);
 }
 
@@ -183,7 +195,8 @@ void run() {
     // that the test framework sees it, then finally call asyncDone so that the
     // test framework knows we're done doing asynchronous stuff.
     cleanup().then((_) {
-      guardAsync(() { throw error; }, asyncDone);
+      registerException(error, future.stackTrace);
+      asyncDone();
     });
     return true;
   });
@@ -201,15 +214,26 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
     String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
     return ensureDir(pathInSandbox(appPath)).chain((_) {
-      // TODO(rnystrom): Hack in the cache directory path. Should pass this in
-      // using environment var once #752 is done.
-      args.add('--cachedir=${pathInSandbox(cachePath)}');
+      // Find a dart executable we can use to run pub. Uses the one that the
+      // test infrastructure uses. We are not using new Options.executable here
+      // because that gets confused if you invoked Dart through a shell script.
+      var scriptDir = new File(new Options().script).directorySync().path;
+      var platform = Platform.operatingSystem;
+      var dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
 
-      // TODO(rnystrom): Hack in the SDK path. Should pass this in using
-      // environment var once #752 is done.
-      args.add('--sdkdir=${pathInSandbox(sdkPath)}');
+      // Find the main pub entrypoint.
+      var pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
 
-      return _runPub(args, pathInSandbox(appPath), pipeStdout: output == null,
+      var dartArgs =
+        ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
+      dartArgs.addAll(args);
+
+      var environment = new Map.from(Platform.environment);
+      environment['PUB_CACHE'] = pathInSandbox(cachePath);
+      environment['DART_SDK'] = pathInSandbox(sdkPath);
+
+      return runProcess(dartBin, dartArgs, workingDir: pathInSandbox(appPath),
+          environment: environment, pipeStdout: output == null,
           pipeStderr: error == null);
     }).transform((result) {
       _validateOutput(output, result.stdout);
@@ -271,24 +295,6 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   }
 
   return runNextEvent();
-}
-
-Future<ProcessResult> _runPub(List<String> pubArgs, String workingDir,
-    [bool pipeStdout=false, bool pipeStderr=false]) {
-  // Find a dart executable we can use to run pub. Uses the one that the
-  // test infrastructure uses. We are not using new Options.executable here
-  // because that gets confused if you invoked Dart through a shell script.
-  final scriptDir = new File(new Options().script).directorySync().path;
-  final platform = Platform.operatingSystem;
-  final dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
-
-  // Find the main pub entrypoint.
-  final pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
-
-  final args = ['--enable-type-checks', '--enable-asserts', pubPath];
-  args.addAll(pubArgs);
-
-  return runProcess(dartBin, args, workingDir, pipeStdout, pipeStderr);
 }
 
 /**
@@ -505,12 +511,13 @@ class FileDescriptor extends Descriptor {
    */
   InputStream load(List<String> path) {
     if (!path.isEmpty()) {
-      var joinedPath = Strings.join('/', path);
+      var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
 
     var stream = new ListInputStream();
     stream.write(contents.charCodes());
+    stream.markEndOfStream();
     return stream;
   }
 }
@@ -590,7 +597,7 @@ class DirectoryDescriptor extends Descriptor {
       }
     }
 
-    throw "Directory $name doesn't contain ${Strings.join('/', path)}.";
+    throw "Directory $name doesn't contain ${Strings.join(path, '/')}.";
   }
 }
 
@@ -689,7 +696,7 @@ class TarFileDescriptor extends Descriptor {
    */
   InputStream load(List<String> path) {
     if (!path.isEmpty()) {
-      var joinedPath = Strings.join('/', path);
+      var joinedPath = Strings.join(path, '/');
       throw "Can't load $joinedPath from within $name: not a directory.";
     }
 

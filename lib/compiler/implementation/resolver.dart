@@ -139,7 +139,7 @@ class ResolverTask extends CompilerTask {
       } else if (tree.initializers != null) {
         error(tree, MessageKind.FUNCTION_WITH_INITIALIZER);
       }
-      visitor.visit(tree.body);
+      visitBody(visitor, tree.body);
 
       // Resolve the type annotations encountered in the method.
       while (!toResolve.isEmpty()) {
@@ -151,6 +151,10 @@ class ResolverTask extends CompilerTask {
       }
       return visitor.mapping;
     });
+  }
+
+  void visitBody(ResolverVisitor visitor, Statement body) {
+    visitor.visit(body);
   }
 
   void resolveConstructorImplementation(FunctionElement constructor,
@@ -1937,6 +1941,24 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
         ElementKind.PARAMETER, enclosingElement, node: node);
   }
 
+  SourceString getParameterName(Send node) {
+    var identifier = node.selector.asIdentifier();
+    if (identifier !== null) {
+      // Normal parameter: [:Type name:].
+      return identifier.source;
+    } else {
+      // Function type parameter: [:void name(Type arg):].
+      var functionExpression = node.selector.asFunctionExpression();
+      if (functionExpression !== null &&
+          functionExpression.name.asIdentifier() !== null) {
+        return functionExpression.name.asIdentifier().source;
+      } else {
+        cancel(node,
+            'internal error: unimplemented receiver on parameter send');
+      }
+    }
+  }
+
   // The only valid [Send] can be in constructors and must be of the form
   // [:this.x:] (where [:x:] represents an instance field).
   FieldParameterElement visitSend(Send node) {
@@ -1947,11 +1969,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     } else if (enclosingElement.kind !== ElementKind.GENERATIVE_CONSTRUCTOR) {
       error(node, MessageKind.FIELD_PARAMETER_NOT_ALLOWED, []);
     } else {
-      if (node.selector.asIdentifier() == null) {
-        cancel(node,
-               'internal error: unimplemented receiver on parameter send');
-      }
-      SourceString name = node.selector.asIdentifier().source;
+      SourceString name = getParameterName(node);
       Element fieldElement = currentClass.lookupLocalMember(name);
       if (fieldElement === null || fieldElement.kind !== ElementKind.FIELD) {
         error(node, MessageKind.NOT_A_FIELD, [name]);
@@ -1960,7 +1978,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
       }
       Element variables = new VariableListElement.node(currentDefinitions,
           ElementKind.VARIABLE_LIST, enclosingElement);
-      element = new FieldParameterElement(node.selector.asIdentifier().source,
+      element = new FieldParameterElement(name,
           fieldElement, variables, enclosingElement, node);
     }
     return element;

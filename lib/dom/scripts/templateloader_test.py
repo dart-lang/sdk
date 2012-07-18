@@ -44,6 +44,12 @@ ACTUAL  :
 $B'''
     self._preprocess_test(input_text, {}, input_text)
 
+  def test_comments(self):
+    input_text = '''//$ comment 1
+Hello
+//$ comment 2'''
+    self._preprocess_test(input_text, {}, 'Hello\n')
+
 
   def test_ite1(self):
     input_text = '''

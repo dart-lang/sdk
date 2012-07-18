@@ -11,6 +11,7 @@
 
 namespace dart {
 
+class BufferFormatter;
 
 // Location objects are used to connect register allocator and code generator.
 // Instruction templates used by code generator have a corresponding
@@ -21,27 +22,60 @@ namespace dart {
 // register code (value of the Register enumeration).
 class Location : public ValueObject {
  public:
+  // Constant payload can overlap with kind field so Kind values
+  // have to be chosen in a way that their last 2 bits are never
+  // the same as kConstant.
   enum Kind {
-    kInvalid,
+    kInvalid = 0,
+
+    kConstant = 1,
 
     // Unallocated location represents a location that is not fixed and can be
     // allocated by a register allocator.  Each unallocated location has
     // a policy that specifies what kind of location is suitable.
-    kUnallocated,
+    kUnallocated = 2,
 
     // Register location represents a fixed register.
-    kRegister
+    kRegister = 3
   };
 
-  Location() : value_(KindField::encode(kInvalid)) { }
+  static const uword kInvalidLocation = 0;
+  static const uword kConstantMask = 0x3;
 
-  Kind kind() const { return KindField::decode(value_); }
+  Location() : value_(kInvalidLocation) {
+    ASSERT(IsInvalid());
+  }
+
+  bool IsInvalid() const {
+    return value_ == kInvalidLocation;
+  }
+
+  // Constants.
+  bool IsConstant() const {
+    ASSERT((kConstant & kConstantMask) == kConstant);
+    return (value_ & kConstantMask) == kConstant;
+  }
+
+  static Location Constant(const Object& obj) {
+    Location loc(reinterpret_cast<uword>(&obj) | kConstant);
+    ASSERT(&obj == &loc.constant());
+    return loc;
+  }
+
+  const Object& constant() {
+    ASSERT(IsConstant());
+    return *reinterpret_cast<const Object*>(value_ & ~kConstantMask);
+  }
 
   // Unallocated locations.
   enum Policy {
     kRequiresRegister,
     kSameAsFirstInput,
   };
+
+  bool IsUnallocated() const {
+    return kind() == kUnallocated;
+  }
 
   static Location UnallocatedLocation(Policy policy) {
     return Location(kUnallocated, PolicyField::encode(policy));
@@ -64,7 +98,7 @@ class Location : public ValueObject {
   }
 
   Policy policy() const {
-    ASSERT(kind() == kUnallocated);
+    ASSERT(IsUnallocated());
     return PolicyField::decode(payload());
   }
 
@@ -73,17 +107,37 @@ class Location : public ValueObject {
     return Location(kRegister, static_cast<uword>(reg));
   }
 
+  bool IsRegister() const {
+    return kind() == kRegister;
+  }
+
   Register reg() const {
-    ASSERT(kind() == kRegister);
+    ASSERT(IsRegister());
     return static_cast<Register>(payload());
   }
 
+  const char* Name() const;
+
+  // Compare two non-constant locations.
+  bool Equals(Location other) const {
+    ASSERT(!IsConstant() && !other.IsConstant());
+    return value_ == other.value_;
+  }
+
  private:
+  explicit Location(uword value) : value_(value) { }
+
   Location(Kind kind, uword payload)
       : value_(KindField::encode(kind) | PayloadField::encode(payload)) { }
 
   uword payload() const {
     return PayloadField::decode(value_);
+  }
+
+  // If current location is constant might return something that
+  // is not equal to any Kind.
+  Kind kind() const {
+    return KindField::decode(value_);
   }
 
   typedef BitField<Kind, 0, 2> KindField;
@@ -92,7 +146,9 @@ class Location : public ValueObject {
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 1> PolicyField;
 
-  // TODO(vegorov): choose fixed size for this field.
+  // Location either contains kind and payload fields or a tagged handle for
+  // a constant locations. Values of enumeration Kind are selected in such a
+  // way that none of them can be interpreted as a kConstant tag.
   uword value_;
 };
 
@@ -105,21 +161,14 @@ class LocationSummary : public ZoneAllocated {
     kCall,
   };
 
-  enum ContainsBranch {
-    kNoBranch,
-    kBranch
-  };
-
   // TODO(vegorov): remove unsafe kNoCall default.
   LocationSummary(intptr_t input_count,
                   intptr_t temp_count,
-                  ContainsCall call = kNoCall,
-                  ContainsBranch branch = kNoBranch)
+                  ContainsCall call = kNoCall)
       : input_locations_(input_count),
         temp_locations_(temp_count),
         output_location_(),
-        is_call_(call == kCall),
-        is_branch_(branch == kBranch) {
+        is_call_(call == kCall) {
     for (intptr_t i = 0; i < input_count; i++) {
       input_locations_.Add(Location());
     }
@@ -136,6 +185,10 @@ class LocationSummary : public ZoneAllocated {
     return input_locations_[index];
   }
 
+  Location* in_slot(intptr_t index) {
+    return &input_locations_[index];
+  }
+
   void set_in(intptr_t index, Location loc) {
     input_locations_[index] = loc;
   }
@@ -148,6 +201,10 @@ class LocationSummary : public ZoneAllocated {
     return temp_locations_[index];
   }
 
+  Location* temp_slot(intptr_t index) {
+    return &temp_locations_[index];
+  }
+
   void set_temp(intptr_t index, Location loc) {
     temp_locations_[index] = loc;
   }
@@ -155,6 +212,11 @@ class LocationSummary : public ZoneAllocated {
   Location out() const {
     return output_location_;
   }
+
+  Location* out_slot() {
+    return &output_location_;
+  }
+
 
   void set_out(Location loc) {
     output_location_ = loc;
@@ -164,17 +226,11 @@ class LocationSummary : public ZoneAllocated {
     return is_call_;
   }
 
-  // TODO(vegorov): this is a temporary solution. Once we will start removing
-  // comparison operations from the flow graph when they are fused with a branch
-  // we should eliminate this.
-  bool is_branch() const {
-    return is_branch_;
-  }
+  void PrintTo(BufferFormatter* f) const;
 
   static LocationSummary* Make(intptr_t input_count,
                                Location out,
-                               ContainsCall contains_call = kNoCall,
-                               ContainsBranch contains_branch = kNoBranch);
+                               ContainsCall contains_call = kNoCall);
 
  private:
   // TODO(vegorov): replace with ZoneArray.
@@ -183,7 +239,6 @@ class LocationSummary : public ZoneAllocated {
   Location output_location_;
 
   const bool is_call_;
-  const bool is_branch_;
 };
 
 

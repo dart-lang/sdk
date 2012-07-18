@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 //
-// Dart test program for checking implemention of IsolateMirror when
+// Dart test program for checking implemention of MirrorSystem when
 // inspecting the current isolate.
 
 #library('isolate_mirror_local_test');
@@ -25,11 +25,68 @@ void testDone(String test) {
 }
 
 int global_var = 0;
+final int final_global_var = 0;
+
+// Top-level getter and setter.
+int get myVar() { return 5; }
+int set myVar(x) {}
 
 // This function will be invoked reflectively.
 int function(int x) {
   global_var = x;
   return x + 1;
+}
+
+_stringCompare(String a, String b) => a.compareTo(b);
+sort(list) => list.sort(_stringCompare);
+
+String buildMethodString(MethodMirror func) {
+  var result = '${func.simpleName}';
+  if (func.isTopLevel) {
+    result = '$result toplevel';
+  }
+  if (func.isStatic) {
+    result = '$result static';
+  }
+  if (func.isMethod) {
+    result = '$result method';
+  }
+  if (func.isGetter) {
+    result = '$result getter';
+  }
+  if (func.isSetter) {
+    result = '$result setter';
+  }
+  if (func.isConstructor) {
+    result = '$result constructor';
+  }
+  if (func.isConstConstructor) {
+    result = '$result const';
+  }
+  if (func.isGenerativeConstructor) {
+    result = '$result generative';
+  }
+  if (func.isRedirectingConstructor) {
+    result = '$result redirecting';
+  }
+  if (func.isFactoryConstructor) {
+    result = '$result factory';
+  }
+  return result;
+}
+
+String buildVariableString(VariableMirror variable) {
+  var result = '${variable.simpleName}';
+  if (variable.isTopLevel) {
+    result = '$result toplevel';
+  }
+  if (variable.isStatic) {
+    result = '$result static';
+  }
+  if (variable.isFinal) {
+    result = '$result final';
+  }
+  return result;
 }
 
 void testRootLibraryMirror(LibraryMirror lib_mirror) {
@@ -44,10 +101,127 @@ void testRootLibraryMirror(LibraryMirror lib_mirror) {
       (InstanceMirror retval) {
         Expect.equals(123, global_var);
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(124, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(124, retval.reflectee);
         testDone('testRootLibraryMirror');
       });
+
+  // Check that the members map is complete.
+  List keys = lib_mirror.members().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'MyClass, '
+                'MyException, '
+                'MyInterface, '
+                'MySuperClass, '
+                '_stringCompare, '
+                'buildMethodString, '
+                'buildVariableString, '
+                'exit_port, '
+                'expectedTests, '
+                'final_global_var, '
+                'function, '
+                'global_var, '
+                'main, '
+                'methodWithError, '
+                'methodWithException, '
+                'myVar, '
+                'myVar=, '
+                'sort, '
+                'testBoolInstanceMirror, '
+                'testCustomInstanceMirror, '
+                'testDone, '
+                'testIntegerInstanceMirror, '
+                'testLibrariesMap, '
+                'testMirrorErrors, '
+                'testMirrorSystem, '
+                'testNullInstanceMirror, '
+                'testRootLibraryMirror, '
+                'testStringInstanceMirror]',
+                '$keys');
+
+  // Check that the classes map is complete.
+  keys = lib_mirror.classes().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'MyClass, '
+                'MyException, '
+                'MyInterface, '
+                'MySuperClass]',
+                '$keys');
+
+  // Check that the functions map is complete.
+  keys = lib_mirror.functions().getKeys();
+  sort(keys);
+  Expect.equals('['
+                '_stringCompare, '
+                'buildMethodString, '
+                'buildVariableString, '
+                'function, '
+                'main, '
+                'methodWithError, '
+                'methodWithException, '
+                'myVar, '
+                'myVar=, '
+                'sort, '
+                'testBoolInstanceMirror, '
+                'testCustomInstanceMirror, '
+                'testDone, '
+                'testIntegerInstanceMirror, '
+                'testLibrariesMap, '
+                'testMirrorErrors, '
+                'testMirrorSystem, '
+                'testNullInstanceMirror, '
+                'testRootLibraryMirror, '
+                'testStringInstanceMirror]',
+                '$keys');
+
+  // Check that the variables map is complete.
+  keys = lib_mirror.variables().getKeys();
+  sort(keys);
+  Expect.equals('['
+                'exit_port, '
+                'expectedTests, '
+                'final_global_var, '
+                'global_var]',
+                '$keys');
+
+  InterfaceMirror cls_mirror = lib_mirror.members()['MyClass'];
+
+  // Test function mirrors.
+  MethodMirror func = lib_mirror.members()['function'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('function toplevel static method', buildMethodString(func));
+
+  func = lib_mirror.members()['myVar'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('myVar toplevel static getter', buildMethodString(func));
+
+  func = lib_mirror.members()['myVar='];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('myVar= toplevel static setter', buildMethodString(func));
+
+  func = cls_mirror.members()['method'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('method method', buildMethodString(func));
+
+  func = cls_mirror.members()['MyClass'];
+  Expect.isTrue(func is MethodMirror);
+  Expect.equals('MyClass constructor', buildMethodString(func));
+
+  // Test variable mirrors.
+  VariableMirror variable = lib_mirror.members()['global_var'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('global_var toplevel static', buildVariableString(variable));
+  
+  variable = lib_mirror.members()['final_global_var'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('final_global_var toplevel static final',
+                buildVariableString(variable));
+
+  variable = cls_mirror.members()['value'];
+  Expect.isTrue(variable is VariableMirror);
+  Expect.equals('value final', buildVariableString(variable));
 }
 
 void testLibrariesMap(Map libraries) {
@@ -83,27 +257,27 @@ void testLibrariesMap(Map libraries) {
   testDone('testLibrariesMap');
 }
 
-void testIsolateMirror(IsolateMirror mirror) {
-  Expect.isTrue(mirror.debugName.contains('main'));
-  testRootLibraryMirror(mirror.rootLibrary);
-  testLibrariesMap(mirror.libraries());
-  testDone('testIsolateMirror');
+void testMirrorSystem(MirrorSystem mirrors) {
+  Expect.isTrue(mirrors.isolate.debugName.contains('main'));
+  testRootLibraryMirror(mirrors.rootLibrary);
+  testLibrariesMap(mirrors.libraries());
+  testDone('testMirrorSystem');
 }
 
 void testIntegerInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): The mirrors api exposes internal vm
   // implementation class names.  Is this okay?
   Expect.equals('Smi', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(1001, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(1001, mirror.reflectee);
   Expect.equals("InstanceMirror on <1001>", mirror.toString());
 
   // Invoke (mirror + mirror).
   mirror.invoke('+', [ mirror ]).then(
       (InstanceMirror retval) {
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(2002, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(2002, retval.reflectee);
         testDone('testIntegerInstanceMirror');
       });
 }
@@ -112,8 +286,8 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): The mirrors api exposes internal vm
   // implementation class names.  Is this okay?
   Expect.equals('OneByteString', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals('This\nis\na\nString', mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals('This\nis\na\nString', mirror.reflectee);
   Expect.equals("InstanceMirror on <'This\\nis\\na\\nString'>",
                 mirror.toString());
 
@@ -121,16 +295,16 @@ void testStringInstanceMirror(InstanceMirror mirror) {
   mirror.invoke('[]', [ 0 ]).then(
       (InstanceMirror retval) {
         Expect.equals('OneByteString', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals('T', retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals('T', retval.reflectee);
         testDone('testStringInstanceMirror');
       });
 }
 
 void testBoolInstanceMirror(InstanceMirror mirror) {
   Expect.equals('Bool', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(true, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(true, mirror.reflectee);
   Expect.equals("InstanceMirror on <true>", mirror.toString());
   testDone('testBoolInstanceMirror');
 }
@@ -138,8 +312,8 @@ void testBoolInstanceMirror(InstanceMirror mirror) {
 void testNullInstanceMirror(InstanceMirror mirror) {
   // TODO(turnidge): This is returning the wrong class.  Fix it.
   Expect.equals('Object', mirror.getClass().simpleName);
-  Expect.isTrue(mirror.hasSimpleValue);
-  Expect.equals(null, mirror.simpleValue);
+  Expect.isTrue(mirror.hasReflectee);
+  Expect.equals(null, mirror.reflectee);
   Expect.equals("InstanceMirror on <null>", mirror.toString());
   testDone('testNullInstanceMirror');
 }
@@ -161,14 +335,14 @@ class MyClass extends MySuperClass implements MyInterface {
 }
 
 void testCustomInstanceMirror(InstanceMirror mirror) {
-  Expect.isFalse(mirror.hasSimpleValue);
+  Expect.isTrue(mirror.hasReflectee);
   bool saw_exception = false;
   try {
-    // mirror.simpleValue;
+    mirror.reflectee;
   } catch (MirrorException me) {
     saw_exception = true;
   }
-  //Expect.isTrue(saw_exception);
+  Expect.isFalse(saw_exception);
   Expect.equals("InstanceMirror on instance of 'MyClass'", mirror.toString());
 
   InterfaceMirror cls = mirror.getClass();
@@ -186,8 +360,8 @@ void testCustomInstanceMirror(InstanceMirror mirror) {
   mirror.invoke('method', [ 1000 ]).then(
       (InstanceMirror retval) {
         Expect.equals('Smi', retval.getClass().simpleName);
-        Expect.isTrue(retval.hasSimpleValue);
-        Expect.equals(1017, retval.simpleValue);
+        Expect.isTrue(retval.hasReflectee);
+        Expect.equals(1017, retval.reflectee);
         testDone('testCustomInstanceMirror');
       });
 
@@ -208,8 +382,8 @@ void methodWithError() {
   +++;
 }
 
-void testMirrorErrors(IsolateMirror mirror) {
-  LibraryMirror lib_mirror = mirror.rootLibrary;
+void testMirrorErrors(MirrorSystem mirrors) {
+  LibraryMirror lib_mirror = mirrors.rootLibrary;
 
   Future<InstanceMirror> future =
       lib_mirror.invoke('methodWithException', []);
@@ -272,7 +446,7 @@ void main() {
   exit_port = new ReceivePort();
   expectedTests = new Set<String>.from(['testRootLibraryMirror',
                                         'testLibrariesMap',
-                                        'testIsolateMirror',
+                                        'testMirrorSystem',
                                         'testIntegerInstanceMirror',
                                         'testStringInstanceMirror',
                                         'testBoolInstanceMirror',
@@ -283,12 +457,13 @@ void main() {
                                         'testMirrorErrors3']);
 
   // Test that an isolate can reflect on itself.
-  isolateMirrorOf(exit_port.toSendPort()).then(testIsolateMirror);
+  mirrorSystemOf(exit_port.toSendPort()).then(testMirrorSystem);
 
-  testIntegerInstanceMirror(mirrorOf(1001));
-  testStringInstanceMirror(mirrorOf('This\nis\na\nString'));
-  testBoolInstanceMirror(mirrorOf(true));
-  testNullInstanceMirror(mirrorOf(null));
-  testCustomInstanceMirror(mirrorOf(new MyClass(17)));
-  testMirrorErrors(currentIsolateMirror());
+  MirrorSystem mirrors = currentMirrorSystem();
+  testIntegerInstanceMirror(mirrors.mirrorOf(1001));
+  testStringInstanceMirror(mirrors.mirrorOf('This\nis\na\nString'));
+  testBoolInstanceMirror(mirrors.mirrorOf(true));
+  testNullInstanceMirror(mirrors.mirrorOf(null));
+  testCustomInstanceMirror(mirrors.mirrorOf(new MyClass(17)));
+  testMirrorErrors(currentMirrorSystem());
 }

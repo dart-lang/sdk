@@ -128,7 +128,34 @@ int OS::SNPrint(char* str, size_t size, const char* format, ...) {
 
 
 int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
-  return vsnprintf(str, size, format, args);
+  int retval = vsnprintf(str, size, format, args);
+  if (retval < 0) {
+    FATAL1("Fatal error in OS::VSNPrint with format '%s'", format);
+  }
+  return retval;
+}
+
+
+bool OS::StringToInteger(const char* str, int64_t* value) {
+  ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
+  bool negative_value = false;
+  int32_t base = 10;
+  if (str[0] == '-') {
+    negative_value = true;
+    str += 1;
+  }
+  if ((str[0] == '0') && (str[1] == 'x' || str[1] == 'X') && (str[2] != '\0')) {
+    base = 16;
+  }
+  errno = 0;
+  *value = strtoll(str, NULL, base);
+  if (errno == 0) {
+    if (negative_value) {
+      *value = -(*value);
+    }
+    return true;
+  }
+  return false;
 }
 
 

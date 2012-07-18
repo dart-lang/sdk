@@ -5,6 +5,7 @@
 #library('mirrors.util');
 
 #import('mirrors.dart');
+#import('../../compiler/implementation/util/characters.dart');
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
@@ -14,11 +15,10 @@
  * Returns an iterable over the type declarations directly inheriting from
  * the declaration of this type.
  */
-Iterable<InterfaceMirror> computeSubdeclarations(MirrorSystem system,
-                                                 InterfaceMirror type) {
+Iterable<InterfaceMirror> computeSubdeclarations(InterfaceMirror type) {
   type = type.declaration;
   var subtypes = <InterfaceMirror>[];
-  system.libraries().forEach((_, library) {
+  type.system.libraries().forEach((_, library) {
     for (InterfaceMirror otherType in library.types().getValues()) {
       var superClass = otherType.superclass();
       if (superClass !== null) {
@@ -69,4 +69,33 @@ Mirror findMirror(Map<Object,Mirror> map, String name,
     }
   });
   return foundMirror;
+}
+
+LibraryMirror findLibrary(MemberMirror member) {
+  ObjectMirror owner = member.surroundingDeclaration();
+  if (owner is LibraryMirror) {
+    return owner;
+  } else if (owner is TypeMirror) {
+    return owner.library();
+  }
+  throw new Exception('Unexpected owner: ${owner}');
+}
+
+
+/**
+ * Returns the column of the start of a location.
+ */
+int getLocationColumn(Location location) {
+  String text = location.source().text();
+  int index = location.start()-1;
+  var column = 0;
+  while (0 <= index && index < text.length) {
+    var charCode = text.charCodeAt(index);
+    if (charCode == $CR || charCode == $LF) {
+      break;
+    }
+    index--;
+    column++;
+  }
+  return column;
 }

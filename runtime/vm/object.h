@@ -235,6 +235,8 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return VMHandles::IsZoneHandle(reinterpret_cast<uword>(this));
   }
 
+  static RawObject* Clone(const Object& src, Heap::Space space = Heap::kNew);
+
   static Object& Handle(Isolate* isolate, RawObject* raw_ptr) {
     Object* obj = reinterpret_cast<Object*>(VMHandles::AllocateHandle(isolate));
     obj->SetRaw(raw_ptr);
@@ -1010,13 +1012,14 @@ class Type : public AbstractType {
 
   static RawType* New(const Object& clazz,
                       const AbstractTypeArguments& arguments,
-                      intptr_t token_pos);
+                      intptr_t token_pos,
+                      Heap::Space space = Heap::kOld);
 
  private:
   void set_token_pos(intptr_t token_pos) const;
   void set_type_state(int8_t state) const;
 
-  static RawType* New();
+  static RawType* New(Heap::Space space = Heap::kOld);
 
   HEAP_OBJECT_IMPLEMENTATION(Type, AbstractType);
   friend class Class;
@@ -1214,7 +1217,7 @@ class TypeArguments : public AbstractTypeArguments {
     return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
   }
 
-  static RawTypeArguments* New(intptr_t len);
+  static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
   // Make sure that the array size cannot wrap around.
@@ -1459,9 +1462,20 @@ class Function : public Object {
   bool HasOptimizedCode() const;
 
   intptr_t NumberOfParameters() const;
+  intptr_t NumberOfImplicitParameters() const;
 
-  bool AreValidArgumentCounts(int num_arguments, int num_named_arguments) const;
-  bool AreValidArguments(int num_arguments, const Array& argument_names) const;
+  // Returns true if the argument counts are valid for calling this function.
+  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  bool AreValidArgumentCounts(int num_arguments,
+                              int num_named_arguments,
+                              String* error_message) const;
+
+  // Returns true if the total argument count and the names of optional
+  // arguments are valid for calling this function.
+  // Otherwise, it returns false and the reason (if error_message is not NULL).
+  bool AreValidArguments(int num_arguments,
+                         const Array& argument_names,
+                         String* error_message) const;
 
   // Fully qualified name uniquely identifying the function under gdb and during
   // ast printing. The special ':' character, if present, is replaced by '_'.
@@ -1688,39 +1702,68 @@ class TokenStream : public Object {
  public:
   inline intptr_t Length() const;
 
-  inline Token::Kind KindAt(intptr_t index) const;
+  RawArray* TokenObjects() const;
+  void SetTokenObjects(const Array& value) const;
 
-  void SetTokenAt(intptr_t index, Token::Kind kind, const String& literal);
-  void SetTokenAt(intptr_t index, const Object& token);
-
-  RawObject* TokenAt(intptr_t index) const;
-  RawString* LiteralAt(intptr_t index) const;
   RawString* GenerateSource() const;
+  intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
+  intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawTokenStream) + (len * kWordSize));
-  }
-  static intptr_t StreamLength(intptr_t len) {
-    return len;
+    return RoundedAllocationSize(sizeof(RawTokenStream) + len);
   }
 
   static RawTokenStream* New(intptr_t length);
   static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens);
 
+  // The class Iterator encapsulates iteration over the tokens
+  // in a TokenStream object.
+  class Iterator : ValueObject {
+   public:
+    Iterator(const TokenStream& tokens, intptr_t token_pos);
+
+    bool IsValid() const;
+
+    inline Token::Kind CurrentTokenKind() const {
+      return cur_token_kind_;
+    }
+
+    Token::Kind LookaheadTokenKind(intptr_t num_tokens);
+
+    intptr_t CurrentPosition() const;
+    void SetCurrentPosition(intptr_t value);
+
+    void Advance();
+
+    RawObject* CurrentToken() const;
+    RawString* CurrentLiteral() const;
+    RawString* MakeLiteralToken(const Object& obj) const;
+
+   private:
+    // Read token from the token stream (could be a simple token or an index
+    // into the token objects array for IDENT or literal tokens).
+    intptr_t ReadToken();
+    uint8_t ReadByte();
+
+    const TokenStream& tokens_;
+    Array& token_objects_;
+    Object& obj_;
+    intptr_t cur_token_pos_;
+    intptr_t stream_token_pos_;
+    Token::Kind cur_token_kind_;
+    intptr_t cur_token_obj_index_;
+  };
+
  private:
   void SetLength(intptr_t value) const;
 
-  RawObject** EntryAddr(intptr_t index) const {
-    ASSERT((index >=0) && (index < Length()));
-    return &raw_ptr()->data_[index];
-  }
-
-  RawSmi** SmiAddr(intptr_t index) const {
-    return reinterpret_cast<RawSmi**>(EntryAddr(index));
+  uint8_t* EntryAddr(intptr_t token_pos) const {
+    ASSERT((token_pos >=0) && (token_pos < Length()));
+    return &raw_ptr()->data_[token_pos];
   }
 
   HEAP_OBJECT_IMPLEMENTATION(TokenStream, Object);
@@ -1731,7 +1774,8 @@ class TokenStream : public Object {
 class Script : public Object {
  public:
   RawString* url() const { return raw_ptr()->url_; }
-  RawString* source() const;
+  bool HasSource() const;
+  RawString* Source() const;
   RawScript::Kind kind() const { return raw_ptr()->kind_; }
 
   RawTokenStream* tokens() const { return raw_ptr()->tokens_; }
@@ -2622,6 +2666,10 @@ class ICData : public Object {
   RawFunction* GetTargetAt(intptr_t index) const;
   RawFunction* GetTargetForReceiverClassId(intptr_t class_id) const;
 
+  // Returns this->raw() if num_args_tested == 1, otherwise returns a new
+  // ICData object containing only unique arg0 checks.
+  RawICData* AsUnaryClassChecks() const;
+
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
                         intptr_t id,
@@ -2648,7 +2696,7 @@ class ICData : public Object {
 class SubtypeTestCache : public Object {
  public:
   enum Entries {
-    kInstanceClass = 0,
+    kInstanceClassId = 0,
     kInstanceTypeArguments = 1,
     kInstantiatorTypeArguments = 2,
     kTestResult = 3,
@@ -2656,12 +2704,12 @@ class SubtypeTestCache : public Object {
   };
 
   intptr_t NumberOfChecks() const;
-  void AddCheck(const Class& instance_class,
+  void AddCheck(intptr_t class_id,
                 const AbstractTypeArguments& instance_type_arguments,
                 const AbstractTypeArguments& instantiator_type_arguments,
                 const Bool& test_result) const;
   void GetCheck(intptr_t ix,
-                Class* instance_class,
+                intptr_t* class_id,
                 AbstractTypeArguments* instance_type_arguments,
                 AbstractTypeArguments* instantiator_type_arguments,
                 Bool* test_result) const;
@@ -3219,6 +3267,8 @@ class String : public Instance {
                    intptr_t src_offset,
                    intptr_t len);
 
+  static RawString* EscapeDoubleQuotes(const String& str);
+
   static RawString* Concat(const String& str1,
                            const String& str2,
                            Heap::Space space = Heap::kNew);
@@ -3290,6 +3340,8 @@ class OneByteString : public String {
     return kOneByteChar;
   }
 
+  RawOneByteString* EscapeDoubleQuotes() const;
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -3349,6 +3401,8 @@ class TwoByteString : public String {
     return kTwoByteChar;
   }
 
+  RawTwoByteString* EscapeDoubleQuotes() const;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
     return 0;
@@ -3401,6 +3455,8 @@ class FourByteString : public String {
   virtual intptr_t CharSize() const {
     return kFourByteChar;
   }
+
+  RawFourByteString* EscapeDoubleQuotes() const;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawFourByteString) == OFFSET_OF(RawFourByteString, data_));
@@ -5072,18 +5128,6 @@ void Field::SetOffset(intptr_t value) const {
 
 intptr_t TokenStream::Length() const {
   return Smi::Value(raw_ptr()->length_);
-}
-
-
-Token::Kind TokenStream::KindAt(intptr_t index) const {
-  const Object& obj = Object::Handle(TokenAt(index));
-  if (obj.IsSmi()) {
-    return static_cast<Token::Kind>(Smi::Cast(obj).Value());
-  } else if (obj.IsLiteralToken()) {
-    return LiteralToken::Cast(obj).kind();
-  }
-  ASSERT(obj.IsString());  // Must be an identifier.
-  return Token::kIDENT;
 }
 
 

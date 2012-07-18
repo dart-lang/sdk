@@ -47,20 +47,16 @@ String unindent(String text, int indentation) {
 }
 
 /** Sorts the map by the key, doing a case-insensitive comparison. */
-List orderByName(Map<String, Dynamic> map) {
-  List keys = map.getKeys();
-  keys.sort((a, b) {
-    // Hack: make sure $dom methods show up last in the list not first.
-    String transformName(String name) =>
-      name.toUpperCase().replaceFirst(const RegExp('\\\$DOM_'), 'zzzz');
-
-    return transformName(a).compareTo(transformName(b));
+List<Mirror> orderByName(List<Mirror> list) {
+  final elements = new List<Mirror>.from(list);
+  elements.sort((a,b) {
+    String aName = a.simpleName();
+    String bName = b.simpleName();
+    bool doma = aName.startsWith(@"$dom");
+    bool domb = bName.startsWith(@"$dom");
+    return doma == domb ? aName.compareTo(bName) : doma ? 1 : -1;
   });
-  final values = [];
-  for (var k in keys) {
-    values.add(map[k]);
-  }
-  return values;
+  return elements;
 }
 
 /**
@@ -70,6 +66,12 @@ List orderByName(Map<String, Dynamic> map) {
 String joinWithCommas(List<String> items, [String conjunction = 'and']) {
   if (items.length == 1) return items[0];
   if (items.length == 2) return "${items[0]} $conjunction ${items[1]}";
-  return Strings.join(items.getRange(0, items.length - 1), ', ') +
-    ', $conjunction ' + items[items.length - 1];
+  return '${Strings.join(items.getRange(0, items.length - 1), ', ')}'
+    ', $conjunction ${items[items.length - 1]}';
+}
+
+void writeString(File file, String text) {
+  var randomAccessFile = file.openSync(FileMode.WRITE);
+  randomAccessFile.writeStringSync(text);
+  randomAccessFile.closeSync();
 }

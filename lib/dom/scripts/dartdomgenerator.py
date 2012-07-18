@@ -14,6 +14,9 @@ import os
 import shutil
 import subprocess
 import sys
+from generator import TypeRegistry
+from htmlrenamer import HtmlRenamer
+from systembase import GeneratorOptions
 from systemfrog import FrogSystem
 from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem
 from systeminterface import InterfacesSystem
@@ -60,6 +63,13 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
 
+  def CreateGeneratorOptions(template_paths, conditions, type_registry, output_dir,
+                             renamer=None):
+    template_loader = TemplateLoader(template_dir, template_paths, conditions)
+    return GeneratorOptions(
+        template_loader, webkit_database, emitters, type_registry, renamer,
+        output_dir)
+
   def Generate(system):
     generator.Generate(webkit_database, system,
                        super_database=common_database,
@@ -69,37 +79,39 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
 
   for system_name in system_names:
     if system_name in ['htmlfrog', 'htmldartium']:
-      output_dir = html_output_dir
+      renamer = HtmlRenamer(webkit_database)
+      type_registry = TypeRegistry(webkit_database, renamer)
       if system_name == 'htmlfrog':
-        backend = HtmlFrogSystem(
-            TemplateLoader(template_dir,
-                           ['html/frog', 'html/impl', 'html', ''],
-                           {'DARTIUM': False, 'FROG': True}),
-            webkit_database, emitters, output_dir)
+        options = CreateGeneratorOptions(
+            ['html/frog', 'html/impl', 'html', ''],
+            {'DARTIUM': False, 'FROG': True},
+            type_registry, html_output_dir, renamer)
+        backend = HtmlFrogSystem(options)
       else:
-        backend = NativeImplementationSystem(
-            TemplateLoader(template_dir, ['dom/native', 'html/dartium',
-                                          'html/impl', ''],
-                           {'DARTIUM': True, 'FROG': False}),
-            webkit_database, emitters, output_dir, auxiliary_dir)
-      html_system = HtmlInterfacesSystem(
-          TemplateLoader(template_dir, ['html/interface', 'html/impl', 'html',
-                                        '']),
-          webkit_database, emitters, output_dir, backend)
+        options = CreateGeneratorOptions(
+            ['dom/native', 'html/dartium', 'html/impl', ''],
+            {'DARTIUM': True, 'FROG': False},
+            type_registry, html_output_dir, renamer)
+        backend = NativeImplementationSystem(options, auxiliary_dir)
+      options = CreateGeneratorOptions(
+          ['html/interface', 'html/impl', 'html', ''], {},
+          type_registry, html_output_dir, renamer)
+      html_system = HtmlInterfacesSystem(options, backend)
       Generate(html_system)
     else:
-      output_dir = dom_output_dir
-      interface_system = InterfacesSystem(
-          TemplateLoader(template_dir, ['dom/interface', 'dom', '']),
-          webkit_database, emitters, output_dir)
+      type_registry = TypeRegistry(webkit_database)
+      options = CreateGeneratorOptions(
+          ['dom/interface', 'dom', ''], {}, type_registry, dom_output_dir)
+      interface_system = InterfacesSystem(options)
       if system_name == 'dummy':
+        options = CreateGeneratorOptions(
+            ['dom/dummy', 'dom', ''], {}, type_registry, dom_output_dir)
         implementation_system = dartgenerator.DummyImplementationSystem(
-            TemplateLoader(template_dir, ['dom/dummy', 'dom', '']),
-            webkit_database, emitters, output_dir)
+            options)
       elif system_name == 'frog':
-        implementation_system = FrogSystem(
-            TemplateLoader(template_dir, ['dom/frog', 'dom', '']),
-            webkit_database, emitters, output_dir)
+        options = CreateGeneratorOptions(
+            ['dom/frog', 'dom', ''], {}, type_registry, dom_output_dir)
+        implementation_system = FrogSystem(options)
       else:
         raise Exception('Unsupported system_name %s' % system_name)
 

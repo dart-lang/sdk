@@ -44,13 +44,15 @@ class ClassFinalizer : public AllStatic {
 
   // Modes for type resolution and finalization. The ordering is relevant.
   enum FinalizationKind {
-    kIgnore,             // Parsed type is ignored and replaced by Dynamic.
-    kDoNotResolve,       // Type resolution is postponed.
-    kTryResolve,         // Type resolution is attempted, but not required.
-    kFinalize,           // Type resolution and type finalization are required.
-                         // A malformed type is tolerated.
-    kFinalizeWellFormed  // Error-free resolution and finalization are required.
-                         // A malformed type is not tolerated.
+    kIgnore,                 // Parsed type is ignored and replaced by Dynamic.
+    kDoNotResolve,           // Type resolution is postponed.
+    kTryResolve,             // Type resolution is attempted, but not required.
+    kFinalize,               // Type resolution and type finalization are
+                             // required; a malformed type is tolerated.
+    kCanonicalize,           // Same as kFinalize, but with canonicalization.
+    kCanonicalizeWellFormed  // Error-free resolution, finalization, and
+                             // canonicalization are required; a malformed type
+                             // is not tolerated.
   };
 
   // Finalize given type while parsing class cls.

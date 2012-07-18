@@ -28,11 +28,34 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
   __ Bind(entry_label());
-  for (intptr_t i = 0; i < registers_.length(); i++) {
-    if (registers_[i] != kNoRegister) {
-      __ pushq(registers_[i]);
+
+  if (deoptimization_env_ == NULL) {
+    for (intptr_t i = 0; i < registers_.length(); i++) {
+      if (registers_[i] != kNoRegister) {
+        __ pushq(registers_[i]);
+      }
+    }
+  } else {
+    // We have a deoptimization environment, we have to tear down optimized
+    // frame and recreate non-optimized one.
+    __ leaq(RSP,
+            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+
+    const GrowableArray<Value*>& values = deoptimization_env_->values();
+    const GrowableArray<Location>* locations = deoptimization_env_->locations();
+
+    for (intptr_t i = 0; i < values.length(); i++) {
+      Location loc = (*locations)[i];
+      if (loc.IsInvalid()) {
+        ASSERT(values[i]->IsConstant());
+        __ PushObject(values[i]->AsConstant()->value());
+      } else {
+        ASSERT(loc.IsRegister());
+        __ pushq(loc.reg());
+      }
     }
   }
+
   if (compiler->IsLeaf()) {
     Label L;
     __ call(&L);
@@ -211,7 +234,6 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
   // Instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
-  // TODO(regis): We should introduce a SmiType.
   Error& malformed_error = Error::Handle();
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                             type_class,
@@ -481,7 +503,6 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
   __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the instance.
   __ PushObject(type);  // Push the type.
@@ -490,9 +511,9 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   __ LoadObject(RAX, test_cache);
   __ pushq(RAX);
   GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
-  // Pop the two parameters supplied to the runtime entry. The result of the
+  // Pop the parameters supplied to the runtime entry. The result of the
   // instanceof runtime call will be left as the result of the operation.
-  __ Drop(7);
+  __ Drop(6);
   Label done;
   if (negate_result) {
     __ popq(RDX);
@@ -556,7 +577,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
     const String& error_message = String::ZoneHandle(
         String::NewSymbol(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
@@ -580,7 +600,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   __ movq(RDX, Address(RSP, 0));  // Get instantiator type arguments.
   __ movq(RCX, Address(RSP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushq(Immediate(Smi::RawValue(token_pos)));  // Source location.
   __ pushq(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushq(RAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
@@ -595,7 +614,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(8);
+  __ Drop(7);
   __ popq(RAX);
 
   __ Bind(&is_assignable);
@@ -1077,6 +1096,50 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
   __ SmiUntag(temp);
   __ cvtsi2sd(result, temp);
   __ Bind(&done);
+}
+
+
+#undef __
+#define __ compiler_->assembler()->
+
+
+void ParallelMoveResolver::EmitMove(int index) {
+  Location source = moves_[index].src();
+  Location destination = moves_[index].dest();
+
+  ASSERT(destination.IsRegister());
+  if (source.IsRegister()) {
+    __ movq(destination.reg(), source.reg());
+  } else {
+    ASSERT(source.IsConstant());
+    __ LoadObject(destination.reg(), source.constant());
+  }
+  moves_[index].Eliminate();
+}
+
+
+void ParallelMoveResolver::EmitSwap(int index) {
+  Location source = moves_[index].src();
+  Location destination = moves_[index].dest();
+
+  ASSERT(source.IsRegister() && destination.IsRegister());
+  __ xchgq(destination.reg(), source.reg());
+
+  // The swap of source and destination has executed a move from source to
+  // destination.
+  moves_[index].Eliminate();
+
+  // Any unperformed (including pending) move with a source of either
+  // this move's source or destination needs to have their source
+  // changed to reflect the state of affairs after the swap.
+  for (int i = 0; i < moves_.length(); ++i) {
+    MoveOperands other_move = moves_[i];
+    if (other_move.Blocks(source)) {
+      moves_[i].set_src(destination);
+    } else if (other_move.Blocks(destination)) {
+      moves_[i].set_src(source);
+    }
+  }
 }
 
 

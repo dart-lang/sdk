@@ -480,12 +480,14 @@ public class MemberBuilder {
     private void addField(EnclosingElement holder, FieldNodeElement element) {
       if (holder != null) {
         checkUniqueName(holder, element);
+        checkMemberNameNotSameAsEnclosingClassName(holder, element);
         Elements.addField(holder, element);
       }
     }
 
     private void addMethod(EnclosingElement holder, MethodNodeElement element) {
       checkUniqueName(holder, element);
+      checkMemberNameNotSameAsEnclosingClassName(holder, element);
       Elements.addMethod(holder, element);
     }
 
@@ -589,6 +591,14 @@ public class MemberBuilder {
       }
     }
 
+    private void checkMemberNameNotSameAsEnclosingClassName(EnclosingElement holder, Element e) {
+      if (ElementKind.of(holder) == ElementKind.CLASS) {
+        if (Objects.equal(holder.getName(), e.getName())) {
+          resolutionError(e.getNameLocation(), ResolverErrorCode.MEMBER_WITH_NAME_OF_CLASS);
+        }
+      }
+    }
+      
     private void checkUniqueName(EnclosingElement holder, Element e) {
       Element other = lookupElementByName(holder, e.getName(), e.getModifiers());
       assert e != other : "forgot to call checkUniqueName() before adding to the class?";

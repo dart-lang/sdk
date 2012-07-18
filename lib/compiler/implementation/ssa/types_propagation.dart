@@ -65,7 +65,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
   visitBasicBlock(HBasicBlock block) {
     if (block.isLoopHeader()) {
       block.forEachPhi((HPhi phi) {
-        // Once the propagation has run once the propagated type can already
+        // Once the propagation has run once, the propagated type can already
         // be set. In this case we use that one for the first iteration of the
         // loop.
         if (phi.propagatedType.isUnknown()) {

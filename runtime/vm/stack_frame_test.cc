@@ -151,14 +151,9 @@ static Dart_NativeFunction native_lookup(Dart_Handle name,
   int num_entries = sizeof(BuiltinEntries) / sizeof(struct NativeEntries);
   for (int i = 0; i < num_entries; i++) {
     struct NativeEntries* entry = &(BuiltinEntries[i]);
-    if (!strcmp(function_name, entry->name_)) {
-      if (entry->argument_count_ == argument_count) {
-        return reinterpret_cast<Dart_NativeFunction>(entry->function_);
-      } else {
-        // Wrong number of arguments.
-        // TODO(regis): Should we pass a buffer for error reporting?
-        return NULL;
-      }
+    if (!strcmp(function_name, entry->name_) &&
+        (entry->argument_count_ == argument_count)) {
+      return reinterpret_cast<Dart_NativeFunction>(entry->function_);
     }
   }
   return NULL;

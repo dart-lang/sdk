@@ -91,7 +91,7 @@ class MemberListener extends NodeListener {
     Element memberElement =
         new PartialFunctionElement(name, beginToken, getOrSet, endToken,
                                    kind, method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement, listener);
+    addMember(memberElement);
   }
 
   void endFactoryMethod(Token factoryKeyword, Token periodBeforeName,
@@ -104,7 +104,7 @@ class MemberListener extends NodeListener {
     Element memberElement =
         new PartialFunctionElement(name, factoryKeyword, null, endToken,
                                    kind, method.modifiers, enclosingElement);
-    enclosingElement.addMember(memberElement, listener);
+    addMember(memberElement);
   }
 
   void endFields(int count, Token beginToken, Token endToken) {
@@ -115,7 +115,7 @@ class MemberListener extends NodeListener {
     void buildFieldElement(SourceString name, Element fields) {
       Element element = new VariableElement(
           name, fields, ElementKind.FIELD, enclosingElement);
-      enclosingElement.addMember(element, listener);
+      addMember(element);
     }
     buildFieldElements(modifiers, variableDefinitions.definitions,
                        enclosingElement,
@@ -130,5 +130,9 @@ class MemberListener extends NodeListener {
 
   void endInitializers(int count, Token beginToken, Token endToken) {
     pushNode(null);
+  }
+
+  void addMember(Element memberElement) {
+    enclosingElement.addMember(memberElement, listener);
   }
 }

@@ -21,6 +21,7 @@ class AbstractType;
 class AbstractTypeArguments;
 class Array;
 class Class;
+class GrowableObjectArray;
 class Heap;
 class Library;
 class Object;
@@ -174,6 +175,7 @@ class SnapshotReader : public BaseReader {
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }
   AbstractTypeArguments* TypeArgumentsHandle() { return &type_arguments_; }
+  Array* TokensHandle() { return &tokens_; }
 
   // Reads an object.
   RawObject* ReadObject();
@@ -257,6 +259,7 @@ class SnapshotReader : public BaseReader {
   Library& library_;  // Temporary library handle.
   AbstractType& type_;  // Temporary type handle.
   AbstractTypeArguments& type_arguments_;  // Temporary type argument handle.
+  Array& tokens_;  // Temporary tokens handle.
   GrowableArray<BackRefNode*> backward_references_;
 
   friend class Array;

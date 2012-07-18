@@ -282,9 +282,13 @@ class Send extends Expression {
   bool get isFunctionObjectInvocation() => selector === null;
   bool get isPrefix() => argumentsNode is Prefix;
   bool get isPostfix() => argumentsNode is Postfix;
+  bool get isCall() => !isOperator && !isPropertyAccess;
   bool get isIndex() =>
       isOperator && selector.asOperator().source.stringValue === '[]';
-  bool get isCall() => !isOperator && !isPropertyAccess;
+  bool get isLogicalAnd() =>
+      isOperator && selector.asOperator().source.stringValue === '&&';
+  bool get isLogicalOr() =>
+      isOperator && selector.asOperator().source.stringValue === '||';
 
   Token getBeginToken() {
     if (isPrefix && !isIndex) return selector.getBeginToken();

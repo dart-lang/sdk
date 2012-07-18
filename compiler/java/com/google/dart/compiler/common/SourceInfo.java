@@ -161,6 +161,9 @@ public final class SourceInfo implements Serializable {
     }
 
     int getLineOffset(int line) {
+      if (line < 0) {
+        return 0;
+      }
       return lineOffsets.get(line);
     }
 

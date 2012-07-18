@@ -67,17 +67,20 @@ class TestCase {
 
   void pass() {
     result = _PASS;
+    _config.onTestResult(this);
   }
 
   void fail(String message, String stackTrace) {
     result = _FAIL;
     this.message = message;
     this.stackTrace = stackTrace;
+    _config.onTestResult(this);
   }
 
   void error(String message, String stackTrace) {
     result = _ERROR;
     this.message = message;
     this.stackTrace = stackTrace;
+    _config.onTestResult(this);
   }
 }

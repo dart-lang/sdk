@@ -26,7 +26,7 @@ import java.util.Stack;
 class DartScannerParserContext implements ParserContext {
   private DartScanner scanner;
   private Deque<DartScanner.State> stateStack = new ArrayDeque<DartScanner.State>();
-  private Deque<DartScanner.Position> positionStack = new ArrayDeque<DartScanner.Position>();
+  private Deque<Integer> positionStack = new ArrayDeque<Integer>();
   private Source source;
   private DartCompilerListener listener;
   private final CompilerMetrics compilerMetrics;
@@ -50,14 +50,14 @@ class DartScannerParserContext implements ParserContext {
     positionStack.push(getBeginLocation(0));
   }
 
-  private DartScanner.Position getBeginLocation(int n) {
+  private int getBeginLocation(int n) {
     DartScanner.Location tokenLocation = scanner.peekTokenLocation(n);
-    return tokenLocation != null ? tokenLocation.getBegin() : new DartScanner.Position(0, 1, 1);
+    return tokenLocation != null ? tokenLocation.getBegin() : 0;
   }
 
-  private DartScanner.Position getEndLocation() {
+  private int getEndLocation() {
     DartScanner.Location tokenLocation = scanner.getTokenLocation();
-    return tokenLocation != null ? tokenLocation.getEnd() : new DartScanner.Position(0, 1, 1);
+    return tokenLocation != null ? tokenLocation.getEnd() : 0;
   }
 
   @Override
@@ -80,7 +80,7 @@ class DartScannerParserContext implements ParserContext {
     if (result instanceof DartUnit) {
       if (compilerMetrics != null) {
         compilerMetrics.unitParsed(scanner.getCharCount(), scanner.getNonCommentCharCount(),
-            scanner.getLineCount(), scanner.getNonCommentLineCount());
+            0, 0);
       }
     }
 
@@ -95,11 +95,11 @@ class DartScannerParserContext implements ParserContext {
    * @param result
    * @param startPos
    */
-  private <T> void setSourcePosition(T result, DartScanner.Position startPos) {
+  private <T> void setSourcePosition(T result, int startPos) {
     if (result instanceof HasSourceInfoSetter) {
       HasSourceInfoSetter hasSourceInfoSetter = (HasSourceInfoSetter) result;
-      int start = startPos.getPos();
-      int end = getEndLocation().getPos();
+      int start = startPos;
+      int end = getEndLocation();
       if (start != -1 && end < start) {
         // handle 0-length tokens, including where there is trailing whitespace
         end = start;

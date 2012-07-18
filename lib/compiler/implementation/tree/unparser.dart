@@ -82,8 +82,17 @@ class Unparser implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
+    // Check length to not print unnecessary whitespace.
+    if (node.modifiers !== null && node.modifiers.nodes.length() > 0) {
+      visit(node.modifiers);
+      sb.add(' ');
+    }
     if (node.returnType !== null) {
       visit(node.returnType);
+      sb.add(' ');
+    }
+    if (node.getOrSet !== null) {
+      add(node.getOrSet.value);
       sb.add(' ');
     }
     // TODO(antonm): that's a workaround as currently FunctionExpression
@@ -94,11 +103,16 @@ class Unparser implements Visitor {
       Send send = node.name;
       assert(send is !SendSet);
       visit(send.receiver);
+      if (!send.isOperator) {
+        // Looks like a factory method.
+        sb.add('.');
+      }
       visit(send.selector);
     } else {
       visit(node.name);
     }
     visit(node.parameters);
+    visit(node.initializers);
     visit(node.body);
   }
 
@@ -276,13 +290,14 @@ class Unparser implements Visitor {
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
+    visit(node.modifiers);
+    if (node.modifiers.nodes.length() > 0) {
+      sb.add(' ');
+    }
     if (node.type !== null) {
       visit(node.type);
-    } else {
-      sb.add('var');
+      sb.add(' ');
     }
-    sb.add(' ');
-    // TODO(karlklose): print modifiers.
     visit(node.definitions);
     if (node.endToken.value == const SourceString(';')) {
       add(node.endToken.value);
