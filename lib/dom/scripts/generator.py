@@ -491,6 +491,9 @@ class IDLTypeInfo(object):
   def native_type(self):
     return self._data.native_type or self._idl_type
 
+  def requires_v8_scope(self):
+    return self._data.requires_v8_scope
+
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     if 'Callback' in idl_node.ext_attrs:
       if set(['Optional', 'Callback']).issubset(idl_node.ext_attrs.keys()):
@@ -586,8 +589,8 @@ class InterfaceIDLTypeInfo(IDLTypeInfo):
 
 
 class SequenceIDLTypeInfo(IDLTypeInfo):
-  def __init__(self, idl_type, item_info):
-    super(SequenceIDLTypeInfo, self).__init__(idl_type, {})
+  def __init__(self, idl_type, data, item_info):
+    super(SequenceIDLTypeInfo, self).__init__(idl_type, data)
     self._item_info = item_info
 
   def dart_type(self):
@@ -601,8 +604,8 @@ class SequenceIDLTypeInfo(IDLTypeInfo):
 
 
 class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
-  def __init__(self, item_info):
-    super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', item_info)
+  def __init__(self, data, item_info):
+    super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
   def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
     emitter.Emit(
@@ -712,7 +715,8 @@ class TypeData(object):
                custom_to_dart=None, custom_to_native=None,
                conversion_includes=None,
                webcore_getter_name='getAttribute',
-               webcore_setter_name='setAttribute'):
+               webcore_setter_name='setAttribute',
+               requires_v8_scope=False):
     self.clazz = clazz
     self.dart_type = dart_type
     self.native_type = native_type
@@ -721,6 +725,7 @@ class TypeData(object):
     self.conversion_includes = conversion_includes
     self.webcore_getter_name = webcore_getter_name
     self.webcore_setter_name = webcore_setter_name
+    self.requires_v8_scope = requires_v8_scope
 
 
 _idl_type_registry = {
@@ -755,7 +760,7 @@ _idl_type_registry = {
     'DOMString': TypeData(clazz='Primitive', dart_type='String', native_type='String'),
     # TODO(vsm): This won't actually work until we convert the Map to
     # a native JS Map for JS DOM.
-    'Dictionary': TypeData(clazz='Primitive', dart_type='Map'),
+    'Dictionary': TypeData(clazz='Primitive', dart_type='Map', requires_v8_scope=True),
     # TODO(sra): Flags is really a dictionary: {create:bool, exclusive:bool}
     # http://dev.w3.org/2009/dap/file-system/file-dir-sys.html#the-flags-interface
     'Flags': TypeData(clazz='Primitive', dart_type='Object'),
@@ -840,8 +845,9 @@ class TypeRegistry(object):
     match = re.match(r'(?:sequence<(\w+)>|(\w+)\[\])$', type_name)
     if match:
       if type_name == 'DOMString[]':
-        return DOMStringArrayTypeInfo(self.TypeInfo('DOMString'))
-      return SequenceIDLTypeInfo(type_name, self.TypeInfo(match.group(1) or match.group(2)))
+        return DOMStringArrayTypeInfo(TypeData('Sequence'), self.TypeInfo('DOMString'))
+      item_info = self.TypeInfo(match.group(1) or match.group(2))
+      return SequenceIDLTypeInfo(type_name, TypeData('Sequence'), item_info)
     if not type_name in _idl_type_registry:
       return InterfaceIDLTypeInfo(type_name, TypeData('Interface'))
     type_data = _idl_type_registry.get(type_name)

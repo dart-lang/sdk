@@ -316,7 +316,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=False, invocation=invocation,
         raises_exceptions=raises_exceptions,
-        runtime_check=runtime_check)
+        runtime_check=runtime_check,
+        requires_v8_scope=self._RequiresV8Scope(ext_attrs, constructor_info.idl_args))
+
 
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
@@ -452,15 +454,10 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return False
 
     if call_with == 'ScriptArguments|CallStack':
-      self._cpp_impl_includes.add('"DOMWindow.h"')
       self._cpp_impl_includes.add('"ScriptArguments.h"')
       self._cpp_impl_includes.add('"ScriptCallStack.h"')
-      self._cpp_impl_includes.add('"V8Proxy.h"')
-      self._cpp_impl_includes.add('"v8.h"')
       parameter_definitions_emitter.Emit(
           '\n'
-          '        v8::HandleScope handleScope;\n'
-          '        v8::Context::Scope scope(V8Proxy::mainWorldContext(DartUtilities::domWindowForCurrentIsolate()->frame()));\n'
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
           '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
           '        if (!scriptArguments)\n'
@@ -494,7 +491,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     arguments = []
     parameter_definitions_emitter = emitter.Emitter()
-    raises_exceptions = self._GenerateCallWithHandling(attr, parameter_definitions_emitter, arguments)
+    raises_exceptions = self._GenerateCallWithHandling(
+        attr, parameter_definitions_emitter, arguments)
     raises_exceptions = raises_exceptions or attr.get_raises
 
     if 'Reflect' in attr.ext_attrs:
@@ -519,7 +517,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     invocation = self._GenerateWebCoreInvocation(function_expression,
         arguments, attr.type.id, attr.ext_attrs, attr.get_raises)
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=raises_exceptions, runtime_check=None)
+        True, invocation, raises_exceptions=raises_exceptions,
+        runtime_check=None,
+        requires_v8_scope=self._RequiresV8Scope(attr.ext_attrs, []))
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -555,7 +555,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         arguments, 'void', attr.ext_attrs, attr.set_raises)
 
     self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=True, runtime_check=None)
+        True, invocation, raises_exceptions=True,
+        runtime_check=None,
+        requires_v8_scope=self._RequiresV8Scope(attr.ext_attrs, [attr]))
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -791,12 +793,18 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         parameter_definitions=parameter_definitions_emitter.Fragments(),
         needs_receiver=not operation.is_static, invocation=invocation,
         raises_exceptions=raises_exceptions,
-        runtime_check=None)
+        runtime_check=None,
+        requires_v8_scope=self._RequiresV8Scope(operation.ext_attrs, arguments))
 
   def _GenerateNativeCallback(self, callback_name, parameter_definitions,
-      needs_receiver, invocation, raises_exceptions, runtime_check):
+      needs_receiver, invocation, raises_exceptions, runtime_check,
+      requires_v8_scope):
 
     head_emitter = emitter.Emitter()
+
+    if requires_v8_scope:
+      head_emitter.Emit(
+          '        V8Scope v8scope;\n\n')
 
     if runtime_check:
       head_emitter.Emit(
@@ -841,14 +849,23 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateToNative(self, emitter, idl_node, index,
-                                argument_name=None):
+  def _GenerateToNative(self, emitter, idl_node, index, argument_name=None):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = self._TypeInfo(idl_node.type.id)
     self._cpp_impl_includes |= set(type_info.to_native_includes())
     argument_name = argument_name or idl_node.id
     handle = 'Dart_GetNativeArgument(args, %i)' % index
-    return type_info.emit_to_native(emitter, idl_node, argument_name, handle, self._interface.id)
+    argument_expression = type_info.emit_to_native(
+        emitter, idl_node, argument_name, handle, self._interface.id)
+    return argument_expression
+
+  def _RequiresV8Scope(self, ext_attrs, arguments):
+    if 'CallWith' in ext_attrs and ext_attrs['CallWith'] == 'ScriptArguments|CallStack':
+      return True
+    for argument in arguments:
+      if self._TypeInfo(argument.type.id).requires_v8_scope():
+        return True
+    return False
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
