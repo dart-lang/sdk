@@ -1,6 +1,7 @@
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
+// VMOptions=--no_show_internal_names
 //
 // Dart test program testing type casts.
 
@@ -21,7 +22,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(11, error.line);
+      Expect.equals(12, error.line);
       Expect.equals(23, error.column);
     }
     return result;
@@ -37,7 +38,7 @@ class TypeTest {
       var a = new List<int>(1) as List<int>;
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
-      assert(a[0] == 1);
+      Expect.equals(1, a[0]);
     } catch (TypeError error) {
       result = 100;
     }
@@ -63,7 +64,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(53, error.line);
+      Expect.equals(54, error.line);
       Expect.equals(25, error.column);
     }
     return result;
@@ -88,7 +89,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(75, error.line);
+      Expect.equals(76, error.line);
       Expect.equals(16, error.column);
     }
     return result;
@@ -111,7 +112,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(102, error.line);
+      Expect.equals(103, error.line);
       Expect.equals(13, error.column);
     }
     return result;
@@ -136,7 +137,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(127, error.line);
+      Expect.equals(128, error.line);
       Expect.equals(17, error.column);
     }
     return result;

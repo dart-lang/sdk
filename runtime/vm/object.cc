@@ -34,6 +34,9 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
+DEFINE_FLAG(bool, show_internal_names, false,
+    "Show names of internal classes (e.g. \"OneByteString\") in error messages "
+    "instead of showing the corresponding interface names (e.g. \"String\")");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, enable_type_checks);
 
@@ -525,6 +528,11 @@ RawError* Object::Init(Isolate* isolate) {
   // remaining classes and register them by name in the dictionaries.
   const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
 
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+  RegisterClass(cls, "IntegerImplementation", impl_script, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
   RegisterClass(cls, "Smi", impl_script, core_impl_lib);
@@ -908,6 +916,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
 
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
 
@@ -1043,6 +1054,68 @@ RawString* Class::Name() const {
   ASSERT(class_class() != Class::null());  // class_class_ should be set up.
   intptr_t index = GetSingletonClassIndex(raw());
   return String::NewSymbol(GetSingletonClassName(index));
+}
+
+
+RawString* Class::UserVisibleName() const {
+  if (FLAG_show_internal_names) {
+    return Name();
+  }
+  switch (id()) {
+    case kInteger:
+    case kSmi:
+    case kMint:
+    case kBigint:
+      return String::NewSymbol("int");
+    case kDouble:
+      return String::NewSymbol("double");
+    case kOneByteString:
+    case kTwoByteString:
+    case kFourByteString:
+    case kExternalOneByteString:
+    case kExternalTwoByteString:
+    case kExternalFourByteString:
+      return String::NewSymbol("String");
+    case kBool:
+      return String::NewSymbol("bool");
+    case kArray:
+    case kImmutableArray:
+    case kGrowableObjectArray:
+      return String::NewSymbol("List");
+    case kInt8Array:
+    case kExternalInt8Array:
+      return String::NewSymbol("Int8List");
+    case kUint8Array:
+    case kExternalUint8Array:
+      return String::NewSymbol("Uint8List");
+    case kInt16Array:
+    case kExternalInt16Array:
+      return String::NewSymbol("Int16List");
+    case kUint16Array:
+    case kExternalUint16Array:
+      return String::NewSymbol("Uint16List");
+    case kInt32Array:
+    case kExternalInt32Array:
+      return String::NewSymbol("Int32List");
+    case kUint32Array:
+    case kExternalUint32Array:
+      return String::NewSymbol("Uint32List");
+    case kInt64Array:
+    case kExternalInt64Array:
+      return String::NewSymbol("Int64List");
+    case kUint64Array:
+    case kExternalUint64Array:
+      return String::NewSymbol("Uint64List");
+    case kFloat32Array:
+    case kExternalFloat32Array:
+      return String::NewSymbol("Float32List");
+    case kFloat64Array:
+    case kExternalFloat64Array:
+      return String::NewSymbol("Float64List");
+    default:
+      return Name();
+  }
+  UNREACHABLE();
 }
 
 
@@ -1327,7 +1400,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     AbstractType& bound = AbstractType::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
-      type_param_name = type_param.Name();
+      type_param_name = type_param.name();
       if (type_param_name.Equals(type_name)) {
         intptr_t index = type_param.index();
         bound = type_param.bound();
@@ -1536,6 +1609,9 @@ RawClass* Class::NewSignatureClass(const String& name,
 RawClass* Class::GetClass(ObjectKind kind) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   switch (kind) {
+    case kInteger:
+      ASSERT(object_store->integer_implementation_class() != Class::null());
+      return object_store->integer_implementation_class();
     case kSmi:
       ASSERT(object_store->smi_class() != Class::null());
       return object_store->smi_class();
@@ -2310,13 +2386,12 @@ RawAbstractType* AbstractType::Canonicalize() const {
 }
 
 
-// TODO(regis): Investigate if we can safely map internal integer types (Smi,
-// Mint, and Bigint) to 'int' and internal String types (OneByteString, etc...)
-// to 'String' here. It may be too early. Also consider the upcoming type()
-// method.
-RawString* AbstractType::Name() const {
+RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  if (IsTypeParameter()) {
+    return TypeParameter::Cast(*this).name();
+  }
   // If the type is still being finalized, we may be reporting an error about
-  // an illformed type, so proceed with caution.
+  // a malformed type, so proceed with caution.
   const AbstractTypeArguments& args =
       AbstractTypeArguments::Handle(arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
@@ -2325,12 +2400,18 @@ RawString* AbstractType::Name() const {
   intptr_t num_type_params;  // Number of type parameters to print.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
-    class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
+    if (name_visibility == kInternalName) {
+      class_name = cls.Name();
+    } else {
+      ASSERT(name_visibility == kUserVisibleName);
+      // Map internal types to their corresponding public interfaces.
+      class_name = cls.UserVisibleName();
+    }
     if (num_type_params > num_args) {
       first_type_param_index = 0;
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
-        // Most probably an illformed type. Do not fill up with "Dynamic",
+        // Most probably a malformed type. Do not fill up with "Dynamic",
         // but use actual vector.
         num_type_params = num_args;
       } else {
@@ -2342,17 +2423,20 @@ RawString* AbstractType::Name() const {
       first_type_param_index = num_args - num_type_params;
     }
     if (cls.IsSignatureClass()) {
-      // We may be reporting an error about an illformed function type. In that
+      // We may be reporting an error about a malformed function type. In that
       // case, avoid instantiating the signature, since it may lead to cycles.
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         return class_name.raw();
       }
-      if (num_type_params > 0) {
+      // In order to avoid cycles, print the name of a typedef (non-canonical
+      // signature class) as a regular, possibly parameterized, class.
+      if (cls.IsCanonicalSignatureClass()) {
         const Function& signature_function = Function::Handle(
-            cls.signature_function());
+             cls.signature_function());
         // Signature classes have no super type.
         ASSERT(first_type_param_index == 0);
-        return signature_function.InstantiatedSignatureFrom(args);
+        return signature_function.InstantiatedSignatureFrom(args,
+                                                            name_visibility);
       }
     }
   } else {
@@ -2366,7 +2450,9 @@ RawString* AbstractType::Name() const {
     type_name = class_name.raw();
   } else {
     const String& args_name = String::Handle(
-        args.SubvectorName(first_type_param_index, num_type_params));
+        args.SubvectorName(first_type_param_index,
+                           num_type_params,
+                           name_visibility));
     type_name = String::Concat(class_name, args_name);
   }
   // The name is only used for type checking and debugging purposes.
@@ -2874,9 +2960,9 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (index() != other_type_param.index()) {
     return false;
   }
-  const String& name = String::Handle(Name());
-  const String& other_type_param_name = String::Handle(other_type_param.Name());
-  return name.Equals(other_type_param_name);
+  const String& type_param_name = String::Handle(name());
+  const String& other_type_param_name = String::Handle(other_type_param.name());
+  return type_param_name.Equals(other_type_param_name);
 }
 
 
@@ -2894,9 +2980,9 @@ bool TypeParameter::IsIdentical(const AbstractType& other,
   // Therefore, both type parameters may have different parameterized classes
   // and different indices. Compare the type parameter names only, and their
   // bounds if requested.
-  String& name = String::Handle(Name());
-  String& other_name = String::Handle(other_type_param.Name());
-  if (!name.Equals(other_name)) {
+  String& type_param_name = String::Handle(name());
+  String& other_type_param_name = String::Handle(other_type_param.name());
+  if (!type_param_name.Equals(other_type_param_name)) {
     return false;
   }
   if (check_type_parameter_bound) {
@@ -3037,8 +3123,10 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
-RawString* AbstractTypeArguments::SubvectorName(intptr_t from_index,
-                                                intptr_t len) const {
+RawString* AbstractTypeArguments::SubvectorName(
+    intptr_t from_index,
+    intptr_t len,
+    NameVisibility name_visibility) const {
   ASSERT(from_index + len <= Length());
   String& name = String::Handle();
   const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
@@ -3049,7 +3137,7 @@ RawString* AbstractTypeArguments::SubvectorName(intptr_t from_index,
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    name = type.Name();
+    name = type.BuildName(name_visibility);
     strings.SetAt(s++, name);
     if (i < len - 1) {
       strings.SetAt(s++, kCommaSpace);
@@ -3215,9 +3303,10 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
         if (malformed_error->IsNull()) {
-          const String& type_arg_name = String::Handle(this_type_arg.Name());
+          const String& type_arg_name =
+              String::Handle(this_type_arg.UserVisibleName());
           const String& class_name = String::Handle(cls.Name());
-          const String& bound_name = String::Handle(bound.Name());
+          const String& bound_name = String::Handle(bound.UserVisibleName());
           const Script& script = Script::Handle(cls.script());
           // Since the bound was canonicalized, its token index was lost,
           // therefore, use the token index of the corresponding type parameter.
@@ -4124,6 +4213,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
 RawString* Function::BuildSignature(
     bool instantiate,
+    NameVisibility name_visibility,
     const AbstractTypeArguments& instantiator) const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
@@ -4135,6 +4225,8 @@ RawString* Function::BuildSignature(
   const String& kRBracket = String::Handle(String::NewSymbol("]"));
   String& name = String::Handle();
   if (!instantiate && !is_static()) {
+    // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
+    // The signature of static functions cannot be type parameterized.
     const String& kSpaceExtendsSpace =
         String::Handle(String::NewSymbol(" extends "));
     const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
@@ -4150,12 +4242,12 @@ RawString* Function::BuildSignature(
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.Name();
+        name = type_parameter.name();
         pieces.Add(name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsDynamicType()) {
           pieces.Add(kSpaceExtendsSpace);
-          name = bound.Name();
+          name = bound.BuildName(name_visibility);
           pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
@@ -4177,7 +4269,7 @@ RawString* Function::BuildSignature(
     if (instantiate && !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator);
     }
-    name = param_type.Name();
+    name = param_type.BuildName(name_visibility);
     pieces.Add(name);
     if (i != (num_params - 1)) {
       pieces.Add(kCommaSpace);
@@ -4194,7 +4286,7 @@ RawString* Function::BuildSignature(
         param_type = param_type.InstantiateFrom(instantiator);
       }
       ASSERT(!param_type.IsNull());
-      name = param_type.Name();
+      name = param_type.BuildName(name_visibility);
       pieces.Add(name);
       if (i != (num_params - 1)) {
         pieces.Add(kCommaSpace);
@@ -4207,7 +4299,7 @@ RawString* Function::BuildSignature(
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
   }
-  name = res_type.Name();
+  name = res_type.BuildName(name_visibility);
   pieces.Add(name);
   const Array& strings = Array::Handle(Array::MakeArray(pieces));
   return String::NewSymbol(String::Handle(String::ConcatAll(strings)));

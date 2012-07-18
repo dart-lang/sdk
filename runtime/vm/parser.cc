@@ -2874,14 +2874,14 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       ErrorMsg(type_pos,
                "class '%s' may not extend type parameter '%s'",
                class_name.ToCString(),
-               String::Handle(type.Name()).ToCString());
+               String::Handle(type.UserVisibleName()).ToCString());
     }
     super_type ^= type.raw();
     if (super_type.IsInterfaceType()) {
       ErrorMsg(type_pos,
                "class '%s' may implement, but cannot extend interface '%s'",
                class_name.ToCString(),
-               String::Handle(super_type.Name()).ToCString());
+               String::Handle(super_type.UserVisibleName()).ToCString());
     }
   } else {
     // No extends clause: Implicitly extend Object.
@@ -3284,7 +3284,7 @@ void Parser::ParseTypeParameters(const Class& cls) {
       // Check for duplicate type parameters.
       for (intptr_t i = 0; i < index; i++) {
         existing_type_parameter ^= type_parameters_array.At(i);
-        existing_type_parameter_name = existing_type_parameter.Name();
+        existing_type_parameter_name = existing_type_parameter.name();
         if (existing_type_parameter_name.Equals(type_parameter_name)) {
           ErrorMsg("duplicate type parameter '%s'",
                    type_parameter_name.ToCString());
@@ -3382,14 +3382,14 @@ RawArray* Parser::ParseInterfaceList() {
   AbstractType& other_interface = AbstractType::Handle();
   do {
     ConsumeToken();
-    intptr_t supertype_pos = TokenPos();
+    intptr_t interface_pos = TokenPos();
     interface = ParseType(ClassFinalizer::kTryResolve);
-    interface_name = interface.Name();
+    interface_name = interface.UserVisibleName();
     for (int i = 0; i < interfaces.Length(); i++) {
       other_interface ^= interfaces.At(i);
-      other_name = other_interface.Name();
+      other_name = other_interface.UserVisibleName();
       if (interface_name.Equals(other_name)) {
-        ErrorMsg(supertype_pos, "Duplicate supertype '%s'",
+        ErrorMsg(interface_pos, "duplicate interface '%s'",
                  interface_name.ToCString());
       }
     }
@@ -3421,12 +3421,12 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
         ErrorMsg(interfaces_pos,
                  "interface '%s' may not extend type parameter '%s'",
                  String::Handle(cls.Name()).ToCString(),
-                 String::Handle(interface.Name()).ToCString());
+                 String::Handle(interface.UserVisibleName()).ToCString());
       } else {
         ErrorMsg(interfaces_pos,
                  "class '%s' may not implement type parameter '%s'",
                  String::Handle(cls.Name()).ToCString(),
-                 String::Handle(interface.Name()).ToCString());
+                 String::Handle(interface.UserVisibleName()).ToCString());
       }
     }
     if (!ClassFinalizer::AddInterfaceIfUnique(all_interfaces,
@@ -3435,8 +3435,8 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
       ASSERT(!conflicting.IsNull());
       ErrorMsg(interfaces_pos,
                "interface '%s' conflicts with interface '%s'",
-               String::Handle(interface.Name()).ToCString(),
-               String::Handle(conflicting.Name()).ToCString());
+               String::Handle(interface.UserVisibleName()).ToCString(),
+               String::Handle(conflicting.UserVisibleName()).ToCString());
     }
   }
   cls_interfaces = Array::MakeArray(all_interfaces);
@@ -6866,7 +6866,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           if (!AbstractTypeArguments::Handle(type->arguments()).IsNull()) {
             ErrorMsg(type_parameter.token_pos(),
                      "type parameter '%s' cannot be parameterized",
-                     String::Handle(type_parameter.Name()).ToCString());
+                     String::Handle(type_parameter.name()).ToCString());
           }
           *type = type_parameter.raw();
           return;
@@ -6892,7 +6892,7 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           Error::Handle(),  // No previous error.
           current_class(), parameterized_type, finalization,
           "type '%s' is not loaded",
-          String::Handle(parameterized_type.Name()).ToCString());
+          String::Handle(parameterized_type.UserVisibleName()).ToCString());
     }
   }
   // Resolve type arguments, if any.
@@ -7322,7 +7322,7 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
       TypeParameter& type_param = TypeParameter::Handle(
           scope_class.LookupTypeParameter(ident, ident_pos));
       if (!type_param.IsNull()) {
-        String& type_param_name = String::Handle(type_param.Name());
+        String& type_param_name = String::Handle(type_param.name());
         ErrorMsg(ident_pos, "illegal use of type parameter %s",
                  type_param_name.ToCString());
       }
@@ -7560,7 +7560,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
                    "list literal element at index %d must be "
                    "a constant of type '%s'",
                    i,
-                   String::Handle(element_type.Name()).ToCString());
+                   String::Handle(element_type.UserVisibleName()).ToCString());
         }
       }
       const_list.SetAt(i, elem->AsLiteralNode()->literal());
@@ -7759,7 +7759,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
                    "map literal value at index %d must be "
                    "a constant of type '%s'",
                    i >> 1,
-                   String::Handle(value_type.Name()).ToCString());
+                   String::Handle(value_type.UserVisibleName()).ToCString());
         }
       }
       key_value_array.SetAt(i, arg->AsLiteralNode()->literal());
@@ -7885,7 +7885,7 @@ AstNode* Parser::ParseNewOperator() {
   if (type.IsTypeParameter()) {
     ErrorMsg(type_pos,
              "type parameter '%s' cannot be instantiated",
-             String::Handle(type.Name()).ToCString());
+             String::Handle(type.UserVisibleName()).ToCString());
   }
   if (type.IsDynamicType()) {
     ErrorMsg(type_pos, "Dynamic cannot be instantiated");
@@ -8283,7 +8283,7 @@ AstNode* Parser::ParsePrimary() {
               scope_class.LookupTypeParameter(*(qual_ident.ident),
                                               TokenPos()));
           if (!type_param.IsNull()) {
-            String& type_param_name = String::Handle(type_param.Name());
+            const String& type_param_name = String::Handle(type_param.name());
             ErrorMsg(qual_ident.ident_pos,
                      "illegal use of type parameter %s",
                      type_param_name.ToCString());

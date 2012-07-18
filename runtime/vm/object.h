@@ -352,6 +352,12 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     kIsMoreSpecificThan
   };
 
+  // Different kinds of name visibility.
+  enum NameVisibility {
+    kInternalName = 0,
+    kUserVisibleName
+  };
+
  protected:
   // Used for extracting the C++ vtable during bringup.
   Object() : raw_(null_) {}
@@ -487,6 +493,8 @@ class Class : public Object {
   }
 
   RawString* Name() const;
+
+  RawString* UserVisibleName() const;
 
   RawScript* script() const { return raw_ptr()->script_; }
 
@@ -775,9 +783,9 @@ class Class : public Object {
                 Error* malformed_error) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Class, Object);
-  friend class Object;
-  friend class Instance;
   friend class AbstractType;
+  friend class Instance;
+  friend class Object;
   friend class Type;
 };
 
@@ -847,7 +855,15 @@ class AbstractType : public Object {
   virtual RawAbstractType* Canonicalize() const;
 
   // The name of this type, including the names of its type arguments, if any.
-  virtual RawString* Name() const;
+  virtual RawString* Name() const {
+    return BuildName(kInternalName);
+  }
+
+  // The name of this type, including the names of its type arguments, if any.
+  // Names of internal classes are mapped to their public interfaces.
+  virtual RawString* UserVisibleName() const {
+    return BuildName(kUserVisibleName);
+  }
 
   // The name of this type's class, i.e. without the type argument names of this
   // type.
@@ -920,10 +936,15 @@ class AbstractType : public Object {
                 const AbstractType& other,
                 Error* malformed_error) const;
 
+  // Return the internal or public name of this type, including the names of its
+  // type arguments, if any.
+  RawString* BuildName(NameVisibility visibility) const;
+
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractType, Object);
-  friend class Class;
   friend class AbstractTypeArguments;
+  friend class Class;
+  friend class Function;
 };
 
 
@@ -1050,7 +1071,7 @@ class TypeParameter : public AbstractType {
   RawClass* parameterized_class() const {
       return raw_ptr()->parameterized_class_;
   }
-  virtual RawString* Name() const { return raw_ptr()->name_; }
+  RawString* name() const { return raw_ptr()->name_; }
   intptr_t index() const { return raw_ptr()->index_; }
   void set_index(intptr_t value) const;
   RawAbstractType* bound() const { return raw_ptr()->bound_; }
@@ -1111,13 +1132,16 @@ class AbstractTypeArguments : public Object {
   // Do not canonicalize InstantiatedTypeArguments or NULL objects
   virtual RawAbstractTypeArguments* Canonicalize() const { return this->raw(); }
 
-  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, int>".
+  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, Smi>".
   virtual RawString* Name() const {
-    return SubvectorName(0, Length());
+    return SubvectorName(0, Length(), kInternalName);
   }
 
-  // The name of a subvector of this type argument vector, e.g. "<T, Dynamic>".
-  virtual RawString* SubvectorName(intptr_t from_index, intptr_t len) const;
+  // The name of this type argument vector, e.g. "<T, Dynamic, List<T>, int>".
+  // Names of internal classes are mapped to their public interfaces.
+  virtual RawString* UserVisibleName() const {
+    return SubvectorName(0, Length(), kUserVisibleName);
+  }
 
   // Check if this type argument vector consists solely of DynamicType,
   // considering only a prefix of length 'len'.
@@ -1178,8 +1202,15 @@ class AbstractTypeArguments : public Object {
                 intptr_t len,
                 Error* malformed_error) const;
 
+  // Return the internal or public name of a subvector of this type argument
+  // vector, e.g. "<T, Dynamic, List<T>, int>".
+  RawString* SubvectorName(intptr_t from_index,
+                           intptr_t len,
+                           NameVisibility name_visibility) const;
+
  protected:
   HEAP_OBJECT_IMPLEMENTATION(AbstractTypeArguments, Object);
+  friend class AbstractType;
   friend class Class;
 };
 
@@ -1290,9 +1321,10 @@ class Function : public Object {
   RawString* name() const { return raw_ptr()->name_; }
 
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
-  // signature of the given function.
+  // internal signature of the given function.
   RawString* Signature() const {
-    return BuildSignature(false, TypeArguments::Handle());
+    const bool instantiate = false;
+    return BuildSignature(instantiate, kInternalName, TypeArguments::Handle());
   }
 
   // Build a string of the form '(A, [b: B, c: C]) => D' representing the
@@ -1300,8 +1332,10 @@ class Function : public Object {
   // '<T, R>(T, [b: B, c: C]) => R') are instantiated using the given
   // instantiator type argument vector (e.g. '<A, D>').
   RawString* InstantiatedSignatureFrom(
-      const AbstractTypeArguments& instantiator) const {
-    return BuildSignature(true, instantiator);
+      const AbstractTypeArguments& instantiator,
+      NameVisibility name_visibility) const {
+    const bool instantiate = true;
+    return BuildSignature(instantiate, name_visibility, instantiator);
   }
 
   // Returns true if the signature of this function is instantiated, i.e. if it
@@ -1582,6 +1616,7 @@ class Function : public Object {
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
+                            NameVisibility name_visibility,
                             const AbstractTypeArguments& instantiator) const;
 
   // Check the subtype or 'more specific' relationship.
@@ -2001,8 +2036,8 @@ class Library : public Object {
 
   HEAP_OBJECT_IMPLEMENTATION(Library, Object);
   friend class Class;
-  friend class DictionaryIterator;
   friend class Debugger;
+  friend class DictionaryIterator;
   friend class Isolate;
 };
 
@@ -2087,8 +2122,8 @@ class Instructions : public Object {
   static RawInstructions* New(intptr_t size);
 
   HEAP_OBJECT_IMPLEMENTATION(Instructions, Object);
-  friend class Code;
   friend class Class;
+  friend class Code;
 };
 
 
@@ -2255,8 +2290,8 @@ class Stackmap : public Object {
   void set_bitmap_size_in_bytes(intptr_t value) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Stackmap, Object);
-  friend class Class;
   friend class BitmapBuilder;
+  friend class Class;
 };
 
 
@@ -2945,6 +2980,7 @@ class Integer : public Number {
   virtual int CompareWith(const Integer& other) const;
 
   OBJECT_IMPLEMENTATION(Integer, Number);
+  friend class Class;
 };
 
 
@@ -3000,8 +3036,6 @@ class Smi : public Integer {
   }
 
  private:
-  friend class Api;  // For ValueFromRaw
-
   static intptr_t ValueFromRaw(uword raw_value) {
     intptr_t value = raw_value;
     ASSERT((value & kSmiTagMask) == kSmiTag);
@@ -3010,8 +3044,9 @@ class Smi : public Integer {
   static cpp_vtable handle_vtable_;
 
   OBJECT_IMPLEMENTATION(Smi, Integer);
-  friend class Object;
+  friend class Api;  // For ValueFromRaw
   friend class Class;
+  friend class Object;
 };
 
 
@@ -3125,8 +3160,8 @@ class Bigint : public Integer {
   static RawBigint* Allocate(intptr_t length, Heap::Space space = Heap::kNew);
 
   HEAP_OBJECT_IMPLEMENTATION(Bigint, Integer);
-  friend class Class;
   friend class BigintOperations;
+  friend class Class;
 };
 
 
@@ -3656,8 +3691,8 @@ class Bool : public Instance {
   static RawBool* New(bool value);
 
   HEAP_OBJECT_IMPLEMENTATION(Bool, Instance);
-  friend class Object;  // To initialize the true and false values.
   friend class Class;
+  friend class Object;  // To initialize the true and false values.
 };
 
 
@@ -3850,8 +3885,8 @@ class GrowableObjectArray : public Instance {
   static const int kDefaultInitialCapacity = 4;
 
   HEAP_OBJECT_IMPLEMENTATION(GrowableObjectArray, Instance);
-  friend class Class;
   friend class Array;
+  friend class Class;
 };
 
 

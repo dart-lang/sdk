@@ -1,7 +1,7 @@
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
-// VMOptions=--enable_type_checks --enable_asserts
+// VMOptions=--enable_type_checks --no_show_internal_names
 //
 // Dart test program testing type checks.
 
@@ -37,7 +37,7 @@ class TypeTest {
       List<int> a = new List<int>(1);
       a[0] = 0;
       a[index()]++;  // Type check succeeds, but does not create side effects.
-      assert(a[0] == 1);
+      Expect.equals(1, a[0]);
     } catch (TypeError error) {
       result = 100;
     }
@@ -368,7 +368,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_vm_test.dart", subs);
-      Expect.equals(472, error.line);
+      Expect.equals(560, error.line);
       Expect.equals(12, error.column);
     }
     return result;
@@ -392,16 +392,49 @@ class TypeTest {
         List<int> ai = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<int>", error.dstType);
+        Expect.equals("List<Object>", error.srcType);
+        Expect.equals("ai", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(392, error.line);
+        Expect.equals(24, error.column);
       }
       try {
         List<num> an = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<num>", error.dstType);
+        Expect.equals("List<Object>", error.srcType);
+        Expect.equals("an", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(408, error.line);
+        Expect.equals(24, error.column);
       }
       try {
         List<String> as = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<String>", error.dstType);
+        Expect.equals("List<Object>", error.srcType);
+        Expect.equals("as", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(424, error.line);
+        Expect.equals(27, error.column);
       }
     }
     {
@@ -414,6 +447,17 @@ class TypeTest {
         List<String> as = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<String>", error.dstType);
+        Expect.equals("List<int>", error.srcType);
+        Expect.equals("as", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(447, error.line);
+        Expect.equals(27, error.column);
       }
     }
     {
@@ -424,12 +468,34 @@ class TypeTest {
         List<int> ai = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<int>", error.dstType);
+        Expect.equals("List<num>", error.srcType);
+        Expect.equals("ai", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(468, error.line);
+        Expect.equals(24, error.column);
       }
       List<num> an = a;
       try {
         List<String> as = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<String>", error.dstType);
+        Expect.equals("List<num>", error.srcType);
+        Expect.equals("as", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(485, error.line);
+        Expect.equals(27, error.column);
       }
     }
     {
@@ -440,11 +506,33 @@ class TypeTest {
         List<int> ai = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<int>", error.dstType);
+        Expect.equals("List<String>", error.srcType);
+        Expect.equals("ai", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(506, error.line);
+        Expect.equals(24, error.column);
       }
       try {
         List<num> an = a;
       } catch (TypeError error) {
         result++;
+        Expect.equals("List<num>", error.dstType);
+        Expect.equals("List<String>", error.srcType);
+        Expect.equals("an", error.dstName);
+        int pos = error.url.lastIndexOf("/", error.url.length);
+        if (pos == -1) {
+          pos = error.url.lastIndexOf("\\", error.url.length);
+        }
+        String subs = error.url.substring(pos + 1, error.url.length);
+        Expect.equals("type_vm_test.dart", subs);
+        Expect.equals(522, error.line);
+        Expect.equals(24, error.column);
       }
       List<String> as = a;
     }

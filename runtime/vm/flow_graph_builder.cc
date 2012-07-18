@@ -446,7 +446,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
     const char* static_type_name = "unknown";
     if (value != NULL) {
       const AbstractType& type = AbstractType::Handle(value->StaticType());
-      static_type_name = String::Handle(type.Name()).ToCString();
+      static_type_name = String::Handle(type.UserVisibleName()).ToCString();
     }
     Parser::PrintMessage(script, token_pos, "",
                          "%s type check: static type '%s' is %s specific than "
@@ -454,7 +454,7 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
                          eliminated ? "Eliminated" : "Generated",
                          static_type_name,
                          eliminated ? "more" : "not more",
-                         String::Handle(dst_type.Name()).ToCString(),
+                         String::Handle(dst_type.UserVisibleName()).ToCString(),
                          dst_name.ToCString());
   }
   return eliminated;

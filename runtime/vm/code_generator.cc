@@ -588,19 +588,6 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
 }
 
 
-// For error reporting, simplify type name, e.g, all integer types (Smi, Mint,
-// Bigint) are reported as 'int' and all String types are mapped to 'String'.
-static RawString* GetSimpleTypeName(const Instance& value) {
-  if (value.IsInteger()) {
-    return String::NewSymbol("int");
-  } else if (value.IsString()) {
-    return String::NewSymbol("String");
-  } else {
-    return Type::Handle(value.GetType()).Name();
-  }
-}
-
-
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
 // Arg0: node-id of the assignment.
@@ -638,15 +625,16 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
   if (!is_instance_of) {
     // Throw a dynamic type error.
     const intptr_t location = GetCallerLocation();
-    String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
+    const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
+    const String& src_type_name = String::Handle(src_type.UserVisibleName());
     String& dst_type_name = String::Handle();
     if (!dst_type.IsInstantiated()) {
       // Instantiate dst_type before reporting the error.
       const AbstractType& instantiated_dst_type = AbstractType::Handle(
           dst_type.InstantiateFrom(instantiator_type_arguments));
-      dst_type_name = instantiated_dst_type.Name();
+      dst_type_name = instantiated_dst_type.UserVisibleName();
     } else {
-      dst_type_name = dst_type.Name();
+      dst_type_name = dst_type.UserVisibleName();
     }
     String& malformed_error_message =  String::Handle();
     if (!malformed_error.IsNull()) {
@@ -674,10 +662,12 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
   ASSERT(src_instance.IsNull() || !src_instance.IsBool());
   const Type& bool_interface = Type::Handle(Type::BoolInterface());
-  const String& src_type_name = String::Handle(GetSimpleTypeName(src_instance));
-  const String& bool_type_name = String::Handle(bool_interface.Name());
+  const AbstractType& src_type = AbstractType::Handle(src_instance.GetType());
+  const String& src_type_name = String::Handle(src_type.UserVisibleName());
+  const String& bool_type_name =
+      String::Handle(bool_interface.UserVisibleName());
   const String& expr = String::Handle(String::NewSymbol("boolean expression"));
-  const String& no_malformed_type_error =  String::Handle();
+  const String& no_malformed_type_error = String::Handle();
   Exceptions::CreateAndThrowTypeError(location, src_type_name, bool_type_name,
                                       expr, no_malformed_type_error);
   UNREACHABLE();
@@ -697,7 +687,8 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
   const String& dst_name = String::CheckedHandle(arguments.At(1));
   const String& malformed_error = String::CheckedHandle(arguments.At(2));
   const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
-  const String& src_type_name = String::Handle(GetSimpleTypeName(src_value));
+  const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
+  const String& src_type_name = String::Handle(src_type.UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
   UNREACHABLE();

@@ -17,6 +17,7 @@ ObjectStore::ObjectStore()
     function_interface_(Type::null()),
     number_interface_(Type::null()),
     int_interface_(Type::null()),
+    integer_implementation_class_(Class::null()),
     smi_class_(Class::null()),
     mint_class_(Class::null()),
     bigint_class_(Class::null()),
@@ -139,6 +140,7 @@ void ObjectStore::InitKeywordTable() {
 RawClass* ObjectStore::GetClass(int index) {
   switch (index) {
     case kObjectClass: return object_class_;
+    case kIntegerImplementationClass: return integer_implementation_class_;
     case kSmiClass: return smi_class_;
     case kMintClass: return mint_class_;
     case kBigintClass: return bigint_class_;
@@ -186,6 +188,8 @@ int ObjectStore::GetClassIndex(const RawClass* raw_class) {
   ASSERT(raw_class->IsHeapObject());
   if (raw_class == object_class_) {
     return kObjectClass;
+  } else if (raw_class == integer_implementation_class_) {
+    return kIntegerImplementationClass;
   } else if (raw_class == smi_class_) {
     return kSmiClass;
   } else if (raw_class == mint_class_) {

@@ -37,6 +37,7 @@ class ObjectStore {
     kListInterface,
     kByteArrayInterface,
     kObjectClass,
+    kIntegerImplementationClass,
     kSmiClass,
     kMintClass,
     kBigintClass,
@@ -123,6 +124,13 @@ class ObjectStore {
   RawType* int_interface() const { return int_interface_; }
   void set_int_interface(const Type& value) {
     int_interface_ = value.raw();
+  }
+
+  RawClass* integer_implementation_class() const {
+    return integer_implementation_class_;
+  }
+  void set_integer_implementation_class(const Class& value) {
+    integer_implementation_class_ = value.raw();
   }
 
   RawClass* smi_class() const { return smi_class_; }
@@ -523,6 +531,7 @@ class ObjectStore {
   RawType* function_interface_;
   RawType* number_interface_;
   RawType* int_interface_;
+  RawClass* integer_implementation_class_;
   RawClass* smi_class_;
   RawClass* mint_class_;
   RawClass* bigint_class_;
