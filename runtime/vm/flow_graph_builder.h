@@ -122,12 +122,9 @@ class EffectGraphVisitor : public AstNodeVisitor {
   UseVal* Bind(Computation* computation);
   // Append a computation with no uses.  Assumes this graph is open.
   void Do(Computation* computation);
-  // Append a single (non-Definition, non-Entry) instruction.  Assumes this
-  // graph is open.
+  // Append a single (non-Bind, non-Do) instruction.  Assumes this graph is
+  // open.
   void AddInstruction(Instruction* instruction);
-  // Append a Goto (unconditional control flow) instruction and close
-  // the graph fragment.  Assumes this graph fragment is open.
-  void Goto(JoinEntryInstr* join);
 
   // Append a 'diamond' branch and join to this graph, depending on which
   // parts are reachable.  Assumes this graph is open.

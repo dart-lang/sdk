@@ -118,7 +118,10 @@ void FlowGraphCompiler::VisitBlocks() {
       BlockEntryInstr* successor = instr->next()->AsBlockEntry();
       ASSERT(successor != NULL);
       frame_register_allocator()->Spill();
-      if (!IsNextBlock(successor)) {
+      // The block ended with a "goto".  We can fall through if it is the
+      // next block in the list.  Otherwise, we need a jump.
+      if ((i == block_order().length() - 1) ||
+          (block_order()[i + 1] != successor)) {
         assembler()->jmp(GetBlockLabel(successor));
       }
     }
@@ -152,10 +155,9 @@ Label* FlowGraphCompiler::GetBlockLabel(
 }
 
 
-bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
+bool FlowGraphCompiler::IsNextBlock(TargetEntryInstr* block_entry) const {
   intptr_t current_index = reverse_index(current_block()->postorder_number());
-  return (current_index < (block_order().length() - 1)) &&
-      (block_order()[current_index + 1] == block_entry);
+  return block_order_[current_index + 1] == block_entry;
 }
 
 
@@ -603,7 +605,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 
   // If this instruction is call spill everything that was not consumed by
   // input locations.
-  if (locs->is_call() || instr->IsBranch() || instr->IsGoto()) {
+  if (locs->is_call() || instr->IsBranch()) {
     Spill();
   }
 

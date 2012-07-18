@@ -394,9 +394,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParameterInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%d <- parameter(%d)",
-           (ssa_temp_index() != -1) ? ssa_temp_index() : temp_index(),
-           index());
+  f->Print("    v%d <- parameter(%d)", index());
 }
 
 
@@ -439,11 +437,6 @@ void ReThrowInstr::PrintTo(BufferFormatter* f) const {
   exception()->PrintTo(f);
   f->Print(", ");
   stack_trace()->PrintTo(f);
-}
-
-
-void GotoInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    goto %d", successor()->block_id());
 }
 
 
@@ -695,11 +688,6 @@ void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
   exception()->PrintTo(f);
   f->Print(", ");
   stack_trace()->PrintTo(f);
-}
-
-
-void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ goto B%d", successor()->block_id());
 }
 
 

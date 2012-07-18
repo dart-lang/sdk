@@ -519,7 +519,8 @@ static void TryFuseComparisonWithBranch(BindInstr* instr,
           comp->MarkFusedWithBranch(branch);
           branch->MarkFusedWithComparison(comp);
           branch->set_is_negated(true);
-          // Remove the comparison and the boolean negation from the graph.
+
+          // Remove comparison and boolean negation from the graph.
           branch->set_previous(instr->previous());
           instr->previous()->set_next(branch);
           return;
