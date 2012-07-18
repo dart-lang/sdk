@@ -258,6 +258,22 @@ void ThrowInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t GotoInstr::InputCount() const {
+  return 0;
+}
+
+
+Value* GotoInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void GotoInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
 intptr_t ReturnInstr::InputCount() const {
   return 1;
 }
@@ -487,7 +503,9 @@ void BlockEntryInstr::DiscoverBlocks(
            !next_instr->IsBranch()) {
       if (vars != NULL) next_instr->RecordAssignedVars(vars);
       set_last_instruction(next_instr);
-      next_instr = next_instr->next();
+      GotoInstr* goto_instr = next_instr->AsGoto();
+      next_instr =
+          (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
     }
   }
   if (next_instr != NULL) {
@@ -539,13 +557,15 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 
 
 intptr_t Instruction::SuccessorCount() const {
-  ASSERT(next() == NULL || next()->IsBlockEntry());
-  return (next() != NULL) ? 1 : 0;
+  return 0;
 }
 
 
 BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
-  return next()->AsBlockEntry();
+  // Called only if index is in range.  Only control-transfer instructions
+  // can have non-zero successor counts and they override this function.
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -570,6 +590,22 @@ BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
   if (index == 1) return false_successor_;
   UNREACHABLE();
   return NULL;
+}
+
+
+intptr_t GotoInstr::SuccessorCount() const {
+  return 1;
+}
+
+
+BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
+  ASSERT(index == 0);
+  return successor();
+}
+
+
+void Instruction::Goto(JoinEntryInstr* entry) {
+  set_next(new GotoInstr(entry));
 }
 
 
@@ -984,6 +1020,20 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                 try_index(),
                                 kReThrowRuntimeEntry);
   __ int3();
+}
+
+
+LocationSummary* GotoInstr::MakeLocationSummary() const {
+  return new LocationSummary(0, 0);
+}
+
+
+void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // We can fall through if the successor is the next block in the list.
+  // Otherwise, we need a jump.
+  if (!compiler->IsNextBlock(successor())) {
+    __ jmp(compiler->GetBlockLabel(successor()));
+  }
 }
 
 

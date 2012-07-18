@@ -95,10 +95,8 @@ void EffectGraphVisitor::Do(Computation* computation) {
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
   ASSERT(!instruction->IsDefinition());
+  ASSERT(!instruction->IsBlockEntry());
   DeallocateTempIndex(instruction->InputCount());
-  if (instruction->IsDefinition()) {
-    instruction->AsDefinition()->set_temp_index(AllocateTempIndex());
-  }
   if (is_empty()) {
     entry_ = exit_ = instruction;
   } else {
@@ -108,8 +106,24 @@ void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
 }
 
 
-// Appends a graph fragment to a block entry instruction and returns the exit
-// of the resulting graph fragment.
+void EffectGraphVisitor::Goto(JoinEntryInstr* join) {
+  ASSERT(is_open());
+  if (is_empty()) {
+    entry_ = new GotoInstr(join);
+  } else {
+    exit()->Goto(join);
+  }
+  exit_ = NULL;
+}
+
+
+// Appends a graph fragment to a block entry instruction.  Returns the entry
+// instruction if the fragment was empty or else the exit of the fragment if
+// it was non-empty (so NULL if the fragment is closed).
+//
+// Note that the fragment is no longer a valid fragment after calling this
+// function -- the fragment is closed at its entry because the entry has a
+// predecessor in the graph.
 static Instruction* AppendFragment(BlockEntryInstr* entry,
                                    const EffectGraphVisitor& fragment) {
   if (fragment.is_empty()) return entry;
@@ -148,9 +162,10 @@ void EffectGraphVisitor::Join(const TestGraphVisitor& test_fragment,
     exit_ = true_exit;
     temp_index_ = true_fragment.temp_index();
   } else {
-    exit_ = new JoinEntryInstr();
-    true_exit->set_next(exit_);
-    false_exit->set_next(exit_);
+    JoinEntryInstr* join = new JoinEntryInstr();
+    true_exit->Goto(join);
+    false_exit->Goto(join);
+    exit_ = join;
     ASSERT(true_fragment.temp_index() == false_fragment.temp_index());
     temp_index_ = true_fragment.temp_index();
   }
@@ -177,9 +192,9 @@ void EffectGraphVisitor::TieLoop(const TestGraphVisitor& test_fragment,
     Append(test_fragment);
   } else {
     JoinEntryInstr* join = new JoinEntryInstr();
-    AddInstruction(join);
     join->set_next(test_fragment.entry());
-    body_exit->set_next(join);
+    Goto(join);
+    body_exit->Goto(join);
   }
 
   // 3. Set the exit to the graph to be the false successor of the test, a
@@ -920,11 +935,8 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
   node->body()->Visit(&switch_body);
   Append(switch_body);
   if ((node->label() != NULL) && (node->label()->join_for_break() != NULL)) {
-    if (is_open()) {
-      AddInstruction(node->label()->join_for_break());
-    } else {
-      exit_ = node->label()->join_for_break();
-    }
+    if (is_open()) Goto(node->label()->join_for_break());
+    exit_ = node->label()->join_for_break();
   }
   // No continue label allowed.
   ASSERT((node->label() == NULL) ||
@@ -956,102 +968,81 @@ void EffectGraphVisitor::VisitSwitchNode(SwitchNode* node) {
 void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
   const intptr_t len = node->case_expressions()->length();
   // Create case statements instructions.
-  const bool needs_join_at_statement_entry =
-      (len > 1) || ((len > 0) && (node->contains_default()));
   EffectGraphVisitor for_case_statements(owner(), temp_index());
   // Compute start of statements fragment.
-  BlockEntryInstr* statement_start = NULL;
-  if ((node->label() != NULL) && (node->label()->is_continue_target())) {
+  JoinEntryInstr* statement_start = NULL;
+  if ((node->label() != NULL) && node->label()->is_continue_target()) {
     // Since a labeled jump continue statement occur in a different case node,
     // allocate JoinNode here and use it as statement start.
-    if (node->label()->join_for_continue() == NULL) {
-      node->label()->set_join_for_continue(new JoinEntryInstr());
-    }
     statement_start = node->label()->join_for_continue();
-  } else if (needs_join_at_statement_entry) {
-    statement_start = new JoinEntryInstr();
+    if (statement_start == NULL) {
+      statement_start = new JoinEntryInstr();
+      node->label()->set_join_for_continue(statement_start);
+    }
   } else {
-    statement_start = new TargetEntryInstr();
+    statement_start = new JoinEntryInstr();
   }
-  for_case_statements.AddInstruction(statement_start);
   node->statements()->Visit(&for_case_statements);
+  Instruction* statement_exit =
+      AppendFragment(statement_start, for_case_statements);
   if (is_open() && (len == 0)) {
     ASSERT(node->contains_default());
     // Default only case node.
-    Append(for_case_statements);
+    Goto(statement_start);
+    exit_ = statement_exit;
     return;
   }
 
-  // Generate instructions for all case expressions and collect data to
-  // connect them.
-  GrowableArray<TargetEntryInstr**> case_true_addresses;
-  GrowableArray<TargetEntryInstr**> case_false_addresses;
-  GrowableArray<TargetEntryInstr*> case_entries;
+  // Generate instructions for all case expressions.
+  TargetEntryInstr** previous_false_address = NULL;
   for (intptr_t i = 0; i < len; i++) {
     AstNode* case_expr = node->case_expressions()->NodeAt(i);
     TestGraphVisitor for_case_expression(owner(),
                                          temp_index(),
                                          case_expr->token_pos());
+    case_expr->Visit(&for_case_expression);
     if (i == 0) {
-      case_entries.Add(NULL);  // Not to be used
-      case_expr->Visit(&for_case_expression);
       // Append only the first one, everything else is connected from it.
       Append(for_case_expression);
     } else {
       TargetEntryInstr* case_entry_target = new TargetEntryInstr();
-      case_entries.Add(case_entry_target);
-      for_case_expression.AddInstruction(case_entry_target);
-      case_expr->Visit(&for_case_expression);
+      AppendFragment(case_entry_target, for_case_expression);
+      *previous_false_address = case_entry_target;
     }
-    case_true_addresses.Add(for_case_expression.true_successor_address());
-    case_false_addresses.Add(for_case_expression.false_successor_address());
+    TargetEntryInstr* true_target = new TargetEntryInstr();
+    *for_case_expression.true_successor_address() = true_target;
+    true_target->Goto(statement_start);
+    previous_false_address = for_case_expression.false_successor_address();
   }
 
   // Once a test fragment has been added, this fragment is closed.
   ASSERT(!is_open());
 
-  // Connect all test cases except the last one.
-  for (intptr_t i = 0; i < (len - 1); i++) {
-    ASSERT(needs_join_at_statement_entry);
-    *case_false_addresses[i] = case_entries[i + 1];
-    TargetEntryInstr* true_target = new TargetEntryInstr();
-    *case_true_addresses[i] = true_target;
-    true_target->set_next(statement_start);
-  }
-
-  BlockEntryInstr* exit_instruction = NULL;
+  Instruction* exit_instruction = NULL;
   // Handle last (or only) case: false goes to exit or to statement if this
   // node contains default.
   if (len > 0) {
-    if (statement_start->IsTargetEntry()) {
-      *case_true_addresses[len - 1] = statement_start->AsTargetEntry();
-    } else {
-      TargetEntryInstr* true_target = new TargetEntryInstr();
-      *case_true_addresses[len - 1] = true_target;
-      true_target->set_next(statement_start);
-    }
     TargetEntryInstr* false_target = new TargetEntryInstr();
-    *case_false_addresses[len - 1] = false_target;
+    *previous_false_address = false_target;
     if (node->contains_default()) {
       // True and false go to statement start.
-      false_target->set_next(statement_start);
-      if (for_case_statements.is_open()) {
-        exit_instruction = new TargetEntryInstr();
-        for_case_statements.exit()->set_next(exit_instruction);
-      }
+      false_target->Goto(statement_start);
+      exit_instruction = statement_exit;
     } else {
-      if (for_case_statements.is_open()) {
-        exit_instruction = new JoinEntryInstr();
-        for_case_statements.exit()->set_next(exit_instruction);
+      if (statement_exit != NULL) {
+        JoinEntryInstr* join = new JoinEntryInstr();
+        statement_exit->Goto(join);
+        false_target->Goto(join);
+        exit_instruction = join;
       } else {
-        exit_instruction = new TargetEntryInstr();
+        exit_instruction = false_target;
       }
-      false_target->set_next(exit_instruction);
     }
   } else {
     // A CaseNode without case expressions must contain default.
     ASSERT(node->contains_default());
-    AddInstruction(statement_start);
+    Goto(statement_start);
+    exit_instruction = statement_exit;
   }
 
   ASSERT(!is_open());
@@ -1085,12 +1076,16 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   // Labels are set after body traversal.
   SourceLabel* lbl = node->label();
   ASSERT(lbl != NULL);
-  if (lbl->join_for_continue() != NULL) {
-    AddInstruction(lbl->join_for_continue());
+  JoinEntryInstr* join = lbl->join_for_continue();
+  if (join != NULL) {
+    Goto(join);
+    exit_ = join;
   }
   TieLoop(for_test, for_body);
-  if (lbl->join_for_break() != NULL) {
-    AddInstruction(lbl->join_for_break());
+  join = lbl->join_for_break();
+  if (join != NULL) {
+    Goto(join);
+    exit_ = join;
   }
 }
 
@@ -1118,31 +1113,27 @@ void EffectGraphVisitor::VisitDoWhileNode(DoWhileNode* node) {
 
   // Tie do-while loop (test is after the body).
   JoinEntryInstr* body_entry_join = new JoinEntryInstr();
-  AddInstruction(body_entry_join);
+  Goto(body_entry_join);
   Instruction* body_exit = AppendFragment(body_entry_join, for_body);
 
-  if (for_body.is_open() || (node->label()->join_for_continue() != NULL)) {
-    BlockEntryInstr* test_entry = NULL;
-    if (node->label()->join_for_continue() == NULL) {
-      test_entry = new TargetEntryInstr();
-    } else {
-      test_entry = node->label()->join_for_continue();
-    }
-    test_entry->set_next(for_test.entry());
+  JoinEntryInstr* join = node->label()->join_for_continue();
+  if ((body_exit != NULL) || (join != NULL)) {
+    if (join == NULL) join = new JoinEntryInstr();
+    join->set_next(for_test.entry());
     if (body_exit != NULL) {
-      body_exit->set_next(test_entry);
+      body_exit->Goto(join);
     }
   }
 
   TargetEntryInstr* back_target_entry = new TargetEntryInstr();
   *for_test.true_successor_address() = back_target_entry;
-  back_target_entry->set_next(body_entry_join);
+  back_target_entry->Goto(body_entry_join);
   TargetEntryInstr* loop_exit_target = new TargetEntryInstr();
   *for_test.false_successor_address() = loop_exit_target;
   if (node->label()->join_for_break() == NULL) {
     exit_ = loop_exit_target;
   } else {
-    loop_exit_target->set_next(node->label()->join_for_break());
+    loop_exit_target->Goto(node->label()->join_for_break());
     exit_ = node->label()->join_for_break();
   }
 }
@@ -1168,8 +1159,6 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
 
   // Compose body to set any jump labels.
   EffectGraphVisitor for_body(owner(), temp_index());
-  TargetEntryInstr* body_entry = new TargetEntryInstr();
-  for_body.AddInstruction(body_entry);
   for_body.Do(
       new CheckStackOverflowComp(node->token_pos(), owner()->try_index()));
   node->body()->Visit(&for_body);
@@ -1178,41 +1167,38 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
   ASSERT(!for_body.is_empty());
   Instruction* loop_increment_end = NULL;
   EffectGraphVisitor for_increment(owner(), temp_index());
-  if ((node->label()->join_for_continue() == NULL) && for_body.is_open()) {
+  node->increment()->Visit(&for_increment);
+  JoinEntryInstr* join = node->label()->join_for_continue();
+  if (join != NULL) {
+    // Insert the join between the body and increment.
+    if (for_body.is_open()) for_body.Goto(join);
+    loop_increment_end = AppendFragment(join, for_increment);
+    ASSERT(loop_increment_end != NULL);
+  } else if (for_body.is_open()) {
     // Do not insert an extra basic block.
-    node->increment()->Visit(&for_increment);
     for_body.Append(for_increment);
     loop_increment_end = for_body.exit();
-    // 'for_body' contains at least the TargetInstruction 'body_entry'.
-    ASSERT(loop_increment_end != NULL);
-  } else if (node->label()->join_for_continue() != NULL) {
-    // Insert join between body and increment.
-    if (for_body.is_open()) {
-      for_body.exit()->set_next(node->label()->join_for_continue());
-    }
-    for_increment.AddInstruction(node->label()->join_for_continue());
-    node->increment()->Visit(&for_increment);
-    loop_increment_end = for_increment.exit();
+    // 'for_body' contains at least the stack check.
     ASSERT(loop_increment_end != NULL);
   } else {
     loop_increment_end = NULL;
-    ASSERT(!for_body.is_open() && node->label()->join_for_continue() == NULL);
   }
 
   // 'loop_increment_end' is NULL only if there is no join for continue and the
   // body is not open, i.e., no backward branch exists.
   if (loop_increment_end != NULL) {
     JoinEntryInstr* loop_start = new JoinEntryInstr();
-    AddInstruction(loop_start);
-    loop_increment_end->set_next(loop_start);
+    Goto(loop_start);
+    loop_increment_end->Goto(loop_start);
+    exit_ = loop_start;
   }
 
   if (node->condition() == NULL) {
     // Endless loop, no test.
-    Append(for_body);
-    if (node->label()->join_for_break() == NULL) {
-      CloseFragment();
-    } else {
+    JoinEntryInstr* body_entry = new JoinEntryInstr();
+    AppendFragment(body_entry, for_body);
+    Goto(body_entry);
+    if (node->label()->join_for_break() != NULL) {
       // Control flow of ForLoop continues into join_for_break.
       exit_ = node->label()->join_for_break();
     }
@@ -1223,12 +1209,14 @@ void EffectGraphVisitor::VisitForNode(ForNode* node) {
                               node->condition()->token_pos());
     node->condition()->Visit(&for_test);
     Append(for_test);
+    TargetEntryInstr* body_entry = new TargetEntryInstr();
+    AppendFragment(body_entry, for_body);
     *for_test.true_successor_address() = body_entry;
     *for_test.false_successor_address() = loop_exit;
     if (node->label()->join_for_break() == NULL) {
       exit_ = loop_exit;
     } else {
-      loop_exit->set_next(node->label()->join_for_break());
+      loop_exit->Goto(node->label()->join_for_break());
       exit_ = node->label()->join_for_break();
     }
   }
@@ -1271,7 +1259,7 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
     UnchainContext();
   }
 
-  Instruction* jump_target = NULL;
+  JoinEntryInstr* jump_target = NULL;
   if (node->kind() == Token::kBREAK) {
     if (node->label()->join_for_break() == NULL) {
       node->label()->set_join_for_break(new JoinEntryInstr());
@@ -1283,8 +1271,7 @@ void EffectGraphVisitor::VisitJumpNode(JumpNode* node) {
     }
     jump_target = node->label()->join_for_continue();
   }
-  AddInstruction(jump_target);
-  CloseFragment();
+  Goto(jump_target);
 }
 
 
@@ -2107,11 +2094,8 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
   // taken care of unchaining the context.
   if ((node->label() != NULL) &&
       (node->label()->join_for_break() != NULL)) {
-    if (is_open()) {
-      AddInstruction(node->label()->join_for_break());
-    } else {
-      exit_ = node->label()->join_for_break();
-    }
+    if (is_open()) Goto(node->label()->join_for_break());
+    exit_ = node->label()->join_for_break();
   }
 
   // The outermost function sequence cannot contain a label.
@@ -2156,17 +2140,16 @@ void EffectGraphVisitor::VisitTryCatchNode(TryCatchNode* node) {
     // code for this catch block.
     catch_block->set_try_index(try_index);
     EffectGraphVisitor for_catch_block(owner(), temp_index());
-    TargetEntryInstr* catch_entry = new TargetEntryInstr(try_index);
-    for_catch_block.AddInstruction(catch_entry);
     catch_block->Visit(&for_catch_block);
+    TargetEntryInstr* catch_entry = new TargetEntryInstr(try_index);
     owner()->AddCatchEntry(catch_entry);
     ASSERT(!for_catch_block.is_open());
-    if ((node->end_catch_label() != NULL) &&
-        (node->end_catch_label()->join_for_continue() != NULL)) {
-      if (is_open()) {
-        AddInstruction(node->end_catch_label()->join_for_continue());
-      } else {
-        exit_ = node->end_catch_label()->join_for_continue();
+    AppendFragment(catch_entry, for_catch_block);
+    if (node->end_catch_label() != NULL) {
+      JoinEntryInstr* join = node->end_catch_label()->join_for_continue();
+      if (join != NULL) {
+        if (is_open()) Goto(join);
+        exit_ = join;
       }
     }
   }
@@ -2245,8 +2228,8 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   TargetEntryInstr* normal_entry = new TargetEntryInstr();
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
-  for_effect.AddInstruction(normal_entry);
   parsed_function().node_sequence()->Visit(&for_effect);
+  AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;

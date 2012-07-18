@@ -1688,14 +1688,15 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(GraphEntry)                                                                \
   M(JoinEntry)                                                                 \
   M(TargetEntry)                                                               \
-  M(Bind)                                                                      \
   M(Phi)                                                                       \
+  M(Bind)                                                                      \
+  M(Parameter)                                                                 \
+  M(ParallelMove)                                                              \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
+  M(Goto)                                                                      \
   M(Branch)                                                                    \
-  M(ParallelMove)                                                              \
-  M(Parameter)
 
 
 // Forward declarations for Instruction classes.
@@ -1767,6 +1768,7 @@ class Instruction : public ZoneAllocated {
     ASSERT(!IsReturn());
     ASSERT(!IsBranch());
     ASSERT(!IsPhi());
+    ASSERT(instr == NULL || !instr->IsBlockEntry());
     // TODO(fschneider): Also add Throw and ReThrow to the list of instructions
     // that do not have a successor. Currently, the graph builder will continue
     // to append instruction in case of a Throw inside an expression. This
@@ -1779,6 +1781,8 @@ class Instruction : public ZoneAllocated {
   // function.
   virtual intptr_t SuccessorCount() const;
   virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  void Goto(JoinEntryInstr* entry);
 
   // Discover basic-block structure by performing a recursive depth first
   // traversal of the instruction graph reachable from this instruction.  As
@@ -1858,8 +1862,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 
 class InstructionWithInputs : public Instruction {
  public:
-  InstructionWithInputs() : locs_(NULL) {
-  }
+  InstructionWithInputs() : locs_(NULL) { }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -2289,6 +2292,26 @@ class ReThrowInstr : public InstructionWithInputs {
   Value* stack_trace_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
+};
+
+
+class GotoInstr : public InstructionWithInputs {
+ public:
+  explicit GotoInstr(JoinEntryInstr* entry) : successor_(entry) { }
+
+  DECLARE_INSTRUCTION(Goto)
+
+  JoinEntryInstr* successor() const { return successor_; }
+  void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
+  virtual intptr_t SuccessorCount() const;
+  virtual BlockEntryInstr* SuccessorAt(intptr_t index) const;
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  JoinEntryInstr* successor_;
 };
 
 

@@ -159,9 +159,9 @@ class FlowGraphCompiler : public ValueObject {
   // Returns assembler label associated with the given block entry.
   Label* GetBlockLabel(BlockEntryInstr* block_entry) const;
 
-  // Returns true if the next block after current in the current block order
-  // is the given block.
-  bool IsNextBlock(TargetEntryInstr* block_entry) const;
+  // Returns true if there is a next block after the current one in
+  // the block order and if it is the given block.
+  bool IsNextBlock(BlockEntryInstr* block_entry) const;
 
   void AddExceptionHandler(intptr_t try_index, intptr_t pc_offset);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
