@@ -5251,6 +5251,15 @@ class _MutationEventJs extends _EventJs implements MutationEvent native "*Mutati
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeJs relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 
+class _MutationObserverJs extends _DOMTypeJs implements MutationObserver native "*MutationObserver" {
+
+  void disconnect() native;
+
+  void observe(_NodeJs target, Map options) native;
+
+  List<MutationRecord> takeRecords() native;
+}
+
 class _MutationRecordJs extends _DOMTypeJs implements MutationRecord native "*MutationRecord" {
 
   final _NodeListJs addedNodes;
@@ -11578,16 +11587,9 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
   final int operationType;
 }
 
-class _WebKitMutationObserverJs extends _DOMTypeJs implements WebKitMutationObserver native "*WebKitMutationObserver" {
-
-  void disconnect() native;
-
-  void observe(_NodeJs target, Map options) native;
-
-  List<MutationRecord> takeRecords() native;
-}
-
 class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final int firstEmptyRegionIndex;
 
   final String name;
 
@@ -11595,7 +11597,7 @@ class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*
 
   _NodeListJs getContent() native;
 
-  _NodeListJs getRegionsByContentNode(_NodeJs contentNode) native;
+  _NodeListJs getRegionsByContent(_NodeJs contentNode) native;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -17996,7 +17998,7 @@ interface MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
+typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -18022,6 +18024,20 @@ interface MutationEvent extends Event {
   final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationObserver {
+
+  void disconnect();
+
+  void observe(Node target, Map options);
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23823,21 +23839,9 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitMutationObserver {
-
-  void disconnect();
-
-  void observe(Node target, Map options);
-
-  List<MutationRecord> takeRecords();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface WebKitNamedFlow {
+
+  final int firstEmptyRegionIndex;
 
   final String name;
 
@@ -23845,7 +23849,7 @@ interface WebKitNamedFlow {
 
   NodeList getContent();
 
-  NodeList getRegionsByContentNode(Node contentNode);
+  NodeList getRegionsByContent(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

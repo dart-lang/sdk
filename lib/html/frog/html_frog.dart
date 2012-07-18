@@ -9137,6 +9137,15 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
 
+class _MutationObserverImpl implements MutationObserver native "*MutationObserver" {
+
+  void disconnect() native;
+
+  void observe(_NodeImpl target, Map options) native;
+
+  List<MutationRecord> takeRecords() native;
+}
+
 class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
 
   final _NodeListImpl addedNodes;
@@ -16273,16 +16282,9 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
   final int operationType;
 }
 
-class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
-
-  void disconnect() native;
-
-  void observe(_NodeImpl target, Map options) native;
-
-  List<MutationRecord> takeRecords() native;
-}
-
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final int firstEmptyRegionIndex;
 
   final String name;
 
@@ -16290,7 +16292,7 @@ class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" 
 
   _NodeListImpl getContent() native;
 
-  _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
+  _NodeListImpl getRegionsByContent(_NodeImpl contentNode) native;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -26815,7 +26817,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
+typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26848,6 +26850,24 @@ interface MutationEvent extends Event {
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MutationObserver
+interface MutationObserver {
+
+  /** @domName MutationObserver.disconnect */
+  void disconnect();
+
+  /** @domName MutationObserver.observe */
+  void observe(Node target, Map options);
+
+  /** @domName MutationObserver.takeRecords */
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34940,26 +34960,11 @@ interface WebKitCSSFilterValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitMutationObserver
-interface WebKitMutationObserver {
-
-  /** @domName WebKitMutationObserver.disconnect */
-  void disconnect();
-
-  /** @domName WebKitMutationObserver.observe */
-  void observe(Node target, Map options);
-
-  /** @domName WebKitMutationObserver.takeRecords */
-  List<MutationRecord> takeRecords();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
+
+  /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
+  final int firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
   final String name;
@@ -34970,8 +34975,8 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.getContent */
   NodeList getContent();
 
-  /** @domName WebKitNamedFlow.getRegionsByContentNode */
-  NodeList getRegionsByContentNode(Node contentNode);
+  /** @domName WebKitNamedFlow.getRegionsByContent */
+  NodeList getRegionsByContent(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

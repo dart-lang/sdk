@@ -13195,6 +13195,21 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 
 // WARNING: Do not edit - generated code.
 
+class _MutationObserverImpl extends NativeFieldWrapperClass1 implements MutationObserver {
+
+  void disconnect() native "MutationObserver_disconnect_Callback";
+
+  void observe(Node target, Map options) native "MutationObserver_observe_Callback";
+
+  List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _MutationRecordImpl extends NativeFieldWrapperClass1 implements MutationRecord {
 
   NodeList get addedNodes() native "MutationRecord_addedNodes_Getter";
@@ -20737,22 +20752,9 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitMutationObserverImpl extends NativeFieldWrapperClass1 implements WebKitMutationObserver {
-
-  void disconnect() native "WebKitMutationObserver_disconnect_Callback";
-
-  void observe(Node target, Map options) native "WebKitMutationObserver_observe_Callback";
-
-  List<MutationRecord> takeRecords() native "WebKitMutationObserver_takeRecords_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNamedFlow {
+
+  int get firstEmptyRegionIndex() native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
   String get name() native "WebKitNamedFlow_name_Getter";
 
@@ -20760,7 +20762,7 @@ class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNam
 
   NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
 
-  NodeList getRegionsByContentNode(Node contentNode) native "WebKitNamedFlow_getRegionsByContentNode_Callback";
+  NodeList getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30748,7 +30750,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool MutationCallback(List<MutationRecord> mutations, WebKitMutationObserver observer);
+typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -30781,6 +30783,24 @@ interface MutationEvent extends Event {
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MutationObserver
+interface MutationObserver {
+
+  /** @domName MutationObserver.disconnect */
+  void disconnect();
+
+  /** @domName MutationObserver.observe */
+  void observe(Node target, Map options);
+
+  /** @domName MutationObserver.takeRecords */
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -38873,26 +38893,11 @@ interface WebKitCSSFilterValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitMutationObserver
-interface WebKitMutationObserver {
-
-  /** @domName WebKitMutationObserver.disconnect */
-  void disconnect();
-
-  /** @domName WebKitMutationObserver.observe */
-  void observe(Node target, Map options);
-
-  /** @domName WebKitMutationObserver.takeRecords */
-  List<MutationRecord> takeRecords();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
+
+  /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
+  final int firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
   final String name;
@@ -38903,8 +38908,8 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.getContent */
   NodeList getContent();
 
-  /** @domName WebKitNamedFlow.getRegionsByContentNode */
-  NodeList getRegionsByContentNode(Node contentNode);
+  /** @domName WebKitNamedFlow.getRegionsByContent */
+  NodeList getRegionsByContent(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
