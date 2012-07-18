@@ -1272,9 +1272,7 @@ class HInvokeInterceptor extends HInvokeStatic {
 
   void prepareGvn() {
     if (isLengthGetterOnStringOrArray()) {
-      setUseGvn();
       clearAllSideEffects();
-      setDependsOnSomething();
     } else {
       setAllSideEffects();
     }
@@ -1305,8 +1303,7 @@ class HFieldGet extends HFieldAccess {
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
   void prepareGvn() {
-    setUseGvn();
-    if (!isFinalOrConst) setDependsOnSomething();
+    clearAllSideEffects();
   }
 
   int typeCode() => 27;
