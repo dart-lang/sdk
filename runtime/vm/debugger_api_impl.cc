@@ -465,7 +465,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
     return Api::NewError("%s: %d is not a valid class id",
                          CURRENT_FUNC, cls_id);
   }
-  Class& cls = Class::Handle(isolate->class_table()->At(cls_id));
+  Class& cls = Class::Handle(isolate, isolate->class_table()->At(cls_id));
   if (class_name != NULL) {
     *class_name = Api::NewHandle(isolate, cls.Name());
   }
@@ -475,9 +475,9 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
   }
   if (super_class_id != NULL) {
     *super_class_id = 0;
-    cls = cls.SuperClass();
-    if (!cls.IsNull()) {
-      *super_class_id = cls.id();
+    Class& super_cls = Class::Handle(isolate, cls.SuperClass());
+    if (!super_cls.IsNull()) {
+      *super_class_id = super_cls.id();
     }
   }
   if (static_fields != NULL) {

@@ -362,7 +362,6 @@ void TextBuffer::AddUTF8(uint32_t ch) {
   static const uint32_t kMaxFourByteChar  = 0x10FFFF;
   static const uint32_t kMask = ~(1 << 6);
 
-  EnsureCapacity(sizeof(ch));
   if (ch <= kMaxOneByteChar) {
     EnsureCapacity(1);
     buf_[msg_len_++] = ch;
@@ -462,6 +461,10 @@ void TextBuffer::EnsureCapacity(intptr_t len) {
   intptr_t remaining = buf_size_ - msg_len_;
   if (remaining <= len) {
     const int kBufferSpareCapacity = 64;  // Somewhat arbitrary.
+    // TODO(turnidge): do we need to guard against overflow or other
+    // security issues here? Text buffers are used by the debugger
+    // to send user-controlled data (e.g. values of string variables) to
+    // the debugger front-end.
     intptr_t new_size = buf_size_ + len + kBufferSpareCapacity;
     char* new_buf = reinterpret_cast<char*>(realloc(buf_, new_size));
     ASSERT(new_buf != NULL);
