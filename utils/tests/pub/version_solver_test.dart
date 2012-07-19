@@ -7,7 +7,6 @@
 #import('dart:io');
 #import('dart:isolate');
 
-#import('../../pub/lock_file.dart');
 #import('../../pub/package.dart');
 #import('../../pub/pubspec.dart');
 #import('../../pub/source.dart');
@@ -129,61 +128,6 @@ main() {
     'bar': '1.1.0'
   });
 
-  testResolve('with compatible locked dependency', {
-    'myapp 0.0.0': {
-      'foo': 'any'
-    },
-    'foo 1.0.0': { 'bar': '1.0.0' },
-    'foo 1.0.1': { 'bar': '1.0.1' },
-    'foo 1.0.2': { 'bar': '1.0.2' },
-    'bar 1.0.0': {},
-    'bar 1.0.1': {},
-    'bar 1.0.2': {}
-  }, lockfile: {
-    'foo': '1.0.1'
-  }, result: {
-    'myapp': '0.0.0',
-    'foo': '1.0.1',
-    'bar': '1.0.1'
-  });
-
-  testResolve('with incompatible locked dependency', {
-    'myapp 0.0.0': {
-      'foo': '>1.0.1'
-    },
-    'foo 1.0.0': { 'bar': '1.0.0' },
-    'foo 1.0.1': { 'bar': '1.0.1' },
-    'foo 1.0.2': { 'bar': '1.0.2' },
-    'bar 1.0.0': {},
-    'bar 1.0.1': {},
-    'bar 1.0.2': {}
-  }, lockfile: {
-    'foo': '1.0.1'
-  }, result: {
-    'myapp': '0.0.0',
-    'foo': '1.0.2',
-    'bar': '1.0.2'
-  });
-
-  testResolve('with unrelated locked dependency', {
-    'myapp 0.0.0': {
-      'foo': 'any'
-    },
-    'foo 1.0.0': { 'bar': '1.0.0' },
-    'foo 1.0.1': { 'bar': '1.0.1' },
-    'foo 1.0.2': { 'bar': '1.0.2' },
-    'bar 1.0.0': {},
-    'bar 1.0.1': {},
-    'bar 1.0.2': {},
-    'baz 1.0.0': {}
-  }, lockfile: {
-    'baz': '1.0.0'
-  }, result: {
-    'myapp': '0.0.0',
-    'foo': '1.0.2',
-    'bar': '1.0.2'
-  });
-
   testResolve('dependency back onto root package', {
     'myapp 1.0.0': {
       'foo': '1.0.0'
@@ -282,7 +226,7 @@ main() {
 //   can keep track of server traffic.
 }
 
-testResolve(description, packages, [lockfile, result, error]) {
+testResolve(description, packages, [result, error]) {
   test(description, () {
     var sources = new SourceRegistry();
     source1 = new MockSource('mock1');
@@ -322,16 +266,8 @@ testResolve(description, packages, [lockfile, result, error]) {
       });
     }
 
-    var realLockFile = new LockFile.empty();
-    if (lockfile != null) {
-      lockfile.forEach((name, version) {
-        version = new Version.parse(version);
-        realLockFile.packages[name] = new PackageId(source1, version, name);
-      });
-    }
-
     // Resolve the versions.
-    var future = resolveVersions(sources, root, realLockFile);
+    var future = resolveVersions(sources, root);
 
     if (result != null) {
       expect(future, completion(predicate((actualResult) {

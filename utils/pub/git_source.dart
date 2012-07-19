@@ -54,8 +54,8 @@ class GitSource extends Source {
       if (exists) return new Future.immediate(null);
       return _clone(_repoCachePath(id), revisionCachePath);
     }).chain((_) {
-      var ref = _getEffectiveRef(id);
-      if (ref == 'HEAD') return new Future.immediate(null);
+      var ref = _getRef(id);
+      if (ref == null) return new Future.immediate(null);
       return _checkOut(revisionCachePath, ref);
     }).chain((_) => Package.load(revisionCachePath, systemCache.sources));
   }
@@ -70,7 +70,7 @@ class GitSource extends Source {
   /**
    * Ensures [description] is a Git URL.
    */
-  void validateDescription(description, [bool fromLockFile = false]) {
+  void validateDescription(description) {
     // A single string is assumed to be a Git URL.
     if (description is String) return;
     if (description is! Map || !description.containsKey('url')) {
@@ -80,11 +80,10 @@ class GitSource extends Source {
     description = new Map.from(description);
     description.remove('url');
     description.remove('ref');
-    if (fromLockFile) description.remove('resolved-ref');
 
     if (!description.isEmpty()) {
       var plural = description.length > 1;
-      var keys = Strings.join(description.getKeys(), ', ');
+      var keys = Strings.join(description.keys, ', ');
       throw new FormatException("Invalid key${plural ? 's' : ''}: $keys.");
     }
   }
@@ -98,17 +97,6 @@ class GitSource extends Source {
     // doesn't? If not, how do we handle that case in the version solver?
     return _getUrl(description1) == _getUrl(description2) &&
       _getRef(description1) == _getRef(description2);
-  }
-
-  /**
-   * Attaches a specific commit to [id] to disambiguate it.
-   */
-  Future<PackageId> resolveId(PackageId id) {
-    return _revisionAt(id).transform((revision) {
-      var description = {'url': _getUrl(id), 'ref': _getRef(id)};
-      description['resolved-ref'] = revision;
-      return new PackageId(this, id.version, description);
-    });
   }
 
   /**
@@ -131,10 +119,11 @@ class GitSource extends Source {
   }
 
   /**
-   * Returns a future that completes to the revision hash of [id].
+   * Returns a future that completes to the revision hash of the repository for
+   * [id] at [ref], which can be any Git ref.
    */
-  Future<String> _revisionAt(PackageId id) {
-    return runProcess("git", ["rev-parse", _getEffectiveRef(id)],
+  Future<String> _revisionAt(PackageId id, String ref) {
+    return runProcess("git", ["rev-parse", ref],
         workingDir: _repoCachePath(id), pipeStderr: true).transform((result) {
       if (!result.success) throw 'Git failed.';
       return result.stdout[0];
@@ -142,10 +131,13 @@ class GitSource extends Source {
   }
 
   /**
-   * Returns the path to the revision-specific cache of [id].
+   * Returns the path to the revision-specific cache of [id] at [ref], which can
+   * be any Git ref.
    */
   Future<String> _revisionCachePath(PackageId id) {
-    return _revisionAt(id).transform((rev) {
+    var ref = _getRef(id);
+    if (ref == null) ref = 'HEAD';
+    return _revisionAt(id, ref).transform((rev) {
       var revisionCacheName = '${id.name}-$rev';
       return join(systemCacheRoot, revisionCacheName);
     });
@@ -194,26 +186,7 @@ class GitSource extends Source {
   }
 
   /**
-   * Returns the commit ref that should be checked out for [description].
-   *
-   * This differs from [_getRef] in that it doesn't just return the ref in
-   * [description]. It will return a sensible default if that ref doesn't exist,
-   * and it will respect the "resolved-ref" parameter set by [resolveId].
-   *
-   * [description] may be a description or a [PackageId].
-   */
-  String _getEffectiveRef(description) {
-    description = _getDescription(description);
-    if (description is Map && description.containsKey('resolved-ref')) {
-      return description['resolved-ref'];
-    }
-
-    var ref = _getRef(description);
-    return ref == null ? 'HEAD' : ref;
-  }
-
-  /**
-   * Returns the commit ref for [description], or null if none is given.
+   * Returns the commit ref for [id], or null if none is given.
    *
    * [description] may be a description or a [PackageId].
    */

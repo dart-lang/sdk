@@ -95,7 +95,7 @@ class Pubspec {
               'Dependency specification $spec must be a string or a mapping.');
         }
 
-        source.validateDescription(description, fromLockFile: false);
+        source.validateDescription(description);
 
         dependencies.add(new PackageRef(
             source, versionConstraint, description));

@@ -104,7 +104,7 @@ class RepoSource extends Source {
    * "url" refers to a package with the given name from the repo at the given
    * URL.
    */
-  void validateDescription(description, [bool fromLockFile=false]) {
+  void validateDescription(description) {
     _parseDescription(description);
   }
 

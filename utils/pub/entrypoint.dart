@@ -5,7 +5,6 @@
 #library('entrypoint');
 
 #import('io.dart');
-#import('lock_file.dart');
 #import('package.dart');
 #import('root_source.dart');
 #import('system_cache.dart');
@@ -43,13 +42,19 @@ class Entrypoint {
   final SystemCache cache;
 
   /**
-   * Packages which are either currently being asynchronously installed to the
-   * directory, or have already been installed.
+   * Packages which have already been loaded into memory.
    */
-  final Map<PackageId, Future<PackageId>> _installs;
+  final Map<PackageId, Package> _loadedPackages;
+
+  /**
+   * Packages which are currently being asynchronously installed to the
+   * directory.
+   */
+  final Map<PackageId, Future<Package>> _pendingInstalls;
 
   Entrypoint(this.root, this.cache)
-  : _installs = new Map<PackageId, Future<PackageId>>();
+  : _loadedPackages  = new Map<PackageId, Package>(),
+    _pendingInstalls = new Map<PackageId, Future<Package>>();
 
   /**
    * The path to this "packages" directory.
@@ -58,8 +63,8 @@ class Entrypoint {
   String get path() => join(root.dir, 'packages');
 
   /**
-   * Ensures that the package identified by [id] is installed to the directory.
-   * Returns the resolved [PackageId].
+   * Ensures that the package identified by [id] is installed to the directory,
+   * loads it, and returns it.
    *
    * If this completes successfully, the package is guaranteed to be importable
    * using the `package:` scheme.
@@ -68,21 +73,22 @@ class Entrypoint {
    * well if it requires network access to retrieve (specifically, if
    * `id.source.shouldCache` is true).
    *
-   * See also [installDependencies].
+   * See also [installTransitively].
    */
-  Future<PackageId> install(PackageId id) {
-    var pendingOrCompleted = _installs[id];
-    if (pendingOrCompleted != null) return pendingOrCompleted;
+  Future<Package> install(PackageId id) {
+    var package = _loadedPackages[id];
+    if (package != null) return new Future<Package>.immediate(package);
+
+    var pending = _pendingInstalls[id];
+    if (pending != null) return new Future<Package>.immediate(package);
 
     var packageDir = join(path, id.name);
     var future = ensureDir(dirname(packageDir)).chain((_) {
       return exists(packageDir);
     }).chain((exists) {
-      if (!exists) return new Future.immediate(null);
-      // TODO(nweiz): figure out when to actually delete the directory, and when
-      // we can just re-use the existing symlink.
-      return deleteDir(packageDir);
-    }).chain((_) {
+      // If the package already exists in the directory, no need to re-install.
+      if (exists) return new Future.immediate(null);
+
       if (id.source.shouldCache) {
         return cache.install(id).chain(
             (pkg) => createSymlink(pkg.dir, packageDir));
@@ -93,9 +99,11 @@ class Entrypoint {
           throw 'Package ${id.name} not found in source "${id.source.name}".';
         });
       }
-    }).chain((_) => id.resolved);
+    }).chain((_) => Package.load(packageDir, cache.sources));
 
-    _installs[id] = future;
+    future.then((pkg) => _loadedPackages[id] = pkg);
+    always(future, () => _pendingInstalls.remove(id));
+    _pendingInstalls[id] = future;
 
     return future;
   }
@@ -106,63 +114,12 @@ class Entrypoint {
    * installed.
    */
   Future installDependencies() {
-    return _getResolvedDependencies().chain((packageVersions) {
+    return resolveVersions(cache.sources, root).chain((packageVersions) {
+      // TODO(nweiz): persist packageVersions to a lockfile.
       return Futures.wait(packageVersions.map((id) {
-        if (id.source is RootSource) return new Future.immediate(id);
+        if (id.source is RootSource) return new Future.immediate(null);
         return install(id);
       }));
-    }).chain(_saveLockFile);
-  }
-
-  /**
-   * Gets a list of all the [PackageId]s that this entrypoint transitively
-   * depends on. The concrete versions of these ids are given by the
-   * [VersionSolver] and the `pubspec.lock` file, if it exists.
-   */
-  Future<List<PackageId>> _getResolvedDependencies() {
-    return _loadLockFile().chain((lockFile) =>
-        resolveVersions(cache.sources, root, lockFile));
-  }
-
-  /**
-   * Loads the list of concrete package versions from the `pubspec.lock`, if it
-   * exists. If it doesn't, this completes to an empty [LockFile].
-   *
-   * If there's an error reading the `pubspec.lock` file, this will print a
-   * warning message and act as though the file doesn't exist.
-   */
-  Future<LockFile> _loadLockFile() {
-    var completer = new Completer<LockFile>();
-    var lockFilePath = join(root.dir, 'pubspec.lock');
-    var future = readTextFile(lockFilePath);
-
-    future.handleException((_) {
-      completer.complete(new LockFile.empty());
-
-      // If we failed to load the lockfile but it does exist, something's
-      // probably wrong and we should notify the user.
-      fileExists(lockFilePath).then((exists) {
-        if (!exists) return;
-        printError("Error reading pubspec.lock: ${future.exception}");
-      });
-
-      return true;
     });
-
-    future.then((text) =>
-        completer.complete(new LockFile.parse(text, cache.sources)));
-    return completer.future;
-  }
-
-  /**
-   * Saves a list of concrete package versions to the `pubspec.lock` file.
-   */
-  Future _saveLockFile(List<PackageId> packageIds) {
-    var lockFile = new LockFile.empty();
-    for (var id in packageIds) {
-      if (id.source is! RootSource) lockFile.packages[id.name] = id;
-    }
-
-    return writeTextFile(join(root.dir, 'pubspec.lock'), lockFile.serialize());
   }
 }

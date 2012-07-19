@@ -150,11 +150,6 @@ class PackageId implements Comparable, Hashable {
    * Returns the pubspec for this package.
    */
   Future<Pubspec> describe() => source.describe(this);
-
-  /**
-   * Returns a future that completes to the resovled [PackageId] for this id.
-   */
-  Future<PackageId> get resolved() => source.resolveId(this);
 }
 
 /**
