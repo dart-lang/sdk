@@ -42,6 +42,7 @@ void printHelp() {
   pc <id> Print class info for given id
   ll  List loaded libraries
   plib <id> Print library info for given library id
+  slib <id> <true|false> Set library id debuggable
   pg <id> Print all global variables visible within given library id
   ls <lib_id> List loaded scripts in library
   gs <lib_id> <script_url> Get source text of script in library
@@ -137,6 +138,11 @@ void processCommand(String cmdLine) {
     var cmd = { "id": seqNum, "command": "getLibraryProperties",
                 "params": {"libraryId": Math.parseInt(args[1]) }};
     sendCmd(cmd).then((result) => handleGetLibraryPropsResponse(result));
+  } else if (command == "slib" && args.length == 3) {
+    var cmd = { "id": seqNum, "command": "setLibraryProperties",
+                "params": {"libraryId": Math.parseInt(args[1]),
+                           "debuggingEnabled": args[2] }};
+    sendCmd(cmd).then((result) => handleSetLibraryPropsResponse(result));
   } else if (command == "pg" && args.length == 2) {
     var cmd = { "id": seqNum, "command": "getGlobalVariables",
                 "params": {"libraryId": Math.parseInt(args[1]) }};
@@ -238,7 +244,9 @@ handleGetClassPropsResponse(response) {
 handleGetLibraryPropsResponse(response) {
   Map props = response["result"];
   assert(props["url"] != null);
-  print("  library url=${props["url"]}");
+  print("  library url: ${props["url"]}");
+  assert(props["debuggingEnabled"] != null);
+  print("  debugging enabled: ${props["debuggingEnabled"]}");
   List imports = props["imports"];
   assert(imports != null);
   if (imports.length > 0) {
@@ -255,6 +263,13 @@ handleGetLibraryPropsResponse(response) {
       printNamedObject(globals[i]);
     }
   }
+}
+
+
+handleSetLibraryPropsResponse(response) {
+  Map props = response["result"];
+  assert(props["debuggingEnabled"] != null);
+  print("  debugging enabled: ${props["debuggingEnabled"]}");
 }
 
 

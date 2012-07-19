@@ -543,12 +543,19 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
   buf->Printf("{\"url\":");
   FormatEncodedString(buf, url);
 
+  // Whether debugging is enabled.
+  bool is_debuggable = false;
+  Dart_Handle res = Dart_GetLibraryDebuggable(lib_id, &is_debuggable);
+  RETURN_IF_ERROR(res);
+  buf->Printf(",\"debuggingEnabled\":%s",
+              is_debuggable ? "\"true\"" : "\"false\"");
+
   // Imports and prefixes.
   Dart_Handle import_list = Dart_GetLibraryImports(lib_id);
   RETURN_IF_ERROR(import_list);
   ASSERT(Dart_IsList(import_list));
   intptr_t list_length = 0;
-  Dart_Handle res = Dart_ListLength(import_list, &list_length);
+  res = Dart_ListLength(import_list, &list_length);
   RETURN_IF_ERROR(res);
   buf->Printf(",\"imports\":[");
   for (int i = 0; i + 1 < list_length; i += 2) {
@@ -829,6 +836,38 @@ void DebuggerConnectionHandler::HandleGetLibPropsCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleSetLibPropsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
+  const char* enable_request = msgbuf_->GetStringParam("debuggingEnabled");
+  bool enable;
+  if (strcmp(enable_request, "true") == 0) {
+    enable = true;
+  } else if (strcmp(enable_request, "false") == 0) {
+    enable = false;
+  } else {
+    SendError(msg_id, "illegal argument for 'debuggingEnabled'");
+    return;
+  }
+  Dart_Handle res = Dart_SetLibraryDebuggable(lib_id, enable);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+  bool enabled = false;
+  res = Dart_GetLibraryDebuggable(lib_id, &enabled);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\": {\"debuggingEnabled\": \"%s\"}}",
+             msg_id,
+             enabled ? "true" : "false");
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleGetGlobalsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
@@ -855,6 +894,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getLibraries", HandleGetLibrariesCmd },
     { "getClassProperties", HandleGetClassPropsCmd },
     { "getLibraryProperties", HandleGetLibPropsCmd },
+    { "setLibraryProperties", HandleSetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
     { "getListElements", HandleGetListCmd },
     { "getGlobalVariables", HandleGetGlobalsCmd },

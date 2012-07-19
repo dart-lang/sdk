@@ -656,4 +656,36 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
   return Api::NewHandle(isolate, library_url_list.raw());
 }
 
+
+DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
+                                                  bool* is_debuggable) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(is_debuggable);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  *is_debuggable = lib.IsDebuggable();
+  return Api::True(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
+                                                  bool is_debuggable) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  lib.set_debuggable(is_debuggable);
+  return Api::True(isolate);
+}
+
+
 }  // namespace dart

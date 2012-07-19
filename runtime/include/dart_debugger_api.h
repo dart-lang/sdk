@@ -75,6 +75,28 @@ DART_EXPORT Dart_Handle Dart_GetLibraryIds();
 
 
 /**
+ * Returns true if the debugger can step into code of the given library.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
+                                                  bool* is_debuggable);
+
+
+/**
+ * Requets that debugging be enabled for the given library.
+ *
+ * Requires there to be a current isolate.
+ *
+ * \return A handle to the True object if no error occurs.
+ */
+DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
+                                                  bool is_debuggable);
+
+
+/**
  * Returns a list of urls (strings) of all the scripts loaded in the
  * given library.
  *
