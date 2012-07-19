@@ -118,6 +118,7 @@ inner_frame_test: Skip
 js_interop_3_test: Fail
 js_interop_4_test: Fail
 localstorage_test: Fail
+mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
