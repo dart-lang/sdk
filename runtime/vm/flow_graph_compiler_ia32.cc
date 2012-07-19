@@ -642,7 +642,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   // TODO(vegorov): adjust assertion when we start removing comparison from the
   // graph when it is merged with a branch.
   ASSERT(locs->is_call() ||
-         (instr->IsBranch() && instr->AsBranch()->is_fused_with_comparison()) ||
          (locs->input_count() == instr->InputCount()));
 }
 

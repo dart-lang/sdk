@@ -474,7 +474,7 @@ void FlowGraphCompiler::EmitDoubleCompareBranch(Condition true_condition,
                                                 BranchInstr* branch) {
   ASSERT(branch != NULL);
   assembler()->comisd(left, right);
-  BlockEntryInstr* nan_result = branch->is_negated() ?
+  BlockEntryInstr* nan_result = (true_condition == NOT_EQUAL) ?
       branch->true_successor() : branch->false_successor();
   assembler()->j(PARITY_EVEN, GetBlockLabel(nan_result));
   branch->EmitBranchOnCondition(this, true_condition);

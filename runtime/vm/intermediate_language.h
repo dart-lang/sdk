@@ -111,6 +111,7 @@ FOR_EACH_COMPUTATION(FORWARD_DECLARATION)
 class BindInstr;
 class BranchInstr;
 class BufferFormatter;
+class ComparisonComp;
 class Instruction;
 class Value;
 
@@ -162,6 +163,8 @@ class Computation : public ZoneAllocated {
     }
     return locs_;
   }
+
+  virtual ComparisonComp* AsComparison() { return NULL; }
 
   // Create a location summary for this computation.
   // TODO(fschneider): Temporarily returns NULL for instructions
@@ -576,51 +579,37 @@ class PolymorphicInstanceCallComp : public Computation {
 
 class ComparisonComp : public TemplateComputation<2> {
  public:
-  ComparisonComp(Value* left, Value* right)
-      : fused_with_branch_(NULL) {
+  ComparisonComp(Token::Kind kind, Value* left, Value* right) : kind_(kind) {
     ASSERT(left != NULL);
     ASSERT(right != NULL);
     inputs_[0] = left;
     inputs_[1] = right;
   }
 
-  void MarkFusedWithBranch(BranchInstr* branch) {
-    fused_with_branch_ = branch;
-  }
-
-  BranchInstr* fused_with_branch() const {
-    ASSERT(is_fused_with_branch());
-    return fused_with_branch_;
-  }
-
-  bool is_fused_with_branch() const {
-    return fused_with_branch_ != NULL;
-  }
-
   Value* left() const { return inputs_[0]; }
   Value* right() const { return inputs_[1]; }
 
+  virtual ComparisonComp* AsComparison() { return this; }
+
+  Token::Kind kind() const { return kind_; }
+
  private:
-  BranchInstr* fused_with_branch_;
+  Token::Kind kind_;
 };
 
 
 class StrictCompareComp : public ComparisonComp {
  public:
   StrictCompareComp(Token::Kind kind, Value* left, Value* right)
-      : ComparisonComp(left, right), kind_(kind) {
-    ASSERT((kind_ == Token::kEQ_STRICT) || (kind_ == Token::kNE_STRICT));
+      : ComparisonComp(kind, left, right) {
+    ASSERT((kind == Token::kEQ_STRICT) || (kind == Token::kNE_STRICT));
   }
 
   DECLARE_COMPUTATION(StrictCompare)
 
-  Token::Kind kind() const { return kind_; }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
-  const Token::Kind kind_;
-
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
 
@@ -631,11 +620,10 @@ class EqualityCompareComp : public ComparisonComp {
                       intptr_t try_index,
                       Value* left,
                       Value* right)
-      : ComparisonComp(left, right),
+      : ComparisonComp(Token::kEQ, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObject) {
-  }
+        receiver_class_id_(kObject) {}
 
   DECLARE_COMPUTATION(EqualityCompare)
 
@@ -662,10 +650,9 @@ class RelationalOpComp : public ComparisonComp {
                    Token::Kind kind,
                    Value* left,
                    Value* right)
-      : ComparisonComp(left, right),
+      : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        kind_(kind),
         operands_class_id_(kObject) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
@@ -674,7 +661,6 @@ class RelationalOpComp : public ComparisonComp {
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  Token::Kind kind() const { return kind_; }
 
   // TODO(srdjan): instead of class-id pass an enum that can differentiate
   // between boxed and unboxed doubles and integers.
@@ -689,7 +675,6 @@ class RelationalOpComp : public ComparisonComp {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  const Token::Kind kind_;
   intptr_t operands_class_id_;  // class id of both operands.
 
   DISALLOW_COPY_AND_ASSIGN(RelationalOpComp);
@@ -1741,6 +1726,9 @@ class Instruction : public ZoneAllocated {
   intptr_t cid() const { return cid_; }
 
   const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -1774,6 +1762,9 @@ class Instruction : public ZoneAllocated {
     // to append instruction in case of a Throw inside an expression. This
     // condition should be handled in the graph builder
     next_ = instr;
+    if ((instr != NULL) && !instr->IsBlockEntry()) {
+      instr->set_previous(this);
+    }
   }
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
@@ -2317,17 +2308,40 @@ class GotoInstr : public InstructionWithInputs {
 
 class BranchInstr : public InstructionWithInputs {
  public:
-  explicit BranchInstr(Value* value)
+  BranchInstr(intptr_t token_pos,
+              intptr_t try_index,
+               Value* left,
+             Value* right,
+              Token::Kind kind)
       : InstructionWithInputs(),
-        value_(value),
+        token_pos_(token_pos),
+        try_index_(try_index),
+        left_(left),
+        right_(right),
+        kind_(kind),
         true_successor_(NULL),
-        false_successor_(NULL),
-        fused_with_comparison_(NULL),
-        is_negated_(false) { }
+        false_successor_(NULL) {
+    ASSERT(left_ != NULL);
+    ASSERT(right_ != NULL);
+    ASSERT(Token::IsEqualityOperator(kind) ||
+           Token::IsRelationalOperator(kind) ||
+           Token::IsTypeTestOperator(kind));
+  }
 
   DECLARE_INSTRUCTION(Branch)
 
-  Value* value() const { return value_; }
+  Value* left() const { return left_; }
+  Value* right() const { return right_; }
+  Token::Kind kind() const { return kind_; }
+  void set_kind(Token::Kind kind) {
+    ASSERT(Token::IsEqualityOperator(kind) ||
+           Token::IsRelationalOperator(kind) ||
+           Token::IsTypeTestOperator(kind));
+    kind_ = kind;
+  }
+  intptr_t token_pos() const { return token_pos_;}
+  intptr_t try_index() const { return try_index_; }
+
   TargetEntryInstr* true_successor() const { return true_successor_; }
   TargetEntryInstr* false_successor() const { return false_successor_; }
 
@@ -2352,22 +2366,14 @@ class BranchInstr : public InstructionWithInputs {
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
 
-  void MarkFusedWithComparison(ComparisonComp* comp) {
-    fused_with_comparison_ = comp;
-  }
-
-  bool is_fused_with_comparison() const {
-    return fused_with_comparison_ != NULL;
-  }
-  bool is_negated() const { return is_negated_; }
-  void set_is_negated(bool value) { is_negated_ = value; }
-
  private:
-  Value* value_;
+  const intptr_t token_pos_;
+  const intptr_t try_index_;
+  Value* left_;
+  Value* right_;
+  Token::Kind kind_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
-  ComparisonComp* fused_with_comparison_;
-  bool is_negated_;
 
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };

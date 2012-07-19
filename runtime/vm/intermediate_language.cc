@@ -170,27 +170,26 @@ void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
 
 
 intptr_t BranchInstr::InputCount() const {
-  return is_fused_with_comparison() ? fused_with_comparison_->InputCount() : 1;
+  return 2;
 }
 
 
 Value* BranchInstr::InputAt(intptr_t i) const {
-  if (is_fused_with_comparison()) {
-    return fused_with_comparison_->InputAt(i);
-  }
-  if (i == 0) return value();
+  if (i == 0) return left();
+  if (i == 1) return right();
   UNREACHABLE();
   return NULL;
 }
 
 
 void BranchInstr::SetInputAt(intptr_t i, Value* value) {
-  ASSERT(!is_fused_with_comparison());
   if (i == 0) {
-    value_ = value;
-    return;
+    left_ = value;
+  } else if (i == 1) {
+    right_ = value;
+  } else {
+    UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
 
@@ -1037,32 +1036,6 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BranchInstr::MakeLocationSummary() const {
-  if (is_fused_with_comparison()) {
-    return fused_with_comparison_->locs();
-  } else {
-    const int kNumInputs = 1;
-    const int kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs,
-                                                kNumTemps,
-                                                LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    return locs;
-  }
-}
-
-
-void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (is_fused_with_comparison()) {
-    fused_with_comparison_->EmitNativeCode(compiler);
-  } else {
-    Register value = locs()->in(0).reg();
-    __ CompareObject(value, compiler->bool_true());
-    EmitBranchOnCondition(compiler, EQUAL);
-  }
-}
-
-
 static Condition NegateCondition(Condition condition) {
   switch (condition) {
     case EQUAL:         return NOT_EQUAL;
@@ -1085,9 +1058,6 @@ static Condition NegateCondition(Condition condition) {
 
 void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                         Condition true_condition) {
-  if (is_negated()) {
-    true_condition = NegateCondition(true_condition);
-  }
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));
@@ -1127,18 +1097,7 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  if (is_fused_with_branch()) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs,
-                                                kNumTemps,
-                                                LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    return locs;
-  } else {
-    return LocationSummary::Make(2, Location::SameAsFirstInput());
-  }
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
@@ -1150,18 +1109,14 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
 
-  if (is_fused_with_branch()) {
-    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
-  } else {
-    Register result = locs()->out().reg();
-    Label load_true, done;
-    __ j(true_condition, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, compiler->bool_false());
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&load_true);
-    __ LoadObject(result, compiler->bool_true());
-    __ Bind(&done);
-  }
+  Register result = locs()->out().reg();
+  Label load_true, done;
+  __ j(true_condition, &load_true, Assembler::kNearJump);
+  __ LoadObject(result, compiler->bool_false());
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, compiler->bool_true());
+  __ Bind(&done);
 }
 
 

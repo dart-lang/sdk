@@ -258,6 +258,49 @@ void EffectGraphVisitor::BuildLoadContext(const LocalVariable& variable) {
 }
 
 
+// TODO(srdjan): This code is clumsy. Try to skip allocation of ComparisonComp
+// and generate the right BranchInstr directly.
+// Replaces instruction patterns:
+//   t0 <- Comparison(kind, t0, t1)
+//   t1 <- #true
+//   Branch if t0 === t1 goto (true, false)
+// With:
+//   Branch if t0 kind t1 goto (true, false)
+// Returns false if fusing is not possible, e.g:
+//   t0 <- LoadLocal
+//   t1 <- #true
+//   Branch if t0 === t1 goto (true, false)
+static bool TryFuseBranchInstr(BranchInstr* branch) {
+  UseVal* use = branch->left()->AsUse();
+  if (use == NULL) return false;
+  BindInstr* compare_instr = use->definition()->AsBind();
+  if (compare_instr == NULL) return false;
+  ComparisonComp* compare = compare_instr->computation()->AsComparison();
+  Token::Kind kind;
+  if (compare == NULL) {
+    // Check if there is a BooleanNegate in between Comparison and Branch.
+    BooleanNegateComp* neg = compare_instr->computation()->AsBooleanNegate();
+    if (neg == NULL) return false;
+    if (compare_instr->previous() == NULL) return false;
+    compare_instr = compare_instr->previous()->AsBind();
+    ASSERT(compare_instr != NULL);
+    compare = compare_instr->computation()->AsComparison();
+    if (compare == NULL) return false;
+    // Negation can be handled only in connection with EqualityCompare.
+    if (!compare->IsEqualityCompare()) return false;
+    kind = Token::kNE;
+  } else {
+    kind = compare->kind();
+  }
+  branch->set_kind(kind);
+  branch->SetInputAt(0, compare->InputAt(0));
+  branch->SetInputAt(1, compare->InputAt(1));
+  // Remove elminated nodes.
+  branch->set_previous(compare_instr->previous());
+  compare_instr->previous()->set_next(branch);
+  return true;
+}
+
 
 void TestGraphVisitor::ReturnValue(Value* value) {
   if (FLAG_enable_type_checks) {
@@ -265,11 +308,18 @@ void TestGraphVisitor::ReturnValue(Value* value) {
                                        owner()->try_index(),
                                        value));
   }
-  BranchInstr* branch = new BranchInstr(value);
+  const Bool& bool_true = Bool::ZoneHandle(Bool::True());
+  Value* constant_true = Bind(new ConstantVal(bool_true));
+  BranchInstr* branch = new BranchInstr(condition_token_pos(),
+                                        owner()->try_index(),
+                                        value,
+                                        constant_true,
+                                        Token::kEQ_STRICT);
   AddInstruction(branch);
   CloseFragment();
   true_successor_address_ = branch->true_successor_address();
   false_successor_address_ = branch->false_successor_address();
+  TryFuseBranchInstr(branch);
 }
 
 

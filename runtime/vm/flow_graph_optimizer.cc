@@ -491,45 +491,6 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
 }
 
 
-static void TryFuseComparisonWithBranch(BindInstr* instr,
-                                        ComparisonComp* comp) {
-  Instruction* next_instr = instr->next();
-  if ((next_instr != NULL) && next_instr->IsBranch()) {
-    BranchInstr* branch = next_instr->AsBranch();
-    UseVal* use = branch->value()->AsUse();
-    if (instr == use->definition()) {
-      comp->MarkFusedWithBranch(branch);
-      branch->MarkFusedWithComparison(comp);
-
-      // Remove comparison from the graph.
-      branch->set_previous(instr->previous());
-      instr->previous()->set_next(branch);
-      return;
-    }
-  }
-  if ((next_instr != NULL) && next_instr->IsBind()) {
-    Computation* next_comp = next_instr->AsBind()->computation();
-    if (next_comp->IsBooleanNegate()) {
-      Instruction* next_next_instr = next_instr->next();
-      if ((next_next_instr != NULL) && next_next_instr->IsBranch()) {
-        BooleanNegateComp* negate = next_comp->AsBooleanNegate();
-        BranchInstr* branch = next_next_instr->AsBranch();
-        if ((branch->value()->AsUse()->definition() == next_instr) &&
-            (negate->value()->AsUse()->definition() == instr)) {
-          comp->MarkFusedWithBranch(branch);
-          branch->MarkFusedWithComparison(comp);
-          branch->set_is_negated(true);
-          // Remove the comparison and the boolean negation from the graph.
-          branch->set_previous(instr->previous());
-          instr->previous()->set_next(branch);
-          return;
-        }
-      }
-    }
-  }
-}
-
-
 void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
                                            BindInstr* instr) {
   if (!comp->HasICData()) return;
@@ -547,17 +508,6 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
   } else {
     return;
   }
-
-  // For smi and double comparisons if the next instruction is a conditional
-  // branch that uses the value of this comparison mark them as fused together
-  // to avoid materializing a boolean value.
-  TryFuseComparisonWithBranch(instr, comp);
-}
-
-
-void FlowGraphOptimizer::VisitStrictCompare(StrictCompareComp* comp,
-                                            BindInstr* instr) {
-  TryFuseComparisonWithBranch(instr, comp);
 }
 
 
@@ -575,7 +525,6 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
       comp->set_receiver_class_id(kDouble);
     }
   }
-  TryFuseComparisonWithBranch(instr, comp);
 }
 
 
