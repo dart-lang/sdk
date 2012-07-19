@@ -144,6 +144,11 @@ testClassWithMethod() {
   testDart2Dart('main(){var a=new A(); a.foo();}class A{void foo(){}}');
 }
 
+testExtendsImplements() {
+  testDart2Dart('main(){new B<Object>();}'
+      'class A<T>{}class B<T> extends A<T>{}');
+}
+
 testVariableDefinitions() {
   testDart2Dart('main(){final var x, y; final String s;}');
   testDart2Dart('foo(f, g){}main(){foo(1, 2);}');
@@ -151,13 +156,27 @@ testVariableDefinitions() {
   // A couple of static/finals inside a class.
   testDart2Dart('main(){A.a; A.b;}class A{static final String a="5";'
       'static final String b="4";}');
+  // Class member of typedef-ed function type.
+  // Maybe typedef should be included in the result too, but it
+  // works fine without it.
+  testDart2Dart('typedef void foofunc(arg);'
+      'class A {'
+        'final foofunc handler;'
+        'A(foofunc this.handler);'
+      '}'
+      'main() {new A((arg) {});}', (result) {
+        Expect.equals(
+            'main(){new A((arg){});}'
+            'class A{A(foofunc this.handler);final foofunc handler;}', result);
+      });
 }
 
 testGetSet() {
   // Top-level get/set.
   testDart2Dart('get foo(){return 5;}set foo(arg){}main(){foo; foo=5;}');
   // Field get/set.
-  testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}class A{set foo(a){}get foo(){return 5;}}');
+  testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}'
+      'class A{set foo(a){}get foo(){return 5;}}');
   // Typed get/set.
   testDart2Dart('String get foo(){return "a";}main(){foo;}');
 }
@@ -171,7 +190,8 @@ testFactoryConstructor() {
   testDart2Dart('main(){new A.fromFoo(5); new I.fromFoo();}'
       'class IFactory{factory I.fromFoo()=> new A(5);}'
       'interface I default IFactory{I.fromFoo();}'
-      'class A implements I{A(this.f);A.fromFoo(foo):this("f");final String f;}');
+      'class A implements I{A(this.f);A.fromFoo(foo):this("f");'
+      'final String f;}');
 }
 
 main() {

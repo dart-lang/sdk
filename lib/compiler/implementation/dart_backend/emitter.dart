@@ -16,18 +16,26 @@ class Emitter {
    * Outputs given class element with selected inner elements.
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
-    // TODO(smok): Very soon properly print out correct class declaration with
-    // extends, implements, etc.
+    ClassNode classNode = classElement.parseNode(compiler);
     sb.add(classElement.beginToken.slowToString());  // 'class' or 'interface'.
     sb.add(' ');
-    sb.add(classElement.name.slowToString());
-    if (classElement.isInterface() && classElement.defaultClause !== null) {
-      sb.add(' default ');
-      sb.add(classElement.defaultClause.unparse());
+    sb.add(classNode.name.unparse());
+    if (classNode.typeParameters !== null) {
+      sb.add(classNode.typeParameters.unparse());
     }
-    if (!classElement.interfaces.isEmpty()) {
-      sb.add(' implements ');
-      classElement.interfaces.printOn(sb, ',');
+    if (classNode.extendsKeyword !== null) {
+      sb.add(' ');
+      classNode.extendsKeyword.value.printOn(sb);
+      sb.add(' ');
+      sb.add(classNode.superclass.unparse());
+    }
+    if (!classNode.interfaces.isEmpty()) {
+      sb.add(classElement.isInterface() ? ' extends ' : ' implements ');
+      classNode.interfaces.nodes.printOn(sb, classNode.interfaces.delimiter);
+    }
+    if (classNode.defaultClause !== null) {
+      sb.add(' default ');
+      sb.add(classNode.defaultClause.unparse());
     }
     sb.add('{');
     innerElements.forEach((element) {
@@ -43,21 +51,8 @@ class Emitter {
     if (element is SynthesizedConstructorElement
         || element is AbstractFieldElement) return;
     if (element.isField()) {
-      // Add modifiers first.
-      sb.add(element.modifiers.unparse());
-      sb.add(' ');
-      // Figure out type.
-      if (element is VariableElement) {
-        VariableListElement variables = element.variables;
-        if (variables.computeType(compiler) !== null) {
-          sb.add(variables.type);
-          sb.add(' ');
-        }
-      }
-      // TODO(smok): Maybe not rely on node unparsing,
-      // but unparse initializer manually.
-      sb.add(element.parseNode(compiler).unparse());
-      sb.add(';');
+      assert(element is VariableElement);
+      sb.add(element.variables.parseNode(compiler).unparse());
     } else {
       sb.add(element.parseNode(compiler).unparse());
     }
