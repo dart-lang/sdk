@@ -53,6 +53,26 @@ String FUNCTIONS_TEST = '''
 @void main() { print(test(15)); @}
 @int test(int x) { return x; @}''';
 
+String RETURN_TEST = 'void main() { print(((x) { @return x; })(0)); }';
+
+String NOT_TEST = 'void main() { ((x) { if (@!x) print(x); })(false); }';
+
+String UNARY_TEST = 'void main() { ((x, y) { print(@-x + @~y); })(1,2); }';
+
+String BINARY_TEST = 'void main() { ((x, y) { if (x @!== y) print(x @* y); })(1,2); }';
+
+String SEND_TEST = '''
+void main() {
+  @staticSend(0);
+  NewSend o = new @NewSend();
+  @o.dynamicSend(0);
+  var closureSend = (x) { print(x); };
+  @closureSend(0);
+}
+void staticSend(x) { print(x); }
+class NewSend { void dynamicSend(x) { print(x); } }
+''';
+
 main() {
   // These tests are fragile, since mappings for specific source locations
   // could disappear due to various optimizations like code elimination,
@@ -60,4 +80,9 @@ main() {
   // so that the new code is not optimized, otherwise just remove the marker
   // from problematic location.
   testSourceMapLocations(FUNCTIONS_TEST);
+  testSourceMapLocations(RETURN_TEST);
+  testSourceMapLocations(NOT_TEST);
+  testSourceMapLocations(UNARY_TEST);
+  testSourceMapLocations(BINARY_TEST);
+  testSourceMapLocations(SEND_TEST);
 }
