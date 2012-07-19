@@ -488,7 +488,7 @@ class Apidoc extends doc.Dartdoc {
     if (library.simpleName() == 'html') {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
-      final domMembers = _diff.htmlToDom[member];
+      final domMembers = _diff.htmlToDom[member.qualifiedName()];
 
       // Couldn't find a DOM type.
       if ((domMembers == null) || (domMembers.length != 1)) return null;
@@ -508,9 +508,6 @@ class Apidoc extends doc.Dartdoc {
     final mdnType = mdn[member.surroundingDeclaration().simpleName()];
     if (mdnType == null) return null;
     var nameToFind = member.simpleName();
-    if (nameToFind.startsWith(GET_PREFIX)) {
-      nameToFind = nameToFind.substring(GET_PREFIX.length);
-    }
     var mdnMember = null;
     for (final candidateMember in mdnType['members']) {
       if (candidateMember['name'] == nameToFind) {

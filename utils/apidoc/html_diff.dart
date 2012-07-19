@@ -46,8 +46,11 @@ class HtmlDiff {
   final Map<MemberMirror, Set<MemberMirror>> domToHtml;
 
   /** A map from `dart:html` members to corresponding
-   * `dart:dom_deprecated` members. */
-  final Map<MemberMirror, Set<MemberMirror>> htmlToDom;
+   * `dart:dom_deprecated` members.
+   * TODO(johnniwinther): We use qualified names as keys, since mirrors
+   * (currently) are not equal between different mirror systems.
+   */
+  final Map<String, Set<MemberMirror>> htmlToDom;
 
   /** A map from `dart:dom_deprecated` types to corresponding
    * `dart:html` types.
@@ -88,7 +91,7 @@ class HtmlDiff {
   HtmlDiff([bool printWarnings = false]) :
     _printWarnings = printWarnings,
     domToHtml = new Map<MemberMirror, Set<MemberMirror>>(),
-    htmlToDom = new Map<MemberMirror, Set<MemberMirror>>(),
+    htmlToDom = new Map<String, Set<MemberMirror>>(),
     domTypesToHtml = new Map<String, Set<InterfaceMirror>>(),
     htmlTypesToDom = new Map<String, Set<InterfaceMirror>>(),
     comments = new CommentMap();
@@ -142,7 +145,9 @@ class HtmlDiff {
     }
 
     if (htmlMember == null) return;
-    if (!domMembers.isEmpty()) htmlToDom[htmlMember] = domMembers;
+    if (!domMembers.isEmpty()) {
+      htmlToDom[htmlMember.qualifiedName()] = domMembers;
+    }
     domMembers.forEach((m) =>
         domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
   }

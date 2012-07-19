@@ -216,12 +216,15 @@ class Element implements Hashable {
 
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
-    // invariant for all element types.
+    // invariant for all element types?
+    var nameText = name !== null ? name.slowToString() : '?';
     if (enclosingElement !== null && !isTopLevel()) {
-      String holderName = enclosingElement.name.slowToString();
-      return '$kind($holderName#${name.slowToString()})';
+      String holderName = enclosingElement.name !== null
+          ? enclosingElement.name.slowToString()
+          : '${enclosingElement.kind}?';
+      return '$kind($holderName#${nameText})';
     } else {
-      return '$kind(${name.slowToString()})';
+      return '$kind(${nameText})';
     }
   }
 
@@ -500,6 +503,13 @@ class VariableListElement extends Element {
   Type type;
   final Modifiers modifiers;
 
+  /**
+   * Function signature for a variable with a function type. The signature is
+   * kept to provide full information about parameter names through the the
+   * mirror system.
+   */
+  FunctionSignature functionSignature;
+
   VariableListElement(ElementKind kind,
                       Modifiers this.modifiers,
                       Element enclosing)
@@ -518,7 +528,28 @@ class VariableListElement extends Element {
 
   Type computeType(Compiler compiler) {
     if (type != null) return type;
-    type = compiler.resolveTypeAnnotation(this, parseNode(compiler).type);
+    VariableDefinitions node = parseNode(compiler);
+    if (node.type !== null) {
+      type = compiler.resolveTypeAnnotation(this, node.type);
+    } else {
+      // Is node.definitions exactly one FunctionExpression?
+      Link<Node> link = node.definitions.nodes;
+      if (!link.isEmpty() &&
+          link.head.asFunctionExpression() !== null &&
+          link.tail.isEmpty()) {
+        FunctionExpression functionExpression = link.head;
+        // We found exactly one FunctionExpression
+        compiler.withCurrentElement(this, () {
+          functionSignature =
+              compiler.resolveFunctionExpression(this, functionExpression);
+        });
+        type = compiler.computeFunctionType(compiler.functionClass,
+                                            functionSignature);
+      } else {
+        type = compiler.types.dynamicType;
+      }
+    }
+    assert(type != null);
     return type;
   }
 

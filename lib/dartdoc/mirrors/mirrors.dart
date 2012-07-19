@@ -403,6 +403,18 @@ interface ParameterMirror extends Mirror {
    * Returns true if this parameter is optional.
    */
   bool isOptional();
+
+  /**
+   * Returns [:true:] iff this parameter is an initializing formal of a
+   * constructor. That is, if it is of the form [:this.x:] where [:x:] is a
+   * field.
+   */
+  bool isInitializingFormal();
+
+  /**
+   * Returns the initialized field, if this parameter is an initializing formal.
+   */
+  FieldMirror initializedField();
 }
 
 /**

@@ -1263,6 +1263,11 @@ class Dartdoc {
       write('void');
       return;
     }
+    if (type.isDynamic) {
+      // Do not generate links for Dynamic.
+      write('Dynamic');
+      return;
+    }
 
     if (type.isTypeVariable) {
       // If we're using a type parameter within the body of a generic class then

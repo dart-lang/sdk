@@ -36,14 +36,14 @@ List<ParameterMirror> _parametersFromFunctionSignature(
   var parameters = <ParameterMirror>[];
   Link<Element> link = signature.requiredParameters;
   while (!link.isEmpty()) {
-    parameters.add(new Dart2JsParameterMirror(system, method,
-                                              link.head, false));
+    parameters.add(new Dart2JsParameterMirror(
+        system, method, link.head, false));
     link = link.tail;
   }
   link = signature.optionalParameters;
   while (!link.isEmpty()) {
-    parameters.add(new Dart2JsParameterMirror(system, method,
-                                              link.head, true));
+    parameters.add(new Dart2JsParameterMirror(
+        system, method, link.head, true));
     link = link.tail;
   }
   return parameters;
@@ -565,7 +565,19 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
   final MethodMirror _method;
   final bool _isOptional;
 
-  Dart2JsParameterMirror(Dart2JsMirrorSystem system,
+  factory Dart2JsParameterMirror(Dart2JsMirrorSystem system,
+                                 MethodMirror method,
+                                 VariableElement element,
+                                 bool isOptional) {
+    if (element is FieldParameterElement) {
+      return new Dart2JsFieldParameterMirror(system,
+                                             method, element, isOptional);
+    }
+    return new Dart2JsParameterMirror._normal(system,
+                                              method, element, isOptional);
+  }
+
+  Dart2JsParameterMirror._normal(Dart2JsMirrorSystem system,
                          this._method,
                          VariableElement element,
                          this._isOptional)
@@ -577,18 +589,54 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
 
   String qualifiedName() => '${_method.qualifiedName()}#${simpleName()}';
 
-  // TODO(johnniwinther): Provide
-  // [:_variableElement.variables.functionSignature:] instead of [:null:].
   TypeMirror type() => _convertTypeToTypeMirror(system,
       _variableElement.computeType(system.compiler),
       system.compiler.dynamicClass.computeType(system.compiler),
-      null);
+      _variableElement.variables.functionSignature);
 
-  String defaultValue() => null; // TODO(johnniwinther): How to compute this?
-
-  bool hasDefaultValue() => false; // TODO(johnniwinther): How to compute this?
+  String defaultValue() {
+    if (hasDefaultValue()) {
+      SendSet expression = _variableElement.cachedNode.asSendSet();
+      return expression.arguments.head.unparse();
+    }
+    return null;
+  }
+  bool hasDefaultValue() {
+    return _variableElement.cachedNode !== null &&
+        _variableElement.cachedNode is SendSet;
+  }
 
   bool isOptional() => _isOptional;
+
+  bool isInitializingFormal() => false;
+
+  FieldMirror initializedField() => null;
+}
+
+class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
+
+  Dart2JsFieldParameterMirror(Dart2JsMirrorSystem system,
+                              MethodMirror method,
+                              FieldParameterElement element,
+                              bool isOptional)
+      : super._normal(system, method, element, isOptional);
+
+  FieldParameterElement get _fieldParameterElement() => _element;
+
+  TypeMirror type() {
+    if (_fieldParameterElement.variables.cachedNode.type !== null) {
+      return super.type();
+    }
+    return _convertTypeToTypeMirror(system,
+      _fieldParameterElement.fieldElement.computeType(system.compiler),
+      system.compiler.dynamicClass.computeType(system.compiler),
+      _variableElement.variables.functionSignature);
+  }
+
+  bool isInitializingFormal() => true;
+
+  FieldMirror initializedField() => new Dart2JsFieldMirror(
+      _method.surroundingDeclaration(), _fieldParameterElement.fieldElement);
 }
 
 //------------------------------------------------------------------------------

@@ -441,12 +441,10 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.stringEquals("mirrors_helper.Baz.method2#f",
                       method2Parameter2.qualifiedName(),
                       "Unexpected parameter qualifiedName");
-  // TODO(johnniwinther): Should return true:
-  Expect.isFalse(method2Parameter2.hasDefaultValue(),
+  Expect.isTrue(method2Parameter2.hasDefaultValue(),
                  "Parameter has default value");
-  // TODO(johnniwinther): Should return a non-null value:
-  Expect.isNull(method2Parameter2.defaultValue(),
-                "Parameter default value is non-null");
+  Expect.stringEquals("null", method2Parameter2.defaultValue(),
+                      "Parameter default value is non-null");
   Expect.isTrue(method2Parameter2.isOptional(), "Parameter is not optional");
 
   ////////////////////////////////////////////////////////////////////////////
@@ -484,8 +482,24 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.equals(2, method3Parameters.length, "Unexpected parameter count");
   var method3Parameter1 = method3Parameters[0];
   Expect.isNotNull(method3Parameter1, "Parameter is null");
-  // TODO(johnniwinther): Should return the function type E func(F f):
-  Expect.equals(dynamicType, method3Parameter1.type());
+  var method3Parameter1type = method3Parameter1.type();
+  Expect.isNotNull(method3Parameter1type, "Parameter type of 'func1' is null");
+  Expect.isTrue(method3Parameter1type is FunctionTypeMirror,
+                "Parameter type of 'func1' is not a function");
+  Expect.equals(bazE, method3Parameter1type.returnType(),
+                "Return type of 'func1' is not a E");
+  Expect.isNotNull(method3Parameter1type.parameters(),
+                   "Parameters of 'func1' is null");
+  Expect.equals(1, method3Parameter1type.parameters().length,
+                "Unexpected parameter count of 'func1'");
+  Expect.equals(bazE, method3Parameter1type.returnType(),
+                "Return type of 'func1' is not a E");
+  Expect.isNotNull(method3Parameter1type.parameters()[0],
+                "Parameter 1 of 'func1' is null");
+  Expect.stringEquals('f', method3Parameter1type.parameters()[0].simpleName(),
+                "Unexpected name parameter 1 of 'func1'");
+  Expect.equals(bazF, method3Parameter1type.parameters()[0].type(),
+                "Argument type of 'func1' is not a F");
   Expect.stringEquals("func1", method3Parameter1.simpleName(),
                       "Unexpected parameter simpleName");
   Expect.stringEquals("mirrors_helper.Baz.method3#func1",
@@ -549,7 +563,8 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       method3Parameter2.qualifiedName(),
                       "Unexpected parameter qualifiedName");
   Expect.isFalse(method3Parameter2.hasDefaultValue(),
-                 "Parameter has default value");
+                 "Parameter 'func2' has default value: "
+                 "${method3Parameter2.defaultValue()}");
   Expect.isNull(method3Parameter2.defaultValue(),
                 "Parameter default value is non-null");
   Expect.isFalse(method3Parameter2.isOptional(), "Parameter is optional");
