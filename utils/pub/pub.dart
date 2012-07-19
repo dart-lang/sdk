@@ -10,6 +10,7 @@
 #import('../../lib/args/args.dart');
 #import('dart:io');
 #import('io.dart');
+#import('command_help.dart');
 #import('command_install.dart');
 #import('command_list.dart');
 #import('command_update.dart');
@@ -28,29 +29,37 @@
 
 Version get pubVersion() => new Version(0, 0, 0);
 
-main() {
-  // TODO(rnystrom): In addition to explicit "help" and "version" commands,
-  // should also add special-case support for --help and --version arguments to
-  // be consistent with other Unix apps.
-  var commands = {
-    'list': new ListCommand(),
-    'install': new InstallCommand(),
-    'update': new UpdateCommand(),
-    'version': new VersionCommand()
-  };
+/**
+ * The commands that Pub understands.
+ */
+Map<String, PubCommand> get pubCommands() => {
+  'help': new HelpCommand(),
+  'list': new ListCommand(),
+  'install': new InstallCommand(),
+  'update': new UpdateCommand(),
+  'version': new VersionCommand()
+};
 
+/**
+ * The parser for arguments that are global to Pub rather than specific to a
+ * single command.
+ */
+ArgParser get pubArgParser() {
   var parser = new ArgParser();
   parser.addFlag('help', abbr: 'h', negatable: false,
     help: 'Prints this usage information');
   parser.addFlag('version', negatable: false,
     help: 'Prints the version of Pub');
   parser.addFlag('trace', help: 'Prints a stack trace when an error occurs');
+  return parser;
+}
 
+main() {
   var globalOptions;
   try {
-    globalOptions = parser.parse(new Options().arguments);
+    globalOptions = pubArgParser.parse(new Options().arguments);
   } catch (ArgFormatException e) {
-    printUsage(parser, commands, description: e.message);
+    printUsage(description: e.message);
     return;
   }
 
@@ -60,7 +69,7 @@ main() {
   }
 
   if (globalOptions['help'] || globalOptions.rest.isEmpty()) {
-    printUsage(parser, commands);
+    printUsage();
     return;
   }
 
@@ -83,7 +92,7 @@ main() {
   cache.sources.setDefault('sdk');
 
   // Select the command.
-  var command = commands[globalOptions.rest[0]];
+  var command = pubCommands[globalOptions.rest[0]];
   if (command == null) {
     printError('Unknown command "${globalOptions.rest[0]}".');
     printError('Run "pub help" to see available commands.');
@@ -97,14 +106,13 @@ main() {
 }
 
 /** Displays usage information for the app. */
-void printUsage(ArgParser parser, Map<String, PubCommand> commands,
-    [String description = 'Pub is a package manager for Dart.']) {
+void printUsage([String description = 'Pub is a package manager for Dart.']) {
   print(description);
   print('');
   print('Usage: pub command [arguments]');
   print('');
   print('Global options:');
-  print(parser.getUsage());
+  print(pubArgParser.getUsage());
   print('');
   print('The commands are:');
 
@@ -112,7 +120,7 @@ void printUsage(ArgParser parser, Map<String, PubCommand> commands,
   // TODO(rnystrom): A sorted map would be nice.
   int length = 0;
   var names = <String>[];
-  for (var command in commands.getKeys()) {
+  for (var command in pubCommands.getKeys()) {
     length = Math.max(length, command.length);
     names.add(command);
   }
@@ -120,7 +128,7 @@ void printUsage(ArgParser parser, Map<String, PubCommand> commands,
   names.sort((a, b) => a.compareTo(b));
 
   for (var name in names) {
-    print('  ${padRight(name, length)}   ${commands[name].description}');
+    print('  ${padRight(name, length)}   ${pubCommands[name].description}');
   }
 
   print('');
@@ -133,17 +141,38 @@ void printVersion() {
 
 class PubCommand {
   SystemCache cache;
+  ArgResults globalOptions;
+  ArgResults commandOptions;
 
   Entrypoint entrypoint;
 
+  /**
+   * A one-line description of this command.
+   */
   abstract String get description();
 
-  void run(SystemCache cache_, ArgResults globalOptions,
+  /**
+   * How to invoke this command (e.g. `"pub install [package]"`).
+   */
+  abstract String get usage();
+
+  /**
+   * Override this to define command-specific options. The results will be made
+   * available in [commandOptions].
+   */
+  ArgParser get commandParser() => new ArgParser();
+
+  void run(SystemCache cache_, ArgResults globalOptions_,
       List<String> commandArgs) {
     cache = cache_;
+    globalOptions = globalOptions_;
 
-    // TODO(rnystrom): Each command should define the arguments it expects and
-    // we can handle them generically here.
+    try {
+     commandOptions = commandParser.parse(commandArgs);
+    } catch (ArgFormatException e) {
+      this.printUsage(description: e.message);
+      return;
+    }
 
     handleError(error, trace) {
       // This is basically the top-level exception handler so that we don't
@@ -190,4 +219,18 @@ class PubCommand {
    * command is synchronous, it may return `null`.
    */
   abstract Future onRun();
+
+  /** Displays usage information for this command. */
+  void printUsage([String description]) {
+    if (description == null) description = this.description;
+    print(description);
+    print('');
+    print('Usage: $usage');
+
+    var commandUsage = commandParser.getUsage();
+    if (!commandUsage.isEmpty()) {
+      print('');
+      print(commandUsage);
+    }
+  }
 }

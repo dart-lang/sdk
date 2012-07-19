@@ -20,6 +20,7 @@ final USAGE_STRING = """
         --[no-]trace    Prints a stack trace when an error occurs
 
     The commands are:
+      help      display help information for Pub
       install   install the current package's dependencies
       list      print the contents of repositories
       update    update the current package's dependencies to the latest versions
