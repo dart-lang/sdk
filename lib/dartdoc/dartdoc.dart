@@ -24,13 +24,16 @@
 #import('mirrors/dart2js_mirror.dart', prefix: 'dart2js');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
-#import('../compiler/implementation/dart2js.dart', prefix: 'dart2js');
 #import('../compiler/implementation/scanner/scannerlib.dart',
         prefix: 'dart2js');
-#import('file_util.dart');
 
 #source('comment_map.dart');
 #source('utils.dart');
+
+// TODO(johnniwinther): Note that [IN_SDK] gets initialized to true when this
+// file is modified by the SDK deployment script. If you change, be sure to test
+// that dartdoc still works when run from the built SDK directory.
+final bool IN_SDK = false;
 
 /**
  * Generates completely static HTML containing everything you need to browse
@@ -62,7 +65,7 @@ void main() {
   // Parse the dartdoc options.
   bool includeSource;
   int mode;
-  String outputDir;
+  Path outputDir;
   bool generateAppCache;
   bool omitGenerationTime;
   bool verbose;
@@ -103,7 +106,7 @@ void main() {
 
       default:
         if (arg.startsWith('--out=')) {
-          outputDir = arg.substring('--out='.length);
+          outputDir = new Path.fromNative(arg.substring('--out='.length));
         } else {
           print('Unknown option: $arg');
           printUsage();
@@ -113,19 +116,7 @@ void main() {
     }
   }
 
-  if (args.length == 0) {
-    print('Provide at least one dart file to process.');
-    return;
-  }
-
-  // TODO(rnystrom): Note that the following lines get munged by create-sdk to
-  // work with the SDK's different file layout. If you change, be sure to test
-  // that dartdoc still works when run from the built SDK directory.
-  final String libPath = joinPaths(scriptDir, '../');
-
-  // The entrypoint of the library to generate docs for.
-  // TODO(johnniwinther): Handle absolute/relative paths
-  final entrypoint = canonicalizePath(args[args.length - 1]);
+  final entrypoint = new Path.fromNative(args[args.length - 1]);
 
   final dartdoc = new Dartdoc();
 
@@ -144,13 +135,14 @@ void main() {
 
   // Compile the client-side code to JS.
   final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
-  compileScript(
-    '$scriptDir/client-$clientScript.dart',
-    '${dartdoc.outputDir}/client-$clientScript.js');
+  Future compiled = compileScript(
+    scriptDir.append('client-$clientScript.dart'),
+    dartdoc.outputDir.append('client-$clientScript.js'));
 
-  final Future filesCopied = copyFiles('$scriptDir/static', dartdoc.outputDir);
+  Future filesCopied = copyDirectory(scriptDir.append('static'),
+                                     dartdoc.outputDir);
 
-  Futures.wait([filesCopied]).then((_) {
+  Futures.wait([compiled, filesCopied]).then((_) {
     print('Documented ${dartdoc._totalLibraries} libraries, '
           '${dartdoc._totalTypes} types, and '
           '${dartdoc._totalMembers} members.');
@@ -163,25 +155,25 @@ Usage dartdoc [options] <entrypoint>
 [options] include
  --no-code                   Do not include source code in the documentation.
 
- --mode=static               Generates completely static HTML containing 
-                             everything you need to browse the docs. The only 
+ --mode=static               Generates completely static HTML containing
+                             everything you need to browse the docs. The only
                              client side behavior is trivial stuff like syntax
                              highlighting code.
 
- --mode=live-nav             (default) Generated docs do not include baked HTML 
-                             navigation. Instead, a single `nav.json` file is 
+ --mode=live-nav             (default) Generated docs do not include baked HTML
+                             navigation. Instead, a single `nav.json` file is
                              created and the appropriate navigation is generated
                              client-side by parsing that and building HTML.
-                                This dramatically reduces the generated size of 
-                             the HTML since a large fraction of each static page 
+                                This dramatically reduces the generated size of
+                             the HTML since a large fraction of each static page
                              is just redundant navigation links.
-                                In this mode, the browser will do a XHR for 
-                             nav.json which means that to preview docs locally, 
+                                In this mode, the browser will do a XHR for
+                             nav.json which means that to preview docs locally,
                              you will need to enable requesting file:// links in
-                             your browser or run a little local server like 
+                             your browser or run a little local server like
                              `python -m SimpleHTTPServer`.
 
- --generate-app-cache        Generates the App Cache manifest file, enabling 
+ --generate-app-cache        Generates the App Cache manifest file, enabling
                              offline doc viewing.
 
  --out=<dir>                 Generates files into directory <dir>. If omitted
@@ -197,21 +189,28 @@ Usage dartdoc [options] <entrypoint>
  * path to the directory containing `dartdoc.dart`. If you're running a script
  * that imports dartdoc, it will be the path to that script.
  */
-String get scriptDir() {
-  return dirname(new File(new Options().script).fullPathSync());
-}
+// TODO(johnniwinther): Convert to final (lazily initialized) variables when
+// the feature is supported.
+Path get scriptDir() =>
+    new Path.fromNative(new Options().script).directoryPath;
+
+// TODO(johnniwinther): Trailing slashes matter due to the use of [libPath] as
+// a base URI with [Uri.resolve].
+Path get libPath() => IN_SDK
+    ? scriptDir.append('../dart2js/')
+    : scriptDir.append('../../');
 
 /**
  * Deletes and recreates the output directory at [path] if it exists.
  */
-void cleanOutputDirectory(String path) {
-  final outputDir = new Directory(path);
+void cleanOutputDirectory(Path path) {
+  final outputDir = new Directory.fromPath(path);
   if (outputDir.existsSync()) {
     outputDir.deleteRecursivelySync();
   }
 
   try {
-    // TODO(johnniwinther): Hack to avoid 'file already exists' exception thrown
+    // TODO(3914): Hack to avoid 'file already exists' exception thrown
     // due to invalid result from dir.existsSync() (probably due to race
     // conditions).
     outputDir.createSync();
@@ -227,22 +226,19 @@ void cleanOutputDirectory(String path) {
  * Note: runs asynchronously, so you won't see any files copied until after the
  * event loop has had a chance to pump (i.e. after `main()` has returned).
  */
-Future copyFiles(String from, String to) {
+Future copyDirectory(Path from, Path to) {
   final completer = new Completer();
-  final fromDir = new Directory(from);
+  final fromDir = new Directory.fromPath(from);
   final lister = fromDir.list(recursive: false);
 
-  lister.onFile = (path) {
-    final name = basename(path);
+  lister.onFile = (String path) {
+    final name = new Path.fromNative(path).filename;
     // TODO(rnystrom): Hackish. Ignore 'hidden' files like .DS_Store.
     if (name.startsWith('.')) return;
 
-    new File(path).readAsBytes().then((bytes) {
-      final outFile = new File('$to/$name');
-      final stream = outFile.openOutputStream(FileMode.WRITE);
-      stream.write(bytes, copyBuffer: false);
-      stream.close();
-    });
+    File fromFile = new File(path);
+    File toFile = new File.fromPath(to.append(name));
+    fromFile.openInputStream().pipe(toFile.openOutputStream());
   };
   lister.onDone = (done) => completer.complete(true);
   return completer.future;
@@ -252,17 +248,16 @@ Future copyFiles(String from, String to) {
  * Compiles the given Dart script to a JavaScript file at [jsPath] using the
  * Dart2js compiler.
  */
-void compileScript(String dartPath, String jsPath) {
-  dart2js.compile([
-      '--no-colors',
-      // TODO(johnniwinther): The following lines get munged by create-sdk to
-      // work with the SDK's different file layout. If you change, be sure to
-      // test that dartdoc still works when run from the built SDK directory.
-      '--library-root=${joinPaths(scriptDir, '../../')}',
-      '--out=$jsPath',
-      '--throw-on-error',
-      '--suppress-warnings',
-      dartPath]);
+Future<bool> compileScript(Path dartPath, Path jsPath) {
+  var completer = new Completer<bool>();
+  var compilation = new Compilation(dartPath, libPath);
+  Future<String> result = compilation.compileToJavaScript();
+  result.then((jsCode) {
+    writeString(new File.fromPath(jsPath), jsCode);
+    completer.complete(true);
+  });
+  result.handleException((e) => completer.completeException(e));
+  return completer.future;
 }
 
 class Dartdoc {
@@ -283,7 +278,7 @@ class Dartdoc {
   bool generateAppCache = false;
 
   /** Path to generate HTML files into. */
-  String outputDir = 'docs';
+  Path outputDir = const Path('docs');
 
   /**
    * The title used for the overall generated output. Set this to change it.
@@ -337,7 +332,7 @@ class Dartdoc {
   MemberMirror _currentMember;
 
   /** The path to the file currently being written to, relative to [outdir]. */
-  String _filePath;
+  Path _filePath;
 
   /** The file currently being written to. */
   StringBuffer _file;
@@ -354,8 +349,8 @@ class Dartdoc {
         new md.CodeSyntax(@'\[\:((?:.|\n)*?)\:\]'));
 
     md.setImplicitLinkResolver((name) => resolveNameReference(name,
-            library: _currentLibrary, type: _currentType,
-            member: _currentMember));
+            currentLibrary: _currentLibrary, currentType: _currentType,
+            currentMember: _currentMember));
   }
 
   bool includeLibrary(LibraryMirror library) {
@@ -383,13 +378,13 @@ class Dartdoc {
     return content;
   }
 
-  void documentEntryPoint(String entrypoint, String libPath) {
+  void documentEntryPoint(Path entrypoint, Path libPath) {
     final compilation = new Compilation(entrypoint, libPath);
     _document(compilation);
   }
 
-  void documentLibraries(List<String> libraries, String libPath) {
-    final compilation = new Compilation.library(libraries, libPath);
+  void documentLibraries(List<Path> libraryList, Path libPath) {
+    final compilation = new Compilation.library(libraryList, libPath);
     _document(compilation);
   }
 
@@ -416,15 +411,15 @@ class Dartdoc {
   }
 
   void startFile(String path) {
-    _filePath = path;
+    _filePath = new Path(path);
     _file = new StringBuffer();
   }
 
   void endFile() {
-    final outPath = '$outputDir/$_filePath';
-    final dir = new Directory(dirname(outPath));
+    final outPath = outputDir.join(_filePath);
+    final dir = new Directory.fromPath(outPath.directoryPath);
     if (!dir.existsSync()) {
-      // TODO(johnniwinther): Hack to avoid 'file already exists' exception
+      // TODO(3914): Hack to avoid 'file already exists' exception
       // thrown due to invalid result from dir.existsSync() (probably due to
       // race conditions).
       try {
@@ -434,7 +429,7 @@ class Dartdoc {
       }
     }
 
-    writeString(new File(outPath), _file.toString());
+    writeString(new File.fromPath(outPath), _file.toString());
     _filePath = null;
     _file = null;
   }
@@ -595,7 +590,7 @@ class Dartdoc {
   void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
     final types = [];
 
-    for (final type in orderByName(library.types().getValues())) {
+    for (InterfaceMirror type in orderByName(library.types().getValues())) {
       if (type.isPrivate) continue;
 
       final kind = type.isClass ? 'class' : 'interface';
@@ -637,7 +632,7 @@ class Dartdoc {
     final types = <InterfaceMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (final type in orderByName(library.types().getValues())) {
+    for (InterfaceMirror type in orderByName(library.types().getValues())) {
       if (type.isPrivate) continue;
 
       if (isException(type)) {
@@ -702,7 +697,7 @@ class Dartdoc {
     final interfaces = <InterfaceMirror>[];
     final exceptions = <InterfaceMirror>[];
 
-    for (final type in orderByName(library.types().getValues())) {
+    for (InterfaceMirror type in orderByName(library.types().getValues())) {
       if (type.isPrivate) continue;
 
       if (isException(type)) {
@@ -952,7 +947,7 @@ class Dartdoc {
     final instanceMethods = [];
     final instanceFields = [];
 
-    for (final member in orderByName(host.declaredMembers().getValues())) {
+    for (MemberMirror member in orderByName(host.declaredMembers().getValues())) {
       if (member.isPrivate) continue;
 
       final methods = member.isStatic ? staticMethods : instanceMethods;
@@ -1176,7 +1171,8 @@ class Dartdoc {
 
     // TODO(rnystrom): Walks all the way up to root each time. Shouldn't do
     // this if the paths overlap.
-    return '${repeat('../', countOccurrences(_filePath, '/'))}$fullPath';
+    return '${repeat('../',
+                     countOccurrences(_filePath.toString(), '/'))}$fullPath';
   }
 
   /** Gets whether or not the given URL is absolute or relative. */
@@ -1194,7 +1190,9 @@ class Dartdoc {
 
   /** Gets the URL for the documentation for [type]. */
   String typeUrl(ObjectMirror type) {
-    if (type is LibraryMirror) return '${sanitize(type.simpleName())}.html';
+    if (type is LibraryMirror) {
+      return '${sanitize(type.simpleName())}.html';
+    }
     assert (type is TypeMirror);
     // Always get the generic type to strip off any type parameters or
     // arguments. If the type isn't generic, genericType returns `this`, so it
@@ -1205,10 +1203,14 @@ class Dartdoc {
 
   /** Gets the URL for the documentation for [member]. */
   String memberUrl(MemberMirror member) {
-    final url = typeUrl(member.surroundingDeclaration());
-    if (!member.isConstructor) return '$url#${member.simpleName()}';
+    String url = typeUrl(member.surroundingDeclaration());
+    if (!member.isConstructor) {
+      return '$url#${member.simpleName()}';
+    }
     assert (member is MethodMirror);
-    if (member.constructorName == '') return '$url#new:${member.simpleName()}';
+    if (member.constructorName == '') {
+      return '$url#new:${member.simpleName()}';
+    }
     return '$url#new:${member.simpleName()}.${member.constructorName}';
   }
 
@@ -1383,9 +1385,9 @@ class Dartdoc {
    * style it appropriately.
    */
   md.Node resolveNameReference(String name,
-                               [MemberMirror member = null,
-                                ObjectMirror type = null,
-                                LibraryMirror library = null]) {
+                               [MemberMirror currentMember = null,
+                                ObjectMirror currentType = null,
+                                LibraryMirror currentLibrary = null]) {
     makeLink(String href) {
       final anchor = new md.Element.text('a', name);
       anchor.attributes['href'] = relativePath(href);
@@ -1394,8 +1396,8 @@ class Dartdoc {
     }
 
     // See if it's a parameter of the current method.
-    if (member is MethodMirror) {
-      for (final parameter in member.parameters()) {
+    if (currentMember is MethodMirror) {
+      for (final parameter in currentMember.parameters()) {
         if (parameter.simpleName() == name) {
           final element = new md.Element.text('span', name);
           element.attributes['class'] = 'param';
@@ -1405,25 +1407,25 @@ class Dartdoc {
     }
 
     // See if it's another member of the current type.
-    if (type != null) {
-      final member = findMirror(type.declaredMembers(), name);
-      if (member != null) {
-        return makeLink(memberUrl(member));
+    if (currentType != null) {
+      final foundMember = findMirror(currentType.declaredMembers(), name);
+      if (foundMember != null) {
+        return makeLink(memberUrl(foundMember));
       }
     }
 
     // See if it's another type or a member of another type in the current
     // library.
-    if (library != null) {
+    if (currentLibrary != null) {
       // See if it's a constructor
       final constructorLink = (() {
         final match =
             new RegExp(@'new ([\w$]+)(?:\.([\w$]+))?').firstMatch(name);
         if (match == null) return;
-        final type = findMirror(library.types(), match[1]);
-        if (type == null) return;
+        InterfaceMirror foundtype = findMirror(currentLibrary.types(), match[1]);
+        if (foundtype == null) return;
         final constructor =
-            findMirror(type.constructors(),
+            findMirror(foundtype.constructors(),
                             match[2] == null ? '' : match[2]);
         if (constructor == null) return;
         return makeLink(memberUrl(constructor));
@@ -1434,23 +1436,23 @@ class Dartdoc {
       final foreignMemberLink = (() {
         final match = new RegExp(@'([\w$]+)\.([\w$]+)').firstMatch(name);
         if (match == null) return;
-        final type = findMirror(library.types(), match[1]);
-        if (type == null) return;
-        final member = findMirror(type.declaredMembers(), match[2]);
-        if (member == null) return;
-        return makeLink(memberUrl(member));
+        InterfaceMirror foundtype = findMirror(currentLibrary.types(), match[1]);
+        if (foundtype == null) return;
+        MemberMirror foundMember = findMirror(foundtype.declaredMembers(), match[2]);
+        if (foundMember == null) return;
+        return makeLink(memberUrl(foundMember));
       })();
       if (foreignMemberLink != null) return foreignMemberLink;
 
-      final type = findMirror(library.types(), name);
-      if (type != null) {
-        return makeLink(typeUrl(type));
+      InterfaceMirror foundType = findMirror(currentLibrary.types(), name);
+      if (foundType != null) {
+        return makeLink(typeUrl(foundType));
       }
 
       // See if it's a top-level member in the current library.
-      final member = findMirror(library.declaredMembers(), name);
-      if (member != null) {
-        return makeLink(memberUrl(member));
+      MemberMirror foundMember = findMirror(currentLibrary.declaredMembers(), name);
+      if (foundMember != null) {
+        return makeLink(memberUrl(foundMember));
       }
     }
 
@@ -1462,24 +1464,37 @@ class Dartdoc {
   }
 
   generateAppCacheManifest() {
-    print('Generating app cache manifest from output $outputDir');
+    if (verbose) {
+      print('Generating app cache manifest from output $outputDir');
+    }
     startFile('appcache.manifest');
     write("CACHE MANIFEST\n\n");
     write("# VERSION: ${new Date.now()}\n\n");
     write("NETWORK:\n*\n\n");
     write("CACHE:\n");
-    var toCache = new Directory(outputDir);
-    var pathPrefix = new File(outputDir).fullPathSync();
-    var pathPrefixLength = pathPrefix.length;
-    toCache.onFile = (filename) {
+    var toCache = new Directory.fromPath(outputDir);
+    var toCacheLister = toCache.list(recursive: true);
+    toCacheLister.onFile = (filename) {
       if (filename.endsWith('appcache.manifest')) {
         return;
       }
-      var relativePath = filename.substring(pathPrefixLength + 1);
-      write("$relativePath\n");
+      // TODO(johnniwinther): If [outputDir] has trailing slashes, [filename]
+      // contains double (back)slashes for files in the immediate [toCache]
+      // directory. These are not handled by [relativeTo] thus
+      // wrongfully producing the path `/foo.html` for a file `foo.html` in
+      // [toCache].
+      //
+      // This can be handled in two ways. 1) By ensuring that
+      // [Directory.fromPath] does not receive a path with a trailing slash, or
+      // better, by making [Directory.fromPath] handle such trailing slashes.
+      // 2) By ensuring that [filePath] does not have double slashes before
+      // calling [relativeTo], or better, by making [relativeTo] handle double
+      // slashes correctly.
+      Path filePath = new Path.fromNative(filename).canonicalize();
+      Path relativeFilePath = filePath.relativeTo(outputDir);
+      write("$relativeFilePath\n");
     };
-    toCache.onDone = (done) => endFile();
-    toCache.list(recursive: true);
+    toCacheLister.onDone = (done) => endFile();
   }
 
   /**

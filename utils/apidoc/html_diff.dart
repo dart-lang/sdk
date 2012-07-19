@@ -9,6 +9,7 @@
 #library('html_diff');
 
 #import('dart:coreimpl');
+#import('dart:io');
 
 #import('../../lib/dartdoc/dartdoc.dart');
 #import('../../lib/dartdoc/mirrors/mirrors.dart');
@@ -79,9 +80,12 @@ class HtmlDiff {
    * Perform static initialization of [world]. This should be run before
    * calling [HtmlDiff.run].
    */
-  static void initialize(String libDir) {
+  static void initialize(Path libDir) {
     _compilation = new Compilation.library(
-        const <String>['dart:dom_deprecated', 'dart:html'], libDir);
+        const <Path>[
+            const Path('dart:dom_deprecated'),
+            const Path('dart:html')
+        ], libDir);
     _mirrors = _compilation.mirrors();
 
     // Find 'dart:dom_deprecated' by its library tag 'dom'.

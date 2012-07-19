@@ -43,7 +43,6 @@
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
             '--mode=live-nav',
-            '--compiler=<(PRODUCT_DIR)/dart2js<(script_suffix)',
           ],
           'message': 'Running apidoc: <(_action)',
         },

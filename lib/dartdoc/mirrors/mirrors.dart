@@ -4,6 +4,7 @@
 
 #library('mirrors');
 
+#import('dart:io');
 #import('dart:uri');
 #import('dart2js_mirror.dart');
 
@@ -14,15 +15,21 @@ class Compilation {
   /**
    * Creates a new compilation which has [script] as its entry point.
    */
-  factory Compilation(String script,
-                      String libraryRoot,
-                      [String packageRoot,
+  factory Compilation(Path script,
+                      Path libraryRoot,
+                      [Path packageRoot,
                        List<String> opts = const <String>[]]) {
     return new Dart2JsCompilation(script, libraryRoot, packageRoot, opts);
   }
-  factory Compilation.library(List<String> libraries,
-                              String libraryRoot,
-                              [String packageRoot,
+
+  /**
+   * Creates a new compilation which consists of a set of libraries, but which
+   * has no entry point. This compilation cannot generate output but can only
+   * be used for static inspection of the source code.
+   */
+  factory Compilation.library(List<Path> libraries,
+                              Path libraryRoot,
+                              [Path packageRoot,
                                List<String> opts = const []]) {
     return new Dart2JsCompilation.library(libraries, libraryRoot,
                                           packageRoot, opts);
@@ -32,6 +39,11 @@ class Compilation {
    * Returns the mirror system for this compilation.
    */
   abstract MirrorSystem mirrors();
+
+  /**
+   * Returns a future for the compiled JavaScript code.
+   */
+  abstract Future<String> compileToJavaScript();
 }
 
 /**

@@ -47,7 +47,7 @@ String unindent(String text, int indentation) {
 }
 
 /** Sorts the map by the key, doing a case-insensitive comparison. */
-List<Mirror> orderByName(List<Mirror> list) {
+List<Mirror> orderByName(Collection<Mirror> list) {
   final elements = new List<Mirror>.from(list);
   elements.sort((a,b) {
     String aName = a.simpleName();

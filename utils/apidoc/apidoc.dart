@@ -28,8 +28,7 @@ void main() {
   final args = new Options().arguments;
 
   int mode = doc.MODE_STATIC;
-  String outputDir = 'docs';
-  String compilerPath;
+  Path outputDir = const Path('docs');
   bool generateAppCache = false;
 
   // Parse the command-line arguments.
@@ -51,9 +50,7 @@ void main() {
 
       default:
         if (arg.startsWith('--out=')) {
-          outputDir = arg.substring('--out='.length);
-        } else if (arg.startsWith('--compiler=')) {
-          compilerPath = arg.substring('--compiler='.length);
+          outputDir = new Path.fromNative(arg.substring('--out='.length));
         } else {
           print('Unknown option: $arg');
           return;
@@ -62,8 +59,6 @@ void main() {
     }
   }
 
-  final libPath = '${doc.scriptDir}/../../';
-
   doc.cleanOutputDirectory(outputDir);
 
   // Compile the client-side code to JS.
@@ -71,52 +66,56 @@ void main() {
 
   final clientScript = (mode == doc.MODE_STATIC) ?
       'static' : 'live-nav';
-  doc.compileScript(
-      '${doc.scriptDir}/../../lib/dartdoc/client-$clientScript.dart',
-      '${outputDir}/client-$clientScript.js');
+  final Future compiled = doc.compileScript(
+      doc.scriptDir.append('../../lib/dartdoc/client-$clientScript.dart'),
+      outputDir.append('client-$clientScript.js'));
 
   // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
-  final Future copiedStatic = doc.copyFiles(
-      '${doc.scriptDir}/../../lib/dartdoc/static', outputDir);
+  final Future copiedStatic = doc.copyDirectory(
+      doc.scriptDir.append('../../lib/dartdoc/static'),
+      outputDir);
 
   // The apidoc-specific static content.
-  final Future copiedApiDocStatic = doc.copyFiles('${doc.scriptDir}/static',
+  final Future copiedApiDocStatic = doc.copyDirectory(
+      doc.scriptDir.append('static'),
       outputDir);
 
   print('Parsing MDN data...');
-  final mdnFile = new File('${doc.scriptDir}/mdn/database.json');
+  final mdnFile = new File.fromPath(doc.scriptDir.append('mdn/database.json'));
   final mdn = JSON.parse(mdnFile.readAsTextSync());
 
   print('Cross-referencing dart:html...');
-  HtmlDiff.initialize(libPath);
+  HtmlDiff.initialize(doc.libPath);
   _diff = new HtmlDiff(printWarnings:false);
   _diff.run();
 
   // Process handwritten HTML documentation.
   final htmldoc = new Htmldoc();
   htmldoc.documentLibraries(
-    <String>['${doc.scriptDir}/../../lib/html/doc/html.dartdoc'],
-    libPath);
+    <Path>[doc.scriptDir.append('../../lib/html/doc/html.dartdoc')],
+    doc.libPath);
   print('Processing handwritten HTML documentation...');
 
   // Process libraries.
 
+  // TODO(johnniwinther): Libraries for the compilation seem to be more like
+  // URIs. Perhaps Path should have a toURI() method.
   // Add all of the core libraries.
-  var apidocLibraries = <String>[
-    'dart:core',
-    'dart:coreimpl',
-    'dart:crypto',
-    'dart:html',
-    'dart:io',
-    'dart:isolate',
-    'dart:json',
-    '${doc.scriptDir}/../../lib/math/math.dart',
-    '${doc.scriptDir}/../../lib/unittest/unittest.dart',
-    '${doc.scriptDir}/../../lib/i18n/intl.dart',
-    'dart:uri',
-    'dart:utf',
-    'dart:web',
+  var apidocLibraries = <Path>[
+    const Path('dart:core'),
+    const Path('dart:coreimpl'),
+    const Path('dart:crypto'),
+    const Path('dart:html'),
+    const Path('dart:io'),
+    const Path('dart:isolate'),
+    const Path('dart:json'),
+    doc.scriptDir.append('../../lib/math/math.dart'),
+    doc.scriptDir.append('../../lib/unittest/unittest.dart'),
+    doc.scriptDir.append('../../lib/i18n/intl.dart'),
+    const Path('dart:uri'),
+    const Path('dart:utf'),
+    const Path('dart:web'),
   ];
   print('Generating docs...');
   final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
@@ -137,8 +136,8 @@ void main() {
     'web',
   ];
 
-  Futures.wait([copiedStatic, copiedApiDocStatic]).then((_) {
-    apidoc.documentLibraries(apidocLibraries, libPath);
+  Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
+    apidoc.documentLibraries(apidocLibraries, doc.libPath);
   });
 }
 
@@ -251,7 +250,7 @@ class Apidoc extends doc.Dartdoc {
    */
   String mdnUrl;
 
-  Apidoc(this.mdn, this.htmldoc, String outputDir, int mode,
+  Apidoc(this.mdn, this.htmldoc, Path outputDir, int mode,
          bool generateAppCache) {
     this.outputDir = outputDir;
     this.mode = mode;
@@ -530,7 +529,7 @@ class Apidoc extends doc.Dartdoc {
   String _linkMember(MemberMirror member) {
     final typeName = member.surroundingDeclaration().simpleName();
     var memberName = '$typeName.${member.simpleName()}';
-    if (member.isConstructor || member.isFactory) {
+    if (member is MethodMirror && (member.isConstructor || member.isFactory)) {
       final separator = member.constructorName == '' ? '' : '.';
       memberName = 'new $typeName$separator${member.constructorName}';
     }

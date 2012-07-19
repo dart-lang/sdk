@@ -348,14 +348,8 @@ def Main(argv):
   ReplaceInFiles([
       join(LIB, 'dartdoc', 'dartdoc.dart'),
     ], [
-      ("scriptDir, '../'",
-       "scriptDir, '../dart2js/lib/'"),
-    ])
-  ReplaceInFiles([
-      join(LIB, 'dartdoc', 'dartdoc.dart'),
-    ], [
-      ("scriptDir, '../../'",
-       "scriptDir, '../dart2js/'"),
+      ("final bool IN_SDK = false;",
+       "final bool IN_SDK = true;"),
     ])
 
   # Create and populate lib/isolate

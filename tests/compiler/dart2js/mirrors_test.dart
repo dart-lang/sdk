@@ -29,8 +29,7 @@ main() {
   var dirPath = scriptPath.directoryPath;
   var libPath = dirPath.join(new Path.fromNative('../../../'));
   var inputPath = dirPath.join(new Path.fromNative('mirrors_helper.dart'));
-  var compilation = new Compilation(inputPath.toNativePath(),
-                                    libPath.toNativePath());
+  var compilation = new Compilation(inputPath, libPath);
   Expect.isNotNull(compilation, "No compilation created");
 
   var mirrors = compilation.mirrors();

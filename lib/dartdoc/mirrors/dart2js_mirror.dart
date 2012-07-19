@@ -316,38 +316,38 @@ class Dart2JsCompilation implements Compilation {
     }
   }
 
-  Dart2JsCompilation(String script, String libraryRoot,
-                     [String packageRoot, List<String> opts = const <String>[]])
+  Dart2JsCompilation(Path script, Path libraryRoot,
+                     [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
-    var libraryUri = cwd.resolve(nativeToUriPath(libraryRoot));
+    var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
-      packageUri = cwd.resolve(nativeToUriPath(packageRoot));
+      packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
     }
     _compiler = new api.Compiler(provider, handler,
         libraryUri, packageUri, <String>[]);
-    var scriptUri = cwd.resolve(nativeToUriPath(script));
+    var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found
     _compiler.run(scriptUri);
   }
 
-  Dart2JsCompilation.library(List<String> libraries, String libraryRoot,
-                     [String packageRoot, List<String> opts = const []])
+  Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
+                     [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
-    var libraryUri = cwd.resolve(nativeToUriPath(libraryRoot));
+    var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
-      packageUri = cwd.resolve(nativeToUriPath(packageRoot));
+      packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
     }
     _compiler = new LibraryCompiler(provider, handler,
         libraryUri, packageUri, <String>[]);
     var librariesUri = <Uri>[];
-    for (var library in libraries) {
-      librariesUri.add(cwd.resolve(nativeToUriPath(library)));
+    for (Path library in libraries) {
+      librariesUri.add(cwd.resolve(library.toString()));
       // TODO(johnniwinther): Detect file not found
     }
     _compiler.runList(librariesUri);
@@ -359,6 +359,9 @@ class Dart2JsCompilation implements Compilation {
   }
 
   MirrorSystem mirrors() => new Dart2JsMirrorSystem(_compiler);
+
+  Future<String> compileToJavaScript() =>
+      new Future<String>.immediate(_compiler.assembledCode);
 }
 
 
