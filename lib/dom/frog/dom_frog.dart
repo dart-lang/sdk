@@ -5255,7 +5255,7 @@ class _MutationObserverJs extends _DOMTypeJs implements MutationObserver native 
 
   void disconnect() native;
 
-  void observe(_NodeJs target, Map options) native;
+  void _observe(_NodeJs target, Map options) native 'observe';
 
   List<MutationRecord> takeRecords() native;
 }
@@ -12067,6 +12067,14 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) native
+      '''return new MutationObserver(callback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _NotificationFactoryProvider {
   factory Notification(String title, [Map options]) native
       '''return new Notification(title, options);''';
@@ -18031,11 +18039,13 @@ interface MutationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface MutationObserver {
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
 
   void disconnect();
 
-  void observe(Node target, Map options);
+  void _observe(Node target, Map options);
 
   List<MutationRecord> takeRecords();
 }

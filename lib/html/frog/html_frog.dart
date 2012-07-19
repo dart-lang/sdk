@@ -9136,14 +9136,78 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _MutationObserverImpl implements MutationObserver native "*MutationObserver" {
 
   void disconnect() native;
 
-  void observe(_NodeImpl target, Map options) native;
+  void _observe(_NodeImpl target, Map options) native "observe";
 
   List<MutationRecord> takeRecords() native;
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]) {
+
+    // Parse options into map of known type.
+    var parsedOptions = _createDict();
+
+    if (options != null) {
+      options.forEach((k, v) {
+          if (_boolKeys.containsKey(k)) {
+            _add(parsedOptions, k, true === v);
+          } else if (k == 'attributeFilter') {
+            _add(parsedOptions, k, _fixupList(v));
+          } else {
+            throw new IllegalArgumentException(
+                "Illegal MutationObserver.observe option '$k'");
+          }
+        });
+    }
+
+    // Override options passed in the map with named optional arguments.
+    override(key, value) {
+      if (value != null) _add(parsedOptions, key, value);
+    }
+
+    override('childList', childList);
+    override('attributes', attributes);
+    override('characterData', characterData);
+    override('subtree', subtree);
+    override('attributeOldValue', attributeOldValue);
+    override('characterDataOldValue', characterDataOldValue);
+    if (attributeFilter != null) {
+      override('attributeFilter', _fixupList(attributeFilter));
+    }
+
+    _call(target, parsedOptions);
+  }
+
+   // TODO: Change to a set when const Sets are available.
+  static final _boolKeys =
+    const {'childList': true,
+           'attributes': true,
+           'characterData': true,
+           'subtree': true,
+           'attributeOldValue': true,
+           'characterDataOldValue': true };
+
+
+  static _createDict() => JS('var', '{}');
+  static _add(m, String key, value) { JS('void', '#[#] = #', m, key, value); }
+  static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
+
+  // Call native function with no conversions.
+  _call(target, options) native 'observe';
 }
 
 class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
@@ -17580,6 +17644,18 @@ class _MediaStreamFactoryProvider {
 class _MessageChannelFactoryProvider {
   factory MessageChannel() native
       '''return new MessageChannel();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) native '''
+    var constructor =
+        window.MutationObserver || window.WebKitMutationObserver ||
+        window.MozMutationObserver;
+    return new constructor(callback);
+  ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26858,16 +26934,25 @@ interface MutationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName MutationObserver
-interface MutationObserver {
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
 
   /** @domName MutationObserver.disconnect */
   void disconnect();
 
-  /** @domName MutationObserver.observe */
-  void observe(Node target, Map options);
-
   /** @domName MutationObserver.takeRecords */
   List<MutationRecord> takeRecords();
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

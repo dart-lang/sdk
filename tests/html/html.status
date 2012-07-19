@@ -13,6 +13,7 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 blob_constructor_test: Fail          # custom Blob constructor not implemented.
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
 typed_arrays_arraybuffer_test: Fail  # Issue 2682 constructor not implemented.
+mutationobserver_test: Fail          # Issue 3967 constructor, observe() not implemented.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -74,6 +75,7 @@ js_interop_3_test: Fail
 js_interop_4_test: Fail
 measurement_test: Fail
 messageevent_test: Fail
+mutationobserver_test: Fail
 serialized_script_value_test: Fail
 shadow_dom_layout_test: Fail
 shadow_dom_test: Fail

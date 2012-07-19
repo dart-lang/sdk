@@ -6,6 +6,7 @@ String typeNameInChrome(obj) {
   String name = JS('String', "#.constructor.name", obj);
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'WebKitMutationObserver') return 'MutationObserver';
   return name;
 }
 

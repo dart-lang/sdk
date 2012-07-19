@@ -13193,15 +13193,82 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) => _createMutationObserver(callback);
+  static MutationObserver _createMutationObserver(MutationCallback callback) native "MutationObserver_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
 
 class _MutationObserverImpl extends NativeFieldWrapperClass1 implements MutationObserver {
 
   void disconnect() native "MutationObserver_disconnect_Callback";
 
-  void observe(Node target, Map options) native "MutationObserver_observe_Callback";
+  void _observe(Node target, Map options) native "MutationObserver__observe_Callback";
 
   List<MutationRecord> takeRecords() native "MutationObserver_takeRecords_Callback";
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]) {
+
+    // Parse options into map of known type.
+    var parsedOptions = _createDict();
+
+    if (options != null) {
+      options.forEach((k, v) {
+          if (_boolKeys.containsKey(k)) {
+            _add(parsedOptions, k, true === v);
+          } else if (k == 'attributeFilter') {
+            _add(parsedOptions, k, _fixupList(v));
+          } else {
+            throw new IllegalArgumentException(
+                "Illegal MutationObserver.observe option '$k'");
+          }
+        });
+    }
+
+    // Override options passed in the map with named optional arguments.
+    override(key, value) {
+      if (value != null) _add(parsedOptions, key, value);
+    }
+
+    override('childList', childList);
+    override('attributes', attributes);
+    override('characterData', characterData);
+    override('subtree', subtree);
+    override('attributeOldValue', attributeOldValue);
+    override('characterDataOldValue', characterDataOldValue);
+    if (attributeFilter != null) {
+      override('attributeFilter', _fixupList(attributeFilter));
+    }
+
+    _call(target, parsedOptions);
+  }
+
+   // TODO: Change to a set when const Sets are available.
+  static final _boolKeys =
+    const {'childList': true,
+           'attributes': true,
+           'characterData': true,
+           'subtree': true,
+           'attributeOldValue': true,
+           'characterDataOldValue': true };
+
+  static _createDict() => {};
+  static _add(m, String key, value) { m[key] = value; }
+  static _fixupList(list) => list;
+
+  _call(Node target, options) {
+    _observe(target, options);
+  }
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -30791,16 +30858,25 @@ interface MutationEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 /// @domName MutationObserver
-interface MutationObserver {
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
 
   /** @domName MutationObserver.disconnect */
   void disconnect();
 
-  /** @domName MutationObserver.observe */
-  void observe(Node target, Map options);
-
   /** @domName MutationObserver.takeRecords */
   List<MutationRecord> takeRecords();
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

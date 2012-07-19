@@ -1,0 +1,78 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
+$!MEMBERS
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]) {
+
+    // Parse options into map of known type.
+    var parsedOptions = _createDict();
+
+    if (options != null) {
+      options.forEach((k, v) {
+          if (_boolKeys.containsKey(k)) {
+            _add(parsedOptions, k, true === v);
+          } else if (k == 'attributeFilter') {
+            _add(parsedOptions, k, _fixupList(v));
+          } else {
+            throw new IllegalArgumentException(
+                "Illegal MutationObserver.observe option '$k'");
+          }
+        });
+    }
+
+    // Override options passed in the map with named optional arguments.
+    override(key, value) {
+      if (value != null) _add(parsedOptions, key, value);
+    }
+
+    override('childList', childList);
+    override('attributes', attributes);
+    override('characterData', characterData);
+    override('subtree', subtree);
+    override('attributeOldValue', attributeOldValue);
+    override('characterDataOldValue', characterDataOldValue);
+    if (attributeFilter != null) {
+      override('attributeFilter', _fixupList(attributeFilter));
+    }
+
+    _call(target, parsedOptions);
+  }
+
+   // TODO: Change to a set when const Sets are available.
+  static final _boolKeys =
+    const {'childList': true,
+           'attributes': true,
+           'characterData': true,
+           'subtree': true,
+           'attributeOldValue': true,
+           'characterDataOldValue': true };
+
+$if DARTIUM
+  static _createDict() => {};
+  static _add(m, String key, value) { m[key] = value; }
+  static _fixupList(list) => list;
+
+  _call(Node target, options) {
+    _observe(target, options);
+  }
+$endif
+
+$if FROG
+  static _createDict() => JS('var', '{}');
+  static _add(m, String key, value) { JS('void', '#[#] = #', m, key, value); }
+  static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
+
+  // Call native function with no conversions.
+  _call(target, options) native 'observe';
+$endif
+}

@@ -118,6 +118,13 @@ class _MessageChannelFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _NotificationFactoryProvider {
   factory Notification(String title, [Map options]) => _dummy();
 }
@@ -6054,11 +6061,13 @@ interface MutationEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
-interface MutationObserver {
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
 
   void disconnect();
 
-  void observe(Node target, Map options);
+  void _observe(Node target, Map options);
 
   List<MutationRecord> takeRecords();
 }

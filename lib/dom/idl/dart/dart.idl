@@ -280,3 +280,16 @@ module svg {
     [StrictTypeChecking, Custom] attribute float value;
   };
 }
+
+module core {
+  [Supplemental,
+   CustomConstructor,
+   // Provide missing constructor signature.
+   Constructor(MutationCallback callback)]
+  interface MutationObserver {
+    // Rename 'observe' so we can define a new 'observe' API that calls the
+    // original.
+    [DartName=_observe] void observe(in Node target, in Dictionary options)
+        raises(DOMException);
+  };
+}

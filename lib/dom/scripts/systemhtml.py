@@ -12,12 +12,12 @@ from systemfrog import *
 from systeminterface import *
 
 _js_custom_members = set([
+    'IDBDatabase.transaction',
     'IFrameElement.contentWindow',
     'Window.document',
     'Window.top',
     'Window.location',
     'Window.open',
-    'IDBDatabase.transaction',
     ])
 
 # This map controls merging of interfaces in dart:html library.
