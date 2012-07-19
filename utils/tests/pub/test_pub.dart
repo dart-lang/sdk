@@ -52,8 +52,15 @@ TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
     new TarFileDescriptor(name, contents);
 
 /**
+ * The current [HttpServer] created using [serve].
+ */
+var _server;
+
+/**
  * Creates an HTTP server to serve [contents] as static files. This server will
  * exist only for the duration of the pub run.
+ *
+ * Subsequent calls to [serve] will replace the previous server.
  */
 void serve(String host, int port, [List<Descriptor> contents]) {
   var baseDir = dir("serve-dir", contents);
@@ -62,8 +69,9 @@ void serve(String host, int port, [List<Descriptor> contents]) {
   }
 
   _schedule((_) {
-    var server = new HttpServer();
-    server.defaultRequestHandler = (request, response) {
+    if (_server != null) _server.close();
+    _server = new HttpServer();
+    _server.defaultRequestHandler = (request, response) {
       var path = request.uri.replaceFirst("/", "").split("/");
       response.persistentConnection = false;
       var stream;
@@ -91,8 +99,11 @@ void serve(String host, int port, [List<Descriptor> contents]) {
         response.outputStream.close();
       });
     };
-    server.listen(host, port);
-    _scheduleCleanup((_) => server.close());
+    _server.listen(host, port);
+    _scheduleCleanup((_) {
+      if (_server != null) _server.close();
+      _server = null;
+    });
 
     return new Future.immediate(null);
   });
