@@ -2035,6 +2035,9 @@ class JoinEntryInstr : public BlockEntryInstr {
     predecessors_.Add(predecessor);
   }
 
+  // Returns -1 if pred is not in the list.
+  intptr_t IndexOfPredecessor(BlockEntryInstr* pred) const;
+
   ZoneGrowableArray<PhiInstr*>* phis() const { return phis_; }
 
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
@@ -2044,7 +2047,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   intptr_t phi_count() const { return phi_count_; }
 
  private:
-  ZoneGrowableArray<BlockEntryInstr*> predecessors_;
+  GrowableArray<BlockEntryInstr*> predecessors_;
   ZoneGrowableArray<PhiInstr*>* phis_;
   intptr_t phi_count_;
 

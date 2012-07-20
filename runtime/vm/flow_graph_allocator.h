@@ -31,13 +31,13 @@ class FlowGraphAllocator : public ValueObject {
   // Update live-out set for the given block: live-out should contain
   // all values that are live-in for block's successors.
   // Returns true if live-out set was changed.
-  bool UpdateLiveOut(BlockEntryInstr* instr);
+  bool UpdateLiveOut(const BlockEntryInstr& instr);
 
   // Update live-in set for the given block: live-in should contain
   // all values that are live-out from the block and are not defined
   // by this block.
   // Returns true if live-in set was changed.
-  bool UpdateLiveIn(BlockEntryInstr* instr);
+  bool UpdateLiveIn(const BlockEntryInstr& instr);
 
   // Perform fix-point iteration updating live-out and live-in sets
   // for blocks until they stop changing.

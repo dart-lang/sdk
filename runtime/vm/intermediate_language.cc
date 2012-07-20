@@ -388,6 +388,14 @@ void JoinEntryInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
+  for (intptr_t i = 0; i < predecessors_.length(); ++i) {
+    if (predecessors_[i] == pred) return i;
+  }
+  return -1;
+}
+
+
 // ==== Recording assigned variables.
 void Computation::RecordAssignedVars(BitVector* assigned_vars) {
   // Nothing to do for the base class.

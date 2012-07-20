@@ -385,9 +385,11 @@ void EffectGraphVisitor::VisitLiteralNode(LiteralNode* node) {
   return;
 }
 
+
 void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
   ReturnComputation(new ConstantVal(node->literal()));
 }
+
 
 // Type nodes only occur as the right-hand side of instanceof comparisons,
 // and they are handled specially in that context.
@@ -2535,7 +2537,7 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
     Bailout("Catch-entry support in SSA.");
   }
   // TODO(fschneider): Support copied parameters.
-  if (parsed_function().copied_parameter_count()) {
+  if (parsed_function().copied_parameter_count() != 0) {
     Bailout("Copied parameter support in SSA");
   }
   ASSERT(var_count == (parsed_function().stack_local_count() +
@@ -2562,16 +2564,6 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   GrowableArray<Value*> env(var_count);
   env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, var_count);
-}
-
-
-static intptr_t WhichPred(BlockEntryInstr* predecessor,
-                          JoinEntryInstr* join_block) {
-  for (intptr_t i = 0; i < join_block->PredecessorCount(); ++i) {
-    if (join_block->PredecessorAt(i) == predecessor) return i;
-  }
-  UNREACHABLE();
-  return -1;
 }
 
 
@@ -2619,17 +2611,16 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       // Update expression stack.
       ASSERT(env->length() > var_count);
       env->RemoveLast();
-      if (v->AsUse()->definition()->IsBind() &&
-          v->AsUse()->definition()->AsBind()->computation()->IsLoadLocal()) {
-        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+      BindInstr* as_bind = v->AsUse()->definition()->AsBind();
+      if ((as_bind != NULL) && as_bind->computation()->IsLoadLocal()) {
+        Computation* comp = as_bind->computation();
         intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
-      if (v->AsUse()->definition()->IsBind() &&
-          v->AsUse()->definition()->AsBind()->computation()->IsStoreLocal()) {
+      if ((as_bind != NULL) && as_bind->computation()->IsStoreLocal()) {
         // For each use of a StoreLocal: Replace it with the value from the
         // environment.
-        Computation* comp = v->AsUse()->definition()->AsBind()->computation();
+        Computation* comp = as_bind->computation();
         intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
@@ -2684,7 +2675,8 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       block_entry->last_instruction()->SuccessorAt(0)->IsJoinEntry()) {
     JoinEntryInstr* successor =
         block_entry->last_instruction()->SuccessorAt(0)->AsJoinEntry();
-    intptr_t pred_index = WhichPred(block_entry, successor);
+    intptr_t pred_index = successor->IndexOfPredecessor(block_entry);
+    ASSERT(pred_index >= 0);
     if (successor->phis() != NULL) {
       for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
         PhiInstr* phi = (*successor->phis())[i];

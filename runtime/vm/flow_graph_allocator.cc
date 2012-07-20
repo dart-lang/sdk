@@ -121,15 +121,15 @@ void FlowGraphAllocator::ComputeInitialSets() {
   // Update initial live_in sets to match live_out sets. Has to be
   // done in a separate path because of backwards branches.
   for (intptr_t i = 0; i < block_count; i++) {
-    UpdateLiveIn(postorder_[i]);
+    UpdateLiveIn(*postorder_[i]);
   }
 }
 
 
-bool FlowGraphAllocator::UpdateLiveOut(BlockEntryInstr* instr) {
-  BitVector* live_out = live_out_[instr->postorder_number()];
+bool FlowGraphAllocator::UpdateLiveOut(const BlockEntryInstr& instr) {
+  BitVector* live_out = live_out_[instr.postorder_number()];
   bool changed = false;
-  Instruction* last = instr->last_instruction();
+  Instruction* last = instr.last_instruction();
   ASSERT(last != NULL);
   for (intptr_t i = 0; i < last->SuccessorCount(); i++) {
     BlockEntryInstr* succ = last->SuccessorAt(i);
@@ -142,10 +142,10 @@ bool FlowGraphAllocator::UpdateLiveOut(BlockEntryInstr* instr) {
 }
 
 
-bool FlowGraphAllocator::UpdateLiveIn(BlockEntryInstr* instr) {
-  BitVector* live_out = live_out_[instr->postorder_number()];
-  BitVector* kill = kill_[instr->postorder_number()];
-  BitVector* live_in = live_in_[instr->postorder_number()];
+bool FlowGraphAllocator::UpdateLiveIn(const BlockEntryInstr& instr) {
+  BitVector* live_out = live_out_[instr.postorder_number()];
+  BitVector* kill = kill_[instr.postorder_number()];
+  BitVector* live_in = live_in_[instr.postorder_number()];
   return live_in->KillAndAdd(kill, live_out);
 }
 
@@ -157,7 +157,7 @@ void FlowGraphAllocator::ComputeLiveInAndLiveOutSets() {
     changed = false;
 
     for (intptr_t i = 0; i < block_count; i++) {
-      BlockEntryInstr* block = postorder_[i];
+      const BlockEntryInstr& block = *postorder_[i];
 
       // Live-in set depends only on kill set which does not
       // change in this loop and live-out set.  If live-out
@@ -411,11 +411,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
         // the join.
         // TODO(kmillikin): record the predecessor index in the goto when
         // building the predecessor list to avoid this search.
-        intptr_t pred_idx = 0;
-        for (; pred_idx < join->PredecessorCount(); pred_idx++) {
-          if (join->PredecessorAt(pred_idx) == block) break;
-        }
-        ASSERT(pred_idx < join->PredecessorCount());
+        intptr_t pred_idx = join->IndexOfPredecessor(block);
+        ASSERT(pred_idx >= 0);
 
         // Record the corresponding phi input use for each phi.
         ZoneGrowableArray<PhiInstr*>* phis = join->phis();
@@ -864,8 +861,9 @@ void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
 }
 
 
-static inline bool ShouldBeAllocatedBefore(UseInterval* a, UseInterval* b) {
-  return a->start() <= b->start();
+static inline bool ShouldBeAllocatedBefore(const UseInterval& a,
+                                           const UseInterval& b) {
+  return a.start() <= b.start();
 }
 
 
@@ -876,7 +874,7 @@ void FlowGraphAllocator::AddToUnallocated(UseInterval* chain) {
   }
 
   for (intptr_t i = unallocated_.length() - 1; i >= 0; i--) {
-    if (ShouldBeAllocatedBefore(chain, unallocated_[i])) {
+    if (ShouldBeAllocatedBefore(*chain, *unallocated_[i])) {
       unallocated_.InsertAt(i + 1, chain);
       return;
     }
@@ -889,7 +887,7 @@ bool FlowGraphAllocator::UnallocatedIsSorted() {
   for (intptr_t i = unallocated_.length() - 1; i >= 1; i--) {
     UseInterval* a = unallocated_[i];
     UseInterval* b = unallocated_[i - 1];
-    if (!ShouldBeAllocatedBefore(a, b)) return false;
+    if (!ShouldBeAllocatedBefore(*a, *b)) return false;
   }
   return true;
 }
