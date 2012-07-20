@@ -323,10 +323,13 @@ void Scavenger::IterateStoreBuffers(Isolate* isolate,
   duplicates = 0;
   for (intptr_t i = 0; i < entries; i++) {
     RawObject** pointer = reinterpret_cast<RawObject**>(block->At(i));
-    if (from_->Contains(RawObject::ToAddr(*pointer))) {
-      visitor->VisitPointer(pointer);
-    } else {
-      duplicates++;
+    RawObject* value = *pointer;
+    if (value->IsHeapObject()) {
+      if (from_->Contains(RawObject::ToAddr(value))) {
+        visitor->VisitPointer(pointer);
+      } else {
+        duplicates++;
+      }
     }
   }
   block->Reset();
