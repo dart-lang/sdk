@@ -8,7 +8,7 @@ $!COMMENT
 interface $ID$EXTENDS {
 
   // TODO(nweiz): add this back once DocumentFragment is ported.
-  // ElementList queryAll(String selectors);
+  // List<Element> queryAll(String selectors);
 
 $!MEMBERS
 }

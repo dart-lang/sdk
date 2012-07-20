@@ -20,7 +20,7 @@ $!MEMBERS
     return $dom_querySelector(selectors);
   }
 
-  ElementList queryAll(String selectors) {
+  List<Element> queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));

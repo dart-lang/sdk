@@ -5987,7 +5987,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment {
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
-  ElementList queryAll(String selectors) =>
+  List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   String get innerHTML() {
@@ -6423,7 +6423,7 @@ class _DocumentImpl extends _NodeImpl implements Document
     return $dom_querySelector(selectors);
   }
 
-  ElementList queryAll(String selectors) {
+  List<Element> queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
@@ -7280,7 +7280,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
-  ElementList queryAll(String selectors) =>
+  List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   _CssClassSet get classes() => new _CssClassSet(this);
@@ -27042,7 +27042,12 @@ interface EXTTextureFilterAnisotropic {
 
 // WARNING: Do not edit - generated code.
 
-interface ElementList extends List<Element> {
+// TODO(vsm): Eliminate this type.
+
+// Note, ElementList implements List (instead of List<Element>) so
+// that its implementing classes may be cast to Lists of more specific
+// type such as List<CanvasElement>.
+interface ElementList extends List {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
 
@@ -27077,7 +27082,7 @@ interface ElementRect {
 
 interface NodeSelector {
   Element query(String selectors);
-  NodeList queryAll(String selectors);
+  List<Element> queryAll(String selectors);
 }
 
 /// @domName Element

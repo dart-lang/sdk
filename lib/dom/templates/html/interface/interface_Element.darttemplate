@@ -4,7 +4,12 @@
 
 // WARNING: Do not edit - generated code.
 
-interface ElementList extends List<Element> {
+// TODO(vsm): Eliminate this type.
+
+// Note, ElementList implements List (instead of List<Element>) so
+// that its implementing classes may be cast to Lists of more specific
+// type such as List<CanvasElement>.
+interface ElementList extends List {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
 
@@ -39,7 +44,7 @@ interface ElementRect {
 
 interface NodeSelector {
   Element query(String selectors);
-  NodeList queryAll(String selectors);
+  List<Element> queryAll(String selectors);
 }
 
 $!COMMENT
