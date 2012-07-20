@@ -5,8 +5,6 @@
 #ifndef VM_FREELIST_H_
 #define VM_FREELIST_H_
 
-#include <bitset>
-
 #include "platform/assert.h"
 #include "vm/allocation.h"
 #include "vm/raw_object.h"
@@ -80,10 +78,6 @@ class FreeList {
 
   void Reset();
 
-  intptr_t Length(int index) const;
-
-  void Print() const;
-
  private:
   static const int kNumLists = 128;
 
@@ -93,8 +87,6 @@ class FreeList {
   FreeListElement* DequeueElement(intptr_t index);
 
   void SplitElementAfterAndEnqueue(FreeListElement* element, intptr_t size);
-
-  std::bitset<kNumLists + 1> free_map_;
 
   FreeListElement* free_lists_[kNumLists + 1];
 
