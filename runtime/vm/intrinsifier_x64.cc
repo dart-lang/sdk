@@ -355,7 +355,9 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   }
   __ movq(RAX, Address(RSP, + 2 * kWordSize));
   __ movq(RBX, Address(RSP, + 1 * kWordSize));
-  __ movq(FieldAddress(RAX, GrowableObjectArray::data_offset()), RBX);
+  __ StoreIntoObject(RAX,
+                     FieldAddress(RAX, GrowableObjectArray::data_offset()),
+                     RBX);
   __ ret();
   return true;
 }

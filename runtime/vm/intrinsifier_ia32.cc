@@ -413,7 +413,9 @@ bool Intrinsifier::GrowableArray_setData(Assembler* assembler) {
   }
   __ movl(EAX, Address(ESP, + 2 * kWordSize));
   __ movl(EBX, Address(ESP, + 1 * kWordSize));
-  __ movl(FieldAddress(EAX, GrowableObjectArray::data_offset()), EBX);
+  __ StoreIntoObject(EAX,
+                     FieldAddress(EAX, GrowableObjectArray::data_offset()),
+                     EBX);
   __ ret();
   return true;
 }
