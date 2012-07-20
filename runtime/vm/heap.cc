@@ -59,9 +59,6 @@ uword Heap::AllocateNew(intptr_t size) {
     return addr;
   }
   CollectGarbage(kNew);
-  if (FLAG_verbose_gc) {
-    PrintSizes();
-  }
   addr = new_space_->TryAllocate(size);
   if (addr != 0) {
     return addr;
@@ -75,9 +72,6 @@ uword Heap::AllocateOld(intptr_t size) {
   uword addr = old_space_->TryAllocate(size);
   if (addr == 0) {
     CollectAllGarbage();
-    if (FLAG_verbose_gc) {
-      PrintSizes();
-    }
     addr = old_space_->TryAllocate(size, PageSpace::kForceGrowth);
     if (addr == 0) {
       OS::PrintErr("Exhausted heap space, trying to allocate %d bytes.\n",
@@ -189,6 +183,9 @@ void Heap::CollectGarbage(Space space, ApiCallbacks api_callbacks) {
     default:
       UNREACHABLE();
   }
+  if (FLAG_verbose_gc) {
+    PrintSizes();
+  }
 }
 
 
@@ -208,6 +205,9 @@ void Heap::CollectAllGarbage() {
   old_space_->MarkSweep(kInvokeApiCallbacks);
   // TODO(iposva): Merge old and code space.
   // code_space_->MarkSweep(kInvokeApiCallbacks);
+  if (FLAG_verbose_gc) {
+    PrintSizes();
+  }
 }
 
 

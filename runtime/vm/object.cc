@@ -5942,8 +5942,8 @@ RawLibrary* Library::New() {
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
   const Library& result = Library::Handle(Library::New());
-  result.raw_ptr()->name_ = url.raw();
-  result.raw_ptr()->url_ = url.raw();
+  result.StorePointer(&result.raw_ptr()->name_, url.raw());
+  result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->dictionary_ = Array::Empty();
   result.raw_ptr()->anonymous_classes_ = Array::Empty();
@@ -7710,7 +7710,7 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_instance_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
-  *FieldAddrAtOffset(field_offset) = value.raw();
+  SetFieldAtOffset(field_offset, value);
 }
 
 
@@ -10584,12 +10584,12 @@ RawClosure* Closure::New(const Function& function,
 
 
 void Closure::set_context(const Context& value) const {
-  raw_ptr()->context_ = value.raw();
+  StorePointer(&raw_ptr()->context_, value.raw());
 }
 
 
 void Closure::set_function(const Function& value) const {
-  raw_ptr()->function_ = value.raw();
+  StorePointer(&raw_ptr()->function_, value.raw());
 }
 
 

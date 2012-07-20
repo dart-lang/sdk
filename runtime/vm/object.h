@@ -3717,7 +3717,7 @@ class Array : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.raw();
+    StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
   virtual bool Equals(const Instance& other) const;
@@ -3847,7 +3847,7 @@ class GrowableObjectArray : public Instance {
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
     const Array& contents = Array::Handle(data());
     contents.SetTypeArguments(value);
-    raw_ptr()->type_arguments_ = value.raw();
+    StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
 
   virtual bool Equals(const Instance& other) const;
@@ -4965,7 +4965,7 @@ class Closure : public Instance {
     return raw_ptr()->type_arguments_;
   }
   virtual void SetTypeArguments(const AbstractTypeArguments& value) const {
-    raw_ptr()->type_arguments_ = value.raw();
+    StorePointer(&raw_ptr()->type_arguments_, value.raw());
   }
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawClosure, type_arguments_);

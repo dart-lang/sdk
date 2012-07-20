@@ -9,6 +9,7 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/stack_frame.h"
+#include "vm/store_buffer.h"
 #include "vm/verifier.h"
 #include "vm/visitor.h"
 
@@ -51,7 +52,8 @@ class ScavengerVisitor : public ObjectPointerVisitor {
       : ObjectPointerVisitor(isolate),
         scavenger_(scavenger),
         heap_(scavenger->heap_),
-        vm_heap_(Dart::vm_isolate()->heap()) {}
+        vm_heap_(Dart::vm_isolate()->heap()),
+        visiting_old_pointers_(false) {}
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
@@ -59,9 +61,18 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void VisitingOldPointers(bool value) { visiting_old_pointers_ = value; }
+
  private:
   void UpdateStoreBuffer(RawObject** p, RawObject* obj) {
-    // TODO(iposva): Implement store buffers.
+    uword ptr = reinterpret_cast<uword>(p);
+    ASSERT(obj->IsHeapObject());
+    ASSERT(!scavenger_->Contains(ptr));
+    ASSERT(!heap_->CodeContains(ptr));
+    ASSERT(heap_->Contains(ptr));
+    // If the newly written object is not a new object, drop it immediately.
+    if (!obj->IsNewObject()) return;
+    isolate()->store_buffer()->AddPointer(ptr);
   }
 
   void ScavengePointer(RawObject** p) {
@@ -127,12 +138,16 @@ class ScavengerVisitor : public ObjectPointerVisitor {
     RawObject* new_obj = RawObject::FromAddr(new_addr);
     *p = new_obj;
     // Update the store buffer as needed.
-    UpdateStoreBuffer(p, new_obj);
+    if (visiting_old_pointers_) {
+      UpdateStoreBuffer(p, new_obj);
+    }
   }
 
   Scavenger* scavenger_;
   Heap* heap_;
   Heap* vm_heap_;
+
+  bool visiting_old_pointers_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerVisitor);
 };
@@ -156,6 +171,29 @@ class ScavengerWeakVisitor : public HandleVisitor {
   Scavenger* scavenger_;
 
   DISALLOW_COPY_AND_ASSIGN(ScavengerWeakVisitor);
+};
+
+
+// Visitor used to verify that all old->new references have been added to the
+// StoreBuffers.
+class VerifyStoreBufferPointerVisitor : public ObjectPointerVisitor {
+ public:
+  VerifyStoreBufferPointerVisitor(Isolate* isolate, MemoryRegion* to)
+      : ObjectPointerVisitor(isolate), to_(to) {}
+
+  void VisitPointers(RawObject** first, RawObject** last) {
+    for (RawObject** current = first; current <= last; current++) {
+      RawObject* obj = *current;
+      if (obj->IsHeapObject() && obj->IsNewObject()) {
+        ASSERT(to_->Contains(RawObject::ToAddr(obj)));
+      }
+    }
+  }
+
+ private:
+  MemoryRegion* to_;
+
+  DISALLOW_COPY_AND_ASSIGN(VerifyStoreBufferPointerVisitor);
 };
 
 
@@ -229,6 +267,9 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
   survivor_end_ = top_;
 
 #if defined(DEBUG)
+  VerifyStoreBufferPointerVisitor verify_store_buffer_visitor(isolate, to_);
+  heap_->IterateOldPointers(&verify_store_buffer_visitor);
+
   memset(from_->pointer(), 0xf3, from_->size());
 #endif  // defined(DEBUG)
   if (invoke_api_callbacks) {
@@ -237,13 +278,74 @@ void Scavenger::Epilogue(Isolate* isolate, bool invoke_api_callbacks) {
 }
 
 
+void Scavenger::IterateStoreBuffers(Isolate* isolate,
+                                    ScavengerVisitor* visitor) {
+  // Iterating through the store buffers.
+  visitor->VisitingOldPointers(true);
+  // Grab the deduplication sets out of the store buffer.
+  StoreBuffer::DedupSet* pending = isolate->store_buffer()->DedupSets();
+  intptr_t entries = 0;
+  intptr_t duplicates = 0;
+  while (pending != NULL) {
+    StoreBuffer::DedupSet* next = pending->next();
+    HashSet* set = pending->set();
+    intptr_t count = set->Count();
+    intptr_t size = set->Size();
+    intptr_t handled = 0;
+    entries += count;
+    for (intptr_t i = 0; i < size; i++) {
+      RawObject** pointer = reinterpret_cast<RawObject**>(set->At(i));
+      if (pointer != NULL) {
+        RawObject* value = *pointer;
+        // Skip entries that have been overwritten with Smis.
+        if (value->IsHeapObject()) {
+          if (from_->Contains(RawObject::ToAddr(value))) {
+            visitor->VisitPointer(pointer);
+          } else {
+            duplicates++;
+          }
+        }
+        handled++;
+        if (handled == count) {
+          break;
+        }
+      }
+    }
+    delete pending;
+    pending = next;
+  }
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("StoreBuffer: %d, %d (entries, dups)\n",
+                 entries, duplicates);
+  }
+  StoreBufferBlock* block = isolate->store_buffer_block();
+  entries = block->Count();
+  duplicates = 0;
+  for (intptr_t i = 0; i < entries; i++) {
+    RawObject** pointer = reinterpret_cast<RawObject**>(block->At(i));
+    if (from_->Contains(RawObject::ToAddr(*pointer))) {
+      visitor->VisitPointer(pointer);
+    } else {
+      duplicates++;
+    }
+  }
+  block->Reset();
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("StoreBufferBlock: %d, %d (entries, dups)\n",
+                 entries, duplicates);
+  }
+  // Done iterating through the store buffers.
+  visitor->VisitingOldPointers(false);
+}
+
+
 void Scavenger::IterateRoots(Isolate* isolate,
-                             ObjectPointerVisitor* visitor,
+                             ScavengerVisitor* visitor,
                              bool visit_prologue_weak_persistent_handles) {
+  IterateStoreBuffers(isolate, visitor);
   isolate->VisitObjectPointers(visitor,
                                visit_prologue_weak_persistent_handles,
                                StackFrameIterator::kDontValidateFrames);
-  heap_->IterateOldPointers(visitor);
 }
 
 
@@ -270,7 +372,7 @@ bool Scavenger::IsUnreachable(RawObject** p) {
 
 
 void Scavenger::IterateWeakReferences(Isolate* isolate,
-                                      ObjectPointerVisitor* visitor) {
+                                      ScavengerVisitor* visitor) {
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   while (true) {
@@ -329,13 +431,14 @@ void Scavenger::IterateWeakRoots(Isolate* isolate,
 }
 
 
-void Scavenger::ProcessToSpace(ObjectPointerVisitor* visitor) {
+void Scavenger::ProcessToSpace(ScavengerVisitor* visitor) {
   // Iterate until all work has been drained.
   while ((resolved_top_ < top_) || PromotedStackHasMore()) {
     while (resolved_top_ < top_) {
       RawObject* raw_obj = RawObject::FromAddr(resolved_top_);
       resolved_top_ += raw_obj->VisitPointers(visitor);
     }
+    visitor->VisitingOldPointers(true);
     while (PromotedStackHasMore()) {
       RawObject* raw_object = RawObject::FromAddr(PopFromPromotedStack());
       // Resolve or copy all objects referred to by the current object. This
@@ -343,6 +446,7 @@ void Scavenger::ProcessToSpace(ObjectPointerVisitor* visitor) {
       // objects to be resolved in the to space.
       raw_object->VisitPointers(visitor);
     }
+    visitor->VisitingOldPointers(false);
   }
 }
 
@@ -387,6 +491,9 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
     OS::PrintErr(" done.\n");
   }
 
+  if (FLAG_verbose_gc) {
+    OS::PrintErr("Start scavenge\n");
+  }
   Timer timer(FLAG_verbose_gc, "Scavenge");
   timer.Start();
   // Setup the visitor and run a scavenge.

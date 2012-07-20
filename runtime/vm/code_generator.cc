@@ -1251,6 +1251,12 @@ DEFINE_RUNTIME_ENTRY(StackOverflow, 0) {
   }
 
   uword interrupt_bits = isolate->GetAndClearInterrupts();
+  if (interrupt_bits & Isolate::kStoreBufferInterrupt) {
+    if (FLAG_verbose_gc) {
+      OS::PrintErr("Scavenge scheduled by store buffer overflow.\n");
+    }
+    isolate->heap()->CollectGarbage(Heap::kNew);
+  }
   if (interrupt_bits & Isolate::kMessageInterrupt) {
     isolate->message_handler()->HandleOOBMessages();
   }

@@ -35,6 +35,12 @@ class HashSet {
     return count_;
   }
 
+  uword At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < Size());
+    return keys_[i];
+  }
+
   // Returns false if the caller should stop adding entries to this HashSet.
   bool Add(uword value) {
     ASSERT(value != 0);
