@@ -1130,12 +1130,15 @@ RawType* Class::SignatureType() const {
   }
   // Return the first canonical signature type if already computed.
   const Array& signature_types = Array::Handle(canonical_types());
+  // The canonical_types array is initialized to the empty array.
+  ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
+    // At most one signature type per signature class.
+    ASSERT(signature_types.Length() == 1);
     Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
-    if (!signature_type.IsNull()) {
-      return signature_type.raw();
-    }
+    ASSERT(!signature_type.IsNull());
+    return signature_type.raw();
   }
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.

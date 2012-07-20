@@ -4244,10 +4244,9 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     current_class().AddClosureFunction(function);
   }
 
-  // The function type does not need to be determined at compile time, unless
-  // the closure is assigned to a function variable and type checks are enabled.
-  // At run time, the function type is derived from the signature class of the
-  // closure function and from the type arguments of the instantiator.
+  // The function type needs to be finalized at compile time, since the closure
+  // may be type checked at run time when assigned to a function variable,
+  // passed as a function argument, or returned as a function result.
 
   LocalVariable* function_variable = NULL;
   Type& function_type = Type::ZoneHandle();
@@ -4316,29 +4315,26 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     CaptureReceiver();
   }
 
+  // Since the signature type is cached by the signature class, it may have
+  // been finalized already.
+  Type& signature_type = Type::Handle(signature_class.SignatureType());
+  const AbstractTypeArguments& signature_type_arguments =
+      AbstractTypeArguments::Handle(signature_type.arguments());
+
+  if (!signature_type.IsFinalized()) {
+    signature_type ^= ClassFinalizer::FinalizeType(
+        signature_class, signature_type, ClassFinalizer::kCanonicalize);
+    // The call to ClassFinalizer::FinalizeType may have
+    // extended the vector of type arguments.
+    ASSERT(signature_type_arguments.IsNull() ||
+           (signature_type_arguments.Length() ==
+            signature_class.NumTypeArguments()));
+    // The signature_class should not have changed.
+    ASSERT(signature_type.type_class() == signature_class.raw());
+  }
+
   if (variable_name != NULL) {
-    // Patch the function type now that the signature is known.
-    // We need to create a new type for proper finalization, since the existing
-    // type is already marked as finalized.
-    Type& signature_type = Type::Handle(signature_class.SignatureType());
-    const AbstractTypeArguments& signature_type_arguments =
-        AbstractTypeArguments::Handle(signature_type.arguments());
-
-    // Since the signature type is cached by the signature class, it may have
-    // been finalized already.
-    if (!signature_type.IsFinalized()) {
-      signature_type ^= ClassFinalizer::FinalizeType(
-          signature_class, signature_type, ClassFinalizer::kCanonicalize);
-      // The call to ClassFinalizer::FinalizeType may have
-      // extended the vector of type arguments.
-      ASSERT(signature_type_arguments.IsNull() ||
-             (signature_type_arguments.Length() ==
-              signature_class.NumTypeArguments()));
-      // The signature_class should not have changed.
-      ASSERT(signature_type.type_class() == signature_class.raw());
-    }
-
-    // Now patch the function type of the variable.
+    // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(signature_class);
     function_type.set_arguments(signature_type_arguments);
 

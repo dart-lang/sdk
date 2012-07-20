@@ -155,20 +155,19 @@ class ComparisonTest {
     Expect.equals(true, Helper.GE(1, -1));
     Expect.equals(true, Helper.GE(1, 0));
 
-    // TODO(regis): Double literals are not yet canonicalized.
-    // Expect.equals(true, Helper.STRICT_EQ(-1.0, -1.0));
-    // Expect.equals(true, Helper.STRICT_EQ(0.0, 0.0));
-    // Expect.equals(true, Helper.STRICT_EQ(1.0, 1.0));
-    // Expect.equals(false, Helper.STRICT_EQ(-1.0, 0.0));
-    // Expect.equals(false, Helper.STRICT_EQ(-1.0, 1.0));
-    // Expect.equals(false, Helper.STRICT_EQ(0.0, 1.0));
+    Expect.equals(true, Helper.STRICT_EQ(-1.0, -1.0));
+    Expect.equals(true, Helper.STRICT_EQ(0.0, 0.0));
+    Expect.equals(true, Helper.STRICT_EQ(1.0, 1.0));
+    Expect.equals(false, Helper.STRICT_EQ(-1.0, 0.0));
+    Expect.equals(false, Helper.STRICT_EQ(-1.0, 1.0));
+    Expect.equals(false, Helper.STRICT_EQ(0.0, 1.0));
 
-    // Expect.equals(false, Helper.STRICT_NE(-1.0, -1.0));
-    // Expect.equals(false, Helper.STRICT_NE(0.0, 0.0));
-    // Expect.equals(false, Helper.STRICT_NE(1.0, 1.0));
-    // Expect.equals(true, Helper.STRICT_NE(-1.0, 0.0));
-    // Expect.equals(true, Helper.STRICT_NE(-1.0, 1.0));
-    // Expect.equals(true, Helper.STRICT_NE(0.0, 1.0));
+    Expect.equals(false, Helper.STRICT_NE(-1.0, -1.0));
+    Expect.equals(false, Helper.STRICT_NE(0.0, 0.0));
+    Expect.equals(false, Helper.STRICT_NE(1.0, 1.0));
+    Expect.equals(true, Helper.STRICT_NE(-1.0, 0.0));
+    Expect.equals(true, Helper.STRICT_NE(-1.0, 1.0));
+    Expect.equals(true, Helper.STRICT_NE(0.0, 1.0));
 
     Expect.equals(true, Helper.EQ(-1.0, -1.0));
     Expect.equals(true, Helper.EQ(0.0, 0.0));

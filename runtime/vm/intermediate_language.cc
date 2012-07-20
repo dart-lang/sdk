@@ -788,16 +788,7 @@ RawAbstractType* CreateArrayComp::StaticType() const {
 RawAbstractType* CreateClosureComp::StaticType() const {
   const Function& fun = function();
   const Class& signature_class = Class::Handle(fun.signature_class());
-  // TODO(regis): The signature type may be generic. Consider upper bounds.
-  // For now, we return Dynamic (no type test elimination) if the signature
-  // class is parameterized, or a non-parameterized finalized type otherwise.
-  if (signature_class.HasTypeArguments()) {
-    return Type::DynamicType();
-  }
-  // Make sure we use the canonical signature class.
-  const Type& type = Type::Handle(signature_class.SignatureType());
-  const Class& canonical_signature_class = Class::Handle(type.type_class());
-  return Type::NewNonParameterizedType(canonical_signature_class);
+  return signature_class.SignatureType();
 }
 
 
