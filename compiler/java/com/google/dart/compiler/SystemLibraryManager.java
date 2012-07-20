@@ -13,6 +13,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -47,6 +48,7 @@ public class SystemLibraryManager {
       "com.google.dart.sdk", "../"));
   
   public static final File DEFAULT_PACKAGE_ROOT = new File("packages");
+  public static final List<File> DEFAULT_PACKAGE_ROOTS = Arrays.asList(new File[] {DEFAULT_PACKAGE_ROOT});
 
   public static final String PACKAGE_SCHEME = "package";
   public static final String PACKAGE_SCHEME_SPEC = "package:";
@@ -88,8 +90,9 @@ public class SystemLibraryManager {
   private final File sdkLibPath;
   private final URI sdkLibPathUri;
   private final String platformName;
-  private File packageRoot = DEFAULT_PACKAGE_ROOT;
-  private URI packageRootUri = packageRoot.toURI();
+ 
+  private List<File> packageRoots = new ArrayList<File>();
+  private List<URI> packageRootsUri = new ArrayList<URI>(); 
 
   private Map<URI, URI> longToShortUriMap;
 
@@ -104,7 +107,7 @@ public class SystemLibraryManager {
     this.sdkLibPathUri = sdkLibPath.toURI();
     this.platformName = platformName;
     setLibraries(getDefaultLibraries());
-
+    setPackageRoots(DEFAULT_PACKAGE_ROOTS);
   }
 
 
@@ -167,13 +170,6 @@ public class SystemLibraryManager {
     }
     return result;
   }
-
-  /**
-   * @return the packagePath
-   */
-  public File getPackageRoot() {
-    return packageRoot;
-  }
   
   protected InputStream getImportConfigStream() {
     File file = new File(new File(sdkLibPath, "config"),
@@ -210,12 +206,14 @@ public class SystemLibraryManager {
       }
     }
     
-    relativeUri = packageRootUri.relativize(fileUri);
-    if (relativeUri.getScheme() == null) {
-      try {
-        return new URI(null, null, "package://" + relativeUri.getPath(), null);
-      } catch (URISyntaxException e) {
+    for (URI rootUri : packageRootsUri){
+      relativeUri = rootUri.relativize(fileUri);
+        if (relativeUri.getScheme() == null) {
+          try {
+            return new URI(null, null, "package://" + relativeUri.getPath(), null);
+          } catch (URISyntaxException e) {
         //$FALL-THROUGH$
+        }
       }
     }
     return null;
@@ -230,11 +228,16 @@ public class SystemLibraryManager {
   public URI resolvePackageUri(String packageUriRef) {
     if (packageUriRef.startsWith(PACKAGE_SCHEME_SPEC)) {
       String relPath = packageUriRef.substring(PACKAGE_SCHEME_SPEC.length());
-      
-      return packageRootUri.resolve(relPath);
-    } else {
-      return null;
+      for (URI rootUri : packageRootsUri){
+        URI fileUri = rootUri.resolve(relPath);
+        if (new File(fileUri).exists()){
+          return fileUri;
+        }
+      }
+      // don't return null for package scheme
+      return packageRootsUri.get(0).resolve(relPath);
     }
+   return null; 
   }
 
   /**
@@ -270,14 +273,25 @@ public class SystemLibraryManager {
   public URI resolveDartUri(URI uri) {
     return translateDartUri(expandRelativeDartUri(uri));
   }
-
-  /**
-
-   * @param packageRoot the packagePath to set
-   */
-  public void setPackageRoot(File packageRoot) {
-    this.packageRoot = packageRoot;
-    packageRootUri = packageRoot.toURI();
+  
+  
+  public List<File> getPackageRoots(){
+    return packageRoots;
+  }
+  
+  
+  public void setPackageRoots(List<File> roots){
+    if (roots == null || roots.isEmpty()){
+      this.packageRoots = DEFAULT_PACKAGE_ROOTS;
+    } else {
+      for (File file : roots){   
+        packageRoots.add(file.getAbsoluteFile());
+      }
+    }
+    packageRootsUri.clear();
+    for (File file : roots){
+      packageRootsUri.add(file.toURI());
+    }   
   }
   
   /**
@@ -300,20 +314,35 @@ public class SystemLibraryManager {
     } 
     if (isPackageUri(uri)){   
       URI fileUri;
-      // TODO(keertip): Investigate further
-      // if uri.getHost() returns null, then it is resolved right
-      // so use uri.getAuthority to resolve
-      // package://third_party/dart_lang/lib/unittest/unittest.dart
-      if (uri.getHost() != null){
-        fileUri =  packageRootUri.resolve(uri.getHost() + uri.getPath());
-      } else {
-        fileUri = packageRootUri.resolve(uri.getAuthority() + uri.getPath());
+      for (URI rootUri : packageRootsUri){
+        fileUri = getResolvedPackageUri(uri, rootUri);
+        File file  = new File(fileUri);
+        if (file.exists()){
+          return file.toURI();
+        }
       }
-      File file  = new File(fileUri);
-      
-      return file.toURI();
+      // resolve against first package root
+      fileUri = getResolvedPackageUri(uri, packageRootsUri.get(0));
+      return fileUri;
     }
     return uri;
+  }
+
+  /**
+   * Resolves the given uri against the package root uri
+   */
+  private URI getResolvedPackageUri(URI uri, URI packageRootUri) {
+    URI fileUri;
+    // TODO(keertip): Investigate further
+    // if uri.getHost() returns null, then it is resolved right
+    // so use uri.getAuthority to resolve
+    // package://third_party/dart_lang/lib/unittest/unittest.dart
+    if (uri.getHost() != null){
+      fileUri =  packageRootUri.resolve(uri.getHost() + uri.getPath());
+    } else {
+      fileUri = packageRootUri.resolve(uri.getAuthority() + uri.getPath());
+    }
+    return fileUri;
   }
 
   public File getSdkLibPath() {
