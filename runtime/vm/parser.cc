@@ -4318,25 +4318,36 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Since the signature type is cached by the signature class, it may have
   // been finalized already.
   Type& signature_type = Type::Handle(signature_class.SignatureType());
-  const AbstractTypeArguments& signature_type_arguments =
+  AbstractTypeArguments& signature_type_arguments =
       AbstractTypeArguments::Handle(signature_type.arguments());
 
   if (!signature_type.IsFinalized()) {
     signature_type ^= ClassFinalizer::FinalizeType(
         signature_class, signature_type, ClassFinalizer::kCanonicalize);
+
     // The call to ClassFinalizer::FinalizeType may have
     // extended the vector of type arguments.
-    ASSERT(signature_type_arguments.IsNull() ||
+    signature_type_arguments = signature_type.arguments();
+    ASSERT(signature_type.IsMalformed() ||
+           signature_type_arguments.IsNull() ||
            (signature_type_arguments.Length() ==
             signature_class.NumTypeArguments()));
+
     // The signature_class should not have changed.
-    ASSERT(signature_type.type_class() == signature_class.raw());
+    ASSERT(signature_type.IsMalformed() ||
+           (signature_type.type_class() == signature_class.raw()));
   }
 
   if (variable_name != NULL) {
     // Patch the function type of the variable now that the signature is known.
     function_type.set_type_class(signature_class);
     function_type.set_arguments(signature_type_arguments);
+
+    // Mark the function type as malformed if the signature type is malformed.
+    if (signature_type.IsMalformed()) {
+      const Error& error = Error::Handle(signature_type.malformed_error());
+      function_type.set_malformed_error(error);
+    }
 
     // The function variable type should have been patched above.
     ASSERT((function_variable == NULL) ||
