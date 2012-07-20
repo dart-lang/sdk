@@ -186,7 +186,7 @@ void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
-  f->Print(" == ");
+  f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
 }
 

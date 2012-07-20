@@ -618,12 +618,15 @@ class EqualityCompareComp : public ComparisonComp {
  public:
   EqualityCompareComp(intptr_t token_pos,
                       intptr_t try_index,
+                      Token::Kind kind,
                       Value* left,
                       Value* right)
-      : ComparisonComp(Token::kEQ, left, right),
+      : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObject) {}
+        receiver_class_id_(kObject) {
+    ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  }
 
   DECLARE_COMPUTATION(EqualityCompare)
 
@@ -1762,9 +1765,6 @@ class Instruction : public ZoneAllocated {
     // to append instruction in case of a Throw inside an expression. This
     // condition should be handled in the graph builder
     next_ = instr;
-    if ((instr != NULL) && !instr->IsBlockEntry()) {
-      instr->set_previous(this);
-    }
   }
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in

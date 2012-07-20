@@ -200,6 +200,21 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+static Condition TokenKindToSmiCondition(Token::Kind kind) {
+  switch (kind) {
+    case Token::kEQ: return EQUAL;
+    case Token::kNE: return NOT_EQUAL;
+    case Token::kLT: return LESS;
+    case Token::kGT: return GREATER;
+    case Token::kLTE: return LESS_EQUAL;
+    case Token::kGTE: return  GREATER_EQUAL;
+    default:
+      UNREACHABLE();
+      return OVERFLOW;
+  }
+}
+
+
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (receiver_class_id() != kObject) {
@@ -259,7 +274,7 @@ static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
   __ cmpq(left, right);
   Register result = comp->locs()->out().reg();
   Label load_true, done;
-  __ j(EQUAL, &load_true, Assembler::kNearJump);
+  __ j(TokenKindToSmiCondition(comp->kind()), &load_true, Assembler::kNearJump);
   __ LoadObject(result, compiler->bool_false());
   __ jmp(&done, Assembler::kNearJump);
   __ Bind(&load_true);
@@ -286,8 +301,9 @@ static void EmitDoubleEqualityCompare(FlowGraphCompiler* compiler,
   __ j(NOT_EQUAL, deopt);
   __ movsd(XMM0, FieldAddress(left, Double::value_offset()));
   __ movsd(XMM1, FieldAddress(right, Double::value_offset()));
-  compiler->EmitDoubleCompareBool(
-      EQUAL, XMM0, XMM1, comp->locs()->out().reg());
+  compiler->EmitDoubleCompareBool(TokenKindToSmiCondition(comp->kind()),
+                                  XMM0, XMM1,
+                                  comp->locs()->out().reg());
 }
 
 
@@ -310,6 +326,16 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  kNoArgumentNames,
                                  kNumArgumentsChecked);
   ASSERT(comp->locs()->out().reg() == RAX);
+  if (comp->kind() == Token::kNE) {
+    Label done, false_label;
+    __ CompareObject(RAX, compiler->bool_true());
+    __ j(EQUAL, &false_label, Assembler::kNearJump);
+    __ LoadObject(RAX, compiler->bool_true());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&false_label);
+    __ LoadObject(RAX, compiler->bool_false());
+    __ Bind(&done);
+  }
 }
 
 
@@ -321,6 +347,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           intptr_t cid,
                                           intptr_t token_pos,
                                           intptr_t try_index) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
   ASSERT(ic_data.num_args_tested() == 1);
@@ -344,7 +371,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     __ j(ZERO, deopt);  // Smi deopts.
     __ LoadClassId(temp, left);
   }
-  Condition cond = (kind == Token::kEQ) ? EQUAL : NOT_EQUAL;
+  Condition cond = TokenKindToSmiCondition(kind);
   Label done;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmi) || (i == 0));
@@ -378,7 +405,18 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                    target,
                                    kNumberOfArguments,
                                    kNoArgumentNames);
-      if (branch != NULL) {
+      if (branch == NULL) {
+        if (kind == Token::kNE) {
+          Label false_label;
+          __ CompareObject(RAX, compiler->bool_true());
+          __ j(EQUAL, &false_label, Assembler::kNearJump);
+          __ LoadObject(RAX, compiler->bool_true());
+          __ jmp(&done, Assembler::kNearJump);
+          __ Bind(&false_label);
+          __ LoadObject(RAX, compiler->bool_false());
+          __ jmp(&done);
+        }
+      } else {
         __ CompareObject(RAX, compiler->bool_true());
         branch->EmitBranchOnCondition(compiler, cond);
       }
@@ -403,6 +441,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
                                        intptr_t cid,
                                        intptr_t token_pos,
                                        intptr_t try_index) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
@@ -413,7 +452,7 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
   __ cmpq(left, right);
-  Condition cond = (kind == Token::kEQ) ? EQUAL : NOT_EQUAL;
+  Condition cond = TokenKindToSmiCondition(kind);
   if (branch != NULL) {
     branch->EmitBranchOnCondition(compiler, cond);
   } else {
@@ -445,7 +484,7 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    EmitGenericEqualityCompare(compiler, *locs(), Token::kEQ, NULL,
+    EmitGenericEqualityCompare(compiler, *locs(), kind(), NULL,
                                *ic_data(), cid(), token_pos(), try_index());
   } else {
     Register left = locs()->in(0).reg();
@@ -472,21 +511,6 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
   }
   ASSERT(operands_class_id() == kObject);
   return MakeCallSummary();
-}
-
-
-static Condition TokenKindToSmiCondition(Token::Kind kind) {
-  switch (kind) {
-    case Token::kEQ: return EQUAL;
-    case Token::kNE: return NOT_EQUAL;
-    case Token::kLT: return LESS;
-    case Token::kGT: return GREATER;
-    case Token::kLTE: return LESS_EQUAL;
-    case Token::kGTE: return  GREATER_EQUAL;
-    default:
-      UNREACHABLE();
-      return OVERFLOW;
-  }
 }
 
 
