@@ -1394,7 +1394,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapStatementGraph(bodyGraph),
             wrapExpressionGraph(updateGraph),
             conditionBlock.loopInformation.target,
-            conditionBlock.loopInformation.labels);
+            conditionBlock.loopInformation.labels,
+            loop);
 
     startBlock.setBlockFlow(info, current);
     loopInfo.loopBlockInformation = info;
@@ -1521,7 +1522,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapStatementGraph(bodyGraph),
             null,
             loopEntryBlock.loopInformation.target,
-            loopEntryBlock.loopInformation.labels);
+            loopEntryBlock.loopInformation.labels,
+            node);
     loopEntryBlock.setBlockFlow(loopBlockInfo, current);
     loopInfo.loopBlockInformation = loopBlockInfo;
   }

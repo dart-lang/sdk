@@ -2547,6 +2547,7 @@ class HLoopBlockInformation implements HStatementInformation {
   final HExpressionInformation updates;
   final TargetElement target;
   final List<LabelElement> labels;
+  final Node sourcePosition;
 
   HLoopBlockInformation(this.kind,
                         this.initializer,
@@ -2554,7 +2555,8 @@ class HLoopBlockInformation implements HStatementInformation {
                         this.body,
                         this.updates,
                         this.target,
-                        this.labels);
+                        this.labels,
+                        this.sourcePosition);
 
   HBasicBlock get start() {
     if (initializer !== null) return initializer.start;

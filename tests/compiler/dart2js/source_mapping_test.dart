@@ -73,6 +73,15 @@ void staticSend(x) { print(x); }
 class NewSend { void dynamicSend(x) { print(x); } }
 ''';
 
+String LOOP_TEST = '''
+void main() {
+  @for (int i = 0; i < 100; ++i) { print(test(13)); @}
+}
+int test(int x) {
+  int result = 1; @while (result < x) { result <<= 1; @} return result;
+}''';
+
+
 main() {
   // These tests are fragile, since mappings for specific source locations
   // could disappear due to various optimizations like code elimination,
@@ -85,4 +94,5 @@ main() {
   testSourceMapLocations(UNARY_TEST);
   testSourceMapLocations(BINARY_TEST);
   testSourceMapLocations(SEND_TEST);
+  testSourceMapLocations(LOOP_TEST);
 }

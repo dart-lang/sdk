@@ -785,6 +785,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
+    buffer.setSourceLocation(work.element, info.sourcePosition.getBeginToken());
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
@@ -902,6 +903,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           'Unexpected loop kind: ${info.kind}',
           instruction: condition.conditionExpression);
     }
+    buffer.setSourceLocation(work.element, info.sourcePosition.getEndToken());
     return true;
   }
 
