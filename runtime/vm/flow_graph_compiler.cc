@@ -699,7 +699,7 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
   BuildInitialMoveList(parallel_move);
 
   for (int i = 0; i < moves_.length(); ++i) {
-    MoveOperands move = moves_[i];
+    const MoveOperands& move = *moves_[i];
     // Skip constants to perform them last.  They don't block other moves
     // and skipping such moves with register destinations keeps those
     // registers free for the whole algorithm.
@@ -708,8 +708,9 @@ void ParallelMoveResolver::EmitNativeCode(ParallelMoveInstr* parallel_move) {
 
   // Perform the moves with constant sources.
   for (int i = 0; i < moves_.length(); ++i) {
-    if (!moves_[i].IsEliminated()) {
-      ASSERT(moves_[i].src().IsConstant());
+    const MoveOperands& move = *moves_[i];
+    if (!move.IsEliminated()) {
+      ASSERT(move.src().IsConstant());
       EmitMove(i);
     }
   }
@@ -724,10 +725,9 @@ void ParallelMoveResolver::BuildInitialMoveList(
   // moves to perform, ignoring any move that is redundant (the source is
   // the same as the destination, the destination is ignored and
   // unallocated, or the move was already eliminated).
-  const GrowableArray<MoveOperands>& moves = parallel_move->moves();
-  for (int i = 0; i < moves.length(); ++i) {
-    MoveOperands move = moves[i];
-    if (!move.IsRedundant()) moves_.Add(move);
+  for (int i = 0; i < parallel_move->NumMoves(); i++) {
+    MoveOperands* move = parallel_move->MoveOperandsAt(i);
+    if (!move->IsRedundant()) moves_.Add(move);
   }
 }
 
@@ -740,21 +740,21 @@ void ParallelMoveResolver::PerformMove(int index) {
   // which means that a call to PerformMove could change any source operand
   // in the move graph.
 
-  ASSERT(!moves_[index].IsPending());
-  ASSERT(!moves_[index].IsRedundant());
+  ASSERT(!moves_[index]->IsPending());
+  ASSERT(!moves_[index]->IsRedundant());
 
   // Clear this move's destination to indicate a pending move.  The actual
   // destination is saved in a stack-allocated local.  Recursion may allow
   // multiple moves to be pending.
-  ASSERT(!moves_[index].src().IsInvalid());
-  Location destination = moves_[index].MarkPending();
+  ASSERT(!moves_[index]->src().IsInvalid());
+  Location destination = moves_[index]->MarkPending();
 
   // Perform a depth-first traversal of the move graph to resolve
   // dependencies.  Any unperformed, unpending move with a source the same
   // as this one's destination blocks this one so recursively perform all
   // such moves.
   for (int i = 0; i < moves_.length(); ++i) {
-    MoveOperands other_move = moves_[i];
+    const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination) && !other_move.IsPending()) {
       // Though PerformMove can change any source operand in the move graph,
       // this call cannot create a blocking move via a swap (this loop does
@@ -771,12 +771,12 @@ void ParallelMoveResolver::PerformMove(int index) {
 
   // We are about to resolve this move and don't need it marked as
   // pending, so restore its destination.
-  moves_[index].ClearPending(destination);
+  moves_[index]->ClearPending(destination);
 
   // This move's source may have changed due to swaps to resolve cycles and
   // so it may now be the last move in the cycle.  If so remove it.
-  if (moves_[index].src().Equals(destination)) {
-    moves_[index].Eliminate();
+  if (moves_[index]->src().Equals(destination)) {
+    moves_[index]->Eliminate();
     return;
   }
 
@@ -784,7 +784,7 @@ void ParallelMoveResolver::PerformMove(int index) {
   // we have a cycle.  Search for such a blocking move and perform a swap to
   // resolve it.
   for (int i = 0; i < moves_.length(); ++i) {
-    MoveOperands other_move = moves_[i];
+    const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(destination)) {
       ASSERT(other_move.IsPending());
       EmitSwap(index);

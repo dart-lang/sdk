@@ -467,7 +467,7 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   for (intptr_t i = 0; i < moves_.length(); i++) {
     if (i != 0) f->Print(", ");
-    f->Print("%s = %s", moves_[i].dest().Name(), moves_[i].src().Name());
+    f->Print("%s = %s", moves_[i]->dest().Name(), moves_[i]->src().Name());
   }
 }
 

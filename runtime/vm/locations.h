@@ -62,7 +62,7 @@ class Location : public ValueObject {
     return loc;
   }
 
-  const Object& constant() {
+  const Object& constant() const {
     ASSERT(IsConstant());
     return *reinterpret_cast<const Object*>(value_ & ~kConstantMask);
   }
@@ -164,18 +164,7 @@ class LocationSummary : public ZoneAllocated {
   // TODO(vegorov): remove unsafe kNoCall default.
   LocationSummary(intptr_t input_count,
                   intptr_t temp_count,
-                  ContainsCall call = kNoCall)
-      : input_locations_(input_count),
-        temp_locations_(temp_count),
-        output_location_(),
-        is_call_(call == kCall) {
-    for (intptr_t i = 0; i < input_count; i++) {
-      input_locations_.Add(Location());
-    }
-    for (intptr_t i = 0; i < temp_count; i++) {
-      temp_locations_.Add(Location());
-    }
-  }
+                  ContainsCall call = kNoCall);
 
   intptr_t input_count() const {
     return input_locations_.length();

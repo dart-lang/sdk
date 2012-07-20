@@ -126,7 +126,7 @@ class ParallelMoveResolver : public ValueObject {
   FlowGraphCompiler* compiler_;
 
   // List of moves not yet resolved.
-  GrowableArray<MoveOperands> moves_;
+  GrowableArray<MoveOperands*> moves_;
 };
 
 

@@ -1110,8 +1110,9 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 
 
 void ParallelMoveResolver::EmitMove(int index) {
-  Location source = moves_[index].src();
-  Location destination = moves_[index].dest();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
 
   ASSERT(destination.IsRegister());
   if (source.IsRegister()) {
@@ -1120,30 +1121,31 @@ void ParallelMoveResolver::EmitMove(int index) {
     ASSERT(source.IsConstant());
     __ LoadObject(destination.reg(), source.constant());
   }
-  moves_[index].Eliminate();
+  move->Eliminate();
 }
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
-  Location source = moves_[index].src();
-  Location destination = moves_[index].dest();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
 
   ASSERT(source.IsRegister() && destination.IsRegister());
   __ xchgl(destination.reg(), source.reg());
 
   // The swap of source and destination has executed a move from source to
   // destination.
-  moves_[index].Eliminate();
+  move->Eliminate();
 
   // Any unperformed (including pending) move with a source of either
   // this move's source or destination needs to have their source
   // changed to reflect the state of affairs after the swap.
   for (int i = 0; i < moves_.length(); ++i) {
-    MoveOperands other_move = moves_[i];
+    const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(source)) {
-      moves_[i].set_src(destination);
+      moves_[i]->set_src(destination);
     } else if (other_move.Blocks(destination)) {
-      moves_[i].set_src(source);
+      moves_[i]->set_src(source);
     }
   }
 }

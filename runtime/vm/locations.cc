@@ -10,6 +10,22 @@
 
 namespace dart {
 
+LocationSummary::LocationSummary(intptr_t input_count,
+                                 intptr_t temp_count,
+                                 ContainsCall call)
+    : input_locations_(input_count),
+      temp_locations_(temp_count),
+      output_location_(),
+      is_call_(call == kCall) {
+  for (intptr_t i = 0; i < input_count; i++) {
+    input_locations_.Add(Location());
+  }
+  for (intptr_t i = 0; i < temp_count; i++) {
+    temp_locations_.Add(Location());
+  }
+}
+
+
 LocationSummary* LocationSummary::Make(intptr_t input_count,
                                        Location out,
                                        ContainsCall contains_call) {

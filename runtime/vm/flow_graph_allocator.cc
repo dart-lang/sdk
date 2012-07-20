@@ -425,16 +425,16 @@ void FlowGraphAllocator::BuildLiveRanges() {
           if (phi == NULL) continue;
 
           Value* val = phi->InputAt(pred_idx);
-          MoveOperands move = parallel_move->moves()[move_idx];
+          MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
           if (val->IsUse()) {
             const intptr_t virtual_register =
                 val->AsUse()->definition()->ssa_temp_index();
-            Location* slot = move.src_slot();
-            *slot = Location::RequiresRegister();
-            GetLiveRange(virtual_register)->head()->AddUse(NULL, pos, slot);
+            move->set_src(Location::RequiresRegister());
+            GetLiveRange(
+                virtual_register)->head()->AddUse(NULL, pos, move->src_slot());
           } else {
             ASSERT(val->IsConstant());
-            move.set_src(Location::Constant(val->AsConstant()->value()));
+            move->set_src(Location::Constant(val->AsConstant()->value()));
           }
           move_idx++;
         }
@@ -555,12 +555,12 @@ void FlowGraphAllocator::BuildLiveRanges() {
             BlockEntryInstr* pred = block->PredecessorAt(k);
             ASSERT(pred->last_instruction()->IsGoto());
             Instruction* move_instr = pred->last_instruction()->previous();
-            ASSERT(move_instr->IsParallelMove());
+            ParallelMoveInstr* pmove = move_instr->AsParallelMove();
+            ASSERT(pmove != NULL);
 
-            Location* slot =
-                move_instr->AsParallelMove()->moves()[move_idx].dest_slot();
-            *slot = Location::RequiresRegister();
-            interval->AddUse(NULL, pos, slot);
+            MoveOperands* move_operands = pmove->MoveOperandsAt(move_idx);
+            move_operands->set_dest(Location::RequiresRegister());
+            interval->AddUse(NULL, pos, move_operands->dest_slot());
           }
 
           // All phi resolution moves are connected. Phi's live range is

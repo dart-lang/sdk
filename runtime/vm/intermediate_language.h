@@ -2379,8 +2379,7 @@ class BranchInstr : public InstructionWithInputs {
 };
 
 
-// This class is often passed by value. Add additional fields with caution.
-class MoveOperands : public ValueObject {
+class MoveOperands : public ZoneAllocated {
  public:
   MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
 
@@ -2390,7 +2389,8 @@ class MoveOperands : public ValueObject {
   Location* src_slot() { return &src_; }
   Location* dest_slot() { return &dest_; }
 
-  void set_src(Location src) { src_ = src; }
+  void set_src(const Location& value) { src_ = value; }
+  void set_dest(const Location& value) { dest_ = value; }
 
   // The parallel move resolver marks moves as "in-progress" by clearing the
   // destination (but not the source).
@@ -2432,6 +2432,8 @@ class MoveOperands : public ValueObject {
  private:
   Location dest_;
   Location src_;
+
+  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
 };
 
 
@@ -2443,13 +2445,18 @@ class ParallelMoveInstr : public Instruction {
   DECLARE_INSTRUCTION(ParallelMove)
 
   void AddMove(Location dest, Location src) {
-    moves_.Add(MoveOperands(dest, src));
+    moves_.Add(new MoveOperands(dest, src));
   }
 
-  const GrowableArray<MoveOperands>& moves() { return moves_; }
+  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
+
+  void SetSrcSlotAt(intptr_t index, const Location& loc);
+  void SetDestSlotAt(intptr_t index, const Location& loc);
+
+  intptr_t NumMoves() const { return moves_.length(); }
 
  private:
-  GrowableArray<MoveOperands> moves_;
+  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
 
   DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
 };
