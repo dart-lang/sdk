@@ -377,7 +377,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmi) || (i == 0));
     Label next_test;
     __ cmpq(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
-    __ j(NOT_EQUAL, &next_test, Assembler::kNearJump);
+    __ j(NOT_EQUAL, &next_test);
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
     ObjectStore* object_store = Isolate::Current()->object_store();
     if (target.owner() == object_store->object_class()) {
@@ -411,7 +411,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
           __ CompareObject(RAX, compiler->bool_true());
           __ j(EQUAL, &false_label, Assembler::kNearJump);
           __ LoadObject(RAX, compiler->bool_true());
-          __ jmp(&done, Assembler::kNearJump);
+          __ jmp(&done);
           __ Bind(&false_label);
           __ LoadObject(RAX, compiler->bool_false());
           __ jmp(&done);
