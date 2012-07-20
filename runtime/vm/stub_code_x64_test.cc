@@ -25,7 +25,8 @@ DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
 static Function* CreateFunction(const char* name) {
   const String& function_name = String::ZoneHandle(String::NewSymbol(name));
   Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, 0));
   return &function;
 }
 

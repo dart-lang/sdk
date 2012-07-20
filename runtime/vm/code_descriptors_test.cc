@@ -24,7 +24,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   Assembler assembler;
   const String& function_name = String::ZoneHandle(String::NewSymbol("test"));
   const Function& function = Function::Handle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, 0));
   function.set_result_type(Type::Handle(Type::DynamicType()));
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();

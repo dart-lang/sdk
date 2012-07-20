@@ -53,7 +53,7 @@ TEST_CASE(FindCodeObject) {
   }
   OS::SNPrint((scriptChars + written), (kScriptSize - written), "}");
   source = String::New(scriptChars);
-  script = Script::New(url, source, RawScript::kSource);
+  script = Script::New(url, source, RawScript::kSourceTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsA = lib.LookupClass(String::Handle(String::NewSymbol("A")));
   EXPECT(!clsA.IsNull());
@@ -101,7 +101,7 @@ TEST_CASE(FindCodeObject) {
   OS::SNPrint((scriptChars + written), (kScriptSize - written), "}");
   url = String::New("dart-test:FindCodeObject");
   source = String::New(scriptChars);
-  script = Script::New(url, source, RawScript::kSource);
+  script = Script::New(url, source, RawScript::kSourceTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   clsB = lib.LookupClass(String::Handle(String::NewSymbol("B")));
   EXPECT(!clsB.IsNull());

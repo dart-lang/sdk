@@ -23,7 +23,9 @@ TEST_CASE(DartEntry) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kScript));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -53,7 +55,9 @@ TEST_CASE(InvokeStatic_CompileError) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kScript));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -79,7 +83,9 @@ TEST_CASE(InvokeDynamic_CompileError) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:DartEntry"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kScript));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());

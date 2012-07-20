@@ -114,7 +114,9 @@ TEST_CASE(ParseClassDefinition) {
 
   String& url = String::Handle(String::New("dart-test:Parser_TopLevel"));
   String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = Library::ZoneHandle(Library::CoreLibrary());
 
   script.Tokenize(String::Handle(String::New("")));
@@ -158,7 +160,9 @@ TEST_CASE(Parser_TopLevel) {
 
   String& url = String::Handle(String::New("dart-test:Parser_TopLevel"));
   String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = Library::ZoneHandle(Library::CoreLibrary());
 
   script.Tokenize(String::Handle(String::New("")));

@@ -50,7 +50,8 @@ ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& function_name =
       String::ZoneHandle(String::NewSymbol("callerFunction"));
   const Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   ICData& ic_data = ICData::ZoneHandle(

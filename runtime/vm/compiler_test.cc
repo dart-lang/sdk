@@ -20,7 +20,9 @@ TEST_CASE(CompileScript) {
       "}\n";
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
 }
@@ -36,7 +38,9 @@ TEST_CASE(CompileFunction) {
             "}\n";
   String& url = String::Handle(String::New("dart-test:CompileFunction"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = Library::Handle(Library::CoreLibrary());
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());

@@ -4335,7 +4335,7 @@ const char* Function::ToCString() const {
   const char* f1 = NULL;
   const char* f2 = is_const() ? " const" : "";
   switch (kind()) {
-    case RawFunction::kFunction:
+    case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:

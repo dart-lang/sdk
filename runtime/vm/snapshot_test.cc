@@ -728,7 +728,9 @@ TEST_CASE(SerializeScript) {
 
   String& url = String::Handle(String::New("dart-test:SerializeScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   const String& lib_url = String::Handle(String::NewSymbol("TestLib"));
   Library& lib = Library::Handle(Library::New(lib_url));
   lib.Register();

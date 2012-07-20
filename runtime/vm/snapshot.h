@@ -21,6 +21,7 @@ class AbstractType;
 class AbstractTypeArguments;
 class Array;
 class Class;
+class ClassTable;
 class GrowableObjectArray;
 class Heap;
 class Library;
@@ -171,6 +172,7 @@ class SnapshotReader : public BaseReader {
   Isolate* isolate() const { return isolate_; }
   Heap* heap() const { return isolate_->heap(); }
   ObjectStore* object_store() const { return isolate_->object_store(); }
+  ClassTable* class_table() const { return isolate_->class_table(); }
   Object* ObjectHandle() { return &obj_; }
   String* StringHandle() { return &str_; }
   AbstractType* TypeHandle() { return &type_; }

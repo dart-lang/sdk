@@ -1407,7 +1407,7 @@ class Function : public Object {
       return false;
     }
     switch (kind()) {
-      case RawFunction::kFunction:
+      case RawFunction::kRegularFunction:
       case RawFunction::kGetterFunction:
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:
@@ -1428,7 +1428,7 @@ class Function : public Object {
       return false;
     }
     switch (kind()) {
-      case RawFunction::kFunction:
+      case RawFunction::kRegularFunction:
       case RawFunction::kGetterFunction:
       case RawFunction::kSetterFunction:
       case RawFunction::kImplicitGetter:

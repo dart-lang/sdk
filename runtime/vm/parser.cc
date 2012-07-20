@@ -480,7 +480,7 @@ struct MemberDesc {
     name = NULL;
     redirect_name = NULL;
     params.Clear();
-    kind = RawFunction::kFunction;
+    kind = RawFunction::kRegularFunction;
   }
   bool IsConstructor() const {
     return (kind == RawFunction::kConstructor) && !has_static;
@@ -690,7 +690,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::Handle(isolate, Array::null());
   switch (func.kind()) {
-    case RawFunction::kFunction:
+    case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -2469,7 +2469,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else if (method->IsSetter()) {
     function_kind = RawFunction::kSetterFunction;
   } else {
-    function_kind = RawFunction::kFunction;
+    function_kind = RawFunction::kRegularFunction;
   }
   Function& func = Function::Handle(
       Function::New(*method->name,
@@ -2779,7 +2779,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       ErrorMsg("operator overloading functions cannot be static");
     }
     operator_token = CurrentToken();
-    member.kind = RawFunction::kFunction;
+    member.kind = RawFunction::kRegularFunction;
     member.name_pos = this->TokenPos();
     member.name =
         &String::ZoneHandle(String::NewSymbol(Token::Str(operator_token)));
@@ -3556,7 +3556,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
     ErrorMsg("function block expected");
   }
   Function& func = Function::Handle(
-      Function::New(func_name, RawFunction::kFunction,
+      Function::New(func_name, RawFunction::kRegularFunction,
                     is_static, false, function_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
@@ -3649,7 +3649,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
 
 void Parser::ParseLibraryName() {
   TRACE_PARSER("ParseLibraryName");
-  if ((script_.kind() == RawScript::kLibrary) &&
+  if ((script_.kind() == RawScript::kLibraryTag) &&
       (CurrentToken() != Token::kLIBRARY)) {
     // Handle error case early to get consistent error message.
     ExpectToken(Token::kLIBRARY);

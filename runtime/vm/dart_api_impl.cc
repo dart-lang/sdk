@@ -2731,7 +2731,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
   if (!func.IsNull()) {
     // We only provide access to a subset of function kinds.
     RawFunction::Kind func_kind = func.kind();
-    ASSERT(func_kind == RawFunction::kFunction ||
+    ASSERT(func_kind == RawFunction::kRegularFunction ||
            func_kind == RawFunction::kGetterFunction ||
            func_kind == RawFunction::kSetterFunction ||
            func_kind == RawFunction::kConstructor ||
@@ -3791,8 +3791,8 @@ static void CompileSource(Isolate* isolate,
                           const String& source,
                           RawScript::Kind kind,
                           Dart_Handle* result) {
-  bool update_lib_status = (kind == RawScript::kScript ||
-                            kind == RawScript::kLibrary);
+  bool update_lib_status = (kind == RawScript::kScriptTag ||
+                            kind == RawScript::kLibraryTag);
   if (update_lib_status) {
     lib.SetLoadInProgress();
   }
@@ -3843,7 +3843,7 @@ DART_EXPORT Dart_Handle Dart_LoadScript(Dart_Handle url,
                 library,
                 url_str,
                 source_str,
-                RawScript::kScript,
+                RawScript::kScriptTag,
                 &result);
   return result;
 }
@@ -4044,7 +4044,7 @@ DART_EXPORT Dart_Handle Dart_LoadLibrary(Dart_Handle url,
                 library,
                 url_str,
                 source_str,
-                RawScript::kLibrary,
+                RawScript::kLibraryTag,
                 &result);
   // Propagate the error out right now.
   if (::Dart_IsError(result)) {
@@ -4099,7 +4099,8 @@ DART_EXPORT Dart_Handle Dart_LoadSource(Dart_Handle library,
     RETURN_TYPE_ERROR(isolate, source, String);
   }
   Dart_Handle result;
-  CompileSource(isolate, lib, url_str, source_str, RawScript::kSource, &result);
+  CompileSource(isolate, lib, url_str, source_str,
+                RawScript::kSourceTag, &result);
   return result;
 }
 

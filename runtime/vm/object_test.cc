@@ -29,11 +29,11 @@ TEST_CASE(Class) {
   String& function_name = String::Handle();
   function_name = String::NewSymbol("foo");
   function = Function::New(
-      function_name, RawFunction::kFunction, false, false, 0);
+      function_name, RawFunction::kRegularFunction, false, false, 0);
   functions.SetAt(0, function);
   function_name = String::NewSymbol("bar");
   function = Function::New(
-      function_name, RawFunction::kFunction, false, false, 0);
+      function_name, RawFunction::kRegularFunction, false, false, 0);
 
   const int kNumFixedParameters = 2;
   const int kNumOptionalParameters = 3;
@@ -43,20 +43,20 @@ TEST_CASE(Class) {
 
   function_name = String::NewSymbol("baz");
   function = Function::New(
-      function_name, RawFunction::kFunction, false, false, 0);
+      function_name, RawFunction::kRegularFunction, false, false, 0);
   functions.SetAt(2, function);
 
   function_name = String::NewSymbol("Foo");
   function = Function::New(
-      function_name, RawFunction::kFunction, true, false, 0);
+      function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(3, function);
   function_name = String::NewSymbol("Bar");
   function = Function::New(
-      function_name, RawFunction::kFunction, true, false, 0);
+      function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(4, function);
   function_name = String::NewSymbol("BaZ");
   function = Function::New(
-      function_name, RawFunction::kFunction, true, false, 0);
+      function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(5, function);
 
   // Setup the functions in the class.
@@ -2182,7 +2182,7 @@ TEST_CASE(Script) {
   const String& source = String::Handle(String::New(source_chars));
   const Script& script = Script::Handle(Script::New(url,
                                                     source,
-                                                    RawScript::kSource));
+                                                    RawScript::kSourceTag));
   EXPECT(!script.IsNull());
   EXPECT(script.IsScript());
   String& str = String::Handle(script.url());
@@ -2323,7 +2323,8 @@ TEST_CASE(Closure) {
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
   const String& parent_name = String::Handle(String::NewSymbol("foo_papa"));
-  parent = Function::New(parent_name, RawFunction::kFunction, false, false, 0);
+  parent = Function::New(parent_name, RawFunction::kRegularFunction,
+                         false, false, 0);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
@@ -2392,7 +2393,8 @@ TEST_CASE(CheckedHandle) {
 static Function* CreateFunction(const char* name) {
   const String& function_name = String::ZoneHandle(String::NewSymbol(name));
   Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, 0));
   return &function;
 }
 
@@ -2576,7 +2578,7 @@ static RawFunction* GetDummyTarget(const char* name) {
   const bool is_static = false;
   const bool is_const = false;
   return Function::New(function_name,
-                       RawFunction::kFunction,
+                       RawFunction::kRegularFunction,
                        is_static,
                        is_const,
                        0);
