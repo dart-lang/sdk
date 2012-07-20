@@ -57,7 +57,7 @@ class FrameRegisterAllocator : public ValueObject {
   // Returns true if all live values are stored on the stack.
   // Code generator expects no live values in registers at call sites and
   // branches.
-  bool IsSpilled() const { return stack_.length() == 0; }
+  bool IsSpilled() const { return stack_.is_empty(); }
 
   // Popuplate deoptimization stub with live registers to ensure
   // that they will be pushed to the stack when deoptimization happens.

@@ -511,7 +511,7 @@ Register FrameRegisterAllocator::AllocateFreeRegister(bool* blocked_registers) {
 
 
 Register FrameRegisterAllocator::SpillFirst() {
-  ASSERT(stack_.length() > 0);
+  ASSERT(!stack_.is_empty());
   Register reg = stack_[0];
   stack_.RemoveFirst();
   compiler()->assembler()->PushRegister(reg);
@@ -589,7 +589,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
       reg = loc.reg();
     } else if (loc.IsUnallocated()) {
       ASSERT(loc.policy() == Location::kRequiresRegister);
-      if ((stack_.length() > 0) && !blocked_temp_registers[stack_.Last()]) {
+      if (!stack_.is_empty() && !blocked_temp_registers[stack_.Last()]) {
         reg = stack_.Last();
         blocked_registers[reg] = true;
       } else {
@@ -642,7 +642,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 void FrameRegisterAllocator::Pop(Register dst, Value* val) {
   if (is_ssa_) return;
 
-  if (stack_.length() > 0) {
+  if (!stack_.is_empty()) {
     ASSERT(keep_values_in_registers_);
     Register src = stack_.Last();
     ASSERT(val->AsUse()->definition() == registers_[src]);

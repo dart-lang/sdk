@@ -444,7 +444,7 @@ struct ParamList {
   }
 
   void AddReceiver(intptr_t name_pos) {
-    ASSERT(this->parameters->length() == 0);
+    ASSERT(this->parameters->is_empty());
     // The receiver does not need to be type checked.
     AddFinalParameter(name_pos,
                       kThisName,

@@ -143,7 +143,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.
   Stacktrace& stacktrace = Stacktrace::Handle();
-  if (stack_frame_pcs.length() > 0) {
+  if (!stack_frame_pcs.is_empty()) {
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(stack_frame_pcs);
     } else {
