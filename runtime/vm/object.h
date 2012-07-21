@@ -379,8 +379,15 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return Utils::RoundUp(size, kObjectAlignment);
   }
 
+  bool Contains(uword addr) const {
+    intptr_t this_size = raw()->Size();
+    uword this_addr = RawObject::ToAddr(raw());
+    return (addr >= this_addr) && (addr < (this_addr + this_size));
+  }
+
   template<typename type> void StorePointer(type* addr, type value) const {
-    // TODO(iposva): Implement real store barrier here.
+    // Ensure that this object contains the addr.
+    ASSERT(Contains(reinterpret_cast<uword>(addr)));
     *addr = value;
     // Filter stores based on source and target.
     if (!value->IsHeapObject()) return;
@@ -3828,10 +3835,10 @@ class GrowableObjectArray : public Instance {
     return *ObjectAddr(index);
   }
   void SetAt(intptr_t index, const Object& value) const {
-    NoGCScope no_gc;
     ASSERT(!IsNull());
     ASSERT(index < Length());
-    StorePointer(ObjectAddr(index), value.raw());
+    const Array& arr = Array::Handle(data());
+    arr.SetAt(index, value);
   }
 
   void Add(const Object& value, Heap::Space space = Heap::kNew) const;

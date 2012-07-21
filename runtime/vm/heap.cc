@@ -104,6 +104,16 @@ bool Heap::Contains(uword addr) const {
 }
 
 
+bool Heap::NewContains(uword addr) const {
+  return new_space_->Contains(addr);
+}
+
+
+bool Heap::OldContains(uword addr) const {
+  return old_space_->Contains(addr);
+}
+
+
 bool Heap::CodeContains(uword addr) const {
   return code_space_->Contains(addr);
 }
