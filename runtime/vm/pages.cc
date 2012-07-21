@@ -18,6 +18,10 @@ DEFINE_FLAG(int, heap_growth_time_ratio, 3,
             "The desired maximum percentage of time spent in GC");
 DEFINE_FLAG(int, heap_growth_rate, 4,
             "The size the heap is grown, in heap pages");
+DEFINE_FLAG(bool, print_free_list_before_gc, false,
+            "Print free list statistics before a GC");
+DEFINE_FLAG(bool, print_free_list_after_gc, false,
+            "Print free list statistics after a GC");
 
 HeapPage* HeapPage::Initialize(VirtualMemory* memory, bool is_executable) {
   ASSERT(memory->size() > VirtualMemory::PageSize());
@@ -212,9 +216,9 @@ uword PageSpace::TryAllocate(intptr_t size, GrowthPolicy growth_policy) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
   uword result = 0;
   if (size < kAllocatablePageSize) {
-    result = TryBumpAllocate(size);
+    result = freelist_.TryAllocate(size);
     if (result == 0) {
-      result = freelist_.TryAllocate(size);
+      result = TryBumpAllocate(size);
       if ((result == 0) &&
           (page_space_controller_.CanGrowPageSpace(size) ||
            growth_policy == kForceGrowth) &&
@@ -343,6 +347,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
   Isolate* isolate = Isolate::Current();
   NoHandleScope no_handles(isolate);
 
+  if (FLAG_print_free_list_before_gc) {
+    freelist_.Print();
+  }
+
   if (FLAG_verify_before_gc) {
     OS::PrintErr("Verifying before MarkSweep...");
     heap_->Verify();
@@ -413,6 +421,10 @@ void PageSpace::MarkSweep(bool invoke_api_callbacks) {
                  (in_use_before + (KB2)) / KB,
                  (in_use + (KB2)) / KB,
                  (capacity_ + KB2) / KB);
+  }
+
+  if (FLAG_print_free_list_after_gc) {
+    freelist_.Print();
   }
 
   if (FLAG_verify_after_gc) {

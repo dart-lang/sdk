@@ -4,6 +4,7 @@
 
 #include "vm/freelist.h"
 
+#include "vm/bit_set.h"
 #include "vm/object.h"
 #include "vm/raw_object.h"
 
@@ -49,14 +50,14 @@ FreeList::~FreeList() {
 
 uword FreeList::TryAllocate(intptr_t size) {
   int index = IndexForSize(size);
-  if ((index != kNumLists) && (free_lists_[index] != NULL)) {
+  if ((index != kNumLists) && free_map_.Test(index)) {
     return reinterpret_cast<uword>(DequeueElement(index));
   }
 
   if (index < kNumLists) {
     index++;
     while (index < kNumLists) {
-      if (free_lists_[index] != NULL) {
+      if (free_map_.Test(index)) {
         // Dequeue an element from the list, split and enqueue the remainder in
         // the appropriate list.
         FreeListElement* element = DequeueElement(index);
@@ -96,10 +97,12 @@ void FreeList::Free(uword addr, intptr_t size) {
 
 
 void FreeList::Reset() {
+  free_map_.Reset();
   for (int i = 0; i < (kNumLists + 1); i++) {
     free_lists_[i] = NULL;
   }
 }
+
 
 intptr_t FreeList::IndexForSize(intptr_t size) {
   ASSERT(size >= kObjectAlignment);
@@ -114,15 +117,58 @@ intptr_t FreeList::IndexForSize(intptr_t size) {
 
 
 void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
-  element->set_next(free_lists_[index]);
+  FreeListElement* next = free_lists_[index];
+  if (next == NULL) {
+    free_map_.Set(index, true);
+  }
+  element->set_next(next);
   free_lists_[index] = element;
 }
 
 
 FreeListElement* FreeList::DequeueElement(intptr_t index) {
   FreeListElement* result = free_lists_[index];
-  free_lists_[index] = result->next();
+  FreeListElement* next = result->next();
+  if (next == NULL) {
+    free_map_.Set(index, false);
+  }
+  free_lists_[index] = next;
   return result;
+}
+
+
+intptr_t FreeList::Length(int index) const {
+  ASSERT(index >= 0);
+  ASSERT(index < kNumLists);
+  intptr_t result = 0;
+  FreeListElement* element = free_lists_[index];
+  while (element != NULL) {
+    ++result;
+    element = element->next();
+  }
+  return result;
+}
+
+
+void FreeList::Print() const {
+  OS::Print("%*s %*s %*s\n", 10, "Class", 10, "Length", 10, "Size");
+  OS::Print("--------------------------------\n");
+  int total_index = 0;
+  int total_length = 0;
+  int total_size = 0;
+  for (int i = 0; i < kNumLists; ++i) {
+    if (free_lists_[i] == NULL) {
+      continue;
+    }
+    total_index += 1;
+    intptr_t length = Length(i);
+    total_length += length;
+    intptr_t size = length * i * kObjectAlignment;
+    total_size += size;
+    OS::Print("%*d %*d %*d\n", 10, i * kObjectAlignment, 10, length, 10, size);
+  }
+  OS::Print("--------------------------------\n");
+  OS::Print("%*d %*d %*d\n", 10, total_index, 10, total_length, 10, total_size);
 }
 
 
