@@ -1134,7 +1134,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movl(destination.reg(), ToAddress(source));
     } else {
       ASSERT(destination.IsSpillSlot());
-      MoveMemory(ToAddress(destination), ToAddress(source));
+      MoveMemoryToMemory(ToAddress(destination), ToAddress(source));
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1185,7 +1185,8 @@ void ParallelMoveResolver::EmitSwap(int index) {
 }
 
 
-void ParallelMoveResolver::MoveMemory(const Address& dst, const Address& src) {
+void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
+                                              const Address& src) {
   // TODO(vegorov): allocate temporary register for such moves.
   __ pushl(EAX);
   __ movl(EAX, src);

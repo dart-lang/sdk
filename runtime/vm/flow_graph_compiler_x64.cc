@@ -1137,7 +1137,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movq(destination.reg(), ToAddress(source));
     } else {
       ASSERT(destination.IsSpillSlot());
-      MoveMemory(ToAddress(destination), ToAddress(source));
+      MoveMemoryToMemory(ToAddress(destination), ToAddress(source));
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1188,8 +1188,9 @@ void ParallelMoveResolver::EmitSwap(int index) {
 }
 
 
-void ParallelMoveResolver::MoveMemory(const Address& dst, const Address& src) {
-  __ MoveMemory(dst, src);
+void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
+                                              const Address& src) {
+  __ MoveMemoryToMemory(dst, src);
 }
 
 

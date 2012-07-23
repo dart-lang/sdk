@@ -494,7 +494,7 @@ class Assembler : public ValueObject {
   }
 
   // Issue memory to memory move through a TMP register.
-  void MoveMemory(const Address& dst, const Address& src) {
+  void MoveMemoryToMemory(const Address& dst, const Address& src) {
     movq(TMP, src);
     movq(dst, TMP);
   }
