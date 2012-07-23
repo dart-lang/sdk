@@ -102,26 +102,34 @@ class Entrypoint {
 
   /**
    * Installs all dependencies of the [root] package to its "packages"
-   * directory. Returns a [Future] that completes when all dependencies are
-   * installed.
+   * directory, respecting the [LockFile] if present. Returns a [Future] that
+   * completes when all dependencies are installed.
    */
   Future installDependencies() {
-    return _getResolvedDependencies().chain((packageVersions) {
-      return Futures.wait(packageVersions.map((id) {
-        if (id.source is RootSource) return new Future.immediate(id);
-        return install(id);
-      }));
-    }).chain(_saveLockFile);
+    return _loadLockFile()
+      .chain((lockFile) => resolveVersions(cache.sources, root, lockFile))
+      .chain(_installDependencies);
   }
 
   /**
-   * Gets a list of all the [PackageId]s that this entrypoint transitively
-   * depends on. The concrete versions of these ids are given by the
-   * [VersionSolver] and the `pubspec.lock` file, if it exists.
+   * Installs the latest available versions of all dependencies of the [root]
+   * package to its "package" directory, writing a new [LockFile]. Returns a
+   * [Future] that completes when all dependencies are installed.
    */
-  Future<List<PackageId>> _getResolvedDependencies() {
-    return _loadLockFile().chain((lockFile) =>
-        resolveVersions(cache.sources, root, lockFile));
+  Future updateDependencies() {
+    return resolveVersions(cache.sources, root, new LockFile.empty()).
+      chain(_installDependencies);
+  }
+
+  /**
+   * Installs all dependencies listed in [packageVersions] and writes a
+   * [LockFile].
+   */
+  Future _installDependencies(List<PackageId> packageVersions) {
+    return Futures.wait(packageVersions.map((id) {
+      if (id.source is RootSource) return new Future.immediate(id);
+      return install(id);
+    })).chain(_saveLockFile);
   }
 
   /**

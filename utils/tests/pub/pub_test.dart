@@ -869,6 +869,64 @@ dependencies:
   });
 }
 
+updateCommand() {
+  test("updates locked Git packages", () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
+
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar 2";')
+    ]).scheduleCommit();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 2";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar 2";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+}
+
 versionCommand() {
   test('displays the current version', () =>
     runPub(args: ['version'], output: VERSION_STRING));
