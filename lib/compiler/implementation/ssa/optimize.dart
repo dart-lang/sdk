@@ -992,6 +992,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       if (dominator.id < id && id < dominated.id && !visited.contains(id)) {
         visited.add(id);
         changesFlags |= blockChangesFlags[id];
+        // Loop bodies might not be on the path from dominator to dominated,
+        // but they can invalidate values.
+        changesFlags |= loopChangesFlags[id];
         changesFlags |= getChangesFlagsForDominatedBlock(dominator, block);
       }
     }
