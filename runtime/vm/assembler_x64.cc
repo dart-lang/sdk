@@ -1510,8 +1510,12 @@ void Assembler::LoadObject(Register dst, const Object& object) {
 
 
 void Assembler::StoreObject(const Address& dst, const Object& object) {
-  LoadObject(TMP, object);
-  movq(dst, TMP);
+  if (object.IsSmi()) {
+    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
+  } else {
+    LoadObject(TMP, object);
+    movq(dst, TMP);
+  }
 }
 
 

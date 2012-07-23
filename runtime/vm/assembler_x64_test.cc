@@ -530,6 +530,17 @@ ASSEMBLER_TEST_GENERATE(Bitwise64, assembler) {
   __ popq(RCX);
   __ cmpq(RAX, Immediate(0));
   __ j(NOT_EQUAL, &error);
+  __ movq(RCX, Immediate(0xFF));
+  __ movq(RAX, Immediate(0x5));
+  __ xorq(RCX, RAX);
+  __ cmpq(RCX, Immediate(0xFF ^ 0x5));
+  __ j(NOT_EQUAL, &error);
+  __ pushq(Immediate(0xFF));
+  __ movq(RCX, Immediate(0x5));
+  __ xorq(Address(RSP, 0), RCX);
+  __ popq(RCX);
+  __ cmpq(RCX, Immediate(0xFF ^ 0x5));
+  __ j(NOT_EQUAL, &error);
   __ xorq(RCX, RCX);
   __ orq(RCX, Immediate(256));
   __ movq(RAX, Immediate(4));
@@ -1382,6 +1393,20 @@ ASSEMBLER_TEST_GENERATE(TestObjectCompare, assembler) {
   __ j(NOT_EQUAL, &fail);
   __ LoadObject(RCX, obj);
   __ CompareObject(RCX, obj);
+  __ j(NOT_EQUAL, &fail);
+  const Smi& smi = Smi::ZoneHandle(Smi::New(15));
+  __ LoadObject(RCX, smi);
+  __ CompareObject(RCX, smi);
+  __ j(NOT_EQUAL, &fail);
+  __ pushq(RAX);
+  __ StoreObject(Address(RSP, 0), obj);
+  __ popq(RCX);
+  __ CompareObject(RCX, obj);
+  __ j(NOT_EQUAL, &fail);
+  __ pushq(RAX);
+  __ StoreObject(Address(RSP, 0), smi);
+  __ popq(RCX);
+  __ CompareObject(RCX, smi);
   __ j(NOT_EQUAL, &fail);
   __ movl(RAX, Immediate(1));  // OK
   __ ret();

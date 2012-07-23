@@ -1109,7 +1109,7 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 #define __ compiler_->assembler()->
 
 
-static Address ToAddress(Location loc) {
+static Address ToSpillAddress(Location loc) {
   ASSERT(loc.IsSpillSlot());
   const intptr_t offset =
       (ParsedFunction::kFirstLocalSlotIndex - loc.spill_index()) * kWordSize;
@@ -1127,14 +1127,14 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ movl(destination.reg(), source.reg());
     } else {
       ASSERT(destination.IsSpillSlot());
-      __ movl(ToAddress(destination), source.reg());
+      __ movl(ToSpillAddress(destination), source.reg());
     }
   } else if (source.IsSpillSlot()) {
     if (destination.IsRegister()) {
-      __ movl(destination.reg(), ToAddress(source));
+      __ movl(destination.reg(), ToSpillAddress(source));
     } else {
       ASSERT(destination.IsSpillSlot());
-      MoveMemoryToMemory(ToAddress(destination), ToAddress(source));
+      MoveMemoryToMemory(ToSpillAddress(destination), ToSpillAddress(source));
     }
   } else {
     ASSERT(source.IsConstant());
@@ -1142,7 +1142,7 @@ void ParallelMoveResolver::EmitMove(int index) {
       __ LoadObject(destination.reg(), source.constant());
     } else {
       ASSERT(destination.IsSpillSlot());
-      StoreObject(ToAddress(destination), source.constant());
+      StoreObject(ToSpillAddress(destination), source.constant());
     }
   }
 
@@ -1158,11 +1158,11 @@ void ParallelMoveResolver::EmitSwap(int index) {
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgl(destination.reg(), source.reg());
   } else if (source.IsRegister() && destination.IsSpillSlot()) {
-    Exchange(source.reg(), ToAddress(destination));
+    Exchange(source.reg(), ToSpillAddress(destination));
   } else if (source.IsSpillSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), ToAddress(source));
+    Exchange(destination.reg(), ToSpillAddress(source));
   } else if (source.IsSpillSlot() && destination.IsSpillSlot()) {
-    Exchange(ToAddress(destination), ToAddress(source));
+    Exchange(ToSpillAddress(destination), ToSpillAddress(source));
   } else {
     UNREACHABLE();
   }
