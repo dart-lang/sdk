@@ -666,7 +666,7 @@ public class DartCompiler {
 
           // get the dart unit corresponding to this library
           DartUnit unit = importedLib.getSelfDartUnit();
-          if (unit.isDiet()) {
+          if (unit == null || unit.isDiet()) {
             // don't need to check a unit that hasn't changed
             continue;
           }
