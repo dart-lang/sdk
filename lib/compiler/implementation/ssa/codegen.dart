@@ -2868,6 +2868,12 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   final CodeBuffer newParameters;
   final List<String> labels;
   int labelId = 0;
+  /**
+   * Keeps track if a bailout switch already used its [:default::] clause. New
+   * bailout-switches just push [:false:] on the stack and replace it when
+   * they used the [:default::] clause.
+   */
+  final List<bool> defaultClauseUsedInBailoutStack;
 
   SsaBailoutPropagator propagator;
   HInstruction savedFirstInstruction;
@@ -2876,7 +2882,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     : super(backend, work, parameters, parameterNames),
       setup = new CodeBuffer(),
       newParameters = new CodeBuffer(),
-      labels = <String>[];
+      labels = <String>[],
+      defaultClauseUsedInBailoutStack = <bool>[];
 
   String pushLabel() {
     String label = 'L${labelId++}';
@@ -3002,18 +3009,32 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void startBailoutCase(List<HTypeGuard> bailouts1,
                         List<HTypeGuard> bailouts2) {
     indent--;
-    handleBailoutCase(bailouts1);
-    handleBailoutCase(bailouts2);
+    if (!defaultClauseUsedInBailoutStack.last() &&
+        bailouts1.length + bailouts2.length >= 2) {
+      addIndented('default:\n');
+      int len = defaultClauseUsedInBailoutStack.length;
+      defaultClauseUsedInBailoutStack[len - 1] = true;
+    } else {
+      handleBailoutCase(bailouts1);
+      handleBailoutCase(bailouts2);
+    }
     indent++;
   }
 
   void handleBailoutCase(List<HTypeGuard> guards) {
-    for (int i = 0, len = guards.length; i < len; i++) {
-      addIndented('case ${guards[i].state}:\n');
+    if (!defaultClauseUsedInBailoutStack.last() && guards.length >= 2) {
+      addIndented('default:\n');
+      int len = defaultClauseUsedInBailoutStack.length;
+      defaultClauseUsedInBailoutStack[len - 1] = true;
+    } else {
+      for (int i = 0, len = guards.length; i < len; i++) {
+        addIndented('case ${guards[i].state}:\n');
+      }
     }
   }
 
   void startBailoutSwitch() {
+    defaultClauseUsedInBailoutStack.add(false);
     addIndented('switch (state) {\n');
     indent++;
     addIndented('case 0:\n');
@@ -3024,6 +3045,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     indent--; // Close 'case'.
     indent--;
     addIndented('}\n');  // Close 'switch'.
+    defaultClauseUsedInBailoutStack.removeLast();
   }
 
   void beginLoop(HBasicBlock block) {
