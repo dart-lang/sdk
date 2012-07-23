@@ -4,6 +4,7 @@
 
 interface HVisitor<R> {
   R visitAdd(HAdd node);
+  R visitBailoutTarget(HBailoutTarget node);
   R visitBitAnd(HBitAnd node);
   R visitBitNot(HBitNot node);
   R visitBitOr(HBitOr node);
@@ -256,6 +257,7 @@ class HBaseVisitor extends HGraphVisitor implements HVisitor {
   visitRelational(HRelational node) => visitInvokeBinary(node);
 
   visitAdd(HAdd node) => visitBinaryArithmetic(node);
+  visitBailoutTarget(HBailoutTarget node) => visitInstruction(node);
   visitBitAnd(HBitAnd node) => visitBinaryBitOp(node);
   visitBitNot(HBitNot node) => visitInvokeUnary(node);
   visitBitOr(HBitOr node) => visitBinaryBitOp(node);
@@ -439,7 +441,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
   HLoopInformation loopInformation = null;
   HBlockFlow blockFlow = null;
   HBasicBlock parentLoopHeader = null;
-  List<HTypeGuard> guards;
+  List<HBailoutTarget> bailoutTargets;
 
   final List<HBasicBlock> predecessors;
   List<HBasicBlock> successors;
@@ -453,7 +455,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
         predecessors = <HBasicBlock>[],
         successors = const <HBasicBlock>[],
         dominatedBlocks = <HBasicBlock>[],
-        guards = <HTypeGuard>[];
+        bailoutTargets = <HBailoutTarget>[];
 
   int hashCode() => id;
 
@@ -478,7 +480,7 @@ class HBasicBlock extends HInstructionList implements Hashable {
     return parentLoopHeader;
   }
 
-  bool hasGuards() => !guards.isEmpty();
+  bool hasBailoutTargets() => !bailoutTargets.isEmpty();
 
   void open() {
     assert(isNew());
@@ -1037,16 +1039,35 @@ abstract class HCheck extends HInstruction {
   }
 }
 
-class HTypeGuard extends HCheck {
+class HBailoutTarget extends HInstruction {
   final int state;
+  bool isEnabled = false;
+  HBailoutTarget(this.state) : super(<HInstruction>[]);
+  void prepareGvn() {
+    assert(!hasSideEffects());
+    setUseGvn();
+  }
+
+  bool isControlFlow() => true;
+  bool get isStatement() => isEnabled;
+
+  accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
+  int typeCode() => 29;
+  bool typeEquals(other) => other is HBailoutTarget;
+  bool dataEquals(HBailoutTarget other) => other.state == state;
+}
+
+class HTypeGuard extends HCheck {
   final HType guardedType;
   bool isEnabled = false;
-  int checkedInputIndex = 0;
 
-  HTypeGuard(this.guardedType, this.state, List<HInstruction> env) : super(env);
+  HTypeGuard(this.guardedType, HInstruction guarded, HInstruction bailoutTarget)
+      : super(<HInstruction>[guarded, bailoutTarget]);
 
-  HInstruction get guarded() => inputs[checkedInputIndex];
+  HInstruction get guarded() => inputs[0];
   HInstruction get checkedInput() => guarded;
+  HBailoutTarget get bailoutTarget() => inputs[1];
+  int get state() => bailoutTarget.state;
 
   HType computeTypeFromInputTypes() {
     return isEnabled ? guardedType : guarded.propagatedType;
@@ -1061,9 +1082,7 @@ class HTypeGuard extends HCheck {
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
   bool typeEquals(other) => other is HTypeGuard;
-  bool dataEquals(HTypeGuard other) {
-    return guarded == other.guarded && guardedType == other.guardedType;
-  }
+  bool dataEquals(HTypeGuard other) => guardedType == other.guardedType;
 }
 
 class HBoundsCheck extends HCheck {

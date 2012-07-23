@@ -212,7 +212,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isNonNegativeInt32Constant(HInstruction instruction) {
     if (instruction.isConstantInteger()) {
-      int value = instruction.constant.value;
+      int value =
+          ((instruction as HConstant).constant as PrimitiveConstant).value;
       if (value >= 0 && value < (1 << 31)) {
         return true;
       }
@@ -241,8 +242,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // that the result is positive already and need no conversion.
   bool requiresUintConversion(HInstruction instruction) {
     if (instruction is HBitAnd &&
-        (isNonNegativeInt32Constant(instruction.left) ||
-         isNonNegativeInt32Constant(instruction.right))) {
+        (isNonNegativeInt32Constant((instruction as HBitAnd).left) ||
+         isNonNegativeInt32Constant((instruction as HBitAnd).right))) {
       return false;
     }
     return hasNonBitOpUser(instruction, new Set<HPhi>());
@@ -263,6 +264,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   abstract visitTypeGuard(HTypeGuard node);
+  abstract visitBailoutTarget(HBailoutTarget node);
 
   abstract beginGraph(HGraph graph);
   abstract endGraph(HGraph graph);
@@ -1167,7 +1169,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void iterateBasicBlock(HBasicBlock node) {
     HInstruction instruction = node.first;
     while (instruction !== node.last) {
-      if (instruction is HTypeGuard) {
+      if (instruction is HTypeGuard || instruction is HBailoutTarget) {
         visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
       } else if (!isGenerateAtUseSite(instruction)) {
         expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
@@ -2711,13 +2713,15 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     if (maxBailoutParameters === null) {
       maxBailoutParameters = 0;
       work.guards.forEach((HTypeGuard workGuard) {
-        int inputLength = workGuard.inputs.length;
+        HBailoutTarget target = workGuard.bailoutTarget;
+        int inputLength = target.inputs.length;
         if (inputLength > maxBailoutParameters) {
           maxBailoutParameters = inputLength;
         }
       });
     }
     HInstruction input = guard.guarded;
+    HBailoutTarget target = guard.bailoutTarget;
     Namer namer = compiler.namer;
     Element element = work.element;
     buffer.add('return ');
@@ -2733,9 +2737,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     // location, so that multiple bailout calls put the variable at
     // the same parameter index.
     int i = 0;
-    for (; i < guard.inputs.length; i++) {
+    for (; i < target.inputs.length; i++) {
+      assert(guard.inputs.indexOf(target.inputs[i]) >= 0);
       buffer.add(', ');
-      use(guard.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(target.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
     }
     // Make sure we call the bailout method with the number of
     // arguments it expects. This avoids having the underlying
@@ -2829,6 +2834,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add(';\n');
   }
 
+  void visitBailoutTarget(HBailoutTarget target) {
+    // Do nothing. Bailout targets are only used in the non-optimized version.
+  }
+
   void beginLoop(HBasicBlock block) {
     addIndentation();
     HLoopInformation info = block.loopInformation;
@@ -2906,7 +2915,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     // call site for non-complex bailout methods.
     newParameters.add('state');
 
-    if (propagator.hasComplexTypeGuards) {
+    if (propagator.hasComplexBailoutTargets) {
       // Use generic parameters that will be assigned to
       // the right variables in the setup phase.
       for (int i = 0; i < propagator.maxBailoutParameters; i++) {
@@ -2923,9 +2932,9 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       setup.add('  switch (state) {\n');
       return graph.entry;
     } else {
-      // We have a simple type guard, so we can reuse the names that
-      // the type guard expects.
-      for (HInstruction input in propagator.firstTypeGuard.inputs) {
+      // We have a simple bailout target, so we can reuse the names that
+      // the bailout target expects.
+      for (HInstruction input in propagator.firstBailoutTarget.inputs) {
         input = unwrap(input);
         String name = variableNames.getName(input);
         declaredVariables.add(name);
@@ -2933,10 +2942,10 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       }
 
       // We change the first instruction of the first guard to be the
-      // guard. We will change it back in the call to [endGraph].
-      HBasicBlock block = propagator.firstTypeGuard.block;
+      // bailout target. We will change it back in the call to [endGraph].
+      HBasicBlock block = propagator.firstBailoutTarget.block;
       savedFirstInstruction = block.first;
-      block.first = propagator.firstTypeGuard;
+      block.first = propagator.firstBailoutTarget;
       return block;
     }
   }
@@ -2954,28 +2963,28 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void endGraph(HGraph graph) {
-    if (propagator.hasComplexTypeGuards) {
+    if (propagator.hasComplexBailoutTargets) {
       indent--; // Close original case.
       indent--;
       addIndented('}\n');  // Close 'switch'.
       setup.add('  }\n');
     } else {
       // Put back the original first instruction of the block.
-      propagator.firstTypeGuard.block.first = savedFirstInstruction;
+      propagator.firstBailoutTarget.block.first = savedFirstInstruction;
     }
   }
 
   bool visitAndOrInfo(HAndOrBlockInformation info) => false;
 
   bool visitIfInfo(HIfBlockInformation info) {
-    if (info.thenGraph.start.hasGuards()) return false;
-    if (info.elseGraph.start.hasGuards()) return false;
+    if (info.thenGraph.start.hasBailoutTargets()) return false;
+    if (info.elseGraph.start.hasBailoutTargets()) return false;
     return super.visitIfInfo(info);
   }
 
   bool visitLoopInfo(HLoopBlockInformation info) {
-    if (info.start.hasGuards()) return false;
-    if (info.loopHeader.hasGuards()) return false;
+    if (info.start.hasBailoutTargets()) return false;
+    if (info.loopHeader.hasBailoutTargets()) return false;
     return super.visitLoopInfo(info);
   }
 
@@ -2983,7 +2992,11 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   bool visitSequenceInfo(HStatementSequenceInformation info) => false;
 
   void visitTypeGuard(HTypeGuard node) {
-    if (!propagator.hasComplexTypeGuards) return;
+    // Do nothing. Type guards are only used in the optimized version.
+  }
+
+  void visitBailoutTarget(HBailoutTarget node) {
+    if (!propagator.hasComplexBailoutTargets) return;
 
     indent--;
     addIndented('case ${node.state}:\n');
@@ -3006,8 +3019,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     setup.add('      break;\n');
   }
 
-  void startBailoutCase(List<HTypeGuard> bailouts1,
-                        List<HTypeGuard> bailouts2) {
+  void startBailoutCase(List<HBailoutTarget> bailouts1,
+                        List<HBailoutTarget> bailouts2) {
     indent--;
     if (!defaultClauseUsedInBailoutStack.last() &&
         bailouts1.length + bailouts2.length >= 2) {
@@ -3021,14 +3034,14 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     indent++;
   }
 
-  void handleBailoutCase(List<HTypeGuard> guards) {
-    if (!defaultClauseUsedInBailoutStack.last() && guards.length >= 2) {
+  void handleBailoutCase(List<HBailoutTarget> targets) {
+    if (!defaultClauseUsedInBailoutStack.last() && targets.length >= 2) {
       addIndented('default:\n');
       int len = defaultClauseUsedInBailoutStack.length;
       defaultClauseUsedInBailoutStack[len - 1] = true;
     } else {
-      for (int i = 0, len = guards.length; i < len; i++) {
-        addIndented('case ${guards[i].state}:\n');
+      for (int i = 0, len = targets.length; i < len; i++) {
+        addIndented('case ${targets[i].state}:\n');
       }
     }
   }
@@ -3050,8 +3063,8 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void beginLoop(HBasicBlock block) {
     String newLabel = pushLabel();
-    if (block.hasGuards()) {
-      startBailoutCase(block.guards, const <HTypeGuard>[]);
+    if (block.hasBailoutTargets()) {
+      startBailoutCase(block.bailoutTargets, const <HBailoutTarget>[]);
     }
 
     addIndentation();
@@ -3063,7 +3076,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     buffer.add('$newLabel: while (true) {\n');
     indent++;
 
-    if (block.hasGuards()) {
+    if (block.hasBailoutTargets()) {
       startBailoutSwitch();
       if (loopInformation.target !== null) {
         breakAction[loopInformation.target] = (TargetElement target) {
@@ -3076,7 +3089,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void endLoop(HBasicBlock block) {
     popLabel();
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
-    if (header.hasGuards()) {
+    if (header.hasBailoutTargets()) {
       endBailoutSwitch();
       HLoopInformation info = header.loopInformation;
       if (info.target != null) breakAction.remove(info.target);
@@ -3094,24 +3107,24 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void generateIf(HIf node, HIfBlockInformation info) {
     HStatementInformation thenGraph = info.thenGraph;
     HStatementInformation elseGraph = info.elseGraph;
-    bool thenHasGuards = thenGraph.start.hasGuards();
-    bool elseHasGuards = elseGraph.start.hasGuards();
+    bool thenHasGuards = thenGraph.start.hasBailoutTargets();
+    bool elseHasGuards = elseGraph.start.hasBailoutTargets();
     bool hasGuards = thenHasGuards || elseHasGuards;
     if (!hasGuards) return super.generateIf(node, info);
 
     int elseKind = analyzeGraphForCodegen(elseGraph);
     bool emptyElse = elseKind == SsaCodeGenerator.EMPTY;
 
-    startBailoutCase(thenGraph.start.guards,
-        emptyElse ? const <HTypeGuard>[] : elseGraph.start.guards);
+    startBailoutCase(thenGraph.start.bailoutTargets,
+        emptyElse ? const <HBailoutTarget>[] : elseGraph.start.bailoutTargets);
 
     addIndented('if (');
     int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
     // TODO(ngeoffray): Put the condition initialization in the
     // [setup] buffer.
-    List<HTypeGuard> guards = node.thenBlock.guards;
-    for (int i = 0, len = guards.length; i < len; i++) {
-      buffer.add('state == ${guards[i].state} || ');
+    List<HBailoutTarget> targets = node.thenBlock.bailoutTargets;
+    for (int i = 0, len = targets.length; i < len; i++) {
+      buffer.add('state == ${targets[i].state} || ');
     }
     buffer.add('(state == 0 && ');
     precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
@@ -3138,21 +3151,21 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasGuards()) {
+    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
       indent--;
-      handleBailoutCase(labeledBlockInfo.body.start.guards);
+      handleBailoutCase(labeledBlockInfo.body.start.bailoutTargets);
       indent++;
     }
   }
 
   void startLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasGuards()) {
+    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
       startBailoutSwitch();
     }
   }
 
   void endLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
-    if (labeledBlockInfo.body.start.hasGuards()) {
+    if (labeledBlockInfo.body.start.hasBailoutTargets()) {
       endBailoutSwitch();
     }
   }
