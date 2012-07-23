@@ -679,10 +679,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
-    HIndex newInstruction = new HIndex(node.target, node.receiver, index);
-    node.block.addBefore(node, newInstruction);
-    node.block.rewrite(node, newInstruction);
-    node.block.remove(node);
+    node.changeUse(node.index, index);
   }
 
   void visitIndexAssign(HIndexAssign node) {
@@ -693,11 +690,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
-    HIndexAssign newInstruction =
-        new HIndexAssign(node.target, node.receiver, index, node.value);
-    node.block.addBefore(node, newInstruction);
-    node.block.rewrite(node, newInstruction);
-    node.block.remove(node);
+    node.changeUse(node.index, index);
   }
 }
 
