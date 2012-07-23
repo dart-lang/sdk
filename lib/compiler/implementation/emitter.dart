@@ -1007,11 +1007,12 @@ $mainEnsureGetter
       mainCall = '${namer.isolateAccess(main)}()';
     }
     buffer.add("""
-if (typeof window != 'undefined' && typeof document != 'undefined' &&
-    window.addEventListener && document.readyState == 'loading') {
-  window.addEventListener('DOMContentLoaded', function(e) {
-    ${mainCall};
-  });
+if (typeof document != 'undefined' && document.readyState != 'complete') {
+  document.addEventListener('readystatechange', function () {
+    if (document.readyState == 'complete') {
+      ${mainCall};
+    }
+  }, false);
 } else {
   ${mainCall};
 }
