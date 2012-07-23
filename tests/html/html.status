@@ -10,7 +10,6 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-blob_constructor_test: Fail          # custom Blob constructor not implemented.
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
 typed_arrays_arraybuffer_test: Fail  # Issue 2682 constructor not implemented.
 mutationobserver_test: Fail          # Issue 3967 constructor, observe() not implemented.
