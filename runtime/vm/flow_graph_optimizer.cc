@@ -11,16 +11,10 @@
 namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, trace_optimization);
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
-  if (FLAG_print_flow_graph) {
-    OS::Print("After Optimizations:\n");
-    FlowGraphPrinter printer(Function::Handle(), block_order_);
-    printer.PrintBlocks();
-  }
 }
 
 

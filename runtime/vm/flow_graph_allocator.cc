@@ -470,22 +470,22 @@ void FlowGraphAllocator::BuildLiveRanges() {
       // TODO(vegorov): these uses should _not_ require register but for now
       // they do because we don't support spilling at all.
       if (current->env() != NULL) {
-        const GrowableArray<Value*>& values = current->env()->values();
-        GrowableArray<Location>* locations = current->env()->locations();
+        Environment* env = current->env();
+        const GrowableArray<Value*>& values = env->values();
 
         for (intptr_t j = 0; j < values.length(); j++) {
           Value* val = values[j];
           if (val->IsUse()) {
-            locations->Add(Location::RequiresRegister());
+            env->AddLocation(Location::RequiresRegister());
             const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
             UseValue(current,
                      block->start_pos(),
                      pos,
                      use,
-                     &(*locations)[j],
+                     env->LocationSlotAt(j),
                      true);
           } else {
-            locations->Add(Location::NoLocation());
+            env->AddLocation(Location::NoLocation());
           }
         }
       }
@@ -497,7 +497,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
           BlockLocation(temp, pos);
         } else if (temp.IsUnallocated()) {
           UseInterval* temp_interval = new UseInterval(
-            kTempVirtualRegister, pos, pos + 1, NULL);
+              kTempVirtualRegister, pos, pos + 1, NULL);
           temp_interval->AddUse(NULL, pos, locs->temp_slot(j));
           AddToUnallocated(temp_interval);
         } else {

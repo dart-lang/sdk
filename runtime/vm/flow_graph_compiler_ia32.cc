@@ -42,10 +42,9 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
             Address(EBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
 
     const GrowableArray<Value*>& values = deoptimization_env_->values();
-    const GrowableArray<Location>* locations = deoptimization_env_->locations();
 
     for (intptr_t i = 0; i < values.length(); i++) {
-      Location loc = (*locations)[i];
+      const Location loc = deoptimization_env_->LocationAt(i);
       if (loc.IsInvalid()) {
         ASSERT(values[i]->IsConstant());
         __ PushObject(values[i]->AsConstant()->value());

@@ -2482,12 +2482,16 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  GrowableArray<Location>* locations() {
-    return &locations_;
+  void AddLocation(Location value) {
+    locations_.Add(value);
   }
 
-  const GrowableArray<Location>* locations() const {
-    return &locations_;
+  Location LocationAt(intptr_t ix) const {
+    return locations_[ix];
+  }
+
+  Location* LocationSlotAt(intptr_t ix) const {
+    return & locations_[ix];
   }
 
   void PrintTo(BufferFormatter* f) const;

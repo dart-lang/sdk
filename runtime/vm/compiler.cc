@@ -34,6 +34,7 @@ DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
+DECLARE_FLAG(bool, print_flow_graph);
 DECLARE_FLAG(bool, use_ssa);
 
 
@@ -171,6 +172,11 @@ static bool CompileParsedFunctionHelper(
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(block_order, &graph_builder);
           allocator.AllocateRegisters();
+        }
+        if (FLAG_print_flow_graph) {
+          OS::Print("After Optimizations:\n");
+          FlowGraphPrinter printer(Function::Handle(), block_order);
+          printer.PrintBlocks();
         }
       }
     }
