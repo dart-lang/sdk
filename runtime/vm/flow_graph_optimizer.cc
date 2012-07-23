@@ -298,6 +298,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
   }
 
   if (recognized_kind == MethodRecognizer::kStringBaseLength) {
+    if (!HasOneTarget(ic_data)) {
+      // Target is not only StringBase_get_length.
+      return false;
+    }
     ASSERT(HasOneTarget(ic_data));
     LoadVMFieldComp* load = new LoadVMFieldComp(
         comp->InputAt(0),
