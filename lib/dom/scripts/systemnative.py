@@ -939,7 +939,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INVOCATION=invocation_template)
 
     if 'ImplementedBy' in attributes:
-      arguments.insert(0, 'receiver')
+      # FIXME: rather ugly way to solve the problem.
+      index = 1 if 'ScriptExecutionContext' == attributes.get('CallWith') else 0
+      arguments.insert(index, 'receiver')
       self._cpp_impl_includes.add('"%s.h"' % attributes['ImplementedBy'])
 
     return emitter.Format(invocation_template,
