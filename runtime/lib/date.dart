@@ -196,7 +196,7 @@ class DateImplementation implements Date {
       if (absN >= 1000) return "$n";
       if (absN >= 100) return "${sign}0$absN";
       if (absN >= 10) return "${sign}00$absN";
-      if (absN >= 1) return "${sign}000$absN";
+      return "${sign}000$absN";
     }
     String threeDigits(int n) {
       if (n >= 100) return "${n}";
