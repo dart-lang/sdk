@@ -7301,6 +7301,26 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
   EventListenerList get unload() => this['unload'];
 }
 
+class _GamepadImpl implements Gamepad native "*Gamepad" {
+
+  final List<num> axes;
+
+  final List<num> buttons;
+
+  final String id;
+
+  final int index;
+
+  final int timestamp;
+}
+
+class _GamepadListImpl implements GamepadList native "*GamepadList" {
+
+  final int length;
+
+  _GamepadImpl item(int index) native;
+}
+
 class _GeolocationImpl implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
@@ -7623,8 +7643,6 @@ class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBData
   static final int TIMEOUT_ERR = 23;
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
-
-  static final int TYPE_ERR = 21;
 
   static final int UNKNOWN_ERR = 1;
 
@@ -9366,13 +9384,13 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   final _BatteryManagerImpl webkitBattery;
 
+  final _GamepadListImpl webkitGamepads;
+
   final _PointerLockImpl webkitPointer;
 
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
-
-  void registerProtocolHandler(String scheme, String url, String title) native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
@@ -14301,6 +14319,17 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent native "*Stor
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageImpl storageAreaArg) native;
 }
 
+class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
+
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
+}
+
 class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HTMLStyleElement" {
 
   bool disabled;
@@ -16649,6 +16678,8 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _IDBFactoryImpl webkitIndexedDB;
 
   final _NotificationCenterImpl webkitNotifications;
+
+  final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
 
@@ -24578,6 +24609,45 @@ interface FrameSetElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Gamepad
+interface Gamepad {
+
+  /** @domName Gamepad.axes */
+  final List<num> axes;
+
+  /** @domName Gamepad.buttons */
+  final List<num> buttons;
+
+  /** @domName Gamepad.id */
+  final String id;
+
+  /** @domName Gamepad.index */
+  final int index;
+
+  /** @domName Gamepad.timestamp */
+  final int timestamp;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName GamepadList
+interface GamepadList {
+
+  /** @domName GamepadList.length */
+  final int length;
+
+  /** @domName GamepadList.item */
+  Gamepad item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Geolocation
 interface Geolocation {
 
@@ -24930,8 +25000,6 @@ interface IDBDatabaseException {
   static final int TIMEOUT_ERR = 23;
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
-
-  static final int TYPE_ERR = 21;
 
   static final int UNKNOWN_ERR = 1;
 
@@ -27085,6 +27153,9 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
+  /** @domName Navigator.webkitGamepads */
+  final GamepadList webkitGamepads;
+
   /** @domName Navigator.webkitPointer */
   final PointerLock webkitPointer;
 
@@ -27093,9 +27164,6 @@ interface Navigator {
 
   /** @domName Navigator.javaEnabled */
   bool javaEnabled();
-
-  /** @domName Navigator.registerProtocolHandler */
-  void registerProtocolHandler(String scheme, String url, String title);
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -32601,6 +32669,46 @@ interface StorageEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StorageInfo
+interface StorageInfo {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  /** @domName StorageInfo.queryUsageAndQuota */
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
+
+  /** @domName StorageInfo.requestQuota */
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoErrorCallback(DOMException error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 typedef bool StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35353,6 +35461,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  final StorageInfo webkitStorageInfo;
 
   /** @domName DOMWindow.window */
   final Window window;
