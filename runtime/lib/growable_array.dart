@@ -23,15 +23,7 @@ class GrowableObjectArray<T> implements List<T> {
     if (length == 0) {
       return;
     }
-    if (length < 0) {
-      throw new IllegalArgumentException("negative length $length");
-    }
-    if (start < 0 || start >= this.length) {
-      throw new IndexOutOfRangeException(start);
-    }
-    if (start + length > this.length) {
-      throw new IndexOutOfRangeException(start + length);
-    }
+    Arrays.rangeCheck(this, start, length);
     Arrays.copy(this,
                 start + length,
                 this,

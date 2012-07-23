@@ -78,6 +78,8 @@ class Heap {
 
   // Heap contains the specified address.
   bool Contains(uword addr) const;
+  bool NewContains(uword addr) const;
+  bool OldContains(uword addr) const;
   bool CodeContains(uword addr) const;
   bool StubCodeContains(uword addr) const;
 

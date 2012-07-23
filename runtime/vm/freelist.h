@@ -7,6 +7,7 @@
 
 #include "platform/assert.h"
 #include "vm/allocation.h"
+#include "vm/bit_set.h"
 #include "vm/raw_object.h"
 
 namespace dart {
@@ -78,6 +79,10 @@ class FreeList {
 
   void Reset();
 
+  intptr_t Length(int index) const;
+
+  void Print() const;
+
  private:
   static const int kNumLists = 128;
 
@@ -87,6 +92,8 @@ class FreeList {
   FreeListElement* DequeueElement(intptr_t index);
 
   void SplitElementAfterAndEnqueue(FreeListElement* element, intptr_t size);
+
+  BitSet<kNumLists + 1> free_map_;
 
   FreeListElement* free_lists_[kNumLists + 1];
 

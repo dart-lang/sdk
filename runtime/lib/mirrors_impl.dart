@@ -183,7 +183,6 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     implements InstanceMirror {
   _LocalInstanceMirrorImpl(ref,
                            this._class,
-                           this._hasSimpleValue,
                            this._reflectee) : super(ref) {}
 
   var _class;
@@ -197,12 +196,11 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   // LocalInstanceMirrors always reflect local instances
   bool hasReflectee = true; 
 
-  var _hasSimpleValue;
   var _reflectee;
   get reflectee() => _reflectee;
 
   String toString() {
-    if (_hasSimpleValue) {
+    if (isSimpleValue(_reflectee)) {
       if (_reflectee is String) {
         return "InstanceMirror on <'${_dartEscape(_reflectee)}'>";
       } else {
@@ -372,6 +370,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     implements MethodMirror {
   _LocalMethodMirrorImpl(this.simpleName,
                          this._owner,
+                         this._parameters,
                          this.isStatic,
                          this.isAbstract,
                          this.isGetter,
@@ -412,9 +411,25 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   final bool isRedirectingConstructor;
   final bool isFactoryConstructor;
 
+  List<ParameterMirror> _parameters;
+  List<ParameterMirror> parameters() => _parameters;
+
   String toString() {
     return "MethodMirror on '$simpleName'";
   }
+}
+
+class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
+    implements ParameterMirror {
+  // TODO(rmacnak): Fill these mirrors will real information
+  _LocalParameterMirrorImpl(this.isOptional) 
+    : super(null, null, false, false) {}
+  
+  final bool isOptional;
+
+  TypeMirror get type() => null;
+  String get defaultValue() => null;
+  bool get hasDefaultValue() => null;
 }
 
 class _LocalVariableMirrorImpl extends _LocalMirrorImpl

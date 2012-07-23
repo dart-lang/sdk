@@ -13,7 +13,7 @@
 
 namespace dart {
 
-DEFINE_FLAG(bool, print_stack_trace_at_throw, false,
+DEFINE_FLAG(bool, print_stacktrace_at_throw, false,
     "Prints a stack trace everytime a throw occurs.");
 
 
@@ -143,7 +143,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.
   Stacktrace& stacktrace = Stacktrace::Handle();
-  if (stack_frame_pcs.length() > 0) {
+  if (!stack_frame_pcs.is_empty()) {
     if (existing_stacktrace.IsNull()) {
       stacktrace = Stacktrace::New(stack_frame_pcs);
     } else {
@@ -153,7 +153,7 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   } else {
     stacktrace ^= existing_stacktrace.raw();
   }
-  if (FLAG_print_stack_trace_at_throw) {
+  if (FLAG_print_stacktrace_at_throw) {
     OS::Print("Exception '%s' thrown:\n", exception.ToCString());
     OS::Print("%s\n", stacktrace.ToCString());
   }
@@ -284,7 +284,7 @@ void Exceptions::CreateAndThrowTypeError(intptr_t location,
 
   // Type errors in the core library may be difficult to diagnose.
   // Print type error information before throwing the error when debugging.
-  if (FLAG_print_stack_trace_at_throw) {
+  if (FLAG_print_stacktrace_at_throw) {
     if (!malformed_error.IsNull()) {
       OS::Print("%s\n", malformed_error.ToCString());
     }

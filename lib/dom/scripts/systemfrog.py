@@ -160,10 +160,8 @@ class FrogInterfaceGenerator(BaseGenerator):
       return False
     if self._system._database.HasInterface(type_name):
       interface = self._system._database.GetInterface(type_name)
-      if RecognizeCallback(interface):
-        # Callbacks are typedef functions so don't have a class.
-        return False
-      return True
+      # Callbacks are typedef functions so don't have a class.
+      return 'Callback' not in interface.ext_attrs
     return False
 
   def _NarrowToImplementationType(self, type_name):

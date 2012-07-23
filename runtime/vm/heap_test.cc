@@ -13,7 +13,7 @@ namespace dart {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 TEST_CASE(OldGC) {
   const char* kScriptChars =
-  "void main() {\n"
+  "main() {\n"
   "  return [1, 2, 3];\n"
   "}\n";
   FLAG_verbose_gc = true;
@@ -33,7 +33,7 @@ TEST_CASE(OldGC) {
 
 TEST_CASE(LargeSweep) {
   const char* kScriptChars =
-  "void main() {\n"
+  "main() {\n"
   "  return new List(8 * 1024 * 1024);\n"
   "}\n";
   FLAG_verbose_gc = true;

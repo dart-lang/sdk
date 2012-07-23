@@ -324,18 +324,21 @@ void DebuggerConnectionHandler::HandleStepOverCmd(const char* json_msg) {
 
 
 static void FormatEncodedString(dart::TextBuffer* buf, Dart_Handle str) {
-  ASSERT(Dart_IsString8(str));
   intptr_t str_len = 0;
   Dart_Handle res = Dart_StringLength(str, &str_len);
   ASSERT_NOT_ERROR(res);
-  uint8_t* codepoints = reinterpret_cast<uint8_t*>(malloc(str_len));
+  uint32_t* codepoints =
+      reinterpret_cast<uint32_t*>(malloc(str_len * sizeof(uint32_t)));
   ASSERT(codepoints != NULL);
   intptr_t actual_len = str_len;
-  res = Dart_StringGet8(str, codepoints, &actual_len);
+  res = Dart_StringGet32(str, codepoints, &actual_len);
+  ASSERT_NOT_ERROR(res);
   ASSERT(str_len == actual_len);
-  buf->Printf("\"");
-  buf->PrintJsonString8(codepoints, str_len);
-  buf->Printf("\"");
+  buf->AddChar('\"');
+  for (int i = 0; i < str_len; i++) {
+    buf->AddEscapedChar(codepoints[i]);
+  }
+  buf->AddChar('\"');
   free(codepoints);
 }
 
@@ -540,12 +543,19 @@ static const char* FormatLibraryProps(dart::TextBuffer* buf,
   buf->Printf("{\"url\":");
   FormatEncodedString(buf, url);
 
+  // Whether debugging is enabled.
+  bool is_debuggable = false;
+  Dart_Handle res = Dart_GetLibraryDebuggable(lib_id, &is_debuggable);
+  RETURN_IF_ERROR(res);
+  buf->Printf(",\"debuggingEnabled\":%s",
+              is_debuggable ? "\"true\"" : "\"false\"");
+
   // Imports and prefixes.
   Dart_Handle import_list = Dart_GetLibraryImports(lib_id);
   RETURN_IF_ERROR(import_list);
   ASSERT(Dart_IsList(import_list));
   intptr_t list_length = 0;
-  Dart_Handle res = Dart_ListLength(import_list, &list_length);
+  res = Dart_ListLength(import_list, &list_length);
   RETURN_IF_ERROR(res);
   buf->Printf(",\"imports\":[");
   for (int i = 0; i + 1 < list_length; i += 2) {
@@ -826,6 +836,38 @@ void DebuggerConnectionHandler::HandleGetLibPropsCmd(const char* json_msg) {
 }
 
 
+void DebuggerConnectionHandler::HandleSetLibPropsCmd(const char* json_msg) {
+  int msg_id = msgbuf_->MessageId();
+  intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
+  const char* enable_request = msgbuf_->GetStringParam("debuggingEnabled");
+  bool enable;
+  if (strcmp(enable_request, "true") == 0) {
+    enable = true;
+  } else if (strcmp(enable_request, "false") == 0) {
+    enable = false;
+  } else {
+    SendError(msg_id, "illegal argument for 'debuggingEnabled'");
+    return;
+  }
+  Dart_Handle res = Dart_SetLibraryDebuggable(lib_id, enable);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+  bool enabled = false;
+  res = Dart_GetLibraryDebuggable(lib_id, &enabled);
+  if (Dart_IsError(res)) {
+    SendError(msg_id, Dart_GetError(res));
+    return;
+  }
+  dart::TextBuffer msg(64);
+  msg.Printf("{\"id\":%d, \"result\": {\"debuggingEnabled\": \"%s\"}}",
+             msg_id,
+             enabled ? "true" : "false");
+  SendMsg(&msg);
+}
+
+
 void DebuggerConnectionHandler::HandleGetGlobalsCmd(const char* json_msg) {
   int msg_id = msgbuf_->MessageId();
   intptr_t lib_id = msgbuf_->GetIntParam("libraryId");
@@ -852,6 +894,7 @@ void DebuggerConnectionHandler::HandleMessages() {
     { "getLibraries", HandleGetLibrariesCmd },
     { "getClassProperties", HandleGetClassPropsCmd },
     { "getLibraryProperties", HandleGetLibPropsCmd },
+    { "setLibraryProperties", HandleSetLibPropsCmd },
     { "getObjectProperties", HandleGetObjPropsCmd },
     { "getListElements", HandleGetListCmd },
     { "getGlobalVariables", HandleGetGlobalsCmd },

@@ -26,6 +26,16 @@ class StoreBufferBlock {
     return OFFSET_OF(StoreBufferBlock, pointers_);
   }
 
+  void Reset() { top_ = 0; }
+
+  intptr_t Count() const { return top_; }
+
+  uword At(intptr_t i) const {
+    ASSERT(i >= 0);
+    ASSERT(i < top_);
+    return pointers_[i];
+  }
+
   // Add a pointer to the block of pointers. The buffer will be processed if it
   // has been filled by this operation.
   void AddPointer(uword pointer) {
@@ -47,40 +57,58 @@ class StoreBufferBlock {
   uword pointers_[kSize];
 
   friend class StoreBuffer;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreBufferBlock);
 };
 
 
 class StoreBuffer {
  public:
-  StoreBuffer() : dedup_sets_(new DedupSet()) {}
+  // Simple linked list element containing a HashSet of old->new pointers.
+  class DedupSet {
+  public:
+    enum {
+      kSetSize = 1024,
+      kFillRatio = 75
+    };
+
+    explicit DedupSet(DedupSet* next)
+        : next_(next), set_(new HashSet(kSetSize, kFillRatio)) {}
+    ~DedupSet() {
+      delete set_;
+    }
+
+    DedupSet* next() const { return next_; }
+    HashSet* set() const { return set_; }
+
+  private:
+    DedupSet* next_;
+    HashSet* set_;
+
+    DISALLOW_COPY_AND_ASSIGN(DedupSet);
+  };
+
+  StoreBuffer() : dedup_sets_(new DedupSet(NULL)), count_(1) {}
   ~StoreBuffer();
+
+  void Reset();
 
   void AddPointer(uword address);
 
   void ProcessBlock(StoreBufferBlock* block);
 
+  DedupSet* DedupSets() {
+    DedupSet* result = dedup_sets_;
+    dedup_sets_ = new DedupSet(NULL);
+    count_ = 1;
+    return result;
+  }
+
  private:
-  // Simple linked list element containing a HashSet of old->new pointers.
-  class DedupSet {
-   public:
-    enum {
-      kSetSize = 1024,
-      kFillRatio = 80
-    };
-
-    DedupSet() : next_(NULL), set_(new HashSet(kSetSize, kFillRatio)) {}
-    ~DedupSet() {
-      delete set_;
-    }
-
-    DedupSet* next_;
-    HashSet* set_;
-
-   private:
-    DISALLOW_COPY_AND_ASSIGN(DedupSet);
-  };
-
   DedupSet* dedup_sets_;
+  intptr_t count_;
+
+  DISALLOW_COPY_AND_ASSIGN(StoreBuffer);
 };
 
 }  // namespace dart

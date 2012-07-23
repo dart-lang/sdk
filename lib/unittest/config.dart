@@ -11,6 +11,8 @@
  * this class.
  */
 class Configuration {
+  TestCase currentTestCase = null;
+
   /**
    * Called as soon as the unittest framework becomes initialized. This is done
    * even before tests are added to the test framework. It might be used to
@@ -26,11 +28,39 @@ class Configuration {
   void onStart() {}
 
   /**
+   * Called when each test starts. Useful to show intermediate progress on
+   * a test suite.
+   */
+  void onTestStart(TestCase testCase) {
+    currentTestCase = testCase;
+  }
+
+  /**
    * Called when each test is completed. Useful to show intermediate progress on
    * a test suite.
    */
-  void onTestResult(TestCase testCase) {}
+  void onTestResult(TestCase testCase) {
+    currentTestCase = null;
+  }
 
+  /**
+   * Can be called by tests to log status. Tests should use this
+   * instead of print. Subclasses should not override this; they
+   * should instead override logMessage which is passed the test case.
+   */
+  void log(String message) {
+    if (currentTestCase.id == _currentTest) {
+      logMessage(currentTestCase, message);
+    }
+  }
+
+  /**
+   * Handles the logging of messages by a test case. The default in
+   * this base configuration is to call print();
+   */
+  void logMessage(TestCase testCase, String message) {
+    print(message);
+  }
   /**
    * Called with the result of all test cases. The default implementation prints
    * the result summary using the built-in [print] command. Browser tests

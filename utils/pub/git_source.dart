@@ -40,19 +40,23 @@ class GitSource extends Source {
     return isGitInstalled.chain((installed) {
       if (!installed) {
         throw new Exception(
-            "Cannot install '${id.name}' from Git (${id.description}).\n"
+            "Cannot install '${id.name}' from Git (${_getUrl(id)}).\n"
             "Please ensure Git is correctly installed.");
       }
 
       return ensureDir(join(systemCacheRoot, 'cache'));
     }).chain((_) => _ensureRepoCache(id))
-      .chain((_) => _revisionCachePath(id, "HEAD"))
+      .chain((_) => _revisionCachePath(id))
       .chain((path) {
       revisionCachePath = path;
       return exists(revisionCachePath);
     }).chain((exists) {
       if (exists) return new Future.immediate(null);
       return _clone(_repoCachePath(id), revisionCachePath);
+    }).chain((_) {
+      var ref = _getRef(id);
+      if (ref == null) return new Future.immediate(null);
+      return _checkOut(revisionCachePath, ref);
     }).chain((_) => Package.load(revisionCachePath, systemCache.sources));
   }
 
@@ -61,15 +65,38 @@ class GitSource extends Source {
    * it'll be cloned.
    */
   String packageName(description) =>
-      basename(description).replaceFirst(const RegExp("\.git\$"), "");
+    basename(_getUrl(description)).replaceFirst(const RegExp("\.git\$"), "");
 
   /**
    * Ensures [description] is a Git URL.
    */
   void validateDescription(description) {
-    if (description is! String) {
-      throw new FormatException("The description must be a git URL.");
+    // A single string is assumed to be a Git URL.
+    if (description is String) return;
+    if (description is! Map || !description.containsKey('url')) {
+      throw new FormatException("The description must be a Git URL or a map "
+          "with a 'url' key.");
     }
+    description = new Map.from(description);
+    description.remove('url');
+    description.remove('ref');
+
+    if (!description.isEmpty()) {
+      var plural = description.length > 1;
+      var keys = Strings.join(description.keys, ', ');
+      throw new FormatException("Invalid key${plural ? 's' : ''}: $keys.");
+    }
+  }
+
+  /**
+   * Two Git descriptions are equal if both their URLs and their refs are equal.
+   */
+  bool descriptionsEqual(description1, description2) {
+    // TODO(nweiz): Do we really want to throw an error if you have two
+    // dependencies on some repo, one of which specifies a ref and one of which
+    // doesn't? If not, how do we handle that case in the version solver?
+    return _getUrl(description1) == _getUrl(description2) &&
+      _getRef(description1) == _getRef(description2);
   }
 
   /**
@@ -81,7 +108,7 @@ class GitSource extends Source {
   Future _ensureRepoCache(PackageId id) {
     var path = _repoCachePath(id);
     return exists(path).chain((exists) {
-      if (!exists) return _clone(id.description, path);
+      if (!exists) return _clone(_getUrl(id), path);
 
       return runProcess("git", ["pull", "--force"], workingDir: path,
           pipeStdout: true, pipeStderr: true).transform((result) {
@@ -107,7 +134,9 @@ class GitSource extends Source {
    * Returns the path to the revision-specific cache of [id] at [ref], which can
    * be any Git ref.
    */
-  Future<String> _revisionCachePath(PackageId id, String ref) {
+  Future<String> _revisionCachePath(PackageId id) {
+    var ref = _getRef(id);
+    if (ref == null) ref = 'HEAD';
     return _revisionAt(id, ref).transform((rev) {
       var revisionCacheName = '${id.name}-$rev';
       return join(systemCacheRoot, revisionCacheName);
@@ -126,11 +155,53 @@ class GitSource extends Source {
   }
 
   /**
+   * Checks out the reference [ref] in [repoPath].
+   */
+  Future _checkOut(String repoPath, String ref) {
+    return runProcess("git", ["checkout", ref], pipeStdout: true,
+        pipeStderr: true, workingDir: repoPath).transform((result) {
+      if (!result.success) throw 'Git failed.';
+      return null;
+    });
+  }
+
+  /**
    * Returns the path to the canonical clone of the repository referred to by
    * [id] (the one in `<system cache>/git/cache`).
    */
   String _repoCachePath(PackageId id) {
-    var repoCacheName = '${id.name}-${sha1(id.description)}';
+    var repoCacheName = '${id.name}-${sha1(_getUrl(id))}';
     return join(systemCacheRoot, 'cache', repoCacheName);
+  }
+
+  /**
+   * Returns the repository URL for [id].
+   *
+   * [description] may be a description or a [PackageId].
+   */
+  String _getUrl(description) {
+    description = _getDescription(description);
+    if (description is String) return description;
+    return description['url'];
+  }
+
+  /**
+   * Returns the commit ref for [id], or null if none is given.
+   *
+   * [description] may be a description or a [PackageId].
+   */
+  String _getRef(description) {
+    description = _getDescription(description);
+    if (description is String) return null;
+    return description['ref'];
+  }
+
+  /**
+   * Returns [description] if it's a description, or [PackageId.description] if
+   * it's a [PackageId].
+   */
+  _getDescription(description) {
+    if (description is PackageId) return description.description;
+    return description;
   }
 }

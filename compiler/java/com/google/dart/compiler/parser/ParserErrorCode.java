@@ -48,7 +48,7 @@ public enum ParserErrorCode implements ErrorCode {
   // TODO(zundel): error message needs JUnit test
   EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),
-  EXPECTED_FUNCTION_STATEMENT_BODY("Expected function statment body"),
+  EXPECTED_FUNCTION_STATEMENT_BODY("Expected function statement body"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_IDENTIFIER("Expected identifier"),
   // TODO(zundel): error message needs JUnit test

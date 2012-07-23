@@ -57,7 +57,7 @@ class FrameRegisterAllocator : public ValueObject {
   // Returns true if all live values are stored on the stack.
   // Code generator expects no live values in registers at call sites and
   // branches.
-  bool IsSpilled() const { return stack_.length() == 0; }
+  bool IsSpilled() const { return stack_.is_empty(); }
 
   // Popuplate deoptimization stub with live registers to ensure
   // that they will be pushed to the stack when deoptimization happens.
@@ -123,10 +123,17 @@ class ParallelMoveResolver : public ValueObject {
   // Verify the move list before performing moves.
   void Verify();
 
+  // Helpers for non-trivial source-destination combinations that cannot
+  // be handled by a single instruction.
+  void MoveMemoryToMemory(const Address& dst, const Address& src);
+  void StoreObject(const Address& dst, const Object& obj);
+  void Exchange(Register reg, const Address& mem);
+  void Exchange(const Address& mem1, const Address& mem2);
+
   FlowGraphCompiler* compiler_;
 
   // List of moves not yet resolved.
-  GrowableArray<MoveOperands> moves_;
+  GrowableArray<MoveOperands*> moves_;
 };
 
 

@@ -204,6 +204,16 @@ class HInstructionStringifier implements HVisitor<String> {
     return "$prefix${instruction.id}";
   }
 
+  String visitBailoutTarget(HBailoutTarget node) {
+    StringBuffer envBuffer = new StringBuffer();
+    List<HInstruction> inputs = node.inputs;
+    for (int i = 0; i < inputs.length; i++) {
+      envBuffer.add(" ${temporaryId(inputs[i])}");
+    }
+    String on = node.isEnabled ? "enabled" : "disabled";
+    return "BailoutTarget($on): id: ${node.state} env: $envBuffer";
+  }
+
   String visitBoolify(HBoolify node) {
     return "Boolify: ${temporaryId(node.inputs[0])}";
   }
@@ -479,16 +489,21 @@ class HInstructionStringifier implements HVisitor<String> {
     } else {
       throw new CompilerCancelledException('Unexpected type guard: $type');
     }
+    HInstruction guarded = node.guarded;
+    HInstruction bailoutTarget = node.bailoutTarget;
     StringBuffer envBuffer = new StringBuffer();
     List<HInstruction> inputs = node.inputs;
-    for (int i = 0; i < inputs.length; i++) {
-      if (inputs[i] !== node.guarded) {
-        envBuffer.add(" ${temporaryId(inputs[i])}");
-      }
+    assert(inputs.length >= 2);
+    assert(inputs[0] == guarded);
+    assert(inputs[1] == bailoutTarget);
+    for (int i = 2; i < inputs.length; i++) {
+      envBuffer.add(" ${temporaryId(inputs[i])}");
     }
     String on = node.isEnabled ? "enabled" : "disabled";
-    String id = temporaryId(node.guarded);
-    return "TypeGuard($on): $id is $type env: $envBuffer";
+    String guardedId = temporaryId(node.guarded);
+    String bailoutId = temporaryId(node.bailoutTarget);
+    return "TypeGuard($on): $guardedId is $type bailout: $bailoutId "
+           "env: $envBuffer";
   }
 
   String visitIs(HIs node) {

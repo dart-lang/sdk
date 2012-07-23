@@ -36,14 +36,14 @@ List<ParameterMirror> _parametersFromFunctionSignature(
   var parameters = <ParameterMirror>[];
   Link<Element> link = signature.requiredParameters;
   while (!link.isEmpty()) {
-    parameters.add(new Dart2JsParameterMirror(system, method,
-                                              link.head, false));
+    parameters.add(new Dart2JsParameterMirror(
+        system, method, link.head, false));
     link = link.tail;
   }
   link = signature.optionalParameters;
   while (!link.isEmpty()) {
-    parameters.add(new Dart2JsParameterMirror(system, method,
-                                              link.head, true));
+    parameters.add(new Dart2JsParameterMirror(
+        system, method, link.head, true));
     link = link.tail;
   }
   return parameters;
@@ -316,38 +316,38 @@ class Dart2JsCompilation implements Compilation {
     }
   }
 
-  Dart2JsCompilation(String script, String libraryRoot,
-                     [String packageRoot, List<String> opts = const <String>[]])
+  Dart2JsCompilation(Path script, Path libraryRoot,
+                     [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
-    var libraryUri = cwd.resolve(nativeToUriPath(libraryRoot));
+    var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
-      packageUri = cwd.resolve(nativeToUriPath(packageRoot));
+      packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
     }
     _compiler = new api.Compiler(provider, handler,
         libraryUri, packageUri, <String>[]);
-    var scriptUri = cwd.resolve(nativeToUriPath(script));
+    var scriptUri = cwd.resolve(script.toString());
     // TODO(johnniwinther): Detect file not found
     _compiler.run(scriptUri);
   }
 
-  Dart2JsCompilation.library(List<String> libraries, String libraryRoot,
-                     [String packageRoot, List<String> opts = const []])
+  Dart2JsCompilation.library(List<Path> libraries, Path libraryRoot,
+                     [Path packageRoot, List<String> opts = const <String>[]])
       : cwd = getCurrentDirectory(), sourceFiles = <SourceFile>{} {
-    var libraryUri = cwd.resolve(nativeToUriPath(libraryRoot));
+    var libraryUri = cwd.resolve(libraryRoot.toString());
     var packageUri;
     if (packageRoot !== null) {
-      packageUri = cwd.resolve(nativeToUriPath(packageRoot));
+      packageUri = cwd.resolve(packageRoot.toString());
     } else {
       packageUri = libraryUri;
     }
     _compiler = new LibraryCompiler(provider, handler,
         libraryUri, packageUri, <String>[]);
     var librariesUri = <Uri>[];
-    for (var library in libraries) {
-      librariesUri.add(cwd.resolve(nativeToUriPath(library)));
+    for (Path library in libraries) {
+      librariesUri.add(cwd.resolve(library.toString()));
       // TODO(johnniwinther): Detect file not found
     }
     _compiler.runList(librariesUri);
@@ -359,6 +359,9 @@ class Dart2JsCompilation implements Compilation {
   }
 
   MirrorSystem mirrors() => new Dart2JsMirrorSystem(_compiler);
+
+  Future<String> compileToJavaScript() =>
+      new Future<String>.immediate(_compiler.assembledCode);
 }
 
 
@@ -565,7 +568,19 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
   final MethodMirror _method;
   final bool _isOptional;
 
-  Dart2JsParameterMirror(Dart2JsMirrorSystem system,
+  factory Dart2JsParameterMirror(Dart2JsMirrorSystem system,
+                                 MethodMirror method,
+                                 VariableElement element,
+                                 bool isOptional) {
+    if (element is FieldParameterElement) {
+      return new Dart2JsFieldParameterMirror(system,
+                                             method, element, isOptional);
+    }
+    return new Dart2JsParameterMirror._normal(system,
+                                              method, element, isOptional);
+  }
+
+  Dart2JsParameterMirror._normal(Dart2JsMirrorSystem system,
                          this._method,
                          VariableElement element,
                          this._isOptional)
@@ -577,18 +592,54 @@ class Dart2JsParameterMirror extends Dart2JsElementMirror
 
   String qualifiedName() => '${_method.qualifiedName()}#${simpleName()}';
 
-  // TODO(johnniwinther): Provide
-  // [:_variableElement.variables.functionSignature:] instead of [:null:].
   TypeMirror type() => _convertTypeToTypeMirror(system,
       _variableElement.computeType(system.compiler),
       system.compiler.dynamicClass.computeType(system.compiler),
-      null);
+      _variableElement.variables.functionSignature);
 
-  String defaultValue() => null; // TODO(johnniwinther): How to compute this?
-
-  bool hasDefaultValue() => false; // TODO(johnniwinther): How to compute this?
+  String defaultValue() {
+    if (hasDefaultValue()) {
+      SendSet expression = _variableElement.cachedNode.asSendSet();
+      return expression.arguments.head.unparse();
+    }
+    return null;
+  }
+  bool hasDefaultValue() {
+    return _variableElement.cachedNode !== null &&
+        _variableElement.cachedNode is SendSet;
+  }
 
   bool isOptional() => _isOptional;
+
+  bool isInitializingFormal() => false;
+
+  FieldMirror initializedField() => null;
+}
+
+class Dart2JsFieldParameterMirror extends Dart2JsParameterMirror {
+
+  Dart2JsFieldParameterMirror(Dart2JsMirrorSystem system,
+                              MethodMirror method,
+                              FieldParameterElement element,
+                              bool isOptional)
+      : super._normal(system, method, element, isOptional);
+
+  FieldParameterElement get _fieldParameterElement() => _element;
+
+  TypeMirror type() {
+    if (_fieldParameterElement.variables.cachedNode.type !== null) {
+      return super.type();
+    }
+    return _convertTypeToTypeMirror(system,
+      _fieldParameterElement.fieldElement.computeType(system.compiler),
+      system.compiler.dynamicClass.computeType(system.compiler),
+      _variableElement.variables.functionSignature);
+  }
+
+  bool isInitializingFormal() => true;
+
+  FieldMirror initializedField() => new Dart2JsFieldMirror(
+      _method.surroundingDeclaration(), _fieldParameterElement.fieldElement);
 }
 
 //------------------------------------------------------------------------------

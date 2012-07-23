@@ -16,9 +16,11 @@ interface Exception default ExceptionImplementation {
  * Exception thrown because of an index outside of the valid range.
  */
 class IndexOutOfRangeException implements Exception {
-  const IndexOutOfRangeException(int this._index);
-  String toString() => "IndexOutOfRangeException: $_index";
-  final int _index;
+  const IndexOutOfRangeException(this._value);
+
+  String toString() => "IndexOutOfRangeException: $_value";
+
+  final _value;
 }
 
 

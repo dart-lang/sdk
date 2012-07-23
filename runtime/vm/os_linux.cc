@@ -161,26 +161,22 @@ int OS::VSNPrint(char* str, size_t size, const char* format, va_list args) {
 }
 
 
-bool OS::StringToInteger(const char* str, int64_t* value) {
+bool OS::StringToInt64(const char* str, int64_t* value) {
   ASSERT(str != NULL && strlen(str) > 0 && value != NULL);
-  bool negative_value = false;
   int32_t base = 10;
+  char* endptr;
+  int i = 0;
   if (str[0] == '-') {
-    negative_value = true;
-    str += 1;
+    i = 1;
   }
-  if ((str[0] == '0') && (str[1] == 'x' || str[1] == 'X') && (str[2] != '\0')) {
+  if ((str[i] == '0') &&
+      (str[i + 1] == 'x' || str[i + 1] == 'X') &&
+      (str[i + 2] != '\0')) {
     base = 16;
   }
   errno = 0;
-  *value = strtoll(str, NULL, base);
-  if (errno == 0) {
-    if (negative_value) {
-      *value = -(*value);
-    }
-    return true;
-  }
-  return false;
+  *value = strtoll(str, &endptr, base);
+  return ((errno == 0) && (endptr != str) && (*endptr == 0));
 }
 
 

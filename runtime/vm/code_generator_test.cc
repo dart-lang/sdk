@@ -286,7 +286,9 @@ CODEGEN_TEST_GENERATE(StaticCallCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -331,7 +333,9 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
@@ -469,7 +473,9 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
   String& url = String::Handle(String::New("dart-test:CompileScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   Library& lib = MakeTestLibrary("TestLib");
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());

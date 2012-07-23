@@ -18,6 +18,7 @@ namespace dart {
 // Forward declarations.
 class Heap;
 class Isolate;
+class ScavengerVisitor;
 
 DECLARE_FLAG(bool, gc_at_alloc);
 
@@ -87,14 +88,15 @@ class Scavenger {
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);
+  void IterateStoreBuffers(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateRoots(Isolate* isolate,
-                    ObjectPointerVisitor* visitor,
+                    ScavengerVisitor* visitor,
                     bool visit_prologue_weak_persistent_handles);
-  void IterateWeakReferences(Isolate* isolate, ObjectPointerVisitor* visitor);
+  void IterateWeakReferences(Isolate* isolate, ScavengerVisitor* visitor);
   void IterateWeakRoots(Isolate* isolate,
                         HandleVisitor* visitor,
                         bool visit_prologue_weak_persistent_handles);
-  void ProcessToSpace(ObjectPointerVisitor* visitor);
+  void ProcessToSpace(ScavengerVisitor* visitor);
   void Epilogue(Isolate* isolate, bool invoke_api_callbacks);
 
   bool IsUnreachable(RawObject** p);

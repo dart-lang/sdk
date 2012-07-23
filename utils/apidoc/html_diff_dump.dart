@@ -26,6 +26,7 @@
 #library('html_diff_dump');
 
 #import('dart:json');
+#import('dart:io');
 #import('html_diff.dart');
 #import('../../lib/dartdoc/mirrors/mirrors.dart');
 #import('../../lib/dartdoc/mirrors/mirrors_util.dart');
@@ -90,7 +91,7 @@ void maybeAddRename(Map<String, String> renamed,
 }
 
 void main() {
-  var libPath = '../../';
+  var libPath = const Path('../../');
   HtmlDiff.initialize(libPath);
   diff = new HtmlDiff();
   diff.run();

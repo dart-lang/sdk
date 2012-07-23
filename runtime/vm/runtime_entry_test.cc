@@ -14,7 +14,8 @@ namespace dart {
 const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const String& function_name = String::ZoneHandle(String::NewSymbol(name));
   const Function& function = Function::ZoneHandle(
-      Function::New(function_name, RawFunction::kFunction, true, false, 0));
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, 0));
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();
   cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);

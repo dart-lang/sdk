@@ -555,6 +555,12 @@ interface HttpRequest default _HttpRequest {
    * be "1.0" or "1.1".
    */
   String get protocolVersion();
+
+  /**
+   * Get information about the client connection. Returns [null] if the socket
+   * isn't available.
+   */
+  HttpConnectionInfo get connectionInfo();
 }
 
 
@@ -619,6 +625,12 @@ interface HttpResponse default _HttpResponse {
    * and the communication should continue with a different protocol.
    */
   DetachedSocket detachSocket();
+
+  /**
+   * Get information about the client connection. Returns [null] if the socket
+   * isn't available.
+   */
+  HttpConnectionInfo get connectionInfo();
 }
 
 
@@ -756,6 +768,12 @@ interface HttpClientConnection {
    * communication should continue with a different protocol.
    */
   DetachedSocket detachSocket();
+
+  /**
+   * Get information about the client connection. Returns [null] if the socket
+   * isn't available.
+   */
+  HttpConnectionInfo get connectionInfo();
 }
 
 
@@ -847,6 +865,15 @@ interface HttpClientResponse default _HttpClientResponse {
    * the response data.
    */
   InputStream get inputStream();
+}
+
+/**
+ * Connection information.
+ */
+interface HttpConnectionInfo {
+  String get remoteHost();
+  int get remotePort();
+  int get localPort();
 }
 
 

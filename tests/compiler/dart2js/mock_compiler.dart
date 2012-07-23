@@ -8,6 +8,7 @@
 
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/leg.dart");
+#import('../../../lib/compiler/implementation/source_file.dart');
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 #import("parser_helper.dart");
@@ -64,14 +65,14 @@ final String DEFAULT_CORELIB = @'''
 class MockCompiler extends Compiler {
   List<WarningMessage> warnings;
   List<WarningMessage> errors;
-  final Map<String, String> sources;
+  final Map<String, SourceFile> sourceFiles;
   Node parsedTree;
 
   MockCompiler([String coreSource = DEFAULT_CORELIB,
                 String helperSource = DEFAULT_HELPERLIB,
                 String interceptorsSource = DEFAULT_INTERCEPTORSLIB])
       : warnings = [], errors = [],
-        sources = new Map<String, String>(),
+        sourceFiles = new Map<String, SourceFile>(),
         super() {
     Uri uri = new Uri(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
@@ -160,9 +161,9 @@ class MockCompiler extends Compiler {
   Uri resolvePatchUri(String dartLibraryName) => null;
 
   Script readScript(Uri uri, [ScriptTag node]) {
-    String code = sources[uri.toString()];
-    if (code === null) throw new IllegalArgumentException(uri);
-    return new StringScript(code);
+    SourceFile sourceFile = sourceFiles[uri.toString()];
+    if (sourceFile === null) throw new IllegalArgumentException(uri);
+    return new Script(uri, sourceFile);
   }
 }
 
@@ -202,11 +203,4 @@ LibraryElement mockLibrary(Compiler compiler, String source) {
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;
-}
-
-class StringScript extends Script {
-  final String code;
-  StringScript(this.code) : super(null, null);
-  String get text() => code;
-  String get name() => "mock script";
 }

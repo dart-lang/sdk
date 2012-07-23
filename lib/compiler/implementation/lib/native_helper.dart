@@ -6,6 +6,13 @@ String typeNameInChrome(obj) {
   String name = JS('String', "#.constructor.name", obj);
   if (name == 'Window') return 'DOMWindow';
   if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'WebKitMutationObserver') return 'MutationObserver';
+  return name;
+}
+
+String typeNameInOpera(obj) {
+  String name = constructorNameFallback(obj);
+  if (name == 'Window') return 'DOMWindow';
   return name;
 }
 
@@ -49,7 +56,8 @@ String constructorNameFallback(obj) {
     // below in that case.
     if (JS('String', "typeof(#)", name) === 'string'
         && !name.isEmpty()
-        && name !== 'Object') {
+        && name !== 'Object'
+        && name !== 'Function.prototype') {  // Can happen in Opera.
       return name;
     }
   }
@@ -72,6 +80,8 @@ Function getFunctionForTypeNameOf() {
     return typeNameInFirefox;
   } else if (userAgent.contains('MSIE')) {
     return typeNameInIE;
+  } else if (userAgent.contains('Opera')) {
+    return typeNameInOpera;
   } else {
     return constructorNameFallback;
   }

@@ -177,8 +177,8 @@ class Parser : ValueObject {
 
   // Parsing a library or a regular source script.
   bool is_library_source() const {
-    return (script_.kind() == RawScript::kScript) ||
-        (script_.kind() == RawScript::kLibrary);
+    return (script_.kind() == RawScript::kScriptTag) ||
+        (script_.kind() == RawScript::kLibraryTag);
   }
 
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }

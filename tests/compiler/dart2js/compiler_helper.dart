@@ -8,6 +8,7 @@
 #import("dart:uri");
 #import("../../../lib/compiler/implementation/leg.dart", prefix: "leg");
 #import("../../../lib/compiler/implementation/elements/elements.dart", prefix: "lego");
+#import('../../../lib/compiler/implementation/source_file.dart');
 #import("../../../lib/compiler/implementation/ssa/ssa.dart", prefix: "ssa");
 #import("parser_helper.dart");
 #import("mock_compiler.dart");
@@ -26,7 +27,7 @@ String compile(String code, [String entry = 'main']) {
 String compileAll(String code) {
   MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri(scheme: 'source');
-  compiler.sources[uri.toString()] = code;
+  compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.runCompiler(uri);
   return compiler.assembledCode;
 }

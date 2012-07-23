@@ -319,15 +319,15 @@ void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
 
 TEST_CASE(Debug_StepOut) {
   const char* kScriptChars =
-      "void f1() { return 1; }  \n"
-      "void f2() { return 2; }  \n"
+      "f1() { return 1; }       \n"
+      "f2() { return 2; }       \n"
       "                         \n"
-      "void foo() {             \n"
+      "foo() {                  \n"
       "  f1();                  \n"
       "  return f2();           \n"
       "}                        \n"
       "                         \n"
-      "void main() {            \n"
+      "main() {                 \n"
       "  return foo();          \n"
       "}                        \n";
 
@@ -393,8 +393,8 @@ void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
 
 TEST_CASE(Debug_StepInto) {
   const char* kScriptChars =
-      "void f1() { return 1; }  \n"
-      "void f2() { return 2; }  \n"
+      "f1() { return 1; }       \n"
+      "f2() { return 2; }       \n"
       "                         \n"
       "class X {                \n"
       "  kvmk(a, [b, c]) {      \n"
@@ -402,13 +402,13 @@ TEST_CASE(Debug_StepInto) {
       "  }                      \n"
       "}                        \n"
       "                         \n"
-      "void foo() {             \n"
+      "foo() {                  \n"
       "  f1();                  \n"
       "  var o = new X();       \n"
       "  return o.kvmk(3, c:5); \n"
       "}                        \n"
       "                         \n"
-      "void main() {            \n"
+      "main() {                 \n"
       "  return foo();          \n"
       "}                        \n";
 
@@ -453,7 +453,7 @@ TEST_CASE(Debug_IgnoreBP) {
       "  var s = 'Dr Seuss';    \n"
       "}                        \n"
       "                         \n"
-      "void main() {            \n"
+      "main() {                 \n"
       "  var x = new B();       \n"
       "  return x.i + 1;        \n"
       "}                        \n";
@@ -477,17 +477,17 @@ TEST_CASE(Debug_IgnoreBP) {
 
 TEST_CASE(Debug_DeoptimizeFunction) {
   const char* kScriptChars =
-      "foo(x) => 2 * x;         \n"
-      "                         \n"
-      "warmup() {               \n"
+      "foo(x) => 2 * x;                     \n"
+      "                                     \n"
+      "warmup() {                           \n"
       "  for (int i = 0; i < 5000; i++) {   \n"
-      "    foo(i);              \n"
-      "  }                      \n"
-      "}                        \n"
-      "                         \n"
-      "void main() {            \n"
-      "  return foo(99);        \n"
-      "}                        \n";
+      "    foo(i);                          \n"
+      "  }                                  \n"
+      "}                                    \n"
+      "                                     \n"
+      "main() {                             \n"
+      "  return foo(99);                    \n"
+      "}                                    \n";
 
   LoadScript(kScriptChars);
   Dart_SetBreakpointHandler(&StepIntoHandler);
@@ -544,7 +544,7 @@ void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
 
 TEST_CASE(Debug_SingleStep) {
   const char* kScriptChars =
-      "void moo(s) { return 1; } \n"
+      "moo(s) { return 1; }      \n"
       "                          \n"
       "void foo() {              \n"
       "  moo('step one');        \n"

@@ -255,6 +255,7 @@ class HtmlEnhancedConfiguration extends Configuration {
     color: WhiteSmoke;
     font-weight: bold;
     padding: 6px;
+    cursor: pointer;
 
     /* Provide some visual separation between groups for IE */
     ${_isIE ? "border-bottom:solid black 1px;": ""}

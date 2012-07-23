@@ -328,10 +328,60 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
     return result;
   }
 
+  int64_t fixed_param_count;
+  int64_t opt_param_count;
+  result = Dart_FunctionParameterCounts(func,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  if (Dart_IsError(result)) {
+    return result;
+  }
+
+  Dart_Handle parameter_mirrors =
+    Dart_NewList(fixed_param_count + opt_param_count);
+  if (Dart_IsError(parameter_mirrors)) {
+    return result;
+  }
+
+  Dart_Handle param_cls_name = Dart_NewString("_LocalParameterMirrorImpl");
+  Dart_Handle param_cls = Dart_GetClass(MirrorLib(), param_cls_name);
+  if (Dart_IsError(param_cls)) {
+    return param_cls;
+  }
+
+  // TODO(rmacnak): Fill the parameter mirrors with more than whether they are
+  // are optional.
+  for (int i = 0; i < fixed_param_count; i++) {
+    Dart_Handle args[] = { Dart_False() };
+    Dart_Handle fixed_param =
+      Dart_New(param_cls, Dart_Null(), ARRAY_SIZE(args), args);
+    if (Dart_IsError(fixed_param)) {
+     return fixed_param;
+    }
+    result = Dart_ListSetAt(parameter_mirrors, i, fixed_param);
+    if (Dart_IsError(result)) {
+     return result;
+    }
+  }
+
+  for (int i = 0; i < opt_param_count; i++) {
+    Dart_Handle args[] = { Dart_True() };
+    Dart_Handle opt_param =
+      Dart_New(param_cls, Dart_Null(), ARRAY_SIZE(args), args);
+    if (Dart_IsError(opt_param)) {
+     return opt_param;
+    }
+    result = Dart_ListSetAt(parameter_mirrors, i+fixed_param_count, opt_param);
+    if (Dart_IsError(result)) {
+     return result;
+    }
+  }
+
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
   Dart_Handle args[] = {
     func_name,
     lib_mirror,
+    parameter_mirrors,
     Dart_NewBoolean(is_static),
     Dart_NewBoolean(is_abstract),
     Dart_NewBoolean(is_getter),
@@ -625,7 +675,6 @@ static Dart_Handle CreateNullMirror() {
   Dart_Handle args[] = {
     CreateVMReference(Dart_Null()),
     CreateLazyMirror(object_class),
-    Dart_True(),
     Dart_Null(),
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
@@ -648,11 +697,9 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
     return instance_cls;
   }
 
-  bool is_simple = IsSimpleValue(instance);
   Dart_Handle args[] = {
     CreateVMReference(instance),
     CreateLazyMirror(instance_cls),
-    Dart_NewBoolean(is_simple),
     instance
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);

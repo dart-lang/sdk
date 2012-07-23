@@ -2123,6 +2123,20 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
                                               bool* is_setter);
 
 /**
+ * Determines the number of required and optional parameters.
+ *
+ * \param function A handle to a function or method declaration.
+ * \param fixed_param_count Returns the number of required parameters.
+ * \param opt_param_count Returns the number of optional parameters.
+ *
+ * \return A valid handle if no error occurs during the operation.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
+  Dart_Handle function,
+  int64_t* fixed_param_count,
+  int64_t* opt_param_count);
+
+/**
  * Returns a list of the names of all variables declared in a library
  * or class.
  *

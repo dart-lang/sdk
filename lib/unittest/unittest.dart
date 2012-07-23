@@ -784,4 +784,3 @@ ensureInitialized() {
 
 /** Signature for a test function. */
 typedef void TestFunction();
-

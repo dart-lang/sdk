@@ -707,6 +707,8 @@ class _HttpRequestResponseBase {
     _bodyBytesWritten += bytes;
   }
 
+  HttpConnectionInfo get connectionInfo() => _httpConnection.connectionInfo;
+
   int _state;
   bool _headResponse;
 
@@ -1239,6 +1241,18 @@ class _HttpConnectionBase implements Hashable {
     _socket = null;
     if (onDetach != null) onDetach();
     return new _DetachedSocket(socket, _httpParser.unparsedData);
+  }
+
+  HttpConnectionInfo get connectionInfo() {
+    if (_socket == null || _closing || _error) return null;
+    try {
+      _HttpConnectionInfo info = new _HttpConnectionInfo();
+      info.remoteHost = _socket.remoteHost;
+      info.remotePort = _socket.remotePort;
+      info.localPort = _socket.port;
+      return info;
+    } catch (var e) { }
+    return null;
   }
 
   abstract void _onConnectionClosed(e);
@@ -2097,6 +2111,13 @@ class _HttpClient implements HttpClient {
   Set<_SocketConnection> _activeSockets;
   Timer _evictionTimer;
   bool _shutdown;  // Has this HTTP client been shutdown?
+}
+
+
+class _HttpConnectionInfo implements HttpConnectionInfo {
+  String remoteHost;
+  int remotePort;
+  int localPort;
 }
 
 

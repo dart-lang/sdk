@@ -147,7 +147,7 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
-  ElementList queryAll(String selectors) =>
+  List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   String get innerHTML() {

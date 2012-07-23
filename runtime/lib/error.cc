@@ -65,7 +65,7 @@ DEFINE_NATIVE_ENTRY(TypeError_throwNew, 5) {
   const String& dst_name = String::CheckedHandle(arguments->At(3));
   const String& malformed_error = String::CheckedHandle(arguments->At(4));
   const String& src_type_name =
-      String::Handle(Type::Handle(src_value.GetType()).Name());
+      String::Handle(Type::Handle(src_value.GetType()).UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
                                       dst_type_name, dst_name, malformed_error);
 }

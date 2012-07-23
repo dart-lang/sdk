@@ -124,7 +124,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
         heap_(heap),
         vm_heap_(Dart::vm_isolate()->heap()),
         page_space_(page_space),
-        marking_stack_(marking_stack) {
+        marking_stack_(marking_stack),
+        update_store_buffers_(false) {
     ASSERT(heap_ != vm_heap_);
   }
 
@@ -132,9 +133,11 @@ class MarkingVisitor : public ObjectPointerVisitor {
 
   void VisitPointers(RawObject** first, RawObject** last) {
     for (RawObject** current = first; current <= last; current++) {
-      MarkObject(*current);
+      MarkObject(*current, current);
     }
   }
+
+  void set_update_store_buffers(bool val) { update_store_buffers_ = val; }
 
  private:
   void MarkAndPush(RawObject* raw_obj) {
@@ -152,10 +155,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
     page->AddUsed(raw_obj->Size());
 
     // TODO(iposva): Should we mark the classes early?
-    MarkObject(raw_class);
+    MarkObject(raw_class, NULL);
   }
 
-  void MarkObject(RawObject* raw_obj) {
+  void MarkObject(RawObject* raw_obj, RawObject** p) {
     // Fast exit if the raw object is a Smi.
     if (!raw_obj->IsHeapObject()) return;
 
@@ -165,6 +168,10 @@ class MarkingVisitor : public ObjectPointerVisitor {
     // Skip over new objects, but verify consistency of heap while at it.
     if (raw_obj->IsNewObject()) {
       // TODO(iposva): Add consistency check.
+      if (update_store_buffers_) {
+        ASSERT(p != NULL);
+        isolate()->store_buffer()->AddPointer(reinterpret_cast<uword>(p));
+      }
       return;
     }
 
@@ -177,6 +184,7 @@ class MarkingVisitor : public ObjectPointerVisitor {
   Heap* vm_heap_;
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
+  bool update_store_buffers_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
 };
@@ -219,6 +227,9 @@ void GCMarker::Prologue(Isolate* isolate, bool invoke_api_callbacks) {
   if (invoke_api_callbacks) {
     isolate->gc_prologue_callbacks().Invoke();
   }
+  // The store buffers will be rebuilt as part of marking, reset them now.
+  isolate->store_buffer()->Reset();
+  isolate->store_buffer_block()->Reset();
 }
 
 
@@ -304,10 +315,12 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
 
 void GCMarker::DrainMarkingStack(Isolate* isolate,
                                  MarkingVisitor* visitor) {
+  visitor->set_update_store_buffers(true);
   while (!visitor->marking_stack()->IsEmpty()) {
     RawObject* raw_obj = visitor->marking_stack()->Pop();
     raw_obj->VisitPointers(visitor);
   }
+  visitor->set_update_store_buffers(false);
 }
 
 

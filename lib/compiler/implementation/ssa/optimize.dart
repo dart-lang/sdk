@@ -679,10 +679,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
-    HIndex newInstruction = new HIndex(node.target, node.receiver, index);
-    node.block.addBefore(node, newInstruction);
-    node.block.rewrite(node, newInstruction);
-    node.block.remove(node);
+    node.changeUse(node.index, index);
   }
 
   void visitIndexAssign(HIndexAssign node) {
@@ -693,11 +690,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
       index = insertIntegerCheck(node, index);
     }
     index = insertBoundsCheck(node, node.receiver, index);
-    HIndexAssign newInstruction =
-        new HIndexAssign(node.target, node.receiver, index, node.value);
-    node.block.addBefore(node, newInstruction);
-    node.block.rewrite(node, newInstruction);
-    node.block.remove(node);
+    node.changeUse(node.index, index);
   }
 }
 
@@ -886,6 +879,11 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
           preheader.moveAtExit(instruction);
         }
       }
+      int oldChangesFlags = changesFlags;
+      changesFlags |= instruction.getChangesFlags();
+      if (oldChangesFlags != changesFlags) {
+        dependsFlags = HInstruction.computeDependsOnFlags(changesFlags);
+      }
       instruction = next;
     }
   }
@@ -994,6 +992,9 @@ class SsaGlobalValueNumberer implements OptimizationPhase {
       if (dominator.id < id && id < dominated.id && !visited.contains(id)) {
         visited.add(id);
         changesFlags |= blockChangesFlags[id];
+        // Loop bodies might not be on the path from dominator to dominated,
+        // but they can invalidate values.
+        changesFlags |= loopChangesFlags[id];
         changesFlags |= getChangesFlagsForDominatedBlock(dominator, block);
       }
     }

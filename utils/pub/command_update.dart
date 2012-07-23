@@ -13,6 +13,8 @@ class UpdateCommand extends PubCommand {
   String get description() =>
     "update the current package's dependencies to the latest versions";
 
+  String get usage() => 'pub update';
+
   Future onRun() {
     print("Not implemented.");
   }

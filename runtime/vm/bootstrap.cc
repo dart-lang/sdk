@@ -21,7 +21,7 @@ RawScript* Bootstrap::LoadScript() {
   const String& src = String::Handle(String::New(corelib_source_, Heap::kOld));
 
   const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSource));
+      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
   return result.raw();
 }
 
@@ -33,7 +33,7 @@ RawScript* Bootstrap::LoadImplScript() {
                                                  Heap::kOld));
 
   const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSource));
+      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
   return result.raw();
 }
 
@@ -43,7 +43,7 @@ RawScript* Bootstrap::LoadMathScript() {
   const String& src = String::Handle(String::New(math_source_, Heap::kOld));
 
   const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSource));
+      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
   return result.raw();
 }
 
@@ -53,7 +53,7 @@ RawScript* Bootstrap::LoadIsolateScript()  {
   const String& src = String::Handle(String::New(isolate_source_, Heap::kOld));
 
   const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSource));
+      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
   return result.raw();
 }
 
@@ -63,7 +63,7 @@ RawScript* Bootstrap::LoadMirrorsScript()  {
   const String& src = String::Handle(String::New(mirrors_source_, Heap::kOld));
 
   const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSource));
+      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
   return result.raw();
 }
 

@@ -117,7 +117,9 @@ class TextBuffer : ValueObject {
   ~TextBuffer();
 
   intptr_t Printf(const char* format, ...);
-  void PrintJsonString8(const uint8_t* codepoints, intptr_t length);
+  void AddChar(char ch);
+  void AddUTF8(uint32_t ch);
+  void AddEscapedChar(uint32_t ch);
 
   void Clear();
 
@@ -125,7 +127,7 @@ class TextBuffer : ValueObject {
   intptr_t length() { return msg_len_; }
 
  private:
-  void GrowBuffer(intptr_t len);
+  void EnsureCapacity(intptr_t len);
   char* buf_;
   intptr_t buf_size_;
   intptr_t msg_len_;

@@ -355,11 +355,40 @@ interface MethodMirror {
    * Does this mirror reflect a factory constructor?
    */
   bool isFactoryConstructor;
+
+  /**
+   * Returns the list of parameters for this method.
+   */
+  List<ParameterMirror> parameters();
 }
 
+/**
+ * A [ParameterMirror] reflects a Dart formal parameter declaration.
+ */
+interface ParameterMirror extends VariableMirror {
+  /**
+   * Returns the type of this parameter.
+   */
+  TypeMirror type;
+
+  /**
+   * Returns the default value for this parameter.
+   */
+  String defaultValue;
+
+  /**
+   * Returns true if this parameter has a default value.
+   */
+  bool hasDefaultValue;
+
+  /**
+   * Returns true if this parameter is optional.
+   */
+  bool isOptional;
+}
 
 /**
- * A [VariableMirror] reflects a Dart language variable.
+ * A [VariableMirror] reflects a Dart language variable declaration.
  */
 interface VariableMirror {
   /**

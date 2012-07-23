@@ -21,7 +21,7 @@ class DescriptorList : public ZoneAllocated {
     intptr_t try_index;        // Try block index of PC.
   };
 
-  DescriptorList() : list_() {
+  explicit DescriptorList(intptr_t initial_capacity) : list_(initial_capacity) {
   }
   ~DescriptorList() { }
 

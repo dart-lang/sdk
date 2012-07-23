@@ -338,6 +338,12 @@ class ResolverTask extends CompilerTask {
     });
   }
 
+  FunctionSignature resolveFunctionExpression(Element element,
+                                              FunctionExpression node) {
+    return measure(() => SignatureResolver.analyze(
+      compiler, node.parameters, node.returnType, element));
+  }
+
   FunctionSignature resolveTypedef(TypedefElement element) {
     return compiler.withCurrentElement(element, () {
       Typedef node =

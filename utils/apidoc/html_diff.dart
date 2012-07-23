@@ -9,6 +9,7 @@
 #library('html_diff');
 
 #import('dart:coreimpl');
+#import('dart:io');
 
 #import('../../lib/dartdoc/dartdoc.dart');
 #import('../../lib/dartdoc/mirrors/mirrors.dart');
@@ -46,8 +47,11 @@ class HtmlDiff {
   final Map<MemberMirror, Set<MemberMirror>> domToHtml;
 
   /** A map from `dart:html` members to corresponding
-   * `dart:dom_deprecated` members. */
-  final Map<MemberMirror, Set<MemberMirror>> htmlToDom;
+   * `dart:dom_deprecated` members.
+   * TODO(johnniwinther): We use qualified names as keys, since mirrors
+   * (currently) are not equal between different mirror systems.
+   */
+  final Map<String, Set<MemberMirror>> htmlToDom;
 
   /** A map from `dart:dom_deprecated` types to corresponding
    * `dart:html` types.
@@ -76,9 +80,12 @@ class HtmlDiff {
    * Perform static initialization of [world]. This should be run before
    * calling [HtmlDiff.run].
    */
-  static void initialize(String libDir) {
+  static void initialize(Path libDir) {
     _compilation = new Compilation.library(
-        const <String>['dart:dom_deprecated', 'dart:html'], libDir);
+        const <Path>[
+            const Path('dart:dom_deprecated'),
+            const Path('dart:html')
+        ], libDir);
     _mirrors = _compilation.mirrors();
 
     // Find 'dart:dom_deprecated' by its library tag 'dom'.
@@ -88,7 +95,7 @@ class HtmlDiff {
   HtmlDiff([bool printWarnings = false]) :
     _printWarnings = printWarnings,
     domToHtml = new Map<MemberMirror, Set<MemberMirror>>(),
-    htmlToDom = new Map<MemberMirror, Set<MemberMirror>>(),
+    htmlToDom = new Map<String, Set<MemberMirror>>(),
     domTypesToHtml = new Map<String, Set<InterfaceMirror>>(),
     htmlTypesToDom = new Map<String, Set<InterfaceMirror>>(),
     comments = new CommentMap();
@@ -142,7 +149,9 @@ class HtmlDiff {
     }
 
     if (htmlMember == null) return;
-    if (!domMembers.isEmpty()) htmlToDom[htmlMember] = domMembers;
+    if (!domMembers.isEmpty()) {
+      htmlToDom[htmlMember.qualifiedName()] = domMembers;
+    }
     domMembers.forEach((m) =>
         domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
   }

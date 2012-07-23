@@ -170,27 +170,26 @@ void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
 
 
 intptr_t BranchInstr::InputCount() const {
-  return is_fused_with_comparison() ? fused_with_comparison_->InputCount() : 1;
+  return 2;
 }
 
 
 Value* BranchInstr::InputAt(intptr_t i) const {
-  if (is_fused_with_comparison()) {
-    return fused_with_comparison_->InputAt(i);
-  }
-  if (i == 0) return value();
+  if (i == 0) return left();
+  if (i == 1) return right();
   UNREACHABLE();
   return NULL;
 }
 
 
 void BranchInstr::SetInputAt(intptr_t i, Value* value) {
-  ASSERT(!is_fused_with_comparison());
   if (i == 0) {
-    value_ = value;
-    return;
+    left_ = value;
+  } else if (i == 1) {
+    right_ = value;
+  } else {
+    UNREACHABLE();
   }
-  UNREACHABLE();
 }
 
 
@@ -254,6 +253,22 @@ void ThrowInstr::SetInputAt(intptr_t i, Value* value) {
     exception_ = value;
     return;
   }
+  UNREACHABLE();
+}
+
+
+intptr_t GotoInstr::InputCount() const {
+  return 0;
+}
+
+
+Value* GotoInstr::InputAt(intptr_t i) const {
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void GotoInstr::SetInputAt(intptr_t i, Value* value) {
   UNREACHABLE();
 }
 
@@ -373,6 +388,14 @@ void JoinEntryInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
+  for (intptr_t i = 0; i < predecessors_.length(); ++i) {
+    if (predecessors_[i] == pred) return i;
+  }
+  return -1;
+}
+
+
 // ==== Recording assigned variables.
 void Computation::RecordAssignedVars(BitVector* assigned_vars) {
   // Nothing to do for the base class.
@@ -487,7 +510,9 @@ void BlockEntryInstr::DiscoverBlocks(
            !next_instr->IsBranch()) {
       if (vars != NULL) next_instr->RecordAssignedVars(vars);
       set_last_instruction(next_instr);
-      next_instr = next_instr->next();
+      GotoInstr* goto_instr = next_instr->AsGoto();
+      next_instr =
+          (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
     }
   }
   if (next_instr != NULL) {
@@ -539,13 +564,15 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 
 
 intptr_t Instruction::SuccessorCount() const {
-  ASSERT(next() == NULL || next()->IsBlockEntry());
-  return (next() != NULL) ? 1 : 0;
+  return 0;
 }
 
 
 BlockEntryInstr* Instruction::SuccessorAt(intptr_t index) const {
-  return next()->AsBlockEntry();
+  // Called only if index is in range.  Only control-transfer instructions
+  // can have non-zero successor counts and they override this function.
+  UNREACHABLE();
+  return NULL;
 }
 
 
@@ -570,6 +597,22 @@ BlockEntryInstr* BranchInstr::SuccessorAt(intptr_t index) const {
   if (index == 1) return false_successor_;
   UNREACHABLE();
   return NULL;
+}
+
+
+intptr_t GotoInstr::SuccessorCount() const {
+  return 1;
+}
+
+
+BlockEntryInstr* GotoInstr::SuccessorAt(intptr_t index) const {
+  ASSERT(index == 0);
+  return successor();
+}
+
+
+void Instruction::Goto(JoinEntryInstr* entry) {
+  set_next(new GotoInstr(entry));
 }
 
 
@@ -753,16 +796,7 @@ RawAbstractType* CreateArrayComp::StaticType() const {
 RawAbstractType* CreateClosureComp::StaticType() const {
   const Function& fun = function();
   const Class& signature_class = Class::Handle(fun.signature_class());
-  // TODO(regis): The signature type may be generic. Consider upper bounds.
-  // For now, we return Dynamic (no type test elimination) if the signature
-  // class is parameterized, or a non-parameterized finalized type otherwise.
-  if (signature_class.HasTypeArguments()) {
-    return Type::DynamicType();
-  }
-  // Make sure we use the canonical signature class.
-  const Type& type = Type::Handle(signature_class.SignatureType());
-  const Class& canonical_signature_class = Class::Handle(type.type_class());
-  return Type::NewNonParameterizedType(canonical_signature_class);
+  return signature_class.SignatureType();
 }
 
 
@@ -987,28 +1021,16 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* BranchInstr::MakeLocationSummary() const {
-  if (is_fused_with_comparison()) {
-    return fused_with_comparison_->locs();
-  } else {
-    const int kNumInputs = 1;
-    const int kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs,
-                                                kNumTemps,
-                                                LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    return locs;
-  }
+LocationSummary* GotoInstr::MakeLocationSummary() const {
+  return new LocationSummary(0, 0);
 }
 
 
-void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (is_fused_with_comparison()) {
-    fused_with_comparison_->EmitNativeCode(compiler);
-  } else {
-    Register value = locs()->in(0).reg();
-    __ CompareObject(value, compiler->bool_true());
-    EmitBranchOnCondition(compiler, EQUAL);
+void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // We can fall through if the successor is the next block in the list.
+  // Otherwise, we need a jump.
+  if (!compiler->IsNextBlock(successor())) {
+    __ jmp(compiler->GetBlockLabel(successor()));
   }
 }
 
@@ -1035,9 +1057,6 @@ static Condition NegateCondition(Condition condition) {
 
 void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
                                         Condition true_condition) {
-  if (is_negated()) {
-    true_condition = NegateCondition(true_condition);
-  }
   if (compiler->IsNextBlock(false_successor())) {
     // If the next block is the false successor we will fall through to it.
     __ j(true_condition, compiler->GetBlockLabel(true_successor()));
@@ -1077,18 +1096,7 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  if (is_fused_with_branch()) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs = new LocationSummary(kNumInputs,
-                                                kNumTemps,
-                                                LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    return locs;
-  } else {
-    return LocationSummary::Make(2, Location::SameAsFirstInput());
-  }
+  return LocationSummary::Make(2, Location::SameAsFirstInput());
 }
 
 
@@ -1100,18 +1108,14 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition true_condition = (kind() == Token::kEQ_STRICT) ? EQUAL : NOT_EQUAL;
   __ CompareRegisters(left, right);
 
-  if (is_fused_with_branch()) {
-    fused_with_branch()->EmitBranchOnCondition(compiler, true_condition);
-  } else {
-    Register result = locs()->out().reg();
-    Label load_true, done;
-    __ j(true_condition, &load_true, Assembler::kNearJump);
-    __ LoadObject(result, compiler->bool_false());
-    __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&load_true);
-    __ LoadObject(result, compiler->bool_true());
-    __ Bind(&done);
-  }
+  Register result = locs()->out().reg();
+  Label load_true, done;
+  __ j(true_condition, &load_true, Assembler::kNearJump);
+  __ LoadObject(result, compiler->bool_false());
+  __ jmp(&done, Assembler::kNearJump);
+  __ Bind(&load_true);
+  __ LoadObject(result, compiler->bool_true());
+  __ Bind(&done);
 }
 
 

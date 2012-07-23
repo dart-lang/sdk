@@ -13,6 +13,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _ArrayBufferFactoryProvider {
+  factory ArrayBuffer(int length) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _BlobFactoryProvider {
   factory Blob(List blobParts, [String type, String endings]) => _dummy();
 }
@@ -106,6 +113,13 @@ class _MediaControllerFactoryProvider {
 
 class _MessageChannelFactoryProvider {
   factory MessageChannel() => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -232,7 +246,9 @@ interface AbstractWorker extends EventTarget {
 
 // WARNING: Do not edit - generated code.
 
-interface ArrayBuffer {
+interface ArrayBuffer default _ArrayBufferFactoryProvider {
+
+  ArrayBuffer(int length);
 
   final int byteLength;
 
@@ -1843,6 +1859,8 @@ interface Window extends EventTarget {
 
   final NotificationCenter webkitNotifications;
 
+  final StorageInfo webkitStorageInfo;
+
   final DOMWindow window;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -3165,6 +3183,36 @@ interface Float64Array extends ArrayBufferView, List<num> default _TypedArrayFac
   void setElements(Object array, [int offset]);
 
   Float64Array subarray(int start, [int end]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface Gamepad {
+
+  final List<num> axes;
+
+  final List<num> buttons;
+
+  final String id;
+
+  final int index;
+
+  final int timestamp;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface GamepadList {
+
+  final int length;
+
+  Gamepad item(int index);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5186,8 +5234,6 @@ interface IDBDatabaseException {
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
 
-  static final int TYPE_ERR = 21;
-
   static final int UNKNOWN_ERR = 1;
 
   static final int VER_ERR = 12;
@@ -6012,8 +6058,7 @@ interface MouseEvent extends UIEvent {
 
 // WARNING: Do not edit - generated code.
 
-interface MutationCallback {
-}
+typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -6039,6 +6084,22 @@ interface MutationEvent extends Event {
   final Node relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
+
+  void disconnect();
+
+  void _observe(Node target, Map options);
+
+  List<MutationRecord> takeRecords();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6130,13 +6191,13 @@ interface Navigator {
 
   final BatteryManager webkitBattery;
 
+  final GamepadList webkitGamepads;
+
   final PointerLock webkitPointer;
 
   void getStorageUpdates();
 
   bool javaEnabled();
-
-  void registerProtocolHandler(String scheme, String url, String title);
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
@@ -10031,6 +10092,43 @@ interface StorageEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+interface StorageInfo {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
+
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoErrorCallback(DOMException error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 typedef bool StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11840,21 +11938,9 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitMutationObserver {
-
-  void disconnect();
-
-  void observe(Node target, Map options);
-
-  List<MutationRecord> takeRecords();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface WebKitNamedFlow {
+
+  final int firstEmptyRegionIndex;
 
   final String name;
 
@@ -11862,7 +11948,7 @@ interface WebKitNamedFlow {
 
   NodeList getContent();
 
-  NodeList getRegionsByContentNode(Node contentNode);
+  NodeList getRegionsByContent(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

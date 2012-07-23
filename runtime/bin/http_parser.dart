@@ -612,7 +612,7 @@ class _HttpParser {
   bool get upgrade() => _connectionUpgrade && _state == _State.UPGRADED;
   bool get persistentConnection() => _persistentConnection;
 
-  void set responseToMethod(String method) => _responseToMethod = method;
+  void set responseToMethod(String method) { _responseToMethod = method; }
 
   bool get isIdle() => _state == _State.START;
 

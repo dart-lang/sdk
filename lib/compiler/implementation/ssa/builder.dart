@@ -1165,9 +1165,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     current.add(instruction);
   }
 
+  void addWithPosition(HInstruction instruction, Node node) {
+    add(attachPosition(instruction, node));
+  }
+
   void push(HInstruction instruction) {
     add(instruction);
     stack.add(instruction);
+  }
+
+  void pushWithPosition(HInstruction instruction, Node node) {
+    push(attachPosition(instruction, node));
   }
 
   HInstruction pop() {
@@ -1182,6 +1190,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     HBoolify boolified = new HBoolify(pop());
     add(boolified);
     return boolified;
+  }
+
+  HInstruction attachPosition(HInstruction target, Node node) {
+    target.sourcePosition = node.getBeginToken();
+    return target;
   }
 
   void visit(Node node) {
@@ -1381,7 +1394,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapStatementGraph(bodyGraph),
             wrapExpressionGraph(updateGraph),
             conditionBlock.loopInformation.target,
-            conditionBlock.loopInformation.labels);
+            conditionBlock.loopInformation.labels,
+            loop);
 
     startBlock.setBlockFlow(info, current);
     loopInfo.loopBlockInformation = info;
@@ -1508,7 +1522,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
             wrapStatementGraph(bodyGraph),
             null,
             loopEntryBlock.loopInformation.target,
-            loopEntryBlock.loopInformation.labels);
+            loopEntryBlock.loopInformation.labels,
+            node);
     loopEntryBlock.setBlockFlow(loopBlockInfo, current);
     loopInfo.loopBlockInformation = loopBlockInfo;
   }
@@ -1585,7 +1600,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     assert(node.argumentsNode is Prefix);
     visit(node.receiver);
     HNot not = new HNot(popBoolified());
-    push(not);
+    pushWithPosition(not, node);
   }
 
   void visitUnary(Send node, Operator op) {
@@ -1615,7 +1630,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         return;
       }
     }
-    push(result);
+    pushWithPosition(result, node);
   }
 
   void visitBinary(HInstruction left, Operator op, HInstruction right) {
@@ -1627,78 +1642,78 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       case "+":
       case "++":
       case "+=":
-        push(new HAdd(target, left, right));
+        pushWithPosition(new HAdd(target, left, right), op);
         break;
       case "-":
       case "--":
       case "-=":
-        push(new HSubtract(target, left, right));
+        pushWithPosition(new HSubtract(target, left, right), op);
         break;
       case "*":
       case "*=":
-        push(new HMultiply(target, left, right));
+        pushWithPosition(new HMultiply(target, left, right), op);
         break;
       case "/":
       case "/=":
-        push(new HDivide(target, left, right));
+        pushWithPosition(new HDivide(target, left, right), op);
         break;
       case "~/":
       case "~/=":
-        push(new HTruncatingDivide(target, left, right));
+        pushWithPosition(new HTruncatingDivide(target, left, right), op);
         break;
       case "%":
       case "%=":
-        push(new HModulo(target, left, right));
+        pushWithPosition(new HModulo(target, left, right), op);
         break;
       case "<<":
       case "<<=":
-        push(new HShiftLeft(target, left, right));
+        pushWithPosition(new HShiftLeft(target, left, right), op);
         break;
       case ">>":
       case ">>=":
-        push(new HShiftRight(target, left, right));
+        pushWithPosition(new HShiftRight(target, left, right), op);
         break;
       case "|":
       case "|=":
-        push(new HBitOr(target, left, right));
+        pushWithPosition(new HBitOr(target, left, right), op);
         break;
       case "&":
       case "&=":
-        push(new HBitAnd(target, left, right));
+        pushWithPosition(new HBitAnd(target, left, right), op);
         break;
       case "^":
       case "^=":
-        push(new HBitXor(target, left, right));
+        pushWithPosition(new HBitXor(target, left, right), op);
         break;
       case "==":
-        push(new HEquals(target, left, right));
+        pushWithPosition(new HEquals(target, left, right), op);
         break;
       case "===":
-        push(new HIdentity(target, left, right));
+        pushWithPosition(new HIdentity(target, left, right), op);
         break;
       case "!==":
         HIdentity eq = new HIdentity(target, left, right);
         add(eq);
-        push(new HNot(eq));
+        pushWithPosition(new HNot(eq), op);
         break;
       case "<":
-        push(new HLess(target, left, right));
+        pushWithPosition(new HLess(target, left, right), op);
         break;
       case "<=":
-        push(new HLessEqual(target, left, right));
+        pushWithPosition(new HLessEqual(target, left, right), op);
         break;
       case ">":
-        push(new HGreater(target, left, right));
+        pushWithPosition(new HGreater(target, left, right), op);
         break;
       case ">=":
-        push(new HGreaterEqual(target, left, right));
+        pushWithPosition(new HGreaterEqual(target, left, right), op);
         break;
       case "!=":
         HEquals eq = new HEquals(target, left, right);
         add(eq);
         HBoolify bl = new HBoolify(eq);
         add(bl);
-        push(new HNot(bl));
+        pushWithPosition(new HNot(bl), op);
         break;
       default: compiler.unimplemented("SsaBuilder.visitBinary");
     }
@@ -2007,7 +2022,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     addDynamicSendArgumentsToList(node, inputs);
 
     // The first entry in the inputs list is the receiver.
-    push(new HInvokeDynamicMethod(selector, dartMethodName, inputs));
+    pushWithPosition(new HInvokeDynamicMethod(selector, dartMethodName, inputs),
+                     node);
 
     if (isNotEquals) {
       HNot not = new HNot(popBoolified());
@@ -2030,7 +2046,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     var inputs = <HInstruction>[];
     inputs.add(closureTarget);
     addDynamicSendArgumentsToList(node, inputs);
-    push(new HInvokeClosure(selector, inputs));
+    pushWithPosition(new HInvokeClosure(selector, inputs), node);
   }
 
   void handleForeignJs(Send node) {
@@ -2278,7 +2294,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
     HType elementType = computeType(element);
     HInstruction newInstance = new HInvokeStatic(selector, inputs, elementType);
-    push(newInstance);
+    pushWithPosition(newInstance, node);
 
     TypeAnnotation annotation = getTypeAnnotationFromSend(node);
     Type type = elements.getType(annotation);
@@ -2321,7 +2337,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      push(new HInvokeStatic(selector, inputs));
+      pushWithPosition(new HInvokeStatic(selector, inputs), node);
     } else {
       if (element.kind == ElementKind.GETTER) {
         target = new HInvokeStatic(Selector.GETTER, inputs);
@@ -2329,7 +2345,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         inputs = <HInstruction>[target];
       }
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeClosure(selector, inputs));
+      pushWithPosition(new HInvokeClosure(selector, inputs), node);
     }
   }
 
@@ -2549,7 +2565,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       visit(node.expression);
       value = pop();
     }
-    close(new HReturn(value)).addSuccessor(graph.exit);
+    close(attachPosition(new HReturn(value), node)).addSuccessor(graph.exit);
   }
 
   visitThrow(Throw node) {

@@ -34,6 +34,9 @@ namespace dart {
 
 DEFINE_FLAG(bool, generate_gdb_symbols, false,
     "Generate symbols of generated dart functions for debugging with GDB");
+DEFINE_FLAG(bool, show_internal_names, false,
+    "Show names of internal classes (e.g. \"OneByteString\") in error messages "
+    "instead of showing the corresponding interface names (e.g. \"String\")");
 DECLARE_FLAG(bool, trace_compiler);
 DECLARE_FLAG(bool, enable_type_checks);
 
@@ -525,6 +528,11 @@ RawError* Object::Init(Isolate* isolate) {
   // remaining classes and register them by name in the dictionaries.
   const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
 
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+  RegisterClass(cls, "IntegerImplementation", impl_script, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
   RegisterClass(cls, "Smi", impl_script, core_impl_lib);
@@ -908,6 +916,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
 
+  cls = Class::New<Integer>();
+  object_store->set_integer_implementation_class(cls);
+
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
 
@@ -1046,6 +1057,68 @@ RawString* Class::Name() const {
 }
 
 
+RawString* Class::UserVisibleName() const {
+  if (FLAG_show_internal_names) {
+    return Name();
+  }
+  switch (id()) {
+    case kInteger:
+    case kSmi:
+    case kMint:
+    case kBigint:
+      return String::NewSymbol("int");
+    case kDouble:
+      return String::NewSymbol("double");
+    case kOneByteString:
+    case kTwoByteString:
+    case kFourByteString:
+    case kExternalOneByteString:
+    case kExternalTwoByteString:
+    case kExternalFourByteString:
+      return String::NewSymbol("String");
+    case kBool:
+      return String::NewSymbol("bool");
+    case kArray:
+    case kImmutableArray:
+    case kGrowableObjectArray:
+      return String::NewSymbol("List");
+    case kInt8Array:
+    case kExternalInt8Array:
+      return String::NewSymbol("Int8List");
+    case kUint8Array:
+    case kExternalUint8Array:
+      return String::NewSymbol("Uint8List");
+    case kInt16Array:
+    case kExternalInt16Array:
+      return String::NewSymbol("Int16List");
+    case kUint16Array:
+    case kExternalUint16Array:
+      return String::NewSymbol("Uint16List");
+    case kInt32Array:
+    case kExternalInt32Array:
+      return String::NewSymbol("Int32List");
+    case kUint32Array:
+    case kExternalUint32Array:
+      return String::NewSymbol("Uint32List");
+    case kInt64Array:
+    case kExternalInt64Array:
+      return String::NewSymbol("Int64List");
+    case kUint64Array:
+    case kExternalUint64Array:
+      return String::NewSymbol("Uint64List");
+    case kFloat32Array:
+    case kExternalFloat32Array:
+      return String::NewSymbol("Float32List");
+    case kFloat64Array:
+    case kExternalFloat64Array:
+      return String::NewSymbol("Float64List");
+    default:
+      return Name();
+  }
+  UNREACHABLE();
+}
+
+
 RawType* Class::SignatureType() const {
   ASSERT(IsSignatureClass());
   const Function& function = Function::Handle(signature_function());
@@ -1057,12 +1130,15 @@ RawType* Class::SignatureType() const {
   }
   // Return the first canonical signature type if already computed.
   const Array& signature_types = Array::Handle(canonical_types());
+  // The canonical_types array is initialized to the empty array.
+  ASSERT(!signature_types.IsNull());
   if (signature_types.Length() > 0) {
+    // At most one signature type per signature class.
+    ASSERT(signature_types.Length() == 1);
     Type& signature_type = Type::Handle();
     signature_type ^= signature_types.At(0);
-    if (!signature_type.IsNull()) {
-      return signature_type.raw();
-    }
+    ASSERT(!signature_type.IsNull());
+    return signature_type.raw();
   }
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
@@ -1327,7 +1403,7 @@ RawTypeParameter* Class::LookupTypeParameter(const String& type_name,
     AbstractType& bound = AbstractType::Handle();
     for (intptr_t i = 0; i < num_type_params; i++) {
       type_param ^= type_params.TypeAt(i);
-      type_param_name = type_param.Name();
+      type_param_name = type_param.name();
       if (type_param_name.Equals(type_name)) {
         intptr_t index = type_param.index();
         bound = type_param.bound();
@@ -1536,6 +1612,9 @@ RawClass* Class::NewSignatureClass(const String& name,
 RawClass* Class::GetClass(ObjectKind kind) {
   ObjectStore* object_store = Isolate::Current()->object_store();
   switch (kind) {
+    case kInteger:
+      ASSERT(object_store->integer_implementation_class() != Class::null());
+      return object_store->integer_implementation_class();
     case kSmi:
       ASSERT(object_store->smi_class() != Class::null());
       return object_store->smi_class();
@@ -1782,6 +1861,7 @@ bool Class::TypeTest(
     const Class& other,
     const AbstractTypeArguments& other_type_arguments,
     Error* malformed_error) const {
+  ASSERT(!IsVoidClass());
   // Check for DynamicType.
   // Each occurrence of DynamicType in type T is interpreted as the Dynamic
   // type, a supertype of all types.
@@ -1962,65 +2042,19 @@ static bool MatchesAccessorName(const String& name,
 }
 
 
-// Check to see if mangled_name is equal to bare_name once the private
-// key separator is stripped from mangled_name.
-//
-// Things are made more complicated by the fact that constructors are
-// added *after* the private suffix, so "foo@123.named" should match
-// "foo.named".
-//
-// Also, the private suffix can occur more than once in the name, as in:
-//
-//    _ReceivePortImpl@6be832b._internal@6be832b
-//
-bool EqualsIgnoringPrivate(const String& mangled_name,
-                           const String& bare_name) {
-  intptr_t mangled_len = mangled_name.Length();
-  intptr_t bare_len = bare_name.Length();
-  if (mangled_len < bare_len) {
-    // No way they can match.
-    return false;
-  }
-
-  intptr_t mangled_pos = 0;
-  intptr_t bare_pos = 0;
-  while (mangled_pos < mangled_len) {
-    int32_t mangled_char = mangled_name.CharAt(mangled_pos);
-    mangled_pos++;
-
-    if (mangled_char == Scanner::kPrivateKeySeparator) {
-      // Consume a private key separator.
-      while (mangled_pos < mangled_len &&
-             mangled_name.CharAt(mangled_pos) != '.') {
-        mangled_pos++;
-      }
-
-      // Resume matching characters.
-      continue;
-    }
-    if (bare_pos == bare_len || mangled_char != bare_name.CharAt(bare_pos)) {
-      return false;
-    }
-    bare_pos++;
-  }
-
-  // The strings match if we have reached the end of both strings.
-  return (mangled_pos == mangled_len &&
-          bare_pos == bare_len);
-}
-
-
 RawFunction* Class::LookupFunction(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  ASSERT(name.IsOneByteString());
+  const OneByteString& lookup_name = OneByteString::Cast(name);
   Array& funcs = Array::Handle(isolate, functions());
   Function& function = Function::Handle(isolate, Function::null());
-  String& function_name = String::Handle(isolate, String::null());
+  OneByteString& function_name =
+      OneByteString::Handle(isolate, OneByteString::null());
   intptr_t len = funcs.Length();
   for (intptr_t i = 0; i < len; i++) {
     function ^= funcs.At(i);
     function_name ^= function.name();
-    if (function_name.Equals(name) ||
-        EqualsIgnoringPrivate(function_name, name)) {
+    if (function_name.EqualsIgnoringPrivateKey(lookup_name)) {
       return function.raw();
     }
   }
@@ -2115,14 +2149,17 @@ RawField* Class::LookupStaticField(const String& name) const {
 
 RawField* Class::LookupField(const String& name) const {
   Isolate* isolate = Isolate::Current();
+  ASSERT(name.IsOneByteString());
+  const OneByteString& lookup_name = OneByteString::Cast(name);
   const Array& flds = Array::Handle(isolate, fields());
   Field& field = Field::Handle(isolate, Field::null());
-  String& field_name = String::Handle(isolate, String::null());
+  OneByteString& field_name =
+      OneByteString::Handle(isolate, OneByteString::null());
   intptr_t len = flds.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= flds.At(i);
     field_name ^= field.name();
-    if (field_name.Equals(name) || EqualsIgnoringPrivate(field_name, name)) {
+    if (field_name.EqualsIgnoringPrivateKey(lookup_name)) {
       return field.raw();
     }
   }
@@ -2352,9 +2389,12 @@ RawAbstractType* AbstractType::Canonicalize() const {
 }
 
 
-RawString* AbstractType::Name() const {
+RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
+  if (IsTypeParameter()) {
+    return TypeParameter::Cast(*this).name();
+  }
   // If the type is still being finalized, we may be reporting an error about
-  // an illformed type, so proceed with caution.
+  // a malformed type, so proceed with caution.
   const AbstractTypeArguments& args =
       AbstractTypeArguments::Handle(arguments());
   const intptr_t num_args = args.IsNull() ? 0 : args.Length();
@@ -2363,12 +2403,18 @@ RawString* AbstractType::Name() const {
   intptr_t num_type_params;  // Number of type parameters to print.
   if (HasResolvedTypeClass()) {
     const Class& cls = Class::Handle(type_class());
-    class_name = cls.Name();
     num_type_params = cls.NumTypeParameters();  // Do not print the full vector.
+    if (name_visibility == kInternalName) {
+      class_name = cls.Name();
+    } else {
+      ASSERT(name_visibility == kUserVisibleName);
+      // Map internal types to their corresponding public interfaces.
+      class_name = cls.UserVisibleName();
+    }
     if (num_type_params > num_args) {
       first_type_param_index = 0;
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
-        // Most probably an illformed type. Do not fill up with "Dynamic",
+        // Most probably a malformed type. Do not fill up with "Dynamic",
         // but use actual vector.
         num_type_params = num_args;
       } else {
@@ -2380,17 +2426,20 @@ RawString* AbstractType::Name() const {
       first_type_param_index = num_args - num_type_params;
     }
     if (cls.IsSignatureClass()) {
-      // We may be reporting an error about an illformed function type. In that
+      // We may be reporting an error about a malformed function type. In that
       // case, avoid instantiating the signature, since it may lead to cycles.
       if (!IsFinalized() || IsBeingFinalized() || IsMalformed()) {
         return class_name.raw();
       }
-      if (num_type_params > 0) {
+      // In order to avoid cycles, print the name of a typedef (non-canonical
+      // signature class) as a regular, possibly parameterized, class.
+      if (cls.IsCanonicalSignatureClass()) {
         const Function& signature_function = Function::Handle(
-            cls.signature_function());
+             cls.signature_function());
         // Signature classes have no super type.
         ASSERT(first_type_param_index == 0);
-        return signature_function.InstantiatedSignatureFrom(args);
+        return signature_function.InstantiatedSignatureFrom(args,
+                                                            name_visibility);
       }
     }
   } else {
@@ -2404,7 +2453,9 @@ RawString* AbstractType::Name() const {
     type_name = class_name.raw();
   } else {
     const String& args_name = String::Handle(
-        args.SubvectorName(first_type_param_index, num_type_params));
+        args.SubvectorName(first_type_param_index,
+                           num_type_params,
+                           name_visibility));
     type_name = String::Concat(class_name, args_name);
   }
   // The name is only used for type checking and debugging purposes.
@@ -2912,9 +2963,9 @@ bool TypeParameter::Equals(const AbstractType& other) const {
   if (index() != other_type_param.index()) {
     return false;
   }
-  const String& name = String::Handle(Name());
-  const String& other_type_param_name = String::Handle(other_type_param.Name());
-  return name.Equals(other_type_param_name);
+  const String& type_param_name = String::Handle(name());
+  const String& other_type_param_name = String::Handle(other_type_param.name());
+  return type_param_name.Equals(other_type_param_name);
 }
 
 
@@ -2932,9 +2983,9 @@ bool TypeParameter::IsIdentical(const AbstractType& other,
   // Therefore, both type parameters may have different parameterized classes
   // and different indices. Compare the type parameter names only, and their
   // bounds if requested.
-  String& name = String::Handle(Name());
-  String& other_name = String::Handle(other_type_param.Name());
-  if (!name.Equals(other_name)) {
+  String& type_param_name = String::Handle(name());
+  String& other_type_param_name = String::Handle(other_type_param.name());
+  if (!type_param_name.Equals(other_type_param_name)) {
     return false;
   }
   if (check_type_parameter_bound) {
@@ -3075,8 +3126,10 @@ bool AbstractTypeArguments::IsUninstantiatedIdentity() const {
 }
 
 
-RawString* AbstractTypeArguments::SubvectorName(intptr_t from_index,
-                                                intptr_t len) const {
+RawString* AbstractTypeArguments::SubvectorName(
+    intptr_t from_index,
+    intptr_t len,
+    NameVisibility name_visibility) const {
   ASSERT(from_index + len <= Length());
   String& name = String::Handle();
   const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
@@ -3087,7 +3140,7 @@ RawString* AbstractTypeArguments::SubvectorName(intptr_t from_index,
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
-    name = type.Name();
+    name = type.BuildName(name_visibility);
     strings.SetAt(s++, name);
     if (i < len - 1) {
       strings.SetAt(s++, kCommaSpace);
@@ -3253,9 +3306,10 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
         if (malformed_error->IsNull()) {
-          const String& type_arg_name = String::Handle(this_type_arg.Name());
+          const String& type_arg_name =
+              String::Handle(this_type_arg.UserVisibleName());
           const String& class_name = String::Handle(cls.Name());
-          const String& bound_name = String::Handle(bound.Name());
+          const String& bound_name = String::Handle(bound.UserVisibleName());
           const Script& script = Script::Handle(cls.script());
           // Since the bound was canonicalized, its token index was lost,
           // therefore, use the token index of the corresponding type parameter.
@@ -4047,6 +4101,7 @@ RawFunction* Function::New(const String& name,
                            bool is_static,
                            bool is_const,
                            intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Array::Handle(Array::Empty()));
   result.set_parameter_names(Array::Handle(Array::Empty()));
@@ -4069,6 +4124,7 @@ RawFunction* Function::New(const String& name,
 RawFunction* Function::NewClosureFunction(const String& name,
                                           const Function& parent,
                                           intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
   const Class& parent_class = Class::Handle(parent.owner());
   ASSERT(!parent_class.IsNull());
@@ -4160,6 +4216,7 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
 RawString* Function::BuildSignature(
     bool instantiate,
+    NameVisibility name_visibility,
     const AbstractTypeArguments& instantiator) const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
@@ -4171,6 +4228,8 @@ RawString* Function::BuildSignature(
   const String& kRBracket = String::Handle(String::NewSymbol("]"));
   String& name = String::Handle();
   if (!instantiate && !is_static()) {
+    // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
+    // The signature of static functions cannot be type parameterized.
     const String& kSpaceExtendsSpace =
         String::Handle(String::NewSymbol(" extends "));
     const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
@@ -4186,12 +4245,12 @@ RawString* Function::BuildSignature(
       AbstractType& bound = AbstractType::Handle();
       for (intptr_t i = 0; i < num_type_parameters; i++) {
         type_parameter ^= type_parameters.TypeAt(i);
-        name = type_parameter.Name();
+        name = type_parameter.name();
         pieces.Add(name);
         bound = type_parameter.bound();
         if (!bound.IsNull() && !bound.IsDynamicType()) {
           pieces.Add(kSpaceExtendsSpace);
-          name = bound.Name();
+          name = bound.BuildName(name_visibility);
           pieces.Add(name);
         }
         if (i < num_type_parameters - 1) {
@@ -4213,7 +4272,7 @@ RawString* Function::BuildSignature(
     if (instantiate && !param_type.IsInstantiated()) {
       param_type = param_type.InstantiateFrom(instantiator);
     }
-    name = param_type.Name();
+    name = param_type.BuildName(name_visibility);
     pieces.Add(name);
     if (i != (num_params - 1)) {
       pieces.Add(kCommaSpace);
@@ -4230,7 +4289,7 @@ RawString* Function::BuildSignature(
         param_type = param_type.InstantiateFrom(instantiator);
       }
       ASSERT(!param_type.IsNull());
-      name = param_type.Name();
+      name = param_type.BuildName(name_visibility);
       pieces.Add(name);
       if (i != (num_params - 1)) {
         pieces.Add(kCommaSpace);
@@ -4243,7 +4302,7 @@ RawString* Function::BuildSignature(
   if (instantiate && !res_type.IsInstantiated()) {
     res_type = res_type.InstantiateFrom(instantiator);
   }
-  name = res_type.Name();
+  name = res_type.BuildName(name_visibility);
   pieces.Add(name);
   const Array& strings = Array::Handle(Array::MakeArray(pieces));
   return String::NewSymbol(String::Handle(String::ConcatAll(strings)));
@@ -4276,7 +4335,7 @@ const char* Function::ToCString() const {
   const char* f1 = NULL;
   const char* f2 = is_const() ? " const" : "";
   switch (kind()) {
-    case RawFunction::kFunction:
+    case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
@@ -4404,6 +4463,7 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      intptr_t token_pos) {
+  ASSERT(name.IsOneByteString());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
@@ -5882,8 +5942,8 @@ RawLibrary* Library::New() {
 RawLibrary* Library::NewLibraryHelper(const String& url,
                                       bool import_core_lib) {
   const Library& result = Library::Handle(Library::New());
-  result.raw_ptr()->name_ = url.raw();
-  result.raw_ptr()->url_ = url.raw();
+  result.StorePointer(&result.raw_ptr()->name_, url.raw());
+  result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
   result.raw_ptr()->dictionary_ = Array::Empty();
   result.raw_ptr()->anonymous_classes_ = Array::Empty();
@@ -7650,7 +7710,7 @@ void Instance::SetTypeArguments(const AbstractTypeArguments& value) const {
   const Class& cls = Class::Handle(clazz());
   intptr_t field_offset = cls.type_arguments_instance_field_offset();
   ASSERT(field_offset != Class::kNoTypeArguments);
-  *FieldAddrAtOffset(field_offset) = value.raw();
+  SetFieldAtOffset(field_offset, value);
 }
 
 
@@ -7659,9 +7719,14 @@ bool Instance::IsInstanceOf(const AbstractType& other,
                             Error* malformed_error) const {
   ASSERT(other.IsFinalized());
   ASSERT(!other.IsDynamicType());
-  ASSERT(!other.IsVoidType());
   ASSERT(!other.IsMalformed());
   if (IsNull()) {
+    // The null instance can be returned from a void function.
+    if (other.IsVoidType()) {
+      return true;
+    }
+    // Otherwise, null is only an instance of Object and of Dynamic.
+    // It is not necessary to fully instantiate the other type for this test.
     Class& other_class = Class::Handle();
     if (other.IsTypeParameter()) {
       if (other_instantiator.IsNull()) {
@@ -7676,6 +7741,9 @@ bool Instance::IsInstanceOf(const AbstractType& other,
       other_class = other.type_class();
     }
     return other_class.IsObjectClass() || other_class.IsDynamicClass();
+  }
+  if (other.IsVoidType()) {
+    return false;
   }
   const Class& cls = Class::Handle(clazz());
   // We must not encounter Object::sentinel() or Object::transition_sentinel(),
@@ -7817,7 +7885,7 @@ RawInteger* Integer::New(const String& str, Heap::Space space) {
   ASSERT(str.IsOneByteString());
   const OneByteString& onestr = OneByteString::Cast(str);
   int64_t value;
-  if (!OS::StringToInteger(onestr.ToCString(), &value)) {
+  if (!OS::StringToInt64(onestr.ToCString(), &value)) {
     const Bigint& big = Bigint::Handle(Bigint::New(onestr, space));
     ASSERT(!BigintOperations::FitsIntoSmi(big));
     ASSERT(!BigintOperations::FitsIntoMint(big));
@@ -8347,43 +8415,9 @@ bool String::Equals(const Instance& other) const {
   const String& other_string = String::Cast(other);
   if (this->HasHash() && other_string.HasHash() &&
       (this->Hash() != other_string.Hash())) {
-    // Both sides have a hash code and it does not match.
-    return false;
+    return false;  // Both sides have a hash code and it does not match.
   }
-
-  intptr_t len = this->Length();
-  if (len != other_string.Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != other_string.CharAt(i)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-
-bool String::Equals(const String& str,
-                    intptr_t begin_index,
-                    intptr_t len) const {
-  ASSERT(begin_index >= 0);
-  ASSERT(begin_index == 0 || begin_index < str.Length());
-  ASSERT(len >= 0);
-  ASSERT(len <= str.Length());
-  if (len != this->Length()) {
-    // Lengths don't match.
-    return false;
-  }
-
-  for (intptr_t i = 0; i < len; i++) {
-    if (this->CharAt(i) != str.CharAt(begin_index + i)) {
-      return false;
-    }
-  }
-  return true;
+  return Equals(other_string, 0, other_string.Length());
 }
 
 
@@ -9110,6 +9144,60 @@ RawOneByteString* OneByteString::EscapeDoubleQuotes() const {
     return dststr.raw();
   }
   return OneByteString::null();
+}
+
+
+// Check to see if 'name' matches 'this' as is or
+// once the private key separator is stripped from name.
+//
+// Things are made more complicated by the fact that constructors are
+// added *after* the private suffix, so "foo@123.named" should match
+// "foo.named".
+//
+// Also, the private suffix can occur more than once in the name, as in:
+//
+//    _ReceivePortImpl@6be832b._internal@6be832b
+//
+bool OneByteString::EqualsIgnoringPrivateKey(const OneByteString& name) const {
+  if (raw() == name.raw()) {
+    return true;  // Both handles point to the same raw instance.
+  }
+  intptr_t len = Length();
+  intptr_t name_len = name.Length();
+  if (len == name_len) {
+    for (intptr_t i = 0; i < len; i++) {
+      if (*(CharAddr(i)) != *(name.CharAddr(i))) {
+        return false;
+      }
+    }
+    return true;
+  }
+  if (len < name_len) {
+    return false;  // No way they can match.
+  }
+  intptr_t pos = 0;
+  intptr_t name_pos = 0;
+  while (pos < len) {
+    int32_t ch = *(CharAddr(pos));
+    pos++;
+
+    if (ch == Scanner::kPrivateKeySeparator) {
+      // Consume a private key separator.
+      while (pos < len && *(CharAddr(pos)) != '.') {
+        pos++;
+      }
+      // Resume matching characters.
+      continue;
+    }
+    if (name_pos == name_len || ch != *(name.CharAddr(name_pos))) {
+      return false;
+    }
+    name_pos++;
+  }
+
+  // We have reached the end of mangled_name string.
+  ASSERT(pos == len);
+  return (name_pos == name_len);
 }
 
 
@@ -10496,12 +10584,12 @@ RawClosure* Closure::New(const Function& function,
 
 
 void Closure::set_context(const Context& value) const {
-  raw_ptr()->context_ = value.raw();
+  StorePointer(&raw_ptr()->context_, value.raw());
 }
 
 
 void Closure::set_function(const Function& value) const {
-  raw_ptr()->function_ = value.raw();
+  StorePointer(&raw_ptr()->function_, value.raw());
 }
 
 

@@ -465,7 +465,7 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
     return Api::NewError("%s: %d is not a valid class id",
                          CURRENT_FUNC, cls_id);
   }
-  Class& cls = Class::Handle(isolate->class_table()->At(cls_id));
+  Class& cls = Class::Handle(isolate, isolate->class_table()->At(cls_id));
   if (class_name != NULL) {
     *class_name = Api::NewHandle(isolate, cls.Name());
   }
@@ -475,9 +475,9 @@ DART_EXPORT Dart_Handle Dart_GetClassInfo(
   }
   if (super_class_id != NULL) {
     *super_class_id = 0;
-    cls = cls.SuperClass();
-    if (!cls.IsNull()) {
-      *super_class_id = cls.id();
+    Class& super_cls = Class::Handle(isolate, cls.SuperClass());
+    if (!super_cls.IsNull()) {
+      *super_class_id = super_cls.id();
     }
   }
   if (static_fields != NULL) {
@@ -655,5 +655,37 @@ DART_EXPORT Dart_Handle Dart_GetLibraryURLs() {
   }
   return Api::NewHandle(isolate, library_url_list.raw());
 }
+
+
+DART_EXPORT Dart_Handle Dart_GetLibraryDebuggable(intptr_t library_id,
+                                                  bool* is_debuggable) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  CHECK_NOT_NULL(is_debuggable);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  *is_debuggable = lib.IsDebuggable();
+  return Api::True(isolate);
+}
+
+
+DART_EXPORT Dart_Handle Dart_SetLibraryDebuggable(intptr_t library_id,
+                                                  bool is_debuggable) {
+  Isolate* isolate = Isolate::Current();
+  ASSERT(isolate != NULL);
+  DARTSCOPE(isolate);
+  const Library& lib = Library::Handle(Library::GetLibrary(library_id));
+  if (lib.IsNull()) {
+    return Api::NewError("%s: %d is not a valid library id",
+                         CURRENT_FUNC, library_id);
+  }
+  lib.set_debuggable(is_debuggable);
+  return Api::True(isolate);
+}
+
 
 }  // namespace dart

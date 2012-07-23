@@ -218,7 +218,8 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 // SubtypeTestCache.
 // EAX: instance to test against (preserved).
 // Clobbers ECX, EDI.
-void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
+// Returns true if there is a fallthrough.
+bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
@@ -258,7 +259,7 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ cmpl(kClassIdReg, Immediate(kBool));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
-    return;
+    return false;
   }
   if (type.IsFunctionInterface()) {
     // Check if instance is a closure.
@@ -269,21 +270,22 @@ void FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
     __ cmpl(EDI, raw_null);
     __ j(NOT_EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
-    return;
+    return false;
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
-  // Note that instance is not Smi(checked above).
+  // Note that instance is not Smi (checked above).
   if (type.IsSubtypeOf(
           Type::Handle(Type::NumberInterface()), &malformed_error)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
-    return;
+    return false;
   }
   if (type.IsStringInterface()) {
     GenerateStringTypeCheck(kClassIdReg, is_instance_lbl, is_not_instance_lbl);
-    return;
+    return false;
   }
   // Otherwise fallthrough.
+  return true;
 }
 
 
@@ -421,6 +423,11 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     const AbstractType& type,
     Label* is_instance_lbl,
     Label* is_not_instance_lbl) {
+  if (type.IsVoidType()) {
+    // A non-null value is returned from a void function, which will result in a
+    // type error. A null value is handled prior to executing this inline code.
+    return SubtypeTestCache::null();
+  }
   if (type.IsInstantiated()) {
     const Class& type_class = Class::ZoneHandle(type.type_class());
     // A Smi object cannot be the instance of a parameterized class.
@@ -433,26 +440,28 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
                                                        is_instance_lbl,
                                                        is_not_instance_lbl);
       // Fall through to runtime call.
-    } else {
-      GenerateInstantiatedTypeNoArgumentsTest(cid,
-                                              token_pos,
-                                              type,
-                                              is_instance_lbl,
-                                              is_not_instance_lbl);
+    }
+    const bool has_fall_through =
+        GenerateInstantiatedTypeNoArgumentsTest(cid,
+                                                token_pos,
+                                                type,
+                                                is_instance_lbl,
+                                                is_not_instance_lbl);
+    if (has_fall_through) {
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
       return GenerateSubtype1TestCacheLookup(
           cid, token_pos, type_class,
           is_instance_lbl, is_not_instance_lbl);
+    } else {
+      return SubtypeTestCache::null();
     }
-  } else {
-    return GenerateUninstantiatedTypeTest(cid,
-                                          token_pos,
-                                          type,
-                                          is_instance_lbl,
-                                          is_not_instance_lbl);
   }
-  return SubtypeTestCache::null();
+  return GenerateUninstantiatedTypeTest(cid,
+                                        token_pos,
+                                        type,
+                                        is_instance_lbl,
+                                        is_not_instance_lbl);
 }
 
 
@@ -499,33 +508,35 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
   test_cache = GenerateInlineInstanceof(cid, token_pos, type,
                                         &is_instance, &is_not_instance);
 
-  // Generate runtime call.
-  __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
-  __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
-  __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
-  __ pushl(EAX);  // Push the instance.
-  __ PushObject(type);  // Push the type.
-  __ pushl(ECX);  // TODO(srdjan): Pass instantiator instead of null.
-  __ pushl(EDX);  // Instantiator type arguments.
-  __ LoadObject(EAX, test_cache);
-  __ pushl(EAX);
-  GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
-  // Pop the parameters supplied to the runtime entry. The result of the
-  // instanceof runtime call will be left as the result of the operation.
-  __ Drop(6);
+  // test_cache is null if there is no fall-through.
   Label done;
-  if (negate_result) {
-    __ popl(EDX);
-    __ LoadObject(EAX, bool_true());
-    __ cmpl(EDX, EAX);
-    __ j(NOT_EQUAL, &done, Assembler::kNearJump);
-    __ LoadObject(EAX, bool_false());
-  } else {
-    __ popl(EAX);
+  if (!test_cache.IsNull()) {
+    // Generate runtime call.
+    __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
+    __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
+    __ PushObject(Object::ZoneHandle());  // Make room for the result.
+    __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
+    __ pushl(EAX);  // Push the instance.
+    __ PushObject(type);  // Push the type.
+    __ pushl(ECX);  // Instantiator.
+    __ pushl(EDX);  // Instantiator type arguments.
+    __ LoadObject(EAX, test_cache);
+    __ pushl(EAX);
+    GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
+    // Pop the parameters supplied to the runtime entry. The result of the
+    // instanceof runtime call will be left as the result of the operation.
+    __ Drop(6);
+    if (negate_result) {
+      __ popl(EDX);
+      __ LoadObject(EAX, bool_true());
+      __ cmpl(EDX, EAX);
+      __ j(NOT_EQUAL, &done, Assembler::kNearJump);
+      __ LoadObject(EAX, bool_false());
+    } else {
+      __ popl(EAX);
+    }
+    __ jmp(&done, Assembler::kNearJump);
   }
-  __ jmp(&done, Assembler::kNearJump);
-
   __ Bind(&is_not_instance);
   __ LoadObject(EAX, negate_result ? bool_true() : bool_false());
   __ jmp(&done, Assembler::kNearJump);
@@ -561,7 +572,6 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   // Assignable check is skipped in FlowGraphBuilder, not here.
   ASSERT(dst_type.IsMalformed() ||
          (!dst_type.IsDynamicType() && !dst_type.IsObjectType()));
-  ASSERT(!dst_type.IsVoidType());
   __ pushl(ECX);  // Store instantiator.
   __ pushl(EDX);  // Store instantiator type arguments.
   // A null object is always assignable and is returned as result.
@@ -632,7 +642,6 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
   // TODO(vegorov): adjust assertion when we start removing comparison from the
   // graph when it is merged with a branch.
   ASSERT(locs->is_call() ||
-         (instr->IsBranch() && instr->AsBranch()->is_fused_with_comparison()) ||
          (locs->input_count() == instr->InputCount()));
 }
 
@@ -1100,43 +1109,122 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 #define __ compiler_->assembler()->
 
 
-void ParallelMoveResolver::EmitMove(int index) {
-  Location source = moves_[index].src();
-  Location destination = moves_[index].dest();
+static Address ToSpillAddress(Location loc) {
+  ASSERT(loc.IsSpillSlot());
+  const intptr_t offset =
+      (ParsedFunction::kFirstLocalSlotIndex - loc.spill_index()) * kWordSize;
+  return Address(EBP, offset);
+}
 
-  ASSERT(destination.IsRegister());
+
+void ParallelMoveResolver::EmitMove(int index) {
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
+
   if (source.IsRegister()) {
-    __ movl(destination.reg(), source.reg());
+    if (destination.IsRegister()) {
+      __ movl(destination.reg(), source.reg());
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      __ movl(ToSpillAddress(destination), source.reg());
+    }
+  } else if (source.IsSpillSlot()) {
+    if (destination.IsRegister()) {
+      __ movl(destination.reg(), ToSpillAddress(source));
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      MoveMemoryToMemory(ToSpillAddress(destination), ToSpillAddress(source));
+    }
   } else {
     ASSERT(source.IsConstant());
-    __ LoadObject(destination.reg(), source.constant());
+    if (destination.IsRegister()) {
+      __ LoadObject(destination.reg(), source.constant());
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      StoreObject(ToSpillAddress(destination), source.constant());
+    }
   }
-  moves_[index].Eliminate();
+
+  move->Eliminate();
 }
 
 
 void ParallelMoveResolver::EmitSwap(int index) {
-  Location source = moves_[index].src();
-  Location destination = moves_[index].dest();
+  MoveOperands* move = moves_[index];
+  const Location source = move->src();
+  const Location destination = move->dest();
 
-  ASSERT(source.IsRegister() && destination.IsRegister());
-  __ xchgl(destination.reg(), source.reg());
+  if (source.IsRegister() && destination.IsRegister()) {
+    __ xchgl(destination.reg(), source.reg());
+  } else if (source.IsRegister() && destination.IsSpillSlot()) {
+    Exchange(source.reg(), ToSpillAddress(destination));
+  } else if (source.IsSpillSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), ToSpillAddress(source));
+  } else if (source.IsSpillSlot() && destination.IsSpillSlot()) {
+    Exchange(ToSpillAddress(destination), ToSpillAddress(source));
+  } else {
+    UNREACHABLE();
+  }
 
   // The swap of source and destination has executed a move from source to
   // destination.
-  moves_[index].Eliminate();
+  move->Eliminate();
 
   // Any unperformed (including pending) move with a source of either
   // this move's source or destination needs to have their source
   // changed to reflect the state of affairs after the swap.
   for (int i = 0; i < moves_.length(); ++i) {
-    MoveOperands other_move = moves_[i];
+    const MoveOperands& other_move = *moves_[i];
     if (other_move.Blocks(source)) {
-      moves_[i].set_src(destination);
+      moves_[i]->set_src(destination);
     } else if (other_move.Blocks(destination)) {
-      moves_[i].set_src(source);
+      moves_[i]->set_src(source);
     }
   }
+}
+
+
+void ParallelMoveResolver::MoveMemoryToMemory(const Address& dst,
+                                              const Address& src) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  __ pushl(EAX);
+  __ movl(EAX, src);
+  __ movl(dst, EAX);
+  __ popl(EAX);
+}
+
+
+void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  __ pushl(EAX);
+  __ LoadObject(EAX, obj);
+  __ movl(dst, EAX);
+  __ popl(EAX);
+}
+
+
+void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  Register scratch = (reg == EAX) ? ECX : EAX;
+  __ pushl(scratch);
+  __ movl(scratch, mem);
+  __ xchgl(scratch, reg);
+  __ movl(mem, scratch);
+  __ popl(scratch);
+}
+
+
+void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
+  // TODO(vegorov): allocate temporary registers for such moves.
+  __ pushl(EAX);
+  __ pushl(ECX);
+  __ movl(EAX, mem1);
+  __ movl(ECX, mem2);
+  __ movl(mem1, ECX);
+  __ movl(mem2, EAX);
+  __ popl(ECX);
+  __ popl(EAX);
 }
 
 

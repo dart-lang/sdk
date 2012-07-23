@@ -539,7 +539,7 @@ class RawInstantiatedTypeArguments : public RawAbstractTypeArguments {
 class RawFunction : public RawObject {
  public:
   enum Kind {
-    kFunction,
+    kRegularFunction,
     kClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
     kGetterFunction,  // represents getter functions e.g: get foo() { .. }.
@@ -641,9 +641,9 @@ class RawTokenStream : public RawObject {
 class RawScript : public RawObject {
  public:
   enum Kind {
-    kScript = 0,
-    kLibrary,
-    kSource
+    kScriptTag = 0,
+    kLibraryTag,
+    kSourceTag
   };
 
  private:

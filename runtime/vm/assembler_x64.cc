@@ -928,6 +928,14 @@ void Assembler::xorq(Register dst, const Address& address) {
 }
 
 
+void Assembler::xorq(const Address& dst, Register src) {
+  AssemblerBuffer::EnsureCapacity ensured(&buffer_);
+  EmitOperandREX(src, dst, REX_W);
+  EmitUint8(0x31);
+  EmitOperand(src & 7, dst);
+}
+
+
 void Assembler::addl(Register dst, Register src) {
   AssemblerBuffer::EnsureCapacity ensured(&buffer_);
   Operand operand(src);
@@ -1497,6 +1505,16 @@ void Assembler::LoadObject(Register dst, const Object& object) {
     EmitRegisterREX(dst, REX_W);
     EmitUint8(0xB8 | (dst & 7));
     buffer_.EmitObject(object);
+  }
+}
+
+
+void Assembler::StoreObject(const Address& dst, const Object& object) {
+  if (object.IsSmi()) {
+    movq(dst, Immediate(reinterpret_cast<int64_t>(object.raw())));
+  } else {
+    LoadObject(TMP, object);
+    movq(dst, TMP);
   }
 }
 

@@ -186,7 +186,7 @@ void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
-  f->Print(" == ");
+  f->Print(" %s ", Token::Str(kind()));
   right()->PrintTo(f);
 }
 
@@ -394,7 +394,9 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ParameterInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    v%d <- parameter(%d)", index());
+  f->Print("    v%d <- parameter(%d)",
+           (ssa_temp_index() != -1) ? ssa_temp_index() : temp_index(),
+           index());
 }
 
 
@@ -440,19 +442,24 @@ void ReThrowInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+void GotoInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    goto %d", successor()->block_id());
+}
+
+
 void BranchInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   f->Print("if ");
-  if (is_fused_with_comparison()) {
-    if (is_negated()) f->Print(" not ");
-    fused_with_comparison_->PrintTo(f);
-  } else {
-    value()->PrintTo(f);
-  }
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
 
   f->Print(" goto (%d, %d)",
             true_successor()->block_id(),
             false_successor()->block_id());
+  if (HasICData()) {
+    PrintICData(f, *ic_data());
+  }
 }
 
 
@@ -460,7 +467,9 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   for (intptr_t i = 0; i < moves_.length(); i++) {
     if (i != 0) f->Print(", ");
-    f->Print("%s = %s", moves_[i].dest().Name(), moves_[i].src().Name());
+    moves_[i]->dest().PrintTo(f);
+    f->Print(" <- ");
+    moves_[i]->src().PrintTo(f);
   }
 }
 
@@ -691,10 +700,17 @@ void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
 }
 
 
+void GotoInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ goto B%d", successor()->block_id());
+}
+
+
 void BranchInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s ", DebugName());
   f->Print("if ");
-  value()->PrintTo(f);
+  left()->PrintTo(f);
+  f-> Print(" %s ", Token::Str(kind()));
+  right()->PrintTo(f);
   f->Print(" goto (B%d, B%d)",
             true_successor()->block_id(),
             false_successor()->block_id());
@@ -712,7 +728,9 @@ void Environment::PrintTo(BufferFormatter* f) const {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
     if ((i < locations_.length()) && !locations_[i].IsInvalid()) {
-      f->Print(" [%s]", locations_[i].Name());
+      f->Print(" [");
+      locations_[i].PrintTo(f);
+      f->Print("]");
     }
   }
   f->Print(" }");

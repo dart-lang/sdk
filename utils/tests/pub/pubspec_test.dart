@@ -53,6 +53,20 @@ dependencies:
 ''', sources);
         });
       });
+
+      test("allows comment-only files", () {
+        var sources = new SourceRegistry();
+        sources.register(new MockSource());
+
+        var pubspec = new Pubspec.parse('''
+# No external dependencies yet
+# Including for completeness
+# ...and hoping the spec expands to include details about author, version, etc
+# See http://www.dartlang.org/docs/pub-package-manager/ for details
+''', sources);
+        expect(pubspec.version, equals(Version.none));
+        expect(pubspec.dependencies, isEmpty);
+      });
     });
   });
 }

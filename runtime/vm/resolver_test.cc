@@ -41,7 +41,9 @@ static void SetupFunction(const char* test_library_name,
                                String::New("dart-test:DartStaticResolve") :
                                String::New("dart-test:DartDynamicResolve"));
   String& source = String::Handle(String::New(script_chars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kScript));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kScriptTag));
   const String& lib_name = String::Handle(String::New(test_library_name));
   Library& lib = Library::Handle(Library::New(lib_name));
   lib.Register();

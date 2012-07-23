@@ -35,14 +35,17 @@ class DartGenerator(object):
     return type_name.split('::')[-1]
 
   def _IsCompoundType(self, database, type_name):
-    if IsPrimitiveType(type_name):
+    if IsRegisteredType(type_name):
       return True
+
+    if type_name.endswith('?'):
+      return self._IsCompoundType(database, type_name[:-len('?')])
 
     if type_name.endswith('[]'):
       return self._IsCompoundType(database, type_name[:-len('[]')])
 
-    striped_type_name = self._StripModules(type_name)
-    if database.HasInterface(striped_type_name):
+    stripped_type_name = self._StripModules(type_name)
+    if database.HasInterface(stripped_type_name):
       return True
 
     dart_template_match = self._dart_templates_re.match(type_name)
@@ -223,12 +226,11 @@ class DartGenerator(object):
             interface_name, auxiliary_file))
         continue
 
-      info = RecognizeCallback(interface)
-      if info:
-       system.ProcessCallback(interface, info)
+      if 'Callback' in interface.ext_attrs:
+        handlers = [op for op in interface.operations if op.id == 'handleEvent']
+        info = AnalyzeOperation(interface, handlers)
+        system.ProcessCallback(interface, info)
       else:
-        if 'Callback' in interface.ext_attrs:
-          _logger.info('Malformed callback: %s' % interface.id)
         _logger.info('Generating %s' % interface.id)
         system.ProcessInterface(interface)
 

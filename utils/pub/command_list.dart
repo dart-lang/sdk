@@ -16,6 +16,8 @@
 class ListCommand extends PubCommand {
   String get description() => 'print the contents of repositories';
 
+  String get usage() => 'pub list';
+
   Future onRun() {
     // TODO(nweiz): also list the contents of the packages directory when it's
     // able to determine the source of its packages (that is, when we have a

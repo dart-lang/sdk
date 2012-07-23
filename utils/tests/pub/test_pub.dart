@@ -34,9 +34,15 @@ DirectoryDescriptor dir(Pattern name, [List<Descriptor> contents]) =>
     new DirectoryDescriptor(name, contents);
 
 /**
+ * Creates a new [FutureDescriptor] wrapping [future].
+ */
+FutureDescriptor async(Future<Descriptor> future) =>
+    new FutureDescriptor(future);
+
+/**
  * Creates a new [GitRepoDescriptor] with [name] and [contents].
  */
-DirectoryDescriptor git(Pattern name, [List<Descriptor> contents]) =>
+GitRepoDescriptor git(Pattern name, [List<Descriptor> contents]) =>
     new GitRepoDescriptor(name, contents);
 
 /**
@@ -169,6 +175,11 @@ List<_ScheduledEvent> _scheduled;
 List<_ScheduledEvent> _scheduledCleanup;
 
 /**
+ * Set to true when the current batch of scheduled events should be aborted.
+ */
+bool _abortScheduled = false;
+
+/**
  * Runs all the scheduled events for a test case. This should only be called
  * once per test case.
  */
@@ -258,18 +269,23 @@ void runPub([List<String> args, Pattern output, Pattern error,
 }
 
 /**
- * Wraps a test that needs git in order to run. This validates that the test is
- * running on a builbot in which case we expect git to be installed. If we are
- * not running on the buildbot, we will instead see if git is installed and
- * skip the test if not. This way, users don't need to have git installed to
- * run the tests locally (unless they actually care about the pub git tests).
+ * Skips the current test if Git is not installed. This validates that the
+ * current test is running on a buildbot in which case we expect git to be
+ * installed. If we are not running on the buildbot, we will instead see if git
+ * is installed and skip the test if not. This way, users don't need to have git
+ * installed to run the tests locally (unless they actually care about the pub
+ * git tests).
  */
-void withGit(void callback()) {
-  isGitInstalled.then(expectAsync1((installed) {
-    if (installed || Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
-      callback();
-    }
-  }));
+void ensureGit() {
+  _schedule((_) {
+    return isGitInstalled.transform((installed) {
+      if (!installed &&
+          !Platform.environment.containsKey('BUILDBOT_BUILDERNAME')) {
+        _abortScheduled = true;
+      }
+      return null;
+    });
+  });
 }
 
 Future<Directory> _setUpSandbox() {
@@ -281,7 +297,8 @@ Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
   var iterator = scheduled.iterator();
 
   Future runNextEvent([_]) {
-    if (!iterator.hasNext()) {
+    if (_abortScheduled || !iterator.hasNext()) {
+      _abortScheduled = false;
       scheduled.clear();
       return new Future.immediate(null);
     }
@@ -602,6 +619,30 @@ class DirectoryDescriptor extends Descriptor {
 }
 
 /**
+ * Wraps a [Future] that will complete to a [Descriptor] and makes it behave
+ * like a concrete [Descriptor]. This is necessary when the contents of the
+ * descriptor depends on information that's not available until part of the test
+ * run is completed.
+ */
+class FutureDescriptor extends Descriptor {
+  Future<Descriptor> _future;
+
+  FutureDescriptor(this._future) : super('<unknown>');
+
+  Future create(dir) => _future.chain((desc) => desc.create(dir));
+
+  Future validate(dir) => _future.chain((desc) => desc.validate(dir));
+
+  Future delete(dir) => _future.chain((desc) => desc.delete(dir));
+
+  InputStream load(List<String> path) {
+    var resultStream = new ListInputStream();
+    _future.then((desc) => pipeInputToInput(desc.load(path), resultStream));
+    return resultStream;
+  }
+}
+
+/**
  * Describes a Git repository and its contents.
  */
 class GitRepoDescriptor extends DirectoryDescriptor {
@@ -641,11 +682,30 @@ class GitRepoDescriptor extends DirectoryDescriptor {
    */
   void scheduleCommit() => _schedule((dir) => this.commit(dir));
 
-  Future _runGit(List<String> args, Directory workingDir) {
+  /**
+   * Return a Future that completes to the commit in the git repository referred
+   * to by [ref] at the current point in the scheduled test run.
+   */
+  Future<String> revParse(String ref) {
+    var completer = new Completer<String>();
+    // TODO(nweiz): inline this once issue 3197 is fixed
+    var superCreate = super.create;
+    _schedule((parentDir) {
+      return superCreate(parentDir).chain((rootDir) {
+        return _runGit(['rev-parse', ref], rootDir);
+      }).transform((output) {
+        completer.complete(output[0]);
+        return null;
+      });
+    });
+    return completer.future;
+  }
+
+  Future<String> _runGit(List<String> args, Directory workingDir) {
     return runProcess('git', args, workingDir: workingDir.path).
       transform((result) {
         if (!result.success) throw "Error running git: ${result.stderr}";
-        return null;
+        return result.stdout;
       });
   }
 }

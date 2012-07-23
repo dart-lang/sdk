@@ -196,8 +196,14 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   // Basic checking.
   cls = object_store->object_class();
   ASSERT(Instance::InstanceSize() == cls.instance_size());
+  cls = object_store->integer_implementation_class();
+  ASSERT(Integer::InstanceSize() == cls.instance_size());
   cls = object_store->smi_class();
   ASSERT(Smi::InstanceSize() == cls.instance_size());
+  cls = object_store->mint_class();
+  ASSERT(Mint::InstanceSize() == cls.instance_size());
+  cls = object_store->bigint_class();
+  ASSERT(Bigint::InstanceSize() == cls.instance_size());
   cls = object_store->one_byte_string_class();
   ASSERT(OneByteString::InstanceSize() == cls.instance_size());
   cls = object_store->two_byte_string_class();
@@ -212,10 +218,6 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(ExternalFourByteString::InstanceSize() == cls.instance_size());
   cls = object_store->double_class();
   ASSERT(Double::InstanceSize() == cls.instance_size());
-  cls = object_store->mint_class();
-  ASSERT(Mint::InstanceSize() == cls.instance_size());
-  cls = object_store->bigint_class();
-  ASSERT(Bigint::InstanceSize() == cls.instance_size());
   cls = object_store->bool_class();
   ASSERT(Bool::InstanceSize() == cls.instance_size());
   cls = object_store->array_class();
@@ -335,56 +337,51 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
   // about allowed interfaces are lifted.
   if ((cls.library() != Library::CoreLibrary()) &&
       (cls.library() != Library::CoreImplLibrary())) {
-    // Prevent extending core implementation classes Bool, Double, ObjectArray,
-    // ImmutableArray, GrowableObjectArray, IntegerImplementation, Smi, Mint,
-    // BigInt, OneByteString, TwoByteString, FourByteString.
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-    const String& integer_implementation_name =
-        String::Handle(String::NewSymbol("IntegerImplementation"));
-    const Class& integer_implementation_class =
-        Class::Handle(core_impl_lib.LookupClass(integer_implementation_name));
-    const String& growable_object_array_name =
-        String::Handle(String::NewSymbol("GrowableObjectArray"));
-    const Class& growable_object_array_class =
-        Class::Handle(core_impl_lib.LookupClass(growable_object_array_name));
-    if ((super_class.raw() == object_store->bool_class()) ||
-        (super_class.raw() == object_store->double_class()) ||
-        (super_class.raw() == object_store->array_class()) ||
-        (super_class.raw() == object_store->immutable_array_class()) ||
-        (super_class.raw() == growable_object_array_class.raw()) ||
-        (super_class.raw() == object_store->int8_array_class()) ||
-        (super_class.raw() == object_store->uint8_array_class()) ||
-        (super_class.raw() == object_store->int16_array_class()) ||
-        (super_class.raw() == object_store->uint16_array_class()) ||
-        (super_class.raw() == object_store->int32_array_class()) ||
-        (super_class.raw() == object_store->uint32_array_class()) ||
-        (super_class.raw() == object_store->int64_array_class()) ||
-        (super_class.raw() == object_store->uint64_array_class()) ||
-        (super_class.raw() == object_store->float32_array_class()) ||
-        (super_class.raw() == object_store->float64_array_class()) ||
-        (super_class.raw() == object_store->external_int8_array_class()) ||
-        (super_class.raw() == object_store->external_uint8_array_class()) ||
-        (super_class.raw() == object_store->external_int16_array_class()) ||
-        (super_class.raw() == object_store->external_uint16_array_class()) ||
-        (super_class.raw() == object_store->external_int32_array_class()) ||
-        (super_class.raw() == object_store->external_uint32_array_class()) ||
-        (super_class.raw() == object_store->external_int64_array_class()) ||
-        (super_class.raw() == object_store->external_uint64_array_class()) ||
-        (super_class.raw() == object_store->external_float32_array_class()) ||
-        (super_class.raw() == object_store->external_float64_array_class()) ||
-        (super_class.raw() == integer_implementation_class.raw()) ||
-        (super_class.raw() == object_store->smi_class()) ||
-        (super_class.raw() == object_store->mint_class()) ||
-        (super_class.raw() == object_store->bigint_class()) ||
-        (super_class.raw() == object_store->one_byte_string_class()) ||
-        (super_class.raw() == object_store->two_byte_string_class()) ||
-        (super_class.raw() == object_store->four_byte_string_class())) {
-      const Script& script = Script::Handle(cls.script());
-      ReportError(script, cls.token_pos(),
-                  "'%s' is not allowed to extend '%s'",
-                  String::Handle(cls.Name()).ToCString(),
-                  String::Handle(super_class.Name()).ToCString());
+    // Prevent extending core implementation classes.
+    switch (super_class.id()) {
+      case kInteger:
+      case kSmi:
+      case kMint:
+      case kBigint:
+      case kDouble:
+      case kOneByteString:
+      case kTwoByteString:
+      case kFourByteString:
+      case kExternalOneByteString:
+      case kExternalTwoByteString:
+      case kExternalFourByteString:
+      case kBool:
+      case kArray:
+      case kImmutableArray:
+      case kGrowableObjectArray:
+      case kInt8Array:
+      case kExternalInt8Array:
+      case kUint8Array:
+      case kExternalUint8Array:
+      case kInt16Array:
+      case kExternalInt16Array:
+      case kUint16Array:
+      case kExternalUint16Array:
+      case kInt32Array:
+      case kExternalInt32Array:
+      case kUint32Array:
+      case kExternalUint32Array:
+      case kInt64Array:
+      case kExternalInt64Array:
+      case kUint64Array:
+      case kExternalUint64Array:
+      case kFloat32Array:
+      case kExternalFloat32Array:
+      case kFloat64Array:
+      case kExternalFloat64Array: {
+        const Script& script = Script::Handle(cls.script());
+        ReportError(script, cls.token_pos(),
+                    "'%s' is not allowed to extend '%s'",
+                    String::Handle(cls.Name()).ToCString(),
+                    String::Handle(super_class.Name()).ToCString());
+        break;
+      }
+      default: break;
     }
   }
   return;
@@ -652,7 +649,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         Error::Handle(),  // No previous error.
         cls, parameterized_type, finalization,
         "type '%s' illegally refers to itself",
-        String::Handle(parameterized_type.Name()).ToCString());
+        String::Handle(parameterized_type.UserVisibleName()).ToCString());
     return parameterized_type.raw();
   }
 
@@ -686,7 +683,8 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         // In checked mode, a type with malformed type arguments is malformed.
         if (FLAG_enable_type_checks) {
           const Error& error = Error::Handle(type_argument.malformed_error());
-          const String& type_name = String::Handle(parameterized_type.Name());
+          const String& type_name =
+              String::Handle(parameterized_type.UserVisibleName());
           FinalizeMalformedType(error, cls, parameterized_type, finalization,
                                 "type '%s' has malformed type argument",
                                 type_name.ToCString());
@@ -714,7 +712,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         Error::Handle(),  // No previous error.
         cls, parameterized_type, finalization,
         "wrong number of type arguments in type '%s'",
-        String::Handle(parameterized_type.Name()).ToCString());
+        String::Handle(parameterized_type.UserVisibleName()).ToCString());
     return parameterized_type.raw();
   }
   // The full type argument vector consists of the type arguments of the
@@ -795,7 +793,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
           malformed_error,
           cls, parameterized_type, kFinalize,
           "type arguments of type '%s' are not within bounds",
-          String::Handle(parameterized_type.Name()).ToCString());
+          String::Handle(parameterized_type.UserVisibleName()).ToCString());
       return parameterized_type.raw();
     }
   }

@@ -11,9 +11,7 @@ class CodeBuffer implements StringBuffer {
       : buffer = new StringBuffer(),
         sourceLocations = new List<SourceLocation>();
 
-  int get length() {
-    return buffer.length;
-  }
+  int get length() => buffer.length;
 
   bool isEmpty() {
     return buffer.isEmpty();
@@ -47,6 +45,13 @@ class CodeBuffer implements StringBuffer {
     buffer.add(other.toString());
   }
 
+  CodeBuffer addAll(Collection<Object> objects) {
+    for (Object obj in objects) {
+      add(obj);
+    }
+    return this;
+  }
+
   CodeBuffer addCharCode(int charCode) {
     return add(new String.fromCharCodes([charCode]));
   }
@@ -78,8 +83,8 @@ class CodeBuffer implements StringBuffer {
 }
 
 class SourceLocation {
-  Element element;
-  Token token;
-  int offsetDelta;
+  final Element element;
+  final Token token;
+  final int offsetDelta;
   SourceLocation(this.element, this.token, this.offsetDelta);
 }

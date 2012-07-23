@@ -728,7 +728,9 @@ TEST_CASE(SerializeScript) {
 
   String& url = String::Handle(String::New("dart-test:SerializeScript"));
   String& source = String::Handle(String::New(kScriptChars));
-  Script& script = Script::Handle(Script::New(url, source, RawScript::kSource));
+  Script& script = Script::Handle(Script::New(url,
+                                              source,
+                                              RawScript::kSourceTag));
   const String& lib_url = String::Handle(String::NewSymbol("TestLib"));
   Library& lib = Library::Handle(Library::New(lib_url));
   lib.Register();
@@ -1475,7 +1477,7 @@ UNIT_TEST_CASE(PostCObject) {
   TestIsolateScope __test_isolate__;
   const char* kScriptChars =
       "#import('dart:isolate');\n"
-      "void main() {\n"
+      "main() {\n"
       "  var messageCount = 0;\n"
       "  var exception = '';\n"
       "  var port = new ReceivePort();\n"

@@ -4864,7 +4864,7 @@ class _DocumentImpl extends _NodeImpl implements Document
     return $dom_querySelector(selectors);
   }
 
-  ElementList queryAll(String selectors) {
+  List<Element> queryAll(String selectors) {
     if (const RegExp("""^\\[name=["'][^'"]+['"]\\]\$""").hasMatch(selectors)) {
       final mutableMatches = $dom_getElementsByName(
           selectors.substring(7,selectors.length - 2));
@@ -5138,7 +5138,7 @@ class _DocumentFragmentImpl extends _NodeImpl implements DocumentFragment native
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
-  ElementList queryAll(String selectors) =>
+  List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   String get innerHTML() {
@@ -6062,7 +6062,7 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
 
   _ElementImpl query(String selectors) => $dom_querySelector(selectors);
 
-  ElementList queryAll(String selectors) =>
+  List<Element> queryAll(String selectors) =>
     new _FrozenElementList._wrap($dom_querySelectorAll(selectors));
 
   _CssClassSet get classes() => new _CssClassSet(this);
@@ -7301,6 +7301,26 @@ class _FrameSetElementEventsImpl extends _ElementEventsImpl implements FrameSetE
   EventListenerList get unload() => this['unload'];
 }
 
+class _GamepadImpl implements Gamepad native "*Gamepad" {
+
+  final List<num> axes;
+
+  final List<num> buttons;
+
+  final String id;
+
+  final int index;
+
+  final int timestamp;
+}
+
+class _GamepadListImpl implements GamepadList native "*GamepadList" {
+
+  final int length;
+
+  _GamepadImpl item(int index) native;
+}
+
 class _GeolocationImpl implements Geolocation native "*Geolocation" {
 
   void clearWatch(int watchId) native;
@@ -7623,8 +7643,6 @@ class _IDBDatabaseExceptionImpl implements IDBDatabaseException native "*IDBData
   static final int TIMEOUT_ERR = 23;
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
-
-  static final int TYPE_ERR = 21;
 
   static final int UNKNOWN_ERR = 1;
 
@@ -9116,9 +9134,6 @@ class _MouseEventImpl extends _UIEventImpl implements MouseEvent native "*MouseE
   void $dom_initMouseEvent(String type, bool canBubble, bool cancelable, _WindowImpl view, int detail, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey, int button, _EventTargetImpl relatedTarget) native "initMouseEvent";
 }
 
-class _MutationCallbackImpl implements MutationCallback native "*MutationCallback" {
-}
-
 class _MutationEventImpl extends _EventImpl implements MutationEvent native "*MutationEvent" {
 
   static final int ADDITION = 2;
@@ -9138,6 +9153,79 @@ class _MutationEventImpl extends _EventImpl implements MutationEvent native "*Mu
   final _NodeImpl relatedNode;
 
   void initMutationEvent(String type, bool canBubble, bool cancelable, _NodeImpl relatedNode, String prevValue, String newValue, String attrName, int attrChange) native;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MutationObserverImpl implements MutationObserver native "*MutationObserver" {
+
+  void disconnect() native;
+
+  void _observe(_NodeImpl target, Map options) native "observe";
+
+  List<MutationRecord> takeRecords() native;
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]) {
+
+    // Parse options into map of known type.
+    var parsedOptions = _createDict();
+
+    if (options != null) {
+      options.forEach((k, v) {
+          if (_boolKeys.containsKey(k)) {
+            _add(parsedOptions, k, true === v);
+          } else if (k == 'attributeFilter') {
+            _add(parsedOptions, k, _fixupList(v));
+          } else {
+            throw new IllegalArgumentException(
+                "Illegal MutationObserver.observe option '$k'");
+          }
+        });
+    }
+
+    // Override options passed in the map with named optional arguments.
+    override(key, value) {
+      if (value != null) _add(parsedOptions, key, value);
+    }
+
+    override('childList', childList);
+    override('attributes', attributes);
+    override('characterData', characterData);
+    override('subtree', subtree);
+    override('attributeOldValue', attributeOldValue);
+    override('characterDataOldValue', characterDataOldValue);
+    if (attributeFilter != null) {
+      override('attributeFilter', _fixupList(attributeFilter));
+    }
+
+    _call(target, parsedOptions);
+  }
+
+   // TODO: Change to a set when const Sets are available.
+  static final _boolKeys =
+    const {'childList': true,
+           'attributes': true,
+           'characterData': true,
+           'subtree': true,
+           'attributeOldValue': true,
+           'characterDataOldValue': true };
+
+
+  static _createDict() => JS('var', '{}');
+  static _add(m, String key, value) { JS('void', '#[#] = #', m, key, value); }
+  static _fixupList(list) => list;  // TODO: Ensure is a JavaScript Array.
+
+  // Call native function with no conversions.
+  _call(target, options) native 'observe';
 }
 
 class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
@@ -9296,13 +9384,13 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   final _BatteryManagerImpl webkitBattery;
 
+  final _GamepadListImpl webkitGamepads;
+
   final _PointerLockImpl webkitPointer;
 
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
-
-  void registerProtocolHandler(String scheme, String url, String title) native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
@@ -14231,6 +14319,17 @@ class _StorageEventImpl extends _EventImpl implements StorageEvent native "*Stor
   void initStorageEvent(String typeArg, bool canBubbleArg, bool cancelableArg, String keyArg, String oldValueArg, String newValueArg, String urlArg, _StorageImpl storageAreaArg) native;
 }
 
+class _StorageInfoImpl implements StorageInfo native "*StorageInfo" {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]) native;
+
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]) native;
+}
+
 class _StyleElementImpl extends _ElementImpl implements StyleElement native "*HTMLStyleElement" {
 
   bool disabled;
@@ -16276,16 +16375,9 @@ class _WebKitCSSFilterValueImpl extends _CSSValueListImpl implements WebKitCSSFi
   final int operationType;
 }
 
-class _WebKitMutationObserverImpl implements WebKitMutationObserver native "*WebKitMutationObserver" {
-
-  void disconnect() native;
-
-  void observe(_NodeImpl target, Map options) native;
-
-  List<MutationRecord> takeRecords() native;
-}
-
 class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" {
+
+  final int firstEmptyRegionIndex;
 
   final String name;
 
@@ -16293,7 +16385,7 @@ class _WebKitNamedFlowImpl implements WebKitNamedFlow native "*WebKitNamedFlow" 
 
   _NodeListImpl getContent() native;
 
-  _NodeListImpl getRegionsByContentNode(_NodeImpl contentNode) native;
+  _NodeListImpl getRegionsByContent(_NodeImpl contentNode) native;
 }
 
 class _WebSocketImpl extends _EventTargetImpl implements WebSocket native "*WebSocket" {
@@ -16586,6 +16678,8 @@ class _WindowImpl extends _EventTargetImpl implements Window native "@*DOMWindow
   final _IDBFactoryImpl webkitIndexedDB;
 
   final _NotificationCenterImpl webkitNotifications;
+
+  final _StorageInfoImpl webkitStorageInfo;
 
   final _WindowImpl window;
 
@@ -17159,6 +17253,14 @@ class _XSLTProcessorImpl implements XSLTProcessor native "*XSLTProcessor" {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _ArrayBufferFactoryProvider {
+  factory ArrayBuffer(int length) native
+      '''return new ArrayBuffer(length);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _AudioElementFactoryProvider {
   factory AudioElement([String src = null]) native '''
       if (src == null) return new Audio();
@@ -17573,6 +17675,18 @@ class _MediaStreamFactoryProvider {
 class _MessageChannelFactoryProvider {
   factory MessageChannel() native
       '''return new MessageChannel();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MutationObserverFactoryProvider {
+  factory MutationObserver(MutationCallback callback) native '''
+    var constructor =
+        window.MutationObserver || window.WebKitMutationObserver ||
+        window.MozMutationObserver;
+    return new constructor(callback);
+  ''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18001,7 +18115,9 @@ interface AreaElement extends Element default _Elements {
 // WARNING: Do not edit - generated code.
 
 /// @domName ArrayBuffer
-interface ArrayBuffer {
+interface ArrayBuffer default _ArrayBufferFactoryProvider {
+
+  ArrayBuffer(int length);
 
   /** @domName ArrayBuffer.byteLength */
   final int byteLength;
@@ -23033,7 +23149,12 @@ interface EXTTextureFilterAnisotropic {
 
 // WARNING: Do not edit - generated code.
 
-interface ElementList extends List<Element> {
+// TODO(vsm): Eliminate this type.
+
+// Note, ElementList implements List (instead of List<Element>) so
+// that its implementing classes may be cast to Lists of more specific
+// type such as List<CanvasElement>.
+interface ElementList extends List {
   // TODO(jacobr): add element batch manipulation methods.
   ElementList filter(bool f(Element element));
 
@@ -23068,7 +23189,7 @@ interface ElementRect {
 
 interface NodeSelector {
   Element query(String selectors);
-  NodeList queryAll(String selectors);
+  List<Element> queryAll(String selectors);
 }
 
 /// @domName Element
@@ -24488,6 +24609,45 @@ interface FrameSetElementEvents extends ElementEvents {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName Gamepad
+interface Gamepad {
+
+  /** @domName Gamepad.axes */
+  final List<num> axes;
+
+  /** @domName Gamepad.buttons */
+  final List<num> buttons;
+
+  /** @domName Gamepad.id */
+  final String id;
+
+  /** @domName Gamepad.index */
+  final int index;
+
+  /** @domName Gamepad.timestamp */
+  final int timestamp;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName GamepadList
+interface GamepadList {
+
+  /** @domName GamepadList.length */
+  final int length;
+
+  /** @domName GamepadList.item */
+  Gamepad item(int index);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName Geolocation
 interface Geolocation {
 
@@ -24840,8 +25000,6 @@ interface IDBDatabaseException {
   static final int TIMEOUT_ERR = 23;
 
   static final int TRANSACTION_INACTIVE_ERR = 7;
-
-  static final int TYPE_ERR = 21;
 
   static final int UNKNOWN_ERR = 1;
 
@@ -26808,9 +26966,7 @@ interface MouseEvent extends UIEvent default _MouseEventFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName MutationCallback
-interface MutationCallback {
-}
+typedef bool MutationCallback(List<MutationRecord> mutations, MutationObserver observer);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -26843,6 +26999,33 @@ interface MutationEvent extends Event {
 
   /** @domName MutationEvent.initMutationEvent */
   void initMutationEvent(String type, bool canBubble, bool cancelable, Node relatedNode, String prevValue, String newValue, String attrName, int attrChange);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MutationObserver
+interface MutationObserver default _MutationObserverFactoryProvider {
+
+  MutationObserver(MutationCallback callback);
+
+  /** @domName MutationObserver.disconnect */
+  void disconnect();
+
+  /** @domName MutationObserver.takeRecords */
+  List<MutationRecord> takeRecords();
+
+  void observe(Node target,
+               [Map options,
+                bool childList,
+                bool attributes,
+                bool characterData,
+                bool subtree,
+                bool attributeOldValue,
+                bool characterDataOldValue,
+                List<String> attributeFilter]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26970,6 +27153,9 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
+  /** @domName Navigator.webkitGamepads */
+  final GamepadList webkitGamepads;
+
   /** @domName Navigator.webkitPointer */
   final PointerLock webkitPointer;
 
@@ -26978,9 +27164,6 @@ interface Navigator {
 
   /** @domName Navigator.javaEnabled */
   bool javaEnabled();
-
-  /** @domName Navigator.registerProtocolHandler */
-  void registerProtocolHandler(String scheme, String url, String title);
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -32486,6 +32669,46 @@ interface StorageEvent extends Event {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName StorageInfo
+interface StorageInfo {
+
+  static final int PERSISTENT = 1;
+
+  static final int TEMPORARY = 0;
+
+  /** @domName StorageInfo.queryUsageAndQuota */
+  void queryUsageAndQuota(int storageType, [StorageInfoUsageCallback usageCallback, StorageInfoErrorCallback errorCallback]);
+
+  /** @domName StorageInfo.requestQuota */
+  void requestQuota(int storageType, int newQuotaInBytes, [StorageInfoQuotaCallback quotaCallback, StorageInfoErrorCallback errorCallback]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoErrorCallback(DOMException error);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoQuotaCallback(int grantedQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+typedef bool StorageInfoUsageCallback(int currentUsageInBytes, int currentQuotaInBytes);
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 typedef bool StringCallback(String data);
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -34935,26 +35158,11 @@ interface WebKitCSSFilterValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName WebKitMutationObserver
-interface WebKitMutationObserver {
-
-  /** @domName WebKitMutationObserver.disconnect */
-  void disconnect();
-
-  /** @domName WebKitMutationObserver.observe */
-  void observe(Node target, Map options);
-
-  /** @domName WebKitMutationObserver.takeRecords */
-  List<MutationRecord> takeRecords();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName WebKitNamedFlow
 interface WebKitNamedFlow {
+
+  /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
+  final int firstEmptyRegionIndex;
 
   /** @domName WebKitNamedFlow.name */
   final String name;
@@ -34965,8 +35173,8 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.getContent */
   NodeList getContent();
 
-  /** @domName WebKitNamedFlow.getRegionsByContentNode */
-  NodeList getRegionsByContentNode(Node contentNode);
+  /** @domName WebKitNamedFlow.getRegionsByContent */
+  NodeList getRegionsByContent(Node contentNode);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -35253,6 +35461,9 @@ interface Window extends EventTarget {
 
   /** @domName DOMWindow.webkitNotifications */
   final NotificationCenter webkitNotifications;
+
+  /** @domName DOMWindow.webkitStorageInfo */
+  final StorageInfo webkitStorageInfo;
 
   /** @domName DOMWindow.window */
   final Window window;
