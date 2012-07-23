@@ -14,6 +14,7 @@ crypto/*: Skip
 
 [ $compiler == dart2js || $compiler == dartc || $compiler == frog ]
 math/*: Skip
+mirrors/*: Skip
 unittest/instance_test: Skip
 
 [ $compiler == dart2js && $checked ]

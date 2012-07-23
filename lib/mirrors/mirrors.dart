@@ -121,6 +121,19 @@ interface ObjectMirror extends Mirror {
   Future<InstanceMirror> invoke(String memberName,
                                 List<Object> positionalArguments,
                                 [Map<String,Object> namedArguments]);
+
+  /**
+   * Invokes a getter and returns a mirror on the result. The getter may be 
+   * either the implicit getter for a field or a user-defined getter method.
+   */
+  Future<InstanceMirror> getField(String fieldName);
+
+  /**
+   * Invokes a setter and returns a mirror on the result. The setter may be 
+   * either the implicit setter for a non-final field or a user-defined setter
+   * method.
+   */
+  Future<InstanceMirror> setField(String fieldName, Object value);
 }
 
 /**

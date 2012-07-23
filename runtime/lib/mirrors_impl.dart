@@ -105,15 +105,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     // Walk the arguments and make sure they are legal.
     for (int i = 0; i < positionalArguments.length; i++) {
       var arg = positionalArguments[i];
-      if (arg is Mirror) {
-        if (arg is! InstanceMirror) {
-          throw new MirrorException(
-              'positional argument $i ($arg) was not an InstanceMirror');
-        }
-      } else if (!isSimpleValue(arg)) {
-        throw new MirrorException(
-            'positional argument $i ($arg) was not a simple value');
-      }
+      _validateArgument(i, arg);
     }
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
@@ -125,8 +117,51 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     return completer.future;
   }
 
+  Future<InstanceMirror> getField(String fieldName)
+  {
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(_getField(this, fieldName));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  Future<InstanceMirror> setField(String fieldName, Object arg)
+  {
+    _validateArgument(0, arg);
+
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(_setField(this, fieldName, arg));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  static _validateArgument(int i, Object arg)
+  {
+    if (arg is Mirror) {
+        if (arg is! InstanceMirror) {
+          throw new MirrorException(
+              'positional argument $i ($arg) was not an InstanceMirror');
+        }
+      } else if (!isSimpleValue(arg)) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not a simple value');
+      }
+  }
+
   static _invoke(ref, memberName, positionalArguments)
       native 'LocalObjectMirrorImpl_invoke';
+
+  static _getField(ref, fieldName)
+      native 'LocalObjectMirrorImpl_getField';
+
+  static _setField(ref, fieldName, value)
+      native 'LocalObjectMirrorImpl_setField';
 }
 
 // Prints a string as it might appear in dart program text.
