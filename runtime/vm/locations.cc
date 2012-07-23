@@ -43,6 +43,7 @@ LocationSummary* LocationSummary::Make(intptr_t input_count,
 const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
+    case kSpillSlot: return "S";
     case kRegister: return Assembler::RegisterName(reg());
     case kUnallocated:
       switch (policy()) {
@@ -59,12 +60,21 @@ const char* Location::Name() const {
 }
 
 
+void Location::PrintTo(BufferFormatter* f) const {
+  if (kind() == kSpillSlot) {
+    f->Print("S%d", spill_index());
+  } else {
+    f->Print("%s", Name());
+  }
+}
+
+
 void LocationSummary::PrintTo(BufferFormatter* f) const {
   if (input_count() > 0) {
     f->Print(" (");
     for (intptr_t i = 0; i < input_count(); i++) {
       if (i != 0) f->Print(", ");
-      f->Print("%s", in(i).Name());
+      in(i).PrintTo(f);
     }
     f->Print(")");
   }
@@ -73,14 +83,14 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
     f->Print(" [");
     for (intptr_t i = 0; i < temp_count(); i++) {
       if (i != 0) f->Print(", ");
-      f->Print("%s", temp(i).Name());
+      temp(i).PrintTo(f);
     }
     f->Print("]");
   }
 
   if (!out().IsInvalid()) {
     f->Print(" => ");
-    f->Print("%s", out().Name());
+    out().PrintTo(f);
   }
 
   if (is_call()) f->Print(" C");

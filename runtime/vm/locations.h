@@ -17,26 +17,36 @@ class BufferFormatter;
 // Instruction templates used by code generator have a corresponding
 // LocationSummary object which specifies expected location for every input
 // and output.
-// Each location is encoded as a single word: low 2 bits denote location kind,
-// rest is kind specific location payload e.g. for REGISTER kind payload is
-// register code (value of the Register enumeration).
+// Each location is encoded as a single word: for non-constant locations
+// low 3 bits denote location kind, rest is kind specific location payload
+// e.g. for REGISTER kind payload is register code (value of the Register
+// enumeration), constant locations contain a tagged (low 2 bits are set to 01)
+// Object handle
 class Location : public ValueObject {
  public:
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
   // the same as kConstant.
   enum Kind {
+    // This location is invalid.  Payload must be zero.
     kInvalid = 0,
 
+    // Constant value. This location contains a tagged Object handle.
     kConstant = 1,
 
     // Unallocated location represents a location that is not fixed and can be
     // allocated by a register allocator.  Each unallocated location has
-    // a policy that specifies what kind of location is suitable.
+    // a policy that specifies what kind of location is suitable. Payload
+    // contains register allocation policy.
     kUnallocated = 2,
 
-    // Register location represents a fixed register.
-    kRegister = 3
+    // Register location represents a fixed register.  Payload contains
+    // register code.
+    kRegister = 3,
+
+    // Spill slot allocated by the register allocator.  Payload contains
+    // a spill index.
+    kSpillSlot = 4
   };
 
   static const uword kInvalidLocation = 0;
@@ -116,7 +126,22 @@ class Location : public ValueObject {
     return static_cast<Register>(payload());
   }
 
+  // Spill slots.
+  static Location SpillSlot(intptr_t spill_index) {
+    return Location(kSpillSlot, static_cast<uword>(spill_index));
+  }
+
+  bool IsSpillSlot() const {
+    return kind() == kSpillSlot;
+  }
+
+  intptr_t spill_index() const {
+    ASSERT(IsSpillSlot());
+    return static_cast<intptr_t>(payload());
+  }
+
   const char* Name() const;
+  void PrintTo(BufferFormatter* f) const;
 
   // Compare two non-constant locations.
   bool Equals(Location other) const {
@@ -140,8 +165,8 @@ class Location : public ValueObject {
     return KindField::decode(value_);
   }
 
-  typedef BitField<Kind, 0, 2> KindField;
-  typedef BitField<uword, 2, kWordSize * kBitsPerByte - 2> PayloadField;
+  typedef BitField<Kind, 0, 3> KindField;
+  typedef BitField<uword, 3, kWordSize * kBitsPerByte - 2> PayloadField;
 
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 1> PolicyField;

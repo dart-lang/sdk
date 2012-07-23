@@ -467,7 +467,9 @@ void ParallelMoveInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s ", DebugName());
   for (intptr_t i = 0; i < moves_.length(); i++) {
     if (i != 0) f->Print(", ");
-    f->Print("%s = %s", moves_[i]->dest().Name(), moves_[i]->src().Name());
+    moves_[i]->dest().PrintTo(f);
+    f->Print(" <- ");
+    moves_[i]->src().PrintTo(f);
   }
 }
 
@@ -726,7 +728,9 @@ void Environment::PrintTo(BufferFormatter* f) const {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
     if ((i < locations_.length()) && !locations_[i].IsInvalid()) {
-      f->Print(" [%s]", locations_[i].Name());
+      f->Print(" [");
+      locations_[i].PrintTo(f);
+      f->Print("]");
     }
   }
   f->Print(" }");

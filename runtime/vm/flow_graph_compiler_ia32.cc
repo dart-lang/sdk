@@ -1109,18 +1109,43 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 #define __ compiler_->assembler()->
 
 
+static Address ToAddress(Location loc) {
+  ASSERT(loc.IsSpillSlot());
+  const intptr_t offset =
+      (ParsedFunction::kFirstLocalSlotIndex - loc.spill_index()) * kWordSize;
+  return Address(EBP, offset);
+}
+
+
 void ParallelMoveResolver::EmitMove(int index) {
   MoveOperands* move = moves_[index];
   const Location source = move->src();
   const Location destination = move->dest();
 
-  ASSERT(destination.IsRegister());
   if (source.IsRegister()) {
-    __ movl(destination.reg(), source.reg());
+    if (destination.IsRegister()) {
+      __ movl(destination.reg(), source.reg());
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      __ movl(ToAddress(destination), source.reg());
+    }
+  } else if (source.IsSpillSlot()) {
+    if (destination.IsRegister()) {
+      __ movl(destination.reg(), ToAddress(source));
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      MoveMemory(ToAddress(destination), ToAddress(source));
+    }
   } else {
     ASSERT(source.IsConstant());
-    __ LoadObject(destination.reg(), source.constant());
+    if (destination.IsRegister()) {
+      __ LoadObject(destination.reg(), source.constant());
+    } else {
+      ASSERT(destination.IsSpillSlot());
+      StoreObject(ToAddress(destination), source.constant());
+    }
   }
+
   move->Eliminate();
 }
 
@@ -1130,8 +1155,17 @@ void ParallelMoveResolver::EmitSwap(int index) {
   const Location source = move->src();
   const Location destination = move->dest();
 
-  ASSERT(source.IsRegister() && destination.IsRegister());
-  __ xchgl(destination.reg(), source.reg());
+  if (source.IsRegister() && destination.IsRegister()) {
+    __ xchgl(destination.reg(), source.reg());
+  } else if (source.IsRegister() && destination.IsSpillSlot()) {
+    Exchange(source.reg(), ToAddress(destination));
+  } else if (source.IsSpillSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), ToAddress(source));
+  } else if (source.IsSpillSlot() && destination.IsSpillSlot()) {
+    Exchange(ToAddress(destination), ToAddress(source));
+  } else {
+    UNREACHABLE();
+  }
 
   // The swap of source and destination has executed a move from source to
   // destination.
@@ -1148,6 +1182,48 @@ void ParallelMoveResolver::EmitSwap(int index) {
       moves_[i]->set_src(source);
     }
   }
+}
+
+
+void ParallelMoveResolver::MoveMemory(const Address& dst, const Address& src) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  __ pushl(EAX);
+  __ movl(EAX, src);
+  __ movl(dst, EAX);
+  __ popl(EAX);
+}
+
+
+void ParallelMoveResolver::StoreObject(const Address& dst, const Object& obj) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  __ pushl(EAX);
+  __ LoadObject(EAX, obj);
+  __ movl(dst, EAX);
+  __ popl(EAX);
+}
+
+
+void ParallelMoveResolver::Exchange(Register reg, const Address& mem) {
+  // TODO(vegorov): allocate temporary register for such moves.
+  Register scratch = (reg == EAX) ? ECX : EAX;
+  __ pushl(scratch);
+  __ movl(scratch, mem);
+  __ xchgl(scratch, reg);
+  __ movl(mem, scratch);
+  __ popl(scratch);
+}
+
+
+void ParallelMoveResolver::Exchange(const Address& mem1, const Address& mem2) {
+  // TODO(vegorov): allocate temporary registers for such moves.
+  __ pushl(EAX);
+  __ pushl(ECX);
+  __ movl(EAX, mem1);
+  __ movl(ECX, mem2);
+  __ movl(mem1, ECX);
+  __ movl(mem2, EAX);
+  __ popl(ECX);
+  __ popl(EAX);
 }
 
 

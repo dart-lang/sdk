@@ -389,6 +389,7 @@ class Assembler : public ValueObject {
 
   void xorq(Register dst, Register src);
   void xorq(Register dst, const Address& address);
+  void xorq(const Address& dst, Register src);
 
   void addl(Register dst, Register src);
   void addl(const Address& address, const Immediate& imm);
@@ -492,6 +493,25 @@ class Assembler : public ValueObject {
     cmpxchgq(address, reg);
   }
 
+  // Issue memory to memory move through a TMP register.
+  void MoveMemory(const Address& dst, const Address& src) {
+    movq(TMP, src);
+    movq(dst, TMP);
+  }
+
+  void Exchange(Register reg, const Address& mem) {
+    movq(TMP, mem);
+    movq(mem, reg);
+    movq(reg, TMP);
+  }
+
+  void Exchange(const Address& mem1, const Address& mem2) {
+    movq(TMP, mem1);
+    xorq(TMP, mem2);
+    xorq(mem1, TMP);
+    xorq(mem2, TMP);
+  }
+
   /*
    * Macros for High-level operations and implemented on all architectures.
    */
@@ -508,6 +528,7 @@ class Assembler : public ValueObject {
   void Drop(intptr_t stack_elements);
 
   void LoadObject(Register dst, const Object& object);
+  void StoreObject(const Address& dst, const Object& obj);
   void PushObject(const Object& object);
   void CompareObject(Register reg, const Object& object);
   void LoadDoubleConstant(XmmRegister dst, double value);
