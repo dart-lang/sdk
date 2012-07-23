@@ -52,8 +52,15 @@ TarFileDescriptor tar(Pattern name, [List<Descriptor> contents]) =>
     new TarFileDescriptor(name, contents);
 
 /**
+ * The current [HttpServer] created using [serve].
+ */
+var _server;
+
+/**
  * Creates an HTTP server to serve [contents] as static files. This server will
  * exist only for the duration of the pub run.
+ *
+ * Subsequent calls to [serve] will replace the previous server.
  */
 void serve(String host, int port, [List<Descriptor> contents]) {
   var baseDir = dir("serve-dir", contents);
@@ -62,40 +69,55 @@ void serve(String host, int port, [List<Descriptor> contents]) {
   }
 
   _schedule((_) {
-    var server = new HttpServer();
-    server.defaultRequestHandler = (request, response) {
-      var path = request.uri.replaceFirst("/", "").split("/");
-      response.persistentConnection = false;
-      var stream;
-      try {
-        stream = baseDir.load(path);
-      } catch (var e) {
-        response.statusCode = 404;
-        response.contentLength = 0;
-        response.outputStream.close();
-        return;
-      }
+    _closeServer().transform((_) {
+      _server = new HttpServer();
+      _server.defaultRequestHandler = (request, response) {
+        var path = request.uri.replaceFirst("/", "").split("/");
+        response.persistentConnection = false;
+        var stream;
+        try {
+          stream = baseDir.load(path);
+        } catch (var e) {
+          response.statusCode = 404;
+          response.contentLength = 0;
+          response.outputStream.close();
+          return;
+        }
 
-      var future = consumeInputStream(stream);
-      future.then((data) {
-        response.statusCode = 200;
-        response.contentLength = data.length;
-        response.outputStream.write(data);
-        response.outputStream.close();
-      });
+        var future = consumeInputStream(stream);
+        future.then((data) {
+          response.statusCode = 200;
+          response.contentLength = data.length;
+          response.outputStream.write(data);
+          response.outputStream.close();
+        });
 
-      future.handleException((e) {
-        print("Exception while handling ${request.uri}: $e");
-        response.statusCode = 500;
-        response.reasonPhrase = e.message;
-        response.outputStream.close();
-      });
-    };
-    server.listen(host, port);
-    _scheduleCleanup((_) => server.close());
-
-    return new Future.immediate(null);
+        future.handleException((e) {
+          print("Exception while handling ${request.uri}: $e");
+          response.statusCode = 500;
+          response.reasonPhrase = e.message;
+          response.outputStream.close();
+        });
+      };
+      _server.listen(host, port);
+      _scheduleCleanup((_) => _closeServer());
+      return null;
+    });
   });
+}
+
+/**
+ * Closes [_server]. Returns a [Future] that will complete after the [_server]
+ * is closed.
+ */
+Future _closeServer() {
+  if (_server == null) return new Future.immediate(null);
+  _server.close();
+  _server = null;
+  // TODO(nweiz): Remove this once issue 4155 is fixed. Pumping the event loop
+  // *seems* to be enough to ensure that the server is actually closed, but I'm
+  // putting this at 10ms to be safe.
+  return sleep(10);
 }
 
 /**

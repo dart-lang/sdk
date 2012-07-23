@@ -129,8 +129,7 @@ Future<File> writeTextFile(file, String contents) {
  * [Future] that completes when the deletion is done.
  */
 Future<Directory> deleteFile(file) {
-  file = _getFile(file);
-  return file.delete();
+  return new File(_getPath(file)).delete();
 }
 
 /**

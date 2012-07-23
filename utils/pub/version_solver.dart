@@ -38,6 +38,7 @@
 #library('version_solver');
 
 #import('dart:json');
+#import('lock_file.dart');
 #import('package.dart');
 #import('pubspec.dart');
 #import('root_source.dart');
@@ -49,26 +50,28 @@
 /**
  * Attempts to select the best concrete versions for all of the transitive
  * dependencies of [root] taking into account all of the [VersionConstraint]s
- * that those dependencies place on each other. If successful, completes to a
- * [Map] that maps package names to the selected version for that package. If
- * it fails, the future will complete with a [NoVersionException],
- * [DisjointConstraintException], or [CouldNotSolveException].
+ * that those dependencies place on each other and the requirements imposed by
+ * [lockFile]. If successful, completes to a [Map] that maps package names to
+ * the selected version for that package. If it fails, the future will complete
+ * with a [NoVersionException], [DisjointConstraintException], or
+ * [CouldNotSolveException].
  */
-Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root) {
-  return new VersionSolver(sources, root).solve();
+Future<List<PackageId>> resolveVersions(SourceRegistry sources, Package root,
+    LockFile lockFile) {
+  return new VersionSolver(sources, root, lockFile).solve();
 }
 
 class VersionSolver {
   final SourceRegistry _sources;
   final Package _root;
+  final LockFile lockFile;
   final PubspecCache _pubspecs;
   final Map<String, Dependency> _packages;
   final Queue<WorkItem> _work;
   int _numIterations = 0;
 
-  VersionSolver(SourceRegistry sources, Package root)
+  VersionSolver(SourceRegistry sources, this._root, this.lockFile)
       : _sources = sources,
-        _root = root,
         _pubspecs = new PubspecCache(sources),
         _packages = <Dependency>{},
         _work = new Queue<WorkItem>();
@@ -129,9 +132,21 @@ class VersionSolver {
   }
 
   List<PackageId> buildResults() {
-    return _packages.getValues()
-      .filter((dep) => dep.isDependedOn)
-      .map((dep) => new PackageId(dep.source, dep.version, dep.description));
+    return _packages.getValues().filter((dep) => dep.isDependedOn).map((dep) {
+      var description = dep.description;
+
+      // If the lockfile contains a fully-resolved description for the package,
+      // use that. This allows e.g. Git to ensure that the same commit is used.
+      var lockedPackage = lockFile.packages[dep.name];
+      if (lockedPackage != null && lockedPackage.version == dep.version &&
+          lockedPackage.source.name == dep.source.name &&
+          dep.source.descriptionsEqual(
+              description, lockedPackage.description)) {
+        description = lockedPackage.description;
+      }
+
+      return new PackageId(dep.source, dep.version, description);
+    });
   }
 }
 
@@ -273,6 +288,17 @@ class ChangeConstraint implements WorkItem {
       solver.enqueue(new ChangeVersion(
           source, description, solver._root.version));
       return null;
+    }
+
+    // If the dependency is on a package in the lockfile, use the lockfile's
+    // version for that package if it's valid given the other constraints.
+    var lockedPackage = solver.lockFile.packages[name];
+    if (lockedPackage != null) {
+      var lockedVersion = lockedPackage.version;
+      if (newConstraint.allows(lockedVersion)) {
+        solver.enqueue(new ChangeVersion(source, description, lockedVersion));
+        return null;
+      }
     }
 
     // The constraint has changed, so see what the best version of the package

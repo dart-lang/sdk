@@ -8,6 +8,7 @@
 #library('utils');
 
 #import('dart:crypto');
+#import('dart:isolate');
 
 /** Thrown by methods that parse text when the text isn't a valid. */
 class FormatException implements Exception {
@@ -118,3 +119,12 @@ bool endsWithPattern(String str, Pattern matcher) {
  */
 String sha1(String source) =>
   CryptoUtils.bytesToHex(new SHA1().update(source.charCodes()).digest());
+
+/**
+ * Returns a [Future] that completes in [milliSeconds].
+ */
+Future sleep(int milliSeconds) {
+  var completer = new Completer();
+  new Timer(milliSeconds, completer.complete);
+  return completer.future;
+}
