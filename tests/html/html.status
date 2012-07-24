@@ -216,4 +216,3 @@ fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == drt && $system == macos ]
 indexeddb_2_test: Fail # Issue 3669.
-indexeddb_3_test: Fail # Issue 3670.
