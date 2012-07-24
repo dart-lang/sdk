@@ -15316,8 +15316,26 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   _Uint8ClampedArrayImpl subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
+
+
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  noSuchMethod(String name, List args) {
+    if (dynamicUnknownElementDispatcher == null) {
+      throw new NoSuchMethodException(this, name, args);
+    } else {
+      return dynamicUnknownElementDispatcher(this, name, args);
+    }
+  }
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {

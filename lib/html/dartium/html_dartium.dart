@@ -11237,10 +11237,22 @@ class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement {
 
+
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  noSuchMethod(String name, List args) {
+    if (dynamicUnknownElementDispatcher == null) {
+      throw new NoSuchMethodException(this, name, args);
+    } else {
+      return dynamicUnknownElementDispatcher(this, name, args);
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

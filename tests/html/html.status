@@ -173,6 +173,7 @@ htmloptionscollection_test: Fail # Issue 3813.
 dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 transferables_test: Skip # until isInstance works in dart2js
+unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js && $runtime == d8 ]
 # Should investigate why this test succeeds on d8.
