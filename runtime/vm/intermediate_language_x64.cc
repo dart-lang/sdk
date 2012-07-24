@@ -502,8 +502,7 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs,
-                                                   kNumTemps,
-                                                   LocationSummary::kCall);
+                                                   kNumTemps);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::RequiresRegister());
@@ -664,7 +663,7 @@ LocationSummary* NativeCallComp::MakeLocationSummary() const {
   locs->set_temp(0, Location::RegisterLocation(RAX));
   locs->set_temp(1, Location::RegisterLocation(RBX));
   locs->set_temp(2, Location::RegisterLocation(R10));
-  locs->set_out(Location::RequiresRegister());
+  locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -1404,9 +1403,14 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
@@ -1457,7 +1461,9 @@ LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(kNumInputs,
                                                  kNumTemps,
                                                  LocationSummary::kCall);
-  summary->set_temp(0, Location::RequiresRegister());
+  // All registers are blocked for a call.  Instructions marked at calls can use
+  // only fixed register temps.
+  summary->set_temp(0, Location::RegisterLocation(RAX));
   return summary;
 }
 

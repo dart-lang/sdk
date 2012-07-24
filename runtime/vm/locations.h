@@ -78,7 +78,10 @@ class Location : public ValueObject {
   }
 
   // Unallocated locations.
+  // TODO(vegorov): writable register policy?
   enum Policy {
+    kAny,
+    kPrefersRegister,
     kRequiresRegister,
     kSameAsFirstInput,
   };
@@ -87,11 +90,23 @@ class Location : public ValueObject {
     return kind() == kUnallocated;
   }
 
+  bool IsRegisterBeneficial() {
+    return !Equals(Any());
+  }
+
   static Location UnallocatedLocation(Policy policy) {
     return Location(kUnallocated, PolicyField::encode(policy));
   }
 
   // Any free register is suitable to replace this unallocated location.
+  static Location Any() {
+    return UnallocatedLocation(kAny);
+  }
+
+  static Location PrefersRegister() {
+    return UnallocatedLocation(kPrefersRegister);
+  }
+
   static Location RequiresRegister() {
     return UnallocatedLocation(kRequiresRegister);
   }
@@ -143,9 +158,8 @@ class Location : public ValueObject {
   const char* Name() const;
   void PrintTo(BufferFormatter* f) const;
 
-  // Compare two non-constant locations.
+  // Compare two locations.
   bool Equals(Location other) const {
-    ASSERT(!IsConstant() && !other.IsConstant());
     return value_ == other.value_;
   }
 
@@ -169,7 +183,7 @@ class Location : public ValueObject {
   typedef BitField<uword, 3, kWordSize * kBitsPerByte - 2> PayloadField;
 
   // Layout for kUnallocated locations payload.
-  typedef BitField<Policy, 0, 1> PolicyField;
+  typedef BitField<Policy, 0, 2> PolicyField;
 
   // Location either contains kind and payload fields or a tagged handle for
   // a constant locations. Values of enumeration Kind are selected in such a

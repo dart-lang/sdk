@@ -10,9 +10,11 @@
 
 namespace dart {
 
+class AllocationFinger;
 class FlowGraphBuilder;
 class LiveRange;
 class UseInterval;
+class UsePosition;
 
 class FlowGraphAllocator : public ValueObject {
  public:
@@ -48,54 +50,102 @@ class FlowGraphAllocator : public ValueObject {
 
   // Visit blocks in the code generation order (reverse post order) and
   // linearly assign consequent lifetime positions to every instruction.
-  // Each instruction gets two positions:
+  // We assign position as follows:
   //
-  //    2 * n     - even one corresponding to instruction's start
+  //    2 * n     - even position corresponding to an implicit parallel move
+  //                preceding the instruction;
   //
-  //    2 * n + 1 - odd one corresponding to instruction's end
+  //    2 * n + 1 - odd position corresponding to instruction itself;
   //
-  // Having two positions allows us to capture non-trivial register
-  // constraints in use intervals: for example we can declare that
-  // an input value is only used at the start of the instruction and
-  // this might allow register allocator to allocate both this input
-  // and output (or temp) to the same register if this is the last
-  // use of the value.
+  // Having positions corresponding to parallel moves between every two
+  // instructions allows us to capture non-trivial shapes of use intervals.
+  // For specific examples see comments inside ProcessOneInstruction.
   // Additionally creates parallel moves at the joins' predecessors
   // that will be used for phi resolution.
   void NumberInstructions();
+  Instruction* InstructionAt(intptr_t pos) const;
+  bool IsBlockEntry(intptr_t pos) const;
 
   LiveRange* GetLiveRange(intptr_t vreg);
+
+  // Visit instructions in the postorder and build live ranges for
+  // all SSA values.
   void BuildLiveRanges();
-  void PrintLiveRanges();
+  Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block);
+  void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
+  void ConnectIncomingPhiMoves(BlockEntryInstr* block);
+  void BlockLocation(Location loc, intptr_t from, intptr_t to);
 
-  // Register use of the given virtual register at lifetime position use_pos.
-  // If definition position is unknown then start of the block contaning
-  // use_pos will be passed.
-  void UseValue(Instruction* instr,
-                intptr_t def_pos,  // Lifetime position for the definition.
-                intptr_t use_pos,  // Lifetime position for the use.
-                intptr_t vreg,
-                Location* loc,
-                bool use_at_end);
-
-  // Register definition of the given virtual register at lifetime position
-  // def_pos.  Existing use interval will be shortened to start at def_pos.
-  void Define(Instruction* instr,
-              intptr_t def_pos,
-              intptr_t vreg,
-              Location* loc);
-
-  void AddToUnallocated(UseInterval* chain);
-  void BlockLocation(Location loc, intptr_t pos);
-
-  bool AllocateFreeRegister(UseInterval* unallocated);
-  void AssignFreeRegister(UseInterval* unallocated, Register reg);
-
-  void FinalizeInterval(UseInterval* interval, Location loc);
+  // Process live ranges sorted by their start and assign registers
+  // to them
+  void AllocateCPURegisters();
   void AdvanceActiveIntervals(const intptr_t start);
 
+  // Connect split siblings over non-linear control flow edges.
+  void ResolveControlFlow();
+  void ConnectSplitSiblings(LiveRange* range,
+                            BlockEntryInstr* source_block,
+                            BlockEntryInstr* target_block);
+
+
+  // Update location slot corresponding to the use with location allocated for
+  // the use's live range.
+  void ConvertUseTo(UsePosition* use, Location loc);
+  void ConvertAllUses(LiveRange* range);
+
+  // Add live range to the list of unallocated live ranges to be processed
+  // by the allocator.
+  void AddToUnallocated(LiveRange* range);
+#ifdef DEBUG
   bool UnallocatedIsSorted();
-  void AllocateCPURegisters();
+#endif
+
+  // Try to find a free register for an unallocated live range.
+  bool AllocateFreeRegister(LiveRange* unallocated);
+
+  // Try to find a register that can be used by a given live range.
+  // If all registers are occupied consider evicting interference for
+  // a register that is going to be used as far from the start of
+  // the unallocated live range as possible.
+  void AllocateAnyRegister(LiveRange* unallocated);
+
+  // Assign selected non-free register to an unallocated live range and
+  // evict any interference that can be evicted by splitting and spilling
+  // parts of interfering live ranges.  Place non-spilled parts into
+  // the list of unallocated ranges.
+  void AssignNonFreeRegister(LiveRange* unallocated, Register reg);
+  bool EvictIntersection(LiveRange* allocated, LiveRange* unallocated);
+  void RemoveEvicted(Register reg, intptr_t first_evicted);
+
+  // Find first intersection between unallocated live range and
+  // live ranges currently allocated to the given register.
+  intptr_t FirstIntersectionWithAllocated(Register reg,
+                                          LiveRange* unallocated);
+
+  bool UpdateFreeUntil(Register reg,
+                       LiveRange* unallocated,
+                       intptr_t* cur_free_until,
+                       intptr_t* cur_blocked_at);
+
+  // Split given live range in an optimal position between given positions.
+  LiveRange* SplitBetween(LiveRange* range, intptr_t from, intptr_t to);
+
+  // Find a spill slot that can be used by the given live range.
+  intptr_t AllocateSpillSlotFor(LiveRange* range);
+
+  // Allocate the given live range to a spill slot.
+  void Spill(LiveRange* range);
+
+  // Spill the given live range from the given position onwards.
+  void SpillAfter(LiveRange* range, intptr_t from);
+
+  // Spill the given live range from the given position until some
+  // position preceeding the to position.
+  void SpillBetween(LiveRange* range, intptr_t from, intptr_t to);
+
+  MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
+
+  void PrintLiveRanges();
 
   // TODO(vegorov): this field is used only to call Bailout. Remove when
   // all bailouts are gone.
@@ -103,6 +153,8 @@ class FlowGraphAllocator : public ValueObject {
 
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
+
+  GrowableArray<Instruction*> instructions_;
 
   // Live-out sets for each block.  They contain indices of SSA values
   // that are live out from this block: that is values that were either
@@ -127,14 +179,19 @@ class FlowGraphAllocator : public ValueObject {
 
   // Worklist for register allocator. Always maintained sorted according
   // to ShouldBeAllocatedBefore predicate.
-  GrowableArray<UseInterval*> unallocated_;
+  GrowableArray<LiveRange*> unallocated_;
 
-  // Per register lists of allocated UseIntervals, linked through
-  // next_allocated field.  Contains only those intervals that
-  // can be affected by future allocation decisions.  Those intervals
-  // that end before the start of the current UseInterval are removed
-  // from this list and will not be affected.
-  UseInterval* cpu_regs_[kNumberOfCpuRegisters];
+  // Per register lists of allocated live ranges.  Contain only those
+  // ranges that can be affected by future allocation decisions.
+  // Those live ranges that end before the start of the current live range are
+  // removed from the list and will not be affected.
+  GrowableArray<LiveRange*> cpu_regs_[kNumberOfCpuRegisters];
+
+  // List of used spill slots. Contain positions after which spill slots
+  // become free and can be reused for allocation.
+  GrowableArray<intptr_t> spill_slots_;
+
+  bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
 };
@@ -147,48 +204,13 @@ class FlowGraphAllocator : public ValueObject {
 // this use with certain properties (if slot contain an unallocated location).
 class UsePosition : public ZoneAllocated {
  public:
-  enum UseFlag {
-    kNoFlag = 0,
-    kFixedUse = 1,
-    kSameAsFirstUse = 2,
-    kOther = 3
-  };
-
-  static const intptr_t kUseFlagMask = 0x3;
-  static const intptr_t kPositionShift = 2;
-
-  static UseFlag FlagForUse(const Location& loc) {
-    if (loc.IsRegister()) return kFixedUse;
-    if (loc.IsUnallocated() && (loc.policy() == Location::kSameAsFirstInput)) {
-      return kSameAsFirstUse;
-    }
-    return kOther;
-  }
-
-  // TODO(vegorov): we encode either position or instruction pointer
-  // into the pos_ field to generate moves when needed to resolve
-  // fixed or same-as-first constraints, but this looks ugly.
-  UsePosition(Instruction* instr,
-              intptr_t pos,
+  UsePosition(intptr_t pos,
               UsePosition* next,
               Location* location_slot)
-      : pos_(pos << kPositionShift),
+      : pos_(pos),
         location_slot_(location_slot),
         next_(next) {
-    // Non-NULL instr is considered unlikely so we preinitialize pos_ field
-    // with an encoded position even if instr is not NULL.
-    if (instr != NULL) {
-      ASSERT(location_slot_ != NULL);
-      pos_ = reinterpret_cast<intptr_t>(instr) | FlagForUse(*location_slot_);
-    }
-    ASSERT(this->pos() == pos);
   }
-
-  // Tell the use that it should load the value from the given location.
-  // If location slot for the use is flexible (unallocated) it will be updated
-  // with the given location. Otherwise a move will be scheduled from the given
-  // location to the location already stored in the slot.
-  void AssignLocation(Location loc);
 
   Location* location_slot() const { return location_slot_; }
   void set_location_slot(Location* location_slot) {
@@ -198,32 +220,23 @@ class UsePosition : public ZoneAllocated {
   void set_next(UsePosition* next) { next_ = next; }
   UsePosition* next() const { return next_; }
 
-  intptr_t pos() const {
-    if ((pos_ & kUseFlagMask) != kNoFlag) {
-      return instr()->lifetime_position();
-    }
-    return pos_ >> kPositionShift;
-  }
-
-  Instruction* instr() const {
-    ASSERT((pos_ & kUseFlagMask) != kNoFlag);
-    return reinterpret_cast<Instruction*>(pos_ & ~kUseFlagMask);
-  }
+  intptr_t pos() const { return pos_; }
 
   bool HasHint() const {
-    return (pos_ & kUseFlagMask) == kFixedUse;
+    return (location_slot() != NULL) && (location_slot()->IsRegister());
   }
 
   Location hint() const {
     ASSERT(HasHint());
-    ASSERT(location_slot()->IsRegister());
-    return *location_slot_;
+    return *location_slot();
   }
 
  private:
-  intptr_t pos_;
+  const intptr_t pos_;
   Location* location_slot_;
   UsePosition* next_;
+
+  DISALLOW_COPY_AND_ASSIGN(UsePosition);
 };
 
 
@@ -232,29 +245,19 @@ class UsePosition : public ZoneAllocated {
 // NumberInstructions assigns to instructions.  Register allocator has to keep
 // a value live in the register or in a spill slot from start position and until
 // the end position.  The interval can cover zero or more uses.
-// During the register allocation UseIntervals from different live ranges
-// allocated to the same register will be chained together through
-// next_allocated_ field.
 // Note: currently all uses of the same SSA value are linked together into a
 // single list (and not split between UseIntervals).
 class UseInterval : public ZoneAllocated {
  public:
-  UseInterval(intptr_t vreg, intptr_t start, intptr_t end, UseInterval* next)
-      : vreg_(vreg),
-        start_(start),
+  UseInterval(intptr_t start, intptr_t end, UseInterval* next)
+      : start_(start),
         end_(end),
-        uses_((next == NULL) ? NULL : next->uses_),
-        next_(next),
-        next_allocated_(next) { }
+        next_(next) { }
 
-
-  void AddUse(Instruction* instr, intptr_t pos, Location* loc);
   void Print();
 
-  intptr_t vreg() const { return vreg_; }
   intptr_t start() const { return start_; }
   intptr_t end() const { return end_; }
-  UsePosition* first_use() const { return uses_; }
   UseInterval* next() const { return next_; }
 
   bool Contains(intptr_t pos) const {
@@ -265,50 +268,120 @@ class UseInterval : public ZoneAllocated {
   // kIllegalPosition if intervals do not intersect.
   intptr_t Intersect(UseInterval* other);
 
-  UseInterval* Split(intptr_t pos);
-
-  void set_next_allocated(UseInterval* next_allocated) {
-    next_allocated_ = next_allocated;
-  }
-  UseInterval* next_allocated() const { return next_allocated_; }
-
  private:
   friend class LiveRange;
-  const intptr_t vreg_;
 
   intptr_t start_;
   intptr_t end_;
-
-  UsePosition* uses_;
-
   UseInterval* next_;
-  UseInterval* next_allocated_;
+
+  DISALLOW_COPY_AND_ASSIGN(UseInterval);
+};
+
+
+// AllocationFinger is used to keep track of currently active position
+// for the register allocator and cache lookup results.
+class AllocationFinger : public ValueObject {
+ public:
+  AllocationFinger()
+    : first_pending_use_interval_(NULL),
+      first_register_use_(NULL),
+      first_register_beneficial_use_(NULL),
+      first_hinted_use_(NULL) {
+  }
+
+  void Initialize(LiveRange* range);
+  bool Advance(intptr_t start);
+
+  UseInterval* first_pending_use_interval() const {
+    return first_pending_use_interval_;
+  }
+
+  Location FirstHint();
+  UsePosition* FirstRegisterUse(intptr_t after_pos);
+  UsePosition* FirstRegisterBeneficialUse(intptr_t after_pos);
+
+ private:
+  UseInterval* first_pending_use_interval_;
+  UsePosition* first_register_use_;
+  UsePosition* first_register_beneficial_use_;
+  UsePosition* first_hinted_use_;
+
+  DISALLOW_COPY_AND_ASSIGN(AllocationFinger);
 };
 
 
 // LiveRange represents a sequence of UseIntervals for a given SSA value.
-// TODO(vegorov): this class is actually redundant currently.
 class LiveRange : public ZoneAllocated {
  public:
-  explicit LiveRange(intptr_t vreg) : vreg_(vreg), head_(NULL) { }
+  explicit LiveRange(intptr_t vreg)
+    : vreg_(vreg),
+      uses_(NULL),
+      first_use_interval_(NULL),
+      last_use_interval_(NULL),
+      next_sibling_(NULL),
+      finger_() {
+  }
 
-  void DefineAt(Instruction* instr, intptr_t pos, Location* loc);
+  static LiveRange* MakeTemp(intptr_t pos, Location* location_slot);
 
-  void UseAt(Instruction* instr,
-             intptr_t def_pos,
-             intptr_t use_pos,
-             bool use_at_end,
-             Location* loc);
+  intptr_t vreg() const { return vreg_; }
+  LiveRange* next_sibling() const { return next_sibling_; }
+  UsePosition* first_use() const { return uses_; }
+  void set_first_use(UsePosition* use) { uses_ = use; }
+  UseInterval* first_use_interval() const { return first_use_interval_; }
+  UseInterval* last_use_interval() const { return last_use_interval_; }
+  Location assigned_location() const { return assigned_location_; }
+  intptr_t Start() const { return first_use_interval()->start(); }
+  intptr_t End() const { return last_use_interval()->end(); }
 
+  AllocationFinger* finger() { return &finger_; }
+
+  void set_assigned_location(Location location) {
+    assigned_location_ = location;
+  }
+
+  void DefineAt(intptr_t pos);
+
+  void AddUse(intptr_t pos, Location* location_slot);
   void AddUseInterval(intptr_t start, intptr_t end);
 
   void Print();
 
-  UseInterval* head() const { return head_; }
+  void AssignLocation(UseInterval* use, Location loc);
+
+  LiveRange* SplitAt(intptr_t pos);
+
+  bool CanCover(intptr_t pos) const {
+    return (Start() <= pos) && (pos < End());
+  }
 
  private:
+  LiveRange(intptr_t vreg,
+            UsePosition* uses,
+            UseInterval* first_use_interval,
+            UseInterval* last_use_interval,
+            LiveRange* next_sibling)
+    : vreg_(vreg),
+      uses_(uses),
+      first_use_interval_(first_use_interval),
+      last_use_interval_(last_use_interval),
+      next_sibling_(next_sibling),
+      finger_() {
+  }
+
   const intptr_t vreg_;
-  UseInterval* head_;
+  Location assigned_location_;
+
+  UsePosition* uses_;
+  UseInterval* first_use_interval_;
+  UseInterval* last_use_interval_;
+
+  LiveRange* next_sibling_;
+
+  AllocationFinger finger_;
+
+  DISALLOW_COPY_AND_ASSIGN(LiveRange);
 };
 
 

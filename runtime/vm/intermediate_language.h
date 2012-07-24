@@ -2447,8 +2447,10 @@ class ParallelMoveInstr : public Instruction {
 
   DECLARE_INSTRUCTION(ParallelMove)
 
-  void AddMove(Location dest, Location src) {
-    moves_.Add(new MoveOperands(dest, src));
+  MoveOperands* AddMove(Location dest, Location src) {
+    MoveOperands* move = new MoveOperands(dest, src);
+    moves_.Add(move);
+    return move;
   }
 
   MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }

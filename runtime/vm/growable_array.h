@@ -36,6 +36,11 @@ class BaseGrowableArray : public B {
   T* data() const { return data_; }
   bool is_empty() const { return length_ == 0; }
 
+  void TruncateTo(intptr_t length) {
+    ASSERT(length_ >= length);
+    length_ = length;
+  }
+
   void Add(const T& value) {
     Resize(length() + 1);
     Last() = value;

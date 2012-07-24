@@ -28,11 +28,28 @@ DEFINE_FLAG(bool, trace_ssa_allocator, false,
 
 static const intptr_t kNoVirtualRegister = -1;
 static const intptr_t kTempVirtualRegister = -2;
-static UseInterval* const kPermanentlyBlocked =
-  reinterpret_cast<UseInterval*>(-1);
 static const intptr_t kIllegalPosition = -1;
 static const intptr_t kMaxPosition = 0x7FFFFFFF;
 
+
+static intptr_t MinPosition(intptr_t a, intptr_t b) {
+  return (a < b) ? a : b;
+}
+
+
+static bool IsParallelMovePosition(intptr_t pos) {
+  return (pos & 1) == 0;
+}
+
+
+static bool IsInstructionPosition(intptr_t pos) {
+  return (pos & 1) == 1;
+}
+
+
+static intptr_t ToParallelMove(intptr_t pos) {
+  return (pos & ~1);
+}
 
 FlowGraphAllocator::FlowGraphAllocator(
   const GrowableArray<BlockEntryInstr*>& block_order,
@@ -44,19 +61,17 @@ FlowGraphAllocator::FlowGraphAllocator(
     kill_(block_order.length()),
     live_in_(block_order.length()),
     vreg_count_(builder->current_ssa_temp_index()),
-    live_ranges_(builder->current_ssa_temp_index()) {
+    live_ranges_(builder->current_ssa_temp_index()),
+    cpu_regs_(),
+    blocked_cpu_regs_() {
   for (intptr_t i = 0; i < vreg_count_; i++) live_ranges_.Add(NULL);
 
-  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
-    cpu_regs_[reg] = NULL;
-  }
-
-  cpu_regs_[CTX] = kPermanentlyBlocked;
+  blocked_cpu_regs_[CTX] = true;
   if (TMP != kNoRegister) {
-    cpu_regs_[TMP] = kPermanentlyBlocked;
+    blocked_cpu_regs_[TMP] = true;
   }
-  cpu_regs_[SPREG] = kPermanentlyBlocked;
-  cpu_regs_[FPREG] = kPermanentlyBlocked;
+  blocked_cpu_regs_[SPREG] = true;
+  blocked_cpu_regs_[FPREG] = true;
 }
 
 
@@ -213,76 +228,72 @@ void FlowGraphAllocator::DumpLiveness() {
 }
 
 
-void UseInterval::Print() {
-  OS::Print("  [%d, %d) uses {", start_, end_);
-  for (UsePosition* use_pos = uses_;
-       use_pos != NULL && use_pos->pos() <= end();
-       use_pos = use_pos->next()) {
-    if (use_pos != uses_) OS::Print(", ");
-    OS::Print("%d", use_pos->pos());
-  }
-  OS::Print("}\n");
-}
-
-
-void UseInterval::AddUse(Instruction* instr,
-                         intptr_t pos,
-                         Location* location_slot) {
-  ASSERT((start_ <= pos) && (pos <= end_));
-  ASSERT((instr == NULL) || (instr->lifetime_position() == pos));
+void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
+  ASSERT((first_use_interval_->start_ <= pos) &&
+         (pos <= first_use_interval_->end_));
   if ((uses_ != NULL) && (uses_->pos() == pos)) {
     if ((location_slot == NULL) || (uses_->location_slot() == location_slot)) {
       return;
-    } else if ((uses_->location_slot() == NULL) && (instr == NULL)) {
+    } else if (uses_->location_slot() == NULL) {
       uses_->set_location_slot(location_slot);
       return;
     }
   }
-  uses_ = new UsePosition(instr, pos, uses_, location_slot);
-}
-
-
-void LiveRange::Print() {
-  OS::Print("vreg %d live intervals:\n", vreg_);
-  for (UseInterval* interval = head_;
-       interval != NULL;
-       interval = interval->next_) {
-    interval->Print();
-  }
+  uses_ = new UsePosition(pos, uses_, location_slot);
 }
 
 
 void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
-  if ((head_ != NULL) && (head_->start_ == end)) {
-    head_->start_ = start;
-    return;
+  ASSERT(start < end);
+
+  // Live ranges are being build by visiting instructions in post-order.
+  // This implies that use intervals will be perpended in a monotonically
+  // decreasing order.
+  if (first_use_interval() != NULL) {
+    // If the first use interval and the use interval we are adding
+    // touch then we can just extend the first interval to cover their
+    // union.
+    if (start >= first_use_interval()->start()) {
+      // The only case when we can add intervals with start greater than
+      // start of an already created interval is BlockLocation.
+      ASSERT((start == first_use_interval()->start()) ||
+             (vreg() == kNoVirtualRegister));
+      ASSERT(end <= first_use_interval()->end());
+      return;
+    } else if (end == first_use_interval()->start()) {
+      first_use_interval()->start_ = start;
+      return;
+    }
+
+    ASSERT(end < first_use_interval()->start());
   }
 
-  head_ = new UseInterval(vreg_, start, end, head_);
+  first_use_interval_ = new UseInterval(start, end, first_use_interval_);
+  if (last_use_interval_ == NULL) {
+    ASSERT(first_use_interval_->next() == NULL);
+    last_use_interval_ = first_use_interval_;
+  }
 }
 
 
-void LiveRange::DefineAt(Instruction* instr, intptr_t pos, Location* loc) {
-  if (head_ != NULL) {
-    ASSERT(head_->start_ <= pos);
-    head_->start_ = pos;
-  } else {
+void LiveRange::DefineAt(intptr_t pos) {
+  // Live ranges are being build by visiting instructions in post-order.
+  // This implies that use intervals will be prepended in a monotonically
+  // decreasing order.
+  // When we encounter a use of a value inside a block we optimistically
+  // expand the first use interval to cover the block from the start
+  // to the last use in the block and then we shrink it if we encounter
+  // definition of the value inside the same block.
+  if (first_use_interval_ == NULL) {
     // Definition without a use.
-    head_ = new UseInterval(vreg_, pos, pos + 1, NULL);
+    first_use_interval_ = new UseInterval(pos, pos + 1, NULL);
+    last_use_interval_ = first_use_interval_;
+  } else {
+    // Shrink the first use interval. It was optimistically expanded to
+    // cover the the block from the start to the last use in the block.
+    ASSERT(first_use_interval_->start_ <= pos);
+    first_use_interval_->start_ = pos;
   }
-  head_->AddUse(instr, pos, loc);
-}
-
-
-// TODO(vegorov): encode use_at_start vs. use_at_end in the location itself?
-void LiveRange::UseAt(Instruction* instr,
-                      intptr_t def, intptr_t use,
-                      bool use_at_end,
-                      Location* loc) {
-  if (head_ == NULL || head_->start_ != def) {
-    AddUseInterval(def, use + (use_at_end ? 1 : 0));
-  }
-  head_->AddUse(instr, use, loc);
 }
 
 
@@ -294,78 +305,56 @@ LiveRange* FlowGraphAllocator::GetLiveRange(intptr_t vreg) {
 }
 
 
-void FlowGraphAllocator::BlockLocation(Location loc, intptr_t pos) {
+void FlowGraphAllocator::BlockLocation(Location loc,
+                                       intptr_t from,
+                                       intptr_t to) {
   ASSERT(loc.IsRegister());
   const Register reg = loc.reg();
-  UseInterval* last = cpu_regs_[reg];
-  if (last == kPermanentlyBlocked) return;
-  if ((last != NULL) && (last->start() == pos)) return;
-  cpu_regs_[reg] = new UseInterval(kNoVirtualRegister, pos, pos + 1, last);
+  if (blocked_cpu_regs_[reg]) return;
+  if (cpu_regs_[reg].length() == 0) {
+    cpu_regs_[reg].Add(new LiveRange(kNoVirtualRegister));
+  }
+  cpu_regs_[reg][0]->AddUseInterval(from, to);
 }
 
 
-void FlowGraphAllocator::Define(Instruction* instr,
-                                intptr_t pos,
-                                intptr_t vreg,
-                                Location* loc) {
-  LiveRange* range = GetLiveRange(vreg);
-  ASSERT(loc != NULL);
-  if (loc->IsRegister()) {
-    BlockLocation(*loc, pos);
-    range->DefineAt(instr, pos + 1, loc);
-  } else if (loc->IsUnallocated()) {
-    range->DefineAt(instr, pos, loc);
-  } else {
-    UNREACHABLE();
+void LiveRange::Print() {
+  OS::Print("  live range v%d [%d, %d)\n", vreg(), Start(), End());
+  UsePosition* use_pos = uses_;
+  for (UseInterval* interval = first_use_interval_;
+       interval != NULL;
+       interval = interval->next()) {
+    OS::Print("    use interval [%d, %d)\n",
+              interval->start(),
+              interval->end());
+    while ((use_pos != NULL) && (use_pos->pos() <= interval->end())) {
+      OS::Print("      use at %d as %s\n",
+                use_pos->pos(),
+                (use_pos->location_slot() == NULL)
+                ? "-" : use_pos->location_slot()->Name());
+      use_pos = use_pos->next();
+    }
   }
 
-  AddToUnallocated(range->head());
-}
-
-
-void FlowGraphAllocator::UseValue(Instruction* instr,
-                                  intptr_t def_pos,
-                                  intptr_t use_pos,
-                                  intptr_t vreg,
-                                  Location* loc,
-                                  bool use_at_end) {
-  LiveRange* range = GetLiveRange(vreg);
-  if (loc == NULL) {
-    range->UseAt(NULL, def_pos, use_pos, true, loc);
-  } else if (loc->IsRegister()) {
-    // We have a fixed use.
-    BlockLocation(*loc, use_pos);
-    range->UseAt(instr, def_pos, use_pos, false, loc);
-  } else if (loc->IsUnallocated()) {
-    ASSERT(loc->policy() == Location::kRequiresRegister);
-    range->UseAt(use_at_end ? NULL : instr, def_pos, use_pos, use_at_end, loc);
-  }
-}
-
-
-static void PrintChain(UseInterval* chain) {
-  if (chain == kPermanentlyBlocked) {
-    OS::Print("  not for allocation\n");
-    return;
-  }
-
-  while (chain != NULL) {
-    chain->Print();
-    chain = chain->next();
+  if (next_sibling() != NULL) {
+    next_sibling()->Print();
   }
 }
 
 
 void FlowGraphAllocator::PrintLiveRanges() {
   for (intptr_t i = 0; i < unallocated_.length(); i++) {
-    OS::Print("unallocated chain for vr%d\n", unallocated_[i]->vreg());
-    PrintChain(unallocated_[i]);
+    unallocated_[i]->Print();
   }
 
   for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
-    OS::Print("blocking chain for %s\n",
+    if (blocked_cpu_regs_[reg]) continue;
+    if (cpu_regs_[reg].length() == 0) continue;
+
+    ASSERT(cpu_regs_[reg].length() == 1);
+    OS::Print("blocking live range for %s\n",
               Location::RegisterLocation(static_cast<Register>(reg)).Name());
-    PrintChain(cpu_regs_[reg]);
+    cpu_regs_[reg][0]->Print();
   }
 }
 
@@ -374,7 +363,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
   NumberInstructions();
 
   const intptr_t block_count = postorder_.length();
-  for (intptr_t i = 0; i < block_count; i++) {
+  ASSERT(postorder_[block_count - 1]->IsGraphEntry());
+  for (intptr_t i = 0; i < (block_count - 1); i++) {
     BlockEntryInstr* block = postorder_[i];
 
     // For every SSA value that is live out of this block create an interval
@@ -385,190 +375,420 @@ void FlowGraphAllocator::BuildLiveRanges() {
       range->AddUseInterval(block->start_pos(), block->end_pos());
     }
 
-    // Position corresponding to the beginning of the last instruction in the
-    // block.
-    intptr_t pos = block->end_pos() - 1;
-    Instruction* current = block->last_instruction();
-
-    // Goto instructions do not contribute liveness information.
-    GotoInstr* goto_instr = current->AsGoto();
-    if (goto_instr != NULL) {
-      current = current->previous();
-      // If we have a parallel move here then the successor block must be a
-      // join with phis.  The phi inputs contribute uses to each predecessor
-      // block (and the phi outputs contribute definitions in the successor
-      // block).
-      //
-      // We record those uses at the end of the instruction preceding the
-      // parallel move.  This position is 'pos', because we do not assign
-      // instruction numbers to parallel moves.
-      ParallelMoveInstr* parallel_move = current->AsParallelMove();
-      if (parallel_move != NULL) {
-        JoinEntryInstr* join = goto_instr->successor();
-        ASSERT(join != NULL);
-
-        // Search for the index of the current block in the predecessors of
-        // the join.
-        // TODO(kmillikin): record the predecessor index in the goto when
-        // building the predecessor list to avoid this search.
-        intptr_t pred_idx = join->IndexOfPredecessor(block);
-        ASSERT(pred_idx >= 0);
-
-        // Record the corresponding phi input use for each phi.
-        ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-        intptr_t move_idx = 0;
-        for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
-          PhiInstr* phi = (*phis)[phi_idx];
-          if (phi == NULL) continue;
-
-          Value* val = phi->InputAt(pred_idx);
-          MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
-          if (val->IsUse()) {
-            const intptr_t virtual_register =
-                val->AsUse()->definition()->ssa_temp_index();
-            move->set_src(Location::RequiresRegister());
-            GetLiveRange(
-                virtual_register)->head()->AddUse(NULL, pos, move->src_slot());
-          } else {
-            ASSERT(val->IsConstant());
-            move->set_src(Location::Constant(val->AsConstant()->value()));
-          }
-          move_idx++;
-        }
-
-        // Begin backward iteration with the instruction before the parallel
-        // move.
-        current = current->previous();
-      }
-    }
+    // Connect outgoing phi-moves that were created in NumberInstructions
+    // and find last instruction that contributes to liveness.
+    Instruction* current = ConnectOutgoingPhiMoves(block);
 
     // Now process all instructions in reverse order.
-    --pos;  // 'pos' is now the start position for the current instruction.
     while (current != block) {
-      LocationSummary* locs = current->locs();
-
-      const bool output_same_as_first_input =
-        locs->out().IsUnallocated() &&
-        locs->out().policy() == Location::kSameAsFirstInput;
-
-      // TODO(vegorov): number of inputs should match number of input locations.
-      // TODO(vegorov): generic support for writable registers?
-      for (intptr_t j = 0; j < current->InputCount(); j++) {
-        Value* input = current->InputAt(j);
-        if (input->IsUse()) {
-          const intptr_t use = input->AsUse()->definition()->ssa_temp_index();
-
-          Location* in_ref = (j < locs->input_count()) ?
-            locs->in_slot(j) : NULL;
-          const bool use_at_end = (j > 0) || (in_ref == NULL) ||
-            !output_same_as_first_input;
-          UseValue(current, block->start_pos(), pos, use, in_ref, use_at_end);
-        }
+      // Skip parallel moves that we insert while processing instructions.
+      if (!current->IsParallelMove()) {
+        ProcessOneInstruction(block, current);
       }
-
-      // Add uses from the deoptimization environment.
-      // TODO(vegorov): these uses should _not_ require register but for now
-      // they do because we don't support spilling at all.
-      if (current->env() != NULL) {
-        Environment* env = current->env();
-        const GrowableArray<Value*>& values = env->values();
-
-        for (intptr_t j = 0; j < values.length(); j++) {
-          Value* val = values[j];
-          if (val->IsUse()) {
-            env->AddLocation(Location::RequiresRegister());
-            const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-            UseValue(current,
-                     block->start_pos(),
-                     pos,
-                     use,
-                     env->LocationSlotAt(j),
-                     true);
-          } else {
-            env->AddLocation(Location::NoLocation());
-          }
-        }
-      }
-
-      // Process temps.
-      for (intptr_t j = 0; j < locs->temp_count(); j++) {
-        Location temp = locs->temp(j);
-        if (temp.IsRegister()) {
-          BlockLocation(temp, pos);
-        } else if (temp.IsUnallocated()) {
-          UseInterval* temp_interval = new UseInterval(
-              kTempVirtualRegister, pos, pos + 1, NULL);
-          temp_interval->AddUse(NULL, pos, locs->temp_slot(j));
-          AddToUnallocated(temp_interval);
-        } else {
-          UNREACHABLE();
-        }
-      }
-
-      // Block all allocatable registers for calls.
-      if (locs->is_call()) {
-        for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
-          BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)),
-                        pos);
-        }
-      }
-
-      if (locs->out().IsRegister()) {
-        builder_->Bailout("ssa allocator: fixed outputs are not supported");
-      }
-
-      Definition* def = current->AsDefinition();
-      if ((def != NULL) && (def->ssa_temp_index() >= 0)) {
-        Define(output_same_as_first_input ? current : NULL,
-               pos,
-               def->ssa_temp_index(),
-               locs->out_slot());
-      }
-
       current = current->previous();
-      pos -= 2;
     }
 
-    // If this block is a join we need to add destinations of phi
-    // resolution moves to phi's live range so that register allocator will
-    // fill them with moves.
-    JoinEntryInstr* join = block->AsJoinEntry();
-    if (join != NULL) {
-      ZoneGrowableArray<PhiInstr*>* phis = join->phis();
-      if (phis != NULL) {
-        intptr_t move_idx = 0;
-        for (intptr_t j = 0; j < phis->length(); j++) {
-          PhiInstr* phi = (*phis)[j];
-          if (phi == NULL) continue;
+    ConnectIncomingPhiMoves(block);
+  }
+}
 
-          const intptr_t virtual_register = phi->ssa_temp_index();
-          ASSERT(virtual_register != -1);
+//
+// When describing shape of live ranges in comments below we are going to use
+// the following notation:
+//
+//    B  block entry
+//    g  goto instruction
+//    m  parallel move
+//    i  any other instruction
+//
+//    -  body of a use interval
+//    [  start of a use interval
+//    )  end of a use interval
+//    *  use
+//
+// For example diagram
+//
+//           m i
+//  value  --*-)
+//
+// can be read as: use interval for value starts somewhere before parallel move
+// and extends until currently processed instruction, there is a use of value
+// at a position of the parallel move.
+//
 
-          LiveRange* range = GetLiveRange(virtual_register);
-          range->DefineAt(NULL, pos, NULL);
-          UseInterval* interval = GetLiveRange(virtual_register)->head();
+Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
+    BlockEntryInstr* block) {
+  Instruction* last = block->last_instruction();
 
-          for (intptr_t k = 0; k < phi->InputCount(); k++) {
-            BlockEntryInstr* pred = block->PredecessorAt(k);
-            ASSERT(pred->last_instruction()->IsGoto());
-            Instruction* move_instr = pred->last_instruction()->previous();
-            ParallelMoveInstr* pmove = move_instr->AsParallelMove();
-            ASSERT(pmove != NULL);
+  GotoInstr* goto_instr = last->AsGoto();
+  if (goto_instr == NULL) return last;
 
-            MoveOperands* move_operands = pmove->MoveOperandsAt(move_idx);
-            move_operands->set_dest(Location::RequiresRegister());
-            interval->AddUse(NULL, pos, move_operands->dest_slot());
-          }
+  // If we have a parallel move here then the successor block must be a
+  // join with phis.  The phi inputs contribute uses to each predecessor
+  // block (and the phi outputs contribute definitions in the successor
+  // block).
+  ParallelMoveInstr* parallel_move = goto_instr->previous()->AsParallelMove();
+  if (parallel_move == NULL) return goto_instr->previous();
 
-          // All phi resolution moves are connected. Phi's live range is
-          // complete.
-          AddToUnallocated(interval);
+  // All uses are recorded at the position of parallel move preceding goto.
+  const intptr_t pos = goto_instr->lifetime_position() - 1;
+  ASSERT((pos >= 0) && IsParallelMovePosition(pos));
 
-          move_idx++;
-        }
+  JoinEntryInstr* join = goto_instr->successor();
+  ASSERT(join != NULL);
+
+  // Search for the index of the current block in the predecessors of
+  // the join.
+  const intptr_t pred_idx = join->IndexOfPredecessor(block);
+
+  // Record the corresponding phi input use for each phi.
+  ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+  intptr_t move_idx = 0;
+  for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
+    PhiInstr* phi = (*phis)[phi_idx];
+    if (phi == NULL) continue;
+
+    Value* val = phi->InputAt(pred_idx);
+    MoveOperands* move = parallel_move->MoveOperandsAt(move_idx);
+    if (val->IsUse()) {
+      // Expected shape of live ranges:
+      //
+      //                 m  g
+      //      value    --*
+      //
+
+      LiveRange* range = GetLiveRange(
+          val->AsUse()->definition()->ssa_temp_index());
+
+      range->AddUseInterval(block->start_pos(), pos);
+      range->AddUse(pos, move->src_slot());
+
+      move->set_src(Location::PrefersRegister());
+    } else {
+      ASSERT(val->IsConstant());
+      move->set_src(Location::Constant(val->AsConstant()->value()));
+    }
+    move_idx++;
+  }
+
+  // Begin backward iteration with the instruction before the parallel
+  // move.
+  return parallel_move->previous();
+}
+
+
+void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
+  // If this block is a join we need to add destinations of phi
+  // resolution moves to phi's live range so that register allocator will
+  // fill them with moves.
+  JoinEntryInstr* join = block->AsJoinEntry();
+  if (join == NULL) return;
+
+  // All uses are recorded at the start position in the block.
+  const intptr_t pos = join->start_pos();
+
+  ZoneGrowableArray<PhiInstr*>* phis = join->phis();
+  if (phis != NULL) {
+    intptr_t move_idx = 0;
+    for (intptr_t phi_idx = 0; phi_idx < phis->length(); phi_idx++) {
+      PhiInstr* phi = (*phis)[phi_idx];
+      if (phi == NULL) continue;
+
+      const intptr_t vreg = phi->ssa_temp_index();
+      ASSERT(vreg != -1);
+
+      // Expected shape of live range:
+      //
+      //                 B
+      //      phi        [--------
+      //
+      LiveRange* range = GetLiveRange(vreg);
+      range->DefineAt(pos);  // Shorten live range.
+
+      for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
+        BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
+        ASSERT(pred->last_instruction()->IsGoto());
+        Instruction* move_instr = pred->last_instruction()->previous();
+        ASSERT(move_instr->IsParallelMove());
+
+        MoveOperands* move =
+            move_instr->AsParallelMove()->MoveOperandsAt(move_idx);
+        move->set_dest(Location::PrefersRegister());
+        range->AddUse(pos, move->dest_slot());
+      }
+
+      // All phi resolution moves are connected. Phi's live range is
+      // complete.
+      AddToUnallocated(range);
+
+      move_idx++;
+    }
+  }
+}
+
+
+// Create and update live ranges corresponding to instruction's inputs,
+// temporaries and output.
+void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
+                                               Instruction* current) {
+  const intptr_t pos = current->lifetime_position();
+  ASSERT(IsInstructionPosition(pos));
+
+  LocationSummary* locs = current->locs();
+
+  // TODO(vegorov): number of inputs must match number of input locations.
+  if (locs->input_count() != current->InputCount()) {
+    builder_->Bailout("ssa allocator: number of input locations mismatch");
+  }
+
+  const bool output_same_as_first_input =
+      locs->out().IsUnallocated() &&
+      (locs->out().policy() == Location::kSameAsFirstInput);
+
+  // Add uses from the deoptimization environment.
+  if (current->env() != NULL) {
+    // Any value mentioned in the deoptimization environment should survive
+    // until the end of instruction but it does not need to be in the register.
+    // Expected shape of live range:
+    //
+    //                 m  i  m
+    //      value    -----*--)
+    //
+
+    Environment* env = current->env();
+    const GrowableArray<Value*>& values = env->values();
+
+    for (intptr_t j = 0; j < values.length(); j++) {
+      Value* val = values[j];
+      if (val->IsUse()) {
+        env->AddLocation(Location::Any());
+        const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
+
+        LiveRange* range = GetLiveRange(vreg);
+        range->AddUseInterval(block->start_pos(), pos + 1);
+        range->AddUse(pos, env->LocationSlotAt(j));
+      } else {
+        ASSERT(val->IsConstant());
+        env->AddLocation(Location::NoLocation());
       }
     }
   }
+
+  // Process inputs.
+  // Skip the first input if output is specified with kSameAsFirstInput policy,
+  // they will be processed together at the very end.
+  for (intptr_t j = output_same_as_first_input ? 1 : 0;
+       j < current->InputCount();
+       j++) {
+    Value* input = current->InputAt(j);
+    ASSERT(input->IsUse());  // Can not be a constant currently.
+
+    const intptr_t vreg = input->AsUse()->definition()->ssa_temp_index();
+    LiveRange* range = GetLiveRange(vreg);
+
+    Location* in_ref = locs->in_slot(j);
+
+    if (in_ref->IsRegister()) {
+      // Input is expected in a fixed register. Expected shape of
+      // live ranges:
+      //
+      //                 m  i  m
+      //      value    --*
+      //      register   [-----)
+      //
+      MoveOperands* move =
+          AddMoveAt(pos - 1, *in_ref, Location::PrefersRegister());
+      BlockLocation(*in_ref, pos - 1, pos + 1);
+      range->AddUseInterval(block->start_pos(), pos - 1);
+      range->AddUse(pos - 1, move->src_slot());
+    } else {
+      // Normal unallocated input. Expected shape of
+      // live ranges:
+      //
+      //                 m  i  m
+      //      value    -----*--)
+      //
+      ASSERT(in_ref->IsUnallocated());
+      range->AddUseInterval(block->start_pos(), pos + 1);
+      range->AddUse(pos, in_ref);
+    }
+  }
+
+  // Process temps.
+  for (intptr_t j = 0; j < locs->temp_count(); j++) {
+    // Expected shape of live range:
+    //
+    //           m  i  m
+    //              [--)
+    //
+
+    Location temp = locs->temp(j);
+    if (temp.IsRegister()) {
+      BlockLocation(temp, pos, pos + 1);
+    } else if (temp.IsUnallocated()) {
+      LiveRange* range = new LiveRange(kTempVirtualRegister);
+      range->AddUseInterval(pos, pos + 1);
+      range->AddUse(pos, locs->temp_slot(j));
+      AddToUnallocated(range);
+    } else {
+      UNREACHABLE();
+    }
+  }
+
+  // Block all allocatable registers for calls.
+  if (locs->is_call()) {
+    // Expected shape of live range:
+    //
+    //           m  i  m
+    //              [--)
+    //
+
+    for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+      BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)),
+                    pos,
+                    pos + 1);
+    }
+
+#ifdef DEBUG
+    // Verify that temps, inputs and output were specified as fixed
+    // locations.  Every register is blocked now so attempt to
+    // allocate will not succeed.
+    for (intptr_t j = 0; j < locs->temp_count(); j++) {
+      ASSERT(!locs->temp(j).IsUnallocated());
+    }
+
+    for (intptr_t j = 0; j < locs->input_count(); j++) {
+      ASSERT(!locs->in(j).IsUnallocated());
+    }
+
+    ASSERT(!locs->out().IsUnallocated());
+#endif
+  }
+
+  Definition* def = current->AsDefinition();
+  if (def == NULL) {
+    ASSERT(locs->out().IsInvalid());
+    return;
+  }
+
+  if (locs->out().IsInvalid()) {
+    ASSERT(def->ssa_temp_index() < 0);
+    return;
+  }
+
+  // We might have a definition without use.  We do not assign SSA index to
+  // such definitions.
+  LiveRange* range = (def->ssa_temp_index() >= 0) ?
+      GetLiveRange(def->ssa_temp_index()) :
+      new LiveRange(kTempVirtualRegister);
+  Location* out = locs->out_slot();
+
+  // Process output and finalize its liverange.
+  if (out->IsRegister()) {
+    // Fixed output location. Expected shape of live range:
+    //
+    //                 m  i  m
+    //    register        [--)
+    //    output             [-------
+    //
+    BlockLocation(*out, pos, pos + 1);
+
+    if (range->vreg() == kTempVirtualRegister) return;
+
+    // We need to emit move connecting fixed register with another location
+    // that will be allocated for this output's live range.
+    // Special case: fixed output followed by a fixed input last use.
+    UsePosition* use = range->first_use();
+    if (use->pos() == (pos + 1)) {
+      // We have a use position on the parallel move.
+      ASSERT(use->location_slot()->IsUnallocated());
+      *(use->location_slot()) = *out;
+
+      // Remove first use. It was allocated.
+      range->set_first_use(range->first_use()->next());
+    }
+
+    // Shorten live range to the point of definition, this might make the range
+    // empty (if the only use immediately follows). If range is not empty add
+    // move from a fixed register to an unallocated location.
+    range->DefineAt(pos + 1);
+    if (range->Start() == range->End()) return;
+
+    MoveOperands* move = AddMoveAt(pos + 1, Location::PrefersRegister(), *out);
+    range->AddUse(pos + 1, move->dest_slot());
+  } else if (output_same_as_first_input) {
+    // Output register will contain a value of the first input at instruction's
+    // start. Expected shape of live ranges:
+    //
+    //                 m  i  m
+    //    input #0   --*
+    //    output       [--*----
+    //
+    ASSERT(locs->in_slot(0)->Equals(Location::RequiresRegister()));
+
+    // Create move that will copy value between input and output.
+    locs->set_out(Location::RequiresRegister());
+    MoveOperands* move = AddMoveAt(pos - 1,
+                                   Location::RequiresRegister(),
+                                   Location::PrefersRegister());
+
+    // Add uses to the live range of the input.
+    Value* input = current->InputAt(0);
+    ASSERT(input->IsUse());  // Can not be a constant currently.
+    LiveRange* input_range = GetLiveRange(
+      input->AsUse()->definition()->ssa_temp_index());
+    input_range->AddUseInterval(block->start_pos(), pos - 1);
+    input_range->AddUse(pos - 1, move->src_slot());
+
+    // Shorten output live range to the point of definition and add both input
+    // and output uses slots to be filled by allocator.
+    range->DefineAt(pos - 1);
+    range->AddUse(pos - 1, out);
+    range->AddUse(pos - 1, move->dest_slot());
+    range->AddUse(pos, locs->in_slot(0));
+  } else {
+    // Normal unallocated location that requires a register. Expected shape of
+    // live range:
+    //
+    //                 m  i  m
+    //    output          [-------
+    //
+    ASSERT(out->IsUnallocated() &&
+           (out->policy() == Location::kRequiresRegister));
+
+    // Shorten live range to the point of definition and add use to be filled by
+    // allocator.
+    range->DefineAt(pos);
+    range->AddUse(pos, out);
+  }
+
+  AddToUnallocated(range);
+}
+
+
+static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
+                                                   intptr_t pos) {
+  Instruction* prev = instr->previous();
+  ParallelMoveInstr* move = prev->AsParallelMove();
+  if ((move == NULL) || (move->lifetime_position() != pos)) {
+    move = new ParallelMoveInstr();
+    move->set_next(prev->next());
+    prev->set_next(move);
+    move->next()->set_previous(move);
+    move->set_previous(prev);
+    move->set_lifetime_position(pos);
+  }
+  return move;
+}
+
+
+static ParallelMoveInstr* CreateParallelMoveAfter(Instruction* instr,
+                                                  intptr_t pos) {
+  Instruction* next = instr->next();
+  if (next->IsParallelMove() && (next->lifetime_position() == pos)) {
+    return next->AsParallelMove();
+  }
+  return CreateParallelMoveBefore(next, pos);
 }
 
 
@@ -584,14 +804,18 @@ void FlowGraphAllocator::NumberInstructions() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = block_count - 1; i >= 0; i--) {
     BlockEntryInstr* block = postorder_[i];
+
+    instructions_.Add(block);
     block->set_start_pos(pos);
-    block->set_lifetime_position(pos);
+    block->set_lifetime_position(pos + 1);
     pos += 2;
+
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      // Do not assign numbers to parallel moves or goto instructions.
-      if (!current->IsParallelMove() && !current->IsGoto()) {
-        current->set_lifetime_position(pos);
+      // Do not assign numbers to parallel move instructions.
+      if (!current->IsParallelMove()) {
+        instructions_.Add(current);
+        current->set_lifetime_position(pos + 1);
         pos += 2;
       }
     }
@@ -603,27 +827,82 @@ void FlowGraphAllocator::NumberInstructions() {
     if ((join != NULL) && (join->phi_count() > 0)) {
       const intptr_t phi_count = join->phi_count();
       for (intptr_t i = 0; i < block->PredecessorCount(); i++) {
-        ParallelMoveInstr* move = new ParallelMoveInstr();
+        // Insert the move between the last two instructions of the
+        // predecessor block (all such blocks have at least two instructions:
+        // the block entry and goto instructions.)
+        Instruction* last = block->PredecessorAt(i)->last_instruction();
+        ParallelMoveInstr* move =
+          CreateParallelMoveBefore(last, last->lifetime_position() - 1);
+
         // Populate the ParallelMove with empty moves.
         for (intptr_t j = 0; j < phi_count; j++) {
           move->AddMove(Location::NoLocation(), Location::NoLocation());
         }
-
-        // Insert the move between the last two instructions of the
-        // predecessor block (all such blocks have at least two instructions:
-        // the block entry and goto instructions.)
-        BlockEntryInstr* pred = block->PredecessorAt(i);
-        Instruction* next = pred->last_instruction();
-        Instruction* previous = next->previous();
-        ASSERT(next->IsGoto());
-        ASSERT(!previous->IsParallelMove());
-        previous->set_next(move);
-        move->set_previous(previous);
-        move->set_next(next);
-        next->set_previous(move);
       }
     }
   }
+}
+
+
+Instruction* FlowGraphAllocator::InstructionAt(intptr_t pos) const {
+  return instructions_[pos / 2];
+}
+
+
+bool FlowGraphAllocator::IsBlockEntry(intptr_t pos) const {
+  return InstructionAt(pos)->IsBlockEntry();
+}
+
+
+static UsePosition* FirstUseAfter(UsePosition* use, intptr_t after) {
+  while ((use != NULL) && (use->pos() < after)) {
+    use = use->next();
+  }
+  return use;
+}
+
+
+Location AllocationFinger::FirstHint() {
+  UsePosition* use = first_hinted_use_;
+
+  while (use != NULL) {
+    if (use->HasHint()) return use->hint();
+    use = use->next();
+  }
+
+  return Location::NoLocation();
+}
+
+
+UsePosition* AllocationFinger::FirstRegisterUse(intptr_t after) {
+  for (UsePosition* use = FirstUseAfter(first_register_use_, after);
+       use != NULL;
+       use = use->next()) {
+    Location* loc = use->location_slot();
+    if ((loc != NULL) &&
+        loc->IsUnallocated() &&
+        (loc->policy() == Location::kRequiresRegister)) {
+      first_register_use_ = use;
+      return use;
+    }
+  }
+  return NULL;
+}
+
+
+UsePosition* AllocationFinger::FirstRegisterBeneficialUse(intptr_t after) {
+  for (UsePosition* use = FirstUseAfter(first_register_beneficial_use_, after);
+       use != NULL;
+       use = use->next()) {
+    Location* loc = use->location_slot();
+    if ((loc != NULL) &&
+        (loc->IsRegister() ||
+         (loc->IsUnallocated() && loc->IsRegisterBeneficial()))) {
+      first_register_beneficial_use_ = use;
+      return use;
+    }
+  }
+  return NULL;
 }
 
 
@@ -643,7 +922,7 @@ static intptr_t FirstIntersection(UseInterval* a, UseInterval* u) {
     if (pos != kIllegalPosition) return pos;
 
     if (a->start() < u->start()) {
-      a = a->next_allocated();
+      a = a->next();
     } else {
       u = u->next();
     }
@@ -653,30 +932,178 @@ static intptr_t FirstIntersection(UseInterval* a, UseInterval* u) {
 }
 
 
-static Location LookAheadForHint(UseInterval* interval) {
-  UsePosition* use = interval->first_use();
-
-  while (use != NULL) {
-    if (use->HasHint()) return use->hint();
-    use = use->next();
-  }
-
-  return Location::NoLocation();
+LiveRange* LiveRange::MakeTemp(intptr_t pos, Location* location_slot) {
+  UNREACHABLE();
+  return NULL;
 }
 
 
-bool FlowGraphAllocator::AllocateFreeRegister(UseInterval* unallocated) {
+LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
+  if (Start() == split_pos) return this;
+
+  // Ranges can only be connected by parallel moves.
+  split_pos = ToParallelMove(split_pos);
+
+  UseInterval* interval = finger_.first_pending_use_interval();
+  ASSERT(interval->start() < split_pos);
+
+  // Corner case. We need to start over to find previous interval.
+  if (interval->start() == split_pos) interval = first_use_interval_;
+
+  UseInterval* last_before_split = NULL;
+  while (interval->end() <= split_pos) {
+    last_before_split = interval;
+    interval = interval->next();
+  }
+
+  const bool split_at_start = (interval->start() == split_pos);
+
+  UseInterval* first_after_split = interval;
+  if (!split_at_start && interval->Contains(split_pos)) {
+    first_after_split = new UseInterval(split_pos,
+                                        interval->end(),
+                                        interval->next());
+    interval->end_ = split_pos;
+    interval->next_ = first_after_split;
+    last_before_split = interval;
+  }
+
+  ASSERT(last_before_split->next() == first_after_split);
+  ASSERT(last_before_split->end() <= split_pos);
+  ASSERT(split_pos <= first_after_split->start());
+
+  UsePosition* last_use_before_split = NULL;
+  UsePosition* use = uses_;
+  if (split_at_start) {
+    while ((use != NULL) && (use->pos() < split_pos)) {
+      last_use_before_split = use;
+      use = use->next();
+    }
+  } else {
+    while ((use != NULL) && (use->pos() <= split_pos)) {
+      last_use_before_split = use;
+      use = use->next();
+    }
+  }
+  UsePosition* first_use_after_split = use;
+
+  if (last_use_before_split == NULL) {
+    uses_ = NULL;
+  } else {
+    last_use_before_split->set_next(NULL);
+  }
+
+  UseInterval* last_use_interval = (last_before_split == last_use_interval_) ?
+    first_after_split : last_use_interval_;
+  next_sibling_ = new LiveRange(vreg(),
+                                first_use_after_split,
+                                first_after_split,
+                                last_use_interval,
+                                next_sibling_);
+
+  TRACE_ALLOC(("  split sibling [%d, %d)\n",
+               next_sibling_->Start(), next_sibling_->End()));
+
+  // Split sibling can only start at a parallel move.
+  ASSERT(IsParallelMovePosition(next_sibling_->Start()));
+
+  last_use_interval_ = last_before_split;
+  last_use_interval_->next_ = NULL;
+  return next_sibling_;
+}
+
+
+LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
+                                            intptr_t from,
+                                            intptr_t to) {
+  // TODO(vegorov): select optimal split position based on loop structure.
+  TRACE_ALLOC(("split %d [%d, %d) between [%d, %d)\n",
+               range->vreg(), range->Start(), range->End(), from, to));
+  return range->SplitAt(to);
+}
+
+
+void FlowGraphAllocator::SpillBetween(LiveRange* range,
+                                      intptr_t from,
+                                      intptr_t to) {
+  ASSERT(from < to);
+  TRACE_ALLOC(("spill %d [%d, %d) between [%d, %d)\n",
+               range->vreg(), range->Start(), range->End(), from, to));
+  LiveRange* tail = range->SplitAt(from);
+
+  if (tail->Start() < to) {
+    // There is an intersection of tail and [from, to).
+    LiveRange* tail_tail = SplitBetween(tail, tail->Start(), to);
+    Spill(tail);
+    AddToUnallocated(tail_tail);
+  } else {
+    // No intersection between tail and [from, to).
+    AddToUnallocated(tail);
+  }
+}
+
+
+void FlowGraphAllocator::SpillAfter(LiveRange* range, intptr_t from) {
+  TRACE_ALLOC(("spill %d [%d, %d) after %d\n",
+               range->vreg(), range->Start(), range->End(), from));
+  LiveRange* tail = range->SplitAt(from);
+  Spill(tail);
+}
+
+
+intptr_t FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
+  for (intptr_t i = 0; i < spill_slots_.length(); i++) {
+    if (spill_slots_[i] <= range->Start()) {
+      return i;
+    }
+  }
+  spill_slots_.Add(0);
+  return spill_slots_.length() - 1;
+}
+
+
+void FlowGraphAllocator::Spill(LiveRange* range) {
+  const intptr_t spill_index = AllocateSpillSlotFor(range);
+  ASSERT(spill_slots_[spill_index] < range->Start());
+  spill_slots_[spill_index] = range->End();
+  range->set_assigned_location(Location::SpillSlot(spill_index));
+  ConvertAllUses(range);
+}
+
+
+intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
+  Register reg, LiveRange* unallocated) {
+  intptr_t intersection = kMaxPosition;
+  for (intptr_t i = 0; i < cpu_regs_[reg].length(); i++) {
+    LiveRange* allocated = cpu_regs_[reg][i];
+    if (allocated == NULL) continue;
+
+    UseInterval* allocated_head =
+      allocated->finger()->first_pending_use_interval();
+    if (allocated_head->start() >= intersection) continue;
+
+    const intptr_t pos = FirstIntersection(
+      unallocated->finger()->first_pending_use_interval(),
+      allocated_head);
+    if (pos < intersection) intersection = pos;
+  }
+  return intersection;
+}
+
+
+
+bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   Register candidate = kNoRegister;
   intptr_t free_until = 0;
 
   // If hint is available try hint first.
-  // TODO(vegorov): ensure that phis are hinted on the backedge.
-  Location hint = LookAheadForHint(unallocated);
+  // TODO(vegorov): ensure that phis are hinted on the back edge.
+  Location hint = unallocated->finger()->FirstHint();
   if (!hint.IsInvalid()) {
     ASSERT(hint.IsRegister());
 
-    if (cpu_regs_[hint.reg()] != kPermanentlyBlocked) {
-      free_until = FirstIntersection(cpu_regs_[hint.reg()], unallocated);
+    if (!blocked_cpu_regs_[hint.reg()]) {
+      free_until = FirstIntersectionWithAllocated(hint.reg(), unallocated);
       candidate = hint.reg();
     }
 
@@ -685,8 +1112,8 @@ bool FlowGraphAllocator::AllocateFreeRegister(UseInterval* unallocated) {
   }
 
   if (free_until != kMaxPosition) {
-    for (int reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
-      if (cpu_regs_[reg] == NULL) {
+    for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
+      if (!blocked_cpu_regs_[reg] && cpu_regs_[reg].length() == 0) {
         candidate = static_cast<Register>(reg);
         free_until = kMaxPosition;
         break;
@@ -696,211 +1123,331 @@ bool FlowGraphAllocator::AllocateFreeRegister(UseInterval* unallocated) {
 
   ASSERT(0 <= kMaxPosition);
   if (free_until != kMaxPosition) {
-    for (int reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
-      if (cpu_regs_[reg] == kPermanentlyBlocked) continue;
-      if (reg == candidate) continue;
+    for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
+      if (blocked_cpu_regs_[reg] || (reg == candidate)) continue;
 
-      const intptr_t pos = FirstIntersection(cpu_regs_[reg], unallocated);
+      const intptr_t intersection =
+        FirstIntersectionWithAllocated(static_cast<Register>(reg), unallocated);
 
-      if (pos > free_until) {
+      if (intersection > free_until) {
         candidate = static_cast<Register>(reg);
-        free_until = pos;
+        free_until = intersection;
         if (free_until == kMaxPosition) break;
       }
     }
   }
 
-  // All registers are blocked by active ranges.
-  if (free_until <= unallocated->start()) return false;
+  if (free_until != kMaxPosition) free_until = ToParallelMove(free_until);
 
-  AssignFreeRegister(unallocated, candidate);
+  // All registers are blocked by active ranges.
+  if (free_until <= unallocated->Start()) return false;
+
+  TRACE_ALLOC(("assigning free register %s to %d\n",
+               Location::RegisterLocation(candidate).Name(),
+               unallocated->vreg()));
+
+  if (free_until != kMaxPosition) {
+    // There was an intersection. Split unallocated.
+    TRACE_ALLOC(("  splitting at %d\n", free_until));
+    LiveRange* tail = unallocated->SplitAt(free_until);
+    AddToUnallocated(tail);
+  }
+
+  cpu_regs_[candidate].Add(unallocated);
+  unallocated->set_assigned_location(Location::RegisterLocation(candidate));
+
   return true;
 }
 
 
-UseInterval* UseInterval::Split(intptr_t pos) {
-  if (pos == start()) return this;
-  ASSERT(Contains(pos));
-  UseInterval* tail = new UseInterval(vreg(), pos, end(), next());
-
-  UsePosition* use = uses_;
-  while (use != NULL && use->pos() <= pos) {
-    use = use->next();
-  }
-
-  tail->uses_ = use;
-
-  end_ = pos;
-
-  return tail;
-}
-
-
-void FlowGraphAllocator::AssignFreeRegister(UseInterval* unallocated,
-                                            Register reg) {
-  TRACE_ALLOC(("assigning free register %s to %d\n",
-               Location::RegisterLocation(reg).Name(),
-               unallocated->vreg()));
-
-  UseInterval* a = cpu_regs_[reg];
-  if (a == NULL) {
-    // Register is completely free.
-    cpu_regs_[reg] = unallocated;
+void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
+  UsePosition* register_use =
+    unallocated->finger()->FirstRegisterUse(unallocated->Start());
+  if (register_use == NULL) {
+    Spill(unallocated);
     return;
   }
 
-  UseInterval* u = unallocated;
-  ASSERT(u->start() < a->start());  // Register is free.
-  cpu_regs_[reg] = u;
-  if (u->next() == NULL || u->next()->start() >= a->start()) {
-    u->set_next_allocated(a);
+  Register candidate = kNoRegister;
+  intptr_t free_until = 0;
+  intptr_t blocked_at = kMaxPosition;
+
+  for (int reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
+    if (blocked_cpu_regs_[reg]) continue;
+    if (UpdateFreeUntil(static_cast<Register>(reg),
+                        unallocated,
+                        &free_until,
+                        &blocked_at)) {
+      candidate = static_cast<Register>(reg);
+    }
   }
 
-  while (a != NULL && u != NULL) {
-    const intptr_t pos = a->Intersect(u);
-    if (pos != kIllegalPosition) {
-      // TODO(vegorov): split live ranges might require control flow resolution
-      // which is not implemented yet.
-      builder_->Bailout("ssa allocator: control flow resolution required");
+  if (free_until < register_use->pos()) {
+    // Can't acquire free register. Spill until we really need one.
+    ASSERT(unallocated->Start() < ToParallelMove(register_use->pos()));
+    SpillBetween(unallocated, unallocated->Start(), register_use->pos());
+    return;
+  }
 
-      TRACE_ALLOC(("  splitting at %d\n", pos));
-      // Reached intersection
-      UseInterval* tail = u->Split(pos);
-      AddToUnallocated(tail);
-      ASSERT(tail == u || u->next_allocated() == a);
-      return;
-    }
+  if (blocked_at < unallocated->End()) {
+    LiveRange* tail = SplitBetween(unallocated,
+                                   unallocated->Start(),
+                                   blocked_at);
+    AddToUnallocated(tail);
+  }
 
-    if (a->start() < u->start()) {
-      if (a->next_allocated() == NULL) {
-        a->set_next_allocated(u);
-        break;
+  AssignNonFreeRegister(unallocated, candidate);
+}
+
+
+bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
+                                         LiveRange* unallocated,
+                                         intptr_t* cur_free_until,
+                                         intptr_t* cur_blocked_at) {
+  intptr_t free_until = kMaxPosition;
+  intptr_t blocked_at = kMaxPosition;
+  const intptr_t start = unallocated->Start();
+
+  for (intptr_t i = 0; i < cpu_regs_[reg].length(); i++) {
+    LiveRange* allocated = cpu_regs_[reg][i];
+
+    UseInterval* first_pending_use_interval =
+      allocated->finger()->first_pending_use_interval();
+    if (first_pending_use_interval->Contains(start)) {
+      // This is an active interval.
+      if (allocated->vreg() <= 0) {
+        // This register blocked by an interval that
+        // can't be spilled.
+        return false;
       }
 
-      UseInterval* next = a->next_allocated();
-      if (next->start() > u->start()) {
-        a->set_next_allocated(u);
-        u->set_next_allocated(next);
+      const UsePosition* use =
+        allocated->finger()->FirstRegisterBeneficialUse(unallocated->Start());
+
+      if ((use != NULL) && ((use->pos() - start) <= 1)) {
+        // This register is blocked by interval that is used
+        // as register in the current instruction and can't
+        // be spilled.
+        return false;
       }
 
-      a = next;
+      const intptr_t use_pos = (use != NULL) ? use->pos()
+                                             : allocated->End();
+
+      if (use_pos < free_until) free_until = use_pos;
     } else {
-      UseInterval* next = u->next();
-
-      if (next == NULL || next->start() >= a->start()) {
-        u->set_next_allocated(a);
+      // This is inactive interval.
+      const intptr_t intersection = FirstIntersection(
+        first_pending_use_interval, unallocated->first_use_interval());
+      if (intersection != kMaxPosition) {
+        if (intersection < free_until) free_until = intersection;
+        if (allocated->vreg() == kNoVirtualRegister) blocked_at = intersection;
       }
-      u = next;
+    }
+
+    if (free_until <= *cur_free_until) {
+      return false;
     }
   }
+
+  ASSERT(free_until > *cur_free_until);
+  *cur_free_until = free_until;
+  *cur_blocked_at = blocked_at;
+  return true;
 }
 
 
-static void InsertMoveBefore(Instruction* instr, Location to, Location from) {
-  Instruction* prev = instr->previous();
-  ParallelMoveInstr* move = prev->AsParallelMove();
-  if (move == NULL) {
-    move = new ParallelMoveInstr();
-    move->set_next(prev->next());
-    prev->set_next(move);
-    move->next()->set_previous(move);
-    move->set_previous(prev);
+void FlowGraphAllocator::RemoveEvicted(Register reg, intptr_t first_evicted) {
+  intptr_t to = first_evicted;
+  intptr_t from = first_evicted + 1;
+  while (from < cpu_regs_[reg].length()) {
+    LiveRange* allocated = cpu_regs_[reg][from++];
+    if (allocated != NULL) cpu_regs_[reg][to++] = allocated;
   }
-  move->AddMove(to, from);
+  cpu_regs_[reg].TruncateTo(to);
 }
 
 
-void UsePosition::AssignLocation(Location loc) {
-  if (location_slot_ == NULL) return;
+void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
+                                               Register reg) {
+  TRACE_ALLOC(("assigning blocked register %s to live range %d\n",
+               Location::RegisterLocation(reg).Name(),
+               unallocated->vreg()));
 
-  if (location_slot_->IsUnallocated()) {
-    if (location_slot_->policy() == Location::kSameAsFirstInput) {
-      Instruction* instr = this->instr();
-      LocationSummary* locs = instr->locs();
-      if (!locs->in(0).IsUnallocated()) {
-        InsertMoveBefore(instr, loc, locs->in(0));
-      }
-      locs->set_in(0, loc);
+  intptr_t first_evicted = -1;
+  for (intptr_t i = cpu_regs_[reg].length() - 1; i >= 0; i--) {
+    LiveRange* allocated = cpu_regs_[reg][i];
+    if (allocated->vreg() < 0) continue;  // Can't be evicted.
+    if (EvictIntersection(allocated,
+                          unallocated)) {
+      cpu_regs_[reg][i] = NULL;
+      first_evicted = i;
     }
-    TRACE_ALLOC(("  use at %d converted to %s\n", pos(), loc.Name()));
-    *location_slot_ = loc;
-  } else if (location_slot_->IsRegister()) {
-    InsertMoveBefore(this->instr(), *location_slot_, loc);
+  }
+
+  // Remove evicted ranges from the array.
+  if (first_evicted != -1) RemoveEvicted(reg, first_evicted);
+
+  cpu_regs_[reg].Add(unallocated);
+  unallocated->set_assigned_location(Location::RegisterLocation(reg));
+}
+
+
+bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
+                                           LiveRange* unallocated) {
+  UseInterval* first_unallocated =
+    unallocated->finger()->first_pending_use_interval();
+  const intptr_t intersection = FirstIntersection(
+      allocated->finger()->first_pending_use_interval(),
+      first_unallocated);
+  if (intersection == kMaxPosition) return false;
+
+  const intptr_t spill_position = first_unallocated->start();
+  UsePosition* use = allocated->finger()->FirstRegisterUse(spill_position);
+  if (use == NULL) {
+    // No register uses after this point.
+    SpillAfter(allocated, spill_position);
+  } else {
+    const intptr_t restore_position =
+      (spill_position < intersection) ? MinPosition(intersection, use->pos())
+                                      : use->pos();
+
+    SpillBetween(allocated, spill_position, restore_position);
+  }
+
+  return true;
+}
+
+
+MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
+                                            Location to,
+                                            Location from) {
+  ASSERT(IsParallelMovePosition(pos));
+  Instruction* instr = InstructionAt(pos);
+  ASSERT(!instr->IsBlockEntry());
+  return CreateParallelMoveBefore(instr, pos)->AddMove(to, from);
+}
+
+
+void FlowGraphAllocator::ConvertUseTo(UsePosition* use, Location loc) {
+  ASSERT(use->location_slot() != NULL);
+  Location* slot = use->location_slot();
+  ASSERT(slot->IsUnallocated());
+  ASSERT((slot->policy() == Location::kRequiresRegister) ||
+         (slot->policy() == Location::kPrefersRegister) ||
+         (slot->policy() == Location::kAny));
+  TRACE_ALLOC(("  use at %d converted to %s\n", use->pos(), loc.Name()));
+  *slot = loc;
+}
+
+
+void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
+  if (range->vreg() == kNoVirtualRegister) return;
+  TRACE_ALLOC(("range [%d, %d) for v%d has been allocated to %s:\n",
+               range->Start(),
+               range->End(),
+               range->vreg(),
+               range->assigned_location().Name()));
+  ASSERT(!range->assigned_location().IsInvalid());
+  const Location loc = range->assigned_location();
+  for (UsePosition* use = range->first_use(); use != NULL; use = use->next()) {
+    ConvertUseTo(use, loc);
   }
 }
 
 
-void FlowGraphAllocator::FinalizeInterval(UseInterval* interval, Location loc) {
-  if (interval->vreg() == kNoVirtualRegister) return;
-
-  TRACE_ALLOC(("assigning location %s to interval [%d, %d)\n", loc.Name(),
-               interval->start(), interval->end()));
-
-  for (UsePosition* use = interval->first_use();
-       use != NULL && use->pos() <= interval->end();
-       use = use->next()) {
-    use->AssignLocation(loc);
+bool AllocationFinger::Advance(const intptr_t start) {
+  UseInterval* a = first_pending_use_interval_;
+  while (a != NULL && a->end() <= start) a = a->next();
+  first_pending_use_interval_ = a;
+  if (first_pending_use_interval_ == NULL) {
+    return true;
   }
+  return false;
 }
 
 
 void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
-  for (int reg = 0; reg < kNumberOfCpuRegisters; reg++) {
-    if (cpu_regs_[reg] == NULL) continue;
-    if (cpu_regs_[reg] == kPermanentlyBlocked) continue;
+  for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
+    if (cpu_regs_[reg].is_empty()) continue;
 
-    UseInterval* a = cpu_regs_[reg];
-    while (a != NULL && a->end() <= start) {
-      FinalizeInterval(a,
-                       Location::RegisterLocation(static_cast<Register>(reg)));
-      a = a->next_allocated();
+    intptr_t first_evicted = -1;
+    for (intptr_t i = cpu_regs_[reg].length() - 1; i >= 0; i--) {
+      LiveRange* range = cpu_regs_[reg][i];
+      if (range->finger()->Advance(start)) {
+        ConvertAllUses(range);
+        cpu_regs_[reg][i] = NULL;
+        first_evicted = i;
+      }
     }
 
-    cpu_regs_[reg] = a;
+    if (first_evicted != -1) {
+      RemoveEvicted(static_cast<Register>(reg), first_evicted);
+    }
   }
 }
 
 
-static inline bool ShouldBeAllocatedBefore(const UseInterval& a,
-                                           const UseInterval& b) {
-  return a.start() <= b.start();
+void AllocationFinger::Initialize(LiveRange* range) {
+  first_pending_use_interval_ = range->first_use_interval();
+  first_register_use_ = range->first_use();
+  first_register_beneficial_use_ = range->first_use();
+  first_hinted_use_ = range->first_use();
 }
 
 
-void FlowGraphAllocator::AddToUnallocated(UseInterval* chain) {
+static inline bool ShouldBeAllocatedBefore(LiveRange* a, LiveRange* b) {
+  return a->Start() <= b->Start();
+}
+
+
+void FlowGraphAllocator::AddToUnallocated(LiveRange* range) {
+  range->finger()->Initialize(range);
+
   if (unallocated_.is_empty()) {
-    unallocated_.Add(chain);
+    unallocated_.Add(range);
     return;
   }
 
   for (intptr_t i = unallocated_.length() - 1; i >= 0; i--) {
-    if (ShouldBeAllocatedBefore(*chain, *unallocated_[i])) {
-      unallocated_.InsertAt(i + 1, chain);
+    if (ShouldBeAllocatedBefore(range, unallocated_[i])) {
+      unallocated_.InsertAt(i + 1, range);
       return;
     }
   }
-  unallocated_.InsertAt(0, chain);
+  unallocated_.InsertAt(0, range);
 }
 
 
+#ifdef DEBUG
 bool FlowGraphAllocator::UnallocatedIsSorted() {
   for (intptr_t i = unallocated_.length() - 1; i >= 1; i--) {
-    UseInterval* a = unallocated_[i];
-    UseInterval* b = unallocated_[i - 1];
-    if (!ShouldBeAllocatedBefore(*a, *b)) return false;
+    LiveRange* a = unallocated_[i];
+    LiveRange* b = unallocated_[i - 1];
+    if (!ShouldBeAllocatedBefore(a, b)) return false;
   }
   return true;
 }
+#endif
 
 
 void FlowGraphAllocator::AllocateCPURegisters() {
+#ifdef DEBUG
   ASSERT(UnallocatedIsSorted());
+#endif
+
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    if (cpu_regs_[i].length() == 1) {
+      LiveRange* range = cpu_regs_[i][0];
+      range->finger()->Initialize(range);
+    }
+  }
 
   while (!unallocated_.is_empty()) {
-    UseInterval* range = unallocated_.Last();
+    LiveRange* range = unallocated_.Last();
     unallocated_.RemoveLast();
-    const intptr_t start = range->start();
-    TRACE_ALLOC(("Processing interval chain for vreg %d starting at %d\n",
+    const intptr_t start = range->Start();
+    TRACE_ALLOC(("Processing live range for vreg %d starting at %d\n",
                  range->vreg(),
                  start));
 
@@ -908,8 +1455,7 @@ void FlowGraphAllocator::AllocateCPURegisters() {
     AdvanceActiveIntervals(start);
 
     if (!AllocateFreeRegister(range)) {
-      builder_->Bailout("ssa allocator: spilling required");
-      return;
+      AllocateAnyRegister(range);
     }
   }
 
@@ -919,6 +1465,99 @@ void FlowGraphAllocator::AllocateCPURegisters() {
   // Finish allocation.
   AdvanceActiveIntervals(kMaxPosition);
   TRACE_ALLOC(("Allocation completed\n"));
+}
+
+
+void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* range,
+                                              BlockEntryInstr* source_block,
+                                              BlockEntryInstr* target_block) {
+  if (range->next_sibling() == NULL) {
+    // Nothing to connect. The whole range was allocated to the same location.
+    TRACE_ALLOC(("range %d has no siblings\n", range->vreg()));
+    return;
+  }
+
+  const intptr_t source_pos = source_block->end_pos() - 1;
+  ASSERT(IsInstructionPosition(source_pos));
+
+  const intptr_t target_pos = target_block->start_pos();
+
+  Location target;
+  Location source;
+
+#ifdef DEBUG
+  LiveRange* source_cover = NULL;
+  LiveRange* target_cover = NULL;
+#endif
+
+  while ((range != NULL) && (source.IsInvalid() || target.IsInvalid())) {
+    if (range->CanCover(source_pos)) {
+      ASSERT(source.IsInvalid());
+      source = range->assigned_location();
+#ifdef DEBUG
+      source_cover = range;
+#endif
+    }
+    if (range->CanCover(target_pos)) {
+      ASSERT(target.IsInvalid());
+      target = range->assigned_location();
+#ifdef DEBUG
+      target_cover = range;
+#endif
+    }
+
+    range = range->next_sibling();
+  }
+
+  TRACE_ALLOC(("connecting [%d, %d) [%s] to [%d, %d) [%s]\n",
+               source_cover->Start(), source_cover->End(), source.Name(),
+               target_cover->Start(), target_cover->End(), target.Name()));
+
+  // Siblings were allocated to the same register.
+  if (source.Equals(target)) return;
+
+  Instruction* last = source_block->last_instruction();
+  if (last->SuccessorCount() == 1) {
+    CreateParallelMoveBefore(last, last->lifetime_position() - 1)->
+      AddMove(target, source);
+  } else {
+    CreateParallelMoveAfter(target_block, target_block->start_pos())->
+      AddMove(target, source);
+  }
+}
+
+
+void FlowGraphAllocator::ResolveControlFlow() {
+  // Resolve linear control flow between touching split siblings
+  // inside basic blocks.
+  for (intptr_t vreg = 0; vreg < live_ranges_.length(); vreg++) {
+    LiveRange* range = live_ranges_[vreg];
+    if (range == NULL) continue;
+
+    while (range->next_sibling() != NULL) {
+      LiveRange* sibling = range->next_sibling();
+      if ((range->End() == sibling->Start()) &&
+          !range->assigned_location().Equals(sibling->assigned_location()) &&
+          !IsBlockEntry(range->End())) {
+        AddMoveAt(sibling->Start(),
+                  sibling->assigned_location(),
+                  range->assigned_location());
+      }
+      range = sibling;
+    }
+  }
+
+  // Resolve non-linear control flow across branches.
+  for (intptr_t i = 1; i < block_order_.length(); i++) {
+    BlockEntryInstr* block = block_order_[i];
+    BitVector* live = live_in_[block->postorder_number()];
+    for (BitVector::Iterator it(live); !it.Done(); it.Advance()) {
+      LiveRange* range = GetLiveRange(it.Current());
+      for (intptr_t j = 0; j < block->PredecessorCount(); j++) {
+        ConnectSplitSiblings(range, block->PredecessorAt(j), block);
+      }
+    }
+  }
 }
 
 
@@ -945,6 +1584,8 @@ void FlowGraphAllocator::AllocateRegisters() {
   }
 
   AllocateCPURegisters();
+
+  ResolveControlFlow();
 
   if (FLAG_trace_ssa_allocator) {
     OS::Print("-- ir after allocation -------------------------\n");

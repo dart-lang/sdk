@@ -49,9 +49,10 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
       if (loc.IsInvalid()) {
         ASSERT(values[i]->IsConstant());
         __ PushObject(values[i]->AsConstant()->value());
-      } else {
-        ASSERT(loc.IsRegister());
+      } else if (loc.IsRegister()) {
         __ pushl(loc.reg());
+      } else {
+        compiler->Bailout("unsupported deoptimization state");
       }
     }
   }

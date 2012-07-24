@@ -655,7 +655,7 @@ LocationSummary* NativeCallComp::MakeLocationSummary() const {
   locs->set_temp(0, Location::RegisterLocation(EAX));
   locs->set_temp(1, Location::RegisterLocation(ECX));
   locs->set_temp(2, Location::RegisterLocation(EDX));
-  locs->set_out(Location::RequiresRegister());
+  locs->set_out(Location::RegisterLocation(EAX));
   return locs;
 }
 
@@ -1401,9 +1401,14 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
