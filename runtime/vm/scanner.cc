@@ -773,9 +773,11 @@ void Scanner::Scan() {
         }
         break;
 
-      case '.':  // .  Number
+      case '.':  // .  ..  Number
         Recognize(Token::kPERIOD);
-        if (IsDecimalDigit(c0_)) {
+        if (c0_ == '.') {
+          Recognize(Token::kCASCADE);
+        } else if (IsDecimalDigit(c0_)) {
           ScanNumber(true);
         }
         break;

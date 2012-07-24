@@ -775,7 +775,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   // the static const field initializer is a constant expression and
   // leave the evaluation to the getter function.
   const intptr_t expr_pos = TokenPos();
-  AstNode* expr = ParseExpr(kAllowConst);
+  AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
   if (field.is_const()) {
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
@@ -1336,7 +1336,7 @@ AstNode* Parser::ParseSuperOperator() {
 
   if (CurrentToken() == Token::kLBRACK) {
     ConsumeToken();
-    AstNode* index_expr = ParseExpr(kAllowConst);
+    AstNode* index_expr = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectToken(Token::kRBRACK);
 
     if (Token::IsAssignmentOperator(CurrentToken()) &&
@@ -1378,7 +1378,7 @@ AstNode* Parser::ParseSuperOperator() {
     if (Token::IsAssignmentOperator(CurrentToken())) {
       Token::Kind assignment_op = CurrentToken();
       ConsumeToken();
-      AstNode* value = ParseExpr(kAllowConst);
+      AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
 
       value = ExpandAssignableOp(operator_pos, assignment_op, super_op, value);
 
@@ -1506,7 +1506,7 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
 
     Token::Kind assignment_op = CurrentToken();
     ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst);
+    AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
     value = ExpandAssignableOp(field_pos, assignment_op, super_field, value);
 
     ArgumentListNode* setter_arguments = new ArgumentListNode(field_pos);
@@ -2178,7 +2178,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
     const intptr_t expr_pos = TokenPos();
-    AstNode* expr = ParseExpr(kAllowConst);
+    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     ASSERT(expr != NULL);
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
   } else if (IsLiteral("native")) {
@@ -4098,7 +4098,7 @@ AstNode* Parser::ParseVariableDeclaration(
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseExpr(kAllowConst);
+    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
     initialization = new StoreLocalNode(assign_pos, *variable, expr);
   } else if (is_final) {
     ErrorMsg(ident_pos, "missing initialization of 'final' variable");
@@ -4672,7 +4672,7 @@ AstNode* Parser::ParseIfStatement(String* label_name) {
   }
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst);
+  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body = false;
   SequenceNode* true_branch = ParseNestedStatement(parsing_loop_body, NULL);
@@ -4706,7 +4706,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       }
       ConsumeToken();  // Keyword case.
       const intptr_t expr_pos = TokenPos();
-      AstNode* expr = ParseExpr(kAllowConst);
+      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
                                                     *switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
@@ -4782,7 +4782,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
     ErrorMsg("'(' expected");
   }
   const intptr_t expr_pos = TokenPos();
-  AstNode* switch_expr = ParseExpr(kAllowConst);
+  AstNode* switch_expr = ParseExpr(kAllowConst, kConsumeCascades);
   if (paren_found) {
     ExpectToken(Token::kRPAREN);
   }
@@ -4865,7 +4865,7 @@ AstNode* Parser::ParseWhileStatement(String* label_name) {
       SourceLabel::New(while_pos, label_name, SourceLabel::kWhile);
   ConsumeToken();
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst);
+  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
   const bool parsing_loop_body =  true;
   SequenceNode* while_body = ParseNestedStatement(parsing_loop_body, label);
@@ -4883,7 +4883,7 @@ AstNode* Parser::ParseDoWhileStatement(String* label_name) {
   SequenceNode* dowhile_body = ParseNestedStatement(parsing_loop_body, label);
   ExpectToken(Token::kWHILE);
   ExpectToken(Token::kLPAREN);
-  AstNode* cond_expr = ParseExpr(kAllowConst);
+  AstNode* cond_expr = ParseExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
   ExpectSemicolon();
   return new DoWhileNode(do_pos, label, cond_expr, dowhile_body);
@@ -4914,7 +4914,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   }
   ExpectToken(Token::kIN);
   const intptr_t collection_pos = TokenPos();
-  AstNode* collection_expr = ParseExpr(kAllowConst);
+  AstNode* collection_expr = ParseExpr(kAllowConst, kConsumeCascades);
   ExpectToken(Token::kRPAREN);
 
   OpenBlock();  // Implicit block around while loop.
@@ -5024,13 +5024,13 @@ AstNode* Parser::ParseForStatement(String* label_name) {
     if (IsVariableDeclaration()) {
       initializer = ParseVariableDeclarationList();
     } else {
-      initializer = ParseExpr(kAllowConst);
+      initializer = ParseExpr(kAllowConst, kConsumeCascades);
     }
   }
   ExpectSemicolon();
   AstNode* condition = NULL;
   if (CurrentToken() != Token::kSEMICOLON) {
-    condition = ParseExpr(kAllowConst);
+    condition = ParseExpr(kAllowConst, kConsumeCascades);
   }
   ExpectSemicolon();
   AstNode* increment = NULL;
@@ -5128,7 +5128,7 @@ AstNode* Parser::ParseAssertStatement() {
     ExpectToken(Token::kRPAREN);
     return NULL;
   }
-  AstNode* condition = ParseExpr(kAllowConst);
+  AstNode* condition = ParseExpr(kAllowConst, kConsumeCascades);
   const intptr_t condition_end = TokenPos();
   ExpectToken(Token::kRPAREN);
   condition = InsertClosureCallNodes(condition);
@@ -5602,7 +5602,7 @@ AstNode* Parser::ParseStatement() {
           (current_block_->scope->function_level() == 0)) {
         ErrorMsg(return_pos, "return of a value not allowed in constructors");
       }
-      AstNode* expr = ParseExpr(kAllowConst);
+      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       statement = new ReturnNode(statement_pos, expr);
     } else {
       statement = new ReturnNode(statement_pos);
@@ -5649,7 +5649,7 @@ AstNode* Parser::ParseStatement() {
     ConsumeToken();
     AstNode* expr = NULL;
     if (CurrentToken() != Token::kSEMICOLON) {
-      expr = ParseExpr(kAllowConst);
+      expr = ParseExpr(kAllowConst, kConsumeCascades);
       ExpectSemicolon();
       statement = new ThrowNode(statement_pos, expr, NULL);
     } else {  // No exception object seen so must be a rethrow.
@@ -5673,7 +5673,7 @@ AstNode* Parser::ParseStatement() {
                                 new LoadLocalNode(statement_pos, *trace_var));
     }
   } else {
-    statement = ParseExpr(kAllowConst);
+    statement = ParseExpr(kAllowConst, kConsumeCascades);
     ExpectSemicolon();
   }
   return statement;
@@ -6044,14 +6044,14 @@ bool Parser::IsAssignableExpr(AstNode* expr) {
 
 AstNode* Parser::ParseExprList() {
   TRACE_PARSER("ParseExprList");
-  AstNode* expressions = ParseExpr(kAllowConst);
+  AstNode* expressions = ParseExpr(kAllowConst, kConsumeCascades);
   if (CurrentToken() == Token::kCOMMA) {
     // Collect comma-separated expressions in a non scope owning sequence node.
     SequenceNode* list = new SequenceNode(TokenPos(), NULL);
     list->Add(expressions);
     while (CurrentToken() == Token::kCOMMA) {
       ConsumeToken();
-      AstNode* expr = ParseExpr(kAllowConst);
+      AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       list->Add(expr);
     }
     expressions = list;
@@ -6244,11 +6244,42 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
 }
 
 
-AstNode* Parser::ParseExpr(bool require_compiletime_const) {
+AstNode* Parser::ParseCascades(AstNode* expr) {
+  intptr_t cascade_pos = TokenPos();
+  LocalVariable* cascade_receiver_var =
+      CreateTempConstVariable(cascade_pos, expr->id(), "casc");
+  StoreLocalNode* save_cascade =
+      new StoreLocalNode(cascade_pos, *cascade_receiver_var, expr);
+  current_block_->statements->Add(save_cascade);
+  while (CurrentToken() == Token::kCASCADE) {
+    cascade_pos = TokenPos();
+    LoadLocalNode* load_cascade_receiver =
+        new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+    if (Token::IsIdentifier(LookaheadToken(1))) {
+      // Replace .. with . for ParseSelectors().
+      token_kind_ = Token::kPERIOD;
+    } else if (LookaheadToken(1) == Token::kLBRACK) {
+      ConsumeToken();
+    } else {
+      ErrorMsg("identifier or [ expected after ..");
+    }
+    expr = ParseSelectors(load_cascade_receiver, true);
+    current_block_->statements->Add(expr);
+  }
+  // Result of the cascade is the receiver.
+  return new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+}
+
+
+AstNode* Parser::ParseExpr(bool require_compiletime_const,
+                           bool consume_cascades) {
   TRACE_PARSER("ParseExpr");
   const intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseConditionalExpr();
   if (!Token::IsAssignmentOperator(CurrentToken())) {
+    if ((CurrentToken() == Token::kCASCADE) && consume_cascades) {
+      return ParseCascades(expr);
+    }
     if (require_compiletime_const) {
       expr = FoldConstExpr(expr_pos, expr);
     }
@@ -6262,7 +6293,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
     ErrorMsg(right_expr_pos, "expression must be a compile time constant");
   }
-  AstNode* right_expr = ParseExpr(require_compiletime_const);
+  AstNode* right_expr = ParseExpr(require_compiletime_const, kConsumeCascades);
   AstNode* left_expr = expr;
   if (assignment_op != Token::kASSIGN) {
     // Compound assignment: store inputs with side effects into temp. locals.
@@ -6282,7 +6313,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const) {
 
 LiteralNode* Parser::ParseConstExpr() {
   TRACE_PARSER("ParseConstExpr");
-  AstNode* expr = ParseExpr(kRequireConst);
+  AstNode* expr = ParseExpr(kRequireConst, kNoCascades);
   ASSERT(expr->IsLiteralNode());
   return expr->AsLiteralNode();
 }
@@ -6295,9 +6326,9 @@ AstNode* Parser::ParseConditionalExpr() {
   if (CurrentToken() == Token::kCONDITIONAL) {
     EnsureExpressionTemp();
     ConsumeToken();
-    AstNode* expr1 = ParseExpr(kAllowConst);
+    AstNode* expr1 = ParseExpr(kAllowConst, kNoCascades);
     ExpectToken(Token::kCOLON);
-    AstNode* expr2 = ParseExpr(kAllowConst);
+    AstNode* expr2 = ParseExpr(kAllowConst, kNoCascades);
     expr = new ConditionalExprNode(expr_pos, expr, expr1, expr2);
   }
   return expr;
@@ -6385,7 +6416,7 @@ ArgumentListNode* Parser::ParseActualParameters(
       } else if (named_argument_seen) {
         ErrorMsg("named argument expected");
       }
-      arguments->Add(ParseExpr(require_const));
+      arguments->Add(ParseExpr(require_const, kConsumeCascades));
     } while (CurrentToken() == Token::kCOMMA);
   } else {
     ConsumeToken();
@@ -6487,14 +6518,15 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
 
 
 AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
-                                          const String& field_name) {
+                                          const String& field_name,
+                                          bool consume_cascades) {
   TRACE_PARSER("ParseInstanceFieldAccess");
   AstNode* access = NULL;
   const intptr_t call_pos = TokenPos();
   if (Token::IsAssignmentOperator(CurrentToken())) {
     Token::Kind assignment_op = CurrentToken();
     ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst);
+    AstNode* value = ParseExpr(kAllowConst, consume_cascades);
     AstNode* load_access =
         new InstanceGetterNode(call_pos, receiver, field_name);
     AstNode* left_load_access = load_access;
@@ -6534,7 +6566,8 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
 
 AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                         const String& field_name,
-                                        intptr_t ident_pos) {
+                                        intptr_t ident_pos,
+                                        bool consume_cascades) {
   TRACE_PARSER("ParseStaticFieldAccess");
   AstNode* access = NULL;
   const intptr_t call_pos = TokenPos();
@@ -6561,7 +6594,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       }
     }
     ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst);
+    AstNode* value = ParseExpr(kAllowConst, consume_cascades);
     AstNode* load_access = NULL;
     if (field.IsNull()) {
       // No field found, we must have at least a setter function defined.
@@ -6674,13 +6707,10 @@ AstNode* Parser::LoadClosure(PrimaryNode* primary) {
 }
 
 
-AstNode* Parser::ParsePostfixExpr() {
-  TRACE_PARSER("ParsePostfixExpr");
-  const intptr_t postfix_expr_pos = TokenPos();
-  AstNode* postfix_expr = ParsePrimary();
+AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
+  AstNode* left = primary;
   while (true) {
     AstNode* selector = NULL;
-    AstNode* left = postfix_expr;
     if (CurrentToken() == Token::kPERIOD) {
       ConsumeToken();
       if (left->IsPrimaryNode()) {
@@ -6716,10 +6746,11 @@ AstNode* Parser::ParsePostfixExpr() {
         }
         if (cls.IsNull()) {
           // Instance field access.
-          selector = ParseInstanceFieldAccess(left, *ident);
+          selector = ParseInstanceFieldAccess(left, *ident, !is_cascade);
         } else {
           // Static field access.
-          selector = ParseStaticFieldAccess(cls, *ident, ident_pos);
+          selector =
+              ParseStaticFieldAccess(cls, *ident, ident_pos, !is_cascade);
         }
       }
     } else if (CurrentToken() == Token::kLBRACK) {
@@ -6727,7 +6758,7 @@ AstNode* Parser::ParsePostfixExpr() {
       ConsumeToken();
       left = LoadFieldIfUnresolved(left);
       const bool saved_mode = SetAllowFunctionLiterals(true);
-      AstNode* index = ParseExpr(kAllowConst);
+      AstNode* index = ParseExpr(kAllowConst, kConsumeCascades);
       SetAllowFunctionLiterals(saved_mode);
       ExpectToken(Token::kRBRACK);
       AstNode* array = left;
@@ -6787,7 +6818,7 @@ AstNode* Parser::ParsePostfixExpr() {
         selector = ParseClosureCall(closure);
       }
     } else {
-      // No (more) selector to parse.
+      // No (more) selectors to parse.
       left = LoadFieldIfUnresolved(left);
       if (left->IsPrimaryNode()) {
         PrimaryNode* primary = left->AsPrimaryNode();
@@ -6805,13 +6836,20 @@ AstNode* Parser::ParsePostfixExpr() {
           UNREACHABLE();  // Internal parser error.
         }
       }
-      postfix_expr = left;
       // Done parsing selectors.
-      break;
+      return left;
     }
     ASSERT(selector != NULL);
-    postfix_expr = selector;
+    left = selector;
   }
+}
+
+
+AstNode* Parser::ParsePostfixExpr() {
+  TRACE_PARSER("ParsePostfixExpr");
+  const intptr_t postfix_expr_pos = TokenPos();
+  AstNode* postfix_expr = ParsePrimary();
+  postfix_expr = ParseSelectors(postfix_expr, false);
   if (IsIncrementOperator(CurrentToken())) {
     TRACE_PARSER("IncrementOperator");
     Token::Kind incr_op = CurrentToken();
@@ -7524,7 +7562,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         Symbols::New("list literal element"));
     while (CurrentToken() != Token::kRBRACK) {
       const intptr_t element_pos = TokenPos();
-      AstNode* element = ParseExpr(is_const);
+      AstNode* element = ParseExpr(is_const, kConsumeCascades);
       if (FLAG_enable_type_checks &&
           !is_const &&
           !element_type.IsDynamicType()) {
@@ -7719,7 +7757,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
     ExpectToken(Token::kCOLON);
     const bool saved_mode = SetAllowFunctionLiterals(true);
     const intptr_t value_pos = TokenPos();
-    AstNode* value = ParseExpr(is_const);
+    AstNode* value = ParseExpr(is_const, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
     if (FLAG_enable_type_checks &&
         !is_const &&
@@ -8178,7 +8216,7 @@ AstNode* Parser::ParseStringLiteral() {
       } else {
         ASSERT(CurrentToken() == Token::kINTERPOL_START);
         ConsumeToken();
-        expr = ParseExpr(kAllowConst);
+        expr = ParseExpr(kAllowConst, kConsumeCascades);
         ExpectToken(Token::kINTERPOL_END);
       }
       // Check if this interpolated string is still considered a compile time
@@ -8336,7 +8374,7 @@ AstNode* Parser::ParsePrimary() {
   } else if (CurrentToken() == Token::kLPAREN) {
     ConsumeToken();
     const bool saved_mode = SetAllowFunctionLiterals(true);
-    primary = ParseExpr(kAllowConst);
+    primary = ParseExpr(kAllowConst, kConsumeCascades);
     SetAllowFunctionLiterals(saved_mode);
     ExpectToken(Token::kRPAREN);
   } else if (CurrentToken() == Token::kDOUBLE) {

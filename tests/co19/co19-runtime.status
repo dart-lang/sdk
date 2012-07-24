@@ -383,10 +383,7 @@ Language/07_Classes/1_Instance_Methods_A05_t02: Fail
 # function '?' of class '?' conflicts with setter 'f' of super class '?'
 Language/07_Classes/1_Instance_Methods_A05_t03: Fail
 
-
-# identifier expected
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t16: Fail # co19 issue 159
 
 # initializer must be a compile time constant
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail
