@@ -13,6 +13,7 @@
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -22,7 +23,7 @@ static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   Assembler assembler;
-  const String& function_name = String::ZoneHandle(String::NewSymbol("test"));
+  const String& function_name = String::ZoneHandle(Symbols::New("test"));
   const Function& function = Function::Handle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));
@@ -175,7 +176,7 @@ TEST_CASE(StackmapGC) {
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   EXPECT(!lib.IsNull());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
 
   // Now compile the two functions 'A.foo' and 'A.moo'

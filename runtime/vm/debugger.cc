@@ -16,6 +16,7 @@
 #include "vm/os.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/visitor.h"
 
 
@@ -1200,7 +1201,7 @@ RawArray* Debugger::GetGlobalFields(const Library& lib) {
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name,
-                                 String::Handle(isolate_, String::New(".")));
+                                 String::Handle(isolate_, Symbols::Dot()));
     for (int i = 0; i < prefix.num_libs(); i++) {
       imported = prefix.GetLibrary(i);
       CollectLibraryFields(field_list, imported, prefix_name, false);

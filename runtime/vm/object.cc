@@ -27,6 +27,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/scopes.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 
@@ -254,7 +255,8 @@ void Object::InitOnce() {
     Smi::handle_vtable_ = fake_smi.vtable();
   }
 
-  Heap* heap = Isolate::Current()->heap();
+  Isolate* isolate = Isolate::Current();
+  Heap* heap = isolate->heap();
   // Allocate and initialize the null instance, except its class_ field.
   // 'null_' must be the first object allocated as it is used in allocation to
   // clear the object.
@@ -267,7 +269,7 @@ void Object::InitOnce() {
 
   // Initialize object_store empty array to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
-  Isolate::Current()->object_store()->set_empty_array(Array::Handle());
+  isolate->object_store()->set_empty_array(Array::Handle());
 
   Class& cls = Class::Handle();
 
@@ -295,7 +297,7 @@ void Object::InitOnce() {
         Class::kNoTypeArguments;
     cls.raw_ptr()->num_native_fields_ = 0;
     cls.InitEmptyFields();
-    Isolate::Current()->class_table()->Register(cls);
+    isolate->class_table()->Register(cls);
   }
 
   // Allocate and initialize the null class.
@@ -309,14 +311,14 @@ void Object::InitOnce() {
 
   // Allocate and initialize the sentinel values of Null class.
   {
-    cls = null_class_;
     Instance& sentinel = Instance::Handle();
-    sentinel ^= Object::Allocate(cls, Instance::InstanceSize(), Heap::kOld);
+    sentinel ^=
+        Object::Allocate(kNullClassId, Instance::InstanceSize(), Heap::kOld);
     sentinel_ = sentinel.raw();
 
     Instance& transition_sentinel = Instance::Handle();
     transition_sentinel ^=
-        Object::Allocate(cls, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNullClassId, Instance::InstanceSize(), Heap::kOld);
     transition_sentinel_ = transition_sentinel.raw();
   }
 
@@ -417,13 +419,21 @@ void Object::InitOnce() {
   unwind_error_class_ = cls.raw();
 
   ASSERT(class_class() != null_);
+
+  // Pre-allocate the Array and OneByteString class in the vm isolate so that
+  // we can create a symbol table and populate it with some frequently used
+  // strings as symbols.
+  cls = Class::New<Array>();
+  isolate->object_store()->set_array_class(cls);
+  cls = Class::New<OneByteString>();
+  isolate->object_store()->set_one_byte_string_class(cls);
 }
 
 
 RawClass* Object::CreateAndRegisterInterface(const char* cname,
                                              const Script& script,
                                              const Library& lib) {
-  const String& name = String::Handle(String::NewSymbol(cname));
+  const String& name = String::Handle(Symbols::New(cname));
   const Class& cls = Class::Handle(
       Class::NewInterface(name, script, Scanner::kDummyTokenIndex));
   lib.AddClass(cls);
@@ -435,7 +445,7 @@ void Object::RegisterClass(const Class& cls,
                            const char* cname,
                            const Script& script,
                            const Library& lib) {
-  const String& name = String::Handle(String::NewSymbol(cname));
+  const String& name = String::Handle(Symbols::New(cname));
   cls.set_name(name);
   cls.set_script(script);
   lib.AddClass(cls);
@@ -447,7 +457,7 @@ void Object::RegisterPrivateClass(const Class& cls,
                                   const Script& script,
                                   const Library& lib) {
   String& str = String::Handle();
-  str = String::NewSymbol(public_class_name);
+  str = Symbols::New(public_class_name);
   str = lib.PrivateName(str);
   cls.set_name(str);
   cls.set_script(script);
@@ -489,13 +499,6 @@ RawError* Object::Init(Isolate* isolate) {
   cls.set_type_arguments_instance_field_offset(
       GrowableObjectArray::type_arguments_offset());
 
-  // Setup the symbol table used within the String class.
-  const int kInitialSymbolTableSize = 16;
-  array = Array::New(kInitialSymbolTableSize + 1);
-  // Last element contains the count of used slots.
-  array.SetAt(kInitialSymbolTableSize, Smi::Handle(Smi::New(0)));
-  object_store->set_symbol_table(array);
-
   // canonical_type_arguments_ are NULL terminated.
   array = Array::New(4);
   object_store->set_canonical_type_arguments(array);
@@ -503,6 +506,9 @@ RawError* Object::Init(Isolate* isolate) {
   // Pre-allocate the OneByteString class needed by the symbol table.
   cls = Class::New<OneByteString>();
   object_store->set_one_byte_string_class(cls);
+
+  // Setup the symbol table for the symbols created in the isolate.
+  Symbols::SetupSymbolTable(isolate);
 
   // Set up the libraries array before initializing the core library.
   const GrowableObjectArray& libraries =
@@ -621,7 +627,7 @@ RawError* Object::Init(Isolate* isolate) {
   // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
-  cls.set_name(String::Handle(String::NewSymbol("Object")));
+  cls.set_name(String::Handle(Symbols::New("Object")));
   cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
@@ -990,7 +996,7 @@ void Object::InitializeObject(uword address, intptr_t index, intptr_t size) {
 }
 
 
-RawObject* Object::Allocate(const Class& cls,
+RawObject* Object::Allocate(intptr_t cls_id,
                             intptr_t size,
                             Heap::Space space) {
   ASSERT(Utils::IsAligned(size, kObjectAlignment));
@@ -1007,9 +1013,9 @@ RawObject* Object::Allocate(const Class& cls,
     UNREACHABLE();
   }
   NoGCScope no_gc;
-  InitializeObject(address, cls.id(), size);
+  InitializeObject(address, cls_id, size);
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
-  ASSERT(cls.id() == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
+  ASSERT(cls_id == RawObject::ClassIdTag::decode(raw_obj->ptr()->tags_));
   return raw_obj;
 }
 
@@ -1036,7 +1042,7 @@ class StoreBufferObjectPointerVisitor : public ObjectPointerVisitor {
 RawObject* Object::Clone(const Object& src, Heap::Space space) {
   const Class& cls = Class::Handle(src.clazz());
   intptr_t size = src.raw()->Size();
-  RawObject* raw_obj = Object::Allocate(cls, size, space);
+  RawObject* raw_obj = Object::Allocate(cls.id(), size, space);
   NoGCScope no_gc;
   memmove(raw_obj->ptr(), src.raw()->ptr(), size);
   if (space == Heap::kOld) {
@@ -1053,7 +1059,7 @@ RawString* Class::Name() const {
   }
   ASSERT(class_class() != Class::null());  // class_class_ should be set up.
   intptr_t index = GetSingletonClassIndex(raw());
-  return String::NewSymbol(GetSingletonClassName(index));
+  return Symbols::New(GetSingletonClassName(index));
 }
 
 
@@ -1066,52 +1072,52 @@ RawString* Class::UserVisibleName() const {
     case kSmi:
     case kMint:
     case kBigint:
-      return String::NewSymbol("int");
+      return Symbols::New("int");
     case kDouble:
-      return String::NewSymbol("double");
+      return Symbols::New("double");
     case kOneByteString:
     case kTwoByteString:
     case kFourByteString:
     case kExternalOneByteString:
     case kExternalTwoByteString:
     case kExternalFourByteString:
-      return String::NewSymbol("String");
+      return Symbols::New("String");
     case kBool:
-      return String::NewSymbol("bool");
+      return Symbols::New("bool");
     case kArray:
     case kImmutableArray:
     case kGrowableObjectArray:
-      return String::NewSymbol("List");
+      return Symbols::New("List");
     case kInt8Array:
     case kExternalInt8Array:
-      return String::NewSymbol("Int8List");
+      return Symbols::New("Int8List");
     case kUint8Array:
     case kExternalUint8Array:
-      return String::NewSymbol("Uint8List");
+      return Symbols::New("Uint8List");
     case kInt16Array:
     case kExternalInt16Array:
-      return String::NewSymbol("Int16List");
+      return Symbols::New("Int16List");
     case kUint16Array:
     case kExternalUint16Array:
-      return String::NewSymbol("Uint16List");
+      return Symbols::New("Uint16List");
     case kInt32Array:
     case kExternalInt32Array:
-      return String::NewSymbol("Int32List");
+      return Symbols::New("Int32List");
     case kUint32Array:
     case kExternalUint32Array:
-      return String::NewSymbol("Uint32List");
+      return Symbols::New("Uint32List");
     case kInt64Array:
     case kExternalInt64Array:
-      return String::NewSymbol("Int64List");
+      return Symbols::New("Int64List");
     case kUint64Array:
     case kExternalUint64Array:
-      return String::NewSymbol("Uint64List");
+      return Symbols::New("Uint64List");
     case kFloat32Array:
     case kExternalFloat32Array:
-      return String::NewSymbol("Float32List");
+      return Symbols::New("Float32List");
     case kFloat64Array:
     case kExternalFloat64Array:
-      return String::NewSymbol("Float64List");
+      return Symbols::New("Float64List");
     default:
       return Name();
   }
@@ -1161,10 +1167,10 @@ RawType* Class::SignatureType() const {
 
 template <class FakeObject>
 RawClass* Class::New() {
-  Class& class_class = Class::Handle(Object::class_class());
+  ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    RawObject* raw = Object::Allocate(class_class,
+    RawObject* raw = Object::Allocate(Class::kInstanceKind,
                                       Class::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -1496,10 +1502,10 @@ void Class::SetFields(const Array& value) const {
 
 template <class FakeInstance>
 RawClass* Class::New(intptr_t index) {
-  Class& class_class = Class::Handle(Object::class_class());
+  ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    RawObject* raw = Object::Allocate(class_class,
+    RawObject* raw = Object::Allocate(Class::kInstanceKind,
                                       Class::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -2223,9 +2229,8 @@ RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
 
 
 RawUnresolvedClass* UnresolvedClass::New() {
-  const Class& unresolved_class_class =
-      Class::Handle(Object::unresolved_class_class());
-  RawObject* raw = Object::Allocate(unresolved_class_class,
+  ASSERT(Object::unresolved_class_class() != Class::null());
+  RawObject* raw = Object::Allocate(UnresolvedClass::kInstanceKind,
                                     UnresolvedClass::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawUnresolvedClass*>(raw);
@@ -2260,7 +2265,7 @@ RawString* UnresolvedClass::Name() const {
     String& name = String::Handle();
     String& str = String::Handle();
     name = lib_prefix.name();  // Qualifier.
-    str = String::New(".");
+    str = Symbols::Dot();
     name = String::Concat(name, str);
     str = ident();
     name = String::Concat(name, str);
@@ -2461,7 +2466,7 @@ RawString* AbstractType::BuildName(NameVisibility name_visibility) const {
   // The name is only used for type checking and debugging purposes.
   // Unless profiling data shows otherwise, it is not worth caching the name in
   // the type.
-  return String::NewSymbol(type_name);
+  return Symbols::New(type_name);
 }
 
 
@@ -2873,8 +2878,8 @@ void Type::set_arguments(const AbstractTypeArguments& value) const {
 
 
 RawType* Type::New(Heap::Space space) {
-  const Class& type_class = Class::Handle(Object::type_class());
-  RawObject* raw = Object::Allocate(type_class,
+  ASSERT(Object::type_class() != Class::null());
+  RawObject* raw = Object::Allocate(Type::kInstanceKind,
                                     Type::InstanceSize(),
                                     space);
   return reinterpret_cast<RawType*>(raw);
@@ -3034,9 +3039,8 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 
 
 RawTypeParameter* TypeParameter::New() {
-  const Class& type_parameter_class =
-      Class::Handle(Object::type_parameter_class());
-  RawObject* raw = Object::Allocate(type_parameter_class,
+  ASSERT(Object::type_parameter_class() != Class::null());
+  RawObject* raw = Object::Allocate(TypeParameter::kInstanceKind,
                                     TypeParameter::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawTypeParameter*>(raw);
@@ -3135,8 +3139,8 @@ RawString* AbstractTypeArguments::SubvectorName(
   const intptr_t num_strings = 2*len + 1;  // "<""T"", ""T"">".
   const Array& strings = Array::Handle(Array::New(num_strings));
   intptr_t s = 0;
-  strings.SetAt(s++, String::Handle(String::NewSymbol("<")));
-  const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
+  strings.SetAt(s++, String::Handle(Symbols::New("<")));
+  const String& kCommaSpace = String::Handle(Symbols::New(", "));
   AbstractType& type = AbstractType::Handle();
   for (intptr_t i = 0; i < len; i++) {
     type = TypeAt(from_index + i);
@@ -3146,10 +3150,10 @@ RawString* AbstractTypeArguments::SubvectorName(
       strings.SetAt(s++, kCommaSpace);
     }
   }
-  strings.SetAt(s++, String::Handle(String::NewSymbol(">")));
+  strings.SetAt(s++, String::Handle(Symbols::New(">")));
   ASSERT(s == num_strings);
   name = String::ConcatAll(strings);
-  return String::NewSymbol(name);
+  return Symbols::New(name);
 }
 
 
@@ -3460,11 +3464,9 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
     return null();
   }
 
-  const Class& type_arguments_class =
-      Class::Handle(Object::type_arguments_class());
   TypeArguments& result = TypeArguments::Handle();
   {
-    RawObject* raw = Object::Allocate(type_arguments_class,
+    RawObject* raw = Object::Allocate(TypeArguments::kInstanceKind,
                                       TypeArguments::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -3584,9 +3586,8 @@ void InstantiatedTypeArguments::set_instantiator_type_arguments(
 
 
 RawInstantiatedTypeArguments* InstantiatedTypeArguments::New() {
-  const Class& instantiated_type_arguments_class =
-      Class::Handle(Object::instantiated_type_arguments_class());
-  RawObject* raw = Object::Allocate(instantiated_type_arguments_class,
+  ASSERT(Object::instantiated_type_arguments_class() != Class::null());
+  RawObject* raw = Object::Allocate(InstantiatedTypeArguments::kInstanceKind,
                                     InstantiatedTypeArguments::InstanceSize(),
                                     Heap::kNew);
   return reinterpret_cast<RawInstantiatedTypeArguments*>(raw);
@@ -4088,8 +4089,8 @@ bool Function::IsImplicitClosureFunction() const {
 
 
 RawFunction* Function::New() {
-  const Class& function_class = Class::Handle(Object::function_class());
-  RawObject* raw = Object::Allocate(function_class,
+  ASSERT(Object::function_class() != Class::null());
+  RawObject* raw = Object::Allocate(Function::kInstanceKind,
                                     Function::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawFunction*>(raw);
@@ -4220,20 +4221,20 @@ RawString* Function::BuildSignature(
     const AbstractTypeArguments& instantiator) const {
   const GrowableObjectArray& pieces =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
-  const String& kCommaSpace = String::Handle(String::NewSymbol(", "));
-  const String& kColonSpace = String::Handle(String::NewSymbol(": "));
-  const String& kLParen = String::Handle(String::NewSymbol("("));
-  const String& kRParen = String::Handle(String::NewSymbol(") => "));
-  const String& kLBracket = String::Handle(String::NewSymbol("["));
-  const String& kRBracket = String::Handle(String::NewSymbol("]"));
+  const String& kCommaSpace = String::Handle(Symbols::New(", "));
+  const String& kColonSpace = String::Handle(Symbols::New(": "));
+  const String& kLParen = String::Handle(Symbols::New("("));
+  const String& kRParen = String::Handle(Symbols::New(") => "));
+  const String& kLBracket = String::Handle(Symbols::New("["));
+  const String& kRBracket = String::Handle(Symbols::New("]"));
   String& name = String::Handle();
   if (!instantiate && !is_static()) {
     // Prefix the signature with its type parameters, if any (e.g. "<K, V>").
     // The signature of static functions cannot be type parameterized.
     const String& kSpaceExtendsSpace =
-        String::Handle(String::NewSymbol(" extends "));
-    const String& kLAngleBracket = String::Handle(String::NewSymbol("<"));
-    const String& kRAngleBracket = String::Handle(String::NewSymbol(">"));
+        String::Handle(Symbols::New(" extends "));
+    const String& kLAngleBracket = String::Handle(Symbols::New("<"));
+    const String& kRAngleBracket = String::Handle(Symbols::New(">"));
     const Class& function_class = Class::Handle(owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
@@ -4305,7 +4306,7 @@ RawString* Function::BuildSignature(
   name = res_type.BuildName(name_visibility);
   pieces.Add(name);
   const Array& strings = Array::Handle(Array::MakeArray(pieces));
-  return String::NewSymbol(String::Handle(String::ConcatAll(strings)));
+  return Symbols::New(String::Handle(String::ConcatAll(strings)));
 }
 
 
@@ -4383,7 +4384,7 @@ RawString* Field::GetterName(const String& field_name) {
 RawString* Field::GetterSymbol(const String& field_name) {
   String& str = String::Handle();
   str = Field::GetterName(field_name);
-  return String::NewSymbol(str);
+  return Symbols::New(str);
 }
 
 
@@ -4398,7 +4399,7 @@ RawString* Field::SetterName(const String& field_name) {
 RawString* Field::SetterSymbol(const String& field_name) {
   String& str = String::Handle();
   str = Field::SetterName(field_name);
-  return String::NewSymbol(str);
+  return Symbols::New(str);
 }
 
 
@@ -4451,8 +4452,8 @@ void Field::set_type(const AbstractType& value) const {
 
 
 RawField* Field::New() {
-  const Class& field_class = Class::Handle(Object::field_class());
-  RawObject* raw = Object::Allocate(field_class,
+  ASSERT(Object::field_class() != Class::null());
+  RawObject* raw = Object::Allocate(Field::kInstanceKind,
                                     Field::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawField*>(raw);
@@ -4506,8 +4507,8 @@ void LiteralToken::set_value(const Object& value) const {
 
 
 RawLiteralToken* LiteralToken::New() {
-  const Class& cls = Class::Handle(Object::literal_token_class());
-  RawObject* raw = Object::Allocate(cls,
+  ASSERT(Object::literal_token_class() != Class::null());
+  RawObject* raw = Object::Allocate(LiteralToken::kInstanceKind,
                                     LiteralToken::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLiteralToken*>(raw);
@@ -4626,10 +4627,10 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 
 
 RawTokenStream* TokenStream::New(intptr_t len) {
-  const Class& token_stream_class = Class::Handle(Object::token_stream_class());
+  ASSERT(Object::token_stream_class() != Class::null());
   TokenStream& result = TokenStream::Handle();
   {
-    RawObject* raw = Object::Allocate(token_stream_class,
+    RawObject* raw = Object::Allocate(TokenStream::kInstanceKind,
                                       TokenStream::InstanceSize(len),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -4928,7 +4929,7 @@ RawString* TokenStream::Iterator::MakeLiteralToken(const Object& obj) const {
       ASSERT(!str.IsNull());
       return str.raw();
     }
-    return String::NewSymbol(Token::Str(kind));
+    return Symbols::New(Token::Str(kind));
   } else {
     ASSERT(obj.IsLiteralToken());  // Must be a literal token.
     const LiteralToken& literal_token = LiteralToken::Cast(obj);
@@ -5066,7 +5067,7 @@ RawString* Script::GetLine(intptr_t line_number) const {
     }
   }
   // Guarantee that returned string is never NULL.
-  String& line = String::Handle(String::NewSymbol(""));
+  String& line = String::Handle(Symbols::New(""));
   if (line_start >= 0) {
     line = String::SubString(src, line_start, last_char - line_start + 1);
   }
@@ -5123,8 +5124,8 @@ RawString* Script::GetSnippet(intptr_t from_line,
 
 
 RawScript* Script::New() {
-  const Class& script_class = Class::Handle(Object::script_class());
-  RawObject* raw = Object::Allocate(script_class,
+  ASSERT(Object::script_class() != Class::null());
+  RawObject* raw = Object::Allocate(Script::kInstanceKind,
                                     Script::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawScript*>(raw);
@@ -5135,7 +5136,7 @@ RawScript* Script::New(const String& url,
                        const String& source,
                        RawScript::Kind kind) {
   const Script& result = Script::Handle(Script::New());
-  result.set_url(String::Handle(String::NewSymbol(url)));
+  result.set_url(String::Handle(Symbols::New(url)));
   result.set_source(source);
   result.set_kind(kind);
   return result.raw();
@@ -5931,8 +5932,8 @@ void Library::InitImportedIntoList() const {
 
 
 RawLibrary* Library::New() {
-  const Class& library_class = Class::Handle(Object::library_class());
-  RawObject* raw = Object::Allocate(library_class,
+  ASSERT(Object::library_class() != Class::null());
+  RawObject* raw = Object::Allocate(Library::kInstanceKind,
                                     Library::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLibrary*>(raw);
@@ -5973,13 +5974,13 @@ RawLibrary* Library::New(const String& url) {
 
 
 void Library::InitCoreLibrary(Isolate* isolate) {
-  const String& core_lib_url = String::Handle(String::NewSymbol("dart:core"));
+  const String& core_lib_url = String::Handle(Symbols::New("dart:core"));
   const Library& core_lib =
       Library::Handle(Library::NewLibraryHelper(core_lib_url, false));
   core_lib.Register();
   isolate->object_store()->set_core_library(core_lib);
   const String& core_impl_lib_url =
-      String::Handle(String::NewSymbol("dart:coreimpl"));
+      String::Handle(Symbols::New("dart:coreimpl"));
   const Library& core_impl_lib =
       Library::Handle(Library::NewLibraryHelper(core_impl_lib_url, false));
   isolate->object_store()->set_core_impl_library(core_impl_lib);
@@ -5991,7 +5992,7 @@ void Library::InitCoreLibrary(Isolate* isolate) {
 
 
 void Library::InitMathLibrary(Isolate* isolate) {
-  const String& url = String::Handle(String::NewSymbol("dart:math"));
+  const String& url = String::Handle(Symbols::New("dart:math"));
   const Library& lib = Library::Handle(Library::New(url));
   lib.Register();
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
@@ -6001,7 +6002,7 @@ void Library::InitMathLibrary(Isolate* isolate) {
 
 
 void Library::InitIsolateLibrary(Isolate* isolate) {
-  const String& url = String::Handle(String::NewSymbol("dart:isolate"));
+  const String& url = String::Handle(Symbols::New("dart:isolate"));
   const Library& lib = Library::Handle(Library::New(url));
   lib.Register();
   isolate->object_store()->set_isolate_library(lib);
@@ -6009,7 +6010,7 @@ void Library::InitIsolateLibrary(Isolate* isolate) {
 
 
 void Library::InitMirrorsLibrary(Isolate* isolate) {
-  const String& url = String::Handle(String::NewSymbol("dart:mirrors"));
+  const String& url = String::Handle(Symbols::New("dart:mirrors"));
   const Library& lib = Library::Handle(Library::New(url));
   lib.Register();
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -6025,7 +6026,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
   static const int kNumNativeWrappersClasses = 4;
   ASSERT(kNumNativeWrappersClasses > 0 && kNumNativeWrappersClasses < 10);
   const String& native_flds_lib_url = String::Handle(
-      String::NewSymbol("dart:nativewrappers"));
+      Symbols::New("dart:nativewrappers"));
   Library& native_flds_lib = Library::Handle(
       Library::NewLibraryHelper(native_flds_lib_url, false));
   native_flds_lib.Register();
@@ -6041,7 +6042,7 @@ void Library::InitNativeWrappersLibrary(Isolate* isolate) {
                 "%s%d",
                 kNativeWrappersClass,
                 fld_cnt);
-    cls_name = String::NewSymbol(name_buffer);
+    cls_name = Symbols::New(name_buffer);
     Class::NewNativeWrapper(&native_flds_lib, cls_name, fld_cnt);
   }
 }
@@ -6108,7 +6109,7 @@ RawString* Library::PrivateName(const String& name) const {
   String& str = String::Handle();
   str ^= name.raw();
   str = String::Concat(str, String::Handle(this->private_key()));
-  str = String::NewSymbol(str);
+  str = Symbols::New(str);
   return str.raw();
 }
 
@@ -6246,9 +6247,8 @@ RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
 
 
 RawLibraryPrefix* LibraryPrefix::New() {
-  const Class& library_prefix_class =
-      Class::Handle(Object::library_prefix_class());
-  RawObject* raw = Object::Allocate(library_prefix_class,
+  ASSERT(Object::library_prefix_class() != Class::null());
+  RawObject* raw = Object::Allocate(LibraryPrefix::kInstanceKind,
                                     LibraryPrefix::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLibraryPrefix*>(raw);
@@ -6373,11 +6373,11 @@ RawError* Library::CompileAll() {
 
 
 RawInstructions* Instructions::New(intptr_t size) {
-  const Class& instructions_class = Class::Handle(Object::instructions_class());
+  ASSERT(Object::instructions_class() != Class::null());
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    RawObject* raw = Object::Allocate(instructions_class,
+    RawObject* raw = Object::Allocate(Instructions::kInstanceKind,
                                       aligned_size,
                                       Heap::kCode);
     NoGCScope no_gc;
@@ -6458,11 +6458,13 @@ void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
 
 
 RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
-  const Class& cls = Class::Handle(Object::pc_descriptors_class());
+  ASSERT(Object::pc_descriptors_class() != Class::null());
   PcDescriptors& result = PcDescriptors::Handle();
   {
     uword size = PcDescriptors::InstanceSize(num_descriptors);
-    RawObject* raw = Object::Allocate(cls, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(PcDescriptors::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(num_descriptors);
@@ -6579,16 +6581,16 @@ void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
 
 
 RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
-  const Class& cls = Class::Handle(Object::stackmap_class());
-  ASSERT(!cls.IsNull());
+  ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
   intptr_t size = bmap->SizeInBytes();
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
-    RawObject* raw =
-        Object::Allocate(cls, Stackmap::InstanceSize(size), Heap::kOld);
+    RawObject* raw = Object::Allocate(Stackmap::kInstanceKind,
+                                      Stackmap::InstanceSize(size),
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.set_bitmap_size_in_bytes(size);
@@ -6668,11 +6670,13 @@ const char* LocalVarDescriptors::ToCString() const {
 
 
 RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
-  const Class& cls = Class::Handle(Object::var_descriptors_class());
+  ASSERT(Object::var_descriptors_class() != Class::null());
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
-    RawObject* raw = Object::Allocate(cls, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(LocalVarDescriptors::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.raw_ptr()->length_ = num_variables;
@@ -6722,11 +6726,13 @@ void ExceptionHandlers::SetHandlerPC(intptr_t index,
 
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
-  const Class& cls = Class::Handle(Object::exception_handlers_class());
+  ASSERT(Object::exception_handlers_class() != Class::null());
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
-    RawObject* raw = Object::Allocate(cls, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(ExceptionHandlers::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(num_handlers);
@@ -6825,11 +6831,11 @@ void Code::set_comments(const Code::Comments& comments) const {
 
 
 RawCode* Code::New(int pointer_offsets_length) {
-  const Class& cls = Class::Handle(Object::code_class());
+  ASSERT(Object::code_class() != Class::null());
   Code& result = Code::Handle();
   {
     uword size = Code::InstanceSize(pointer_offsets_length);
-    RawObject* raw = Object::Allocate(cls, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(Code::kInstanceKind, size, Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
@@ -7053,11 +7059,11 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
 
 RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
+  ASSERT(Object::context_class() != Class::null());
 
-  const Class& context_class = Class::Handle(Object::context_class());
   Context& result = Context::Handle();
   {
-    RawObject* raw = Object::Allocate(context_class,
+    RawObject* raw = Object::Allocate(Context::kInstanceKind,
                                       Context::InstanceSize(num_variables),
                                       space);
     NoGCScope no_gc;
@@ -7075,12 +7081,13 @@ const char* Context::ToCString() const {
 
 
 RawContextScope* ContextScope::New(intptr_t num_variables) {
-  const Class& context_scope_class =
-    Class::Handle(Object::context_scope_class());
+  ASSERT(Object::context_scope_class() != Class::null());
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
   {
-    RawObject* raw = Object::Allocate(context_scope_class, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(ContextScope::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.set_num_variables(num_variables);
@@ -7351,13 +7358,14 @@ RawICData* ICData::New(const Function& function,
                        const String& target_name,
                        intptr_t id,
                        intptr_t num_args_tested) {
+  ASSERT(Object::icdata_class() != Class::null());
   ASSERT(num_args_tested > 0);
-  const Class& cls = Class::Handle(Object::icdata_class());
-  ASSERT(!cls.IsNull());
   ICData& result = ICData::Handle();
   {
     // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(cls, ICData::InstanceSize(), Heap::kOld);
+    RawObject* raw = Object::Allocate(ICData::kInstanceKind,
+                                      ICData::InstanceSize(),
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -7375,14 +7383,14 @@ RawICData* ICData::New(const Function& function,
 
 
 RawSubtypeTestCache* SubtypeTestCache::New() {
-  const Class& cls = Class::Handle(Object::subtypetestcache_class());
-  ASSERT(!cls.IsNull());
+  ASSERT(Object::subtypetestcache_class() != Class::null());
   SubtypeTestCache& result = SubtypeTestCache::Handle();
   {
     // SubtypeTestCache objects are long living objects, allocate them in the
     // old generation.
-    RawObject* raw =
-        Object::Allocate(cls, SubtypeTestCache::InstanceSize(), Heap::kOld);
+    RawObject* raw = Object::Allocate(SubtypeTestCache::kInstanceKind,
+                                      SubtypeTestCache::InstanceSize(),
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -7460,10 +7468,10 @@ const char* Error::ToCString() const {
 
 
 RawApiError* ApiError::New(const String& message, Heap::Space space) {
-  const Class& cls = Class::Handle(Object::api_error_class());
+  ASSERT(Object::api_error_class() != Class::null());
   ApiError& result = ApiError::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(ApiError::kInstanceKind,
                                       ApiError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7491,10 +7499,10 @@ const char* ApiError::ToCString() const {
 
 
 RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
-  const Class& cls = Class::Handle(Object::language_error_class());
+  ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(LanguageError::kInstanceKind,
                                       LanguageError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7524,10 +7532,10 @@ const char* LanguageError::ToCString() const {
 RawUnhandledException* UnhandledException::New(const Instance& exception,
                                                const Instance& stacktrace,
                                                Heap::Space space) {
-  const Class& cls = Class::Handle(Object::unhandled_exception_class());
+  ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(UnhandledException::kInstanceKind,
                                       UnhandledException::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7585,10 +7593,10 @@ const char* UnhandledException::ToCString() const {
 
 
 RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
-  const Class& cls = Class::Handle(Object::unwind_error_class());
+  ASSERT(Object::unwind_error_class() != Class::null());
   UnwindError& result = UnwindError::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(UnwindError::kInstanceKind,
                                       UnwindError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7812,7 +7820,7 @@ RawInstance* Instance::New(const Class& cls, Heap::Space space) {
   {
     intptr_t instance_size = cls.instance_size();
     ASSERT(instance_size > 0);
-    RawObject* raw = Object::Allocate(cls, instance_size, space);
+    RawObject* raw = Object::Allocate(cls.id(), instance_size, space);
     NoGCScope no_gc;
     result ^= raw;
     uword addr = reinterpret_cast<uword>(result.raw_ptr());
@@ -8002,12 +8010,12 @@ void Mint::set_value(int64_t value) const {
 RawMint* Mint::New(int64_t val, Heap::Space space) {
   // Do not allocate a Mint if Smi would do.
   ASSERT(!Smi::IsValid64(val));
-  Isolate* isolate = Isolate::Current();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->mint_class());
+  ASSERT(Isolate::Current()->object_store()->mint_class() != Class::null());
   Mint& result = Mint::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, Mint::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(Mint::kInstanceKind,
+                                      Mint::InstanceSize(),
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -8130,12 +8138,12 @@ bool Double::Equals(const Instance& other) const {
 
 
 RawDouble* Double::New(double d, Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-  const Class& cls =
-      Class::Handle(isolate->object_store()->double_class());
+  ASSERT(Isolate::Current()->object_store()->double_class() != Class::null());
   Double& result = Double::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, Double::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(Double::kInstanceKind,
+                                      Double::InstanceSize(),
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -8291,11 +8299,12 @@ int Bigint::CompareWith(const Integer& other) const {
 
 RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
   ASSERT(length >= 0);
-  Isolate* isolate = Isolate::Current();
-  const Class& cls = Class::Handle(isolate->object_store()->bigint_class());
+  ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, Bigint::InstanceSize(length), space);
+    RawObject* raw = Object::Allocate(Bigint::kInstanceKind,
+                                      Bigint::InstanceSize(length),
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
     result.raw_ptr()->allocated_length_ = length;  // Chunk length allocated.
@@ -8521,7 +8530,7 @@ RawInstance* String::Canonicalize() const {
   if (IsCanonical()) {
     return this->raw();
   }
-  return NewSymbol(*this);
+  return Symbols::New(*this);
 }
 
 
@@ -8802,162 +8811,6 @@ RawString* String::EscapeDoubleQuotes(const String& str) {
 }
 
 
-static void GrowSymbolTable(const Array& symbol_table, intptr_t table_size) {
-  // TODO(iposva): Avoid exponential growth.
-  intptr_t new_table_size = table_size * 2;
-  Array& new_symbol_table = Array::Handle(Array::New(new_table_size + 1));
-  // Copy all elements from the original symbol table to the newly allocated
-  // array.
-  String& element = String::Handle();
-  Object& new_element = Object::Handle();
-  for (intptr_t i = 0; i < table_size; i++) {
-    element ^= symbol_table.At(i);
-    if (!element.IsNull()) {
-      intptr_t hash = element.Hash();
-      intptr_t index = hash % new_table_size;
-      new_element = new_symbol_table.At(index);
-      while (!new_element.IsNull()) {
-        index = (index + 1) % new_table_size;  // Move to next element.
-        new_element = new_symbol_table.At(index);
-      }
-      new_symbol_table.SetAt(index, element);
-    }
-  }
-  // Copy used count.
-  new_element = symbol_table.At(table_size);
-  new_symbol_table.SetAt(new_table_size, new_element);
-  // Remember the new symbol table now.
-  Isolate::Current()->object_store()->set_symbol_table(new_symbol_table);
-}
-
-
-static void InsertIntoSymbolTable(const Array& symbol_table,
-                                  const String& symbol,
-                                  intptr_t index,
-                                  intptr_t table_size) {
-  symbol.SetCanonical();  // Mark object as being canonical.
-  symbol_table.SetAt(index, symbol);  // Remember the new symbol.
-  Smi& used = Smi::Handle();
-  used ^= symbol_table.At(table_size);
-  intptr_t used_elements = used.Value() + 1;  // One more element added.
-  used = Smi::New(used_elements);
-  symbol_table.SetAt(table_size, used);  // Update used count.
-
-  // Rehash if symbol_table is 75% full.
-  if (used_elements > ((table_size / 4) * 3)) {
-    GrowSymbolTable(symbol_table, table_size);
-  }
-}
-
-
-RawString* String::NewSymbol(const char* str) {
-  intptr_t width = 0;
-  intptr_t len = Utf8::CodePointCount(str, &width);
-  intptr_t size = len * width;
-  Zone* zone = Isolate::Current()->current_zone();
-  if (len == 0) {
-    return String::NewSymbol(reinterpret_cast<uint8_t*>(NULL), 0);
-  } else if (width == 1) {
-    uint8_t* characters = reinterpret_cast<uint8_t*>(zone->Allocate(size));
-    Utf8::Decode(str, characters, len);
-    return NewSymbol(characters, len);
-  } else if (width == 2) {
-    uint16_t* characters = reinterpret_cast<uint16_t*>(zone->Allocate(size));
-    Utf8::Decode(str, characters, len);
-    return NewSymbol(characters, len);
-  }
-  ASSERT(width == 4);
-  uint32_t* characters = reinterpret_cast<uint32_t*>(zone->Allocate(size));
-  Utf8::Decode(str, characters, len);
-  return NewSymbol(characters, len);
-}
-
-
-template<typename T>
-RawString* String::NewSymbol(const T* characters, intptr_t len) {
-  Isolate* isolate = Isolate::Current();
-
-  // Calculate the String hash for this sequence of characters.
-  intptr_t hash = Hash(characters, len);
-
-  const Array& symbol_table =
-      Array::Handle(isolate, isolate->object_store()->symbol_table());
-  // Last element of the array is the number of used elements.
-  intptr_t table_size = symbol_table.Length() - 1;
-  intptr_t index = hash % table_size;
-
-  String& symbol = String::Handle(isolate, String::null());
-  symbol ^= symbol_table.At(index);
-  while (!symbol.IsNull() && !symbol.Equals(characters, len)) {
-    index = (index + 1) % table_size;  // Move to next element.
-    symbol ^= symbol_table.At(index);
-  }
-  // Since we leave enough room in the table to guarantee, that we find an
-  // empty spot, index is the insertion point if symbol is null.
-  if (symbol.IsNull()) {
-    // Allocate new result string.
-    symbol = String::New(characters, len, Heap::kOld);
-    symbol.SetHash(hash);  // Remember the calculated hash value.
-    InsertIntoSymbolTable(symbol_table, symbol, index, table_size);
-  }
-  ASSERT(symbol.IsSymbol());
-  return symbol.raw();
-}
-
-template RawString* String::NewSymbol(const uint8_t* characters, intptr_t len);
-template RawString* String::NewSymbol(const uint16_t* characters, intptr_t len);
-template RawString* String::NewSymbol(const uint32_t* characters, intptr_t len);
-
-
-RawString* String::NewSymbol(const String& str) {
-  if (str.IsSymbol()) {
-    return str.raw();
-  }
-  return NewSymbol(str, 0, str.Length());
-}
-
-
-RawString* String::NewSymbol(const String& str,
-                             intptr_t begin_index,
-                             intptr_t len) {
-  ASSERT(begin_index >= 0);
-  ASSERT(len >= 0);
-  ASSERT((begin_index + len) <= str.Length());
-  Isolate* isolate = Isolate::Current();
-
-  // Calculate the String hash for this sequence of characters.
-  intptr_t hash = String::Hash(str, begin_index, len);
-
-  const Array& symbol_table =
-      Array::Handle(isolate, isolate->object_store()->symbol_table());
-  // Last element of the array is the number of used elements.
-  intptr_t table_size = symbol_table.Length() - 1;
-  intptr_t index = hash % table_size;
-
-  String& symbol = String::Handle(isolate, String::null());
-  symbol ^= symbol_table.At(index);
-  while (!symbol.IsNull() && !symbol.Equals(str, begin_index, len)) {
-    index = (index + 1) % table_size;  // Move to next element.
-    symbol ^= symbol_table.At(index);
-  }
-  // Since we leave enough room in the table to guarantee, that we find an
-  // empty spot, index is the insertion point if symbol is null.
-  if (symbol.IsNull()) {
-    if (str.IsOld() && begin_index == 0 && len == str.Length()) {
-      // Reuse the incoming str as the symbol value.
-      symbol = str.raw();
-    } else {
-      // Allocate a copy in old space.
-      symbol = String::SubString(str, begin_index, len, Heap::kOld);
-    }
-    symbol.SetHash(hash);
-    InsertIntoSymbolTable(symbol_table, symbol, index, table_size);
-  }
-  ASSERT(symbol.IsSymbol());
-  return symbol.raw();
-}
-
-
 RawString* String::NewFormatted(const char* format, ...) {
   va_list args;
   va_start(args, format);
@@ -9203,13 +9056,12 @@ bool OneByteString::EqualsIgnoringPrivateKey(const OneByteString& name) const {
 
 RawOneByteString* OneByteString::New(intptr_t len,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->one_byte_string_class());
+  ASSERT(Isolate::Current() == Dart::vm_isolate() ||
+         Isolate::Current()->object_store()->one_byte_string_class() !=
+         Class::null());
   OneByteString& result = OneByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(OneByteString::kInstanceKind,
                                       OneByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9344,13 +9196,10 @@ RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
 
 RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->two_byte_string_class());
+  ASSERT(Isolate::Current()->object_store()->two_byte_string_class());
   TwoByteString& result = TwoByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(TwoByteString::kInstanceKind,
                                       TwoByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9475,13 +9324,11 @@ RawFourByteString* FourByteString::EscapeDoubleQuotes() const {
 
 RawFourByteString* FourByteString::New(intptr_t len,
                                        Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->four_byte_string_class());
+  ASSERT(Isolate::Current()->object_store()->four_byte_string_class() !=
+         Class::null());
   FourByteString& result = FourByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(FourByteString::kInstanceKind,
                                       FourByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9584,15 +9431,13 @@ RawExternalOneByteString* ExternalOneByteString::New(
     void* peer,
     Dart_PeerFinalizer callback,
     Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->external_one_byte_string_class());
+  ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
+         Class::null());
   ExternalOneByteString& result = ExternalOneByteString::Handle();
   ExternalStringData<uint8_t>* external_data =
       new ExternalStringData<uint8_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(ExternalOneByteString::kInstanceKind,
                                       ExternalOneByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9633,15 +9478,13 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     void* peer,
     Dart_PeerFinalizer callback,
     Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->external_two_byte_string_class());
+  ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
+         Class::null());
   ExternalTwoByteString& result = ExternalTwoByteString::Handle();
   ExternalStringData<uint16_t>* external_data =
       new ExternalStringData<uint16_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(ExternalTwoByteString::kInstanceKind,
                                       ExternalTwoByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9672,15 +9515,13 @@ RawExternalFourByteString* ExternalFourByteString::New(
     void* peer,
     Dart_PeerFinalizer callback,
     Heap::Space space) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls =
-      Class::Handle(isolate->object_store()->external_four_byte_string_class());
+  ASSERT(Isolate::Current()->object_store()->
+         external_four_byte_string_class() != Class::null());
   ExternalFourByteString& result = ExternalFourByteString::Handle();
   ExternalStringData<uint32_t>* external_data =
       new ExternalStringData<uint32_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(ExternalFourByteString::kInstanceKind,
                                       ExternalFourByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9716,14 +9557,14 @@ RawBool* Bool::False() {
 
 
 RawBool* Bool::New(bool value) {
-  Isolate* isolate = Isolate::Current();
-
-  const Class& cls = Class::Handle(isolate->object_store()->bool_class());
+  ASSERT(Isolate::Current()->object_store()->bool_class() != Class::null());
   Bool& result = Bool::Handle();
   {
     // Since the two boolean instances are singletons we allocate them straight
     // in the old generation.
-    RawObject* raw = Object::Allocate(cls, Bool::InstanceSize(), Heap::kOld);
+    RawObject* raw = Object::Allocate(Bool::kInstanceKind,
+                                      Bool::InstanceSize(),
+                                      Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -9772,6 +9613,7 @@ bool Array::Equals(const Instance& other) const {
 
 RawArray* Array::New(intptr_t len, Heap::Space space) {
   ObjectStore* object_store = Isolate::Current()->object_store();
+  ASSERT(object_store->array_class() != Class::null());
   Class& cls = Class::Handle(object_store->array_class());
   return New(cls, len, space);
 }
@@ -9786,7 +9628,7 @@ RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
   }
   Array& result = Array::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(cls.id(),
                                       Array::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9899,6 +9741,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 RawImmutableArray* ImmutableArray::New(intptr_t len,
                                        Heap::Space space) {
   ObjectStore* object_store = Isolate::Current()->object_store();
+  ASSERT(object_store->immutable_array_class() != Class::null());
   Class& cls = Class::Handle(object_store->immutable_array_class());
   return reinterpret_cast<RawImmutableArray*>(Array::New(cls, len, space));
 }
@@ -10003,11 +9846,11 @@ RawGrowableObjectArray* GrowableObjectArray::New(intptr_t capacity,
 
 RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
                                                  Heap::Space space) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  Class& cls = Class::Handle(object_store->growable_object_array_class());
+  ASSERT(Isolate::Current()->object_store()->growable_object_array_class()
+         != Class::null());
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(GrowableObjectArray::kInstanceKind,
                                       GrowableObjectArray::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -10086,7 +9929,7 @@ RawT* ByteArray::NewExternalImpl(const Class& cls,
   ExternalByteArrayData<ElementT>* external_data =
       new ExternalByteArrayData<ElementT>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(cls, HandleT::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(cls.id(), HandleT::InstanceSize(), space);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
@@ -10122,7 +9965,9 @@ template<typename HandleT, typename RawT>
 RawT* ByteArray::NewImpl(const Class& cls, intptr_t len, Heap::Space space) {
   HandleT& result = HandleT::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, HandleT::InstanceSize(len), space);
+    RawObject* raw = Object::Allocate(cls.id(),
+                                      HandleT::InstanceSize(len),
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
@@ -10141,7 +9986,9 @@ RawT* ByteArray::NewImpl(const Class& cls,
                          Heap::Space space) {
   HandleT& result = HandleT::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, HandleT::InstanceSize(len), space);
+    RawObject* raw = Object::Allocate(cls.id(),
+                                      HandleT::InstanceSize(len),
+                                      space);
     NoGCScope no_gc;
     result ^= raw;
     result.SetLength(len);
@@ -10155,6 +10002,7 @@ RawT* ByteArray::NewImpl(const Class& cls,
 
 RawInt8Array* Int8Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int8_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int8_array_class());
   return NewImpl<Int8Array, RawInt8Array>(cls, len, space);
@@ -10165,6 +10013,7 @@ RawInt8Array* Int8Array::New(const int8_t* data,
                              intptr_t len,
                              Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int8_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int8_array_class());
   return NewImpl<Int8Array, RawInt8Array>(cls, data, len, space);
@@ -10178,6 +10027,7 @@ const char* Int8Array::ToCString() const {
 
 RawUint8Array* Uint8Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint8_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint8_array_class());
   return NewImpl<Uint8Array, RawUint8Array>(cls, len, space);
@@ -10188,6 +10038,7 @@ RawUint8Array* Uint8Array::New(const uint8_t* data,
                                intptr_t len,
                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint8_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint8_array_class());
   return NewImpl<Uint8Array, RawUint8Array>(cls, data, len, space);
@@ -10201,6 +10052,7 @@ const char* Uint8Array::ToCString() const {
 
 RawInt16Array* Int16Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int16_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int16_array_class());
   return NewImpl<Int16Array, RawInt16Array>(cls, len, space);
@@ -10211,6 +10063,7 @@ RawInt16Array* Int16Array::New(const int16_t* data,
                                intptr_t len,
                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int16_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int16_array_class());
   return NewImpl<Int16Array, RawInt16Array>(cls, data, len, space);
@@ -10224,6 +10077,7 @@ const char* Int16Array::ToCString() const {
 
 RawUint16Array* Uint16Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint16_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint16_array_class());
   return NewImpl<Uint16Array, RawUint16Array>(cls, len, space);
@@ -10234,6 +10088,7 @@ RawUint16Array* Uint16Array::New(const uint16_t* data,
                                  intptr_t len,
                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint16_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint16_array_class());
   return NewImpl<Uint16Array, RawUint16Array>(cls, data, len, space);
@@ -10247,6 +10102,7 @@ const char* Uint16Array::ToCString() const {
 
 RawInt32Array* Int32Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int32_array_class());
   return NewImpl<Int32Array, RawInt32Array>(cls, len, space);
@@ -10257,6 +10113,7 @@ RawInt32Array* Int32Array::New(const int32_t* data,
                                intptr_t len,
                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int32_array_class());
   return NewImpl<Int32Array, RawInt32Array>(cls, data, len, space);
@@ -10270,6 +10127,7 @@ const char* Int32Array::ToCString() const {
 
 RawUint32Array* Uint32Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint32_array_class());
   return NewImpl<Uint32Array, RawUint32Array>(cls, len, space);
@@ -10280,6 +10138,7 @@ RawUint32Array* Uint32Array::New(const uint32_t* data,
                                  intptr_t len,
                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint32_array_class());
   return NewImpl<Uint32Array, RawUint32Array>(cls, data, len, space);
@@ -10293,6 +10152,7 @@ const char* Uint32Array::ToCString() const {
 
 RawInt64Array* Int64Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int64_array_class());
   return NewImpl<Int64Array, RawInt64Array>(cls, len, space);
@@ -10303,6 +10163,7 @@ RawInt64Array* Int64Array::New(const int64_t* data,
                                intptr_t len,
                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->int64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->int64_array_class());
   return NewImpl<Int64Array, RawInt64Array>(cls, data, len, space);
@@ -10316,6 +10177,7 @@ const char* Int64Array::ToCString() const {
 
 RawUint64Array* Uint64Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint64_array_class());
   return NewImpl<Uint64Array, RawUint64Array>(cls, len, space);
@@ -10326,6 +10188,7 @@ RawUint64Array* Uint64Array::New(const uint64_t* data,
                                  intptr_t len,
                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->uint64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->uint64_array_class());
   return NewImpl<Uint64Array, RawUint64Array>(cls, data, len, space);
@@ -10339,6 +10202,7 @@ const char* Uint64Array::ToCString() const {
 
 RawFloat32Array* Float32Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->float32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->float32_array_class());
   return NewImpl<Float32Array, RawFloat32Array>(cls, len, space);
@@ -10349,6 +10213,7 @@ RawFloat32Array* Float32Array::New(const float* data,
                                    intptr_t len,
                                    Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->float32_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->float32_array_class());
   return NewImpl<Float32Array, RawFloat32Array>(cls, data, len, space);
@@ -10362,6 +10227,7 @@ const char* Float32Array::ToCString() const {
 
 RawFloat64Array* Float64Array::New(intptr_t len, Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->float64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->float64_array_class());
   return NewImpl<Float64Array, RawFloat64Array>(cls, len, space);
@@ -10372,6 +10238,7 @@ RawFloat64Array* Float64Array::New(const double* data,
                                    intptr_t len,
                                    Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->float64_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->float64_array_class());
   return NewImpl<Float64Array, RawFloat64Array>(cls, data, len, space);
@@ -10389,6 +10256,7 @@ RawExternalInt8Array* ExternalInt8Array::New(int8_t* data,
                                              Dart_PeerFinalizer callback,
                                              Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_int8_array_class() != Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_int8_array_class());
   return NewExternalImpl<ExternalInt8Array, RawExternalInt8Array>(
@@ -10407,6 +10275,8 @@ RawExternalUint8Array* ExternalUint8Array::New(uint8_t* data,
                                                Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_uint8_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_uint8_array_class());
   return NewExternalImpl<ExternalUint8Array, RawExternalUint8Array>(
@@ -10425,6 +10295,8 @@ RawExternalInt16Array* ExternalInt16Array::New(int16_t* data,
                                                Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_int16_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_int16_array_class());
   return NewExternalImpl<ExternalInt16Array, RawExternalInt16Array>(
@@ -10443,6 +10315,8 @@ RawExternalUint16Array* ExternalUint16Array::New(uint16_t* data,
                                                  Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_uint16_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_uint16_array_class());
   return NewExternalImpl<ExternalUint16Array, RawExternalUint16Array>(
@@ -10461,6 +10335,8 @@ RawExternalInt32Array* ExternalInt32Array::New(int32_t* data,
                                                Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_int32_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_int32_array_class());
   return NewExternalImpl<ExternalInt32Array, RawExternalInt32Array>(
@@ -10479,6 +10355,8 @@ RawExternalUint32Array* ExternalUint32Array::New(uint32_t* data,
                                                  Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_uint32_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_uint32_array_class());
   return NewExternalImpl<ExternalUint32Array, RawExternalUint32Array>(
@@ -10497,6 +10375,8 @@ RawExternalInt64Array* ExternalInt64Array::New(int64_t* data,
                                                Dart_PeerFinalizer callback,
                                                Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_int64_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_int64_array_class());
   return NewExternalImpl<ExternalInt64Array, RawExternalInt64Array>(
@@ -10515,6 +10395,8 @@ RawExternalUint64Array* ExternalUint64Array::New(uint64_t* data,
                                                  Dart_PeerFinalizer callback,
                                                  Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_uint64_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_uint64_array_class());
   return NewExternalImpl<ExternalUint64Array, RawExternalUint64Array>(
@@ -10533,6 +10415,8 @@ RawExternalFloat32Array* ExternalFloat32Array::New(float* data,
                                                    Dart_PeerFinalizer callback,
                                                    Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_float32_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_float32_array_class());
   return NewExternalImpl<ExternalFloat32Array, RawExternalFloat32Array>(
@@ -10551,6 +10435,8 @@ RawExternalFloat64Array* ExternalFloat64Array::New(double* data,
                                                    Dart_PeerFinalizer callback,
                                                    Heap::Space space) {
   Isolate* isolate = Isolate::Current();
+  ASSERT(isolate->object_store()->external_float64_array_class() !=
+         Class::null());
   const Class& cls =
       Class::Handle(isolate->object_store()->external_float64_array_class());
   return NewExternalImpl<ExternalFloat64Array, RawExternalFloat64Array>(
@@ -10573,7 +10459,7 @@ RawClosure* Closure::New(const Function& function,
   const Class& cls = Class::Handle(function.signature_class());
   Closure& result = Closure::Handle();
   {
-    RawObject* raw = Object::Allocate(cls, Closure::InstanceSize(), space);
+    RawObject* raw = Object::Allocate(cls.id(), Closure::InstanceSize(), space);
     NoGCScope no_gc;
     result ^= raw;
   }
@@ -10671,11 +10557,11 @@ void Stacktrace::SetupStacktrace(intptr_t index,
 
 RawStacktrace* Stacktrace::New(const GrowableArray<uword>& stack_frame_pcs,
                                Heap::Space space) {
-  const Class& cls = Class::Handle(
-      Isolate::Current()->object_store()->stacktrace_class());
+  ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
+         Class::null());
   Stacktrace& result = Stacktrace::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(Stacktrace::kInstanceKind,
                                       Stacktrace::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -10798,11 +10684,11 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 
 
 RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
-  const Class& cls = Class::Handle(
-      Isolate::Current()->object_store()->jsregexp_class());
+  ASSERT(Isolate::Current()->object_store()->jsregexp_class() !=
+         Class::null());
   JSRegExp& result = JSRegExp::Handle();
   {
-    RawObject* raw = Object::Allocate(cls,
+    RawObject* raw = Object::Allocate(JSRegExp::kInstanceKind,
                                       JSRegExp::InstanceSize(len),
                                       space);
     NoGCScope no_gc;

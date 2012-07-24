@@ -19,6 +19,7 @@
 #include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -165,7 +166,7 @@ bool Intrinsifier::ImmutableArray_getIndexed(Assembler* assembler) {
 
 
 static intptr_t ComputeObjectArrayTypeArgumentsOffset() {
-  const String& class_name = String::Handle(String::NewSymbol("ObjectArray"));
+  const String& class_name = String::Handle(Symbols::New("ObjectArray"));
   const Class& cls = Class::Handle(
       Library::Handle(Library::CoreImplLibrary()).LookupClass(class_name));
   ASSERT(!cls.IsNull());
@@ -240,8 +241,8 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
 
 static intptr_t GetOffsetForField(const char* class_name_p,
                                   const char* field_name_p) {
-  const String& class_name = String::Handle(String::NewSymbol(class_name_p));
-  const String& field_name = String::Handle(String::NewSymbol(field_name_p));
+  const String& class_name = String::Handle(Symbols::New(class_name_p));
+  const String& field_name = String::Handle(Symbols::New(field_name_p));
   const Class& cls = Class::Handle(Library::Handle(
       Library::CoreImplLibrary()).LookupClass(class_name));
   ASSERT(!cls.IsNull());

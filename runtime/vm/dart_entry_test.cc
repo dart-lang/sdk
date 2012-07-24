@@ -9,6 +9,7 @@
 #include "vm/dart_entry.h"
 #include "vm/object.h"
 #include "vm/resolver.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -30,7 +31,7 @@ TEST_CASE(DartEntry) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -62,7 +63,7 @@ TEST_CASE(InvokeStatic_CompileError) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
   String& name = String::Handle(String::New("foo"));
   Function& function = Function::Handle(cls.LookupStaticFunction(name));
@@ -90,7 +91,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
   EXPECT_EQ(true, CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
 
   // Invoke the constructor.
@@ -98,7 +99,7 @@ TEST_CASE(InvokeDynamic_CompileError) {
   GrowableArray<const Object*> constructor_arguments(2);
   constructor_arguments.Add(&instance);
   constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
-  String& constructor_name = String::Handle(String::NewSymbol("A."));
+  String& constructor_name = String::Handle(Symbols::New("A."));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
   ASSERT(!constructor.IsNull());

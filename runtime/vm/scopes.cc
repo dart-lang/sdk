@@ -8,6 +8,7 @@
 #include "vm/bit_vector.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -511,7 +512,7 @@ RawContextScope* LocalScope::CreateImplicitClosureScope(const Function& func) {
       ContextScope::Handle(ContextScope::New(kNumCapturedVars));
 
   // Create a descriptor for 'this' variable.
-  const String& name = String::Handle(String::NewSymbol("this"));
+  const String& name = String::Handle(Symbols::New("this"));
   context_scope.SetTokenIndexAt(0, func.token_pos());
   context_scope.SetNameAt(0, name);
   context_scope.SetIsFinalAt(0, true);

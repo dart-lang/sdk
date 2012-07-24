@@ -15,6 +15,7 @@
 #include "vm/port.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
@@ -72,6 +73,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce();
     StubCode::InitOnce();
     Scanner::InitOnce();
+    Symbols::InitOnce(vm_isolate_);
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
   }

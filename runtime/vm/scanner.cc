@@ -8,6 +8,7 @@
 #include "vm/flags.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/token.h"
 
@@ -74,7 +75,7 @@ Scanner::~Scanner() {
 
 void Scanner::ErrorMsg(const char* msg) {
   current_token_.kind = Token::kERROR;
-  current_token_.literal = &String::ZoneHandle(String::NewSymbol(msg));
+  current_token_.literal = &String::ZoneHandle(Symbols::New(msg));
   current_token_.position = c0_pos_;
   token_start_ = lookahead_pos_;
   current_token_.offset = lookahead_pos_;
@@ -276,7 +277,7 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
           String& symbol = String::ZoneHandle();
           symbol ^= keyword_symbol_table_.At(i);
           if (symbol.IsNull()) {
-            symbol = String::NewSymbol(source_, ident_pos, ident_length);
+            symbol = Symbols::New(source_, ident_pos, ident_length);
             keyword_symbol_table_.SetAt(i, symbol);
           }
           keywords_[i].keyword_symbol = &symbol;
@@ -292,11 +293,11 @@ void Scanner::ScanIdentChars(bool allow_dollar) {
   // We did not read a keyword.
   current_token_.kind = Token::kIDENT;
   String& literal =
-      String::ZoneHandle(String::NewSymbol(source_, ident_pos, ident_length));
+      String::ZoneHandle(Symbols::New(source_, ident_pos, ident_length));
   if ((ident_char0 == kPrivateIdentifierStart) && !FLAG_disable_privacy) {
     // Private identifiers are mangled on a per script basis.
     literal = String::Concat(literal, private_key_);
-    literal = String::NewSymbol(literal);
+    literal = Symbols::New(literal);
   }
   current_token_.literal = &literal;
 }
@@ -366,7 +367,7 @@ RawString* Scanner::ConsumeIdentChars(bool allow_dollar) {
     ReadChar();
     ident_length++;
   }
-  return String::NewSymbol(source_, ident_pos, ident_length);
+  return Symbols::New(source_, ident_pos, ident_length);
 }
 
 
@@ -391,10 +392,10 @@ void Scanner::ScanLibraryTag() {
     SkipLine();
     return;
   }
-  const String& kLibrary = String::Handle(String::NewSymbol("library"));
-  const String& kImport = String::Handle(String::NewSymbol("import"));
-  const String& kSource = String::Handle(String::NewSymbol("source"));
-  const String& kResource = String::Handle(String::NewSymbol("resource"));
+  const String& kLibrary = String::Handle(Symbols::New("library"));
+  const String& kImport = String::Handle(Symbols::New("import"));
+  const String& kSource = String::Handle(Symbols::New("source"));
+  const String& kResource = String::Handle(Symbols::New("resource"));
   const String& ident = String::Handle(ConsumeIdentChars(false));
   if (ident.Equals(kLibrary)) {
     current_token_.kind = Token::kLIBRARY;
@@ -553,7 +554,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
       ASSERT(string_chars.data() != NULL);
       // Strings are canonicalized: Allocate a symbol.
       current_token_.literal = &String::ZoneHandle(
-          String::NewSymbol(string_chars.data(), string_chars.length()));
+          Symbols::New(string_chars.data(), string_chars.length()));
       // Preserve error tokens.
       if (current_token_.kind != Token::kERROR) {
         current_token_.kind = Token::kSTRING;
@@ -576,7 +577,7 @@ void Scanner::ScanLiteralStringChars(bool is_raw) {
           ASSERT(string_chars.data() != NULL);
           // Strings are canonicalized: Allocate a symbol.
           current_token_.literal = &String::ZoneHandle(
-              String::NewSymbol(string_chars.data(), string_chars.length()));
+              Symbols::New(string_chars.data(), string_chars.length()));
         }
         EndStringLiteral();
         return;

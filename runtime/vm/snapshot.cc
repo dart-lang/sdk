@@ -177,7 +177,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
     if (kind_ == Snapshot::kFull) {
       result ^= AllocateUninitialized(cls_, instance_size);
     } else {
-      result ^= Object::Allocate(cls_, instance_size, Heap::kNew);
+      result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
     }
     return result.raw();
   } else {
@@ -556,7 +556,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       if (kind_ == Snapshot::kFull) {
         *result ^= AllocateUninitialized(cls_, instance_size);
       } else {
-        *result ^= Object::Allocate(cls_, instance_size, Heap::kNew);
+        *result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
       }
     } else {
       cls_ ^= ReadObjectImpl();

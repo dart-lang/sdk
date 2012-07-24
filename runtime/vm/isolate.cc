@@ -163,7 +163,9 @@ Isolate::Isolate()
       stack_limit_(0),
       saved_stack_limit_(0),
       message_handler_(NULL),
-      spawn_data_(NULL) {
+      spawn_data_(NULL),
+      gc_prologue_callbacks_(),
+      gc_epilogue_callbacks_() {
 }
 
 

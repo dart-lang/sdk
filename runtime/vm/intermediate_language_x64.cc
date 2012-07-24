@@ -13,6 +13,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 #define __ compiler->assembler()->
 
@@ -313,7 +314,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  comp->cid(),
                                  comp->token_pos(),
                                  comp->try_index());
-  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
+  const String& operator_name = String::ZoneHandle(Symbols::New("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
@@ -636,7 +637,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(kind())));
+      String::ZoneHandle(Symbols::New(Token::Str(kind())));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_pos(),
@@ -833,7 +834,7 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
 static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                     StoreIndexedComp* comp) {
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+      String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
 
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  comp->cid(),
@@ -2153,7 +2154,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   Token::Kind call_kind = (kind() == Token::kNE) ? Token::kEQ : kind();
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(call_kind)));
+      String::ZoneHandle(Symbols::New(Token::Str(call_kind)));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_pos(),

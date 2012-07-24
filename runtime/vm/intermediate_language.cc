@@ -13,6 +13,7 @@
 #include "vm/os.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -31,8 +32,8 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   String& test_function_name = String::Handle();
   String& test_class_name = String::Handle();
 #define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-  test_function_name = String::NewSymbol(#function_name);                      \
-  test_class_name = String::NewSymbol(#class_name);                            \
+  test_function_name = Symbols::New(#function_name);                           \
+  test_class_name = Symbols::New(#class_name);                                 \
   if (recognize_name.Equals(test_function_name) &&                             \
       recognize_class.Equals(test_class_name)) {                               \
     return k##enum_name;                                                       \

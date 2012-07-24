@@ -7,6 +7,7 @@
 #include "vm/exceptions.h"
 #include "vm/native_entry.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -96,7 +97,7 @@ DEFINE_NATIVE_ENTRY(String_charAt, 2) {
   GET_NATIVE_ARGUMENT(Integer, index, arguments->At(1));
   uint32_t value = StringValueAt(receiver, index);
   ASSERT(value <= 0x10FFFF);
-  arguments->SetReturn(String::Handle(String::NewSymbol(&value, 1)));
+  arguments->SetReturn(String::Handle(Symbols::New(&value, 1)));
 }
 
 DEFINE_NATIVE_ENTRY(String_charCodeAt, 2) {

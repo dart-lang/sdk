@@ -9,6 +9,7 @@
 #include "vm/debugger.h"
 #include "vm/isolate.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -610,7 +611,7 @@ DART_EXPORT Dart_Handle Dart_GetLibraryImports(intptr_t library_id) {
     prefix_name = prefix.name();
     ASSERT(!prefix_name.IsNull());
     prefix_name = String::Concat(prefix_name,
-                                 String::Handle(isolate, String::New(".")));
+                                 String::Handle(isolate, Symbols::Dot()));
     for (int i = 0; i < prefix.num_libs(); i++) {
       imported = prefix.GetLibrary(i);
       import_list.Add(prefix_name);

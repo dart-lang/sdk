@@ -18,6 +18,7 @@
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -214,7 +215,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
       const intptr_t location = GetCallerLocation();
       String& malformed_error_message =  String::Handle(
           String::New(malformed_error.ToErrorCString()));
-      const String& no_name = String::Handle(String::NewSymbol(""));
+      const String& no_name = String::Handle(Symbols::New(""));
       Exceptions::CreateAndThrowTypeError(
           location, no_name, no_name, no_name, malformed_error_message);
       UNREACHABLE();
@@ -577,7 +578,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
     const intptr_t location = GetCallerLocation();
     String& malformed_error_message =  String::Handle(
         String::New(malformed_error.ToErrorCString()));
-    const String& no_name = String::Handle(String::NewSymbol(""));
+    const String& no_name = String::Handle(Symbols::New(""));
     Exceptions::CreateAndThrowTypeError(
         location, no_name, no_name, no_name, malformed_error_message);
     UNREACHABLE();
@@ -666,7 +667,7 @@ DEFINE_RUNTIME_ENTRY(ConditionTypeError, 1) {
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   const String& bool_type_name =
       String::Handle(bool_interface.UserVisibleName());
-  const String& expr = String::Handle(String::NewSymbol("boolean expression"));
+  const String& expr = String::Handle(Symbols::New("boolean expression"));
   const String& no_malformed_type_error = String::Handle();
   Exceptions::CreateAndThrowTypeError(location, src_type_name, bool_type_name,
                                       expr, no_malformed_type_error);
@@ -686,7 +687,7 @@ DEFINE_RUNTIME_ENTRY(MalformedTypeError, 3) {
   const Instance& src_value = Instance::CheckedHandle(arguments.At(0));
   const String& dst_name = String::CheckedHandle(arguments.At(1));
   const String& malformed_error = String::CheckedHandle(arguments.At(2));
-  const String& dst_type_name = String::Handle(String::NewSymbol("malformed"));
+  const String& dst_type_name = String::Handle(Symbols::New("malformed"));
   const AbstractType& src_type = AbstractType::Handle(src_value.GetType());
   const String& src_type_name = String::Handle(src_type.UserVisibleName());
   Exceptions::CreateAndThrowTypeError(location, src_type_name,
@@ -1015,7 +1016,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
   func_name = String::SubString(original_function_name, getter_prefix.Length());
-  func_name = String::NewSymbol(func_name);
+  func_name = Symbols::New(func_name);
   const Function& function = Function::Handle(
       LookupDynamicFunction(isolate, receiver_class, func_name));
   if (function.IsNull()) {
@@ -1190,7 +1191,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   const int kNumNamedArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
   const String& function_name =
-      String::Handle(String::NewSymbol("noSuchMethod"));
+      String::Handle(Symbols::New("noSuchMethod"));
   const Function& function = Function::ZoneHandle(
       Resolver::ResolveDynamic(receiver,
                                function_name,

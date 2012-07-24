@@ -14,6 +14,7 @@
 #include "vm/dart_entry.h"
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 #include "vm/virtual_memory.h"
 
@@ -24,7 +25,7 @@ static const intptr_t kPos = Scanner::kDummyTokenIndex;
 
 // Helper to allocate and return a LocalVariable.
 static LocalVariable* NewTestLocalVariable(const char* name) {
-  const String& variable_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& variable_name = String::ZoneHandle(Symbols::New(name));
   const Type& variable_type = Type::ZoneHandle(Type::DynamicType());
   return new LocalVariable(kPos, variable_name, variable_type);
 }
@@ -219,7 +220,7 @@ CODEGEN_TEST_GENERATE(NativeDecCodegen, test) {
   function.set_num_optional_parameters(num_opt_params);
   const bool has_opt_params = true;
   const String& native_name =
-      String::ZoneHandle(String::NewSymbol("TestSmiSub"));
+      String::ZoneHandle(Symbols::New("TestSmiSub"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(NATIVE_ENTRY_FUNCTION(TestSmiSub));
   node_seq->Add(new ReturnNode(kPos,
@@ -264,7 +265,7 @@ CODEGEN_TEST_RUN(DoubleUnaryOpCodegen, Double::New(-12.0))
 
 
 static Library& MakeTestLibrary(const char* url) {
-  const String& lib_url = String::ZoneHandle(String::NewSymbol(url));
+  const String& lib_url = String::ZoneHandle(Symbols::New(url));
   Library& lib = Library::ZoneHandle(Library::New(lib_url));
   lib.Register();
   return lib;
@@ -272,7 +273,7 @@ static Library& MakeTestLibrary(const char* url) {
 
 
 static RawClass* LookupClass(const Library& lib, const char* name) {
-  const String& cls_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& cls_name = String::ZoneHandle(Symbols::New(name));
   return lib.LookupClass(cls_name);
 }
 
@@ -348,7 +349,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   EXPECT(!constructor.IsNull());
 
   // The unit test creates an instance of class A and calls function 'bar'.
-  String& function_bar_name = String::ZoneHandle(String::NewSymbol("bar"));
+  String& function_bar_name = String::ZoneHandle(Symbols::New("bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   const LocalVariable& allocated = *test->CreateTempConstVariable("alloc");
@@ -396,7 +397,7 @@ CODEGEN_TEST_GENERATE(NativeSumCodegen, test) {
   }
   const bool has_opt_params = true;
   const String& native_name =
-      String::ZoneHandle(String::NewSymbol("TestSmiSum"));
+      String::ZoneHandle(Symbols::New("TestSmiSum"));
   NativeFunction native_function =
       reinterpret_cast<NativeFunction>(NATIVE_ENTRY_FUNCTION(TestSmiSum));
   node_seq->Add(new ReturnNode(kPos,
@@ -510,7 +511,7 @@ CODEGEN_TEST_RAW_RUN(AllocateNewObjectCodegen, function) {
   app_lib ^= libs.At(num_libs - 1);
   ASSERT(!app_lib.IsNull());
   const Class& cls = Class::Handle(
-      app_lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      app_lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT_EQ(cls.raw(), result.clazz());
 }
 

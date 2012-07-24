@@ -6,6 +6,7 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/snapshot.h"
+#include "vm/symbols.h"
 #include "vm/visitor.h"
 
 namespace dart {
@@ -1361,7 +1362,7 @@ void String::ReadFromImpl(SnapshotReader* reader,
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }
-    *str_obj ^= String::NewSymbol(ptr, len);
+    *str_obj ^= Symbols::New(ptr, len);
   } else {
     // Set up the string object.
     *str_obj = HandleType::New(len, Heap::kNew);

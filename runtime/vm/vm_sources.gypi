@@ -261,6 +261,8 @@
     'stub_code_ia32_test.cc',
     'stub_code_x64.cc',
     'stub_code_x64_test.cc',
+    'symbols.cc',
+    'symbols.h',
     'thread.h',
     'thread_test.cc',
     'thread_pool.cc',

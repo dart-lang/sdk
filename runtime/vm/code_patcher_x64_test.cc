@@ -13,6 +13,7 @@
 #include "vm/native_entry.h"
 #include "vm/native_entry_test.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -22,7 +23,7 @@ CODEGEN_TEST_GENERATE(NativePatchStaticCall, test) {
   const int num_params = 0;
   const bool has_opt_params = false;
   const String& native_name =
-      String::ZoneHandle(String::NewSymbol("TestStaticCallPatching"));
+      String::ZoneHandle(Symbols::New("TestStaticCallPatching"));
   NativeFunction native_function = reinterpret_cast<NativeFunction>(
       NATIVE_ENTRY_FUNCTION(TestStaticCallPatching));
   node_seq->Add(new ReturnNode(Scanner::kDummyTokenIndex,
@@ -48,7 +49,7 @@ CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol("callerFunction"));
+      String::ZoneHandle(Symbols::New("callerFunction"));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));

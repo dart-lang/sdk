@@ -11,6 +11,7 @@
 #include "vm/assembler_macros.h"
 #include "vm/instructions.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -1172,8 +1173,8 @@ bool Intrinsifier::Object_equal(Assembler* assembler) {
 
 static intptr_t GetOffsetForField(const char* class_name_p,
                                   const char* field_name_p) {
-  const String& class_name = String::Handle(String::NewSymbol(class_name_p));
-  const String& field_name = String::Handle(String::NewSymbol(field_name_p));
+  const String& class_name = String::Handle(Symbols::New(class_name_p));
+  const String& field_name = String::Handle(Symbols::New(field_name_p));
   const Class& cls = Class::Handle(Library::Handle(
       Library::CoreImplLibrary()).LookupClass(class_name));
   ASSERT(!cls.IsNull());

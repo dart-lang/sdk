@@ -29,6 +29,7 @@ class Api;
 class Assembler;
 class Code;
 class LocalScope;
+class Symbols;
 
 #define OBJECT_IMPLEMENTATION(object, super)                                   \
  public:  /* NOLINT */                                                         \
@@ -371,7 +372,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   cpp_vtable vtable() const { return bit_copy<cpp_vtable>(*this); }
   void set_vtable(cpp_vtable value) { *vtable_address() = value; }
 
-  static RawObject* Allocate(const Class& cls,
+  static RawObject* Allocate(intptr_t cls_id,
                              intptr_t size,
                              Heap::Space space);
 
@@ -3328,14 +3329,6 @@ class String : public Instance {
   static RawString* ToLowerCase(const String& str,
                                 Heap::Space space = Heap::kNew);
 
-  static RawString* NewSymbol(const char* str);
-  template<typename T>
-  static RawString* NewSymbol(const T* characters, intptr_t len);
-  static RawString* NewSymbol(const String& str);
-  static RawString* NewSymbol(const String& str,
-                              intptr_t begin_index,
-                              intptr_t length);
-
   static RawString* NewFormatted(const char* format, ...);
 
  protected:
@@ -3363,6 +3356,8 @@ class String : public Instance {
                            intptr_t tags);
 
   HEAP_OBJECT_IMPLEMENTATION(String, Instance);
+
+  friend class Symbols;
 };
 
 

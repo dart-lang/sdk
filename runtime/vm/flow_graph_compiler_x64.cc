@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -583,7 +584,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   if (dst_type.IsMalformed()) {
     const Error& error = Error::Handle(dst_type.malformed_error());
     const String& error_message = String::ZoneHandle(
-        String::NewSymbol(error.ToErrorCString()));
+        Symbols::New(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.

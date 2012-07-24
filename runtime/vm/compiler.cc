@@ -24,6 +24,7 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/scanner.h"
+#include "vm/symbols.h"
 #include "vm/timer.h"
 
 namespace dart {
@@ -439,7 +440,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Create a dummy function object for the code generator.
     const char* kEvalConst = "eval_const";
     const Function& func = Function::Handle(Function::New(
-        String::Handle(String::NewSymbol(kEvalConst)),
+        String::Handle(Symbols::New(kEvalConst)),
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.

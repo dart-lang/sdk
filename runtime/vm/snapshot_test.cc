@@ -10,6 +10,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/dart_api_state.h"
 #include "vm/snapshot.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -731,7 +732,7 @@ TEST_CASE(SerializeScript) {
   Script& script = Script::Handle(Script::New(url,
                                               source,
                                               RawScript::kSourceTag));
-  const String& lib_url = String::Handle(String::NewSymbol("TestLib"));
+  const String& lib_url = String::Handle(Symbols::New("TestLib"));
   Library& lib = Library::Handle(Library::New(lib_url));
   lib.Register();
   EXPECT(CompilerTest::TestCompileScript(lib, script));
