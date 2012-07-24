@@ -26,6 +26,8 @@
             '<(PRODUCT_DIR)/dart2js.bat',
             '<(PRODUCT_DIR)/dart2js_developer',
             '<(PRODUCT_DIR)/dart2js_developer.bat',
+            '<(PRODUCT_DIR)/dartdoc',
+            '<(PRODUCT_DIR)/dartdoc.bat',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
@@ -39,6 +41,7 @@
             '<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             'dart2js',
             'dart2js_developer',
+            'dartdoc',
             '<(dart_dir)',
           ],
         },

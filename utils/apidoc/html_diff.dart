@@ -15,6 +15,9 @@
 #import('../../lib/dartdoc/mirrors/mirrors.dart');
 #import('../../lib/dartdoc/mirrors/mirrors_util.dart');
 
+final HTML_LIBRARY_NAME = 'dart:html';
+final DOM_LIBRARY_NAME = 'dart:dom_deprecated';
+
 /**
  * A class for computing a many-to-many mapping between the types and
  * members in `dart:dom_deprecated` and `dart:html`. This mapping is
@@ -83,13 +86,13 @@ class HtmlDiff {
   static void initialize(Path libDir) {
     _compilation = new Compilation.library(
         const <Path>[
-            const Path('dart:dom_deprecated'),
-            const Path('dart:html')
+            const Path(DOM_LIBRARY_NAME),
+            const Path(HTML_LIBRARY_NAME)
         ], libDir);
     _mirrors = _compilation.mirrors();
 
     // Find 'dart:dom_deprecated' by its library tag 'dom'.
-    dom = findMirror(_mirrors.libraries(), 'dom');
+    dom = findMirror(_mirrors.libraries(), DOM_LIBRARY_NAME);
   }
 
   HtmlDiff([bool printWarnings = false]) :
@@ -114,9 +117,9 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    LibraryMirror htmlLib = findMirror(_mirrors.libraries(), 'html');
+    LibraryMirror htmlLib = findMirror(_mirrors.libraries(), HTML_LIBRARY_NAME);
     if (htmlLib === null) {
-      warn('Could not find dart:html');
+      warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }
     for (InterfaceMirror htmlType in htmlLib.types().getValues()) {
@@ -143,9 +146,10 @@ class HtmlDiff {
   void _addMemberDiff(MemberMirror htmlMember, List<TypeMirror> domTypes) {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
-      warn('dart:html member '
+      warn('$HTML_LIBRARY_NAME member '
            '${htmlMember.surroundingDeclaration().simpleName()}.'
-           '${htmlMember.simpleName()} has no corresponding dart:html member.');
+           '${htmlMember.simpleName()} has no corresponding '
+           '$HTML_LIBRARY_NAME member.');
     }
 
     if (htmlMember == null) return;
@@ -174,7 +178,7 @@ class HtmlDiff {
       for (var domName in domNames) {
         final domType = findMirror(dom.types(), domName);
         if (domType == null) {
-          warn('no dart:dom_deprecated type named $domName');
+          warn('no $DOM_LIBRARY_NAME type named $domName');
         } else {
           domTypes.add(domType);
         }

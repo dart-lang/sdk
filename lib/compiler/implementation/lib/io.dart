@@ -9,7 +9,7 @@
 
 // TODO(ahe): Separate API from implementation details.
 
-#library("io");
+#library("dart:io");
 #import("dart:coreimpl");
 #import("dart:isolate");
 // TODO(ahe): Should Leg support this library?

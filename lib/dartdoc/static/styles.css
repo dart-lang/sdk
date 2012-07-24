@@ -52,7 +52,8 @@ pre, code {
   margin: 22px 0;
   padding: 0 4px;
   border-radius: 4px;
-  overflow: hidden;
+  overflow-x:auto;
+  overflow-y:hidden;
 }
 
 a {

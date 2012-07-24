@@ -10,44 +10,49 @@
  * Simple struct holding the path to a library and an optional path
  * to a patch file for the library.
  */
-class LibraryPatchPath {
+class LibraryInfo {
   final String libraryPath;
   final String patchPath;
-  const LibraryPatchPath(this.libraryPath, this.patchPath);
+
+  /** If [:true:], the library is not part of the public API. */
+  final bool isInternal;
+
+  const LibraryInfo(this.libraryPath,
+                    [this.patchPath = null, this.isInternal = false]);
 }
 
 /**
  * Specifies the location of Dart platform libraries.
  */
-final Map<String,LibraryPatchPath> DART2JS_LIBRARY_MAP
-    = const <LibraryPatchPath> {
-  "core": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/core.dart", null),
-  "coreimpl": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/coreimpl.dart", null),
-  "_js_helper": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/js_helper.dart", null),
-  "_interceptors": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/interceptors.dart", null),
-  "crypto": const LibraryPatchPath(
-      "lib/crypto/crypto.dart", null),
-  "dom_deprecated": const LibraryPatchPath(
-      "lib/dom/frog/dom_frog.dart", null),
-  "html": const LibraryPatchPath(
-      "lib/html/frog/html_frog.dart", null),
-  "io": const LibraryPatchPath(
-      "lib/compiler/implementation/lib/io.dart", null),
-  "isolate": const LibraryPatchPath(
-      "lib/isolate/isolate_leg.dart", null),
-  "json": const LibraryPatchPath(
-      "lib/json/json.dart", null),
-  "math": const LibraryPatchPath(
+final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
+    = const <LibraryInfo> {
+  "core": const LibraryInfo(
+      "lib/compiler/implementation/lib/core.dart"),
+  "coreimpl": const LibraryInfo(
+      "lib/compiler/implementation/lib/coreimpl.dart"),
+  "_js_helper": const LibraryInfo(
+      "lib/compiler/implementation/lib/js_helper.dart", isInternal: true),
+  "_interceptors": const LibraryInfo(
+      "lib/compiler/implementation/lib/interceptors.dart", isInternal: true),
+  "crypto": const LibraryInfo(
+      "lib/crypto/crypto.dart"),
+  "dom_deprecated": const LibraryInfo(
+      "lib/dom/frog/dom_frog.dart", isInternal: true),
+  "html": const LibraryInfo(
+      "lib/html/frog/html_frog.dart"),
+  "io": const LibraryInfo(
+      "lib/compiler/implementation/lib/io.dart"),
+  "isolate": const LibraryInfo(
+      "lib/isolate/isolate_leg.dart"),
+  "json": const LibraryInfo(
+      "lib/json/json.dart"),
+  "math": const LibraryInfo(
       "corelib/unified/math/math.dart",
-      "lib/compiler/implementation/lib/math.dartp"),
-  "uri": const LibraryPatchPath(
-      "lib/uri/uri.dart", null),
-  "utf": const LibraryPatchPath(
-      "lib/utf/utf.dart", null),
-  "web": const LibraryPatchPath(
-      "lib/web/web.dart", null),
+      "lib/compiler/implementation/lib/math.dartp", isInternal: true),
+  "uri": const LibraryInfo(
+      "lib/uri/uri.dart"),
+  "utf": const LibraryInfo(
+      "lib/utf/utf.dart"),
+  "web": const LibraryInfo(
+      "lib/web/web.dart"),
 };

@@ -15,7 +15,8 @@ main() {
   String dartVmPath = nativeToUriPath(arguments[1]);
   String productionName = nativeToUriPath(arguments[2]);
   String developerName = nativeToUriPath(arguments[3]);
-  String dartDir = appendSlash(nativeToUriPath(arguments[4]));
+  String dartdocName = nativeToUriPath(arguments[4]);
+  String dartDir = appendSlash(nativeToUriPath(arguments[5]));
 
   Uri dartUri = cwd.resolve(dartDir);
   Uri productUri = cwd.resolve(productDir);
@@ -23,12 +24,25 @@ main() {
   Uri dartVmUri = productUri.resolve(dartVmPath);
   Uri productionUri = productUri.resolve(arguments[2]);
   Uri developerUri = productUri.resolve(arguments[3]);
-  List<String> productionScript = buildScript(dartUri, dartVmUri, '');
-  List<String> developerScript = buildScript(dartUri, dartVmUri,
-                                             ' --enable_checked_mode');
+  Uri dartdocUri = productUri.resolve(arguments[4]);
 
+  List<String> productionScript = buildScript(
+      'dart2js-production',
+      dartUri, dartVmUri,
+      'lib/compiler/implementation/dart2js.dart', '');
   writeScript(productionUri, productionScript);
+
+  List<String> developerScript = buildScript(
+      'dart2js-developer',
+      dartUri, dartVmUri,
+      'lib/compiler/implementation/dart2js.dart', ' --enable_checked_mode');
   writeScript(developerUri, developerScript);
+
+  List<String> dartdocScript = buildScript(
+      'dartdoc',
+      dartUri, dartVmUri,
+      'lib/dartdoc/dartdoc.dart', '');
+  writeScript(dartdocUri, dartdocScript);
 }
 
 writeScript(Uri uri, List<String> scripts) {
@@ -62,16 +76,18 @@ writeScript(Uri uri, List<String> scripts) {
   }
 }
 
-List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
-  Uri dart2jsUri = dartUri.resolve('lib/compiler/implementation/dart2js.dart');
-  String dart2jsPath = relativize(dartVmLocation, dart2jsUri);
-  String dart2jsPathWin = dart2jsPath.replaceAll("/", "\\");
+List<String> buildScript(String name,
+                         Uri dartUri, Uri dartVmLocation,
+                         String entrypoint, String options) {
+  Uri uri = dartUri.resolve(entrypoint);
+  String path = relativize(dartVmLocation, uri);
+  String pathWin = path.replaceAll("/", "\\");
 
   print('dartUri = $dartUri');
   print('dartVmLocation = $dartVmLocation');
-  print('dart2jsUri = $dart2jsUri');
-  print('dart2jsPath = $dart2jsPath');
-  print('dart2jsPathWin = $dart2jsPathWin');
+  print('${name}Uri = $uri');
+  print('${name}Path = $path');
+  print('${name}PathWin = $pathWin');
 
   // Tell the VM to grow the heap more aggressively. This should only
   // be necessary temporarily until the VM is better at detecting how
@@ -87,7 +103,7 @@ List<String> buildScript(Uri dartUri, Uri dartVmLocation, String options) {
 # BSD-style license that can be found in the LICENSE file.
 
 BIN_DIR=`dirname \$0`
-exec \$BIN_DIR/dart$options \$BIN_DIR/$dart2jsPath "\$@"
+exec \$BIN_DIR/dart$options \$BIN_DIR/$path "\$@"
 ''',
 '''
 @echo off
@@ -102,6 +118,6 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
 
-"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$dart2jsPathWin" %arguments%
+"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$pathWin" %arguments%
 '''.replaceAll('\n', '\r\n')];
 }
