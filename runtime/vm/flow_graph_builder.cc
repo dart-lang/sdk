@@ -27,11 +27,6 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-#if defined(TARGET_ARCH_X64)
-DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
-#else
-DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
-#endif
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -2598,8 +2593,8 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     Instruction* current = it.Current();
     // Attach current environment to the instruction.
     // TODO(fschneider): Currently each instruction gets a full copy of the
-    // enviroment. This should be optimized: Only instructions that can
-    // deoptimize will should have uses of the environment values.
+    // environment. This should be optimized: Only instructions that can
+    // deoptimize should have uses of the environment values.
     current->set_env(new Environment(*env));
 
     // 2a. Handle uses:

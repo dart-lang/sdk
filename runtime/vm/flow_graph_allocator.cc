@@ -367,8 +367,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
   for (intptr_t i = 0; i < (block_count - 1); i++) {
     BlockEntryInstr* block = postorder_[i];
 
-    // For every SSA value that is live out of this block create an interval
-    // that covers the hole block.  It will be shortened if we encounter a
+    // For every SSA value that is live out of this block, create an interval
+    // that covers the whole block.  It will be shortened if we encounter a
     // definition of this value in this block.
     for (BitVector::Iterator it(live_out_[i]); !it.Done(); it.Advance()) {
       LiveRange* range = GetLiveRange(it.Current());
