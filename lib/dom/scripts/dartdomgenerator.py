@@ -17,8 +17,8 @@ import sys
 from generator import TypeRegistry
 from htmlrenamer import HtmlRenamer
 from systembase import GeneratorOptions
-from systemfrog import FrogSystem
-from systemhtml import HtmlInterfacesSystem, HtmlFrogSystem
+from systemdart2js import Dart2JSSystem
+from systemhtml import HtmlInterfacesSystem, HtmlDart2JSSystem
 from systeminterface import InterfacesSystem
 from systemnative import NativeImplementationSystem
 from templateloader import TemplateLoader
@@ -78,19 +78,19 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   emitters = multiemitter.MultiEmitter()
 
   for system_name in system_names:
-    if system_name in ['htmlfrog', 'htmldartium']:
+    if system_name in ['htmldart2js', 'htmldartium']:
       renamer = HtmlRenamer(webkit_database)
       type_registry = TypeRegistry(webkit_database, renamer)
-      if system_name == 'htmlfrog':
+      if system_name == 'htmldart2js':
         options = CreateGeneratorOptions(
-            ['html/frog', 'html/impl', 'html', ''],
-            {'DARTIUM': False, 'FROG': True},
+            ['html/dart2js', 'html/impl', 'html', ''],
+            {'DARTIUM': False, 'DART2JS': True},
             type_registry, html_output_dir, renamer)
-        backend = HtmlFrogSystem(options)
+        backend = HtmlDart2JSSystem(options)
       else:
         options = CreateGeneratorOptions(
             ['dom/native', 'html/dartium', 'html/impl', ''],
-            {'DARTIUM': True, 'FROG': False},
+            {'DARTIUM': True, 'DART2JS': False},
             type_registry, html_output_dir, renamer)
         backend = NativeImplementationSystem(options, auxiliary_dir)
       options = CreateGeneratorOptions(
@@ -108,10 +108,10 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
             ['dom/dummy', 'dom', ''], {}, type_registry, dom_output_dir)
         implementation_system = dartgenerator.DummyImplementationSystem(
             options)
-      elif system_name == 'frog':
+      elif system_name == 'dart2js':
         options = CreateGeneratorOptions(
-            ['dom/frog', 'dom', ''], {}, type_registry, dom_output_dir)
-        implementation_system = FrogSystem(options)
+            ['dom/dart2js', 'dom', ''], {}, type_registry, dom_output_dir)
+        implementation_system = Dart2JSSystem(options)
       else:
         raise Exception('Unsupported system_name %s' % system_name)
 
@@ -125,16 +125,16 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
   emitters.Flush()
 
 def GenerateSingleFile(systems):
-  if 'frog' in systems:
-    _logger.info('Copy dom_frog to frog/')
+  if 'dart2js' in systems:
+    _logger.info('Copy dom_dart2js to dart2js/')
     subprocess.call(['cd ../generated ; '
-                     '../../../tools/copy_dart.py ../frog dom_frog.dart'],
+                     '../../../tools/copy_dart.py ../dart2js dom_dart2js.dart'],
                     shell=True)
 
-  if 'htmlfrog' in systems:
-    _logger.info('Copy html_frog to ../html/frog/')
+  if 'htmldart2js' in systems:
+    _logger.info('Copy html_dart2js to ../html/dart2js/')
     subprocess.call(['cd ../../html/generated ; '
-                     '../../../tools/copy_dart.py ../frog html_frog.dart'],
+                     '../../../tools/copy_dart.py ../dart2js html_dart2js.dart'],
                     shell=True)
 
   if 'htmldartium' in systems:
@@ -155,9 +155,9 @@ def main():
   parser = optparse.OptionParser()
   parser.add_option('--systems', dest='systems',
                     action='store', type='string',
-                    default='frog,dummy,htmlfrog,htmldartium',
-                    help='Systems to generate (frog, dummy, '
-                         'htmlfrog, htmldartium)')
+                    default='dart2js,dummy,htmldart2js,htmldartium',
+                    help='Systems to generate (dart2js, dummy, '
+                         'htmldart2js, htmldartium)')
   parser.add_option('--output-dir', dest='output_dir',
                     action='store', type='string',
                     default=None,

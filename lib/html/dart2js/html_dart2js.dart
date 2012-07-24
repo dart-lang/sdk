@@ -1,4 +1,4 @@
-#library('dart:html');
+#library('html');
 
 #import('dart:isolate');
 #import('dart:json');
@@ -4047,7 +4047,7 @@ class _CompositionEventImpl extends _UIEventImpl implements CompositionEvent nat
 
 class _ConsoleImpl
     // Console is sometimes a singleton bag-of-properties without a prototype.
-    implements Console
+    implements Console 
     native "=(typeof console == 'undefined' ? {} : console)" {
 
   final _MemoryInfoImpl memory;
@@ -4853,7 +4853,7 @@ class _DocumentImpl extends _NodeImpl implements Document
 
   void webkitExitPointerLock() native;
 
-  // TODO(jacobr): implement all Element methods not on Document.
+  // TODO(jacobr): implement all Element methods not on Document. 
 
   _ElementImpl query(String selectors) {
     // It is fine for our RegExp to detect element id query selectors to have
@@ -6005,14 +6005,14 @@ class _ElementRectImpl implements ElementRect {
 
   // TODO(jacobr): should we move these outside of ElementRect to avoid the
   // overhead of computing them every time even though they are rarely used.
-  final _ClientRectImpl _boundingClientRect;
+  final _ClientRectImpl _boundingClientRect; 
   final _ClientRectListImpl _clientRects;
 
   _ElementRectImpl(_ElementImpl element) :
     client = new _SimpleClientRect(element.$dom_clientLeft,
                                   element.$dom_clientTop,
-                                  element.$dom_clientWidth,
-                                  element.$dom_clientHeight),
+                                  element.$dom_clientWidth, 
+                                  element.$dom_clientHeight), 
     offset = new _SimpleClientRect(element.$dom_offsetLeft,
                                   element.$dom_offsetTop,
                                   element.$dom_offsetWidth,
@@ -6289,7 +6289,7 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  // Optimization to improve performance until the frog compiler inlines this
+  // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   factory Element.tag(String tag) native "return document.createElement(tag)";
 }
@@ -6637,7 +6637,7 @@ class _EventsImpl implements Events {
 }
 
 class _EventListenerListImpl implements EventListenerList {
-
+  
   // TODO(jacobr): make this _EventTargetImpl
   final Dynamic _ptr;
   final String _type;
@@ -7606,8 +7606,8 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 }
 
-// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
-// can't handle that.  Move it back after frog is completely done.
+// TODO(sra): This should be a static member of _IDBTransactionImpl but dart2js
+// can't handle that.  Move it back after dart2js is completely done.
 var _transaction_fn;  // Assigned one of the static methods.
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -9535,7 +9535,7 @@ class _NodeImpl extends _EventTargetImpl implements Node native "*Node" {
       final _NodeImpl parent = this.parent;
       parent.$dom_replaceChild(otherNode, this);
     } catch(var e) {
-
+      
     };
     return this;
   }
@@ -9786,7 +9786,7 @@ class _NodeListImpl implements NodeList native "*NodeList" {
 
   void addAll(Collection<_NodeImpl> collection) {
     for (_NodeImpl node in collection) {
-      _parent.$dom_appendChild(node);
+      _parent.$dom_appendChild(node);      
     }
   }
 
@@ -37078,7 +37078,7 @@ class _RemoteSendPortSync implements SendPortSync {
   }
 
   static _call(int isolateId, int portId, var message) {
-    var target = 'dart-port-$isolateId-$portId';
+    var target = 'dart-port-$isolateId-$portId'; 
     // TODO(vsm): Make this re-entrant.
     // TODO(vsm): Set this up set once, on the first call.
     var source = '$target-result';
@@ -37143,13 +37143,13 @@ class ReceivePortSync {
   static int get _isolateId() {
     // TODO(vsm): Make this coherent with existing isolate code.
     if (_cachedIsolateId == null) {
-      _cachedIsolateId = _getNewIsolateId();
+      _cachedIsolateId = _getNewIsolateId();      
     }
     return _cachedIsolateId;
   }
 
   static String _getListenerName(isolateId, portId) =>
-      'dart-port-$isolateId-$portId';
+      'dart-port-$isolateId-$portId'; 
   String get _listenerName() => _getListenerName(_isolateId, _portId);
 
   void receive(callback(var message)) {
@@ -37341,7 +37341,7 @@ class _CSSStyleDeclarationFactoryProvider {
     final style = new Element.tag('div').style;
     style.cssText = css;
     return style;
-  }
+  } 
 
   factory CSSStyleDeclaration() {
     return new CSSStyleDeclaration.css('');

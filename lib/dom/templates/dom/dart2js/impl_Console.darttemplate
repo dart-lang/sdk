@@ -10,7 +10,7 @@ class $CLASSNAME
     native "=(typeof console == 'undefined' ? {} : console)" {
 $!MEMBERS
 
-  // Keep these in sync with frog_DOMTypeJs.dart.
+  // Keep these in sync with dart2js_DOMTypeJs.dart.
   var dartObjectLocalStorage;
   String get typeName() native;
 }

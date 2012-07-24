@@ -202,7 +202,7 @@ class DartGenerator(object):
       interfaces.append(interface)
 
     # TODO(sra): Use this list of exception names to generate information to
-    # tell Frog which exceptions can be passed from JS to Dart code.
+    # tell dart2js which exceptions can be passed from JS to Dart code.
     exceptions = self._CollectExceptions(interfaces)
 
     super_map = dict((v, k) for k, v in webkit_renames.iteritems())

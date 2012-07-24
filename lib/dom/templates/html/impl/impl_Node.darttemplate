@@ -13,7 +13,7 @@ class _ChildNodeListLazy implements NodeList {
   _ChildNodeListLazy(this._this);
 
 
-$if FROG
+$if DART2JS
   _NodeImpl get first() native "return this._this.firstChild;";
   _NodeImpl last() native "return this._this.lastChild;";
 $else

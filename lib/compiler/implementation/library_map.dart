@@ -37,9 +37,9 @@ final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
   "crypto": const LibraryInfo(
       "lib/crypto/crypto.dart"),
   "dom_deprecated": const LibraryInfo(
-      "lib/dom/frog/dom_frog.dart", isInternal: true),
+      "lib/dom/dart2js/dom_dart2js.dart", isInternal: true),
   "html": const LibraryInfo(
-      "lib/html/frog/html_frog.dart"),
+      "lib/html/dart2js/html_dart2js.dart"),
   "io": const LibraryInfo(
       "lib/compiler/implementation/lib/io.dart"),
   "isolate": const LibraryInfo(

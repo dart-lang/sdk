@@ -1,4 +1,4 @@
-#library('dart:dom_deprecated');
+#library('dom');
 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -850,7 +850,7 @@ class _ConsoleJs
   void warn(Object arg) native;
 
 
-  // Keep these in sync with frog_DOMTypeJs.dart.
+  // Keep these in sync with dart2js_DOMTypeJs.dart.
   var dartObjectLocalStorage;
   String get typeName() native;
 }
