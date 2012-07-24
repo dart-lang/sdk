@@ -3712,6 +3712,41 @@ TEST_CASE(Invoke_CrossLibrary) {
                "did not find top-level function '_imported'");
 }
 
+TEST_CASE(ClosureFunction) {
+  const char* kScriptChars =
+      "Function getClosure() {\n"
+      "  return (x, y, [z]) => x + y + z;\n"
+      "}\n";
+  Dart_Handle result;
+  DARTSCOPE_NOCHECKS(Isolate::Current());
+
+  // Create a test library and Load up a test script in it.
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+
+  // Invoke a function which returns a closure.
+  Dart_Handle retobj = Dart_Invoke(lib, Dart_NewString("getClosure"), 0, NULL);
+  EXPECT_VALID(retobj);
+
+  EXPECT(Dart_IsClosure(retobj));
+  EXPECT(!Dart_IsClosure(Dart_NewInteger(101)));
+
+  // Retrieve the closure's function
+  result = Dart_ClosureFunction(retobj);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFunction(result));
+  int64_t fixed_param_count = -1;
+  int64_t opt_param_count = -1;
+  result = Dart_FunctionParameterCounts(result,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(2, fixed_param_count);
+  EXPECT_EQ(1, opt_param_count);
+
+  // Try to retrieve function from a non-closure object
+  result = Dart_ClosureFunction(Dart_NewInteger(1));
+  EXPECT(Dart_IsError(result));
+}
 
 TEST_CASE(InvokeClosure) {
   const char* kScriptChars =

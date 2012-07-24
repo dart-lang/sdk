@@ -247,6 +247,55 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
   }
 }
 
+class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
+    implements ClosureMirror {
+  _LocalClosureMirrorImpl(ref,
+                          klass,
+                          reflectee) : super(ref, klass, reflectee) {}
+
+  MethodMirror _function;
+  MethodMirror function() => _function;
+
+  String source() {
+    throw new NotImplementedException('ClosureMirror.source() not implemented');
+  }
+
+  Future<ObjectMirror> apply(List<Object> positionalArguments,
+                             [Map<String,Object> namedArguments]) {
+    if (namedArguments !== null) {
+      throw new NotImplementedException('named arguments not implemented');
+    }
+    // Walk the arguments and make sure they are legal.
+    for (int i = 0; i < positionalArguments.length; i++) {
+      var arg = positionalArguments[i];
+      if (arg is Mirror) {
+        if (arg is! InstanceMirror) {
+          throw new MirrorException(
+              'positional argument $i ($arg) was not an InstanceMirror');
+        }
+      } else if (!isSimpleValue(arg)) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not a simple value');
+      }
+    }
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(
+          _apply(this, positionalArguments));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  Future<ObjectMirror> findInContext(String name) {
+    throw "asYetUnimplemented";
+  }
+
+  static _apply(ref, positionalArguments)
+      native 'LocalClosureMirrorImpl_apply';
+}
+
 class _LazyInterfaceMirror {
   _LazyInterfaceMirror(this.libraryName, this.interfaceName) {}
 

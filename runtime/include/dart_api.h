@@ -1940,6 +1940,14 @@ DART_EXPORT Dart_Handle Dart_ByteArraySetFloat64At(Dart_Handle array,
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
 
 /**
+ * Retrieves the function of a closure.
+ *
+ * \return A handle on the function of the closure, or an error handle if the
+ *   argument is not a closure.
+ */
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
+
+/**
  * Invokes a Closure with the given arguments.
  *
  * May generate an unhandled exception error.

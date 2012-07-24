@@ -2392,6 +2392,24 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(closure));
+  if (obj.IsNull()) {
+    return Api::NewError("Null object passed to Dart_ClosureFunction");
+  }
+  if (!obj.IsClosure()) {
+    return Api::NewError("Invalid closure passed to Dart_ClosureFunction");
+  }
+  ASSERT(ClassFinalizer::AllClassesFinalized());
+
+  const Closure& closure_obj = Closure::Cast(obj);
+  RawFunction* rf = closure_obj.function();
+  return Api::NewHandle(isolate, rf);
+}
+
+
 DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {

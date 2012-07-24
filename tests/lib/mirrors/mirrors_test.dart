@@ -45,9 +45,26 @@ testFieldAccess(mirrors) {
   }));
 }
 
+testClosureMirrors(mirrors) {
+  var closure = (x, y, z) { return x + y + z; };
+  
+  var mirror = mirrors.mirrorOf(closure);
+  expect(mirror is ClosureMirror, equals(true));
+  
+  var funcMirror = mirror.function();
+  expect(funcMirror is MethodMirror, equals(true));
+  expect(funcMirror.parameters().length, equals(3));
+
+  var future = mirror.apply([2, 4, 8]);
+  future.then(expectAsync1((resultMirror) {
+    expect(resultMirror.reflectee, equals(14));
+  }));
+}
+
 main() {
   var mirrors = currentMirrorSystem();
 
   test("Test field access", () { testFieldAccess(mirrors); });
+  test("Test closure mirrors", () { testClosureMirrors(mirrors); });
 }
 
