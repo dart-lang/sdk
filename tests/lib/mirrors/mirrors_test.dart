@@ -19,7 +19,7 @@ class Class {
 testFieldAccess(mirrors) {
   var instance = new Class();
 
-  var libMirror = mirrors.rootLibrary;
+  var libMirror = mirrors.libraries()["MirrorsTest.dart"];
   var classMirror = libMirror.classes()["Class"];
   var instMirror = mirrors.mirrorOf(instance);
 
