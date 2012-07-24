@@ -17,7 +17,12 @@ class Emitter {
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
     ClassNode classNode = classElement.parseNode(compiler);
-    sb.add(classElement.beginToken.slowToString());  // 'class' or 'interface'.
+    // classElement.beginToken is 'class', 'interface', or 'abstract'.
+    sb.add(classElement.beginToken.slowToString());
+    if (classElement.beginToken.slowToString() == 'abstract') {
+      sb.add(' ');
+      sb.add(classElement.beginToken.next.slowToString());  // 'class'
+    }
     sb.add(' ');
     sb.add(classNode.name.unparse());
     if (classNode.typeParameters !== null) {

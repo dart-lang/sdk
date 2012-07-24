@@ -194,6 +194,10 @@ testFactoryConstructor() {
       'final String f;}');
 }
 
+testAbstractClass() {
+  testDart2Dart('main(){A.foo();}abstract class A{static foo(){}}');
+}
+
 main() {
   testGenericTypes();
   testForLoop();
@@ -212,4 +216,5 @@ main() {
   testGetSet();
   testFactoryConstructor();
   testTopLevelField();
+  testAbstractClass();
 }
