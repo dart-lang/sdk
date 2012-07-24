@@ -883,13 +883,13 @@ class RawICData : public RawObject {
   RawObject** from() {
     return reinterpret_cast<RawObject**>(&ptr()->function_);
   }
-  RawFunction* function_;  // Parent/calling function of this IC.
-  RawString* target_name_;  // Name of target function.
-  RawArray* ic_data_;  // Contains test class-ids and target functions.
+  RawFunction* function_;     // Parent/calling function of this IC.
+  RawString* target_name_;    // Name of target function.
+  RawArray* ic_data_;         // Contains test class-ids and target functions.
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  intptr_t id_;  // Parser node id corresponding to this IC.
+  intptr_t id_;               // Parser node id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
 };
 

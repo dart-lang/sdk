@@ -1613,7 +1613,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpl(EAX, EDI);  // Class id match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addl(EBX, Immediate(kWordSize * 2));  // Next element (class + target).
-    __ cmpl(EDI, raw_null);   // Done?
+    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   } else if (num_args == 2) {
     // EDI: class to check.
@@ -1640,7 +1640,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ Bind(&no_match);
     // Each test entry has (1 + num_args) array elements.
     __ addl(EBX, Immediate(kWordSize * (1 + num_args)));  // Next element.
-    __ cmpl(EDI, raw_null);   // Done?
+    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   }
 

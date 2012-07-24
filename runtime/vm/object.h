@@ -2650,7 +2650,7 @@ class ContextScope : public Object {
 
 
 // Object holding information about an IC: test classes and their
-// corresponding classes.
+// corresponding targets.
 class ICData : public Object {
  public:
   RawFunction* function() const {
@@ -2692,11 +2692,11 @@ class ICData : public Object {
   }
 
   // Adds one more class test to ICData. Length of 'classes' must be equal to
-  // the number of arguments tested. Use only for number_of_checks > 1.
+  // the number of arguments tested. Use only for num_args_tested > 1.
   void AddCheck(const GrowableArray<intptr_t>& class_ids,
                 const Function& target) const;
   // Adds sorted so that Smi is the first class-id. Use only for
-  // number_of_checks == 1.
+  // num_args_tested == 1.
   void AddReceiverCheck(intptr_t receiver_class_id,
                         const Function& target) const;
   void GetCheckAt(intptr_t index,
@@ -2730,6 +2730,7 @@ class ICData : public Object {
   void set_ic_data(const Array& value) const;
 
   intptr_t TestEntryLength() const;
+  void WriteSentinel() const;
 
   HEAP_OBJECT_IMPLEMENTATION(ICData, Object);
   friend class Class;

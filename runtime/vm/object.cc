@@ -7212,19 +7212,28 @@ intptr_t ICData::NumberOfChecks() const {
 }
 
 
+void ICData::WriteSentinel() const {
+  const Smi& sentinel_value = Smi::Handle(Smi::New(kIllegalObjectKind));
+  const Array& data = Array::Handle(ic_data());
+  for (intptr_t i = 1; i <= TestEntryLength(); i++) {
+    data.SetAt(data.Length() - i, sentinel_value);
+  }
+}
+
+
 void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
                       const Function& target) const {
   ASSERT(num_args_tested() > 1);  // Otherwise use 'AddReceiverCheck'.
   ASSERT(class_ids.length() == num_args_tested());
-  intptr_t old_num = NumberOfChecks();
+  const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
-  intptr_t new_len = data.Length() + TestEntryLength();
+  const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
+  WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
-    // Null is used as terminating value, do not add it.
-    ASSERT(class_ids[i] != kNullClass);
+    // kIllegalObjectKind is used as terminating value, do not add it.
     ASSERT(class_ids[i] != kIllegalObjectKind);
     data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
@@ -7236,16 +7245,15 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target) const {
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
-  // Not supporting collection of null receivers.
-  ASSERT(receiver_class_id != kNullClass);
   ASSERT(receiver_class_id != kIllegalObjectKind);
   ASSERT(!target.IsNull());
 
-  intptr_t old_num = NumberOfChecks();
+  const intptr_t old_num = NumberOfChecks();
   Array& data = Array::Handle(ic_data());
-  intptr_t new_len = data.Length() + TestEntryLength();
+  const intptr_t new_len = data.Length() + TestEntryLength();
   data = Array::Grow(data, new_len, Heap::kOld);
   set_ic_data(data);
+  WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
   if ((receiver_class_id == kSmi) && (data_pos > 0)) {
     // Instert kSmi in position 0.
@@ -7378,6 +7386,7 @@ RawICData* ICData::New(const Function& function,
   // IC data array must be null terminated (sentinel entry).
   const Array& ic_data = Array::Handle(Array::New(len, Heap::kOld));
   result.set_ic_data(ic_data);
+  result.WriteSentinel();
   return result.raw();
 }
 

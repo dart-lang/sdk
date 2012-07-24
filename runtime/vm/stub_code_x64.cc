@@ -1589,7 +1589,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpq(RAX, R13);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addq(R12, Immediate(kWordSize * 2));  // Next element (class + target).
-    __ cmpq(R13, raw_null);   // Done?
+    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   } else if (num_args == 2) {
     Label no_match;
@@ -1611,7 +1611,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ j(EQUAL, &found);
     __ Bind(&no_match);
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
-    __ cmpq(R13, raw_null);   // Done?
+    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   }
 
