@@ -10,10 +10,9 @@
 namespace dart {
 
 inline int Utils::CountTrailingZeros(uword x) {
-  uword result;
+  unsigned long result;  // NOLINT
 #if defined(ARCH_IS_32_BIT)
   _BitScanReverse(&result, x);
-  return __builtin_ctzl(x);
 #elif defined(ARCH_IS_64_BIT)
   _BitScanReverse64(&result, x);
 #else
