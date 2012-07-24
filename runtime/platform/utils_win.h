@@ -9,16 +9,17 @@
 
 namespace dart {
 
-inline int Utils::CountTrailingZeros(uint32_t x) {
-  unsigned long result;  // NOLINT
+inline int Utils::CountTrailingZeros(uword x) {
+  uword result;
+#if defined(ARCH_IS_32_BIT)
   _BitScanReverse(&result, x);
-  return reinterpret_cast<int>(result);
-};
-
-inline int Utils::CountTrailingZeros(uint64_t x) {
-  unsigned long result;  // NOLINT
+  return __builtin_ctzl(x);
+#elif defined(ARCH_IS_64_BIT)
   _BitScanReverse64(&result, x);
-  return reinterpret_cast<int>(result);
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif
+  return static_cast<int>(result);
 };
 
 }  // namespace dart

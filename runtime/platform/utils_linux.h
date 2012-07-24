@@ -7,12 +7,14 @@
 
 namespace dart {
 
-inline int Utils::CountTrailingZeros(uint32_t x) {
+inline int Utils::CountTrailingZeros(uword x) {
+#if defined(ARCH_IS_32_BIT)
   return __builtin_ctzl(x);
-};
-
-inline int Utils::CountTrailingZeros(uint64_t x) {
+#elif defined(ARCH_IS_64_BIT)
   return __builtin_ctzll(x);
+#else
+#error Architecture is not 32-bit or 64-bit.
+#endif
 };
 
 }  // namespace dart

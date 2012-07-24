@@ -79,8 +79,7 @@ class Utils {
   static uint32_t RoundUpToPowerOfTwo(uint32_t x);
   static int CountOneBits(uint32_t x);
 
-  static int CountTrailingZeros(uint32_t x);
-  static int CountTrailingZeros(uint64_t x);
+  static int CountTrailingZeros(uword x);
 
   // Computes a hash value for the given string.
   static uint32_t StringHash(const char* data, int length);
