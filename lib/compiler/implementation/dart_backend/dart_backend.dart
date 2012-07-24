@@ -7,6 +7,8 @@
 #import('../elements/elements.dart');
 #import('../leg.dart');
 #import('../tree/tree.dart');
+#import('../util/util.dart');
 
 #source('backend.dart');
 #source('emitter.dart');
+#source('renamer.dart');

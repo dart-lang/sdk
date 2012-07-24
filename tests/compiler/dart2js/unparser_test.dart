@@ -34,12 +34,28 @@ assert() {}
 ''';
 
 testDart2Dart(String src, [void continuation(String s)]) {
+  // If continuation is not provided, check that source string remains the same.
+  if (continuation === null) {
+    continuation = (s) { Expect.equals(src, s); };
+  }
+  testDart2DartWithLibrary(src, '', continuation);
+}
+
+/**
+ * Library name is assumed to be 'mylib' in 'mylib.dart' file.
+ */
+testDart2DartWithLibrary(
+    String srcMain, String srcLibrary, [void continuation(String s)]) {
   fileUri(path) => new Uri(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
+  final libUri = fileUri('mylib.dart');
 
   provider(uri) {
-    if (uri == scriptUri) return new Future.immediate(src);
+    if (uri == scriptUri) return new Future.immediate(srcMain);
+    if (uri.toString() == libUri.toString()) {
+      return new Future.immediate(srcLibrary);
+    }
     if (uri.path.endsWith('/core.dart')) return new Future.immediate(coreLib);
     return new Future.immediate('');
   }
@@ -50,10 +66,6 @@ testDart2Dart(String src, [void continuation(String s)]) {
     }
   }
 
-  // If continuation is not provided, check that source string remains the same.
-  if (continuation == null) {
-    continuation = (s) => Expect.equals(src, s);
-  }
   compile(
       scriptUri,
       fileUri('libraryRoot'),
@@ -195,7 +207,53 @@ testFactoryConstructor() {
 }
 
 testAbstractClass() {
-  testDart2Dart('main(){A.foo();}abstract class A{static foo(){}}');
+  testDart2Dart('main(){A.foo;}abstract class A{final static num foo;}');
+}
+
+testConflictLibraryClassRename() {
+  var librarySrc = '''
+#library('mylib');
+
+topfoo() {}
+
+class A {
+  foo(){}
+}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+
+topfoo() {var x = 5;}
+
+class A{
+  num foo() {}
+  A.fromFoo() {}
+  mylib.A myliba;
+  List<A> mylist;
+}
+
+mylib.A getA() => null;
+
+main() {
+  var a = new mylib.A();
+  a.foo();
+  var b = new A.fromFoo();
+  b.foo();
+  var GREATVAR = b.myliba;
+  b.mylist;
+  a = getA();
+  topfoo();
+  mylib.topfoo();
+}
+''';
+  var expectedResult = 'topfoo(){}_topfoo(){var x=5;}A getA()=> null;'
+      'main(){var a=new A(); a.foo(); var b=new _A.fromFoo(); b.foo(); '
+          'var GREATVAR=b.myliba; b.mylist; a=getA(); _topfoo(); topfoo();}'
+      'class _A{_A.fromFoo(){}List<List> mylist;num foo(){}A myliba;}'
+      'class A{foo(){}}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
 }
 
 main() {
@@ -217,4 +275,5 @@ main() {
   testFactoryConstructor();
   testTopLevelField();
   testAbstractClass();
+  testConflictLibraryClassRename();
 }

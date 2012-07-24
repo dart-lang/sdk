@@ -9,13 +9,19 @@ class Emitter {
 
   final Compiler compiler;
   final StringBuffer sb;
+  final Renamer renamer;
 
-  Emitter(this.compiler) : sb = new StringBuffer();
+  Emitter(Compiler compiler) :
+      this.compiler = compiler,
+      sb = new StringBuffer(),
+      renamer = new ConflictingRenamer(compiler);
 
   /**
    * Outputs given class element with selected inner elements.
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
+    Unparser unparser = new Unparser(renamer);
+    renamer.setContext(classElement.getCompilationUnit());
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
     sb.add(classElement.beginToken.slowToString());
@@ -24,23 +30,23 @@ class Emitter {
       sb.add(classElement.beginToken.next.slowToString());  // 'class'
     }
     sb.add(' ');
-    sb.add(classNode.name.unparse());
+    sb.add(renamer.renameType(classElement.type));
     if (classNode.typeParameters !== null) {
-      sb.add(classNode.typeParameters.unparse());
+      sb.add(unparser.unparse(classNode.typeParameters));
     }
     if (classNode.extendsKeyword !== null) {
       sb.add(' ');
       classNode.extendsKeyword.value.printOn(sb);
       sb.add(' ');
-      sb.add(classNode.superclass.unparse());
+      sb.add(renamer.renameType(classElement.supertype));
     }
     if (!classNode.interfaces.isEmpty()) {
       sb.add(classElement.isInterface() ? ' extends ' : ' implements ');
-      classNode.interfaces.nodes.printOn(sb, classNode.interfaces.delimiter);
+      sb.add(unparser.unparse(classNode.interfaces));
     }
     if (classNode.defaultClause !== null) {
       sb.add(' default ');
-      sb.add(classNode.defaultClause.unparse());
+      sb.add(unparser.unparse(classNode.defaultClause));
     }
     sb.add('{');
     innerElements.forEach((element) {
@@ -51,15 +57,17 @@ class Emitter {
   }
 
   void outputElement(Element element) {
+    Unparser unparser = new Unparser(renamer);
+    renamer.setContext(element);
     // TODO(smok): Figure out why AbstractFieldElement appears here,
     // we have used getters/setters resolved instead of it.
     if (element is SynthesizedConstructorElement
         || element is AbstractFieldElement) return;
     if (element.isField()) {
       assert(element is VariableElement);
-      sb.add(element.variables.parseNode(compiler).unparse());
+      sb.add(unparser.unparse(element.variables.parseNode(compiler)));
     } else {
-      sb.add(element.parseNode(compiler).unparse());
+      sb.add(unparser.unparse(element.parseNode(compiler)));
     }
   }
 

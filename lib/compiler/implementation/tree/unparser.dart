@@ -3,9 +3,10 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Unparser implements Visitor {
+  final Renamer renamer;
   StringBuffer sb;
 
-  Unparser();
+  Unparser([this.renamer = const Renamer()]);
 
   String unparse(Node node) {
     sb = new StringBuffer();
@@ -117,7 +118,12 @@ class Unparser implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    add(node.token.value);
+    String newName = renamer.renameIdentifier(node);
+    if (newName == null) {
+      add(node.token.value);
+    } else {
+      sb.add(newName);
+    }
   }
 
   visitIf(If node) {
@@ -183,8 +189,13 @@ class Unparser implements Visitor {
    * Unparses given NodeList starting from specific node.
    */
   unparseNodeListFrom(NodeList node, Link<Node> from) {
+    if (from.isEmpty()) return;
     String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
-    from.printOn(sb, delimiter);
+    visit(from.head);
+    for (Link link = from.tail; !link.isEmpty(); link = link.tail) {
+      sb.add(delimiter);
+      visit(link.head);
+    }
   }
 
   visitNodeList(NodeList node) {
@@ -231,9 +242,20 @@ class Unparser implements Visitor {
     }
   }
 
-  visitSend(Send node) {
+  unparseSend(Send node) {
     unparseSendPart(node);
     visit(node.argumentsNode);
+  }
+
+  visitSend(Send node) {
+    String newMethodName = renamer.renameSendMethod(node);
+    if (newMethodName !== null) {
+      sb.add(newMethodName);
+      visit(node.argumentsNode);
+    } else {
+      unparseSendPart(node);
+      visit(node.argumentsNode);
+    }
   }
 
   /**
@@ -278,7 +300,14 @@ class Unparser implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    node.visitChildren(this);
+    String newName = renamer.renameTypeName(node);
+    if (newName !== null) {
+      sb.add(newName);
+      visit(node.typeArguments);
+    } else {
+      // Fallback to default unparse without renaming.
+      node.visitChildren(this);
+    }
   }
 
   visitTypeVariable(TypeVariable node) {
