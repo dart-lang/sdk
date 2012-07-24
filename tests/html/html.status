@@ -28,6 +28,7 @@ indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps corre
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
+unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
@@ -165,6 +166,7 @@ fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 measurement_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
+unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -173,7 +175,6 @@ htmloptionscollection_test: Fail # Issue 3813.
 dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 transferables_test: Skip # until isInstance works in dart2js
-unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js && $runtime == d8 ]
 # Should investigate why this test succeeds on d8.
