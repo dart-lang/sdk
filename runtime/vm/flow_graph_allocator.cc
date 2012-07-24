@@ -768,6 +768,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
 static ParallelMoveInstr* CreateParallelMoveBefore(Instruction* instr,
                                                    intptr_t pos) {
+  ASSERT(pos > 0);
   Instruction* prev = instr->previous();
   ParallelMoveInstr* move = prev->AsParallelMove();
   if ((move == NULL) || (move->lifetime_position() != pos)) {
@@ -820,6 +821,12 @@ void FlowGraphAllocator::NumberInstructions() {
       }
     }
     block->set_end_pos(pos);
+  }
+
+  // Create parallel moves in join predecessors.  This must be done after
+  // all instructions are numbered.
+  for (intptr_t i = block_count - 1; i >= 0; i--) {
+    BlockEntryInstr* block = postorder_[i];
 
     // For join entry predecessors create phi resolution moves if
     // necessary. They will be populated by the register allocator.

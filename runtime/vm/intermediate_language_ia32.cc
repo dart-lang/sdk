@@ -168,6 +168,18 @@ LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
 }
 
 
+LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
+}
+
+
 void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -227,9 +239,9 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
                                                 LocationSummary::kCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_in(0, Location::RegisterLocation(ECX));
+    locs->set_in(1, Location::RegisterLocation(EDX));
+    locs->set_temp(0, Location::RegisterLocation(EBX));
     locs->set_out(Location::RegisterLocation(EAX));
     return locs;
   }
@@ -237,8 +249,8 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(kNumInputs,
                                               kNumTemps,
                                               LocationSummary::kCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(0, Location::RegisterLocation(ECX));
+  locs->set_in(1, Location::RegisterLocation(EDX));
   locs->set_out(Location::RegisterLocation(EAX));
   return locs;
 }
@@ -1132,9 +1144,15 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary*
     AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::RequiresRegister(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_in(1, Location::RegisterLocation(ECX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
@@ -1193,9 +1211,9 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(kNumInputs,
                                               kNumTemps,
                                               LocationSummary::kCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_temp(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_temp(0, Location::RegisterLocation(ECX));
+  locs->set_out(Location::RegisterLocation(EAX));
   return locs;
 }
 
@@ -1485,9 +1503,9 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterLocation(ECX));
+    summary->set_temp(0, Location::RegisterLocation(EDX));
+    summary->set_out(Location::RegisterLocation(EAX));
     return summary;
   }
 
@@ -1518,10 +1536,10 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::RegisterLocation(EAX));
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterLocation(EDX));
+    summary->set_temp(0, Location::RegisterLocation(EBX));
     summary->set_temp(1, Location::RegisterLocation(ECX));
+    summary->set_out(Location::RegisterLocation(EAX));
     return summary;
   } else {
     const intptr_t kNumTemps = 1;
@@ -1897,9 +1915,9 @@ LocationSummary* NumberNegateComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(kNumInputs,
                                                  kNumTemps,
                                                  LocationSummary::kCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(0, Location::RegisterLocation(EAX));
+  summary->set_temp(0, Location::RegisterLocation(ECX));
+  summary->set_out(Location::RegisterLocation(EAX));
   return summary;
 }
 
@@ -2107,9 +2125,9 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
       LocationSummary* locs = new LocationSummary(kNumInputs,
                                                   kNumTemps,
                                                   LocationSummary::kCall);
-      locs->set_in(0, Location::RequiresRegister());
-      locs->set_in(1, Location::RequiresRegister());
-      locs->set_temp(0, Location::RequiresRegister());
+      locs->set_in(0, Location::RegisterLocation(EAX));
+      locs->set_in(1, Location::RegisterLocation(ECX));
+      locs->set_temp(0, Location::RegisterLocation(EDX));
       return locs;
     }
     // Otherwise polymorphic dispatch.

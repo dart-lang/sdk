@@ -1208,13 +1208,6 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kCall);
-}
-
-
 LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(1, 1);
   locs->set_in(0, Location::RequiresRegister());
