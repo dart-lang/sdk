@@ -127,7 +127,7 @@ void FlowGraphAllocator::ComputeInitialSets() {
       }
 
       Definition* current_def = current->AsDefinition();
-      if ((current_def != NULL) && (current_def->ssa_temp_index() >= 0)) {
+      if ((current_def != NULL) && (current_def->HasSSATemp())) {
         kill->Add(current_def->ssa_temp_index());
       }
     }
@@ -582,7 +582,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
        j++) {
     Value* input = current->InputAt(j);
     ASSERT(input->IsUse());  // Can not be a constant currently.
-
     const intptr_t vreg = input->AsUse()->definition()->ssa_temp_index();
     LiveRange* range = GetLiveRange(vreg);
 

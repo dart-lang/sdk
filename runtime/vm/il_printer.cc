@@ -123,7 +123,7 @@ void Computation::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void UseVal::PrintTo(BufferFormatter* f) const {
-  if (definition()->ssa_temp_index() != -1) {
+  if (definition()->HasSSATemp()) {
     f->Print("v%d", definition()->ssa_temp_index());
   } else {
     f->Print("t%d", definition()->temp_index());
@@ -395,7 +395,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
 
 void ParameterInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- parameter(%d)",
-           (ssa_temp_index() != -1) ? ssa_temp_index() : temp_index(),
+           HasSSATemp() ? ssa_temp_index() : temp_index(),
            index());
 }
 
@@ -413,7 +413,7 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
 void BindInstr::PrintTo(BufferFormatter* f) const {
   if (!is_used()) {
     f->Print("    ");
-  } else if (ssa_temp_index() != -1) {
+  } else if (HasSSATemp()) {
     f->Print("    v%d <- ", ssa_temp_index());
   } else {
     f->Print("    t%d <- ", temp_index());
@@ -652,7 +652,7 @@ void PhiInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ParameterInstr::PrintToVisualizer(BufferFormatter* f) const {
-  ASSERT(ssa_temp_index() != -1);
+  ASSERT(HasSSATemp());
   ASSERT(temp_index() == -1);
   f->Print("v%d Parameter(%d)", ssa_temp_index(), index());
 }
@@ -671,7 +671,7 @@ void TargetEntryInstr::PrintToVisualizer(BufferFormatter* f) const {
 void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
   if (!is_used()) {
     f->Print("_ ");
-  } else if (ssa_temp_index() != -1) {
+  } else if (HasSSATemp()) {
     f->Print("v%d ", ssa_temp_index());
   } else {
     f->Print("t%d ", temp_index());

@@ -2113,7 +2113,11 @@ class Definition : public Instruction {
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
-  void set_ssa_temp_index(intptr_t index) { ssa_temp_index_ = index; }
+  void set_ssa_temp_index(intptr_t index) {
+    ASSERT(index >= 0);
+    ssa_temp_index_ = index;
+  }
+  bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
 
  private:
   intptr_t temp_index_;
