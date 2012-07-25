@@ -201,16 +201,11 @@ class FlowGraphAllocator : public ValueObject {
 // It points to a location slot which either tells register allocator
 // where instruction expects the value (if slot contains a fixed location) or
 // asks register allocator to allocate storage (register or spill slot) for
-// this use with certain properties (if slot contain an unallocated location).
+// this use with certain properties (if slot contains an unallocated location).
 class UsePosition : public ZoneAllocated {
  public:
-  UsePosition(intptr_t pos,
-              UsePosition* next,
-              Location* location_slot)
-      : pos_(pos),
-        location_slot_(location_slot),
-        next_(next) {
-  }
+  UsePosition(intptr_t pos, UsePosition* next, Location* location_slot)
+      : pos_(pos), location_slot_(location_slot), next_(next) { }
 
   Location* location_slot() const { return location_slot_; }
   void set_location_slot(Location* location_slot) {
@@ -284,10 +279,10 @@ class UseInterval : public ZoneAllocated {
 class AllocationFinger : public ValueObject {
  public:
   AllocationFinger()
-    : first_pending_use_interval_(NULL),
-      first_register_use_(NULL),
-      first_register_beneficial_use_(NULL),
-      first_hinted_use_(NULL) {
+      : first_pending_use_interval_(NULL),
+        first_register_use_(NULL),
+        first_register_beneficial_use_(NULL),
+        first_hinted_use_(NULL) {
   }
 
   void Initialize(LiveRange* range);
@@ -316,6 +311,7 @@ class LiveRange : public ZoneAllocated {
  public:
   explicit LiveRange(intptr_t vreg)
     : vreg_(vreg),
+      assigned_location_(),
       uses_(NULL),
       first_use_interval_(NULL),
       last_use_interval_(NULL),
@@ -363,6 +359,7 @@ class LiveRange : public ZoneAllocated {
             UseInterval* last_use_interval,
             LiveRange* next_sibling)
     : vreg_(vreg),
+      assigned_location_(),
       uses_(uses),
       first_use_interval_(first_use_interval),
       last_use_interval_(last_use_interval),

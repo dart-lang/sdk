@@ -860,11 +860,22 @@ bool FlowGraphAllocator::IsBlockEntry(intptr_t pos) const {
 }
 
 
-static UsePosition* FirstUseAfter(UsePosition* use, intptr_t after) {
-  while ((use != NULL) && (use->pos() < after)) {
-    use = use->next();
+void AllocationFinger::Initialize(LiveRange* range) {
+  first_pending_use_interval_ = range->first_use_interval();
+  first_register_use_ = range->first_use();
+  first_register_beneficial_use_ = range->first_use();
+  first_hinted_use_ = range->first_use();
+}
+
+
+bool AllocationFinger::Advance(const intptr_t start) {
+  UseInterval* a = first_pending_use_interval_;
+  while (a != NULL && a->end() <= start) a = a->next();
+  first_pending_use_interval_ = a;
+  if (first_pending_use_interval_ == NULL) {
+    return true;
   }
-  return use;
+  return false;
 }
 
 
@@ -877,6 +888,14 @@ Location AllocationFinger::FirstHint() {
   }
 
   return Location::NoLocation();
+}
+
+
+static UsePosition* FirstUseAfter(UsePosition* use, intptr_t after) {
+  while ((use != NULL) && (use->pos() < after)) {
+    use = use->next();
+  }
+  return use;
 }
 
 
@@ -1168,7 +1187,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
 
 void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
   UsePosition* register_use =
-    unallocated->finger()->FirstRegisterUse(unallocated->Start());
+      unallocated->finger()->FirstRegisterUse(unallocated->Start());
   if (register_use == NULL) {
     Spill(unallocated);
     return;
@@ -1218,7 +1237,7 @@ bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
     LiveRange* allocated = cpu_regs_[reg][i];
 
     UseInterval* first_pending_use_interval =
-      allocated->finger()->first_pending_use_interval();
+        allocated->finger()->first_pending_use_interval();
     if (first_pending_use_interval->Contains(start)) {
       // This is an active interval.
       if (allocated->vreg() <= 0) {
@@ -1244,7 +1263,7 @@ bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
     } else {
       // This is inactive interval.
       const intptr_t intersection = FirstIntersection(
-        first_pending_use_interval, unallocated->first_use_interval());
+          first_pending_use_interval, unallocated->first_use_interval());
       if (intersection != kMaxPosition) {
         if (intersection < free_until) free_until = intersection;
         if (allocated->vreg() == kNoVirtualRegister) blocked_at = intersection;
@@ -1284,8 +1303,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
   for (intptr_t i = cpu_regs_[reg].length() - 1; i >= 0; i--) {
     LiveRange* allocated = cpu_regs_[reg][i];
     if (allocated->vreg() < 0) continue;  // Can't be evicted.
-    if (EvictIntersection(allocated,
-                          unallocated)) {
+    if (EvictIntersection(allocated, unallocated)) {
       cpu_regs_[reg][i] = NULL;
       first_evicted = i;
     }
@@ -1362,17 +1380,6 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
 }
 
 
-bool AllocationFinger::Advance(const intptr_t start) {
-  UseInterval* a = first_pending_use_interval_;
-  while (a != NULL && a->end() <= start) a = a->next();
-  first_pending_use_interval_ = a;
-  if (first_pending_use_interval_ == NULL) {
-    return true;
-  }
-  return false;
-}
-
-
 void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
   for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
     if (cpu_regs_[reg].is_empty()) continue;
@@ -1391,14 +1398,6 @@ void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
       RemoveEvicted(static_cast<Register>(reg), first_evicted);
     }
   }
-}
-
-
-void AllocationFinger::Initialize(LiveRange* range) {
-  first_pending_use_interval_ = range->first_use_interval();
-  first_register_use_ = range->first_use();
-  first_register_beneficial_use_ = range->first_use();
-  first_hinted_use_ = range->first_use();
 }
 
 

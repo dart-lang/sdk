@@ -1471,9 +1471,13 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
-  return LocationSummary::Make(0,
-                               Location::NoLocation(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 0;
+  const intptr_t kNumTemps = 0;
+  // TODO(vegorov): spilling is required only on an infrequently executed path.
+  LocationSummary* summary = new LocationSummary(kNumInputs,
+                                                 kNumTemps,
+                                                 LocationSummary::kCall);
+  return summary;
 }
 
 
