@@ -245,80 +245,18 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           'void constructorCallback(Dart_NativeArguments);\n')
       return
 
-    raises_dom_exceptions = 'ConstructorRaisesException' in ext_attrs
-    raises_exceptions = raises_dom_exceptions or len(constructor_info.idl_args) > 0
-    arguments = []
-    parameter_definitions_emitter = emitter.Emitter()
     create_function = 'create'
     if 'NamedConstructor' in ext_attrs:
-      raises_exceptions = True
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-      parameter_definitions_emitter.Emit(
-            '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
-            '        if (!domWindow) {\n'
-            '            exception = Dart_NewString("Failed to fetch domWindow");\n'
-            '            goto fail;\n'
-            '        }\n'
-            '        Document* document = domWindow->document();\n')
-      arguments.append('document')
       create_function = 'createForJSConstructor'
-    if 'CallWith' in ext_attrs:
-      call_with = ext_attrs['CallWith']
-      if call_with == 'ScriptExecutionContext':
-        raises_exceptions = True
-        parameter_definitions_emitter.Emit(
-            '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
-            '        if (!context) {\n'
-            '            exception = Dart_NewString("Failed to create an object");\n'
-            '            goto fail;\n'
-            '        }\n')
-        arguments.append('context')
-      else:
-        raise Exception('Unsupported CallWith=%s attribute' % call_with)
-
-    # Process constructor arguments.
-    for (i, argument) in enumerate(constructor_info.idl_args):
-      argument_expression = self._GenerateToNative(
-          parameter_definitions_emitter, argument, i)
-      arguments.append(argument_expression)
-
     function_expression = '%s::%s' % (self._interface_type_info.native_type(), create_function)
-    invocation = self._GenerateWebCoreInvocation(function_expression, arguments,
-        self._interface.id, ext_attrs, raises_dom_exceptions)
-
-    runtime_check = None
-    database = self._database
-    assert (not (
-      'synthesizedV8EnabledPerContext' in ext_attrs and
-      'synthesizedV8EnabledAtRuntime' in ext_attrs))
-    if 'synthesizedV8EnabledPerContext' in ext_attrs:
-      raises_exceptions = True
-      self._cpp_impl_includes.add('"ContextFeatures.h"')
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-      runtime_check = emitter.Format(
-          '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
-          '            goto fail;\n'
-          '        }',
-          FEATURE=ext_attrs['synthesizedV8EnabledPerContext'])
-
-    if 'synthesizedV8EnabledAtRuntime' in ext_attrs:
-      raises_exceptions = True
-      self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
-      runtime_check = emitter.Format(
-          '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
-          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
-          '            goto fail;\n'
-          '        }',
-          FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
-
-    self._GenerateNativeCallback(callback_name='constructorCallback',
-        parameter_definitions=parameter_definitions_emitter.Fragments(),
-        needs_receiver=False, invocation=invocation,
-        raises_exceptions=raises_exceptions,
-        runtime_check=runtime_check,
-        requires_v8_scope=self._RequiresV8Scope(ext_attrs, constructor_info.idl_args))
-
+    self._GenerateNativeCallback(
+        'constructorCallback',
+        False,
+        function_expression,
+        self._interface,
+        constructor_info.idl_args,
+        self._interface.id,
+        'ConstructorRaisesException' in ext_attrs)
 
   def _ImplClassName(self, interface_name):
     return '_%sImpl' % interface_name
@@ -439,38 +377,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         TO_NATIVE=to_native_emitter.Fragments(),
         TO_DART=to_dart_emitter.Fragments())
 
-  def _GenerateCallWithHandling(self, node, parameter_definitions_emitter, arguments):
-    if 'CallWith' not in node.ext_attrs:
-      return False
-
-    call_with = node.ext_attrs['CallWith']
-    if call_with == 'ScriptExecutionContext':
-      parameter_definitions_emitter.Emit(
-          '\n'
-          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
-          '        if (!context)\n'
-          '            return;\n')
-      arguments.append('context')
-      return False
-
-    if call_with == 'ScriptArguments|CallStack':
-      self._cpp_impl_includes.add('"ScriptArguments.h"')
-      self._cpp_impl_includes.add('"ScriptCallStack.h"')
-      parameter_definitions_emitter.Emit(
-          '\n'
-          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
-          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
-          '        if (!scriptArguments)\n'
-          '            goto fail;\n'
-          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
-          '        if (!scriptCallStack->size())\n'
-          '            return;\n',
-          INDEX=len(node.arguments))
-      arguments.extend(['scriptArguments', 'scriptCallStack'])
-      return True
-
-    return False
-
   def AddAttribute(self, attribute, html_name, read_only):
     if 'CheckSecurityForNode' in attribute.ext_attrs:
       # FIXME: exclude from interface as well.
@@ -489,12 +395,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if is_custom:
       return
 
-    arguments = []
-    parameter_definitions_emitter = emitter.Emitter()
-    raises_exceptions = self._GenerateCallWithHandling(
-        attr, parameter_definitions_emitter, arguments)
-    raises_exceptions = raises_exceptions or attr.get_raises
-
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = self._TypeInfo(attr.type.id).webcore_getter_name()
       if 'URL' in attr.ext_attrs:
@@ -502,7 +402,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           webcore_function_name = 'getNonEmptyURLAttribute'
         else:
           webcore_function_name = 'getURLAttribute'
-      arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
       if attr.id == 'operator':
         webcore_function_name = '_operator'
@@ -514,12 +413,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         webcore_function_name += 'Animated'
 
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
-    invocation = self._GenerateWebCoreInvocation(function_expression,
-        arguments, attr.type.id, attr.ext_attrs, attr.get_raises)
-    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=raises_exceptions,
-        runtime_check=None,
-        requires_v8_scope=self._RequiresV8Scope(attr.ext_attrs, []))
+    self._GenerateNativeCallback(
+        cpp_callback_name,
+        True,
+        function_expression,
+        attr,
+        [],
+        attr.type.id,
+        attr.get_raises)
 
   def _AddSetter(self, attr, html_name):
     type_info = self._TypeInfo(attr.type.id)
@@ -530,13 +431,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if is_custom:
       return
 
-    arguments = []
-    parameter_definitions_emitter = emitter.Emitter()
-    self._GenerateCallWithHandling(attr, parameter_definitions_emitter, arguments)
-
     if 'Reflect' in attr.ext_attrs:
       webcore_function_name = self._TypeInfo(attr.type.id).webcore_setter_name()
-      arguments.append(self._GenerateWebCoreReflectionAttributeName(attr))
     else:
       webcore_function_name = re.sub(r'^(xml(?=[A-Z])|\w)',
                                      lambda s: s.group(1).upper(),
@@ -545,19 +441,15 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       if attr.type.id.startswith('SVGAnimated'):
         webcore_function_name += 'Animated'
 
-    argument_expression = self._GenerateToNative(
-        parameter_definitions_emitter, attr, 1, argument_name='value')
-    arguments.append(argument_expression)
-
-    parameter_definitions = parameter_definitions_emitter.Fragments()
     function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, attr)
-    invocation = self._GenerateWebCoreInvocation(function_expression,
-        arguments, 'void', attr.ext_attrs, attr.set_raises)
-
-    self._GenerateNativeCallback(cpp_callback_name, parameter_definitions_emitter.Fragments(),
-        True, invocation, raises_exceptions=True,
-        runtime_check=None,
-        requires_v8_scope=self._RequiresV8Scope(attr.ext_attrs, [attr]))
+    self._GenerateNativeCallback(
+        cpp_callback_name,
+        True,
+        function_expression,
+        attr,
+        [attr],
+        'void',
+        attr.set_raises)
 
   def AddIndexer(self, element_type):
     """Adds all the methods required to complete implementation of List."""
@@ -749,17 +641,67 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
   def _GenerateOperationNativeCallback(self, operation, arguments, cpp_callback_name):
     webcore_function_name = operation.ext_attrs.get('ImplementedAs', operation.id)
+    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
+    self._GenerateNativeCallback(
+        cpp_callback_name,
+        not operation.is_static,
+        function_expression,
+        operation,
+        arguments,
+        operation.type.id,
+        operation.raises)
+
+  def _GenerateNativeCallback(self,
+      callback_name,
+      needs_receiver,
+      function_expression,
+      node,
+      arguments,
+      return_type,
+      raises_dom_exception):
+    ext_attrs = node.ext_attrs
+    cpp_arguments = []
+
+    requires_v8_scope = False
+    runtime_check = None
+    raises_exceptions = False
+    requires_script_execution_context = False
+    requires_dom_window = False
+    requires_stack_info = False
+
+    if raises_dom_exception or arguments:
+      raises_exceptions = True
+
+    if ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
+      raises_exceptions = True
+      requires_v8_scope = True
+      requires_stack_info = True
+      self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
+      cpp_arguments = ['scriptArguments', 'scriptCallStack']
+
+    if ext_attrs.get('CallWith') == 'ScriptExecutionContext':
+      raises_exceptions = True
+      requires_script_execution_context = True
+
+    if 'NamedConstructor' in ext_attrs:
+      raises_exceptions = True
+      requires_dom_window = True
+      self._cpp_impl_includes.add('"DOMWindow.h"')
+      cpp_arguments = ['document']
+
+    if 'Reflect' in ext_attrs:
+      cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
+
+    for argument in arguments:
+      if self._TypeInfo(argument.type.id).requires_v8_scope():
+        requires_v8_scope = True
 
     parameter_definitions_emitter = emitter.Emitter()
-    cpp_arguments = []
-    raises_exceptions = self._GenerateCallWithHandling(
-        operation, parameter_definitions_emitter, cpp_arguments)
-    raises_exceptions = raises_exceptions or len(arguments) > 0 or operation.raises
-
     # Process Dart cpp_arguments.
-    start_index = 1
-    if operation.is_static:
-      start_index = 0
+    start_index = 0
+    if needs_receiver:
+      start_index = 1
     for (i, argument) in enumerate(arguments):
       if (i == len(arguments) - 1 and
           self._interface.id == 'Console' and
@@ -771,34 +713,48 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           parameter_definitions_emitter, argument, start_index + i)
       cpp_arguments.append(argument_expression)
 
-    if operation.id in ['addEventListener', 'removeEventListener']:
+    # FIXME: rework in IDLs.
+    if node.id in ['addEventListener', 'removeEventListener']:
       # addEventListener's and removeEventListener's last argument is marked
       # as optional in idl, but is not optional in webcore implementation.
       if len(arguments) == 2:
         cpp_arguments.append('false')
 
-    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty':
+    if self._interface.id == 'CSSStyleDeclaration' and node.id == 'setProperty':
       # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
       # idl, but is not optional in webcore implementation.
       if len(arguments) == 2:
         cpp_arguments.append('String()')
 
-    if 'NeedsUserGestureCheck' in operation.ext_attrs:
-      cpp_arguments.append('DartUtilities::processingUserGesture')
+    if 'NeedsUserGestureCheck' in ext_attrs:
+      cpp_arguments.append('DartUtilities::processingUserGesture');
 
-    function_expression = self._GenerateWebCoreFunctionExpression(webcore_function_name, operation)
-    invocation = self._GenerateWebCoreInvocation(function_expression, cpp_arguments,
-        operation.type.id, operation.ext_attrs, operation.raises)
-    self._GenerateNativeCallback(cpp_callback_name,
-        parameter_definitions=parameter_definitions_emitter.Fragments(),
-        needs_receiver=not operation.is_static, invocation=invocation,
-        raises_exceptions=raises_exceptions,
-        runtime_check=None,
-        requires_v8_scope=self._RequiresV8Scope(operation.ext_attrs, arguments))
+    assert (not (
+      'synthesizedV8EnabledPerContext' in ext_attrs and
+      'synthesizedV8EnabledAtRuntime' in ext_attrs))
+    if 'synthesizedV8EnabledPerContext' in ext_attrs:
+      raises_exceptions = True
+      self._cpp_impl_includes.add('"ContextFeatures.h"')
+      self._cpp_impl_includes.add('"DOMWindow.h"')
+      runtime_check = emitter.Format(
+          '        if (!ContextFeatures::$(FEATURE)Enabled(DartUtilities::domWindowForCurrentIsolate()->document())) {\n'
+          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            goto fail;\n'
+          '        }',
+          FEATURE=ext_attrs['synthesizedV8EnabledPerContext'])
 
-  def _GenerateNativeCallback(self, callback_name, parameter_definitions,
-      needs_receiver, invocation, raises_exceptions, runtime_check,
-      requires_v8_scope):
+    if 'synthesizedV8EnabledAtRuntime' in ext_attrs:
+      raises_exceptions = True
+      self._cpp_impl_includes.add('"RuntimeEnabledFeatures.h"')
+      runtime_check = emitter.Format(
+          '        if (!RuntimeEnabledFeatures::$(FEATURE)Enabled()) {\n'
+          '            exception = Dart_NewString("Feature $FEATURE is not enabled");\n'
+          '            goto fail;\n'
+          '        }',
+          FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
+
+    invocation = self._GenerateWebCoreInvocation(
+        function_expression, cpp_arguments, return_type, ext_attrs, raises_dom_exception)
 
     head_emitter = emitter.Emitter()
 
@@ -811,14 +767,43 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '$RUNTIME_CHECK\n',
           RUNTIME_CHECK=runtime_check)
 
+    if requires_script_execution_context:
+      head_emitter.Emit(
+          '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
+          '        if (!context) {\n'
+          '            exception = Dart_NewString("Failed to retrieve a context");\n'
+          '            goto fail;\n'
+          '        }\n\n')
+
+    if requires_dom_window:
+      head_emitter.Emit(
+          '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
+          '        if (!domWindow) {\n'
+          '            exception = Dart_NewString("Failed to fetch domWindow");\n'
+          '            goto fail;\n'
+          '        }\n'
+          '        Document* document = domWindow->document();\n')
+
     if needs_receiver:
       head_emitter.Emit(
           '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n',
           WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
+    if requires_stack_info:
+      head_emitter.Emit(
+          '\n'
+          '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
+          '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
+          '        if (!scriptArguments)\n'
+          '            goto fail;\n'
+          '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
+          '        if (!scriptCallStack->size())\n'
+          '            return;\n',
+          INDEX=len(arguments))
+
     head_emitter.Emit(
         '$PARAMETE_DEFINITIONS\n',
-        PARAMETE_DEFINITIONS=parameter_definitions)
+        PARAMETE_DEFINITIONS=parameter_definitions_emitter.Fragments())
 
     body = emitter.Format(
         '    {\n'
@@ -849,23 +834,18 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         CALLBACK_NAME=callback_name,
         BODY=body)
 
-  def _GenerateToNative(self, emitter, idl_node, index, argument_name=None):
+  def _GenerateToNative(self, emitter, idl_node, index):
     """idl_node is IDLArgument or IDLAttribute."""
     type_info = self._TypeInfo(idl_node.type.id)
     self._cpp_impl_includes |= set(type_info.to_native_includes())
-    argument_name = argument_name or idl_node.id
+    argument_name = idl_node.id
+    # Rename to get rid of conflicts with C++ keywords.
+    if argument_name == 'default':
+      argument_name = 'value'
     handle = 'Dart_GetNativeArgument(args, %i)' % index
     argument_expression = type_info.emit_to_native(
         emitter, idl_node, argument_name, handle, self._interface.id)
     return argument_expression
-
-  def _RequiresV8Scope(self, ext_attrs, arguments):
-    if 'CallWith' in ext_attrs and ext_attrs['CallWith'] == 'ScriptArguments|CallStack':
-      return True
-    for argument in arguments:
-      if self._TypeInfo(argument.type.id).requires_v8_scope():
-        return True
-    return False
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
@@ -939,10 +919,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INVOCATION=invocation_template)
 
     if 'ImplementedBy' in attributes:
-      # FIXME: rather ugly way to solve the problem.
-      index = 1 if 'ScriptExecutionContext' == attributes.get('CallWith') else 0
-      arguments.insert(index, 'receiver')
+      arguments.insert(0, 'receiver')
       self._cpp_impl_includes.add('"%s.h"' % attributes['ImplementedBy'])
+
+    if attributes.get('CallWith') == 'ScriptExecutionContext':
+      arguments.insert(0, 'context')
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
