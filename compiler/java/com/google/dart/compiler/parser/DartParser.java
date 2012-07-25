@@ -3521,6 +3521,17 @@ public class DartParser extends CompletionHooksParserBase {
     return statement;
   }
 
+  private boolean isFunctionExpression(DartStatement statement) {
+    if (!(statement instanceof DartExprStmt)) {
+      return false;
+    }
+    DartExpression expression = ((DartExprStmt) statement).getExpression();
+    if (!(expression instanceof DartFunctionExpression)) {
+      return false;
+    }
+    return ((DartFunctionExpression) expression).getName() == null;
+  }
+
   /**
    * <pre>
    * normalCompletingStatement
@@ -3551,11 +3562,18 @@ public class DartParser extends CompletionHooksParserBase {
   private DartStatement parseNonLabelledStatement() {
     // Try to parse as function declaration.
     if (looksLikeFunctionDeclarationOrExpression()) {
+      ctx.begin();
       DartStatement functionDeclaration = parseFunctionDeclaration();
       // If "null", then we tried to parse, but found that this is not function declaration.
       // So, parsing was rolled back and we can try to parse it as expression.
       if (functionDeclaration != null) {
-        return functionDeclaration;
+        if (!isFunctionExpression(functionDeclaration)) {
+          ctx.done(null);
+          return functionDeclaration;
+        }
+        ctx.rollback();
+      } else {
+        ctx.done(null);
       }
     }
     // Check possible statement kind.

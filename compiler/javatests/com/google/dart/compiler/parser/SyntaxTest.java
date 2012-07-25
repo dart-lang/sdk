@@ -87,6 +87,24 @@ public class SyntaxTest extends AbstractParserTest {
     assertTrue(expression instanceof DartFunctionExpression);
   }
 
+  public void test_functionExpression_inIsExpression() {
+    DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
+        "main() {",
+        "  (p) {} is String;",
+        "}"
+    ));
+    assertNotNull(unit);
+    assertEquals(1, unit.getTopLevelNodes().size());
+    DartMethodDefinition function = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(function);
+    DartStatement statement = function.getFunction().getBody().getStatements().get(0);
+    assertTrue(statement instanceof DartExprStmt);
+    DartExpression expression = ((DartExprStmt) statement).getExpression();
+    assertTrue(expression instanceof DartBinaryExpression);
+    DartExpression lhs = ((DartBinaryExpression) expression).getArg1();
+    assertTrue(lhs instanceof DartFunctionExpression);
+  }
+
   public void test_const() {
     DartUnit unit = parseUnit(getName() + ".dart", makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
