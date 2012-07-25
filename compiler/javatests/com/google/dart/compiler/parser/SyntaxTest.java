@@ -15,6 +15,7 @@ import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
 import com.google.dart.compiler.ast.DartFieldDefinition;
+import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
@@ -68,6 +69,22 @@ public class SyntaxTest extends AbstractParserTest {
         "  var f = g..m1()..m2()..f.a;",
         "  var f = g..[3].x()..y()();",
         "}"));
+  }
+
+  public void test_functionExpression_asStatement() {
+    DartUnit unit = parseUnit("function.dart", Joiner.on("\n").join(
+        "main() {",
+        "  () {};",
+        "}"
+    ));
+    assertNotNull(unit);
+    assertEquals(1, unit.getTopLevelNodes().size());
+    DartMethodDefinition function = (DartMethodDefinition) unit.getTopLevelNodes().get(0);
+    assertNotNull(function);
+    DartStatement statement = function.getFunction().getBody().getStatements().get(0);
+    assertTrue(statement instanceof DartExprStmt);
+    DartExpression expression = ((DartExprStmt) statement).getExpression();
+    assertTrue(expression instanceof DartFunctionExpression);
   }
 
   public void test_const() {

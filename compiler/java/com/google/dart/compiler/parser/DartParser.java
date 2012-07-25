@@ -3714,9 +3714,6 @@ public class DartParser extends CompletionHooksParserBase {
     DartIdentifier[] namePtr = new DartIdentifier[1];
     DartFunction function = parseFunctionDeclarationOrExpression(namePtr, true);
     if (function.getBody() instanceof DartReturnBlock || peek(0) != Token.LPAREN) {
-      if (namePtr[0] == null) {
-        reportError(function, ParserErrorCode.MISSING_FUNCTION_NAME);
-      }
       return done(new DartExprStmt(doneWithoutConsuming(new DartFunctionExpression(namePtr[0],
           doneWithoutConsuming(function),
           true))));

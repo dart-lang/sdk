@@ -477,19 +477,6 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.NO_SPACE_AFTER_PLUS, 7, 9, 1));
   }
 
-  public void test_functionDeclaration_name() {
-    parseExpectWarnings(
-        Joiner.on("\n").join(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "foo() {",
-            "  f1(p){};", // function declaration as statement, has name
-            "  (p){}", // function declaration as statement, should have name
-            "  var f2 = (p){};", // variable declaration, name of function literal is not required
-            "}",
-            ""),
-        errEx(ParserErrorCode.MISSING_FUNCTION_NAME, 4, 3, 5));
-  }
-
   /**
    * Separate test for invocation of function literal which has both return type and name.
    */
