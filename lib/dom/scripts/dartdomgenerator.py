@@ -62,6 +62,7 @@ def Generate(system_names, database_dir, use_database_cache, dom_output_dir,
                              exclude_suppressed = ['WebKit', 'Dart'])
   generator.RenameTypes(webkit_database, _webkit_renames, True)
   generator.FixEventTargets(webkit_database)
+  generator.AddMissingArguments(webkit_database)
 
   def CreateGeneratorOptions(template_paths, conditions, type_registry, output_dir,
                              renamer=None):

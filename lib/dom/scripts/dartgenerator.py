@@ -281,6 +281,13 @@ class DartGenerator(object):
                ('InterfaceType', ('ScopedName', 'EventTarget'))]
         interface.parents.append(idlnode.IDLParentInterface(ast))
 
+  def AddMissingArguments(self, database):
+    ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'Object')), ('Id', 'arg')])
+    for interface in database.GetInterfaces():
+      for operation in interface.operations:
+        if operation.ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
+          operation.arguments.append(ARG)
+
 # ------------------------------------------------------------------------------
 
 class DummyImplementationSystem(systembase.System):

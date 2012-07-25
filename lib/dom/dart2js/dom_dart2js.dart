@@ -813,13 +813,13 @@ class _ConsoleJs
 
   void assertCondition(bool condition, Object arg) native;
 
-  void count() native;
+  void count(Object arg) native;
 
   void debug(Object arg) native;
 
-  void dir() native;
+  void dir(Object arg) native;
 
-  void dirxml() native;
+  void dirxml(Object arg) native;
 
   void error(Object arg) native;
 
@@ -833,7 +833,7 @@ class _ConsoleJs
 
   void log(Object arg) native;
 
-  void markTimeline() native;
+  void markTimeline(Object arg) native;
 
   void profile(String title) native;
 
@@ -13283,13 +13283,13 @@ interface Console {
 
   void assertCondition(bool condition, Object arg);
 
-  void count();
+  void count(Object arg);
 
   void debug(Object arg);
 
-  void dir();
+  void dir(Object arg);
 
-  void dirxml();
+  void dirxml(Object arg);
 
   void error(Object arg);
 
@@ -13303,7 +13303,7 @@ interface Console {
 
   void log(Object arg);
 
-  void markTimeline();
+  void markTimeline(Object arg);
 
   void profile(String title);
 

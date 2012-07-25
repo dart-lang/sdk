@@ -1274,13 +1274,13 @@ interface Console {
 
   void assertCondition(bool condition, Object arg);
 
-  void count();
+  void count(Object arg);
 
   void debug(Object arg);
 
-  void dir();
+  void dir(Object arg);
 
-  void dirxml();
+  void dirxml(Object arg);
 
   void error(Object arg);
 
@@ -1294,7 +1294,7 @@ interface Console {
 
   void log(Object arg);
 
-  void markTimeline();
+  void markTimeline(Object arg);
 
   void profile(String title);
 

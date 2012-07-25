@@ -4056,13 +4056,13 @@ class _ConsoleImpl
 
   void assertCondition(bool condition, Object arg) native;
 
-  void count() native;
+  void count(Object arg) native;
 
   void debug(Object arg) native;
 
-  void dir() native;
+  void dir(Object arg) native;
 
-  void dirxml() native;
+  void dirxml(Object arg) native;
 
   void error(Object arg) native;
 
@@ -4076,7 +4076,7 @@ class _ConsoleImpl
 
   void log(Object arg) native;
 
-  void markTimeline() native;
+  void markTimeline(Object arg) native;
 
   void profile(String title) native;
 
@@ -21738,16 +21738,16 @@ interface Console {
   void assertCondition(bool condition, Object arg);
 
   /** @domName Console.count */
-  void count();
+  void count(Object arg);
 
   /** @domName Console.debug */
   void debug(Object arg);
 
   /** @domName Console.dir */
-  void dir();
+  void dir(Object arg);
 
   /** @domName Console.dirxml */
-  void dirxml();
+  void dirxml(Object arg);
 
   /** @domName Console.error */
   void error(Object arg);
@@ -21768,7 +21768,7 @@ interface Console {
   void log(Object arg);
 
   /** @domName Console.markTimeline */
-  void markTimeline();
+  void markTimeline(Object arg);
 
   /** @domName Console.profile */
   void profile(String title);

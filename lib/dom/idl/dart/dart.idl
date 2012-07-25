@@ -53,28 +53,8 @@ module dom {
 module html {
   [Supplemental]
   interface Console {
-    [Suppressed] void debug();
-    [CallWith=ScriptArguments|CallStack] void debug(DOMObject arg);
-    [Suppressed] void error();
-    [CallWith=ScriptArguments|CallStack] void error(DOMObject arg);
-    [Suppressed] void info();
-    [CallWith=ScriptArguments|CallStack] void info(DOMObject arg);
-    [Suppressed] void log();
-    [CallWith=ScriptArguments|CallStack] void log(DOMObject arg);
-    [Suppressed] void warn();
-    [CallWith=ScriptArguments|CallStack] void warn(DOMObject arg);
-    [Suppressed] void trace();
-    [CallWith=ScriptArguments|CallStack] void trace(DOMObject arg);
     [Suppressed] void assert(in boolean condition);
-    [CallWith=ScriptArguments|CallStack] void assertCondition(boolean condition, DOMObject arg);
-    [Suppressed] void timeEnd(in DOMString title);
-    [CallWith=ScriptArguments|CallStack] void timeEnd(DOMString title, DOMObject arg);
-    [Suppressed] void timeStamp();
-    [CallWith=ScriptArguments|CallStack] void timeStamp(DOMObject arg);
-    [Suppressed] void group();
-    [CallWith=ScriptArguments|CallStack] void group(DOMObject arg);
-    [Suppressed] void groupCollapsed();
-    [CallWith=ScriptArguments|CallStack] void groupCollapsed(DOMObject arg);
+    [CallWith=ScriptArguments|CallStack] void assertCondition(boolean condition);
   };
 
   [Supplemental]

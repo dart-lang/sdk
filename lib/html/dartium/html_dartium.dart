@@ -4431,13 +4431,13 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
-  void count() native "Console_count_Callback";
+  void count(Object arg) native "Console_count_Callback";
 
   void debug(Object arg) native "Console_debug_Callback";
 
-  void dir() native "Console_dir_Callback";
+  void dir(Object arg) native "Console_dir_Callback";
 
-  void dirxml() native "Console_dirxml_Callback";
+  void dirxml(Object arg) native "Console_dirxml_Callback";
 
   void error(Object arg) native "Console_error_Callback";
 
@@ -4451,7 +4451,7 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   void log(Object arg) native "Console_log_Callback";
 
-  void markTimeline() native "Console_markTimeline_Callback";
+  void markTimeline(Object arg) native "Console_markTimeline_Callback";
 
   void profile(String title) native "Console_profile_Callback";
 
@@ -25672,16 +25672,16 @@ interface Console {
   void assertCondition(bool condition, Object arg);
 
   /** @domName Console.count */
-  void count();
+  void count(Object arg);
 
   /** @domName Console.debug */
   void debug(Object arg);
 
   /** @domName Console.dir */
-  void dir();
+  void dir(Object arg);
 
   /** @domName Console.dirxml */
-  void dirxml();
+  void dirxml(Object arg);
 
   /** @domName Console.error */
   void error(Object arg);
@@ -25702,7 +25702,7 @@ interface Console {
   void log(Object arg);
 
   /** @domName Console.markTimeline */
-  void markTimeline();
+  void markTimeline(Object arg);
 
   /** @domName Console.profile */
   void profile(String title);
