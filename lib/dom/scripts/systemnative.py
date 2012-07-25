@@ -727,19 +727,41 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        }',
           FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
 
-    head_emitter = emitter.Emitter()
+    body_emitter = self._cpp_definitions_emitter.Emit(
+        '\n'
+        'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
+        '{\n'
+        '    DartApiScope dartApiScope;\n'
+        '$!BODY'
+        '}\n',
+        CALLBACK_NAME=callback_name)
+
+    if raises_exceptions:
+      body_emitter = body_emitter.Emit(
+          '    Dart_Handle exception = 0;\n'
+          '$!BODY'
+          '\n'
+          'fail:\n'
+          '    Dart_ThrowException(exception);\n'
+          '    ASSERT_NOT_REACHED();\n')
+
+    body_emitter = body_emitter.Emit(
+        '    {\n'
+        '$!BODY'
+        '        return;\n'
+        '    }\n')
 
     if requires_v8_scope:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '        V8Scope v8scope;\n\n')
 
     if runtime_check:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '$RUNTIME_CHECK\n',
           RUNTIME_CHECK=runtime_check)
 
     if requires_script_execution_context:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '        ScriptExecutionContext* context = DartUtilities::scriptExecutionContext();\n'
           '        if (!context) {\n'
           '            exception = Dart_NewString("Failed to retrieve a context");\n'
@@ -747,7 +769,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        }\n\n')
 
     if requires_dom_window:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
           '            exception = Dart_NewString("Failed to fetch domWindow");\n'
@@ -756,12 +778,12 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        Document* document = domWindow->document();\n')
 
     if needs_receiver:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '        $WEBCORE_CLASS_NAME* receiver = DartDOMWrapper::receiver< $WEBCORE_CLASS_NAME >(args);\n',
           WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
     if requires_stack_info:
-      head_emitter.Emit(
+      body_emitter.Emit(
           '\n'
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
           '        RefPtr<ScriptArguments> scriptArguments(DartUtilities::createScriptArguments(customArgument, exception));\n'
@@ -783,10 +805,10 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         # FIXME: we are skipping last argument here because it was added in
         # supplemental dart.idl. Cleanup dart.idl and remove this check.
         break
-      argument_expression = self._GenerateToNative(head_emitter, argument, start_index + i)
+      argument_expression = self._GenerateToNative(body_emitter, argument, start_index + i)
       cpp_arguments.append(argument_expression)
 
-    head_emitter.Emit('\n')
+    body_emitter.Emit('\n')
 
     # FIXME: rework in IDLs.
     if node.id in ['addEventListener', 'removeEventListener']:
@@ -804,10 +826,10 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if 'NeedsUserGestureCheck' in ext_attrs:
       cpp_arguments.append('DartUtilities::processingUserGesture');
 
-    invocation_emitter = head_emitter
+    invocation_emitter = body_emitter
     if raises_dom_exception:
       cpp_arguments.append('ec')
-      invocation_emitter = head_emitter.Emit(
+      invocation_emitter = body_emitter.Emit(
         '        ExceptionCode ec = 0;\n'
         '$!INVOCATION'
         '        if (UNLIKELY(ec)) {\n'
@@ -831,33 +853,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         '        if (returnValue)\n'
         '            Dart_SetReturnValue(args, returnValue);\n',
         TO_DART_CONVERSION=to_dart_conversion)
-
-    body = emitter.Format(
-        '    {\n'
-        '$HEAD'
-        '        return;\n'
-        '    }\n',
-        HEAD=head_emitter.Fragments())
-
-    if raises_exceptions:
-      body = emitter.Format(
-          '    Dart_Handle exception = 0;\n'
-          '$BODY'
-          '\n'
-          'fail:\n'
-          '    Dart_ThrowException(exception);\n'
-          '    ASSERT_NOT_REACHED();\n',
-          BODY=body)
-
-    self._cpp_definitions_emitter.Emit(
-        '\n'
-        'static void $CALLBACK_NAME(Dart_NativeArguments args)\n'
-        '{\n'
-        '    DartApiScope dartApiScope;\n'
-        '$BODY'
-        '}\n',
-        CALLBACK_NAME=callback_name,
-        BODY=body)
 
   def _GenerateToNative(self, emitter, idl_node, index):
     """idl_node is IDLArgument or IDLAttribute."""
