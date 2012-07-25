@@ -679,6 +679,9 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       self._cpp_impl_includes.add('"ScriptArguments.h"')
       self._cpp_impl_includes.add('"ScriptCallStack.h"')
       cpp_arguments = ['scriptArguments', 'scriptCallStack']
+      # WebKit uses scriptArguments to reconstruct last argument, so
+      # it's not needed and should be just removed.
+      arguments = arguments[:-1]
 
     if ext_attrs.get('CallWith') == 'ScriptExecutionContext':
       raises_exceptions = True
@@ -687,8 +690,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     if 'ImplementedBy' in ext_attrs:
       assert needs_receiver
-      cpp_arguments.append('receiver')
       self._cpp_impl_includes.add('"%s.h"' % ext_attrs['ImplementedBy'])
+      cpp_arguments.append('receiver')
 
     if 'NamedConstructor' in ext_attrs:
       raises_exceptions = True
@@ -792,19 +795,11 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        RefPtr<ScriptCallStack> scriptCallStack(DartUtilities::createScriptCallStack());\n'
           '        if (!scriptCallStack->size())\n'
           '            return;\n',
-          INDEX=len(arguments))
+          INDEX=len(arguments) + 1)
 
     # Process Dart cpp_arguments.
-    start_index = 0
-    if needs_receiver:
-      start_index = 1
-    for (i, argument) in enumerate(arguments):
-      if (i == len(arguments) - 1 and
-          self._interface.id == 'Console' and
-          argument.id == 'arg'):
-        # FIXME: we are skipping last argument here because it was added in
-        # supplemental dart.idl. Cleanup dart.idl and remove this check.
-        break
+    start_index = 1 if needs_receiver else 0
+    for i, argument in enumerate(arguments):
       argument_expression = self._GenerateToNative(body_emitter, argument, start_index + i)
       cpp_arguments.append(argument_expression)
 
