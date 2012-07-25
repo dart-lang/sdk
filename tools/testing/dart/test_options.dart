@@ -34,7 +34,6 @@ class _TestOptionSpecification {
   String type;
 }
 
-
 /**
  * Parser of test options.
  */
@@ -69,6 +68,9 @@ is 'dart file.dart' and you specify special command
    none: Do not compile the Dart code (run native Dart code on the VM).
          (only valid with the following runtimes: vm, drt)
 
+   dart2dart: Compile Dart code to Dart code
+              (only valid with the following runtimes: vm, drt)
+
    dart2js: Compile dart code to JavaScript by running dart2js (leg).
             (only valid with the following runtimes: same as frog)
 
@@ -79,7 +81,7 @@ is 'dart file.dart' and you specify special command
          frog compiler. (only valid with the following runtimes: d8,
          drt, chrome, safari, ie, firefox, opera, none (compile only))''',
               ['-c', '--compiler'],
-              ['none', 'frog', 'dart2js', 'dartc'],
+              ['none', 'dart2dart', 'frog', 'dart2js', 'dartc'],
               'none'),
           new _TestOptionSpecification(
               'runtime',
@@ -388,25 +390,27 @@ Note: currently only implemented for dart2js.''',
    */
   bool _isValidConfig(Map config) {
     bool isValid = true;
-      switch (config['compiler']) {
-        case 'frog':
-        case 'dart2js':
-          // Note: by adding 'none' as a configuration, if the user
-          // runs test.py -c dart2js -r drt,none the dart2js_none and
-          // dart2js_drt will be duplicating work. If later we don't need 'none'
-          // with dart2js, we should remove it from here.
-          isValid = (const ['d8', 'drt', 'dartium', 'ff',
-                            'chrome', 'safari', 'ie', 'opera',
-                            'none']).indexOf(config['runtime']) >= 0;
-          break;
-        case 'dartc':
-          isValid = config['runtime'] == 'none';
-          break;
-        case 'none':
-          isValid = (const ['vm', 'drt',
-                            'dartium']).indexOf(config['runtime']) >= 0;
-      }
-    if (!isValid) {
+    List<String> validRuntimes;
+    switch (config['compiler']) {
+      case 'frog':
+      case 'dart2js':
+        // Note: by adding 'none' as a configuration, if the user
+        // runs test.py -c dart2js -r drt,none the dart2js_none and
+        // dart2js_drt will be duplicating work. If later we don't need 'none'
+        // with dart2js, we should remove it from here.
+        validRuntimes = const ['d8', 'drt', 'none', 'dartium',
+                               'ff', 'chrome', 'safari', 'ie', 'opera'];
+        break;
+      case 'dartc':
+        validRuntimes = const ['none'];
+        break;
+      case 'none':
+      case 'dart2dart':
+        validRuntimes = const ['vm', 'drt', 'dartium'];
+        break;
+    }
+    if (!Contains(config['runtime'], validRuntimes)) {
+      isValid = false;
       print("Warning: combination of ${config['compiler']} and "
           "${config['runtime']} is invalid. Skipping this combination.");
     }
@@ -421,7 +425,8 @@ Note: currently only implemented for dart2js.''',
       print("Error: shard index is ${config['shard']} out of "
             "${config['shards']} shards");
     }
-    if (config['runtime'] == 'dartium' && config['compiler'] == 'none' &&
+    if (config['runtime'] == 'dartium' &&
+        Contains(config['compiler'], const ['none', 'dart2dart']) &&
         config['checked']) {
       // TODO(vsm): Set the DART_FLAGS environment appropriately when
       // invoking Selenium to support checked mode.  It's not clear
@@ -549,8 +554,8 @@ Note: currently only implemented for dart2js.''',
           if (configuration['host_checked']) {
             timeout *= 16;
           }
-          if ((const ['ie', 'ff', 'chrome', 'safari',
-            'opera']).indexOf(configuration['runtime']) >= 0) {
+          if (Contains(configuration['runtime'],
+                       const ['ie', 'ff', 'chrome', 'safari', 'opera'])) {
             timeout *= 4; // Allow additional time for browser testing to run.
           }
           break;
@@ -558,8 +563,7 @@ Note: currently only implemented for dart2js.''',
           if (configuration['mode'] == 'debug') {
             timeout *= 2;
           }
-          if ((const ['drt', 'dartium']).indexOf(configuration['runtime'])
-              >= 0) {
+          if (Contains(configuration['runtime'], const ['drt', 'dartium'])) {
             timeout *= 4; // Allow additional time for browser testing to run.
           }
           break;

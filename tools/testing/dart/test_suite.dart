@@ -51,6 +51,10 @@ interface TestSuite {
 }
 
 
+// TODO(1030): remove once in the corelib.
+bool Contains(element, collection) => collection.indexOf(element) >= 0;
+
+
 class CCTestListerIsolate extends Isolate {
   CCTestListerIsolate() : super.heavy();
 
@@ -433,7 +437,8 @@ class StandardTestSuite implements TestSuite {
   }
 
   List<Command> makeCommands(TestInformation info, var args) {
-    if (configuration['compiler'] == 'dart2js') {
+    switch (configuration['compiler']) {
+    case 'dart2js':
       args = new List.from(args);
       String tempDir = createOutputDirectory(info.filePath, '');
       args.add('--out=$tempDir/out.js');
@@ -443,7 +448,24 @@ class StandardTestSuite implements TestSuite {
         commands.add(new Command(d8, ['$tempDir/out.js']));
       }
       return commands;
-    } else {
+
+    case 'dart2dart':
+      args = new List.from(args);
+      args.add('--output-type=dart');
+      String tempDir = createOutputDirectory(info.filePath, '');
+      args.add('--out=$tempDir/out.dart');
+      List<Command> commands = <Command>[new Command(shellPath(), args)];
+      if (configuration['runtime'] == 'vm') {
+        // TODO(antonm): support checked.
+        commands.add(new Command(
+            TestUtils.vmFileName(configuration),
+            ['--enable_checked_mode', '$tempDir/out.dart']));
+      } else {
+        throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
+      }
+      return commands;
+
+    default:
       return <Command>[new Command(shellPath(), args)];
     }
   }
@@ -639,7 +661,8 @@ class StandardTestSuite implements TestSuite {
             dumpRenderTreeFilename,
             '--no-timeout'
         ];
-        if (runtime == 'drt' && compiler == 'none') {
+        if (runtime == 'drt' &&
+            (compiler == 'none' || compiler == 'dart2dart')) {
           var dartFlags = ['--ignore-unrecognized-flags'];
           if (configuration["checked"]) {
             dartFlags.add('--enable_asserts');
@@ -681,6 +704,8 @@ class StandardTestSuite implements TestSuite {
         args.add(inputFile);
         break;
       case 'dart2js':
+      case 'dart2dart':
+        if (compiler == 'dart2dart') args.add('--out=$outputFile');
         args.add('--out=$outputFile');
         args.add(inputFile);
         break;
@@ -731,6 +756,7 @@ class StandardTestSuite implements TestSuite {
   String get scriptType() {
     switch (configuration['compiler']) {
       case 'none':
+      case 'dart2dart':
         return 'application/dart';
       case 'frog':
       case 'dart2js':
@@ -1233,6 +1259,7 @@ class TestUtils {
       case 'dartc':
         return 'analyzer/bin/dart_analyzer$suffix';
       case 'dart2js':
+      case 'dart2dart':
         var prefix = '';
         if (configuration['use_sdk']) {
           prefix = 'dart-sdk/bin/';
@@ -1255,6 +1282,7 @@ class TestUtils {
     switch (configuration['compiler']) {
       case 'dartc':
       case 'dart2js':
+      case 'dart2dart':
         return executableName(configuration);
       case 'frog':
         return 'frog/bin/frog$suffix';
@@ -1277,6 +1305,13 @@ class TestUtils {
     var d8 = '${buildDir(configuration)}/d8$suffix';
     ensureExists(d8, configuration);
     return d8;
+  }
+
+  static String vmFileName(Map configuration) {
+    var suffix = executableSuffix('vm');
+    var vm = '${buildDir(configuration)}/dart$suffix';
+    ensureExists(vm, configuration);
+    return vm;
   }
 
   static void ensureExists(String filename, Map configuration) {
@@ -1328,12 +1363,13 @@ class TestUtils {
       args.add('--enable_asserts');
       args.add("--enable_type_checks");
     }
-    if (configuration["compiler"] == "dart2js") {
+    String compiler = configuration["compiler"];
+    if (compiler == "dart2js" || compiler == "dart2dart") {
       args = [];
       if (configuration["checked"]) {
         args.add('--enable-checked-mode');
       }
-      args.add("--verbose");
+      // args.add("--verbose");
       if (!isBrowserRuntime(configuration['runtime'])) {
         args.add("--allow-mock-compilation");
       }
@@ -1341,14 +1377,15 @@ class TestUtils {
     return args;
   }
 
-  static bool isBrowserRuntime(String runtime) =>
+  static bool isBrowserRuntime(String runtime) => Contains(
+      runtime,
       const <String>['drt',
                      'dartium',
                      'ie',
                      'safari',
                      'opera',
                      'chrome',
-                     'ff'].indexOf(runtime) != -1;
+                     'ff']);
 }
 
 class SummaryReport {
