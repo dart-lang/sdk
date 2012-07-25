@@ -220,7 +220,7 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
   if system == 'linux' and runtime == 'chrome':
     # TODO(ngeoffray): We should install selenium on the buildbot.
     runtime = 'drt'
-  elif ((runtime == 'ff' or runtime == 'chrome') and is_buildbot:
+  elif (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
     p = subprocess.Popen('%s --version' % GetPath(runtime),
