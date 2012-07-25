@@ -1,4 +1,4 @@
-#library('html');
+#library('dart:html');
 
 #import('dart:isolate');
 #import('dart:json');
