@@ -83,34 +83,23 @@ void FlowGraphAllocator::ComputeInitialSets() {
     BitVector* kill = kill_[i];
     BitVector* live_in = live_in_[i];
 
-    if (block->IsJoinEntry()) {
-      JoinEntryInstr* join = block->AsJoinEntry();
-      if (join->phis() != NULL) {
-        for (intptr_t j = 0; j < join->phis()->length(); j++) {
-          PhiInstr* phi = (*join->phis())[j];
-          if (phi == NULL) continue;
-          kill->Add(phi->ssa_temp_index());
-
-          for (intptr_t k = 0; k < phi->InputCount(); k++) {
-            Value* val = phi->InputAt(k);
-            if (val->IsUse()) {
-              BlockEntryInstr* pred = block->PredecessorAt(k);
-              const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-              live_out_[pred->postorder_number()]->Add(use);
-            }
-          }
-        }
-      }
-    }
-
-    // TODO(vegorov): iterate backwards.
-    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+    // Iterate backwards starting at the last instruction.
+    for (BackwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
+
+      // Handle definitions.
+      Definition* current_def = current->AsDefinition();
+      if ((current_def != NULL) && current_def->HasSSATemp()) {
+        kill->Add(current_def->ssa_temp_index());
+        live_in->Remove(current_def->ssa_temp_index());
+      }
+
+      // Handle uses.
       for (intptr_t j = 0; j < current->InputCount(); j++) {
         Value* input = current->InputAt(j);
         if (input->IsUse()) {
           const intptr_t use = input->AsUse()->definition()->ssa_temp_index();
-          if (!kill->Contains(use)) live_in->Add(use);
+          live_in->Add(use);
         }
       }
 
@@ -121,14 +110,31 @@ void FlowGraphAllocator::ComputeInitialSets() {
           Value* val = values[j];
           if (val->IsUse()) {
             const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-            if (!kill->Contains(use)) live_in->Add(use);
+            live_in->Add(use);
           }
         }
       }
+    }
 
-      Definition* current_def = current->AsDefinition();
-      if ((current_def != NULL) && (current_def->HasSSATemp())) {
-        kill->Add(current_def->ssa_temp_index());
+    // Handle phis.
+    if (block->IsJoinEntry()) {
+      JoinEntryInstr* join = block->AsJoinEntry();
+      if (join->phis() != NULL) {
+        for (intptr_t j = 0; j < join->phis()->length(); j++) {
+          PhiInstr* phi = (*join->phis())[j];
+          if (phi == NULL) continue;
+          kill->Add(phi->ssa_temp_index());
+          live_in->Remove(phi->ssa_temp_index());
+
+          for (intptr_t k = 0; k < phi->InputCount(); k++) {
+            Value* val = phi->InputAt(k);
+            if (val->IsUse()) {
+              BlockEntryInstr* pred = block->PredecessorAt(k);
+              const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
+              live_out_[pred->postorder_number()]->Add(use);
+            }
+          }
+        }
       }
     }
   }

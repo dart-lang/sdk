@@ -1950,6 +1950,7 @@ class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry) {
+    ASSERT(block_entry_->last_instruction()->next() == NULL);
     Advance();
   }
 
@@ -1958,12 +1959,32 @@ class ForwardInstructionIterator : public ValueObject {
     current_ = current_->next();
   }
 
-  bool Done() const {
-    return current_ == block_entry_->last_instruction()->next();
-  }
+  bool Done() const { return current_ == NULL; }
 
   // Removes 'current_' from graph and sets 'current_' to previous instruction.
   void RemoveCurrentFromGraph();
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
+};
+
+
+class BackwardInstructionIterator : public ValueObject {
+ public:
+  explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry->last_instruction()) {
+    ASSERT(block_entry_->previous() == NULL);
+  }
+
+  void Advance() {
+    ASSERT(!Done());
+    current_ = current_->previous();
+  }
+
+  bool Done() const { return current_ == block_entry_; }
 
   Instruction* Current() const { return current_; }
 

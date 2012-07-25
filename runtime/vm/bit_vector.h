@@ -63,6 +63,11 @@ class BitVector: public ZoneAllocated {
     data_[i / kBitsPerWord] |= (static_cast<uword>(1) << (i % kBitsPerWord));
   }
 
+  void Remove(intptr_t i) {
+    ASSERT(i >= 0 && i < length());
+    data_[i / kBitsPerWord] &= ~(static_cast<uword>(1) << (i % kBitsPerWord));
+  }
+
   // Add all elements that are in the bitvector from.
   bool AddAll(BitVector* from);
 

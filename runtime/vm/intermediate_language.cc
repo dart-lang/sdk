@@ -81,19 +81,13 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
   ASSERT(!current_->IsReturn());
   ASSERT(!current_->IsReThrow());
   ASSERT(current_->previous() != NULL);
+  ASSERT(current_ != block_entry_->last_instruction());
   Instruction* prev = current_->previous();
   Instruction* next = current_->next();
-  prev->set_next(next);
   ASSERT(next != NULL);
-  if (current_ != block_entry_->last_instruction()) {
-    ASSERT(!next->IsBlockEntry());
-    next->set_previous(prev);
-  } else {
-    ASSERT(current_->IsBind());
-    // Removing the last instruction of a block.
-    // Update last_instruction of the current basic block.
-    block_entry_->set_last_instruction(prev);
-  }
+  ASSERT(!next->IsBlockEntry());
+  prev->set_next(next);
+  next->set_previous(prev);
   // Reset successor and previous instruction to indicate
   // that the instruction is removed from the graph.
   current_->set_previous(NULL);
