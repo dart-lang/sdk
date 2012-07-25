@@ -1310,6 +1310,8 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
     LiveRange* allocated = cpu_regs_[reg][i];
     if (allocated->vreg() < 0) continue;  // Can't be evicted.
     if (EvictIntersection(allocated, unallocated)) {
+      ASSERT(allocated->End() <= unallocated->Start());
+      ConvertAllUses(allocated);
       cpu_regs_[reg][i] = NULL;
       first_evicted = i;
     }
