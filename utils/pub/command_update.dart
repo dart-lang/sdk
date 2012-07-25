@@ -12,11 +12,15 @@ class UpdateCommand extends PubCommand {
   String get description() =>
     "update the current package's dependencies to the latest versions";
 
-  String get usage() => 'pub update';
+  String get usage() => 'pub update [dependencies...]';
 
   Future onRun() {
-    return entrypoint.updateDependencies().transform((_) {
-      print("Dependencies updated!");
-    });
+    var future;
+    if (commandOptions.rest.isEmpty) {
+      future = entrypoint.updateAllDependencies();
+    } else {
+      future = entrypoint.updateDependencies(commandOptions.rest);
+    }
+    return future.transform((_) => print("Dependencies updated!"));
   }
 }

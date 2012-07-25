@@ -116,9 +116,25 @@ class Entrypoint {
    * package to its "package" directory, writing a new [LockFile]. Returns a
    * [Future] that completes when all dependencies are installed.
    */
-  Future updateDependencies() {
+  Future updateAllDependencies() {
     return resolveVersions(cache.sources, root, new LockFile.empty()).
       chain(_installDependencies);
+  }
+
+  /**
+   * Installs the latest available versions of [dependencies], while leaving
+   * other dependencies as specified by the [LockFile]. Returns a [Future] that
+   * completes when all dependencies are installed.
+   */
+  Future updateDependencies(List<String> dependencies) {
+    return _loadLockFile().chain((lockFile) {
+      for (var dependency in dependencies) {
+        // TODO(nweiz): How do we want to detect and handle unknown
+        // dependencies here?
+        lockFile.packages.remove(dependency);
+      }
+      return resolveVersions(cache.sources, root, lockFile);
+    }).chain(_installDependencies);
   }
 
   /**

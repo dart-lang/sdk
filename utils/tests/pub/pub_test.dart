@@ -925,6 +925,170 @@ dependencies:
 
     run();
   });
+
+  group("with an argument", () {
+    test("updates one locked Git package but no others", () {
+      ensureGit();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";')
+      ]).scheduleCreate();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar";')
+      ]).scheduleCreate();
+
+      dir(appPath, [
+        file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";')
+        ])
+      ]).scheduleValidate();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo 2";')
+      ]).scheduleCommit();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar 2";')
+      ]).scheduleCommit();
+
+      schedulePub(args: ['update foo'],
+          output: const RegExp(@"Dependencies updated!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo 2";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";')
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test("updates one locked Git package's dependencies", () {
+      ensureGit();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";'),
+        file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+      ]).scheduleCreate();
+
+      git('foo-dep.git', [
+        file('foo-dep.dart', 'main() => "foo-dep";')
+      ]).scheduleCreate();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar";'),
+        file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+      ]).scheduleCreate();
+
+      git('bar-dep.git', [
+        file('bar-dep.dart', 'main() => "bar-dep";')
+      ]).scheduleCreate();
+
+      dir(appPath, [
+        file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";'),
+          file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+        ]),
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => "foo-dep";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";'),
+          file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+        ]),
+        dir('bar-dep', [
+          file('bar-dep.dart', 'main() => "bar-dep";')
+        ])
+      ]).scheduleValidate();
+
+      git('foo-dep.git', [
+        file('foo-dep.dart', 'main() => "foo-dep 2";')
+      ]).scheduleCommit();
+
+      git('bar-dep.git', [
+        file('bar-dep.dart', 'main() => "bar-dep 2";')
+      ]).scheduleCommit();
+
+      schedulePub(args: ['update foo'],
+          output: const RegExp(@"Dependencies updated!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";'),
+          file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+        ]),
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => "foo-dep 2";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";'),
+          file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+        ]),
+        dir('bar-dep', [
+          file('bar-dep.dart', 'main() => "bar-dep";')
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+  });
 }
 
 versionCommand() {
