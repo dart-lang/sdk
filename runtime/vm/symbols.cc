@@ -60,6 +60,17 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
 }
 
 
+intptr_t Symbols::Size(Isolate* isolate) {
+  ASSERT(isolate != NULL);
+  Array& symbol_table = Array::Handle(isolate,
+                                      isolate->object_store()->symbol_table());
+  intptr_t table_size_index = symbol_table.Length() - 1;
+  Smi& used = Smi::Handle();
+  used ^= symbol_table.At(table_size_index);
+  return used.Value();
+}
+
+
 void Symbols::Add(const Array& symbol_table, const String& str) {
   // Should only be run by the vm isolate.
   ASSERT(Isolate::Current() == Dart::vm_isolate());

@@ -80,6 +80,9 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   // Initialize and setup a symbol table for the isolate.
   static void SetupSymbolTable(Isolate* isolate);
 
+  // Get number of symbols in an isolate's symbol table.
+  static intptr_t Size(Isolate* isolate);
+
   // Helper functions to create a symbol given a string or set of characters.
   static RawString* New(const char* str);
   template<typename T>

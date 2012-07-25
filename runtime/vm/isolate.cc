@@ -20,6 +20,7 @@
 #include "vm/random.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/thread.h"
 #include "vm/timer.h"
 #include "vm/visitor.h"
@@ -391,6 +392,9 @@ void Isolate::Shutdown() {
     DebugInfo::UnregisterAllSections();
   }
   if (FLAG_trace_isolates) {
+    Zone zone(this);
+    HandleScope handle_scope(this);
+    OS::Print("Number of symbols added = %d\n", Symbols::Size(this));
     OS::Print("[-] Stopping isolate:\n"
               "\tisolate:    %s\n", name());
   }
