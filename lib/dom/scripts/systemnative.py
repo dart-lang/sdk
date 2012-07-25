@@ -683,6 +683,12 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if ext_attrs.get('CallWith') == 'ScriptExecutionContext':
       raises_exceptions = True
       requires_script_execution_context = True
+      cpp_arguments = ['context']
+
+    if 'ImplementedBy' in ext_attrs:
+      assert needs_receiver
+      cpp_arguments.append('receiver')
+      self._cpp_impl_includes.add('"%s.h"' % ext_attrs['ImplementedBy'])
 
     if 'NamedConstructor' in ext_attrs:
       raises_exceptions = True
@@ -917,13 +923,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            goto fail;\n'
           '        }\n',
           INVOCATION=invocation_template)
-
-    if 'ImplementedBy' in attributes:
-      arguments.insert(0, 'receiver')
-      self._cpp_impl_includes.add('"%s.h"' % attributes['ImplementedBy'])
-
-    if attributes.get('CallWith') == 'ScriptExecutionContext':
-      arguments.insert(0, 'context')
 
     return emitter.Format(invocation_template,
         FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
