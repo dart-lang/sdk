@@ -217,6 +217,7 @@ class Parser : ValueObject {
   void SkipBinaryExpr();
   void SkipUnaryExpr();
   void SkipPostfixExpr();
+  void SkipSelectors();
   void SkipPrimary();
   void SkipCompoundLiteral();
   void SkipNewOperator();
@@ -443,9 +444,6 @@ class Parser : ValueObject {
                            intptr_t ident_pos);
   AstNode* ParseInstanceCall(AstNode* receiver, const String& method_name);
   AstNode* ParseClosureCall(AstNode* closure);
-  AstNode* ParseInstanceFieldAccess(AstNode* receiver,
-                                    const String& field_name,
-                                    bool consume_cascades);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);
   AstNode* ParseStaticFieldAccess(const Class& cls,

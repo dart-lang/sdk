@@ -52,11 +52,6 @@ parameter_initializer6_negative_test: Fail # Issue 3502
 
 prefix_core_test: Fail # Issue 3638.
 
-# Issue 2501
-cascade_test: Pass,Fail  # Some cases pass, but for the wrong reason
-cascade_precedence_test: Fail
-cascade_in_expression_function_test: Fail # Issue 4192
-
 fauxverride_test/none: Fail # Issue 3778.
 
 bad_override_test/01: Fail # Issue 3859.

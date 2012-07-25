@@ -6245,6 +6245,30 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
       ErrorMsg("identifier or [ expected after ..");
     }
     expr = ParseSelectors(load_cascade_receiver, true);
+
+    // Assignments after a cascade are part of the cascade. The
+    // assigned expression must not contain cascades.
+    if (Token::IsAssignmentOperator(CurrentToken())) {
+      Token::Kind assignment_op = CurrentToken();
+      const intptr_t assignment_pos = TokenPos();
+      ConsumeToken();
+      AstNode* right_expr = ParseExpr(kAllowConst, kNoCascades);
+      AstNode* left_expr = expr;
+      if (assignment_op != Token::kASSIGN) {
+        // Compound assignment: store inputs with side effects into
+        // temporary locals.
+        left_expr = PrepareCompoundAssignmentNodes(&expr);
+      }
+      right_expr =
+          ExpandAssignableOp(assignment_pos, assignment_op, expr, right_expr);
+      AstNode* assign_expr = CreateAssignmentNode(left_expr, right_expr);
+      if (assign_expr == NULL) {
+        ErrorMsg(assignment_pos,
+                 "left hand side of '%s' is not assignable",
+                 Token::Str(assignment_op));
+      }
+      expr = assign_expr;
+    }
     current_block_->statements->Add(expr);
   }
   // Result of the cascade is the receiver.
@@ -6274,7 +6298,7 @@ AstNode* Parser::ParseExpr(bool require_compiletime_const,
   if (require_compiletime_const && (assignment_op != Token::kASSIGN)) {
     ErrorMsg(right_expr_pos, "expression must be a compile time constant");
   }
-  AstNode* right_expr = ParseExpr(require_compiletime_const, kConsumeCascades);
+  AstNode* right_expr = ParseExpr(require_compiletime_const, consume_cascades);
   AstNode* left_expr = expr;
   if (assignment_op != Token::kASSIGN) {
     // Compound assignment: store inputs with side effects into temp. locals.
@@ -6499,32 +6523,6 @@ AstNode* Parser::ParseClosureCall(AstNode* closure) {
 }
 
 
-AstNode* Parser::ParseInstanceFieldAccess(AstNode* receiver,
-                                          const String& field_name,
-                                          bool consume_cascades) {
-  TRACE_PARSER("ParseInstanceFieldAccess");
-  AstNode* access = NULL;
-  const intptr_t call_pos = TokenPos();
-  if (Token::IsAssignmentOperator(CurrentToken())) {
-    Token::Kind assignment_op = CurrentToken();
-    ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst, consume_cascades);
-    AstNode* load_access =
-        new InstanceGetterNode(call_pos, receiver, field_name);
-    AstNode* left_load_access = load_access;
-    if (assignment_op != Token::kASSIGN) {
-      // Compound assignment: store inputs with side effects into temp. locals.
-      left_load_access = PrepareCompoundAssignmentNodes(&load_access);
-    }
-    value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = CreateAssignmentNode(left_load_access, value);
-  } else {
-    access = CallGetter(call_pos, receiver, field_name);
-  }
-  return access;
-}
-
-
 AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
                                            intptr_t ident_pos) {
   // If the static field has an initializer, initialize the field at compile
@@ -6556,7 +6554,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
   const Field& field = Field::ZoneHandle(cls.LookupStaticField(field_name));
   Function& func = Function::ZoneHandle();
   if (Token::IsAssignmentOperator(CurrentToken())) {
-    Token::Kind assignment_op = CurrentToken();
+    // Make sure an assignment is legal.
     if (field.IsNull()) {
       // No field, check if we have an explicit setter function.
       const String& setter_name =
@@ -6572,23 +6570,16 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         // No field or explicit setter function, this is an error.
         ErrorMsg(ident_pos, "unknown static field '%s'",
                  field_name.ToCString());
-        return access;
       }
-    }
-    ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst, consume_cascades);
-    AstNode* load_access = NULL;
-    if (field.IsNull()) {
-      // No field found, we must have at least a setter function defined.
-      ASSERT(!func.IsNull());
+
       // Explicit setter function for the field found, field does not exist.
       // Create a getter node first in case it is needed. If getter node
       // is used as part of, e.g., "+=", and the explicit getter does not
       // exist, and error will be reported by the code generator.
-      load_access = new StaticGetterNode(call_pos,
-                                         NULL,
-                                         Class::ZoneHandle(cls.raw()),
-                                         String::ZoneHandle(field_name.raw()));
+      access = new StaticGetterNode(call_pos,
+                                    NULL,
+                                    Class::ZoneHandle(cls.raw()),
+                                    String::ZoneHandle(field_name.raw()));
     } else {
       // Field exists.
       if (field.is_final()) {
@@ -6597,12 +6588,9 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         ErrorMsg(ident_pos,
                  "field '%s' is const static, cannot assign to it",
                  field_name.ToCString());
-        return access;
       }
-      load_access = GenerateStaticFieldLookup(field, TokenPos());
+      access = GenerateStaticFieldLookup(field, TokenPos());
     }
-    value = ExpandAssignableOp(call_pos, assignment_op, load_access, value);
-    access = CreateAssignmentNode(load_access, value);
   } else {  // Not Token::IsAssignmentOperator(CurrentToken()).
     if (field.IsNull()) {
       // No field, check if we have an explicit getter function.
@@ -6623,7 +6611,6 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
           // No field or explicit getter function, this is an error.
           ErrorMsg(ident_pos,
                    "unknown static field '%s'", field_name.ToCString());
-          return access;
         }
         access = CreateImplicitClosureNode(func, call_pos, NULL);
       } else {
@@ -6634,7 +6621,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
                                       field_name);
       }
     } else {
-      return GenerateStaticFieldLookup(field, TokenPos());
+      access = GenerateStaticFieldLookup(field, TokenPos());
     }
   }
   return access;
@@ -6728,7 +6715,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
         }
         if (cls.IsNull()) {
           // Instance field access.
-          selector = ParseInstanceFieldAccess(left, *ident, !is_cascade);
+          selector = CallGetter(ident_pos, left, *ident);
         } else {
           // Static field access.
           selector =
@@ -8611,10 +8598,10 @@ void Parser::SkipPrimary() {
 }
 
 
-void Parser::SkipPostfixExpr() {
-  SkipPrimary();
+void Parser::SkipSelectors() {
   while (true) {
-    if (CurrentToken() == Token::kPERIOD) {
+    if ((CurrentToken() == Token::kPERIOD) ||
+        (CurrentToken() == Token::kCASCADE)) {
       ConsumeToken();
       ExpectIdentifier("identifier expected");
     } else if (CurrentToken() == Token::kLBRACK) {
@@ -8627,6 +8614,11 @@ void Parser::SkipPostfixExpr() {
       break;
     }
   }
+}
+
+void Parser::SkipPostfixExpr() {
+  SkipPrimary();
+  SkipSelectors();
   if (IsIncrementOperator(CurrentToken())) {
     ConsumeToken();
   }
@@ -8667,6 +8659,9 @@ void Parser::SkipConditionalExpr() {
 
 void Parser::SkipExpr() {
   SkipConditionalExpr();
+  if (CurrentToken() == Token::kCASCADE) {
+    SkipSelectors();
+  }
   if (Token::IsAssignmentOperator(CurrentToken())) {
     ConsumeToken();
     SkipExpr();
