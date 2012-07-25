@@ -797,11 +797,19 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            return;\n',
           INDEX=len(arguments) + 1)
 
-    # Process Dart cpp_arguments.
+    # Emit arguments.
     start_index = 1 if needs_receiver else 0
     for i, argument in enumerate(arguments):
-      argument_expression = self._GenerateToNative(body_emitter, argument, start_index + i)
-      cpp_arguments.append(argument_expression)
+      type_info = self._TypeInfo(argument.type.id)
+      self._cpp_impl_includes |= set(type_info.to_native_includes())
+      cpp_arguments.append(type_info.emit_to_native(
+          body_emitter,
+          argument,
+          # TODO(antonm): all IDs should be renamed when database is generated.
+          # That will allow to get rid of argument_name argument altogether.
+          DartDomNameOfAttribute(argument),
+          'Dart_GetNativeArgument(args, %i)' % (start_index + i),
+          self._interface.id))
 
     body_emitter.Emit('\n')
 
@@ -848,19 +856,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
         '        if (returnValue)\n'
         '            Dart_SetReturnValue(args, returnValue);\n',
         TO_DART_CONVERSION=to_dart_conversion)
-
-  def _GenerateToNative(self, emitter, idl_node, index):
-    """idl_node is IDLArgument or IDLAttribute."""
-    type_info = self._TypeInfo(idl_node.type.id)
-    self._cpp_impl_includes |= set(type_info.to_native_includes())
-    argument_name = idl_node.id
-    # Rename to get rid of conflicts with C++ keywords.
-    if argument_name == 'default':
-      argument_name = 'value'
-    handle = 'Dart_GetNativeArgument(args, %i)' % index
-    argument_expression = type_info.emit_to_native(
-        emitter, idl_node, argument_name, handle, self._interface.id)
-    return argument_expression
 
   def _GenerateNativeBinding(self, idl_name, argument_count, dart_declaration,
       native_suffix, is_custom):
