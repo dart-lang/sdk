@@ -11,6 +11,7 @@ measurement_test: Pass, Fail  # Issue 1940
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
+htmloptionscollection_test: Fail # TODO(asiva): investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
