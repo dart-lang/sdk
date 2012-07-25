@@ -91,8 +91,10 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 
 
  private:
-  static const int kInitialVMIsolateSymtabSize = ((kMaxPredefined + 15) & -16);
-  static const int kInitialSymtabSize = 256;
+  enum {
+    kInitialVMIsolateSymtabSize = ((kMaxPredefined + 15) & -16),
+    kInitialSymtabSize = 256
+  };
 
   // Add the string into the VM isolate symbol table.
   static void Add(const Array& symbol_table, const String& str);
