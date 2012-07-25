@@ -495,8 +495,8 @@ class Parser : ValueObject {
                                           LocalScope* scope);
 
   SequenceNode* MakeImplicitConstructor(const Function& func);
-  AstNode* MakeStaticCall(const char* class_name,
-                          const char* function_name,
+  AstNode* MakeStaticCall(const String& cls_name,
+                          const String& func_name,
                           ArgumentListNode* arguments);
   String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);

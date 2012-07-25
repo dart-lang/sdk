@@ -13,8 +13,16 @@
 
 namespace dart {
 
-const char* Symbols::kDot = ".";
-RawString* Symbols::dot_ = String::null();
+RawString* Symbols::predefined_[Symbols::kMaxPredefined];
+
+static const char* names[] = {
+  NULL,
+
+#define DEFINE_SYMBOL_LITERAL(symbol, literal)                                 \
+  literal,
+PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
+#undef DEFINE_SYMBOL_LITERAL
+};
 
 
 void Symbols::InitOnce(Isolate* isolate) {
@@ -25,13 +33,16 @@ void Symbols::InitOnce(Isolate* isolate) {
   SetupSymbolTable(isolate);
 
   // Create all predefined symbols.
+  ASSERT((sizeof(names) / sizeof(const char*)) == kMaxPredefined);
   const Array& symbol_table =
       Array::Handle(isolate->object_store()->symbol_table());
   OneByteString& str = OneByteString::Handle();
 
-  str = OneByteString::New(kDot, Heap::kOld);
-  Add(symbol_table, str);  // "."
-  dot_ = str.raw();
+  for (intptr_t i = 1; i < kMaxPredefined; i++) {
+    str = OneByteString::New(names[i], Heap::kOld);
+    Add(symbol_table, str);
+    predefined_[i] = str.raw();
+  }
 }
 
 
@@ -39,10 +50,12 @@ void Symbols::SetupSymbolTable(Isolate* isolate) {
   ASSERT(isolate != NULL);
 
   // Setup the symbol table used within the String class.
-  const Array& array = Array::Handle(Array::New(kInitialSymbolTableSize + 1));
+  const int initial_size = (isolate == Dart::vm_isolate()) ?
+      kInitialVMIsolateSymtabSize : kInitialSymtabSize;
+  const Array& array = Array::Handle(Array::New(initial_size + 1));
 
   // Last element contains the count of used slots.
-  array.SetAt(kInitialSymbolTableSize, Smi::Handle(Smi::New(0)));
+  array.SetAt(initial_size, Smi::Handle(Smi::New(0)));
   isolate->object_store()->set_symbol_table(array);
 }
 

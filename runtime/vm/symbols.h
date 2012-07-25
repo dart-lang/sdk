@@ -13,16 +13,66 @@ namespace dart {
 class Isolate;
 class ObjectPointerVisitor;
 
+#define PREDEFINED_SYMBOLS_LIST(V)                                             \
+  V(Dot, ".")                                                                  \
+  V(IndexToken, "[]")                                                          \
+  V(AssignIndexToken, "[]=")                                                   \
+  V(TopLevel, "::")                                                            \
+  V(Empty, "")                                                                 \
+  V(This, "this")                                                              \
+  V(HasNext, "hasNext")                                                        \
+  V(Next, "next")                                                              \
+  V(Value, "value")                                                            \
+  V(ExprTemp, ":expr_temp")                                                    \
+  V(Function, "function")                                                      \
+  V(PhaseParameter, ":phase")                                                  \
+  V(AssertionError, "AssertionError")                                          \
+  V(TypeError, "TypeError")                                                    \
+  V(FallThroughError, "FallThroughError")                                      \
+  V(StaticResolutionException, "StaticResolutionException")                    \
+  V(ThrowNew, "_throwNew")                                                     \
+  V(ListLiteralFactoryClass, "_ListLiteralFactory")                            \
+  V(ListLiteralFactory, "List.fromLiteral")                                    \
+  V(MapLiteralFactoryClass, "_MapLiteralFactory")                              \
+  V(MapLiteralFactory, "Map.fromLiteral")                                      \
+  V(ImmutableMap, "ImmutableMap")                                              \
+  V(ImmutableMapConstructor, "ImmutableMap._create")                           \
+  V(StringBase, "StringBase")                                                  \
+  V(Interpolate, "_interpolate")                                               \
+  V(GetIterator, "iterator")                                                   \
+  V(NoSuchMethod, "noSuchMethod")                                              \
+  V(SavedContextVar, ":saved_context_var")                                     \
+  V(ExceptionVar, ":exception_var")                                            \
+  V(StacktraceVar, ":stacktrace_var")                                          \
+  V(ListLiteralElement, "list literal element")                                \
+  V(ForInIter, ":for-in-iter")                                                 \
+  V(Library, "library")                                                        \
+  V(Import, "import")                                                          \
+  V(Source, "source")                                                          \
+  V(Resource, "resource")                                                      \
+
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates
 // without having to maintain copies in each isolate.
 class Symbols : public AllStatic {
  public:
   // List of strings that are pre created in the vm isolate.
-  static const char* kDot;
+  enum {
+    kIllegal = 0,
+
+#define DEFINE_SYMBOL_INDEX(symbol, literal)                                   \
+  k##symbol,
+PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
+#undef DEFINE_SYMBOL_INDEX
+
+    kMaxPredefined,
+  };
 
   // Access methods for symbols stored in the vm isolate.
-  static RawString* Dot() { return dot_; }
+#define DEFINE_SYMBOL_ACCESSOR(symbol, literal)                                \
+  static RawString* symbol() { return predefined_[k##symbol]; }
+PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
+#undef DEFINE_SYMBOL_ACCESSOR
 
   // Initialize frequently used symbols in the vm isolate.
   static void InitOnce(Isolate* isolate);
@@ -41,7 +91,8 @@ class Symbols : public AllStatic {
 
 
  private:
-  static const int kInitialSymbolTableSize = 16;
+  static const int kInitialVMIsolateSymtabSize = ((kMaxPredefined + 15) & -16);
+  static const int kInitialSymtabSize = 256;
 
   // Add the string into the VM isolate symbol table.
   static void Add(const Array& symbol_table, const String& str);
@@ -68,7 +119,7 @@ class Symbols : public AllStatic {
                             intptr_t hash);
 
   // List of symbols that are stored in the vm isolate for easy access.
-  static RawString* dot_;  // "." string.
+  static RawString* predefined_[kMaxPredefined];
 
   friend class SnapshotReader;
 

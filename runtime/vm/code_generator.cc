@@ -215,7 +215,7 @@ DEFINE_RUNTIME_ENTRY(AllocateObjectWithBoundsCheck, 3) {
       const intptr_t location = GetCallerLocation();
       String& malformed_error_message =  String::Handle(
           String::New(malformed_error.ToErrorCString()));
-      const String& no_name = String::Handle(Symbols::New(""));
+      const String& no_name = String::Handle(Symbols::Empty());
       Exceptions::CreateAndThrowTypeError(
           location, no_name, no_name, no_name, malformed_error_message);
       UNREACHABLE();
@@ -578,7 +578,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
     const intptr_t location = GetCallerLocation();
     String& malformed_error_message =  String::Handle(
         String::New(malformed_error.ToErrorCString()));
-    const String& no_name = String::Handle(Symbols::New(""));
+    const String& no_name = String::Handle(Symbols::Empty());
     Exceptions::CreateAndThrowTypeError(
         location, no_name, no_name, no_name, malformed_error_message);
     UNREACHABLE();
@@ -1191,7 +1191,7 @@ DEFINE_RUNTIME_ENTRY(InvokeNoSuchMethodFunction, 4) {
   const int kNumNamedArguments = 0;
   const Array& kNoArgumentNames = Array::Handle();
   const String& function_name =
-      String::Handle(Symbols::New("noSuchMethod"));
+      String::Handle(Symbols::NoSuchMethod());
   const Function& function = Function::ZoneHandle(
       Resolver::ResolveDynamic(receiver,
                                function_name,

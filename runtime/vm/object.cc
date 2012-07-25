@@ -5020,7 +5020,7 @@ void Script::GetTokenLocation(intptr_t token_pos,
                               intptr_t* line,
                               intptr_t* column) const {
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(String::New(""));
+  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   intptr_t src_pos = tkns.ComputeSourcePosition(token_pos);
   Scanner scanner(src, dummy_key);
@@ -5036,7 +5036,7 @@ void Script::TokenRangeAtLine(intptr_t line_number,
   intptr_t first_src_pos;
   intptr_t last_src_pos;
   const String& src = String::Handle(Source());
-  const String& dummy_key = String::Handle(String::New(""));
+  const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   Scanner scanner(src, dummy_key);
   scanner.TokenRangeAtLine(line_number, &first_src_pos, &last_src_pos);
@@ -5067,7 +5067,7 @@ RawString* Script::GetLine(intptr_t line_number) const {
     }
   }
   // Guarantee that returned string is never NULL.
-  String& line = String::Handle(Symbols::New(""));
+  String& line = String::Handle(Symbols::Empty());
   if (line_start >= 0) {
     line = String::SubString(src, line_start, last_char - line_start + 1);
   }
