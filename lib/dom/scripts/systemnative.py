@@ -804,17 +804,40 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if 'NeedsUserGestureCheck' in ext_attrs:
       cpp_arguments.append('DartUtilities::processingUserGesture');
 
-    invocation = self._GenerateWebCoreInvocation(
-        function_expression, cpp_arguments, return_type, ext_attrs, raises_dom_exception)
+    invocation_emitter = head_emitter
+    if raises_dom_exception:
+      cpp_arguments.append('ec')
+      invocation_emitter = head_emitter.Emit(
+        '        ExceptionCode ec = 0;\n'
+        '$!INVOCATION'
+        '        if (UNLIKELY(ec)) {\n'
+        '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
+        '            goto fail;\n'
+        '        }\n')
+
+    function_call = '%s(%s)' % (function_expression, ', '.join(cpp_arguments))
+    if return_type == 'void':
+      invocation_emitter.Emit(
+        '        $FUNCTION_CALL;\n',
+        FUNCTION_CALL=function_call)
+    else:
+      return_type_info = self._TypeInfo(return_type)
+      self._cpp_impl_includes |= set(return_type_info.conversion_includes())
+
+      # Generate to Dart conversion of C++ value.
+      to_dart_conversion = return_type_info.to_dart_conversion(function_call, self._interface.id, ext_attrs)
+      invocation_emitter.Emit(
+        '        Dart_Handle returnValue = $TO_DART_CONVERSION;\n'
+        '        if (returnValue)\n'
+        '            Dart_SetReturnValue(args, returnValue);\n',
+        TO_DART_CONVERSION=to_dart_conversion)
 
     body = emitter.Format(
         '    {\n'
         '$HEAD'
-        '$INVOCATION'
         '        return;\n'
         '    }\n',
-        HEAD=head_emitter.Fragments(),
-        INVOCATION=invocation)
+        HEAD=head_emitter.Fragments())
 
     if raises_exceptions:
       body = emitter.Format(
@@ -892,36 +915,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if idl_node.is_static:
       return '%s::%s' % (self._interface_type_info.idl_type(), function_name)
     return '%s%s' % (self._interface_type_info.receiver(), function_name)
-
-  def _GenerateWebCoreInvocation(self, function_expression, arguments,
-      idl_return_type, attributes, raises_dom_exceptions):
-    invocation_template = '        $FUNCTION_CALL;\n'
-    if idl_return_type != 'void':
-      return_type_info = self._TypeInfo(idl_return_type)
-      self._cpp_impl_includes |= set(return_type_info.conversion_includes())
-
-      # Generate to Dart conversion of C++ value.
-      to_dart_conversion = return_type_info.to_dart_conversion('$FUNCTION_CALL', self._interface.id, attributes)
-      invocation_template = emitter.Format(
-          '        Dart_Handle returnValue = $TO_DART_CONVERSION;\n'
-          '        if (returnValue)\n'
-          '            Dart_SetReturnValue(args, returnValue);\n',
-          TO_DART_CONVERSION=to_dart_conversion)
-
-    if raises_dom_exceptions:
-      # Add 'ec' argument to WebCore invocation and convert DOM exception to Dart exception.
-      arguments.append('ec')
-      invocation_template = emitter.Format(
-          '        ExceptionCode ec = 0;\n'
-          '$INVOCATION'
-          '        if (UNLIKELY(ec)) {\n'
-          '            exception = DartDOMWrapper::exceptionCodeToDartException(ec);\n'
-          '            goto fail;\n'
-          '        }\n',
-          INVOCATION=invocation_template)
-
-    return emitter.Format(invocation_template,
-        FUNCTION_CALL='%s(%s)' % (function_expression, ', '.join(arguments)))
 
   def _TypeInfo(self, type_name):
     return self._system._type_registry.TypeInfo(type_name)
