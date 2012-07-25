@@ -271,13 +271,19 @@ class DatabaseBuilder(object):
         # Maybe rename arguments:
         if isinstance(old_node, IDLOperation):
           for i in range(0, len(old_node.arguments)):
-            old_arg_name = old_node.arguments[i].id
-            new_arg_name = new_node.arguments[i].id
+            old_arg = old_node.arguments[i]
+            new_arg = new_node.arguments[i]
+
+            old_arg_name = old_arg.id
+            new_arg_name = new_arg.id
             if (old_arg_name != new_arg_name
                 and (old_arg_name == 'arg'
                      or old_arg_name.endswith('Arg')
                      or import_options.rename_operation_arguments_on_merge)):
               old_node.arguments[i].id = new_arg_name
+              changed = True
+
+            if self._merge_ext_attrs(old_arg.ext_attrs, new_arg.ext_attrs):
               changed = True
         # Maybe merge annotations:
         if (isinstance(old_node, IDLAttribute) or
@@ -375,17 +381,11 @@ class DatabaseBuilder(object):
             import_options.source_attributes)
       interface.parents.append(parent)
 
-  def merge_imported_interfaces(self, optional_argument_whitelist):
+  def merge_imported_interfaces(self):
     """Merges all imported interfaces and loads them into the DB."""
 
     # Step 1: Pre process imported interfaces
     for interface, module_name, import_options in self._imported_interfaces:
-      # Add 'Optional' attribute to whitelisted arguments.
-      for op in interface.operations:
-        for argument in op.arguments:
-          in_optional_whitelist = (interface.id, op.id, argument.id) in optional_argument_whitelist
-          if in_optional_whitelist:
-            argument.ext_attrs['Optional'] = None
       self._annotate(interface, module_name, import_options)
 
     # Step 2: Add all new interfaces and merge overlapping ones

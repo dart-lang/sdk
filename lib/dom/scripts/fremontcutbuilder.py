@@ -126,10 +126,6 @@ def build_database(idl_files, database_dir, feature_defines = None):
         'WorkerContext': 'WorkerGlobalScope',
       })
 
-  optional_argument_whitelist = [
-      ('CSSStyleDeclaration', 'setProperty', 'priority'),
-      ]
-
   # Import WebKit IDLs.
   for file_name in idl_files:
     builder.import_idl_file(file_name, webkit_options)
@@ -145,7 +141,7 @@ def build_database(idl_files, database_dir, feature_defines = None):
       dart_options)
 
   # Merging:
-  builder.merge_imported_interfaces(optional_argument_whitelist)
+  builder.merge_imported_interfaces()
 
   builder.fetch_constructor_data(webkit_options)
   builder.fix_displacements('WebKit')

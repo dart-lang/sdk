@@ -138,7 +138,11 @@ module html {
   };
 }
 
-
+module css {
+  interface CSSStyleDeclaration {
+    void setProperty(in DOMString propertyName, in DOMString value, [Optional] in DOMString priority);
+  };
+};
 
 module canvas {
   [Supplemental,
