@@ -703,38 +703,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       if self._TypeInfo(argument.type.id).requires_v8_scope():
         requires_v8_scope = True
 
-    parameter_definitions_emitter = emitter.Emitter()
-    # Process Dart cpp_arguments.
-    start_index = 0
-    if needs_receiver:
-      start_index = 1
-    for (i, argument) in enumerate(arguments):
-      if (i == len(arguments) - 1 and
-          self._interface.id == 'Console' and
-          argument.id == 'arg'):
-        # FIXME: we are skipping last argument here because it was added in
-        # supplemental dart.idl. Cleanup dart.idl and remove this check.
-        break
-      argument_expression = self._GenerateToNative(
-          parameter_definitions_emitter, argument, start_index + i)
-      cpp_arguments.append(argument_expression)
-
-    # FIXME: rework in IDLs.
-    if node.id in ['addEventListener', 'removeEventListener']:
-      # addEventListener's and removeEventListener's last argument is marked
-      # as optional in idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('false')
-
-    if self._interface.id == 'CSSStyleDeclaration' and node.id == 'setProperty':
-      # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
-      # idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('String()')
-
-    if 'NeedsUserGestureCheck' in ext_attrs:
-      cpp_arguments.append('DartUtilities::processingUserGesture');
-
     assert (not (
       'synthesizedV8EnabledPerContext' in ext_attrs and
       'synthesizedV8EnabledAtRuntime' in ext_attrs))
@@ -758,9 +726,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            goto fail;\n'
           '        }',
           FEATURE=_ToWebKitName(ext_attrs['synthesizedV8EnabledAtRuntime']))
-
-    invocation = self._GenerateWebCoreInvocation(
-        function_expression, cpp_arguments, return_type, ext_attrs, raises_dom_exception)
 
     head_emitter = emitter.Emitter()
 
@@ -807,9 +772,40 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '            return;\n',
           INDEX=len(arguments))
 
-    head_emitter.Emit(
-        '$PARAMETE_DEFINITIONS\n',
-        PARAMETE_DEFINITIONS=parameter_definitions_emitter.Fragments())
+    # Process Dart cpp_arguments.
+    start_index = 0
+    if needs_receiver:
+      start_index = 1
+    for (i, argument) in enumerate(arguments):
+      if (i == len(arguments) - 1 and
+          self._interface.id == 'Console' and
+          argument.id == 'arg'):
+        # FIXME: we are skipping last argument here because it was added in
+        # supplemental dart.idl. Cleanup dart.idl and remove this check.
+        break
+      argument_expression = self._GenerateToNative(head_emitter, argument, start_index + i)
+      cpp_arguments.append(argument_expression)
+
+    head_emitter.Emit('\n')
+
+    # FIXME: rework in IDLs.
+    if node.id in ['addEventListener', 'removeEventListener']:
+      # addEventListener's and removeEventListener's last argument is marked
+      # as optional in idl, but is not optional in webcore implementation.
+      if len(arguments) == 2:
+        cpp_arguments.append('false')
+
+    if self._interface.id == 'CSSStyleDeclaration' and node.id == 'setProperty':
+      # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
+      # idl, but is not optional in webcore implementation.
+      if len(arguments) == 2:
+        cpp_arguments.append('String()')
+
+    if 'NeedsUserGestureCheck' in ext_attrs:
+      cpp_arguments.append('DartUtilities::processingUserGesture');
+
+    invocation = self._GenerateWebCoreInvocation(
+        function_expression, cpp_arguments, return_type, ext_attrs, raises_dom_exception)
 
     body = emitter.Format(
         '    {\n'
