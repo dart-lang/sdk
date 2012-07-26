@@ -2534,14 +2534,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // run time.
   if (IsMalformed()) {
     ASSERT(FLAG_enable_type_checks);
-    if (malformed_error->IsNull()) {
+    if ((malformed_error != NULL) && malformed_error->IsNull()) {
       *malformed_error = this->malformed_error();
     }
     return false;
   }
   if (other.IsMalformed()) {
     ASSERT(FLAG_enable_type_checks);
-    if (malformed_error->IsNull()) {
+    if ((malformed_error != NULL) && malformed_error->IsNull()) {
       *malformed_error = other.malformed_error();
     }
     return false;
@@ -3310,7 +3310,7 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
           !this_type_arg.IsSubtypeOf(bound, malformed_error)) {
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
-        if (malformed_error->IsNull()) {
+        if ((malformed_error != NULL) && malformed_error->IsNull()) {
           const String& type_arg_name =
               String::Handle(this_type_arg.UserVisibleName());
           const String& class_name = String::Handle(cls.Name());

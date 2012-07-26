@@ -192,8 +192,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       ASSERT(tp_argument.HasResolvedTypeClass());
       // Check if type argument is dynamic or Object.
       const Type& object_type = Type::Handle(Type::ObjectType());
-      Error& malformed_error = Error::Handle();
-      if (object_type.IsSubtypeOf(tp_argument, &malformed_error)) {
+      if (object_type.IsSubtypeOf(tp_argument, NULL)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
             cid, token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
@@ -245,11 +244,10 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   __ j(NOT_ZERO, &compare_classes, Assembler::kNearJump);
   // Instance is Smi, check directly.
   const Class& smi_class = Class::Handle(Smi::Class());
-  Error& malformed_error = Error::Handle();
   if (smi_class.IsSubtypeOf(TypeArguments::Handle(),
                             type_class,
                             TypeArguments::Handle(),
-                            &malformed_error)) {
+                            NULL)) {
     __ jmp(is_instance_lbl);
   } else {
     __ jmp(is_not_instance_lbl);
@@ -284,8 +282,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   }
   // Custom checking for numbers (Smi, Mint, Bigint and Double).
   // Note that instance is not Smi (checked above).
-  if (type.IsSubtypeOf(
-          Type::Handle(Type::NumberInterface()), &malformed_error)) {
+  if (type.IsSubtypeOf(Type::Handle(Type::NumberInterface()), NULL)) {
     GenerateNumberTypeCheck(
         kClassIdReg, type, is_instance_lbl, is_not_instance_lbl);
     return false;

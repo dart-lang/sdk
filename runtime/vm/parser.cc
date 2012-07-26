@@ -7977,11 +7977,10 @@ AstNode* Parser::ParseNewOperator() {
     // Only change the class of the constructor to the factory class if the
     // factory class implements the interface 'type'.
     const Class& factory_class = Class::Handle(type_class.FactoryClass());
-    Error& malformed_error = Error::Handle();
     if (factory_class.IsSubtypeOf(TypeArguments::Handle(),
                                   type_class,
                                   TypeArguments::Handle(),
-                                  &malformed_error)) {
+                                  NULL)) {
       // Class finalization verifies that the factory class has identical type
       // parameters as the interface.
       constructor_class_name = factory_class.Name();

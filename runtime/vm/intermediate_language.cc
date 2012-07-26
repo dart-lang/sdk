@@ -17,6 +17,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
+
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
   // Only core library methods can be recognized.
@@ -327,6 +330,12 @@ void PhiInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+RawAbstractType* PhiInstr::StaticType() const {
+  // TODO(regis): Return the least upper bound of the input static types.
+  return Type::DynamicType();
+}
+
+
 intptr_t ParameterInstr::InputCount() const {
   return 0;
 }
@@ -340,6 +349,17 @@ Value* ParameterInstr::InputAt(intptr_t i) const {
 
 void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
   UNREACHABLE();
+}
+
+
+RawAbstractType* ParameterInstr::StaticType() const {
+  // TODO(regis): Can type feedback provide information about the static type
+  // of a passed-in parameter?
+  // Note that in checked mode, we could return the static type of the formal
+  // parameter. However, this would be wrong if ParameterInstr is used to type
+  // check the passed-in parameter, since the type check would then always be
+  // wrongly eliminated.
+  return Type::DynamicType();
 }
 
 
@@ -650,6 +670,11 @@ RawAbstractType* UseVal::StaticType() const {
 
 
 RawAbstractType* AssertAssignableComp::StaticType() const {
+  const AbstractType& value_static_type =
+      AbstractType::Handle(value()->StaticType());
+  if (value_static_type.IsMoreSpecificThan(dst_type(), NULL)) {
+    return value_static_type.raw();
+  }
   return dst_type().raw();
 }
 
@@ -681,6 +706,8 @@ RawAbstractType* ClosureCallComp::StaticType() const {
 
 
 RawAbstractType* InstanceCallComp::StaticType() const {
+  // TODO(regis): Return a more specific type than Dynamic for recognized
+  // combinations of receiver static type and method name.
   return Type::DynamicType();
 }
 
@@ -696,18 +723,16 @@ RawAbstractType* StaticCallComp::StaticType() const {
 
 
 RawAbstractType* LoadLocalComp::StaticType() const {
-  return local().type().raw();
+  // TODO(regis): Verify that the type of the receiver is properly set.
+  if (FLAG_enable_type_checks) {
+    return local().type().raw();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreLocalComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of local.
-    return local().type().raw();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
@@ -751,46 +776,33 @@ RawAbstractType* InstanceSetterComp::StaticType() const {
 
 
 RawAbstractType* StaticSetterComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of setter
-    // value parameter.
-    return setter_function().ParameterTypeAt(0);
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
 RawAbstractType* LoadInstanceFieldComp::StaticType() const {
-  return field().type();
+  if (FLAG_enable_type_checks) {
+    return field().type();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreInstanceFieldComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return field().type();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
 RawAbstractType* LoadStaticFieldComp::StaticType() const {
-  return field().type();
+  if (FLAG_enable_type_checks) {
+    return field().type();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreStaticFieldComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return field().type();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
@@ -836,14 +848,7 @@ RawAbstractType* LoadVMFieldComp::StaticType() const {
 
 
 RawAbstractType* StoreVMFieldComp::StaticType() const {
-  ASSERT(!type().IsNull());
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return type().raw();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 

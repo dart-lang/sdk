@@ -1821,12 +1821,6 @@ class Instruction : public ZoneAllocated {
 FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
 
-  // Static type of the instruction.
-  virtual RawAbstractType* StaticType() const {
-    UNREACHABLE();
-    return AbstractType::null();
-  }
-
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
   virtual LocationSummary* locs() {
@@ -2158,6 +2152,9 @@ class Definition : public Instruction {
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
 
+  // Static type of the definition.
+  virtual RawAbstractType* StaticType() const = 0;
+
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
@@ -2218,6 +2215,9 @@ class PhiInstr : public Definition {
     }
   }
 
+  // Least upper bound of the static types of the inputs.
+  virtual RawAbstractType* StaticType() const;
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
@@ -2232,6 +2232,9 @@ class ParameterInstr : public Definition {
   explicit ParameterInstr(intptr_t index) : index_(index) { }
 
   intptr_t index() const { return index_; }
+
+  // Static type of the passed-in parameter.
+  virtual RawAbstractType* StaticType() const;
 
   DECLARE_INSTRUCTION(Parameter)
 

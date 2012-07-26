@@ -465,8 +465,7 @@ static bool IsStaticTypeMoreSpecific(Value* value,
   // guaranteed to be a subtype of the static type, is also guaranteed to be
   // a subtype of the destination type and the type check can therefore be
   // eliminated.
-  Error& malformed_error = Error::Handle();
-  return static_type.IsMoreSpecificThan(dst_type, &malformed_error);
+  return static_type.IsMoreSpecificThan(dst_type, NULL);
 }
 
 
@@ -737,9 +736,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Type::ObjectType());
-  Error& malformed_error = Error::Handle();
-  if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(type, &malformed_error)) {
+  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
@@ -762,13 +759,9 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // instantiated).
       result = new ConstantVal(negate_result ? bool_true : bool_false);
     } else {
-      Error& malformed_error = Error::Handle();
-      if (literal_value.IsInstanceOf(type,
-                                     TypeArguments::Handle(),
-                                     &malformed_error)) {
+      if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
         result = new ConstantVal(negate_result ? bool_false : bool_true);
       } else {
-        ASSERT(malformed_error.IsNull());
         result = new ConstantVal(negate_result ? bool_true : bool_false);
       }
     }
@@ -1520,14 +1513,13 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
   Computation* allocate_comp = NULL;
-  Error& malformed_error = Error::Handle();
   if (FLAG_enable_type_checks &&
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
       !node->type_arguments().IsWithinBoundsOf(cls,
                                                node->type_arguments(),
-                                               &malformed_error)) {
+                                               NULL)) {
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
     // Although the type arguments may be uninstantiated at compile time, they
