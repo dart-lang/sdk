@@ -78,7 +78,6 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
-    vm_isolate_->heap()->MakeReadOnly();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
