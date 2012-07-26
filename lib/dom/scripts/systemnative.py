@@ -549,7 +549,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return
 
     is_custom = 'Custom' in operation.ext_attrs
-    has_optional_arguments = any(_IsArgumentOptionalInWebCore(argument) for argument in operation.arguments)
+    has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
     if not needs_dispatcher:
@@ -624,14 +624,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if len(operations) > 1:
       for operation in operations:
         for position, argument in enumerate(operation.arguments):
-          if _IsArgumentOptionalInWebCore(argument):
+          if self._IsArgumentOptionalInWebCore(operation, argument):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
       body.Emit('    throw "Incorrect number or type of arguments";\n');
     else:
       operation = operations[0]
       for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if _IsArgumentOptionalInWebCore(argument):
+        if self._IsArgumentOptionalInWebCore(operation, argument):
           check = '%s === _null' % argument_names[position]
           GenerateCall(operation, position, [check])
       GenerateCall(operation, len(operation.arguments), [])
@@ -805,6 +805,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       cpp_arguments.append(type_info.emit_to_native(
           body_emitter,
           argument,
+          IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument),
           # TODO(antonm): all IDs should be renamed when database is generated.
           # That will allow to get rid of argument_name argument altogether.
           DartDomNameOfAttribute(argument),
@@ -812,19 +813,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           self._interface.id))
 
     body_emitter.Emit('\n')
-
-    # FIXME: rework in IDLs.
-    if node.id in ['addEventListener', 'removeEventListener']:
-      # addEventListener's and removeEventListener's last argument is marked
-      # as optional in idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('false')
-
-    if self._interface.id == 'CSSStyleDeclaration' and node.id == 'setProperty':
-      # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
-      # idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('String()')
 
     if 'NeedsUserGestureCheck' in ext_attrs:
       cpp_arguments.append('DartUtilities::processingUserGesture');
@@ -904,6 +892,19 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def _TypeInfo(self, type_name):
     return self._system._type_registry.TypeInfo(type_name)
 
+  def _IsArgumentOptionalInWebCore(self, operation, argument):
+    if not IsOptional(argument):
+      return False
+    if 'Callback' in argument.ext_attrs:
+      return False
+    if operation.id in ['addEventListener', 'removeEventListener'] and argument.id == 'useCapture':
+      return False
+    # Another option would be to adjust in IDLs, but let's keep it here for now
+    # as it's a single instance.
+    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
+      return False
+    return True
+
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in sorted(includes)])
@@ -919,9 +920,6 @@ def _FindInHierarchy(database, interface, test):
     parent_interface = _FindInHierarchy(database, parent_interface, test)
     if parent_interface:
       return parent_interface
-
-def _IsArgumentOptionalInWebCore(argument):
-  return IsOptional(argument) and not 'Callback' in argument.ext_attrs
 
 def _ToWebKitName(name):
   name = name[0].lower() + name[1:]
