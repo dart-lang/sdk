@@ -37,23 +37,30 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
       }
     }
   } else {
-    // We have a deoptimization environment, we have to tear down optimized
-    // frame and recreate non-optimized one.
-    __ leaq(RSP,
-            Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
+    // We have a deoptimization environment, we have to tear down the
+    // optimized frame and recreate a non-optimized one.
 
+    // 1. Set the stack pointer to the top of the non-optimized frame.
     const GrowableArray<Value*>& values = deoptimization_env_->values();
+    const intptr_t top_offset =
+        ParsedFunction::kFirstLocalSlotIndex - values.length();
+    __ leaq(RSP, Address(RBP, top_offset * kWordSize));
+
+    // 2. Build and emit a parallel move representing the frame translation.
+    ParallelMoveInstr* move = new ParallelMoveInstr();
     for (intptr_t i = 0; i < values.length(); i++) {
-      const Location loc = deoptimization_env_->LocationAt(i);
-      if (loc.IsInvalid()) {
-        ASSERT(values[i]->IsConstant());
-        __ PushObject(values[i]->AsConstant()->value());
-      } else if (loc.IsRegister()) {
-        __ pushq(loc.reg());
-      } else {
+      Location destination = Location::SpillSlot(i);
+      Location source = deoptimization_env_->LocationAt(i);
+      if (!source.IsRegister() && !source.IsInvalid()) {
         compiler->Bailout("unsupported deoptimization state");
       }
+      if (source.IsInvalid()) {
+        ASSERT(values[i]->IsConstant());
+        source = Location::Constant(values[i]->AsConstant()->value());
+      }
+      move->AddMove(destination, source);
     }
+    compiler->parallel_move_resolver()->EmitNativeCode(move);
   }
 
   if (compiler->IsLeaf()) {

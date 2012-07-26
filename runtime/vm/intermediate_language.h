@@ -2467,7 +2467,7 @@ class MoveOperands : public ZoneAllocated {
 
 class ParallelMoveInstr : public Instruction {
  public:
-  explicit ParallelMoveInstr() : moves_(4) {
+  ParallelMoveInstr() : moves_(4) {
   }
 
   DECLARE_INSTRUCTION(ParallelMove)

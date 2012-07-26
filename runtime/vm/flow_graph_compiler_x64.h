@@ -50,6 +50,9 @@ class FlowGraphCompiler : public ValueObject {
   static bool CanOptimize();
   bool is_optimizing() const { return is_optimizing_; }
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
+  ParallelMoveResolver* parallel_move_resolver() {
+    return &parallel_move_resolver_;
+  }
 
   // Constructor is lighweight, major initialization work should occur here.
   // This makes it easier to measure time spent in the compiler.
