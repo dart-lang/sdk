@@ -22,7 +22,7 @@ class TestCase {
   final _teardown;
 
   /** The body of the test case. */
-  final TestFunction test;
+  TestFunction test;
 
   /** Total number of callbacks to wait for before the test completes. */
   int callbacks;
@@ -31,7 +31,7 @@ class TestCase {
   String message = '';
 
   /**
-   * One of [_PASS], [_FAIL], or [_ERROR] or [null] if the test hasn't run yet.
+   * One of [_PASS], [_FAIL], [_ERROR], or [null] if the test hasn't run yet.
    */
   String result;
 
@@ -45,23 +45,30 @@ class TestCase {
 
   Duration runningTime;
 
+  bool enabled = true;
+
   TestCase(this.id, this.description, this.test, this.callbacks)
   : currentGroup = _currentGroup,
     _setup = _testSetup,
     _teardown = _testTeardown;
 
-  bool get isComplete() => result != null;
+  bool get isComplete() => !enabled || result != null;
 
   void run() {
-    if (_setup != null) {
-      _setup();
-    }
-    try {
-      _config.onTestStart(this);
-      test();
-    } finally {
-      if (_teardown != null) {
-        _teardown();
+    if (enabled) {
+      result = stackTrace = null;
+      message = '';
+
+      if (_setup != null) {
+        _setup();
+      }
+      try {
+        _config.onTestStart(this);
+        test();
+      } finally {
+        if (_teardown != null) {
+          _teardown();
+        }
       }
     }
   }

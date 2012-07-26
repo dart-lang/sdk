@@ -166,6 +166,8 @@ Configuration configure(Configuration config) {
   return _oldConfig;
 }
 
+void log(String message) => _config.log(message);
+
 /**
  * Description text of the current test group. If multiple groups are nested,
  * this will contain all of their text concatenated.
@@ -174,6 +176,9 @@ String _currentGroup = '';
 
 /** Tests executed in this suite. */
 List<TestCase> _tests;
+
+/** Get the list of tests. */
+get testCases() => _tests;
 
 /**
  * Callback used to run tests. Entrypoints can replace this with their own
@@ -600,18 +605,25 @@ void _handleAllCallbacksDone() {
         if (testCase.result == null) {
           testCase.pass();
         }
-        _currentTest++;
-        _testRunner();
+        _nextTestCase();
       }
     }
   });
+}
+
+/** Advance to the next test case. */
+void _nextTestCase() {
+  _currentTest++;
+  _testRunner();
 }
 
 /**
  * Temporary hack: expose old API.
  * TODO(gram) remove this when WebKit tests are working with new framework
  */
-void callbackDone() { _handleAllCallbacksDone(); }
+void callbackDone() {
+  _handleAllCallbacksDone();
+}
 
 /**
  * Utility function that can be used to notify the test framework that an
@@ -623,8 +635,7 @@ void reportTestError(String msg, String trace) {
     testCase.error(msg, trace);
     _state = _UNCAUGHT_ERROR;
     if (testCase.callbacks > 0) {
-      _currentTest++;
-      _testRunner();
+      _nextTestCase();
     }
   } else {
     _uncaughtErrorMessage = "$msg: $trace";
@@ -645,11 +656,13 @@ _defer(void callback()) {
 }
 
 /** Runs all queued tests, one at a time. */
-_runTests() {
+runTests() {
+
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
     _tests = _tests.filter((t) => t == _soloTest);
   }
+
   if (filter != null) {
     RegExp re = new RegExp(filter);
     _tests = _tests.filter((t) => re.hasMatch(t.description));
@@ -661,6 +674,15 @@ _runTests() {
     assert (_currentTest == 0);
     _testRunner();
   });
+}
+
+/** Rerun the tests. */
+rerunTests() {
+  _currentTest = 0;
+  for (var i = 0; i < _tests.length; i++) {
+    _tests[i].callbacks = 0; // Note - won't work with old asyncTests.
+  }
+  runTests();
 }
 
 /**
@@ -777,10 +799,43 @@ ensureInitialized() {
   }
   _config.onInit();
 
-  // Immediately queue the suite up. It will run after a timeout (i.e. after
-  // main() has returned).
-  _defer(_runTests);
+  if (_config.autoStart) {
+    // Immediately queue the suite up. It will run after a timeout (i.e. after
+    // main() has returned).
+    _defer(runTests);
+  }
 }
+
+/** Select a solo test by ID. */
+void setSoloTest(int id) {
+  for (var i = 0; i < _tests.length; i++) {
+    if (_tests[i].id == id) {
+      _soloTest = _tests[i];
+      break;
+    }
+  }
+}
+
+/** Enable/disable a test by ID. */
+void _setTestEnabledState(int testId, bool state) {
+  // Try fast path first.
+  if (_tests.length > testId && _tests[testId].id == testId) {
+    _tests[testId].enabled = state;
+  } else {
+    for (var i = 0; i < _tests.length; i++) {
+      if (_tests[i].id == testId) {
+        _tests[i].enabled = state;
+        break;
+      }
+    }
+  }
+}
+
+/** Enable a test by ID. */
+void enableTest(int testId) => _setTestEnabledState(testId, true);
+
+/** Disable a test by ID. */
+void disableTest(int testId) => _setTestEnabledState(testId, false);
 
 /** Signature for a test function. */
 typedef void TestFunction();
