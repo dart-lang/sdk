@@ -3716,6 +3716,32 @@ TEST_CASE(ClosureFunction) {
   const char* kScriptChars =
       "Function getClosure() {\n"
       "  return (x, y, [z]) => x + y + z;\n"
+      "}\n"
+      "class Foo {\n"
+      "  getInstanceClosure() {\n"
+      "    return () { return this; };\n"
+      "  }\n"
+      "  getInstanceClosureWithArgs() {\n"
+      "    return (x, y, [z]) { return this; };\n"
+      "  }\n"
+      "  static getStaticClosure() {\n"
+      "    return () { return 42; };\n"
+      "  }\n"
+      "  static getStaticClosureWithArgs() {\n"
+      "    return (x, y, [z]) { return 42; };\n"
+      "  }\n"
+      "}\n"
+      "Function getInstanceClosure() {\n"
+      "  return new Foo().getInstanceClosure();\n"
+      "}\n"
+      "Function getInstanceClosureWithArgs() {\n"
+      "  return new Foo().getInstanceClosureWithArgs();\n"
+      "}\n"
+      "Function getStaticClosure() {\n"
+      "  return Foo.getStaticClosure();\n"
+      "}\n"
+      "Function getStaticClosureWithArgs() {\n"
+      "  return Foo.getStaticClosureWithArgs();\n"
       "}\n";
   Dart_Handle result;
   DARTSCOPE_NOCHECKS(Isolate::Current());
@@ -3734,8 +3760,8 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  int64_t fixed_param_count = -1;
-  int64_t opt_param_count = -1;
+  int64_t fixed_param_count = -999;
+  int64_t opt_param_count = -999;
   result = Dart_FunctionParameterCounts(result,
                                         &fixed_param_count,
                                         &opt_param_count);
@@ -3746,6 +3772,93 @@ TEST_CASE(ClosureFunction) {
   // Try to retrieve function from a non-closure object
   result = Dart_ClosureFunction(Dart_NewInteger(1));
   EXPECT(Dart_IsError(result));
+
+  // Invoke a function which returns an "instance" closure.
+  retobj = Dart_Invoke(lib, Dart_NewString("getInstanceClosure"), 0, NULL);
+  EXPECT_VALID(retobj);
+  EXPECT(Dart_IsClosure(retobj));
+
+  // Retrieve the closure's function
+  result = Dart_ClosureFunction(retobj);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFunction(result));
+  // -999: We want to distinguish between a non-answer and a wrong answer, and
+  // -1 has been a previous wrong answer
+  fixed_param_count = -999;
+  opt_param_count = -999;
+  result = Dart_FunctionParameterCounts(result,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, fixed_param_count);
+  EXPECT_EQ(0, opt_param_count);
+
+  // Invoke a function which returns an "instance" closure with arguments.
+  retobj = Dart_Invoke(lib,
+                       Dart_NewString("getInstanceClosureWithArgs"),
+                       0,
+                       NULL);
+  EXPECT_VALID(retobj);
+  EXPECT(Dart_IsClosure(retobj));
+
+  // Retrieve the closure's function
+  result = Dart_ClosureFunction(retobj);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFunction(result));
+  // -999: We want to distinguish between a non-answer and a wrong answer, and
+  // -1 has been a previous wrong answer
+  fixed_param_count = -999;
+  opt_param_count = -999;
+  result = Dart_FunctionParameterCounts(result,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(2, fixed_param_count);
+  EXPECT_EQ(1, opt_param_count);
+
+  // Invoke a function which returns a "static" closure.
+  retobj = Dart_Invoke(lib, Dart_NewString("getStaticClosure"), 0, NULL);
+  EXPECT_VALID(retobj);
+  EXPECT(Dart_IsClosure(retobj));
+
+  // Retrieve the closure's function
+  result = Dart_ClosureFunction(retobj);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFunction(result));
+  // -999: We want to distinguish between a non-answer and a wrong answer, and
+  // -1 has been a previous wrong answer
+  fixed_param_count = -999;
+  opt_param_count = -999;
+  result = Dart_FunctionParameterCounts(result,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(0, fixed_param_count);
+  EXPECT_EQ(0, opt_param_count);
+
+
+  // Invoke a function which returns a "static" closure with arguments.
+  retobj = Dart_Invoke(lib,
+                       Dart_NewString("getStaticClosureWithArgs"),
+                       0,
+                       NULL);
+  EXPECT_VALID(retobj);
+  EXPECT(Dart_IsClosure(retobj));
+
+  // Retrieve the closure's function
+  result = Dart_ClosureFunction(retobj);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsFunction(result));
+  // -999: We want to distinguish between a non-answer and a wrong answer, and
+  // -1 has been a previous wrong answer
+  fixed_param_count = -999;
+  opt_param_count = -999;
+  result = Dart_FunctionParameterCounts(result,
+                                        &fixed_param_count,
+                                        &opt_param_count);
+  EXPECT_VALID(result);
+  EXPECT_EQ(2, fixed_param_count);
+  EXPECT_EQ(1, opt_param_count);
 }
 
 TEST_CASE(InvokeClosure) {

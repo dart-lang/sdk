@@ -2900,6 +2900,9 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
                         func.NumberOfImplicitParameters());
   *opt_param_count = func.num_optional_parameters();
 
+  ASSERT(*fixed_param_count >= 0);
+  ASSERT(*opt_param_count >= 0);
+
   return Api::Success(isolate);
 }
 
