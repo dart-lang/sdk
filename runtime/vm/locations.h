@@ -46,7 +46,13 @@ class Location : public ValueObject {
 
     // Spill slot allocated by the register allocator.  Payload contains
     // a spill index.
-    kSpillSlot = 4
+    kStackSlot = 4,
+  };
+
+  enum {
+    // Number of bits required to encode Kind value.
+    kBitsForKind = 3,
+    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind
   };
 
   static const uword kInvalidLocation = 0;
@@ -142,17 +148,25 @@ class Location : public ValueObject {
   }
 
   // Spill slots.
-  static Location SpillSlot(intptr_t spill_index) {
-    return Location(kSpillSlot, static_cast<uword>(spill_index));
+  static const intptr_t kStackIndexBias =
+      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
+  static Location StackSlot(intptr_t stack_index) {
+    ASSERT((-kStackIndexBias <= stack_index) &&
+           (stack_index < kStackIndexBias));
+    Location loc(kStackSlot, static_cast<uword>(kStackIndexBias + stack_index));
+    // Ensure that sign is preserved.
+    ASSERT(loc.stack_index() == stack_index);
+    return loc;
   }
 
-  bool IsSpillSlot() const {
-    return kind() == kSpillSlot;
+  bool IsStackSlot() const {
+    return kind() == kStackSlot;
   }
 
-  intptr_t spill_index() const {
-    ASSERT(IsSpillSlot());
-    return static_cast<intptr_t>(payload());
+  intptr_t stack_index() const {
+    ASSERT(IsStackSlot());
+    // Decode stack index manually to preserve sign.
+    return payload() - kStackIndexBias;
   }
 
   const char* Name() const;
@@ -179,8 +193,8 @@ class Location : public ValueObject {
     return KindField::decode(value_);
   }
 
-  typedef BitField<Kind, 0, 3> KindField;
-  typedef BitField<uword, 3, kWordSize * kBitsPerByte - 2> PayloadField;
+  typedef BitField<Kind, 0, kBitsForKind> KindField;
+  typedef BitField<uword, kBitsForKind, kBitsForPayload> PayloadField;
 
   // Layout for kUnallocated locations payload.
   typedef BitField<Policy, 0, 2> PolicyField;

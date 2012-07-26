@@ -9,6 +9,7 @@
 #include "vm/il_printer.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
+#include "vm/parser.h"
 
 namespace dart {
 
@@ -136,6 +137,17 @@ void FlowGraphAllocator::ComputeInitialSets() {
           }
         }
       }
+    }
+  }
+
+  // Process incoming parameters.
+  GraphEntryInstr* graph_entry = postorder_[block_count - 1]->AsGraphEntry();
+  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
+    Value* val = graph_entry->start_env()->values()[i];
+    if (val->IsUse()) {
+      const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
+      kill_[0]->Add(vreg);
+      live_in_[0]->Remove(vreg);
     }
   }
 
@@ -396,6 +408,37 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
     ConnectIncomingPhiMoves(block);
   }
+
+  // Process incoming parameters.
+  const intptr_t fixed_parameters_count =
+      builder_->parsed_function().function().num_fixed_parameters();
+
+  GraphEntryInstr* graph_entry = postorder_[block_count - 1]->AsGraphEntry();
+  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
+    Value* val = graph_entry->start_env()->values()[i];
+    if (val->IsUse()) {
+      ParameterInstr* param = val->AsUse()->definition()->AsParameter();
+
+      LiveRange* range = GetLiveRange(param->ssa_temp_index());
+      range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
+      range->DefineAt(graph_entry->start_pos());
+
+      // Slot index for the rightmost parameter is -1.
+      const intptr_t slot_index = param->index() - fixed_parameters_count;
+      range->set_assigned_location(Location::StackSlot(slot_index));
+
+      range->finger()->Initialize(range);
+      UsePosition* use = range->finger()->FirstRegisterBeneficialUse(
+          graph_entry->start_pos());
+      if (use != NULL) {
+        LiveRange* tail = SplitBetween(range,
+                                       graph_entry->start_pos(),
+                                       use->pos());
+        AddToUnallocated(tail);
+      }
+      ConvertAllUses(range);
+    }
+  }
 }
 
 //
@@ -545,6 +588,14 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   // TODO(vegorov): number of inputs must match number of input locations.
   if (locs->input_count() != current->InputCount()) {
     builder_->Bailout("ssa allocator: number of input locations mismatch");
+  }
+
+  // Normalize same-as-first-input output if input is specified as
+  // fixed register.
+  if (locs->out().IsUnallocated() &&
+      (locs->out().policy() == Location::kSameAsFirstInput) &&
+      (locs->in(0).IsRegister())) {
+    locs->set_out(locs->in(0));
   }
 
   const bool output_same_as_first_input =
@@ -1095,9 +1146,9 @@ intptr_t FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 
 void FlowGraphAllocator::Spill(LiveRange* range) {
   const intptr_t spill_index = AllocateSpillSlotFor(range);
-  ASSERT(spill_slots_[spill_index] < range->Start());
+  ASSERT(spill_slots_[spill_index] <= range->Start());
   spill_slots_[spill_index] = range->End();
-  range->set_assigned_location(Location::SpillSlot(spill_index));
+  range->set_assigned_location(Location::StackSlot(spill_index));
   ConvertAllUses(range);
 }
 
@@ -1575,15 +1626,6 @@ void FlowGraphAllocator::ResolveControlFlow() {
 
 
 void FlowGraphAllocator::AllocateRegisters() {
-  GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
-  ASSERT(entry != NULL);
-
-  for (intptr_t i = 0; i < entry->start_env()->values().length(); i++) {
-    if (entry->start_env()->values()[i]->IsUse()) {
-      builder_->Bailout("ssa allocator: unsupported start environment");
-    }
-  }
-
   AnalyzeLiveness();
 
   BuildLiveRanges();
@@ -1599,6 +1641,10 @@ void FlowGraphAllocator::AllocateRegisters() {
   AllocateCPURegisters();
 
   ResolveControlFlow();
+
+  GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
+  ASSERT(entry != NULL);
+  entry->set_spill_slot_count(spill_slots_.length());
 
   if (FLAG_trace_ssa_allocator) {
     OS::Print("-- ir after allocation -------------------------\n");

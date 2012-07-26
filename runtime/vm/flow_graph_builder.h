@@ -63,7 +63,8 @@ class FlowGraphBuilder: public ValueObject {
   void Rename(intptr_t var_count);
   void RenameRecursive(BlockEntryInstr* block_entry,
                        GrowableArray<Value*>* env,
-                       intptr_t var_count);
+                       intptr_t var_count,
+                       intptr_t param_count);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                   const GrowableArray<BitVector*>& assigned_vars,

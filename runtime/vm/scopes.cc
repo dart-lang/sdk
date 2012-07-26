@@ -540,19 +540,18 @@ bool LocalVariable::Equals(const LocalVariable& other) const {
 }
 
 
-// Map the frame index into an index in the range 0..(var_count-1).
-int LocalVariable::BitIndexIn(intptr_t var_count) const {
+int LocalVariable::BitIndexIn(intptr_t fixed_parameter_count) const {
   ASSERT(!is_captured());
   // Parameters have positive indexes with the lowest index being 2.  Locals
   // and copied parameters have negative indexes with the lowest (closest to
   // zero) index being ParsedFunction::kFirstLocalSlotIndex.
   if (index() > 0) {
     // Shift non-negative indexes so that the lowest one is 0.
-    return index() - 2;
+    return (fixed_parameter_count - 1) - (index() - 2);
   } else {
     // Shift negative indexes so that the lowest one is 0 (they are still
-    // non-positive) and index them backward from the end of the vector.
-    return (var_count - 1) +
+    // non-positive).
+    return fixed_parameter_count -
         (index() - ParsedFunction::kFirstLocalSlotIndex);
   }
 }

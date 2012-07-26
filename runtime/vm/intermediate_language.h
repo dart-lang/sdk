@@ -146,7 +146,8 @@ class Computation : public ZoneAllocated {
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual const char* DebugName() const = 0;
 
@@ -772,7 +773,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
 
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1794,14 +1796,16 @@ class Instruction : public ZoneAllocated {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count) {
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count) {
     // Never called for instructions except block entries and branches.
     UNREACHABLE();
   }
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the instruction.
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   // Printing support.
   virtual void PrintTo(BufferFormatter* f) const = 0;
@@ -1918,7 +1922,8 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
  protected:
   BlockEntryInstr()
@@ -2000,7 +2005,8 @@ class GraphEntryInstr : public BlockEntryInstr {
       : BlockEntryInstr(),
         normal_entry_(normal_entry),
         catch_entries_(),
-        start_env_(NULL) { }
+        start_env_(NULL),
+        spill_slot_count_(0) { }
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -2020,7 +2026,8 @@ class GraphEntryInstr : public BlockEntryInstr {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
@@ -2029,10 +2036,17 @@ class GraphEntryInstr : public BlockEntryInstr {
   Environment* start_env() const { return start_env_; }
   void set_start_env(Environment* env) { start_env_ = env; }
 
+  intptr_t spill_slot_count() const { return spill_slot_count_; }
+  void set_spill_slot_count(intptr_t count) {
+    ASSERT(count >= 0);
+    spill_slot_count_ = count;
+  }
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
   Environment* start_env_;
+  intptr_t spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -2175,7 +2189,8 @@ class BindInstr : public Definition {
     return computation()->StaticType();
   }
 
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual LocationSummary* locs() {
     return computation()->locs();
@@ -2385,7 +2400,8 @@ class BranchInstr : public InstructionWithInputs {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2500,8 +2516,11 @@ class Environment : public ZoneAllocated {
   // TODO(vegorov): it's absolutely crucial that locations_ backing store
   // is preallocated and never reallocated.  We use pointers into it
   // during register allocation.
-  explicit Environment(const GrowableArray<Value*>& values)
-      : values_(values.length()), locations_(values.length()) {
+  explicit Environment(const GrowableArray<Value*>& values,
+                       intptr_t fixed_parameter_count)
+      : values_(values.length()),
+        locations_(values.length()),
+        fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
   }
 
@@ -2521,11 +2540,17 @@ class Environment : public ZoneAllocated {
     return & locations_[ix];
   }
 
+  intptr_t fixed_parameter_count() const {
+    return fixed_parameter_count_;
+  }
+
   void PrintTo(BufferFormatter* f) const;
 
  private:
   GrowableArray<Value*> values_;
   GrowableArray<Location> locations_;
+  const intptr_t fixed_parameter_count_;
+
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
 

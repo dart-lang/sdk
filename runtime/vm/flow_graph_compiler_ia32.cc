@@ -39,17 +39,20 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   } else {
     // We have a deoptimization environment, we have to tear down the
     // optimized frame and recreate a non-optimized one.
+    const intptr_t fixed_parameter_count =
+        deoptimization_env_->fixed_parameter_count();
 
     // 1. Set the stack pointer to the top of the non-optimized frame.
     const GrowableArray<Value*>& values = deoptimization_env_->values();
+    const intptr_t local_slot_count = values.length() - fixed_parameter_count;
     const intptr_t top_offset =
-        ParsedFunction::kFirstLocalSlotIndex - values.length();
+        ParsedFunction::kFirstLocalSlotIndex - (local_slot_count - 1);
     __ leal(ESP, Address(EBP, top_offset * kWordSize));
 
     // 2. Build and emit a parallel move representing the frame translation.
     ParallelMoveInstr* move = new ParallelMoveInstr();
     for (intptr_t i = 0; i < values.length(); i++) {
-      Location destination = Location::SpillSlot(i);
+      Location destination = Location::StackSlot(i - fixed_parameter_count);
       Location source = deoptimization_env_->LocationAt(i);
       if (!source.IsRegister() && !source.IsInvalid()) {
         compiler->Bailout("unsupported deoptimization state");
@@ -964,15 +967,23 @@ void FlowGraphCompiler::CompileGraph() {
   } else {
     CopyParameters();
   }
+
+  // TODO(vegorov): introduce stack maps and stop initializing all spill slots
+  // with null.
+  const intptr_t stack_slot_count =
+      is_ssa_ ? block_order_[0]->AsGraphEntry()->spill_slot_count()
+              : local_count;
+
+  const intptr_t slot_base = parsed_function().first_stack_local_index();
+
   // Initialize (non-argument) stack allocated locals to null.
-  if (local_count > 0) {
+  if (stack_slot_count > 0) {
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movl(EAX, raw_null);
-    const int base = parsed_function().first_stack_local_index();
-    for (int i = 0; i < local_count; ++i) {
+    for (intptr_t i = 0; i < stack_slot_count; ++i) {
       // Subtract index i (locals lie at lower addresses than EBP).
-      __ movl(Address(EBP, (base - i) * kWordSize), EAX);
+      __ movl(Address(EBP, (slot_base - i) * kWordSize), EAX);
     }
   }
 
@@ -1116,11 +1127,17 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
 #define __ compiler_->assembler()->
 
 
-static Address ToSpillAddress(Location loc) {
-  ASSERT(loc.IsSpillSlot());
-  const intptr_t offset =
-      (ParsedFunction::kFirstLocalSlotIndex - loc.spill_index()) * kWordSize;
-  return Address(EBP, offset);
+static Address ToStackSlotAddress(Location loc) {
+  ASSERT(loc.IsStackSlot());
+  const intptr_t index = loc.stack_index();
+  if (index < 0) {
+    const intptr_t offset = (1 - index)  * kWordSize;
+    return Address(EBP, offset);
+  } else {
+    const intptr_t offset =
+        (ParsedFunction::kFirstLocalSlotIndex - index) * kWordSize;
+    return Address(EBP, offset);
+  }
 }
 
 
@@ -1133,23 +1150,24 @@ void ParallelMoveResolver::EmitMove(int index) {
     if (destination.IsRegister()) {
       __ movl(destination.reg(), source.reg());
     } else {
-      ASSERT(destination.IsSpillSlot());
-      __ movl(ToSpillAddress(destination), source.reg());
+      ASSERT(destination.IsStackSlot());
+      __ movl(ToStackSlotAddress(destination), source.reg());
     }
-  } else if (source.IsSpillSlot()) {
+  } else if (source.IsStackSlot()) {
     if (destination.IsRegister()) {
-      __ movl(destination.reg(), ToSpillAddress(source));
+      __ movl(destination.reg(), ToStackSlotAddress(source));
     } else {
-      ASSERT(destination.IsSpillSlot());
-      MoveMemoryToMemory(ToSpillAddress(destination), ToSpillAddress(source));
+      ASSERT(destination.IsStackSlot());
+      MoveMemoryToMemory(ToStackSlotAddress(destination),
+                         ToStackSlotAddress(source));
     }
   } else {
     ASSERT(source.IsConstant());
     if (destination.IsRegister()) {
       __ LoadObject(destination.reg(), source.constant());
     } else {
-      ASSERT(destination.IsSpillSlot());
-      StoreObject(ToSpillAddress(destination), source.constant());
+      ASSERT(destination.IsStackSlot());
+      StoreObject(ToStackSlotAddress(destination), source.constant());
     }
   }
 
@@ -1164,12 +1182,12 @@ void ParallelMoveResolver::EmitSwap(int index) {
 
   if (source.IsRegister() && destination.IsRegister()) {
     __ xchgl(destination.reg(), source.reg());
-  } else if (source.IsRegister() && destination.IsSpillSlot()) {
-    Exchange(source.reg(), ToSpillAddress(destination));
-  } else if (source.IsSpillSlot() && destination.IsRegister()) {
-    Exchange(destination.reg(), ToSpillAddress(source));
-  } else if (source.IsSpillSlot() && destination.IsSpillSlot()) {
-    Exchange(ToSpillAddress(destination), ToSpillAddress(source));
+  } else if (source.IsRegister() && destination.IsStackSlot()) {
+    Exchange(source.reg(), ToStackSlotAddress(destination));
+  } else if (source.IsStackSlot() && destination.IsRegister()) {
+    Exchange(destination.reg(), ToStackSlotAddress(source));
+  } else if (source.IsStackSlot() && destination.IsStackSlot()) {
+    Exchange(ToStackSlotAddress(destination), ToStackSlotAddress(source));
   } else {
     UNREACHABLE();
   }

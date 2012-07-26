@@ -141,8 +141,12 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 intptr_t FlowGraphCompiler::StackSize() const {
-  return parsed_function_.stack_local_count() +
-      parsed_function_.copied_parameter_count();
+  if (is_ssa_) {
+    return block_order_[0]->AsGraphEntry()->spill_slot_count();
+  } else {
+    return parsed_function_.stack_local_count() +
+        parsed_function_.copied_parameter_count();
+  }
 }
 
 

@@ -96,14 +96,6 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 }
 
 
-// True iff. the v2 is above v1 on stack, or one of them is constant.
-static bool VerifyValues(Value* v1, Value* v2) {
-  ASSERT(v1->IsUse() && v2->IsUse());
-  return (v1->AsUse()->definition()->temp_index() + 1) ==
-     v2->AsUse()->definition()->temp_index();
-}
-
-
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -392,25 +384,29 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 
 
 // ==== Recording assigned variables.
-void Computation::RecordAssignedVars(BitVector* assigned_vars) {
+void Computation::RecordAssignedVars(BitVector* assigned_vars,
+                                     intptr_t fixed_parameter_count) {
   // Nothing to do for the base class.
 }
 
 
-void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
+void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars,
+                                        intptr_t fixed_parameter_count) {
   if (!local().is_captured()) {
-    assigned_vars->Add(local().BitIndexIn(assigned_vars->length()));
+    assigned_vars->Add(local().BitIndexIn(fixed_parameter_count));
   }
 }
 
 
-void Instruction::RecordAssignedVars(BitVector* assigned_vars) {
+void Instruction::RecordAssignedVars(BitVector* assigned_vars,
+                                     intptr_t fixed_parameter_count) {
   // Nothing to do for the base class.
 }
 
 
-void BindInstr::RecordAssignedVars(BitVector* assigned_vars) {
-  computation()->RecordAssignedVars(assigned_vars);
+void BindInstr::RecordAssignedVars(BitVector* assigned_vars,
+                                   intptr_t fixed_parameter_count) {
+  computation()->RecordAssignedVars(assigned_vars, fixed_parameter_count);
 }
 
 
@@ -421,7 +417,8 @@ void GraphEntryInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   // We only visit this block once, first of all blocks.
   ASSERT(preorder_number() == -1);
   ASSERT(current_block == NULL);
@@ -445,10 +442,12 @@ void GraphEntryInstr::DiscoverBlocks(
   // must visit the normal entry last.
   for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
     catch_entries_[i]->DiscoverBlocks(this, preorder, postorder,
-                                      parent, assigned_vars, variable_count);
+                                      parent, assigned_vars,
+                                      variable_count, fixed_parameter_count);
   }
   normal_entry_->DiscoverBlocks(this, preorder, postorder,
-                                parent, assigned_vars, variable_count);
+                                parent, assigned_vars,
+                                variable_count, fixed_parameter_count);
 
   // Assign postorder number.
   set_postorder_number(postorder->length());
@@ -463,7 +462,8 @@ void BlockEntryInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   // We have already visited the graph entry, so we can assume current_block
   // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
@@ -503,7 +503,9 @@ void BlockEntryInstr::DiscoverBlocks(
     while ((next_instr != NULL) &&
            !next_instr->IsBlockEntry() &&
            !next_instr->IsBranch()) {
-      if (vars != NULL) next_instr->RecordAssignedVars(vars);
+      if (vars != NULL) {
+        next_instr->RecordAssignedVars(vars, fixed_parameter_count);
+      }
       set_last_instruction(next_instr);
       GotoInstr* goto_instr = next_instr->AsGoto();
       next_instr =
@@ -512,7 +514,8 @@ void BlockEntryInstr::DiscoverBlocks(
   }
   if (next_instr != NULL) {
     next_instr->DiscoverBlocks(this, preorder, postorder,
-                               parent, assigned_vars, variable_count);
+                               parent, assigned_vars,
+                               variable_count, fixed_parameter_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -527,7 +530,8 @@ void BranchInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder used as the block ordering in the
@@ -535,9 +539,11 @@ void BranchInstr::DiscoverBlocks(
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
   false_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                   parent, assigned_vars, variable_count);
+                                   parent, assigned_vars,
+                                   variable_count, fixed_parameter_count);
   true_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                  parent, assigned_vars, variable_count);
+                                  parent, assigned_vars,
+                                  variable_count, fixed_parameter_count);
 }
 
 
@@ -956,7 +962,6 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 
 
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyValues(instance(), value()));
   Register instance_reg = locs()->in(0).reg();
   Register value_reg = locs()->in(1).reg();
 

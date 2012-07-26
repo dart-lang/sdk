@@ -2286,7 +2286,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;
   GrowableArray<BitVector*> assigned_vars;
-  intptr_t variable_count = parsed_function_.function().num_fixed_parameters() +
+
+  const intptr_t fixed_parameter_count =
+      parsed_function_.function().num_fixed_parameters();
+  const intptr_t variable_count = fixed_parameter_count +
       parsed_function_.copied_parameter_count() +
       parsed_function_.stack_local_count();
   // Perform a depth-first traversal of the graph to build preorder and
@@ -2296,7 +2299,8 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
                                &postorder_block_entries_,
                                &parent,
                                &assigned_vars,
-                               variable_count);
+                               variable_count,
+                               fixed_parameter_count);
   // Number blocks in reverse postorder.
   intptr_t block_count = postorder_block_entries_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
@@ -2542,7 +2546,9 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   // Initialize start environment.
   GrowableArray<Value*> start_env(var_count);
   intptr_t i = 0;
-  for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
+  const intptr_t fixed_parameter_count =
+      parsed_function().function().num_fixed_parameters();
+  for (; i < fixed_parameter_count; ++i) {
     ParameterInstr* param = new ParameterInstr(i);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     start_env.Add(new UseVal(param));
@@ -2553,13 +2559,14 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   for (; i < var_count; i++) {
     start_env.Add(null_value);
   }
-  graph_entry_->set_start_env(new Environment(start_env));
+  graph_entry_->set_start_env(
+      new Environment(start_env, fixed_parameter_count));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
   GrowableArray<Value*> env(var_count);
   env.AddArray(start_env);
-  RenameRecursive(normal_entry, &env, var_count);
+  RenameRecursive(normal_entry, &env, var_count, fixed_parameter_count);
 }
 
 
@@ -2573,7 +2580,8 @@ static Value* CopyValue(Value* value) {
 
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
                                        GrowableArray<Value*>* env,
-                                       intptr_t var_count) {
+                                       intptr_t var_count,
+                                       intptr_t fixed_parameter_count) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
     JoinEntryInstr* join = block_entry->AsJoinEntry();
@@ -2595,7 +2603,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // TODO(fschneider): Currently each instruction gets a full copy of the
     // environment. This should be optimized: Only instructions that can
     // deoptimize should have uses of the environment values.
-    current->set_env(new Environment(*env));
+    current->set_env(new Environment(*env, fixed_parameter_count));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -2610,14 +2618,16 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       BindInstr* as_bind = v->AsUse()->definition()->AsBind();
       if ((as_bind != NULL) && as_bind->computation()->IsLoadLocal()) {
         Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
+        intptr_t index =
+            comp->AsLoadLocal()->local().BitIndexIn(fixed_parameter_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
       if ((as_bind != NULL) && as_bind->computation()->IsStoreLocal()) {
         // For each use of a StoreLocal: Replace it with the value from the
         // environment.
         Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
+        intptr_t index =
+            comp->AsStoreLocal()->local().BitIndexIn(fixed_parameter_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
     }
@@ -2632,14 +2642,14 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       if ((load != NULL) || (store != NULL)) {
         intptr_t index;
         if (store != NULL) {
-          index = store->local().BitIndexIn(var_count);
+          index = store->local().BitIndexIn(fixed_parameter_count);
           // Update renaming environment.
           (*env)[index] = store->value();
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(bind->is_used());
-          index = load->local().BitIndexIn(var_count);
+          index = load->local().BitIndexIn(fixed_parameter_count);
         }
         // Update expression stack and remove from graph.
         if (bind->is_used()) {
@@ -2662,7 +2672,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Value*> new_env(env->length());
     new_env.AddArray(*env);
-    RenameRecursive(block, &new_env, var_count);
+    RenameRecursive(block, &new_env, var_count, fixed_parameter_count);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks
