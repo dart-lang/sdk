@@ -62,7 +62,7 @@ class Action {
 /**
  * The behavior of a method call in the mock library is specified
  * with [Responder]s. A [Responder] has a [value] to throw
- * or return (depending on whether [isThrow] is true or not, respectively),
+ * or return (depending on the type of [action]),
  * and can either be one-shot, multi-shot, or infinitely repeating,
  * depending on the value of [count (1, greater than 1, or 0 respectively).
  */
@@ -798,7 +798,8 @@ class _TimesMatcher extends BaseMatcher {
 
   const _TimesMatcher(this.min, [this.max = -1]);
 
-  bool matches(log) => log.length >= min && (max < 0 || log.length <= max);
+  bool matches(logList) => logList.length >= min &&
+      (max < 0 || logList.length <= max);
 
   Description describe(Description description) {
     description.add(' to be called ');
@@ -814,8 +815,8 @@ class _TimesMatcher extends BaseMatcher {
     return description.add(' times');
   }
 
-  Description describeMismatch(log, Description mismatchDescription) =>
-      mismatchDescription.add('was called ${log.length} times');
+  Description describeMismatch(logList, Description mismatchDescription) =>
+      mismatchDescription.add('was called ${logList.length} times');
 }
 
 /** [happenedExactly] matches an exact number of calls. */
@@ -934,8 +935,8 @@ class _ResultSetMatcher extends BaseMatcher {
 
   const _ResultSetMatcher(this.action, this.value, this.frequency);
 
-  bool matches(log) {
-    for (LogEntry entry in log) {
+  bool matches(logList) {
+    for (LogEntry entry in logList) {
       // normalize the action; PROXY is like RETURN.
       Action eaction = entry.action;
       if (eaction == Action.PROXY) {
@@ -971,9 +972,9 @@ class _ResultSetMatcher extends BaseMatcher {
     return description.addDescriptionOf(value);
   }
 
-  Description describeMismatch(log, Description mismatchDescription) {
+  Description describeMismatch(logList, Description mismatchDescription) {
     if (frequency != _Frequency.SOME) {
-      for (LogEntry entry in log) {
+      for (LogEntry entry in logList) {
         if (entry.action != action || !value.matches(entry.value)) {
           if (entry.action == Action.RETURN || entry.action == Action.PROXY)
             mismatchDescription.add('returned ');
