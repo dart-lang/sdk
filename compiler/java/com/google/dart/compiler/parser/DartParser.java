@@ -4123,8 +4123,7 @@ public class DartParser extends CompletionHooksParserBase {
           return statements;
         case IDENTIFIER:
           // Handle consecutively labeled case statements
-          if (peek(1).equals(Token.COLON)
-              && (peek(2).equals(Token.CASE) || peek(2).equals(Token.DEFAULT))) {
+          if (isCaseOrDefault()) {
             return statements;
           }
         default:
@@ -4154,6 +4153,15 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
+  private boolean isCaseOrDefault() {
+    int index = 0;
+    while (peek(index) == Token.IDENTIFIER && peek(index + 1) == Token.COLON) {
+      index += 2;
+    }
+    Token next = peek(index);
+    return next == Token.CASE || next == Token.DEFAULT;
+  }
+
   /**
    * <pre>
    * switchCase
@@ -4161,13 +4169,13 @@ public class DartParser extends CompletionHooksParserBase {
    *    ;
    * </pre>
    */
-  private DartSwitchMember parseCaseMember(DartLabel label) {
+  private DartSwitchMember parseCaseMember(List<DartLabel> labels) {
     // The begin() associated with the done() in this method is in the method
     // parseSwitchStatement(), called by beginSwitchMember().
     expect(Token.CASE);
     DartExpression caseExpr = parseExpression();
     expect(Token.COLON);
-    return done(new DartCase(caseExpr, label, parseCaseStatements()));
+    return done(new DartCase(caseExpr, labels, parseCaseStatements()));
   }
 
   /**
@@ -4177,12 +4185,12 @@ public class DartParser extends CompletionHooksParserBase {
    *    ;
    * </pre>
    */
-  private DartSwitchMember parseDefaultMember(DartLabel label) {
+  private DartSwitchMember parseDefaultMember(List<DartLabel> labels) {
     // The begin() associated with the done() in this method is in the method
     // parseSwitchStatement(), called by beginSwitchMember().
     expect(Token.DEFAULT);
     expect(Token.COLON);
-    return done(new DartDefault(label, parseCaseStatements()));
+    return done(new DartDefault(labels, parseCaseStatements()));
   }
 
 
@@ -4207,30 +4215,30 @@ public class DartParser extends CompletionHooksParserBase {
 
     boolean done = optional(Token.RBRACE);
     while (!done) {
-      DartLabel label = null;
+      List<DartLabel> labels = new ArrayList<DartLabel>();
       beginSwitchMember(); // switch member
-      if (peek(0) == Token.IDENTIFIER) {
+      while (peek(0) == Token.IDENTIFIER) {
         beginLabel();
         DartIdentifier identifier = parseIdentifier();
         expect(Token.COLON);
-        label = done(new DartLabel(identifier, null));
+        labels.add(done(new DartLabel(identifier, null)));
         if (peek(0) == Token.RBRACE) {
           reportError(position(), ParserErrorCode.LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT);
           expectCloseBrace(foundOpenBrace);
-          break;
+          return done(new DartSwitchStatement(expr, members));
         }
       }
       if (peek(0) == Token.CASE) {
-        members.add(parseCaseMember(label));
+        members.add(parseCaseMember(labels));
       } else if (optional(Token.RBRACE)) {
-        if (label != null) {
+        if (!labels.isEmpty()) {
           reportError(position(), ParserErrorCode.EXPECTED_CASE_OR_DEFAULT);
         }
         done = true;
         done(null);
       } else {
         if (peek(0) != Token.EOS) {
-          members.add(parseDefaultMember(label));
+          members.add(parseDefaultMember(labels));
         }
         expectCloseBrace(foundOpenBrace);
         done = true; // Ensure termination.

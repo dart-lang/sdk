@@ -11,8 +11,8 @@ import java.util.List;
  */
 public class DartDefault extends DartSwitchMember {
 
-  public DartDefault(DartLabel label, List<DartStatement> statements) {
-    super(label, statements);
+  public DartDefault(List<DartLabel> labels, List<DartStatement> statements) {
+    super(labels, statements);
   }
 
   @Override

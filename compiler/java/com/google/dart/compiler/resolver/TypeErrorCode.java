@@ -90,7 +90,7 @@ public enum TypeErrorCode implements ErrorCode {
    * Initialize a newly created error code to have the given message and compilation flag.
    */
   private TypeErrorCode(String message, boolean needsRecompilation) {
-    this(ErrorSeverity.WARNING, message);
+    this(ErrorSeverity.WARNING, message, needsRecompilation);
   }
 
   private TypeErrorCode(ErrorSeverity severity, String message) {
