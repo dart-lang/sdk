@@ -3793,7 +3793,9 @@ intptr_t Function::NumberOfImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static()) {
+  if (!is_static() && (kind() != RawFunction::kClosureFunction)) {
+    // Closure functions defined inside instance (i.e. non-static) functions are
+    // marked as non-static, but they do not have a receiver.
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.

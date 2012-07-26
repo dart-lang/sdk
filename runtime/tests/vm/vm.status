@@ -8,8 +8,6 @@ cc/RunLoop_ExceptionChild: Fail
 # This test is expected to crash on all platforms.
 cc/SNPrint_BadArgs: Crash
 
-cc/ClosureFunction: Crash,Fail
-
 [ $arch == x64 ]
 cc/IsolateInterrupt: Skip
 
