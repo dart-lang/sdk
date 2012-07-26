@@ -660,51 +660,39 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return_type,
       raises_dom_exception):
     ext_attrs = node.ext_attrs
+
     cpp_arguments = []
-
-    requires_v8_scope = False
+    requires_v8_scope = \
+        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments))
     runtime_check = None
-    raises_exceptions = False
-    requires_script_execution_context = False
-    requires_dom_window = False
-    requires_stack_info = False
+    raises_exceptions = raises_dom_exception or arguments
 
-    if raises_dom_exception or arguments:
-      raises_exceptions = True
-
-    if ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
+    requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|CallStack'
+    if requires_stack_info:
       raises_exceptions = True
       requires_v8_scope = True
-      requires_stack_info = True
-      self._cpp_impl_includes.add('"ScriptArguments.h"')
-      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       cpp_arguments = ['scriptArguments', 'scriptCallStack']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
       arguments = arguments[:-1]
 
-    if ext_attrs.get('CallWith') == 'ScriptExecutionContext':
+    requires_script_execution_context = ext_attrs.get('CallWith') == 'ScriptExecutionContext'
+    if requires_script_execution_context:
       raises_exceptions = True
-      requires_script_execution_context = True
       cpp_arguments = ['context']
+
+    requires_dom_window = 'NamedConstructor' in ext_attrs
+    if requires_dom_window:
+      raises_exceptions = True
+      cpp_arguments = ['document']
 
     if 'ImplementedBy' in ext_attrs:
       assert needs_receiver
       self._cpp_impl_includes.add('"%s.h"' % ext_attrs['ImplementedBy'])
       cpp_arguments.append('receiver')
 
-    if 'NamedConstructor' in ext_attrs:
-      raises_exceptions = True
-      requires_dom_window = True
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-      cpp_arguments = ['document']
-
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
-
-    for argument in arguments:
-      if self._TypeInfo(argument.type.id).requires_v8_scope():
-        requires_v8_scope = True
 
     assert (not (
       'synthesizedV8EnabledPerContext' in ext_attrs and
@@ -772,6 +760,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        }\n\n')
 
     if requires_dom_window:
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
@@ -786,6 +775,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
     if requires_stack_info:
+      self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
