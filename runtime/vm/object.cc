@@ -4,6 +4,7 @@
 
 #include "vm/object.h"
 
+#include "include/dart_api.h"
 #include "platform/assert.h"
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
@@ -6858,6 +6859,17 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
   MemoryRegion region(reinterpret_cast<void*>(instrs.EntryPoint()),
                       instrs.size());
   assembler->FinalizeInstructions(region);
+  Dart_FileWriterFunction perf_events_writer = Dart::perf_events_writer();
+  if (perf_events_writer != NULL) {
+    const char* format = "%x %x %s\n";
+    uword addr = instrs.EntryPoint();
+    uword size = instrs.size();
+    intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
+    char* buffer = reinterpret_cast<char*>(
+        Isolate::Current()->current_zone()->Allocate(len + 1));
+    OS::SNPrint(buffer, len + 1, format, addr, size, name);
+    (*perf_events_writer)(buffer, len);
+  }
   DebugInfo* pprof_symbol_generator = Dart::pprof_symbol_generator();
   if (pprof_symbol_generator != NULL) {
     ASSERT(strlen(name) != 0);
@@ -6917,7 +6929,9 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
 
 RawCode* Code::FinalizeCode(const Function& function, Assembler* assembler) {
   // Calling ToFullyQualifiedCString is very expensive, try to avoid it.
-  if (FLAG_generate_gdb_symbols || (Dart::pprof_symbol_generator() != NULL)) {
+  if (FLAG_generate_gdb_symbols ||
+      Dart::perf_events_writer() != NULL ||
+      Dart::pprof_symbol_generator() != NULL) {
     return FinalizeCode(function.ToFullyQualifiedCString(), assembler);
   } else {
     return FinalizeCode("", assembler);

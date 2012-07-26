@@ -563,3 +563,8 @@ bool Process::Kill(intptr_t id, int signal) {
 void Process::TerminateExitCodeHandler() {
   ExitCodeHandler::TerminateExitCodeThread();
 }
+
+
+intptr_t Process::CurrentProcessId() {
+  return static_cast<intptr_t>(getpid());
+}

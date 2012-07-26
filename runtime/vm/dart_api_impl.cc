@@ -4170,7 +4170,12 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 }
 
 
-DART_EXPORT void Dart_InitFlowGraphPrinting(FileWriterFunction function) {
+DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
+  Dart::set_perf_events_writer(function);
+}
+
+
+DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function) {
   Dart::set_flow_graph_writer(function);
 }
 

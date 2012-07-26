@@ -34,6 +34,8 @@ class Process {
   // the thread has terminated.
   static void TerminateExitCodeHandler();
 
+  static intptr_t CurrentProcessId();
+
   DISALLOW_ALLOCATION();
   DISALLOW_IMPLICIT_CONSTRUCTORS(Process);
 };

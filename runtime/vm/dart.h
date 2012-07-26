@@ -29,22 +29,31 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate() { return vm_isolate_; }
   static ThreadPool* thread_pool() { return thread_pool_; }
 
+  static void set_perf_events_writer(Dart_FileWriterFunction writer_function) {
+    perf_events_writer_ = writer_function;
+  }
+  static Dart_FileWriterFunction perf_events_writer() {
+    return perf_events_writer_;
+  }
+
   static void set_pprof_symbol_generator(DebugInfo* value) {
     pprof_symbol_generator_ = value;
   }
   static DebugInfo* pprof_symbol_generator() { return pprof_symbol_generator_; }
 
-  static void set_flow_graph_writer(FileWriterFunction writer_function) {
+  static void set_flow_graph_writer(Dart_FileWriterFunction writer_function) {
     flow_graph_writer_ = writer_function;
   }
-
-  static FileWriterFunction flow_graph_writer() { return flow_graph_writer_; }
+  static Dart_FileWriterFunction flow_graph_writer() {
+    return flow_graph_writer_;
+  }
 
  private:
   static Isolate* vm_isolate_;
   static ThreadPool* thread_pool_;
+  static Dart_FileWriterFunction perf_events_writer_;
   static DebugInfo* pprof_symbol_generator_;
-  static FileWriterFunction flow_graph_writer_;
+  static Dart_FileWriterFunction flow_graph_writer_;
 };
 
 }  // namespace dart
