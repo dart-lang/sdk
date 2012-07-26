@@ -266,25 +266,25 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   while (true) {
-    WeakReference* queue = state->delayed_weak_references();
+    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
     if (queue == NULL) {
       // The delay queue is empty therefore no clean-up is required.
       return;
     }
-    state->set_delayed_weak_references(NULL);
+    state->set_delayed_weak_reference_sets(NULL);
     while (queue != NULL) {
-      WeakReference* reference = WeakReference::Pop(&queue);
-      ASSERT(reference != NULL);
+      WeakReferenceSet* reference_set = WeakReferenceSet::Pop(&queue);
+      ASSERT(reference_set != NULL);
       bool is_unreachable = true;
       // Test each key object for reachability.  If a key object is
       // reachable, all value objects should be marked.
-      for (intptr_t k = 0; k < reference->num_keys(); ++k) {
-        if (!IsUnreachable(*reference->get_key(k))) {
-          for (intptr_t v = 0; v < reference->num_values(); ++v) {
-            visitor->VisitPointer(reference->get_value(v));
+      for (intptr_t k = 0; k < reference_set->num_keys(); ++k) {
+        if (!IsUnreachable(*reference_set->get_key(k))) {
+          for (intptr_t v = 0; v < reference_set->num_values(); ++v) {
+            visitor->VisitPointer(reference_set->get_value(v));
           }
           is_unreachable = false;
-          delete reference;
+          delete reference_set;
           break;
         }
       }
@@ -292,7 +292,7 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
       // delay queue.  This reference will be revisited if another
       // reference is marked.
       if (is_unreachable) {
-        state->DelayWeakReference(reference);
+        state->DelayWeakReferenceSet(reference_set);
       }
     }
     if (!visitor->marking_stack()->IsEmpty()) {
@@ -303,11 +303,11 @@ void GCMarker::IterateWeakReferences(Isolate* isolate,
     }
   }
   // Deallocate any unmarked references on the delay queue.
-  if (state->delayed_weak_references() != NULL) {
-    WeakReference* queue = state->delayed_weak_references();
-    state->set_delayed_weak_references(NULL);
+  if (state->delayed_weak_reference_sets() != NULL) {
+    WeakReferenceSet* queue = state->delayed_weak_reference_sets();
+    state->set_delayed_weak_reference_sets(NULL);
     while (queue != NULL) {
-      delete WeakReference::Pop(&queue);
+      delete WeakReferenceSet::Pop(&queue);
     }
   }
 }
