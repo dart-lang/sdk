@@ -1375,6 +1375,11 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   } else {
     receiver = BuildNullValue();
   }
+  PushArgumentInstr* push_receiver = new PushArgumentInstr(receiver);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  arguments->Add(push_receiver);
+  AddInstruction(push_receiver);
   ASSERT(function.context_scope() != ContextScope::null());
 
   // The function type of a closure may have type arguments. In that case, pass
@@ -1389,10 +1394,12 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   } else {
     type_arguments = BuildNullValue();
   }
-
-  CreateClosureComp* create = new CreateClosureComp(
-      node, owner()->try_index(), type_arguments, receiver);
-  ReturnComputation(create);
+  PushArgumentInstr* push_type_arguments =
+      new PushArgumentInstr(type_arguments);
+  arguments->Add(push_type_arguments);
+  AddInstruction(push_type_arguments);
+  ReturnComputation(
+      new CreateClosureComp(node, owner()->try_index(), arguments));
 }
 
 
@@ -1406,6 +1413,21 @@ void EffectGraphVisitor::TranslateArgumentList(
     values->Add(for_argument.value());
   }
 }
+
+
+void EffectGraphVisitor::BuildPushArguments(
+    const ArgumentListNode& node,
+    ZoneGrowableArray<PushArgumentInstr*>* values) {
+  for (intptr_t i = 0; i < node.length(); ++i) {
+    ValueGraphVisitor for_argument(owner(), temp_index());
+    node.NodeAt(i)->Visit(&for_argument);
+    Append(for_argument);
+    PushArgumentInstr* push_arg = new PushArgumentInstr(for_argument.value());
+    AddInstruction(push_arg);
+    values->Add(push_arg);
+  }
+}
+
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   ArgumentListNode* arguments = node->arguments();
@@ -1447,11 +1469,13 @@ ClosureCallComp* EffectGraphVisitor::BuildClosureCall(
   ValueGraphVisitor for_closure(owner(), temp_index());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
+  PushArgumentInstr* push_closure = new PushArgumentInstr(for_closure.value());
+  AddInstruction(push_closure);
 
-  ZoneGrowableArray<Value*>* arguments =
-      new ZoneGrowableArray<Value*>(node->arguments()->length());
-  arguments->Add(for_closure.value());
-  TranslateArgumentList(*node->arguments(), arguments);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
+  arguments->Add(push_closure);
+  BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
   BuildStoreContext(*owner()->parsed_function().expression_temp_var());

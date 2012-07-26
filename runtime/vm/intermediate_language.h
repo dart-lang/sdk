@@ -113,6 +113,7 @@ class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
 class Instruction;
+class PushArgumentInstr;
 class Value;
 
 class Computation : public ZoneAllocated {
@@ -460,7 +461,7 @@ class ClosureCallComp : public Computation {
  public:
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
-                  ZoneGrowableArray<Value*>* arguments)
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
         try_index_(try_index),
         arguments_(arguments) { }
@@ -472,20 +473,23 @@ class ClosureCallComp : public Computation {
   intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
   }
+
+  virtual intptr_t InputCount() const { return 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
 };
@@ -1237,33 +1241,32 @@ class CreateArrayComp : public TemplateComputation<1> {
 };
 
 
-class CreateClosureComp : public TemplateComputation<2> {
+class CreateClosureComp : public TemplateComputation<0> {
  public:
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
-                    Value* type_arguments,
-                    Value* receiver)
+                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
-        try_index_(try_index) {
-    ASSERT(type_arguments != NULL);
-    ASSERT(receiver != NULL);
-    inputs_[0] = type_arguments;
-    inputs_[1] = receiver;
-  }
+        try_index_(try_index),
+        arguments_(arguments) { }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
-  Value* type_arguments() const { return inputs_[0]; }
-  Value* receiver() const { return inputs_[1]; }
+
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureNode& ast_node_;
   const intptr_t try_index_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
@@ -1682,6 +1685,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(Bind)                                                                      \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
+  M(PushArgument)                                                              \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -2235,6 +2239,25 @@ class ParameterInstr : public Definition {
   const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
+};
+
+
+class PushArgumentInstr : public InstructionWithInputs {
+ public:
+  explicit PushArgumentInstr(Value* value) : value_(value) { }
+
+  DECLARE_INSTRUCTION(PushArgument)
+
+  Value* value() const { return value_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
 

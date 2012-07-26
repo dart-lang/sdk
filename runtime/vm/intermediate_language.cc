@@ -118,11 +118,6 @@ intptr_t StaticCallComp::InputCount() const {
 }
 
 
-intptr_t ClosureCallComp::InputCount() const {
-  return ArgumentCount();
-}
-
-
 intptr_t AllocateObjectComp::InputCount() const {
   return arguments().length();
 }
@@ -256,6 +251,27 @@ Value* GotoInstr::InputAt(intptr_t i) const {
 
 
 void GotoInstr::SetInputAt(intptr_t i, Value* value) {
+  UNREACHABLE();
+}
+
+
+intptr_t PushArgumentInstr::InputCount() const {
+  return 1;
+}
+
+
+Value* PushArgumentInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void PushArgumentInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
   UNREACHABLE();
 }
 
@@ -1120,7 +1136,6 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
   // The arguments to the stub include the closure.  The arguments
   // descriptor describes the closure's arguments (and so does not include
   // the closure).
@@ -1306,6 +1321,29 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(), try_index(), &label,
                          PcDescriptors::kOther);
   __ Drop(2);  // Discard type arguments and receiver.
+}
+
+
+LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  // TODO(fschneider): Use Any() once it is supported by all code generators.
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled in FrameRegisterAllocator::AllocateRegisters.
+  // Instead of popping the value it is left alone on the simulated frame
+  // and materialized on the physical stack before the call.
+  // TODO(fschneider): Avoid special-casing for SSA mode here.
+  if (compiler->is_ssa()) {
+    ASSERT(locs()->in(0).IsRegister());
+    __ PushRegister(locs()->in(0).reg());
+  }
 }
 
 

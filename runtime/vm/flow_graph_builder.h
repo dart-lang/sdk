@@ -149,6 +149,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);
+  void BuildPushArguments(const ArgumentListNode& node,
+                          ZoneGrowableArray<PushArgumentInstr*>* values);
 
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.

@@ -603,7 +603,9 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
       locs->set_in(i, Location::RegisterLocation(reg));
     }
 
-    Pop(reg, instr->InputAt(i));
+    // Inputs are consumed from the simulated frame. In case of a call argument
+    // we leave it until the call instruction.
+    if (!instr->IsPushArgument()) Pop(reg, instr->InputAt(i));
   }
 
   // If this instruction is call spill everything that was not consumed by

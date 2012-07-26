@@ -49,6 +49,9 @@ class FlowGraphCompiler : public ValueObject {
   }
   static bool CanOptimize();
   bool is_optimizing() const { return is_optimizing_; }
+
+  bool is_ssa() const { return is_ssa_; }
+
   const GrowableArray<BlockInfo*>& block_info() const { return block_info_; }
   ParallelMoveResolver* parallel_move_resolver() {
     return &parallel_move_resolver_;
