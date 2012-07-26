@@ -805,7 +805,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       cpp_arguments.append(type_info.emit_to_native(
           body_emitter,
           argument,
-          (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or (argument.ext_attrs.get('Optional') == 'DefaultIsNullString'),
+          IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument),
           # TODO(antonm): all IDs should be renamed when database is generated.
           # That will allow to get rid of argument_name argument altogether.
           DartDomNameOfAttribute(argument),
