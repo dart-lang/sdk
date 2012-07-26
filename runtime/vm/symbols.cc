@@ -15,6 +15,9 @@ namespace dart {
 
 RawString* Symbols::predefined_[Symbols::kMaxPredefined];
 
+// Turn off population of symbols in the VM symbol table, so that we
+// don't find these symbols while doing a Symbols::New(...).
+#if 0
 static const char* names[] = {
   NULL,
 
@@ -23,6 +26,7 @@ static const char* names[] = {
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
 };
+#endif
 
 
 void Symbols::InitOnce(Isolate* isolate) {
@@ -32,6 +36,9 @@ void Symbols::InitOnce(Isolate* isolate) {
   // Create and setup a symbol table in the vm isolate.
   SetupSymbolTable(isolate);
 
+  // Turn off population of symbols in the VM symbol table, so that we
+  // don't find these symbols while doing a Symbols::New(...).
+#if 0
   // Create all predefined symbols.
   ASSERT((sizeof(names) / sizeof(const char*)) == kMaxPredefined);
   const Array& symbol_table =
@@ -43,6 +50,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     Add(symbol_table, str);
     predefined_[i] = str.raw();
   }
+#endif
 }
 
 
