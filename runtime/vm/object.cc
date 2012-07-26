@@ -4563,9 +4563,13 @@ RawString* TokenStream::GenerateSource() const {
   String& literal = String::Handle();
   String& blank = String::Handle(String::New(" "));
   String& newline = String::Handle(String::New("\n"));
+  String& two_newlines = String::Handle(String::New("\n\n"));
   String& double_quotes = String::Handle(String::New("\""));
+  String& dollar = String::Handle(String::New("$"));
+  String& two_spaces = String::Handle(String::New("  "));
   Object& obj = Object::Handle();
   Token::Kind kind = iterator.CurrentTokenKind();
+  int indent = 0;
   while (kind != Token::kEOS) {
     obj = iterator.CurrentToken();
     literal = iterator.MakeLiteralToken(obj);
@@ -4585,16 +4589,72 @@ RawString* TokenStream::GenerateSource() const {
         literals.Add(literal);
       }
       literals.Add(double_quotes);
+    } else if (kind == Token::kINTERPOL_VAR) {
+      literals.Add(double_quotes);
+      literals.Add(dollar);
+      literals.Add(literal);
+      literals.Add(double_quotes);
+    } else if (kind == Token::kINTERPOL_START) {
+      literals.Add(double_quotes);
+      literals.Add(literal);
+    } else if (kind == Token::kINTERPOL_END) {
+      literals.Add(literal);
+      literals.Add(double_quotes);
     } else {
       literals.Add(literal);
     }
-    if (kind == Token::kLBRACE) {
-      literals.Add(newline);
-    } else {
-      literals.Add(blank);
+    // Determine the separation text based on this current token.
+    const String* separator = NULL;
+    switch (kind) {
+      case Token::kLBRACE:
+        indent++;
+        separator = &newline;
+        break;
+      case Token::kRBRACE:
+        if (indent == 0) {
+          separator = &two_newlines;
+        } else {
+          separator = &newline;
+        }
+        break;
+      case Token::kSEMICOLON:
+        separator = &newline;
+        break;
+      case Token::kPERIOD:
+      case Token::kLPAREN:
+        break;
+      default:
+        separator = &blank;
+        break;
     }
+    // Advance the iterator.
     iterator.Advance();
     kind = iterator.CurrentTokenKind();
+    // Determine whether the separation text needs to be updated based on the
+    // next token.
+    switch (kind) {
+      case Token::kRBRACE:
+        indent--;
+        break;
+      case Token::kSEMICOLON:
+      case Token::kPERIOD:
+      case Token::kCOMMA:
+      case Token::kLPAREN:
+      case Token::kRPAREN:
+        separator = NULL;
+        break;
+      default:
+        // Do nothing.
+        break;
+    }
+    if (separator != NULL) {
+      literals.Add(*separator);
+      if (separator == &newline) {
+        for (int i = 0; i < indent; i++) {
+          literals.Add(two_spaces);
+        }
+      }
+    }
   }
   const Array& source = Array::Handle(Array::MakeArray(literals));
   return String::ConcatAll(source);

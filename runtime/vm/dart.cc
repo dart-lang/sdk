@@ -22,6 +22,7 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, print_bootstrap);
 DECLARE_FLAG(bool, print_class_table);
 DECLARE_FLAG(bool, trace_isolates);
 
@@ -77,6 +78,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Symbols::InitOnce(vm_isolate_);
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
+    vm_isolate_->heap()->MakeReadOnly();
   }
   Isolate::SetCurrent(NULL);  // Unregister the VM isolate from this thread.
   Isolate::SetCreateCallback(create);
@@ -91,6 +93,32 @@ Isolate* Dart::CreateIsolate(const char* name_prefix) {
   Isolate* isolate = Isolate::Init(name_prefix);
   ASSERT(isolate != NULL);
   return isolate;
+}
+
+
+static void PrintLibrarySources(Isolate* isolate) {
+  const GrowableObjectArray& libs = GrowableObjectArray::Handle(
+      isolate->object_store()->libraries());
+  intptr_t lib_count = libs.Length();
+  Library& lib = Library::Handle();
+  Array& scripts = Array::Handle();
+  Script& script = Script::Handle();
+  String& url = String::Handle();
+  String& source = String::Handle();
+  for (int i = 0; i < lib_count; i++) {
+    lib ^= libs.At(i);
+    url = lib.url();
+    OS::Print("Library %s:\n", url.ToCString());
+    scripts = lib.LoadedScripts();
+    intptr_t script_count = scripts.Length();
+    for (intptr_t i = 0; i < script_count; i++) {
+      script ^= scripts.At(i);
+      url = script.url();
+      source = script.Source();
+      OS::Print("Source for %s:\n", url.ToCString());
+      OS::Print("%s\n", source.ToCString());
+    }
+  }
 }
 
 
@@ -121,6 +149,9 @@ RawError* Dart::InitializeIsolate(const uint8_t* snapshot_buffer, void* data) {
     reader.ReadFullSnapshot();
     if (FLAG_trace_isolates) {
       isolate->heap()->PrintSizes();
+    }
+    if (FLAG_print_bootstrap) {
+      PrintLibrarySources(isolate);
     }
   }
 

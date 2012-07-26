@@ -121,9 +121,9 @@ namespace dart {
   TOK(kINTEGER, "", 0, kNoAttribute)                                           \
   TOK(kDOUBLE, "", 0, kNoAttribute)                                            \
                                                                                \
-  TOK(kINTERPOL_VAR, "", 0, kNoAttribute)                                      \
-  TOK(kINTERPOL_START, "", 0, kNoAttribute)                                    \
-  TOK(kINTERPOL_END, "", 0, kNoAttribute)                                      \
+  TOK(kINTERPOL_VAR, "$", 0, kNoAttribute)                                     \
+  TOK(kINTERPOL_START, "${", 0, kNoAttribute)                                  \
+  TOK(kINTERPOL_END, "}", 0, kNoAttribute)                                     \
                                                                                \
   TOK(kWHITESP, "", 0, kNoAttribute)                                           \
   TOK(kERROR, "", 0, kNoAttribute)                                             \
