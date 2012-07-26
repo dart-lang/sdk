@@ -16,6 +16,7 @@
 #include "vm/port.h"
 #include "vm/resolver.h"
 #include "vm/snapshot.h"
+#include "vm/symbols.h"
 #include "vm/thread.h"
 
 namespace dart {
@@ -65,11 +66,11 @@ static void ThrowErrorException(Exceptions::ExceptionType type,
   String& str = String::Handle();
   String& name = String::Handle();
   str ^= String::New(error_msg);
-  name ^= String::NewSymbol(library_url);
+  name ^= Symbols::New(library_url);
   str ^= String::Concat(str, name);
   name ^= String::New(":");
   str ^= String::Concat(str, name);
-  name ^= String::NewSymbol(class_name);
+  name ^= Symbols::New(class_name);
   str ^= String::Concat(str, name);
   GrowableArray<const Object*> arguments(1);
   arguments.Add(&str);
@@ -82,11 +83,11 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   const String& public_class_name =
-      String::Handle(String::NewSymbol("_ReceivePortImpl"));
+      String::Handle(Symbols::New("_ReceivePortImpl"));
   const String& class_name =
       String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name =
-      String::Handle(String::NewSymbol("_get_or_create"));
+      String::Handle(Symbols::New("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -124,11 +125,11 @@ static bool RunIsolate(uword parameter) {
     ASSERT(ClassFinalizer::AllClassesFinalized());
     // Lookup the target class by name, create an instance and call the run
     // method.
-    const String& lib_name = String::Handle(String::NewSymbol(library_url));
+    const String& lib_name = String::Handle(Symbols::New(library_url));
     free(library_url);
     const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
     ASSERT(!lib.IsNull());
-    const String& cls_name = String::Handle(String::NewSymbol(class_name));
+    const String& cls_name = String::Handle(Symbols::New(class_name));
     free(class_name);
     const Class& target_class = Class::Handle(lib.LookupClass(cls_name));
     // TODO(iposva): Deserialize or call the constructor after allocating.
@@ -158,7 +159,7 @@ static bool RunIsolate(uword parameter) {
 
     // Invoke the "_run" method.
     const Function& target_function = Function::Handle(Resolver::ResolveDynamic(
-        target, String::Handle(String::NewSymbol("_run")), 2, 0));
+        target, String::Handle(Symbols::New("_run")), 2, 0));
     // TODO(iposva): Proper error checking here.
     ASSERT(!target_function.IsNull());
     // TODO(iposva): Allocate the proper port number here.
@@ -217,7 +218,7 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
   }
   // Lookup the target class by name, create an instance and call the run
   // method.
-  name ^= String::NewSymbol(library_url);
+  name ^= Symbols::New(library_url);
   const Library& lib = Library::Handle(Library::LookupLibrary(name));
   if (lib.IsNull()) {
     const String& error_str = String::Handle(
@@ -226,7 +227,7 @@ static bool CheckArguments(const char* library_url, const char* class_name) {
     Isolate::Current()->object_store()->set_sticky_error(error);
     return false;
   }
-  name ^= String::NewSymbol(class_name);
+  name ^= Symbols::New(class_name);
   const Class& target_class = Class::Handle(lib.LookupClass(name));
   if (target_class.IsNull()) {
     const String& error_str = String::Handle(

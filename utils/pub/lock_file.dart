@@ -4,6 +4,7 @@
 
 #library('lock_file');
 
+#import('dart:json');
 #import('package.dart');
 #import('source_registry.dart');
 #import('utils.dart');
@@ -60,7 +61,7 @@ class LockFile {
           throw new FormatException('Package $name is missing a description.');
         }
         var description = spec['description'];
-        source.validateDescription(description);
+        source.validateDescription(description, fromLockFile: true);
 
         var id = new PackageId(source, version, description);
 
@@ -75,5 +76,23 @@ class LockFile {
     }
 
     return new LockFile._(packages);
+  }
+
+  /**
+   * Returns the serialized YAML text of the lock file.
+   */
+  String serialize() {
+    var packagesObj = <Map>{};
+    packages.forEach((name, id) {
+      packagesObj[name] = {
+        'version': id.version.toString(),
+        'source': id.source.name,
+        'description': id.description
+      };
+    });
+
+    // TODO(nweiz): Serialize using the YAML library once it supports
+    // serialization. For now, we use JSON, since it's a subset of YAML anyway.
+    return JSON.stringify({'packages': packagesObj});
   }
 }

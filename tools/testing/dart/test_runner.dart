@@ -139,9 +139,9 @@ class TestCase {
 
   void completed() { completedHandler(this); }
 
-  bool get usesWebDriver() => (const ['chrome', 'dartium', 'ff', 'safari',
-                                      'ie', 'opera'])
-      .indexOf(configuration['runtime']) >= 0;
+  bool get usesWebDriver() => Contains(
+      configuration['runtime'],
+      const ['chrome', 'dartium', 'ff', 'safari', 'ie', 'opera']);
 }
 
 

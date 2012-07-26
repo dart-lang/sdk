@@ -62,6 +62,8 @@ namespace dart {
   TOK(kASSIGN_DIV, "/=", 2, kNoAttribute)                                      \
   TOK(kASSIGN_MOD, "%=", 2, kNoAttribute)                                      \
                                                                                \
+  TOK(kCASCADE, "..", 2, kNoAttribute)                                         \
+                                                                               \
   TOK(kCOMMA, ",", 1, kNoAttribute)                                            \
   TOK(kOR, "||", 4, kNoAttribute)                                              \
   TOK(kAND, "&&", 5, kNoAttribute)                                             \

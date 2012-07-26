@@ -775,8 +775,8 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-$if FROG
-  // Optimization to improve performance until the frog compiler inlines this
+$if DART2JS
+  // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   factory Element.tag(String tag) native "return document.createElement(tag)";
 $else

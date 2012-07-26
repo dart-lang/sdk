@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class $CLASSNAME extends _NodeImpl implements Document
-$if FROG
+$if DART2JS
     native "*HTMLDocument"
 $endif
 {

@@ -42,7 +42,7 @@
 # ......dom/
 # ........dom.dart
 # ......html/
-# ........html_frog.dart
+# ........html_dart2js.dart
 # ........html_dartium.dart
 # ......crypto/
 # ........crypto.dart
@@ -145,12 +145,16 @@ def CopyDart2Js(build_dir, sdk_root):
     ReplaceInFiles([dart2js],
                    [(r'%SCRIPTPATH%\.\.\\lib',
                      r'%SCRIPTPATH%..\lib\dart2js\lib')])
+    dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc.bat')
+    Copy(os.path.join(build_dir, 'dartdoc.bat'), dartdoc)
   else:
     dart2js = os.path.join(sdk_root, 'bin', 'dart2js')
     Copy(os.path.join(build_dir, 'dart2js'), dart2js)
     ReplaceInFiles([dart2js],
                    [(r'\$BIN_DIR/\.\./\.\./lib',
                      r'$BIN_DIR/../lib/dart2js/lib')])
+    dartdoc = os.path.join(sdk_root, 'bin', 'dartdoc')
+    Copy(os.path.join(build_dir, 'dartdoc'), dartdoc)
 
 
 def Main(argv):
@@ -308,8 +312,8 @@ def Main(argv):
   html_dest_dir = join(LIB, 'html')
   os.makedirs(html_dest_dir)
 
-  copyfile(join(html_src_dir, 'frog', 'html_frog.dart'),
-           join(html_dest_dir, 'html_frog.dart'))
+  copyfile(join(html_src_dir, 'dart2js', 'html_dart2js.dart'),
+           join(html_dest_dir, 'html_dart2js.dart'))
   copyfile(join(html_src_dir, 'dartium', 'html_dartium.dart'),
            join(html_dest_dir, 'html_dartium.dart'))
   copyfile(join(html_src_dir, 'dartium', 'nativewrappers.dart'),
@@ -322,8 +326,8 @@ def Main(argv):
   dom_dest_dir = join(LIB, 'dom')
   os.makedirs(dom_dest_dir)
 
-  copyfile(join(dom_src_dir, 'frog', 'dom_frog.dart'),
-           join(dom_dest_dir, 'dom_frog.dart'))
+  copyfile(join(dom_src_dir, 'dart2js', 'dom_dart2js.dart'),
+           join(dom_dest_dir, 'dom_dart2js.dart'))
 
   #
   # Create and populate lib/{crypto, json, uri, utf, ...}.

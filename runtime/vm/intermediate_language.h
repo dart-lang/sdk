@@ -1950,6 +1950,7 @@ class ForwardInstructionIterator : public ValueObject {
  public:
   explicit ForwardInstructionIterator(BlockEntryInstr* block_entry)
       : block_entry_(block_entry), current_(block_entry) {
+    ASSERT(block_entry_->last_instruction()->next() == NULL);
     Advance();
   }
 
@@ -1958,12 +1959,32 @@ class ForwardInstructionIterator : public ValueObject {
     current_ = current_->next();
   }
 
-  bool Done() const {
-    return current_ == block_entry_->last_instruction()->next();
-  }
+  bool Done() const { return current_ == NULL; }
 
   // Removes 'current_' from graph and sets 'current_' to previous instruction.
   void RemoveCurrentFromGraph();
+
+  Instruction* Current() const { return current_; }
+
+ private:
+  BlockEntryInstr* block_entry_;
+  Instruction* current_;
+};
+
+
+class BackwardInstructionIterator : public ValueObject {
+ public:
+  explicit BackwardInstructionIterator(BlockEntryInstr* block_entry)
+      : block_entry_(block_entry), current_(block_entry->last_instruction()) {
+    ASSERT(block_entry_->previous() == NULL);
+  }
+
+  void Advance() {
+    ASSERT(!Done());
+    current_ = current_->previous();
+  }
+
+  bool Done() const { return current_ == block_entry_; }
 
   Instruction* Current() const { return current_; }
 
@@ -2113,7 +2134,11 @@ class Definition : public Instruction {
   void set_temp_index(intptr_t index) { temp_index_ = index; }
 
   intptr_t ssa_temp_index() const { return ssa_temp_index_; }
-  void set_ssa_temp_index(intptr_t index) { ssa_temp_index_ = index; }
+  void set_ssa_temp_index(intptr_t index) {
+    ASSERT(index >= 0);
+    ssa_temp_index_ = index;
+  }
+  bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
 
  private:
   intptr_t temp_index_;
@@ -2447,8 +2472,10 @@ class ParallelMoveInstr : public Instruction {
 
   DECLARE_INSTRUCTION(ParallelMove)
 
-  void AddMove(Location dest, Location src) {
-    moves_.Add(new MoveOperands(dest, src));
+  MoveOperands* AddMove(Location dest, Location src) {
+    MoveOperands* move = new MoveOperands(dest, src);
+    moves_.Add(move);
+    return move;
   }
 
   MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
@@ -2482,12 +2509,16 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  GrowableArray<Location>* locations() {
-    return &locations_;
+  void AddLocation(Location value) {
+    locations_.Add(value);
   }
 
-  const GrowableArray<Location>* locations() const {
-    return &locations_;
+  Location LocationAt(intptr_t ix) const {
+    return locations_[ix];
+  }
+
+  Location* LocationSlotAt(intptr_t ix) const {
+    return & locations_[ix];
   }
 
   void PrintTo(BufferFormatter* f) const;

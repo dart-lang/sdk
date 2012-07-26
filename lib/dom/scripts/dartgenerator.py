@@ -202,7 +202,7 @@ class DartGenerator(object):
       interfaces.append(interface)
 
     # TODO(sra): Use this list of exception names to generate information to
-    # tell Frog which exceptions can be passed from JS to Dart code.
+    # tell dart2js which exceptions can be passed from JS to Dart code.
     exceptions = self._CollectExceptions(interfaces)
 
     super_map = dict((v, k) for k, v in webkit_renames.iteritems())
@@ -280,6 +280,13 @@ class DartGenerator(object):
         ast = [('Annotation', [('Id', 'WebKit')]),
                ('InterfaceType', ('ScopedName', 'EventTarget'))]
         interface.parents.append(idlnode.IDLParentInterface(ast))
+
+  def AddMissingArguments(self, database):
+    ARG = idlnode.IDLArgument([('Type', ('ScopedName', 'Object')), ('Id', 'arg')])
+    for interface in database.GetInterfaces():
+      for operation in interface.operations:
+        if operation.ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
+          operation.arguments.append(ARG)
 
 # ------------------------------------------------------------------------------
 

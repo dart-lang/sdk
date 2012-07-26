@@ -5,7 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-#library("html");
+#library("dart:html");
 
 #import('dart:dom_deprecated', prefix:'dom');
 

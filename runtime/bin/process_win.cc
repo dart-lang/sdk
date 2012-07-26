@@ -521,3 +521,8 @@ bool Process::Kill(intptr_t id, int signal) {
 void Process::TerminateExitCodeHandler() {
   // Nothing needs to be done on Windows.
 }
+
+
+intptr_t Process::CurrentProcessId() {
+  return static_cast<intptr_t>(GetCurrentProcessId());
+}

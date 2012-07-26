@@ -29,7 +29,7 @@ final List<String> argv = const <String>[
 '../lib/html/benchmarks/common/Math2.dart',
 '../lib/html/benchmarks/dromaeo/Dromaeo.dart',
 '../lib/html/benchmarks/dromaeo/Suites.dart',
-'../lib/html/frog/html_frog.dart',
+'../lib/html/dart2js/html_dart2js.dart',
 '../lib/html/dartium/html_dartium.dart',
 '../client/testing/dartest/css.dart',
 '../client/testing/dartest/dartest.dart',

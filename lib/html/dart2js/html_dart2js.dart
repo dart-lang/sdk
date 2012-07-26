@@ -1,4 +1,4 @@
-#library('html');
+#library('dart:html');
 
 #import('dart:isolate');
 #import('dart:json');
@@ -4056,13 +4056,13 @@ class _ConsoleImpl
 
   void assertCondition(bool condition, Object arg) native;
 
-  void count() native;
+  void count(Object arg) native;
 
   void debug(Object arg) native;
 
-  void dir() native;
+  void dir(Object arg) native;
 
-  void dirxml() native;
+  void dirxml(Object arg) native;
 
   void error(Object arg) native;
 
@@ -4076,7 +4076,7 @@ class _ConsoleImpl
 
   void log(Object arg) native;
 
-  void markTimeline() native;
+  void markTimeline(Object arg) native;
 
   void profile(String title) native;
 
@@ -6289,7 +6289,7 @@ class _ElementFactoryProvider {
   }
 
   /** @domName Document.createElement */
-  // Optimization to improve performance until the frog compiler inlines this
+  // Optimization to improve performance until the dart2js compiler inlines this
   // method.
   factory Element.tag(String tag) native "return document.createElement(tag)";
 }
@@ -7606,8 +7606,8 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
   _IDBVersionChangeRequestImpl setVersion(String version) native;
 }
 
-// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
-// can't handle that.  Move it back after frog is completely done.
+// TODO(sra): This should be a static member of _IDBTransactionImpl but dart2js
+// can't handle that.  Move it back after dart2js is completely done.
 var _transaction_fn;  // Assigned one of the static methods.
 
 class _IDBDatabaseEventsImpl extends _EventsImpl implements IDBDatabaseEvents {
@@ -15316,8 +15316,26 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   _Uint8ClampedArrayImpl subarray(int start, [int end]) native;
 }
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
+
+
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  noSuchMethod(String name, List args) {
+    if (dynamicUnknownElementDispatcher == null) {
+      throw new NoSuchMethodException(this, name, args);
+    } else {
+      return dynamicUnknownElementDispatcher(this, name, args);
+    }
+  }
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {
@@ -21720,16 +21738,16 @@ interface Console {
   void assertCondition(bool condition, Object arg);
 
   /** @domName Console.count */
-  void count();
+  void count(Object arg);
 
   /** @domName Console.debug */
   void debug(Object arg);
 
   /** @domName Console.dir */
-  void dir();
+  void dir(Object arg);
 
   /** @domName Console.dirxml */
-  void dirxml();
+  void dirxml(Object arg);
 
   /** @domName Console.error */
   void error(Object arg);
@@ -21750,7 +21768,7 @@ interface Console {
   void log(Object arg);
 
   /** @domName Console.markTimeline */
-  void markTimeline();
+  void markTimeline(Object arg);
 
   /** @domName Console.profile */
   void profile(String title);

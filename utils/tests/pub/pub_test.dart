@@ -254,6 +254,7 @@ dependencies:
 
     // TODO(nweiz): remove this once we support pub update
     dir(packagesPath).scheduleDelete();
+    file('$appPath/pubspec.lock', '').scheduleDelete();
 
     git('foo.git', [
       file('foo.dart', 'main() => "foo 2";')
@@ -581,6 +582,512 @@ dependencies:
     ]).scheduleValidate();
 
     run();
+  });
+
+  test('keeps a Git package locked to the version in the lockfile', () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    // This install should lock the foo.git dependency to the current revision.
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    // Delete the packages path to simulate a new checkout of the application.
+    dir(packagesPath).scheduleDelete();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
+
+    // This install shouldn't update the foo.git dependency due to the lockfile.
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('updates a locked Git package with a new incompatible constraint', () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 1.0.0";'),
+      file('pubspec.yaml', 'version: 1.0.0')
+    ]).scheduleCommit();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+    version: ">=1.0.0"
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1.0.0";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test("doesn't update a locked Git package with a new compatible "
+      "constraint", () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 1.0.0";'),
+      file('pubspec.yaml', 'version: 1.0.0')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1.0.0";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 1.0.1";'),
+      file('pubspec.yaml', 'version: 1.0.1')
+    ]).scheduleCommit();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+    version: ">=1.0.0"
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 1.0.0";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('keeps a pub server package locked to the version in the lockfile', () {
+    servePackages("localhost", 3123, ['{name: foo, version: 1.0.0}']);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo: {name: foo, url: http://localhost:3123}
+''')
+    ]).scheduleCreate();
+
+    // This install should lock the foo dependency to version 1.0.0.
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.0");')
+      ])
+    ]).scheduleValidate();
+
+    // Delete the packages path to simulate a new checkout of the application.
+    dir(packagesPath).scheduleDelete();
+
+    // Start serving a newer package as well.
+    servePackages("localhost", 3123, [
+      '{name: foo, version: 1.0.0}',
+      '{name: foo, version: 1.0.1}'
+    ]);
+
+    // This install shouldn't update the foo dependency due to the lockfile.
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.0");')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test('updates a locked pub server package with a new incompatible '
+      'constraint', () {
+    servePackages("localhost", 3123, ['{name: foo, version: 1.0.0}']);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo: {name: foo, url: http://localhost:3123}
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.0");')
+      ])
+    ]).scheduleValidate();
+
+    servePackages("localhost", 3123, [
+      '{name: foo, version: 1.0.0}',
+      '{name: foo, version: 1.0.1}'
+    ]);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo: {name: foo, url: http://localhost:3123}
+    version: ">1.0.0"
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.1");')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  test("doesn't update a locked pub server package with a new compatible "
+      "constraint", () {
+    servePackages("localhost", 3123, ['{name: foo, version: 1.0.0}']);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo: {name: foo, url: http://localhost:3123}
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.0");')
+      ])
+    ]).scheduleValidate();
+
+    servePackages("localhost", 3123, [
+      '{name: foo, version: 1.0.0}',
+      '{name: foo, version: 1.0.1}'
+    ]);
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo: {name: foo, url: http://localhost:3123}
+    version: ">=1.0.0"
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => print("foo 1.0.0");')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+}
+
+updateCommand() {
+  test("updates locked Git packages", () {
+    ensureGit();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo";')
+    ]).scheduleCreate();
+
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar";')
+    ]).scheduleCreate();
+
+    dir(appPath, [
+      file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+    ]).scheduleCreate();
+
+    schedulePub(args: ['install'],
+        output: const RegExp(@"Dependencies installed!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar";')
+      ])
+    ]).scheduleValidate();
+
+    git('foo.git', [
+      file('foo.dart', 'main() => "foo 2";')
+    ]).scheduleCommit();
+
+    git('bar.git', [
+      file('bar.dart', 'main() => "bar 2";')
+    ]).scheduleCommit();
+
+    schedulePub(args: ['update'],
+        output: const RegExp(@"Dependencies updated!$"));
+
+    dir(packagesPath, [
+      dir('foo', [
+        file('foo.dart', 'main() => "foo 2";')
+      ]),
+      dir('bar', [
+        file('bar.dart', 'main() => "bar 2";')
+      ])
+    ]).scheduleValidate();
+
+    run();
+  });
+
+  group("with an argument", () {
+    test("updates one locked Git package but no others", () {
+      ensureGit();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";')
+      ]).scheduleCreate();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar";')
+      ]).scheduleCreate();
+
+      dir(appPath, [
+        file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";')
+        ])
+      ]).scheduleValidate();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo 2";')
+      ]).scheduleCommit();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar 2";')
+      ]).scheduleCommit();
+
+      schedulePub(args: ['update foo'],
+          output: const RegExp(@"Dependencies updated!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo 2";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";')
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test("updates one locked Git package's dependencies", () {
+      ensureGit();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo";'),
+        file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+      ]).scheduleCreate();
+
+      git('foo-dep.git', [
+        file('foo-dep.dart', 'main() => "foo-dep";')
+      ]).scheduleCreate();
+
+      git('bar.git', [
+        file('bar.dart', 'main() => "bar";'),
+        file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+      ]).scheduleCreate();
+
+      git('bar-dep.git', [
+        file('bar-dep.dart', 'main() => "bar-dep";')
+      ]).scheduleCreate();
+
+      dir(appPath, [
+        file('pubspec.yaml', '''
+dependencies:
+  foo:
+    git: ../foo.git
+  bar:
+    git: ../foo.git
+''')
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";'),
+          file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+        ]),
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => "foo-dep";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";'),
+          file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+        ]),
+        dir('bar-dep', [
+          file('bar-dep.dart', 'main() => "bar-dep";')
+        ])
+      ]).scheduleValidate();
+
+      git('foo-dep.git', [
+        file('foo-dep.dart', 'main() => "foo-dep 2";')
+      ]).scheduleCommit();
+
+      git('bar-dep.git', [
+        file('bar-dep.dart', 'main() => "bar-dep 2";')
+      ]).scheduleCommit();
+
+      schedulePub(args: ['update foo'],
+          output: const RegExp(@"Dependencies updated!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => "foo";'),
+          file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+        ]),
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => "foo-dep 2";')
+        ]),
+        dir('bar', [
+          file('bar.dart', 'main() => "bar";'),
+          file('pubspec.yaml', '''
+dependencies:
+  bar-dep:
+    git: ../bar-dep.git
+''')
+        ]),
+        dir('bar-dep', [
+          file('bar-dep.dart', 'main() => "bar-dep";')
+        ])
+      ]).scheduleValidate();
+
+      run();
+    });
   });
 }
 

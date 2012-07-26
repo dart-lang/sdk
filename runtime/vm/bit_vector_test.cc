@@ -74,6 +74,14 @@ TEST_CASE(BitVector) {
     EXPECT_EQ(true, a->Contains(64));
     EXPECT_EQ(true, a->Contains(96));
     EXPECT_EQ(false, a->Contains(127));
+    a->Remove(0);
+    a->Remove(32);
+    a->Remove(64);
+    a->Remove(96);
+    EXPECT_EQ(false, a->Contains(0));
+    EXPECT_EQ(false, a->Contains(32));
+    EXPECT_EQ(false, a->Contains(64));
+    EXPECT_EQ(false, a->Contains(96));
   }
 }
 

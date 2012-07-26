@@ -21,6 +21,7 @@
 #import('../../lib/dartdoc/mirrors/mirrors.dart');
 #import('../../lib/dartdoc/mirrors/mirrors_util.dart');
 #import('../../lib/dartdoc/dartdoc.dart', prefix: 'doc');
+#import('../../lib/compiler/implementation/library_map.dart');
 
 HtmlDiff _diff;
 
@@ -102,38 +103,22 @@ void main() {
   // TODO(johnniwinther): Libraries for the compilation seem to be more like
   // URIs. Perhaps Path should have a toURI() method.
   // Add all of the core libraries.
-  var apidocLibraries = <Path>[
-    const Path('dart:core'),
-    const Path('dart:coreimpl'),
-    const Path('dart:crypto'),
-    const Path('dart:html'),
-    const Path('dart:io'),
-    const Path('dart:isolate'),
-    const Path('dart:json'),
-    doc.scriptDir.append('../../lib/math/math.dart'),
-    doc.scriptDir.append('../../lib/unittest/unittest.dart'),
-    doc.scriptDir.append('../../lib/i18n/intl.dart'),
-    const Path('dart:uri'),
-    const Path('dart:utf'),
-    const Path('dart:web'),
-  ];
+  final apidocLibraries = <Path>[];
+  DART2JS_LIBRARY_MAP.forEach((String name, LibraryInfo info) {
+    if (!info.isInternal) {
+      apidocLibraries.add(new Path('dart:$name'));
+    }
+  });
+  apidocLibraries.add(doc.scriptDir.append('../../lib/unittest/unittest.dart'));
+  apidocLibraries.add(doc.scriptDir.append('../../lib/i18n/intl.dart'));
+
   print('Generating docs...');
   final apidoc = new Apidoc(mdn, htmldoc, outputDir, mode, generateAppCache);
   // Select the libraries to include in the produced documentation:
-  apidoc.libraries = <String>[
-    'core',
-    'coreimpl',
-    'crypto',
-    'html',
-    'io',
-    'dart:isolate',
-    'json',
-    'math',
+  apidoc.includeApi = true;
+  apidoc.includedLibraries = <String>[
     'unittest',
     'intl',
-    'uri',
-    'utf',
-    'web',
   ];
 
   Futures.wait([compiled, copiedStatic, copiedApiDocStatic]).then((_) {
@@ -172,7 +157,7 @@ class Htmldoc extends doc.Dartdoc {
   }
 
   String getRecordedLibraryComment(LibraryMirror library) {
-    if (library.simpleName() == 'html') {
+    if (library.simpleName() == HTML_LIBRARY_NAME) {
       return libraryComment;
     }
     return null;
@@ -364,7 +349,7 @@ class Apidoc extends doc.Dartdoc {
   }
 
   String getLibraryComment(LibraryMirror library) {
-    if (library.simpleName() == 'html') {
+    if (library.simpleName() == HTML_LIBRARY_NAME) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
@@ -452,7 +437,7 @@ class Apidoc extends doc.Dartdoc {
    * scraped from MDN.
    */
   includeMdnTypeComment(TypeMirror type) {
-    if (type.library().simpleName() == 'html') {
+    if (type.library().simpleName() == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domTypes = _diff.htmlTypesToDom[type.qualifiedName()];
@@ -464,7 +449,7 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       type = domTypes.iterator().next();
-    } else if (type.library().simpleName() != 'dom') {
+    } else if (type.library().simpleName() != DOM_LIBRARY_NAME) {
       // Not a DOM type.
       return null;
     }
@@ -484,7 +469,7 @@ class Apidoc extends doc.Dartdoc {
    */
   includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
-    if (library.simpleName() == 'html') {
+    if (library.simpleName() == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
       final domMembers = _diff.htmlToDom[member.qualifiedName()];
@@ -496,7 +481,7 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       member = domMembers.iterator().next();
-    } else if (library.simpleName() != 'dom') {
+    } else if (library.simpleName() != DOM_LIBRARY_NAME) {
       // Not a DOM type.
       return null;
     }

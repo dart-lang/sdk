@@ -6,6 +6,7 @@
 #include "vm/class_finalizer.h"
 #include "vm/compiler.h"
 #include "vm/object.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -45,7 +46,7 @@ TEST_CASE(CompileFunction) {
   EXPECT(CompilerTest::TestCompileScript(lib, script));
   EXPECT(ClassFinalizer::FinalizePendingClasses());
   Class& cls = Class::Handle(
-      lib.LookupClass(String::Handle(String::NewSymbol("A"))));
+      lib.LookupClass(String::Handle(Symbols::New("A"))));
   EXPECT(!cls.IsNull());
   String& function_foo_name = String::Handle(String::New("foo"));
   Function& function_foo =

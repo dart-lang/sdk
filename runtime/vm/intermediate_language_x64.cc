@@ -13,6 +13,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 #define __ compiler->assembler()->
 
@@ -175,6 +176,18 @@ LocationSummary* AssertAssignableComp::MakeLocationSummary() const {
 }
 
 
+LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
+}
+
+
 void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
@@ -237,9 +250,9 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
     LocationSummary* locs = new LocationSummary(kNumInputs,
                                                 kNumTemps,
                                                 LocationSummary::kCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
+    locs->set_in(0, Location::RegisterLocation(RCX));
+    locs->set_in(1, Location::RegisterLocation(RDX));
+    locs->set_temp(0, Location::RegisterLocation(RBX));
     locs->set_out(Location::RegisterLocation(RAX));
     return locs;
   }
@@ -247,8 +260,8 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(kNumInputs,
                                               kNumTemps,
                                               LocationSummary::kCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(0, Location::RegisterLocation(RCX));
+  locs->set_in(1, Location::RegisterLocation(RDX));
   locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
@@ -313,7 +326,7 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  comp->cid(),
                                  comp->token_pos(),
                                  comp->try_index());
-  const String& operator_name = String::ZoneHandle(String::NewSymbol("=="));
+  const String& operator_name = String::ZoneHandle(Symbols::New("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
@@ -501,8 +514,7 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary = new LocationSummary(kNumInputs,
-                                                   kNumTemps,
-                                                   LocationSummary::kCall);
+                                                   kNumTemps);
     summary->set_in(0, Location::RequiresRegister());
     summary->set_in(1, Location::RequiresRegister());
     summary->set_out(Location::RequiresRegister());
@@ -636,7 +648,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     return;
   }
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(kind())));
+      String::ZoneHandle(Symbols::New(Token::Str(kind())));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_pos(),
@@ -663,7 +675,7 @@ LocationSummary* NativeCallComp::MakeLocationSummary() const {
   locs->set_temp(0, Location::RegisterLocation(RAX));
   locs->set_temp(1, Location::RegisterLocation(RBX));
   locs->set_temp(2, Location::RegisterLocation(R10));
-  locs->set_out(Location::RequiresRegister());
+  locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -833,7 +845,7 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
 static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                     StoreIndexedComp* comp) {
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kASSIGN_INDEX)));
+      String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
 
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  comp->cid(),
@@ -1141,9 +1153,15 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary*
     AllocateObjectWithBoundsCheckComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2,
-                               Location::RequiresRegister(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_in(1, Location::RegisterLocation(RCX));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
@@ -1201,8 +1219,8 @@ LocationSummary* InstantiateTypeArgumentsComp::MakeLocationSummary() const {
   LocationSummary* locs = new LocationSummary(kNumInputs,
                                               kNumTemps,
                                               LocationSummary::kCall);
-  locs->set_in(0, Location::RequiresRegister());
-  locs->set_out(Location::SameAsFirstInput());
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_out(Location::RegisterLocation(RAX));
   return locs;
 }
 
@@ -1403,9 +1421,14 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CloneContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::RequiresRegister(),
-                               LocationSummary::kCall);
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs,
+                                              kNumTemps,
+                                              LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_out(Location::RegisterLocation(RAX));
+  return locs;
 }
 
 
@@ -1456,7 +1479,9 @@ LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(kNumInputs,
                                                  kNumTemps,
                                                  LocationSummary::kCall);
-  summary->set_temp(0, Location::RequiresRegister());
+  // All registers are blocked for a call.  Instructions marked at calls can use
+  // only fixed register temps.
+  summary->set_temp(0, Location::RegisterLocation(RAX));
   return summary;
 }
 
@@ -1489,8 +1514,8 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
+    summary->set_in(1, Location::RegisterLocation(RCX));
+    summary->set_out(Location::RegisterLocation(RAX));
     return summary;
   }
 
@@ -1521,9 +1546,9 @@ LocationSummary* BinaryOpComp::MakeLocationSummary() const {
     LocationSummary* summary =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
     summary->set_in(0, Location::RegisterLocation(RAX));
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::SameAsFirstInput());
-    summary->set_temp(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RegisterLocation(RDX));
+    summary->set_out(Location::RegisterLocation(RAX));
+    summary->set_temp(0, Location::RegisterLocation(RBX));
     summary->set_temp(1, Location::RegisterLocation(RCX));
     return summary;
   } else {
@@ -1899,9 +1924,9 @@ LocationSummary* NumberNegateComp::MakeLocationSummary() const {
   LocationSummary* summary = new LocationSummary(kNumInputs,
                                                  kNumTemps,
                                                  LocationSummary::kCall);
-  summary->set_in(0, Location::RequiresRegister());
-  summary->set_out(Location::SameAsFirstInput());
-  summary->set_temp(0, Location::RequiresRegister());
+  summary->set_in(0, Location::RegisterLocation(RAX));
+  summary->set_out(Location::RegisterLocation(RAX));
+  summary->set_temp(0, Location::RegisterLocation(RCX));
   return summary;
 }
 
@@ -2106,9 +2131,9 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
       LocationSummary* locs = new LocationSummary(kNumInputs,
                                                   kNumTemps,
                                                   LocationSummary::kCall);
-      locs->set_in(0, Location::RequiresRegister());
-      locs->set_in(1, Location::RequiresRegister());
-      locs->set_temp(0, Location::RequiresRegister());
+      locs->set_in(0, Location::RegisterLocation(RAX));
+      locs->set_in(1, Location::RegisterLocation(RCX));
+      locs->set_temp(0, Location::RegisterLocation(RDX));
       return locs;
     }
     // Otherwise polymorphic dispatch.
@@ -2153,7 +2178,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   Token::Kind call_kind = (kind() == Token::kNE) ? Token::kEQ : kind();
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(call_kind)));
+      String::ZoneHandle(Symbols::New(Token::Str(call_kind)));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_pos(),

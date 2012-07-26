@@ -26,7 +26,7 @@ class A {
     Expect.equals(y, this.y);
   }
 
-  int operator[](var i) {
+  operator[](var i) {
     if (i == 0) return x;
     if (i == 1) return y;
     if (i == "swap") return this.swap;

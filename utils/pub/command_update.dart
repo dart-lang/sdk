@@ -4,18 +4,23 @@
 
 #library('command_update');
 
+#import('entrypoint.dart');
 #import('pub.dart');
 
 /** Handles the `update` pub command. */
-// TODO(nweiz): Make update do something different than install when we have
-// sources for which that makes sense.
 class UpdateCommand extends PubCommand {
   String get description() =>
     "update the current package's dependencies to the latest versions";
 
-  String get usage() => 'pub update';
+  String get usage() => 'pub update [dependencies...]';
 
   Future onRun() {
-    print("Not implemented.");
+    var future;
+    if (commandOptions.rest.isEmpty()) {
+      future = entrypoint.updateAllDependencies();
+    } else {
+      future = entrypoint.updateDependencies(commandOptions.rest);
+    }
+    return future.transform((_) => print("Dependencies updated!"));
   }
 }

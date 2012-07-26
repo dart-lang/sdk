@@ -14,6 +14,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -42,16 +43,15 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
             Address(RBP, ParsedFunction::kFirstLocalSlotIndex * kWordSize));
 
     const GrowableArray<Value*>& values = deoptimization_env_->values();
-    const GrowableArray<Location>* locations = deoptimization_env_->locations();
-
     for (intptr_t i = 0; i < values.length(); i++) {
-      const Location loc = (*locations)[i];
+      const Location loc = deoptimization_env_->LocationAt(i);
       if (loc.IsInvalid()) {
         ASSERT(values[i]->IsConstant());
         __ PushObject(values[i]->AsConstant()->value());
-      } else {
-        ASSERT(loc.IsRegister());
+      } else if (loc.IsRegister()) {
         __ pushq(loc.reg());
+      } else {
+        compiler->Bailout("unsupported deoptimization state");
       }
     }
   }
@@ -585,7 +585,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   if (dst_type.IsMalformed()) {
     const Error& error = Error::Handle(dst_type.malformed_error());
     const String& error_message = String::ZoneHandle(
-        String::NewSymbol(error.ToErrorCString()));
+        Symbols::New(error.ToErrorCString()));
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
     __ pushq(RAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.

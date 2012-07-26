@@ -46,6 +46,6 @@ class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
 
 $!MEMBERS}
 
-// TODO(sra): This should be a static member of _IDBTransactionImpl but frog
-// can't handle that.  Move it back after frog is completely done.
+// TODO(sra): This should be a static member of _IDBTransactionImpl but dart2js
+// can't handle that.  Move it back after dart2js is completely done.
 var _transaction_fn;  // Assigned one of the static methods.

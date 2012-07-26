@@ -121,6 +121,19 @@ interface ObjectMirror extends Mirror {
   Future<InstanceMirror> invoke(String memberName,
                                 List<Object> positionalArguments,
                                 [Map<String,Object> namedArguments]);
+
+  /**
+   * Invokes a getter and returns a mirror on the result. The getter may be 
+   * either the implicit getter for a field or a user-defined getter method.
+   */
+  Future<InstanceMirror> getField(String fieldName);
+
+  /**
+   * Invokes a setter and returns a mirror on the result. The setter may be 
+   * either the implicit setter for a non-final field or a user-defined setter
+   * method.
+   */
+  Future<InstanceMirror> setField(String fieldName, Object value);
 }
 
 /**
@@ -154,6 +167,38 @@ interface InstanceMirror extends ObjectMirror {
    * exception is thrown.
    */
   final reflectee;
+}
+
+/**
+ * A [ClosureMirror] reflects a closure. Closures are special, because we do not
+ * wish to reflect the internals of a particular closure implementation. And
+ * yet, we need access to details of the closure internals - for example, its
+ * enclosing context and its source code.
+ */
+interface ClosureMirror extends InstanceMirror {
+
+  /**
+   * Return the source code for the closure, if available.
+   */ 
+  String source();
+  
+  /**
+   * Call the closure. The arguments given in the descriptor need to be
+   * ObjectMirrors or values. Asynchronous.
+   */  
+  Future<ObjectMirror> apply(List<Object> positionalArguments,
+                             [Map<String,Object> namedArguments]); 
+
+  /**
+   * Look up the value of name in the scope of the closure. The result is a
+   * mirror on that value. Asynchronous.
+   */
+  Future<ObjectMirror> findInContext(String name);
+
+  /**
+   * Return a mirror on the function of this closure.
+   */
+  MethodMirror function();
 }
 
 /**

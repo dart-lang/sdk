@@ -5,7 +5,7 @@
 // DO NOT EDIT
 // Auto-generated Dart DOM library with no implementation.
 
-#library("dom");
+#library("dart:dom_deprecated");
 $!GENERATED_DART_FILES
 
 #source('../src/DOMType.dart');

@@ -1940,6 +1940,14 @@ DART_EXPORT Dart_Handle Dart_ByteArraySetFloat64At(Dart_Handle array,
 DART_EXPORT bool Dart_IsClosure(Dart_Handle object);
 
 /**
+ * Retrieves the function of a closure.
+ *
+ * \return A handle on the function of the closure, or an error handle if the
+ *   argument is not a closure.
+ */
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure);
+
+/**
  * Invokes a Closure with the given arguments.
  *
  * May generate an unhandled exception error.
@@ -2583,8 +2591,12 @@ DART_EXPORT Dart_Handle Dart_SetNativeResolver(
 DART_EXPORT void Dart_InitPprofSupport();
 DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size);
 
+typedef void (*Dart_FileWriterFunction)(const char* buffer, int64_t num_bytes);
+
+// Support for generating symbol maps for use by the Linux perf tool.
+DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function);
+
 // Support for generating flow graph compiler debugging output into a file.
-typedef void (*FileWriterFunction)(const char* buffer, int64_t num_bytes);
-DART_EXPORT void Dart_InitFlowGraphPrinting(FileWriterFunction function);
+DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function);
 
 #endif  // INCLUDE_DART_API_H_

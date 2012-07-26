@@ -19,7 +19,7 @@
 #
 # To generate a subset of systems:
 #
-#   ./go.sh frog,htmlfrog
+#   ./go.sh dart2js,htmldart2js
 #
 # The following gives a picture of the changes due to 'work'
 #
@@ -36,7 +36,7 @@ if [[ "$1" == "--cached" ]] ; then
   shift
 fi
 
-ALLSYSTEMS="frog,dummy,htmlfrog,htmldartium"
+ALLSYSTEMS="dart2js,dummy,htmldart2js,htmldartium"
 SYSTEMS="$ALLSYSTEMS"
 
 if [[ "$1" != "" ]] ; then

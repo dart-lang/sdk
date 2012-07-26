@@ -5,7 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-#library("html");
+#library("dart:html");
 
 #import("dart:isolate");
 #import("dart:json");

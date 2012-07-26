@@ -17,6 +17,7 @@
 #include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -26,11 +27,6 @@ DEFINE_FLAG(bool, print_ast, false, "Print abstract syntax tree.");
 DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
-#if defined(TARGET_ARCH_X64)
-DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
-#else
-DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
-#endif
 DECLARE_FLAG(bool, enable_type_checks);
 
 
@@ -356,7 +352,7 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
       const String& dst_name =
-          String::ZoneHandle(String::NewSymbol("function result"));
+          String::ZoneHandle(Symbols::New("function result"));
       return_value = BuildAssignableValue(node->value()->token_pos(),
                                           return_value,
                                           dst_type,
@@ -563,7 +559,7 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
   arguments->Add(for_left_value.value());
   arguments->Add(for_right_value.value());
-  const String& name = String::ZoneHandle(String::NewSymbol(node->Name()));
+  const String& name = String::ZoneHandle(Symbols::New(node->Name()));
   InstanceCallComp* call = new InstanceCallComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 name,
@@ -724,7 +720,7 @@ void EffectGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   node->left()->Visit(&for_value);
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
-      String::NewSymbol(Exceptions::kCastExceptionDstName));
+      Symbols::New(Exceptions::kCastExceptionDstName));
   if (!CanSkipTypeCheck(node->token_pos(), for_value.value(), type, dst_name)) {
     Do(BuildAssertAssignable(
         node->token_pos(), for_value.value(), type, dst_name));
@@ -813,7 +809,7 @@ void ValueGraphVisitor::BuildTypeCast(ComparisonNode* node) {
   node->left()->Visit(&for_value);
   Append(for_value);
   const String& dst_name = String::ZoneHandle(
-      String::NewSymbol(Exceptions::kCastExceptionDstName));
+      Symbols::New(Exceptions::kCastExceptionDstName));
   ReturnValue(BuildAssignableValue(node->token_pos(),
                                    for_value.value(),
                                    type,
@@ -918,7 +914,7 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
       (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
 
   const String& name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(token_kind)));
+      String::ZoneHandle(Symbols::New(Token::Str(token_kind)));
   InstanceCallComp* call = new InstanceCallComp(
       node->token_pos(), owner()->try_index(), name, token_kind,
       arguments, Array::ZoneHandle(), 1);
@@ -2073,7 +2069,7 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
         if (parameter.is_captured()) {
           // Create a temporary local describing the original position.
           const String& temp_name = String::ZoneHandle(String::Concat(
-              parameter.name(), String::Handle(String::NewSymbol("-orig"))));
+              parameter.name(), String::Handle(Symbols::New("-orig"))));
           LocalVariable* temp_local = new LocalVariable(
               0,  // Token index.
               temp_name,
@@ -2597,8 +2593,8 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     Instruction* current = it.Current();
     // Attach current environment to the instruction.
     // TODO(fschneider): Currently each instruction gets a full copy of the
-    // enviroment. This should be optimized: Only instructions that can
-    // deoptimize will should have uses of the environment values.
+    // environment. This should be optimized: Only instructions that can
+    // deoptimize should have uses of the environment values.
     current->set_env(new Environment(*env));
 
     // 2a. Handle uses:

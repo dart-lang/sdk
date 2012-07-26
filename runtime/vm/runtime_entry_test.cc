@@ -5,6 +5,7 @@
 #include "vm/runtime_entry.h"
 
 #include "vm/object.h"
+#include "vm/symbols.h"
 #include "vm/verifier.h"
 
 namespace dart {
@@ -12,7 +13,7 @@ namespace dart {
 // Add function to a class and that class to the class dictionary so that
 // frame walking can be used.
 const Function& RegisterFakeFunction(const char* name, const Code& code) {
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(name));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));

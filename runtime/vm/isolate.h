@@ -185,6 +185,14 @@ class Isolate : public BaseIsolate {
 
   Debugger* debugger() const { return debugger_; }
 
+  GcPrologueCallbacks& gc_prologue_callbacks() {
+    return gc_prologue_callbacks_;
+  }
+
+  GcEpilogueCallbacks& gc_epilogue_callbacks() {
+    return gc_epilogue_callbacks_;
+  }
+
   static void SetCreateCallback(Dart_IsolateCreateCallback cb) {
     create_callback_ = cb;
   }
@@ -204,14 +212,6 @@ class Isolate : public BaseIsolate {
   }
   static Dart_IsolateShutdownCallback ShutdownCallback() {
     return shutdown_callback_;
-  }
-
-  GcPrologueCallbacks& gc_prologue_callbacks() {
-    return gc_prologue_callbacks_;
-  }
-
-  GcEpilogueCallbacks& gc_epilogue_callbacks() {
-    return gc_epilogue_callbacks_;
   }
 
  private:

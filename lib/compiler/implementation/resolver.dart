@@ -941,6 +941,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
     context = new MethodScope(context, function);
+    if (node.returnType !== null) resolveTypeAnnotation(node.returnType);
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);

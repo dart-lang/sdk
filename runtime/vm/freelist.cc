@@ -54,17 +54,14 @@ uword FreeList::TryAllocate(intptr_t size) {
     return reinterpret_cast<uword>(DequeueElement(index));
   }
 
-  if (index < kNumLists) {
-    index++;
-    while (index < kNumLists) {
-      if (free_map_.Test(index)) {
-        // Dequeue an element from the list, split and enqueue the remainder in
-        // the appropriate list.
-        FreeListElement* element = DequeueElement(index);
-        SplitElementAfterAndEnqueue(element, size);
-        return reinterpret_cast<uword>(element);
-      }
-      index++;
+  if ((index + 1) < kNumLists) {
+    intptr_t next_index = free_map_.Next(index + 1);
+    if (next_index != -1) {
+      // Dequeue an element from the list, split and enqueue the remainder in
+      // the appropriate list.
+      FreeListElement* element = DequeueElement(next_index);
+      SplitElementAfterAndEnqueue(element, size);
+      return reinterpret_cast<uword>(element);
     }
   }
 
@@ -118,7 +115,7 @@ intptr_t FreeList::IndexForSize(intptr_t size) {
 
 void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
   FreeListElement* next = free_lists_[index];
-  if (next == NULL) {
+  if (next == NULL && index != kNumLists) {
     free_map_.Set(index, true);
   }
   element->set_next(next);
@@ -129,7 +126,7 @@ void FreeList::EnqueueElement(FreeListElement* element, intptr_t index) {
 FreeListElement* FreeList::DequeueElement(intptr_t index) {
   FreeListElement* result = free_lists_[index];
   FreeListElement* next = result->next();
-  if (next == NULL) {
+  if (next == NULL && index != kNumLists) {
     free_map_.Set(index, false);
   }
   free_lists_[index] = next;

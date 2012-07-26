@@ -1,4 +1,4 @@
-#library('dom');
+#library('dart:dom_deprecated');
 
 // Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -813,13 +813,13 @@ class _ConsoleJs
 
   void assertCondition(bool condition, Object arg) native;
 
-  void count() native;
+  void count(Object arg) native;
 
   void debug(Object arg) native;
 
-  void dir() native;
+  void dir(Object arg) native;
 
-  void dirxml() native;
+  void dirxml(Object arg) native;
 
   void error(Object arg) native;
 
@@ -833,7 +833,7 @@ class _ConsoleJs
 
   void log(Object arg) native;
 
-  void markTimeline() native;
+  void markTimeline(Object arg) native;
 
   void profile(String title) native;
 
@@ -850,7 +850,7 @@ class _ConsoleJs
   void warn(Object arg) native;
 
 
-  // Keep these in sync with frog_DOMTypeJs.dart.
+  // Keep these in sync with dart2js_DOMTypeJs.dart.
   var dartObjectLocalStorage;
   String get typeName() native;
 }
@@ -13283,13 +13283,13 @@ interface Console {
 
   void assertCondition(bool condition, Object arg);
 
-  void count();
+  void count(Object arg);
 
   void debug(Object arg);
 
-  void dir();
+  void dir(Object arg);
 
-  void dirxml();
+  void dirxml(Object arg);
 
   void error(Object arg);
 
@@ -13303,7 +13303,7 @@ interface Console {
 
   void log(Object arg);
 
-  void markTimeline();
+  void markTimeline(Object arg);
 
   void profile(String title);
 

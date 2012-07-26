@@ -10,6 +10,7 @@
 #include "vm/longjump.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
 
 namespace dart {
 

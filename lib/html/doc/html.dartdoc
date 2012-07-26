@@ -5,7 +5,7 @@
 // Fake dart:html library for documentation.
 
 /// The Dart HTML5 Library.
-#library("html");
+#library("dart:html");
 
 #source('interface/AbstractWorker.dartdoc');
 #source('interface/AnchorElement.dartdoc');

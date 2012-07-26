@@ -15,6 +15,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -410,7 +411,7 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 
 void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
   const String& function_name =
-      String::ZoneHandle(String::NewSymbol(Token::Str(Token::kINDEX)));
+      String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
 
   AddCurrentDescriptor(PcDescriptors::kDeopt,
                        comp->cid(),
@@ -622,6 +623,8 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
   Location result_location = locs->out();
   if (result_location.IsUnallocated()) {
     switch (result_location.policy()) {
+      case Location::kAny:
+      case Location::kPrefersRegister:
       case Location::kRequiresRegister:
         result_location = Location::RegisterLocation(
             AllocateFreeRegister(blocked_registers));

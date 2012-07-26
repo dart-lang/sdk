@@ -11,6 +11,7 @@ measurement_test: Pass, Fail  # Issue 1940
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
 js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
+htmloptionscollection_test: Fail # TODO(asiva): investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
@@ -28,6 +29,7 @@ indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps corre
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
+unknownelement_test: Fail # Issue 4189
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
 history_test: Fail
@@ -165,6 +167,7 @@ fileapi_test: Skip # Issue 3022
 # Unknown error - should investigate.
 measurement_test: Fail
 htmloptionscollection_test: Fail # Issue 3813.
+unknownelement_test: Fail # Issue 4189
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
@@ -214,4 +217,3 @@ fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == drt && $system == macos ]
 indexeddb_2_test: Fail # Issue 3669.
-indexeddb_3_test: Fail # Issue 3670.

@@ -26,6 +26,7 @@
 #import('markdown.dart', prefix: 'md');
 #import('../compiler/implementation/scanner/scannerlib.dart',
         prefix: 'dart2js');
+#import('../compiler/implementation/library_map.dart');
 
 #source('comment_map.dart');
 #source('utils.dart');
@@ -56,19 +57,15 @@ final MODE_STATIC = 0;
  */
 final MODE_LIVE_NAV = 1;
 
+final API_LOCATION = 'http://api.dartlang.org/';
+
 /**
  * Run this from the `lib/dartdoc` directory.
  */
 void main() {
   final args = new Options().arguments;
 
-  // Parse the dartdoc options.
-  bool includeSource;
-  int mode;
-  Path outputDir;
-  bool generateAppCache;
-  bool omitGenerationTime;
-  bool verbose;
+  final dartdoc = new Dartdoc();
 
   if (args.isEmpty()) {
     print('No arguments provided.');
@@ -76,37 +73,57 @@ void main() {
     return;
   }
 
-  for (int i = 0; i < args.length - 1; i++) {
+  final entrypoints = <Path>[];
+
+  var i = 0;
+  while (i < args.length) {
     final arg = args[i];
+    if (!arg.startsWith('--')) {
+      // The remaining arguments must be entry points.
+      break;
+    }
 
     switch (arg) {
       case '--no-code':
-        includeSource = false;
+        dartdoc.includeSource = false;
         break;
 
       case '--mode=static':
-        mode = MODE_STATIC;
+        dartdoc.mode = MODE_STATIC;
         break;
 
       case '--mode=live-nav':
-        mode = MODE_LIVE_NAV;
+        dartdoc.mode = MODE_LIVE_NAV;
         break;
 
       case '--generate-app-cache':
       case '--generate-app-cache=true':
-        generateAppCache = true;
+        dartdoc.generateAppCache = true;
         break;
 
       case '--omit-generation-time':
-        omitGenerationTime = true;
+        dartdoc.omitGenerationTime = true;
         break;
       case '--verbose':
-        verbose = true;
+        dartdoc.verbose = true;
+        break;
+      case '--include-api':
+        dartdoc.includeApi = true;
+        break;
+      case '--link-api':
+        dartdoc.linkToApi = true;
         break;
 
       default:
         if (arg.startsWith('--out=')) {
-          outputDir = new Path.fromNative(arg.substring('--out='.length));
+          dartdoc.outputDir =
+              new Path.fromNative(arg.substring('--out='.length));
+        } else if (arg.startsWith('--include-lib=')) {
+          dartdoc.includedLibraries =
+              arg.substring('--include-lib='.length).split(',');
+        } else if (arg.startsWith('--exclude-lib=')) {
+          dartdoc.excludedLibraries =
+              arg.substring('--exclude-lib='.length).split(',');
         } else {
           print('Unknown option: $arg');
           printUsage();
@@ -114,24 +131,23 @@ void main() {
         }
         break;
     }
+    i++;
+  }
+  while (i < args.length) {
+    final arg = args[i];
+    entrypoints.add(new Path.fromNative(arg));
+    i++;
   }
 
-  final entrypoint = new Path.fromNative(args[args.length - 1]);
-
-  final dartdoc = new Dartdoc();
-
-  if (includeSource != null) dartdoc.includeSource = includeSource;
-  if (mode != null) dartdoc.mode = mode;
-  if (outputDir != null) dartdoc.outputDir = outputDir;
-  if (generateAppCache != null) dartdoc.generateAppCache = generateAppCache;
-  if (omitGenerationTime != null) {
-    dartdoc.omitGenerationTime = omitGenerationTime;
+  if (entrypoints.isEmpty()) {
+    print('No entrypoints provided.');
+    printUsage();
+    return;
   }
-  if (verbose != null) dartdoc.verbose = verbose;
 
   cleanOutputDirectory(dartdoc.outputDir);
 
-  dartdoc.documentEntryPoint(entrypoint, libPath);
+  dartdoc.documentLibraries(entrypoints, libPath);
 
   // Compile the client-side code to JS.
   final clientScript = (dartdoc.mode == MODE_STATIC) ? 'static' : 'live-nav';
@@ -151,7 +167,7 @@ void main() {
 
 void printUsage() {
   print('''
-Usage dartdoc [options] <entrypoint>
+Usage dartdoc [options] <entrypoint(s)>
 [options] include
  --no-code                   Do not include source code in the documentation.
 
@@ -178,6 +194,25 @@ Usage dartdoc [options] <entrypoint>
 
  --out=<dir>                 Generates files into directory <dir>. If omitted
                              the files are generated into ./docs/
+
+ --link-api                  Link to the online language API in the generated
+                             documentation. The option overrides inclusion
+                             through --include-api or --include-lib.
+
+ --include-api               Include the used API libraries in the generated
+                             documentation.  If the --link-api option is used,
+                             this option is ignored.
+
+ --include-lib=<libs>        Use this option to explicitly specify which
+                             libraries to include in the documentation. If
+                             omitted, all used libraries are included by
+                             default. <libs> is comma-separated list of library
+                             names.
+
+ --exclude-lib=<libs>        Use this option to explicitly specify which
+                             libraries to exclude from the documentation. If
+                             omitted, no libraries are excluded. <libs> is
+                             comma-separated list of library names.
 
  --verbose                   Print verbose information during generation.
 ''');
@@ -312,8 +347,17 @@ class Dartdoc {
   /** Set by Dartdoc user to print extra information during generation. */
   bool verbose = false;
 
-  /** Set this to select the libraries to document */
-  List<String> libraries = null;
+  /** Set this to include API libraries in the documentation. */
+  bool includeApi = false;
+
+  /** Set this to generate links to the online API. */
+  bool linkToApi = false;
+
+  /** Set this to select the libraries to include in the documentation. */
+  List<String> includedLibraries = const <String>[];
+
+  /** Set this to select the libraries to exclude from the documentation. */
+  List<String> excludedLibraries = const <String>[];
 
   /**
    * This list contains the libraries sorted in by the library name.
@@ -353,11 +397,50 @@ class Dartdoc {
             currentMember: _currentMember));
   }
 
-  bool includeLibrary(LibraryMirror library) {
-    if (libraries != null) {
-      return libraries.indexOf(library.simpleName()) != -1;
+  /**
+   * Returns `true` if [library] is included in the generated documentation.
+   */
+  bool shouldIncludeLibrary(LibraryMirror library) {
+    if (shouldLinkToPublicApi(library)) {
+      return false;
     }
-    return true;
+    var includeByDefault = true;
+    String libraryName = library.simpleName();
+    if (!includedLibraries.isEmpty()) {
+      includeByDefault = false;
+      if (includedLibraries.indexOf(libraryName) != -1) {
+        return true;
+      }
+    }
+    if (excludedLibraries.indexOf(libraryName) != -1) {
+      return false;
+    }
+    if (libraryName.startsWith('dart:')) {
+      String suffix = libraryName.substring('dart:'.length);
+      LibraryInfo info = DART2JS_LIBRARY_MAP[suffix];
+      if (info != null) {
+        return !info.isInternal && includeApi;
+      }
+    }
+    return includeByDefault;
+  }
+
+  /**
+   * Returns `true` if links to the public API should be generated for
+   * [library].
+   */
+  bool shouldLinkToPublicApi(LibraryMirror library) {
+    if (linkToApi) {
+      String libraryName = library.simpleName();
+      if (libraryName.startsWith('dart:')) {
+        String suffix = libraryName.substring('dart:'.length);
+        LibraryInfo info = DART2JS_LIBRARY_MAP[suffix];
+        if (info != null) {
+          return !info.isInternal;
+        }
+      }
+    }
+    return false;
   }
 
   String get footerContent(){
@@ -391,7 +474,8 @@ class Dartdoc {
   void _document(Compilation compilation) {
     // Sort the libraries by name (not key).
     _sortedLibraries = new List<LibraryMirror>.from(
-        compilation.mirrors().libraries().getValues().filter(includeLibrary));
+        compilation.mirrors().libraries().getValues().filter(
+            shouldIncludeLibrary));
     _sortedLibraries.sort((x, y) {
       return x.simpleName().toUpperCase().compareTo(
           y.simpleName().toUpperCase());
@@ -1281,7 +1365,9 @@ class Dartdoc {
     assert(type is InterfaceMirror);
 
     // Link to the type.
-    if (includeLibrary(type.library())) {
+    if (shouldLinkToPublicApi(type.library())) {
+      write('<a href="$API_LOCATION${typeUrl(type)}">${type.simpleName()}</a>');
+    } else if (shouldIncludeLibrary(type.library())) {
       write(a(typeUrl(type), type.simpleName()));
     } else {
       write(type.simpleName());

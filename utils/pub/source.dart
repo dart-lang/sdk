@@ -120,11 +120,8 @@ class Source {
   Future<Package> installToSystemCache(PackageId id) {
     var path = systemCacheDirectory(id);
     return exists(path).chain((exists) {
-      // TODO(nweiz): better error handling
-      if (exists) throw 'Package $id is already installed.';
-      return ensureDir(dirname(path));
-    }).chain((_) {
-      return install(id, path);
+      if (exists) return new Future<bool>.immediate(true);
+      return ensureDir(dirname(path)).chain((_) => install(id, path));
     }).chain((found) {
       if (!found) throw 'Package $id not found.';
       return Package.load(path, systemCache.sources);
@@ -143,13 +140,17 @@ class Source {
     join(systemCacheRoot, packageName(id.description));
 
   /**
-   * When a [Pubspec] is parsed, it reads in the description for each
-   * dependency. It is up to the dependency's [Source] to determine how that
-   * should be interpreted. This will be called during parsing to validate that
-   * the given [description] is well-formed according to this source. It should
-   * return if the description is valid, or throw a [FormatException] if not.
+   * When a [Pubspec] or [LockFile] is parsed, it reads in the description for
+   * each dependency. It is up to the dependency's [Source] to determine how
+   * that should be interpreted. This will be called during parsing to validate
+   * that the given [description] is well-formed according to this source. It
+   * should return if the description is valid, or throw a [FormatException] if
+   * not.
+   *
+   * [fromLockFile] is true when the description comes from a [LockFile], to
+   * allow the source to use lockfile-specific descriptions via [resolveId].
    */
-  void validateDescription(description) {}
+  void validateDescription(description, [bool fromLockFile=false]) {}
 
   /**
    * Returns a human-friendly name for the package described by [description].
@@ -171,4 +172,27 @@ class Source {
    */
   bool descriptionsEqual(description1, description2) =>
     description1 == description2;
+
+  /**
+   * For some sources, [PackageId]s can point to different chunks of code at
+   * different times. This takes such an [id] and returns a future that
+   * completes to a [PackageId] that will uniquely specify a single chunk of
+   * code forever.
+   *
+   * For example, [GitSource] might take an [id] with description
+   * `http://github.com/dart-lang/some-lib.git` and return an id with a
+   * description that includes the current commit of the Git repository.
+   *
+   * This will be called after the package identified by [id] is installed, so
+   * the source can use the installed package to determine information about the
+   * resolved id.
+   *
+   * The returned [PackageId] may have a description field that's invalid
+   * according to [validateDescription], although it must still be serializable
+   * to JSON and YAML. It must also be equal to [id] according to
+   * [descriptionsEqual].
+   *
+   * By default, this just returns [id].
+   */
+  Future<PackageId> resolveId(PackageId id) => new Future.immediate(id);
 }

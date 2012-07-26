@@ -34,11 +34,13 @@ String typeNameInIE(obj) {
     if (JS('bool', '!!#.xmlVersion', obj)) return 'Document';
     return 'HTMLDocument';
   }
+  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'HTMLDDElement') return 'HTMLElement';
+  if (name == 'HTMLDTElement') return 'HTMLElement';
   if (name == 'HTMLTableDataCellElement') return 'HTMLTableCellElement';
   if (name == 'HTMLTableHeaderCellElement') return 'HTMLTableCellElement';
-  if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
-  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
   if (name == 'HTMLPhraseElement') return 'HTMLElement';
+  if (name == 'MSStyleCSSProperties') return 'CSSStyleDeclaration';
   if (name == 'MouseWheelEvent') return 'WheelEvent';
   return name;
 }

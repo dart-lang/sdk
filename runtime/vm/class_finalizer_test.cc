@@ -4,6 +4,7 @@
 
 #include "platform/assert.h"
 #include "vm/class_finalizer.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -11,7 +12,7 @@ namespace dart {
 
 static RawClass* CreateTestClass(const char* name) {
   const Array& empty_array = Array::Handle(Array::Empty());
-  const String& class_name = String::Handle(String::NewSymbol(name));
+  const String& class_name = String::Handle(Symbols::New(name));
   const Script& script = Script::Handle();
   const Class& cls =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
@@ -71,7 +72,7 @@ TEST_CASE(ClassFinalize_Cycles) {
 
 
 static RawLibrary* NewLib(const char* url_chars) {
-  String& url = String::ZoneHandle(String::NewSymbol(url_chars));
+  String& url = String::ZoneHandle(Symbols::New(url_chars));
   return Library::New(url);
 }
 

@@ -12,6 +12,7 @@
 #include "vm/object.h"
 #include "vm/runtime_entry.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 #define __ assembler->
@@ -23,7 +24,7 @@ DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
 
 
 static Function* CreateFunction(const char* name) {
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));

@@ -5,6 +5,7 @@
 #ifndef VM_BIT_SET_H_
 #define VM_BIT_SET_H_
 
+#include "platform/utils.h"
 #include "vm/globals.h"
 
 namespace dart {
@@ -34,6 +35,23 @@ class BitSet {
     ASSERT(i < N);
     uword mask = (static_cast<uword>(1) << (i % kBitsPerWord));
     return (data_[i / kBitsPerWord] & mask) != 0;
+  }
+
+  intptr_t Next(intptr_t i) {
+    ASSERT(i >= 0);
+    ASSERT(i < N);
+    intptr_t w = i / kBitsPerWord;
+    uword mask = ~static_cast<uword>(0) << i;
+    if ((data_[w] & mask) != 0) {
+      uword tz = Utils::CountTrailingZeros(data_[w] & mask);
+      return kBitsPerWord*w + tz;
+    }
+    while (++w < (1 + ((N - 1) / kBitsPerWord))) {
+      if (data_[w] != 0) {
+        return kBitsPerWord*w + Utils::CountTrailingZeros(data_[w]);
+      }
+    }
+    return -1;
   }
 
   void Reset() {

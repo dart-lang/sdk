@@ -13,6 +13,7 @@
 #include "vm/os.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -31,8 +32,8 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   String& test_function_name = String::Handle();
   String& test_class_name = String::Handle();
 #define RECOGNIZE_FUNCTION(class_name, function_name, enum_name)               \
-  test_function_name = String::NewSymbol(#function_name);                      \
-  test_class_name = String::NewSymbol(#class_name);                            \
+  test_function_name = Symbols::New(#function_name);                           \
+  test_class_name = Symbols::New(#class_name);                                 \
   if (recognize_name.Equals(test_function_name) &&                             \
       recognize_class.Equals(test_class_name)) {                               \
     return k##enum_name;                                                       \
@@ -80,19 +81,13 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
   ASSERT(!current_->IsReturn());
   ASSERT(!current_->IsReThrow());
   ASSERT(current_->previous() != NULL);
+  ASSERT(current_ != block_entry_->last_instruction());
   Instruction* prev = current_->previous();
   Instruction* next = current_->next();
-  prev->set_next(next);
   ASSERT(next != NULL);
-  if (current_ != block_entry_->last_instruction()) {
-    ASSERT(!next->IsBlockEntry());
-    next->set_previous(prev);
-  } else {
-    ASSERT(current_->IsBind());
-    // Removing the last instruction of a block.
-    // Update last_instruction of the current basic block.
-    block_entry_->set_last_instruction(prev);
-  }
+  ASSERT(!next->IsBlockEntry());
+  prev->set_next(next);
+  next->set_previous(prev);
   // Reset successor and previous instruction to indicate
   // that the instruction is removed from the graph.
   current_->set_previous(NULL);
@@ -1204,13 +1199,6 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                      dst_type(),
                                      dst_name());
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
-}
-
-
-LocationSummary* AssertBooleanComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1,
-                               Location::SameAsFirstInput(),
-                               LocationSummary::kCall);
 }
 
 

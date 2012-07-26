@@ -9,6 +9,7 @@
 #include "vm/object_store.h"
 #include "vm/resolver.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -175,7 +176,7 @@ RawObject* DartLibraryCalls::ExceptionCreate(
   constructor_arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
   constructor_arguments.AddArray(arguments);
 
-  const String& period = String::Handle(String::New("."));
+  const String& period = String::Handle(Symbols::Dot());
   String& constructor_name = String::Handle(String::Concat(class_name, period));
   Function& constructor =
       Function::Handle(cls.LookupConstructor(constructor_name));
@@ -194,7 +195,7 @@ RawObject* DartLibraryCalls::ExceptionCreate(
 
 RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
   const String& function_name =
-      String::Handle(String::NewSymbol("toString"));
+      String::Handle(Symbols::New("toString"));
   GrowableArray<const Object*> arguments;
   const int kNumArguments = 1;  // Receiver.
   const int kNumNamedArguments = 0;  // None.
@@ -218,7 +219,7 @@ RawObject* DartLibraryCalls::ToString(const Instance& receiver) {
 RawObject* DartLibraryCalls::Equals(const Instance& left,
                                     const Instance& right) {
   const String& function_name =
-      String::Handle(String::NewSymbol("=="));
+      String::Handle(Symbols::New("=="));
   GrowableArray<const Object*> arguments;
   arguments.Add(&right);
   const int kNumArguments = 2;
@@ -243,11 +244,11 @@ RawObject* DartLibraryCalls::HandleMessage(Dart_Port dest_port_id,
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
   const String& public_class_name =
-      String::Handle(String::NewSymbol("_ReceivePortImpl"));
+      String::Handle(Symbols::New("_ReceivePortImpl"));
   const String& class_name =
       String::Handle(isolate_lib.PrivateName(public_class_name));
   const String& function_name =
-      String::Handle(String::NewSymbol("_handleMessage"));
+      String::Handle(Symbols::New("_handleMessage"));
   const int kNumArguments = 3;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -275,7 +276,7 @@ RawObject* DartLibraryCalls::NewSendPort(intptr_t port_id) {
       String::Handle(String::New("_SendPortImpl"));
   const String& class_name =
       String::Handle(isolate_lib.PrivateName(public_class_name));
-  const String& function_name = String::Handle(String::NewSymbol("_create"));
+  const String& function_name = String::Handle(Symbols::New("_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle();
   const Function& function = Function::Handle(
@@ -309,7 +310,7 @@ RawObject* DartLibraryCalls::MapSetAt(const Instance& map,
 
 
 RawObject* DartLibraryCalls::PortGetId(const Instance& port) {
-  const String& field_name = String::Handle(String::NewSymbol("_id"));
+  const String& field_name = String::Handle(Symbols::New("_id"));
   const Class& cls = Class::Handle(port.clazz());
   const String& func_name = String::Handle(Field::GetterName(field_name));
   const Function& func = Function::Handle(cls.LookupDynamicFunction(func_name));

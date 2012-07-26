@@ -83,3 +83,25 @@ v2_spawn_uri_vm_negative_test: Skip # ditto above.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
+
+[ $compiler == dart2dart ]
+constructor_test: Fail
+count_test: Fail
+cross_isolate_message_test: Fail
+isolate_complex_messages_test: Fail
+mandel_isolate_test: Fail
+message2_test: Fail
+message_test: Fail
+mint_maker_test: Fail
+mixed2_test: Fail
+mixed_test: Fail
+nested_spawn2_test: Fail
+nested_spawn_test: Fail
+port_test: Fail
+request_reply_test: Fail
+spawn_test: Fail
+static_state_test: Fail
+v2_spawn_function_custom_class_test: Fail
+v2_spawn_function_test: Fail
+v2_spawn_uri_vm_test: Fail
+v2_unresolved_ports_test: Fail

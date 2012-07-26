@@ -217,6 +217,7 @@ class Parser : ValueObject {
   void SkipBinaryExpr();
   void SkipUnaryExpr();
   void SkipPostfixExpr();
+  void SkipSelectors();
   void SkipPrimary();
   void SkipCompoundLiteral();
   void SkipNewOperator();
@@ -414,11 +415,15 @@ class Parser : ValueObject {
   LiteralNode* ParseConstExpr();
   static const bool kRequireConst = true;
   static const bool kAllowConst = false;
-  AstNode* ParseExpr(bool require_compiletime_const);
+  static const bool kConsumeCascades = true;
+  static const bool kNoCascades = false;
+  AstNode* ParseExpr(bool require_compiletime_const, bool consume_cascades);
   AstNode* ParseExprList();
   AstNode* ParseConditionalExpr();
   AstNode* ParseUnaryExpr();
   AstNode* ParsePostfixExpr();
+  AstNode* ParseSelectors(AstNode* primary, bool is_cascade);
+  AstNode* ParseCascades(AstNode* expr);
   AstNode* ParsePrimary();
   AstNode* ParseStringLiteral();
   String* ParseImportStringLiteral();
@@ -439,13 +444,12 @@ class Parser : ValueObject {
                            intptr_t ident_pos);
   AstNode* ParseInstanceCall(AstNode* receiver, const String& method_name);
   AstNode* ParseClosureCall(AstNode* closure);
-  AstNode* ParseInstanceFieldAccess(AstNode* receiver,
-                                    const String& field_name);
   AstNode* GenerateStaticFieldLookup(const Field& field,
                                      intptr_t ident_pos);
   AstNode* ParseStaticFieldAccess(const Class& cls,
                                   const String& field_name,
-                                  intptr_t ident_pos);
+                                  intptr_t ident_pos,
+                                  bool consume_cascades);
 
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
@@ -489,8 +493,8 @@ class Parser : ValueObject {
                                           LocalScope* scope);
 
   SequenceNode* MakeImplicitConstructor(const Function& func);
-  AstNode* MakeStaticCall(const char* class_name,
-                          const char* function_name,
+  AstNode* MakeStaticCall(const String& cls_name,
+                          const String& func_name,
                           ArgumentListNode* arguments);
   String& Interpolate(ArrayNode* values);
   AstNode* MakeAssertCall(intptr_t begin, intptr_t end);

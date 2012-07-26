@@ -8,13 +8,14 @@
 #include "vm/isolate.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 TEST_CASE(Class) {
   // Allocate the class first.
-  const String& class_name = String::Handle(String::NewSymbol("MyClass"));
+  const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
   const Class& cls = Class::Handle(
       Class::New(class_name, script, Scanner::kDummyTokenIndex));
@@ -27,11 +28,11 @@ TEST_CASE(Class) {
   const Array& functions = Array::Handle(Array::New(6));
   Function& function = Function::Handle();
   String& function_name = String::Handle();
-  function_name = String::NewSymbol("foo");
+  function_name = Symbols::New("foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, false, false, 0);
   functions.SetAt(0, function);
-  function_name = String::NewSymbol("bar");
+  function_name = Symbols::New("bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, false, false, 0);
 
@@ -41,20 +42,20 @@ TEST_CASE(Class) {
   function.set_num_optional_parameters(kNumOptionalParameters);
   functions.SetAt(1, function);
 
-  function_name = String::NewSymbol("baz");
+  function_name = Symbols::New("baz");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, false, false, 0);
   functions.SetAt(2, function);
 
-  function_name = String::NewSymbol("Foo");
+  function_name = Symbols::New("Foo");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(3, function);
-  function_name = String::NewSymbol("Bar");
+  function_name = Symbols::New("Bar");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(4, function);
-  function_name = String::NewSymbol("BaZ");
+  function_name = Symbols::New("BaZ");
   function = Function::New(
       function_name, RawFunction::kRegularFunction, true, false, 0);
   functions.SetAt(5, function);
@@ -94,10 +95,10 @@ TEST_CASE(Class) {
   const Array& interfaces = Array::Handle(Array::New(2));
   Class& interface = Class::Handle();
   String& interface_name = String::Handle();
-  interface_name = String::NewSymbol("Harley");
+  interface_name = Symbols::New("Harley");
   interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
   interfaces.SetAt(0, Type::Handle(Type::NewNonParameterizedType(interface)));
-  interface_name = String::NewSymbol("Norton");
+  interface_name = Symbols::New("Norton");
   interface = Class::New(interface_name, script, Scanner::kDummyTokenIndex);
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
   cls.set_interfaces(interfaces);
@@ -157,7 +158,7 @@ TEST_CASE(TokenStream) {
 
 TEST_CASE(InstanceClass) {
   // Allocate the class first.
-  String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
+  String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
@@ -170,13 +171,13 @@ TEST_CASE(InstanceClass) {
   Instance& instance = Instance::Handle(Instance::New(empty_class));
   EXPECT_EQ(empty_class.raw(), instance.clazz());
 
-  class_name = String::NewSymbol("OneFieldClass");
+  class_name = Symbols::New("OneFieldClass");
   const Class& one_field_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the OneFieldClass.
   const Array& one_fields = Array::Handle(Array::New(1));
-  const String& field_name = String::Handle(String::NewSymbol("the_field"));
+  const String& field_name = String::Handle(Symbols::New("the_field"));
   const Field& field = Field::Handle(Field::New(field_name, false, false, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
@@ -189,7 +190,7 @@ TEST_CASE(InstanceClass) {
 
 
 TEST_CASE(Interface) {
-  String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
+  String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& factory_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
@@ -197,7 +198,7 @@ TEST_CASE(Interface) {
   // Finalizes the class.
   factory_class.SetFields(no_fields);
 
-  String& interface_name = String::Handle(String::NewSymbol("MyInterface"));
+  String& interface_name = String::Handle(Symbols::New("MyInterface"));
   const Class& interface = Class::Handle(
       Class::NewInterface(interface_name, script, Scanner::kDummyTokenIndex));
   EXPECT(interface.is_interface());
@@ -1658,60 +1659,60 @@ TEST_CASE(ExternalFourByteString) {
 
 
 TEST_CASE(Symbol) {
-  const String& one = String::Handle(String::NewSymbol("Eins"));
+  const String& one = String::Handle(Symbols::New("Eins"));
   EXPECT(one.IsSymbol());
-  const String& two = String::Handle(String::NewSymbol("Zwei"));
-  const String& three = String::Handle(String::NewSymbol("Drei"));
-  const String& four = String::Handle(String::NewSymbol("Vier"));
-  const String& five = String::Handle(String::NewSymbol("Fuenf"));
-  const String& six = String::Handle(String::NewSymbol("Sechs"));
-  const String& seven = String::Handle(String::NewSymbol("Sieben"));
-  const String& eight = String::Handle(String::NewSymbol("Acht"));
-  const String& nine = String::Handle(String::NewSymbol("Neun"));
-  const String& ten = String::Handle(String::NewSymbol("Zehn"));
-  String& eins = String::Handle(String::NewSymbol("Eins"));
+  const String& two = String::Handle(Symbols::New("Zwei"));
+  const String& three = String::Handle(Symbols::New("Drei"));
+  const String& four = String::Handle(Symbols::New("Vier"));
+  const String& five = String::Handle(Symbols::New("Fuenf"));
+  const String& six = String::Handle(Symbols::New("Sechs"));
+  const String& seven = String::Handle(Symbols::New("Sieben"));
+  const String& eight = String::Handle(Symbols::New("Acht"));
+  const String& nine = String::Handle(Symbols::New("Neun"));
+  const String& ten = String::Handle(Symbols::New("Zehn"));
+  String& eins = String::Handle(Symbols::New("Eins"));
   EXPECT_EQ(one.raw(), eins.raw());
   EXPECT(one.raw() != two.raw());
   EXPECT(two.Equals(String::Handle(String::New("Zwei"))));
-  EXPECT_EQ(two.raw(), String::NewSymbol("Zwei"));
-  EXPECT_EQ(three.raw(), String::NewSymbol("Drei"));
-  EXPECT_EQ(four.raw(), String::NewSymbol("Vier"));
-  EXPECT_EQ(five.raw(), String::NewSymbol("Fuenf"));
-  EXPECT_EQ(six.raw(), String::NewSymbol("Sechs"));
-  EXPECT_EQ(seven.raw(), String::NewSymbol("Sieben"));
-  EXPECT_EQ(eight.raw(), String::NewSymbol("Acht"));
-  EXPECT_EQ(nine.raw(), String::NewSymbol("Neun"));
-  EXPECT_EQ(ten.raw(), String::NewSymbol("Zehn"));
+  EXPECT_EQ(two.raw(), Symbols::New("Zwei"));
+  EXPECT_EQ(three.raw(), Symbols::New("Drei"));
+  EXPECT_EQ(four.raw(), Symbols::New("Vier"));
+  EXPECT_EQ(five.raw(), Symbols::New("Fuenf"));
+  EXPECT_EQ(six.raw(), Symbols::New("Sechs"));
+  EXPECT_EQ(seven.raw(), Symbols::New("Sieben"));
+  EXPECT_EQ(eight.raw(), Symbols::New("Acht"));
+  EXPECT_EQ(nine.raw(), Symbols::New("Neun"));
+  EXPECT_EQ(ten.raw(), Symbols::New("Zehn"));
 
   // Make sure to cause symbol table overflow.
   for (int i = 0; i < 1024; i++) {
     char buf[256];
     OS::SNPrint(buf, sizeof(buf), "%d", i);
-    String::NewSymbol(buf);
+    Symbols::New(buf);
   }
-  eins = String::NewSymbol("Eins");
+  eins = Symbols::New("Eins");
   EXPECT_EQ(one.raw(), eins.raw());
-  EXPECT_EQ(two.raw(), String::NewSymbol("Zwei"));
-  EXPECT_EQ(three.raw(), String::NewSymbol("Drei"));
-  EXPECT_EQ(four.raw(), String::NewSymbol("Vier"));
-  EXPECT_EQ(five.raw(), String::NewSymbol("Fuenf"));
-  EXPECT_EQ(six.raw(), String::NewSymbol("Sechs"));
-  EXPECT_EQ(seven.raw(), String::NewSymbol("Sieben"));
-  EXPECT_EQ(eight.raw(), String::NewSymbol("Acht"));
-  EXPECT_EQ(nine.raw(), String::NewSymbol("Neun"));
-  EXPECT_EQ(ten.raw(), String::NewSymbol("Zehn"));
+  EXPECT_EQ(two.raw(), Symbols::New("Zwei"));
+  EXPECT_EQ(three.raw(), Symbols::New("Drei"));
+  EXPECT_EQ(four.raw(), Symbols::New("Vier"));
+  EXPECT_EQ(five.raw(), Symbols::New("Fuenf"));
+  EXPECT_EQ(six.raw(), Symbols::New("Sechs"));
+  EXPECT_EQ(seven.raw(), Symbols::New("Sieben"));
+  EXPECT_EQ(eight.raw(), Symbols::New("Acht"));
+  EXPECT_EQ(nine.raw(), Symbols::New("Neun"));
+  EXPECT_EQ(ten.raw(), Symbols::New("Zehn"));
 
   // Symbols from Strings.
   eins = String::New("Eins");
   EXPECT(!eins.IsSymbol());
-  String& ein_symbol = String::Handle(String::NewSymbol(eins));
+  String& ein_symbol = String::Handle(Symbols::New(eins));
   EXPECT_EQ(one.raw(), ein_symbol.raw());
   EXPECT(one.raw() != eins.raw());
 
   uint32_t char32[] = { 'E', 'l', 'f' };
-  String& elf = String::Handle(String::NewSymbol(char32, 3));
+  String& elf = String::Handle(Symbols::New(char32, 3));
   EXPECT(elf.IsSymbol());
-  EXPECT_EQ(elf.raw(), String::NewSymbol("Elf"));
+  EXPECT_EQ(elf.raw(), Symbols::New("Elf"));
 }
 
 
@@ -2314,7 +2315,7 @@ TEST_CASE(ContextScope) {
 
 TEST_CASE(Closure) {
   // Allocate the class first.
-  const String& class_name = String::Handle(String::NewSymbol("MyClass"));
+  const String& class_name = String::Handle(Symbols::New("MyClass"));
   const Script& script = Script::Handle();
   const Class& cls =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
@@ -2322,14 +2323,14 @@ TEST_CASE(Closure) {
 
   const Context& context = Context::Handle(Context::New(0));
   Function& parent = Function::Handle();
-  const String& parent_name = String::Handle(String::NewSymbol("foo_papa"));
+  const String& parent_name = String::Handle(Symbols::New("foo_papa"));
   parent = Function::New(parent_name, RawFunction::kRegularFunction,
                          false, false, 0);
   functions.SetAt(0, parent);
   cls.SetFunctions(functions);
 
   Function& function = Function::Handle();
-  const String& function_name = String::Handle(String::NewSymbol("foo"));
+  const String& function_name = String::Handle(Symbols::New("foo"));
   function = Function::NewClosureFunction(function_name, parent, 0);
   const Class& signature_class = Class::Handle(
       Class::NewSignatureClass(function_name, function, script));
@@ -2391,7 +2392,7 @@ TEST_CASE(CheckedHandle) {
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
 
 static Function* CreateFunction(const char* name) {
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));
@@ -2534,7 +2535,7 @@ TEST_CASE(PcDescriptors) {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const String& class_name = String::Handle(String::NewSymbol(name));
+  const String& class_name = String::Handle(Symbols::New(name));
   const Class& cls = Class::Handle(
       Class::New(class_name, Script::Handle(), Scanner::kDummyTokenIndex));
   return cls.raw();
@@ -2543,7 +2544,7 @@ static RawClass* CreateTestClass(const char* name) {
 
 static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
-  const String& field_name = String::Handle(String::NewSymbol(name));
+  const String& field_name = String::Handle(Symbols::New(name));
   const Field& field = Field::Handle(Field::New(field_name, true, false, 0));
   field.set_owner(cls);
   return field.raw();
@@ -2574,7 +2575,7 @@ TEST_CASE(ClassDictionaryIterator) {
 
 
 static RawFunction* GetDummyTarget(const char* name) {
-  const String& function_name = String::Handle(String::NewSymbol(name));
+  const String& function_name = String::Handle(Symbols::New(name));
   const bool is_static = false;
   const bool is_const = false;
   return Function::New(function_name,
@@ -2639,7 +2640,7 @@ TEST_CASE(ICData) {
 
 
 TEST_CASE(SubtypeTestCache) {
-  String& class_name = String::Handle(String::NewSymbol("EmptyClass"));
+  String& class_name = String::Handle(Symbols::New("EmptyClass"));
   Script& script = Script::Handle();
   const Class& empty_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));

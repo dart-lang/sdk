@@ -5,7 +5,7 @@
 // DO NOT EDIT
 // Auto-generated dart:html library.
 
-#library("html");
+#library("dart:html");
 
 #source('generated/html/frog/AbstractWorker.dart');
 #source('generated/html/frog/AnchorElement.dart');

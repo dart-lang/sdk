@@ -8,13 +8,14 @@
 #include "vm/longjump.h"
 #include "vm/object.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
 
 
 void DumpFunction(const Library& lib, const char* cname, const char* fname) {
-  const String& classname = String::Handle(String::NewSymbol(cname));
+  const String& classname = String::Handle(Symbols::New(cname));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -48,7 +49,7 @@ void CheckField(const Library& lib,
                 const char* field_name,
                 bool expect_static,
                 bool is_final) {
-  const String& classname = String::Handle(String::NewSymbol(class_name));
+  const String& classname = String::Handle(Symbols::New(class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -83,7 +84,7 @@ void CheckFunction(const Library& lib,
                    const char* class_name,
                    const char* function_name,
                    bool expect_static) {
-  const String& classname = String::Handle(String::NewSymbol(class_name));
+  const String& classname = String::Handle(Symbols::New(class_name));
   Class& cls = Class::Handle(lib.LookupClass(classname));
   EXPECT(!cls.IsNull());
 
@@ -131,7 +132,7 @@ TEST_CASE(ParseClassDefinition) {
   CheckField(lib, "A", "s2", true, false);
   // No field entries are added for static const fields.
   String& fieldname = String::Handle(String::New("s3"));
-  const String& classname = String::Handle(String::NewSymbol("A"));
+  const String& classname = String::Handle(Symbols::New("A"));
   const Class& cls = Class::Handle(lib.LookupClass(classname));
   const Field& field = Field::Handle(cls.LookupStaticField(fieldname));
   EXPECT(!field.IsNull());

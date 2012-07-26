@@ -79,6 +79,8 @@ class Utils {
   static uint32_t RoundUpToPowerOfTwo(uint32_t x);
   static int CountOneBits(uint32_t x);
 
+  static int CountTrailingZeros(uword x);
+
   // Computes a hash value for the given string.
   static uint32_t StringHash(const char* data, int length);
 
@@ -169,5 +171,15 @@ class Utils {
 };
 
 }  // namespace dart
+
+#if defined(TARGET_OS_LINUX)
+#include "platform/utils_linux.h"
+#elif defined(TARGET_OS_MACOS)
+#include "platform/utils_macos.h"
+#elif defined(TARGET_OS_WINDOWS)
+#include "platform/utils_win.h"
+#else
+#error Unknown target os.
+#endif
 
 #endif  // PLATFORM_UTILS_H_

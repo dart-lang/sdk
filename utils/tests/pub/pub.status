@@ -35,3 +35,11 @@ yaml_test: Fail # Issue 3215
 
 [ $runtime == opera ]
 *: Skip
+
+[ $compiler == dart2dart ]
+lock_file_test: Fail
+pubspec_test: Fail
+pub_test: Fail
+version_solver_test: Fail
+version_test: Fail
+yaml_test: Fail

@@ -12,6 +12,7 @@
 #include "vm/object.h"
 #include "vm/random.h"
 #include "vm/scanner.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -117,7 +118,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
       result = Integer::New(*int_string);
     } else {
       String& temp = String::Handle();
-      temp = String::Concat(String::Handle(String::NewSymbol("-")),
+      temp = String::Concat(String::Handle(Symbols::New("-")),
                             *int_string);
       result = Integer::New(temp);
     }

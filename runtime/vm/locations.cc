@@ -43,15 +43,20 @@ LocationSummary* LocationSummary::Make(intptr_t input_count,
 const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
-    case kSpillSlot: return "S";
     case kRegister: return Assembler::RegisterName(reg());
+    case kSpillSlot: return "S";
     case kUnallocated:
       switch (policy()) {
+        case kAny:
+          return "A";
+        case kPrefersRegister:
+          return "P";
         case kRequiresRegister:
           return "R";
         case kSameAsFirstInput:
           return "0";
       }
+      UNREACHABLE();
     default:
       ASSERT(IsConstant());
       return "C";

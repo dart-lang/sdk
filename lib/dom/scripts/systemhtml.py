@@ -8,7 +8,7 @@ Dart:html APIs from the IDL database."""
 
 import emitter
 
-from systemfrog import *
+from systemdart2js import *
 from systeminterface import *
 
 _js_custom_members = set([
@@ -740,13 +740,13 @@ class HtmlGeneratorDummyBackend(object):
 
 # TODO(jmesserly): inheritance is probably not the right way to factor this long
 # term, but it makes merging better for now.
-class HtmlFrogClassGenerator(FrogInterfaceGenerator):
-  """Generates a Frog class for the dart:html library from a DOM IDL
+class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
+  """Generates a dart2js class for the dart:html library from a DOM IDL
   interface.
   """
 
   def __init__(self, system, interface):
-    super(HtmlFrogClassGenerator, self).__init__(
+    super(HtmlDart2JSClassGenerator, self).__init__(
         system, interface, None, None)
     self._html_interface_name = system._renamer.RenameInterface(self._interface)
 
@@ -758,15 +758,15 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
     return self._ImplClassName(self._html_interface_name)
 
   def FilePathForDartImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'frog',
+    return os.path.join(self._system._output_dir, 'html', 'dart2js',
                         '%s.dart' % self._html_interface_name)
 
   def FilePathForDartFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'frog',
+    return os.path.join(self._system._output_dir, 'html', 'dart2js',
                         '_%sFactoryProvider.dart' % self._html_interface_name)
 
   def FilePathForDartElementsFactoryProviderImplementation(self):
-    return os.path.join(self._system._output_dir, 'html', 'frog',
+    return os.path.join(self._system._output_dir, 'html', 'dart2js',
                         '_Elements.dart')
 
   def SetImplementationEmitter(self, implementation_emitter):
@@ -808,7 +808,7 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
     template_file = 'impl_%s.darttemplate' % self._html_interface_name
     template = (self._system._templates.TryLoad(template_file) or
-                self._system._templates.Load('frog_impl.darttemplate'))
+                self._system._templates.Load('dart2js_impl.darttemplate'))
     self._members_emitter = self._dart_code.Emit(
         template,
         #class $CLASSNAME$EXTENDS$IMPLEMENTS$NATIVESPEC {
@@ -999,18 +999,18 @@ class HtmlFrogClassGenerator(FrogInterfaceGenerator):
 
 # ------------------------------------------------------------------------------
 
-class HtmlFrogSystem(System):
+class HtmlDart2JSSystem(System):
 
   def __init__(self, options):
-    super(HtmlFrogSystem, self).__init__(options)
+    super(HtmlDart2JSSystem, self).__init__(options)
 
   def ImplementationGenerator(self, interface):
-    return HtmlFrogClassGenerator(self, interface)
+    return HtmlDart2JSClassGenerator(self, interface)
 
   def GenerateLibraries(self, dart_files):
     self._GenerateLibFile(
-        'html_frog.darttemplate',
-        os.path.join(self._output_dir, 'html_frog.dart'),
+        'html_dart2js.darttemplate',
+        os.path.join(self._output_dir, 'html_dart2js.dart'),
         dart_files)
 
   def Finish(self):

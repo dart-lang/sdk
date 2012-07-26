@@ -105,15 +105,7 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     // Walk the arguments and make sure they are legal.
     for (int i = 0; i < positionalArguments.length; i++) {
       var arg = positionalArguments[i];
-      if (arg is Mirror) {
-        if (arg is! InstanceMirror) {
-          throw new MirrorException(
-              'positional argument $i ($arg) was not an InstanceMirror');
-        }
-      } else if (!isSimpleValue(arg)) {
-        throw new MirrorException(
-            'positional argument $i ($arg) was not a simple value');
-      }
+      _validateArgument(i, arg);
     }
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
@@ -125,8 +117,51 @@ abstract class _LocalObjectMirrorImpl extends _LocalVMObjectMirrorImpl
     return completer.future;
   }
 
+  Future<InstanceMirror> getField(String fieldName)
+  {
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(_getField(this, fieldName));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  Future<InstanceMirror> setField(String fieldName, Object arg)
+  {
+    _validateArgument(0, arg);
+
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(_setField(this, fieldName, arg));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  static _validateArgument(int i, Object arg)
+  {
+    if (arg is Mirror) {
+        if (arg is! InstanceMirror) {
+          throw new MirrorException(
+              'positional argument $i ($arg) was not an InstanceMirror');
+        }
+      } else if (!isSimpleValue(arg)) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not a simple value');
+      }
+  }
+
   static _invoke(ref, memberName, positionalArguments)
       native 'LocalObjectMirrorImpl_invoke';
+
+  static _getField(ref, fieldName)
+      native 'LocalObjectMirrorImpl_getField';
+
+  static _setField(ref, fieldName, value)
+      native 'LocalObjectMirrorImpl_setField';
 }
 
 // Prints a string as it might appear in dart program text.
@@ -210,6 +245,55 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
       return "InstanceMirror on instance of '${getClass().simpleName}'";
     }
   }
+}
+
+class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
+    implements ClosureMirror {
+  _LocalClosureMirrorImpl(ref,
+                          klass,
+                          reflectee) : super(ref, klass, reflectee) {}
+
+  MethodMirror _function;
+  MethodMirror function() => _function;
+
+  String source() {
+    throw new NotImplementedException('ClosureMirror.source() not implemented');
+  }
+
+  Future<ObjectMirror> apply(List<Object> positionalArguments,
+                             [Map<String,Object> namedArguments]) {
+    if (namedArguments !== null) {
+      throw new NotImplementedException('named arguments not implemented');
+    }
+    // Walk the arguments and make sure they are legal.
+    for (int i = 0; i < positionalArguments.length; i++) {
+      var arg = positionalArguments[i];
+      if (arg is Mirror) {
+        if (arg is! InstanceMirror) {
+          throw new MirrorException(
+              'positional argument $i ($arg) was not an InstanceMirror');
+        }
+      } else if (!isSimpleValue(arg)) {
+        throw new MirrorException(
+            'positional argument $i ($arg) was not a simple value');
+      }
+    }
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(
+          _apply(this, positionalArguments));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  Future<ObjectMirror> findInContext(String name) {
+    throw "asYetUnimplemented";
+  }
+
+  static _apply(ref, positionalArguments)
+      native 'LocalClosureMirrorImpl_apply';
 }
 
 class _LazyInterfaceMirror {

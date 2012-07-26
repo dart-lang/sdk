@@ -24,17 +24,23 @@
 #include "vm/os.h"
 #include "vm/parser.h"
 #include "vm/scanner.h"
+#include "vm/symbols.h"
 #include "vm/timer.h"
 
 namespace dart {
 
 DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
+DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
+#if defined(TARGET_ARCH_X64)
+DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
+#else
+DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
+#endif
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
-DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
-DECLARE_FLAG(bool, use_ssa);
+DECLARE_FLAG(bool, print_flow_graph);
 
 
 // Compile a function. Should call only if the function has not been compiled.
@@ -171,6 +177,11 @@ static bool CompileParsedFunctionHelper(
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(block_order, &graph_builder);
           allocator.AllocateRegisters();
+        }
+        if (FLAG_print_flow_graph) {
+          OS::Print("After Optimizations:\n");
+          FlowGraphPrinter printer(Function::Handle(), block_order);
+          printer.PrintBlocks();
         }
       }
     }
@@ -433,7 +444,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     // Create a dummy function object for the code generator.
     const char* kEvalConst = "eval_const";
     const Function& func = Function::Handle(Function::New(
-        String::Handle(String::NewSymbol(kEvalConst)),
+        String::Handle(Symbols::New(kEvalConst)),
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.

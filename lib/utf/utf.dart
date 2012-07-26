@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("utf");
+#library("dart:utf");
 #source("utf_core.dart");
 #source("utf8.dart");
 #source("utf16.dart");

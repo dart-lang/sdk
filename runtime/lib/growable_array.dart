@@ -49,10 +49,8 @@ class GrowableObjectArray<T> implements List<T> {
                 this,
                 start + length,
                 old_length - start);
-    if (initialValue !== null) {
-      for (int i = start; i < start + length; i++) {
-        this[i] = initialValue;
-      }
+    for (int i = start; i < start + length; i++) {
+      this[i] = initialValue;
     }
   }
 

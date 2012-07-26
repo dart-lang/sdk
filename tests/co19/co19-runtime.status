@@ -43,8 +43,6 @@ LibTest/core/List/every_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/filter_A03_t01: Skip # Promise removed (co19 issue #79)
 LibTest/core/List/some_A03_t01: Skip # Promise removed (co19 issue #79)
 
-
-
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Term_A03_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_Atom_A02_t01: Fail
 LibTest/core/RegExp/Pattern_semantics/firstMatch_DecimalEscape_A01_t02: Fail
@@ -342,6 +340,7 @@ LibTest/core/Futures/wait_A01_t02: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
+LibTest/isolate/SendPort/send_A02_t03: Skip # Issue 4201
 
 
 # 'case' or '}' expected
@@ -383,10 +382,7 @@ Language/07_Classes/1_Instance_Methods_A05_t02: Fail
 # function '?' of class '?' conflicts with setter 'f' of super class '?'
 Language/07_Classes/1_Instance_Methods_A05_t03: Fail
 
-
-# identifier expected
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t01: Fail
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A02_t02: Fail
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t16: Fail # co19 issue 159
 
 # initializer must be a compile time constant
 Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t01: Fail

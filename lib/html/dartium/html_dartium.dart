@@ -1,4 +1,4 @@
-#library('html');
+#library('dart:html');
 
 #import('dart:isolate');
 #import('dart:json');
@@ -4431,13 +4431,13 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   void assertCondition(bool condition, Object arg) native "Console_assertCondition_Callback";
 
-  void count() native "Console_count_Callback";
+  void count(Object arg) native "Console_count_Callback";
 
   void debug(Object arg) native "Console_debug_Callback";
 
-  void dir() native "Console_dir_Callback";
+  void dir(Object arg) native "Console_dir_Callback";
 
-  void dirxml() native "Console_dirxml_Callback";
+  void dirxml(Object arg) native "Console_dirxml_Callback";
 
   void error(Object arg) native "Console_error_Callback";
 
@@ -4451,7 +4451,7 @@ class _ConsoleImpl extends NativeFieldWrapperClass1 implements Console {
 
   void log(Object arg) native "Console_log_Callback";
 
-  void markTimeline() native "Console_markTimeline_Callback";
+  void markTimeline(Object arg) native "Console_markTimeline_Callback";
 
   void profile(String title) native "Console_profile_Callback";
 
@@ -11237,10 +11237,22 @@ class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// WARNING: Do not edit - generated code.
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement {
 
+
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  noSuchMethod(String name, List args) {
+    if (dynamicUnknownElementDispatcher == null) {
+      throw new NoSuchMethodException(this, name, args);
+    } else {
+      return dynamicUnknownElementDispatcher(this, name, args);
+    }
+  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -25660,16 +25672,16 @@ interface Console {
   void assertCondition(bool condition, Object arg);
 
   /** @domName Console.count */
-  void count();
+  void count(Object arg);
 
   /** @domName Console.debug */
   void debug(Object arg);
 
   /** @domName Console.dir */
-  void dir();
+  void dir(Object arg);
 
   /** @domName Console.dirxml */
-  void dirxml();
+  void dirxml(Object arg);
 
   /** @domName Console.error */
   void error(Object arg);
@@ -25690,7 +25702,7 @@ interface Console {
   void log(Object arg);
 
   /** @domName Console.markTimeline */
-  void markTimeline();
+  void markTimeline(Object arg);
 
   /** @domName Console.profile */
   void profile(String title);

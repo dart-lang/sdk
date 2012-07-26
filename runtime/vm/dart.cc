@@ -15,6 +15,7 @@
 #include "vm/port.h"
 #include "vm/snapshot.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 #include "vm/thread_pool.h"
 #include "vm/virtual_memory.h"
 #include "vm/zone.h"
@@ -26,8 +27,9 @@ DECLARE_FLAG(bool, trace_isolates);
 
 Isolate* Dart::vm_isolate_ = NULL;
 ThreadPool* Dart::thread_pool_ = NULL;
+Dart_FileWriterFunction Dart::perf_events_writer_ = NULL;
 DebugInfo* Dart::pprof_symbol_generator_ = NULL;
-FileWriterFunction Dart::flow_graph_writer_ = NULL;
+Dart_FileWriterFunction Dart::flow_graph_writer_ = NULL;
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.
@@ -72,6 +74,7 @@ bool Dart::InitOnce(Dart_IsolateCreateCallback create,
     Object::InitOnce();
     StubCode::InitOnce();
     Scanner::InitOnce();
+    Symbols::InitOnce(vm_isolate_);
     PremarkingVisitor premarker(vm_isolate_);
     vm_isolate_->heap()->IterateOldObjects(&premarker);
   }

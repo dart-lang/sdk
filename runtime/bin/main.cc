@@ -35,6 +35,11 @@ static const char* original_working_directory = NULL;
 static CommandLineOptions* import_map_options = NULL;
 
 
+// Global state that indicates whether perf_events symbol information
+// is to be generated or not.
+static File* perf_events_symbols_file = NULL;
+
+
 // Global state that indicates whether pprof symbol information is
 // to be generated or not.
 static const char* generate_pprof_symbols_filename = NULL;
@@ -128,6 +133,25 @@ static void ProcessDebugOption(const char* port) {
 }
 
 
+static void ProcessPerfEventsOption(const char* option) {
+  ASSERT(option != NULL);
+  if (perf_events_symbols_file == NULL) {
+    // TODO(cshapiro): eliminate the #ifdef by moving this code to a
+    // Linux specific source file.
+#if defined(TARGET_OS_LINUX)
+    const char* format = "/tmp/perf-%ld.map";
+    intptr_t pid = Process::CurrentProcessId();
+    intptr_t len = snprintf(NULL, 0, format, pid);
+    char* filename = new char[len + 1];
+    snprintf(filename, len + 1, format, pid);
+    perf_events_symbols_file = File::Open(filename, File::kWriteTruncate);
+    ASSERT(perf_events_symbols_file != NULL);
+    delete[] filename;
+#endif
+  }
+}
+
+
 static void ProcessPprofOption(const char* filename) {
   ASSERT(filename != NULL);
   generate_pprof_symbols_filename = filename;
@@ -154,6 +178,7 @@ static struct {
   { "--break_at=", ProcessBreakpointOption },
   { "--compile_all", ProcessCompileAllOption },
   { "--debug", ProcessDebugOption },
+  { "--generate_perf_events_symbols", ProcessPerfEventsOption },
   { "--generate_pprof_symbols=", ProcessPprofOption },
   { "--import_map=", ProcessImportMapOption },
   { "--package-root=", ProcessPackageRootOption },
@@ -175,6 +200,12 @@ static bool ProcessMainOptions(const char* option) {
     name = main_options[i].option_name;
   }
   return false;
+}
+
+
+static void WriteToPerfEventsFile(const char* buffer, int64_t num_bytes) {
+  ASSERT(perf_events_symbols_file != NULL);
+  perf_events_symbols_file->WriteFully(buffer, num_bytes);
 }
 
 
@@ -217,6 +248,11 @@ static int ParseArguments(int argc,
       i++;
     }
   }
+
+  if (perf_events_symbols_file != NULL) {
+    Dart_InitPerfEventsSupport(&WriteToPerfEventsFile);
+  }
+
   if (generate_pprof_symbols_filename != NULL) {
     Dart_InitPprofSupport();
   }

@@ -4,7 +4,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 """This module provides shared functionality for the systems to generate
-frog binding from the IDL database."""
+dart2js binding from the IDL database."""
 
 import os
 from generator import *
@@ -12,7 +12,7 @@ from systembase import *
 
 # Members (getters, setters, and methods) to suppress.  These are
 # either removed or custom implemented.
-_dom_frog_omitted_members = set([
+_dom_dart2js_omitted_members = set([
     # Replace with custom.
     'DOMWindow.get:top',
     'HTMLIFrameElement.get:contentWindow',
@@ -22,10 +22,10 @@ _dom_frog_omitted_members = set([
     'HTMLIFrameElement.get:contentDocument',
 ])
 
-class FrogSystem(System):
+class Dart2JSSystem(System):
 
   def __init__(self, options):
-    super(FrogSystem, self).__init__(options)
+    super(Dart2JSSystem, self).__init__(options)
     self._impl_file_paths = []
 
   def ProcessInterface(self, interface):
@@ -35,15 +35,15 @@ class FrogSystem(System):
     template_file = 'impl_%s.darttemplate' % interface.id
     template = self._templates.TryLoad(template_file)
     if not template:
-      template = self._templates.Load('frog_impl.darttemplate')
+      template = self._templates.Load('dart2js_impl.darttemplate')
 
     dart_code = self._ImplFileEmitter(interface.id)
-    FrogInterfaceGenerator(self, interface, template, dart_code).Generate()
+    Dart2JSInterfaceGenerator(self, interface, template, dart_code).Generate()
 
   def GenerateLibraries(self):
     self._GenerateLibFile(
-        'frog_dom.darttemplate',
-        os.path.join(self._output_dir, 'dom_frog.dart'),
+        'dart2js_dom.darttemplate',
+        os.path.join(self._output_dir, 'dom_dart2js.dart'),
         (self._interface_system._dart_interface_file_paths +
          self._impl_file_paths))
 
@@ -51,15 +51,15 @@ class FrogSystem(System):
     pass
 
   def _ImplFileEmitter(self, name):
-    """Returns the file emitter of the Frog implementation file."""
-    path = os.path.join(self._output_dir, 'src', 'frog', '%s.dart' % name)
+    """Returns the file emitter of the Dart2JS implementation file."""
+    path = os.path.join(self._output_dir, 'src', 'dart2js', '%s.dart' % name)
     self._impl_file_paths.append(path)
     return self._emitters.FileEmitter(path)
 
 # ------------------------------------------------------------------------------
 
-class FrogInterfaceGenerator(BaseGenerator):
-  """Generates a Frog class for a DOM IDL interface."""
+class Dart2JSInterfaceGenerator(BaseGenerator):
+  """Generates a Dart2JS class for a DOM IDL interface."""
 
   def __init__(self, system, interface, template, dart_code):
     """Generates Dart code for the given interface.
@@ -73,7 +73,7 @@ class FrogInterfaceGenerator(BaseGenerator):
       dart_code: an Emitter for the file containing the Dart implementation
           class.
     """
-    super(FrogInterfaceGenerator, self).__init__(system._database, interface)
+    super(Dart2JSInterfaceGenerator, self).__init__(system._database, interface)
     self._system = system
     self._interface = interface
     self._template = template
@@ -187,7 +187,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     pass
 
   def OverrideMember(self, member):
-    return self._interface.id + '.' + member in _dom_frog_omitted_members
+    return self._interface.id + '.' + member in _dom_dart2js_omitted_members
 
   def AddAttribute(self, attribute):
     getter = attribute
@@ -377,7 +377,7 @@ class FrogInterfaceGenerator(BaseGenerator):
     if info.declared_name != info.name:
       native_string = " '%s'" % info.declared_name
 
-    native_body = dom_frog_native_bodies.get(
+    native_body = dom_dart2js_native_bodies.get(
         self._interface.id + '.' + info.name, '')
     if native_body:
       native_string = " '''" + native_body + "'''"

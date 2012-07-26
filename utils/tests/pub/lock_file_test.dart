@@ -11,12 +11,13 @@
 #import('../../pub/source_registry.dart');
 #import('../../pub/utils.dart');
 #import('../../pub/version.dart');
+#import('../../pub/yaml/yaml.dart');
 
 class MockSource extends Source {
   final String name = 'mock';
   final bool shouldCache = false;
 
-  void validateDescription(String description) {
+  void validateDescription(String description, [bool fromLockFile=false]) {
     description.endsWith(' desc');
   }
 
@@ -163,6 +164,31 @@ packages:
     source: mock
     description: foo desc
 ''', sources);
+      });
+    });
+
+    group('serialize()', () {
+      test('dumps the lockfile to YAML', () {
+        var lockfile = new LockFile.empty();
+        lockfile.packages['foo'] =
+          new PackageId(mockSource, new Version.parse('1.2.3'), 'foo desc');
+        lockfile.packages['bar'] =
+          new PackageId(mockSource, new Version.parse('3.2.1'), 'bar desc');
+
+        expect(loadYaml(lockfile.serialize()), equals({
+          'packages': {
+            'foo': {
+              'version': '1.2.3',
+              'source': 'mock',
+              'description': 'foo desc'
+            },
+            'bar': {
+              'version': '3.2.1',
+              'source': 'mock',
+              'description': 'bar desc'
+            }
+          }
+        }));
       });
     });
   });

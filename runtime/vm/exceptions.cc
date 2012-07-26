@@ -10,6 +10,7 @@
 #include "vm/object.h"
 #include "vm/stack_frame.h"
 #include "vm/stub_code.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -198,7 +199,7 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
 // TODO(hausner): Rename this NewCoreInstance to call out the fact that
 // the class name is resolved in the core library implicitly?
 RawInstance* Exceptions::NewInstance(const char* class_name) {
-  const String& cls_name = String::Handle(String::NewSymbol(class_name));
+  const String& cls_name = String::Handle(Symbols::New(class_name));
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   Class& cls = Class::Handle(core_lib.LookupClass(cls_name));
   ASSERT(!cls.IsNull());
@@ -213,7 +214,7 @@ void Exceptions::SetField(const Instance& instance,
                           const char* field_name,
                           const Object& value) {
   const Field& field = Field::Handle(cls.LookupInstanceField(
-      String::Handle(String::NewSymbol(field_name))));
+      String::Handle(Symbols::New(field_name))));
   ASSERT(!field.IsNull());
   instance.SetField(field, value);
 }
@@ -368,55 +369,55 @@ RawObject* Exceptions::Create(
   switch (type) {
     case kIndexOutOfRange:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("IndexOutOfRangeException");
+      class_name = Symbols::New("IndexOutOfRangeException");
       break;
     case kIllegalArgument:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("IllegalArgumentException");
+      class_name = Symbols::New("IllegalArgumentException");
       break;
     case kNoSuchMethod:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("NoSuchMethodException");
+      class_name = Symbols::New("NoSuchMethodException");
       break;
     case kClosureArgumentMismatch:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("ClosureArgumentMismatchException");
+      class_name = Symbols::New("ClosureArgumentMismatchException");
       break;
     case kObjectNotClosure:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("ObjectNotClosureException");
+      class_name = Symbols::New("ObjectNotClosureException");
       break;
     case kBadNumberFormat:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("BadNumberFormatException");
+      class_name = Symbols::New("BadNumberFormatException");
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("StackOverflowException");
+      class_name = Symbols::New("StackOverflowException");
       break;
     case kOutOfMemory:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("OutOfMemoryException");
+      class_name = Symbols::New("OutOfMemoryException");
       break;
     case kWrongArgumentCount:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("WrongArgumentCountException");
+      class_name = Symbols::New("WrongArgumentCountException");
       break;
     case kInternalError:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("InternalError");
+      class_name = Symbols::New("InternalError");
       break;
     case kNullPointer:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("NullPointerException");
+      class_name = Symbols::New("NullPointerException");
       break;
     case kIllegalJSRegExp:
       library = Library::CoreLibrary();
-      class_name = String::NewSymbol("IllegalJSRegExpException");
+      class_name = Symbols::New("IllegalJSRegExpException");
       break;
     case kIsolateSpawn:
       library = Library::IsolateLibrary();
-      class_name = String::NewSymbol("IsolateSpawnException");
+      class_name = Symbols::New("IsolateSpawnException");
       break;
   }
 

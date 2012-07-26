@@ -9,14 +9,21 @@ import com.google.common.collect.Lists;
  * Represents a Dart block containing a single return statement.
  */
 public class DartReturnBlock extends DartBlock {
-  public DartReturnBlock(DartExpression returnVal) {
-    super(Lists.<DartStatement> newArrayList(new DartReturnStatement(returnVal)));
+  private final DartExpression value;
+
+  public DartReturnBlock(DartExpression value) {
+    super(Lists.<DartStatement> newArrayList(new DartReturnStatement(value)));
+    this.value = value;
     // Set the source information for the synthesized node.
-    getStatements().get(0).setSourceInfo(returnVal.getSourceInfo());
+    getStatements().get(0).setSourceInfo(value.getSourceInfo());
   }
 
   @Override
   public <R> R accept(ASTVisitor<R> visitor) {
     return visitor.visitReturnBlock(this);
+  }
+
+  public DartExpression getValue() {
+    return value;
   }
 }

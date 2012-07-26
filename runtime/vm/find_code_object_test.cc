@@ -8,6 +8,7 @@
 #include "vm/object.h"
 #include "vm/pages.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/unit_test.h"
 
 namespace dart {
@@ -55,7 +56,7 @@ TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kSourceTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsA = lib.LookupClass(String::Handle(String::NewSymbol("A")));
+  clsA = lib.LookupClass(String::Handle(Symbols::New("A")));
   EXPECT(!clsA.IsNull());
   ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {
@@ -103,7 +104,7 @@ TEST_CASE(FindCodeObject) {
   source = String::New(scriptChars);
   script = Script::New(url, source, RawScript::kSourceTag);
   EXPECT(CompilerTest::TestCompileScript(lib, script));
-  clsB = lib.LookupClass(String::Handle(String::NewSymbol("B")));
+  clsB = lib.LookupClass(String::Handle(Symbols::New("B")));
   EXPECT(!clsB.IsNull());
   ClassFinalizer::FinalizePendingClasses();
   for (int i = 0; i < kNumFunctions; i++) {

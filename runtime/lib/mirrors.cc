@@ -164,6 +164,24 @@ static Dart_Handle UnwrapMirror(Dart_Handle mirror) {
 }
 
 
+static Dart_Handle UnwrapArg(Dart_Handle arg) {
+    if (Dart_IsError(arg)) {
+      return arg;
+    }
+    bool is_mirror = false;
+    Dart_Handle result = IsMirror(arg, &is_mirror);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+    if (is_mirror) {
+      return UnwrapMirror(arg);
+    } else {
+      // Simple value.
+      ASSERT(IsSimpleValue(arg));
+      return arg;
+    }
+}
+
 static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
                                  GrowableArray<Dart_Handle>* arg_array) {
   intptr_t len = 0;
@@ -173,21 +191,11 @@ static Dart_Handle UnwrapArgList(Dart_Handle arg_list,
   }
   for (int i = 0; i < len; i++) {
     Dart_Handle arg = Dart_ListGetAt(arg_list, i);
-    if (Dart_IsError(arg)) {
-      return arg;
+    Dart_Handle unwrapped_arg = UnwrapArg(arg);
+    if (Dart_IsError(unwrapped_arg)) {
+      return unwrapped_arg;
     }
-    bool is_mirror = false;
-    result = IsMirror(arg, &is_mirror);
-    if (Dart_IsError(result)) {
-      return result;
-    }
-    if (is_mirror) {
-      arg_array->Add(UnwrapMirror(arg));
-    } else {
-      // Simple value.
-      ASSERT(IsSimpleValue(arg));
-      arg_array->Add(arg);
-    }
+    arg_array->Add(unwrapped_arg);
   }
   return Dart_True();
 }
@@ -293,7 +301,7 @@ static Dart_Handle CreateInterfaceMirror(Dart_Handle intf,
 
 static Dart_Handle CreateMethodMirror(Dart_Handle func,
                                       Dart_Handle func_name,
-                                      Dart_Handle lib_mirror) {
+                                      Dart_Handle owner_mirror) {
   ASSERT(Dart_IsFunction(func));
   Dart_Handle cls_name = Dart_NewString("_LocalMethodMirrorImpl");
   Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
@@ -380,7 +388,7 @@ static Dart_Handle CreateMethodMirror(Dart_Handle func,
   // TODO(turnidge): Implement constructor kinds (arguments 7 - 10).
   Dart_Handle args[] = {
     func_name,
-    lib_mirror,
+    owner_mirror,
     parameter_mirrors,
     Dart_NewBoolean(is_static),
     Dart_NewBoolean(is_abstract),
@@ -687,7 +695,10 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
     return CreateNullMirror();
   }
   ASSERT(Dart_IsInstance(instance));
-  Dart_Handle cls_name = Dart_NewString("_LocalInstanceMirrorImpl");
+
+  bool is_closure = Dart_IsClosure(instance);
+  Dart_Handle cls_name = Dart_NewString(
+    is_closure ? "_LocalClosureMirrorImpl" : "_LocalInstanceMirrorImpl");
   Dart_Handle cls = Dart_GetClass(MirrorLib(), cls_name);
   if (Dart_IsError(cls)) {
     return cls;
@@ -703,6 +714,26 @@ static Dart_Handle CreateInstanceMirror(Dart_Handle instance) {
     instance
   };
   Dart_Handle mirror = Dart_New(cls, Dart_Null(), ARRAY_SIZE(args), args);
+
+  if (is_closure) {
+    // We set the function field of ClosureMirrors outside of the constructor
+    // to break the mutual recursion.
+    Dart_Handle func = Dart_ClosureFunction(instance);
+    if (Dart_IsError(func)) {
+      return func;
+    }
+    Dart_Handle func_name = Dart_NewString("call");
+    Dart_Handle func_mirror = CreateMethodMirror(func, func_name, mirror);
+    if (Dart_IsError(func_mirror)) {
+      return func_mirror;
+    }
+
+    Dart_Handle func_field_name = Dart_NewString("_function");
+    Dart_Handle result = Dart_SetField(mirror, func_field_name, func_mirror);
+    if (Dart_IsError(result)) {
+      return result;
+    }
+  }
   return mirror;
 }
 
@@ -761,6 +792,7 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalMirrorSystem)(
   Dart_SetReturnValue(args, mirrors);
 }
 
+
 void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
     Dart_NativeArguments args) {
   Dart_Handle reflectee = Dart_GetNativeArgument(args, 0);
@@ -770,6 +802,7 @@ void NATIVE_ENTRY_FUNCTION(Mirrors_makeLocalInstanceMirror)(
   }
   Dart_SetReturnValue(args, mirror);
 }
+
 
 void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
@@ -797,6 +830,81 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
   }
   Dart_SetReturnValue(args, wrapped_result);
 }
+
+
+void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_getField)(
+    Dart_NativeArguments args) {
+  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
+  Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
+
+  Dart_Handle reflectee = UnwrapMirror(mirror);
+  Dart_Handle result = Dart_GetField(reflectee, fieldName);
+  if (Dart_IsError(result)) {
+    // Instead of propagating the error from a GetField directly, we
+    // provide reflective access to the error.
+    Dart_PropagateError(CreateMirroredError(result));
+  }
+
+  Dart_Handle wrapped_result = CreateInstanceMirror(result);
+  if (Dart_IsError(wrapped_result)) {
+    Dart_PropagateError(wrapped_result);
+  }
+  Dart_SetReturnValue(args, wrapped_result);
+}
+
+
+void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
+    Dart_NativeArguments args) {
+  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
+  Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
+  Dart_Handle raw_arg = Dart_GetNativeArgument(args, 2);
+
+  Dart_Handle reflectee = UnwrapMirror(mirror);
+  Dart_Handle set_arg = UnwrapArg(raw_arg);
+  if (Dart_IsError(set_arg)) {
+    Dart_PropagateError(set_arg);
+  }
+  Dart_Handle result = Dart_SetField(reflectee, fieldName, set_arg);
+  if (Dart_IsError(result)) {
+    // Instead of propagating the error from a SetField directly, we
+    // provide reflective access to the error.
+    Dart_PropagateError(CreateMirroredError(result));
+  }
+
+  Dart_Handle wrapped_result = CreateInstanceMirror(result);
+  if (Dart_IsError(wrapped_result)) {
+    Dart_PropagateError(wrapped_result);
+  }
+  Dart_SetReturnValue(args, wrapped_result);
+}
+
+
+void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
+    Dart_NativeArguments args) {
+  Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
+  Dart_Handle raw_invoke_args = Dart_GetNativeArgument(args, 1);
+
+  Dart_Handle reflectee = UnwrapMirror(mirror);
+  GrowableArray<Dart_Handle> invoke_args;
+  Dart_Handle result = UnwrapArgList(raw_invoke_args, &invoke_args);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  result =
+      Dart_InvokeClosure(reflectee, invoke_args.length(), invoke_args.data());
+  if (Dart_IsError(result)) {
+    // Instead of propagating the error from an apply directly, we
+    // provide reflective access to the error.
+    Dart_PropagateError(CreateMirroredError(result));
+  }
+
+  Dart_Handle wrapped_result = CreateInstanceMirror(result);
+  if (Dart_IsError(wrapped_result)) {
+    Dart_PropagateError(wrapped_result);
+  }
+  Dart_SetReturnValue(args, wrapped_result);
+}
+
 
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,

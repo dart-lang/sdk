@@ -15,6 +15,7 @@
 #include "vm/dart_api_impl.h"
 #include "vm/disassembler.h"
 #include "vm/parser.h"
+#include "vm/symbols.h"
 #include "vm/virtual_memory.h"
 
 
@@ -139,7 +140,7 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 
 
 uword AssemblerTest::Assemble() {
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name_));
+  const String& function_name = String::ZoneHandle(Symbols::New(name_));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
                     true, false, 0));
@@ -163,7 +164,7 @@ CodeGenTest::CodeGenTest(const char* name)
                                     new LocalScope(NULL, 0, 0))),
     default_parameter_values_(Array::ZoneHandle()) {
   ASSERT(name != NULL);
-  const String& function_name = String::ZoneHandle(String::NewSymbol(name));
+  const String& function_name = String::ZoneHandle(Symbols::New(name));
   function_ = Function::New(
       function_name, RawFunction::kRegularFunction, true, false, 0);
   function_.set_result_type(Type::Handle(Type::DynamicType()));
@@ -200,7 +201,7 @@ LocalVariable* CodeGenTest::CreateTempConstVariable(const char* name_part) {
   OS::SNPrint(name, 64, ":%s", name_part);
   LocalVariable* temp =
       new LocalVariable(0,
-                        String::ZoneHandle(String::NewSymbol(name)),
+                        String::ZoneHandle(Symbols::New(name)),
                         Type::ZoneHandle(Type::DynamicType()));
   temp->set_is_final();
   node_sequence_->scope()->AddVariable(temp);

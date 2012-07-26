@@ -24,6 +24,7 @@
 #include "vm/port.h"
 #include "vm/resolver.h"
 #include "vm/stack_frame.h"
+#include "vm/symbols.h"
 #include "vm/timer.h"
 #include "vm/unicode.h"
 #include "vm/verifier.h"
@@ -1121,7 +1122,7 @@ DART_EXPORT Dart_Handle Dart_GetReceivePort(Dart_Port port_id) {
   const String& class_name =
       String::Handle(isolate, isolate_lib.PrivateName(public_class_name));
   const String& function_name =
-      String::Handle(isolate, String::NewSymbol("_get_or_create"));
+      String::Handle(isolate, Symbols::New("_get_or_create"));
   const int kNumArguments = 1;
   const Array& kNoArgumentNames = Array::Handle(isolate);
   const Function& function = Function::Handle(
@@ -2391,6 +2392,24 @@ DART_EXPORT bool Dart_IsClosure(Dart_Handle object) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_ClosureFunction(Dart_Handle closure) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Object& obj = Object::Handle(isolate, Api::UnwrapHandle(closure));
+  if (obj.IsNull()) {
+    return Api::NewError("Null object passed to Dart_ClosureFunction");
+  }
+  if (!obj.IsClosure()) {
+    return Api::NewError("Invalid closure passed to Dart_ClosureFunction");
+  }
+  ASSERT(ClassFinalizer::AllClassesFinalized());
+
+  const Closure& closure_obj = Closure::Cast(obj);
+  RawFunction* rf = closure_obj.function();
+  return Api::NewHandle(isolate, rf);
+}
+
+
 DART_EXPORT Dart_Handle Dart_InvokeClosure(Dart_Handle closure,
                                            int number_of_arguments,
                                            Dart_Handle* arguments) {
@@ -2582,7 +2601,7 @@ static bool HasExternalSetterSuffix(const String& name) {
 
 
 static RawString* AddExternalSetterSuffix(const String& name) {
-  const String& equals = String::Handle(String::NewSymbol("="));
+  const String& equals = String::Handle(Symbols::New("="));
   return String::Concat(name, equals);
 }
 
@@ -2697,7 +2716,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     // Case 4.  Lookup the function with a . appended to find the
     // unnamed constructor.
     if (func.IsNull()) {
-      const String& dot = String::Handle(String::NewSymbol("."));
+      const String& dot = String::Handle(Symbols::Dot());
       tmp_name = String::Concat(func_name, dot);
       func = cls.LookupFunction(tmp_name);
     }
@@ -3091,9 +3110,9 @@ DART_EXPORT Dart_Handle Dart_New(Dart_Handle clazz,
   const Object& name_obj =
       Object::Handle(isolate, Api::UnwrapHandle(constructor_name));
   if (name_obj.IsNull()) {
-    dot_name = String::NewSymbol(".");
+    dot_name = Symbols::Dot();
   } else if (name_obj.IsString()) {
-    const String& dot = String::Handle(isolate, String::NewSymbol("."));
+    const String& dot = String::Handle(isolate, Symbols::Dot());
     dot_name = String::Concat(dot, String::Cast(name_obj));
   } else {
     return Api::NewError(
@@ -3610,7 +3629,7 @@ DART_EXPORT Dart_Handle Dart_CreateNativeWrapperClass(Dart_Handle library,
   }
   String& cls_name = String::Handle(isolate);
   cls_name ^= param.raw();
-  cls_name = String::NewSymbol(cls_name);
+  cls_name = Symbols::New(cls_name);
   Library& lib = Library::Handle(isolate);
   lib ^= Api::UnwrapHandle(library);
   if (lib.IsNull()) {
@@ -4151,7 +4170,12 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
 }
 
 
-DART_EXPORT void Dart_InitFlowGraphPrinting(FileWriterFunction function) {
+DART_EXPORT void Dart_InitPerfEventsSupport(Dart_FileWriterFunction function) {
+  Dart::set_perf_events_writer(function);
+}
+
+
+DART_EXPORT void Dart_InitFlowGraphPrinting(Dart_FileWriterFunction function) {
   Dart::set_flow_graph_writer(function);
 }
 
