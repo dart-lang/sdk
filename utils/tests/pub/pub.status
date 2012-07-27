@@ -3,7 +3,7 @@
 # BSD-style license that can be found in the LICENSE file.
 
 # Pub only runs on the VM, so just rule out all compilers.
-[ $compiler == frog || $compiler == dart2js || $compiler == dartc ]
+[ $compiler == frog || $compiler == dart2js || $compiler == dart2dart || $compiler == dartc ]
 pub_test: Skip
 version_test: Skip
 pubspec_test: Skip
@@ -37,9 +37,4 @@ yaml_test: Fail # Issue 3215
 *: Skip
 
 [ $compiler == dart2dart ]
-lock_file_test: Fail
-pubspec_test: Fail
-pub_test: Fail
-version_solver_test: Fail
-version_test: Fail
 yaml_test: Fail
