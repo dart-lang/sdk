@@ -61,7 +61,7 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
 
 
 bool VirtualMemory::Protect(Protection mode) {
-  int prot = 0;
+  DWORD prot = 0;
   switch (mode) {
     case kNoAccess:
       prot = PAGE_NOACCESS;
@@ -79,7 +79,7 @@ bool VirtualMemory::Protect(Protection mode) {
       prot = PAGE_EXECUTE_READWRITE;
       break;
   }
-  int old_prot = 0;
+  DWORD old_prot = 0;
   return VirtualProtect(address(), size(), prot, &old_prot);
 }
 
