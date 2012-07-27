@@ -61,11 +61,12 @@ class DartBackend extends Backend {
      * Object should not be in the resulting code.
      */
     final LIBS_TO_IGNORE = [
-      compiler.coreImplLibrary,
       compiler.jsHelperLibrary,
       compiler.interceptorsLibrary,
-      compiler.coreLibrary,
     ];
+    compiler.libraries.forEach((uri, lib) {
+      if (uri.startsWith('dart:')) LIBS_TO_IGNORE.add(lib);
+    });
     bool shouldOutput(Element element) =>
       element.kind !== ElementKind.VOID &&
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1;
