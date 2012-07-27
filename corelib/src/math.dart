@@ -4,6 +4,10 @@
 
 // Dart core library.
 
+/**
+ * *Note:* This class is **deprecated**, and will be removed soon.
+ * Please use the [dart:math] library instead.
+ */
 class Math {
   /**
    * Base of the natural logarithms.
