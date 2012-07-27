@@ -1188,6 +1188,51 @@ public class DartCompiler {
    * Analyzes the given library and all its transitive dependencies.
    *
    * @param lib The library to be analyzed
+   * @param parsedUnits A collection of unresolved ASTs that should be used
+   * instead of parsing the associated source from storage. Intended for
+   * IDE use when modified buffers must be analyzed. AST nodes in the map may be
+   * ignored if not referenced by {@code lib}. (May be null.)
+   * @param config The compiler configuration (phases will not be used), but resolution and
+   * type-analysis will be invoked
+   * @param provider A mechanism for specifying where code should be generated
+   * @param listener An object notified when compilation errors occur
+   * @throws NullPointerException if any of the arguments except {@code parsedUnits}
+   * are {@code null}
+   * @throws IOException on IO errors, which are not logged
+   */
+  public static LibraryUnit analyzeLibrary(LibrarySource lib, final Map<URI, DartUnit> parsedUnits,
+      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
+      throws IOException {
+    final SystemLibraryManager manager = config.getSystemLibraryManager();
+    final HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
+    SelectiveCache selectiveCache = new SelectiveCache() {
+      @Override
+      public Map<URI, LibraryUnit> getResolvedLibraries() {
+        return resolvedLibs;
+      }
+      @Override
+      public DartUnit getUnresolvedDartUnit(DartSource dartSrc) {
+        if (parsedUnits == null) {
+          return null;
+        }
+        URI srcUri = dartSrc.getUri();
+        DartUnit parsedUnit = parsedUnits.remove(srcUri);
+        if (parsedUnit != null) {
+          return parsedUnit;
+        }
+        URI fileUri = manager.resolveDartUri(srcUri);
+        return parsedUnits.remove(fileUri);
+      }
+    };
+    Map<URI, LibraryUnit> libraryUnit = analyzeLibraries(lib, selectiveCache, config,
+        provider, listener, false);
+    return libraryUnit != null ? libraryUnit.get(lib.getUri()) : null;
+  }
+
+  /**
+   * Analyzes the given library and all its transitive dependencies.
+   *
+   * @param lib The library to be analyzed
    * @param selectiveCache Provides cached parse and resolution results 
    *    during selective compilation (not <code>null</code>)
    * @param config The compiler configuration (phases and backends
