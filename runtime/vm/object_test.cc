@@ -178,7 +178,8 @@ TEST_CASE(InstanceClass) {
   // No functions and no super class for the OneFieldClass.
   const Array& one_fields = Array::Handle(Array::New(1));
   const String& field_name = String::Handle(Symbols::New("the_field"));
-  const Field& field = Field::Handle(Field::New(field_name, false, false, 0));
+  const Field& field =
+      Field::Handle(Field::New(field_name, false, false, false, 0));
   one_fields.SetAt(0, field);
   one_field_class.SetFields(one_fields);
   one_field_class.Finalize();
@@ -2545,7 +2546,8 @@ static RawClass* CreateTestClass(const char* name) {
 static RawField* CreateTestField(const char* name) {
   const Class& cls = Class::Handle(CreateTestClass("global:"));
   const String& field_name = String::Handle(Symbols::New(name));
-  const Field& field = Field::Handle(Field::New(field_name, true, false, 0));
+  const Field& field =
+      Field::Handle(Field::New(field_name, true, false, false, 0));
   field.set_owner(cls);
   return field.raw();
 }

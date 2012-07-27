@@ -4468,6 +4468,7 @@ RawField* Field::New() {
 RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
+                     bool is_const,
                      intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   const Field& result = Field::Handle(Field::New());
@@ -4479,6 +4480,7 @@ RawField* Field::New(const String& name,
     result.SetOffset(0);
   }
   result.set_is_final(is_final);
+  result.set_is_const(is_const);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
@@ -4488,15 +4490,16 @@ RawField* Field::New(const String& name,
 const char* Field::ToCString() const {
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
-  const char* kFormat = "Field <%s.%s>:%s%s";
+  const char* kF2 = is_const() ? " const" : "";
+  const char* kFormat = "Field <%s.%s>:%s%s%s";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   intptr_t len =
-      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1) + 1;
+      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1);
+  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
 }
 

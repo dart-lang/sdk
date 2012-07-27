@@ -129,7 +129,8 @@ const Instance* ComparisonNode::EvalConstExpr() const {
     case Token::kGT:
     case Token::kLTE:
     case Token::kGTE:
-      if (left_val->IsNumber() && right_val->IsNumber()) {
+      if ((left_val->IsNumber() || left_val->IsNull()) &&
+          (right_val->IsNumber() || right_val->IsNull())) {
         return &Bool::ZoneHandle(Bool::False());
       }
       return NULL;
@@ -141,10 +142,12 @@ const Instance* ComparisonNode::EvalConstExpr() const {
       // number, string, or boolean value (but not necessarily the same type).
       if ((left_val->IsNumber() ||
           left_val->IsString() ||
-          left_val->IsBool()) &&
+          left_val->IsBool() ||
+          left_val->IsNull()) &&
           (right_val->IsNumber() ||
           right_val->IsString() ||
-          right_val->IsBool())) {
+          right_val->IsBool() ||
+          right_val->IsNull())) {
         return &Bool::ZoneHandle(Bool::False());
       }
       return NULL;

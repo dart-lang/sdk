@@ -598,6 +598,7 @@ class RawField : public RawObject {
   intptr_t token_pos_;
   bool is_static_;
   bool is_final_;
+  bool is_const_;
   bool has_initializer_;
 };
 

@@ -73,9 +73,6 @@ call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 char_escape_test: Pass # Issue 1654
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
-const_syntax_test/01: Fail # test issue 3626
-const_syntax_test/02: Fail # test issue 3626
-const_syntax_test/03: Fail # test issue 3626
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.

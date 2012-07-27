@@ -757,7 +757,9 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   // leave the evaluation to the getter function.
   const intptr_t expr_pos = TokenPos();
   AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
-  if (field.is_const()) {
+  // TODO(hausner): Remove is_final check below once we support
+  // non-const finals.
+  if (field.is_const() || field.is_final()) {
     // This getter will only be called once at compile time.
     if (expr->EvalConstExpr() == NULL) {
       ErrorMsg(expr_pos, "initializer must be a compile time constant");
@@ -2480,10 +2482,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   ASSERT(field->type != NULL);
   ASSERT(field->name_pos > 0);
   ASSERT(current_member_ == field);
+  ASSERT(!field->has_const || field->has_final);
 
-  if (field->has_const) {
-    ErrorMsg("keyword 'const' not allowed in field declaration");
-  }
   if (field->has_abstract) {
     ErrorMsg("keyword 'abstract' not allowed in field declaration");
   }
@@ -2508,17 +2508,22 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       // is compiled.
       SkipExpr();
     } else {
-      if (field->has_static && field->has_final) {
+      if (field->has_const || (field->has_static && field->has_final)) {
         ErrorMsg(field->name_pos,
-                 "static final field '%s' must have an initializer expression",
+                 "%s%s field '%s' must have an initializer expression",
+                 field->has_static ? "static " : "",
+                 field->has_const ? "const" : "final",
                  field->name->ToCString());
       }
     }
 
     // Create the field object.
+    // TODO(hausner): For now, all static final fields are constant. Remove
+    // this when lazy init of static variables is implemented.
     class_field = Field::New(*field->name,
                              field->has_static,
                              field->has_final,
+                             field->has_const || field->has_final,
                              field->name_pos);
     class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
@@ -2798,11 +2803,16 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
              CurrentToken() == Token::kCOMMA ||
              CurrentToken() == Token::kASSIGN) {
     // Field definition.
+    if (member.has_const) {
+      // const fields are implicitly final.
+      member.has_final = true;
+    }
     if (member.type == NULL) {
       if (member.has_final) {
         member.type = &Type::ZoneHandle(Type::DynamicType());
       } else {
-        ErrorMsg("missing 'var', 'final' or type in field declaration");
+        ErrorMsg("missing 'var', 'final', 'const' or type"
+                 " in field declaration");
       }
     }
     if (members->is_interface() && member.has_static && !member.has_final) {
@@ -3432,10 +3442,12 @@ void Parser::AddInterfaces(intptr_t interfaces_pos,
 void Parser::ParseTopLevelVariable(TopLevel* top_level) {
   TRACE_PARSER("ParseTopLevelVariable");
   const bool is_final = (CurrentToken() == Token::kFINAL);
+  const bool is_const = (CurrentToken() == Token::kCONST);
   const bool is_static = true;
-  const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
-      FLAG_enable_type_checks ? ClassFinalizer::kTryResolve :
-                                ClassFinalizer::kIgnore));
+  const AbstractType& type =
+      AbstractType::ZoneHandle(ParseConstFinalVarOrType(
+          FLAG_enable_type_checks ? ClassFinalizer::kTryResolve :
+                                    ClassFinalizer::kIgnore));
   Field& field = Field::Handle();
   Function& getter = Function::Handle();
   while (true) {
@@ -3456,7 +3468,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                var_name.ToCString());
     }
 
-    field = Field::New(var_name, is_static, is_final, name_pos);
+    field = Field::New(var_name, is_static, is_final, is_const, name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Instance::null()));
     top_level->fields.Add(field);
@@ -3471,8 +3483,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                              is_static, is_final, name_pos);
       getter.set_result_type(type);
       top_level->functions.Add(getter);
-    } else if (is_final) {
-      ErrorMsg(name_pos, "missing initializer for final variable");
+    } else if (is_final || is_const) {
+      ErrorMsg(name_pos, "missing initializer for final or const variable");
     }
 
     if (CurrentToken() == Token::kCOMMA) {
@@ -4065,8 +4077,9 @@ AstNode* Parser::CallGetter(intptr_t token_pos,
 
 
 // Returns ast nodes of the variable initialization.
-AstNode* Parser::ParseVariableDeclaration(
-    const AbstractType& type, bool is_final) {
+AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
+                                          bool is_final,
+                                          bool is_const) {
   TRACE_PARSER("ParseVariableDeclaration");
   ASSERT(IsIdentifier());
   const intptr_t ident_pos = TokenPos();
@@ -4080,41 +4093,42 @@ AstNode* Parser::ParseVariableDeclaration(
     // Variable initialization.
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
-    AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
+    AstNode* expr = ParseExpr(is_const, kConsumeCascades);
     initialization = new StoreLocalNode(assign_pos, *variable, expr);
-  } else if (is_final) {
-    ErrorMsg(ident_pos, "missing initialization of 'final' variable");
+  } else if (is_final || is_const) {
+    ErrorMsg(ident_pos,
+    "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
     AstNode* null_expr = new LiteralNode(ident_pos, Instance::ZoneHandle());
     initialization = new StoreLocalNode(ident_pos, *variable, null_expr);
   }
-  // Add variable to cope after parsing the initalizer expression.
+  // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
   if (!current_block_->scope->AddVariable(variable)) {
     ErrorMsg(ident_pos, "identifier '%s' already defined",
              variable->name().ToCString());
   }
-  if (is_final) {
+  if (is_final || is_const) {
     variable->set_is_final();
   }
   return initialization;
 }
 
 
-// Parses ('var' | 'final' [type] | type).
-// The presence of 'final' must be detected and remembered before the call.
-// If a type is parsed, it may be resolved and finalized according to the given
-// type finalization mode.
-RawAbstractType* Parser::ParseFinalVarOrType(
+// Parses ('var' | 'final' [type] | 'const' [type] | type).
+// The presence of 'final' or 'const' must be detected and remembered
+// before the call. If a type is parsed, it may be resolved and finalized
+// according to the given type finalization mode.
+RawAbstractType* Parser::ParseConstFinalVarOrType(
     ClassFinalizer::FinalizationKind finalization) {
-  TRACE_PARSER("ParseFinalVarOrType");
+  TRACE_PARSER("ParseConstFinalVarOrType");
   if (CurrentToken() == Token::kVAR) {
     ConsumeToken();
     return Type::DynamicType();
   }
   bool type_is_optional = false;
-  if (CurrentToken() == Token::kFINAL) {
+  if ((CurrentToken() == Token::kFINAL) || (CurrentToken() == Token::kCONST)) {
     ConsumeToken();
     type_is_optional = true;
   }
@@ -4146,14 +4160,15 @@ RawAbstractType* Parser::ParseFinalVarOrType(
 AstNode* Parser::ParseVariableDeclarationList() {
   TRACE_PARSER("ParseVariableDeclarationList");
   bool is_final = (CurrentToken() == Token::kFINAL);
-  const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
+  bool is_const = (CurrentToken() == Token::kCONST);
+  const AbstractType& type = AbstractType::ZoneHandle(ParseConstFinalVarOrType(
       FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
                                 ClassFinalizer::kIgnore));
   if (!IsIdentifier()) {
     ErrorMsg("identifier expected");
   }
 
-  AstNode* initializers = ParseVariableDeclaration(type, is_final);
+  AstNode* initializers = ParseVariableDeclaration(type, is_final, is_const);
   ASSERT(initializers != NULL);
   while (CurrentToken() == Token::kCOMMA) {
     ConsumeToken();
@@ -4165,7 +4180,7 @@ AstNode* Parser::ParseVariableDeclarationList() {
     SequenceNode* sequence = NodeAsSequenceNode(initializers->token_pos(),
                                                 initializers,
                                                 NULL);
-    sequence->Add(ParseVariableDeclaration(type, is_final));
+    sequence->Add(ParseVariableDeclaration(type, is_final, is_const));
     initializers = sequence;
   }
   return initializers;
@@ -4438,21 +4453,41 @@ bool Parser::TryParseReturnType() {
 
 // Look ahead to detect whether the next tokens should be parsed as
 // a variable declaration. Returns true if we detect the token pattern:
-// ('var' | 'final' | type ident (';' | '=' | ','))
+//     'var'
+//   | 'final'
+//   | const [type] ident (';' | '=' | ',')
+//   | type ident (';' | '=' | ',')
 // Token position remains unchanged.
 bool Parser::IsVariableDeclaration() {
   if ((CurrentToken() == Token::kVAR) ||
       (CurrentToken() == Token::kFINAL)) {
     return true;
   }
-  if (CurrentToken() != Token::kIDENT) {
-    // Not a legal type identifier.
+  if ((CurrentToken() != Token::kIDENT) && (CurrentToken() != Token::kCONST)) {
+    // Not a legal type identifier or const keyword
     return false;
   }
   const intptr_t saved_pos = TokenPos();
   bool is_var_decl = false;
-  if (TryParseOptionalType()) {
-    if (IsIdentifier()) {
+  bool have_type = false;
+  if (CurrentToken() == Token::kCONST) {
+    ConsumeToken();
+    have_type = true;  // Type is Dynamic.
+  }
+  if (IsIdentifier()) {  // Type or variable name.
+    Token::Kind follower = LookaheadToken(1);
+    if ((follower == Token::kLT) ||  // Parameterized type.
+        (follower == Token::kPERIOD) ||  // Qualified class name of type.
+        Token::IsIdentifier(follower)) {  // Variable name following a type.
+      // We see the beginning of something that could be a type.
+      const intptr_t type_pos = TokenPos();
+      if (TryParseOptionalType()) {
+        have_type = true;
+      } else {
+        SetPosition(type_pos);
+      }
+    }
+    if (have_type && IsIdentifier()) {
       ConsumeToken();
       if ((CurrentToken() == Token::kSEMICOLON) ||
           (CurrentToken() == Token::kCOMMA) ||
@@ -4876,6 +4911,9 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
                                      SourceLabel* label) {
   TRACE_PARSER("ParseForInStatement");
   bool is_final = (CurrentToken() == Token::kFINAL);
+  if (CurrentToken() == Token::kCONST) {
+    ErrorMsg("Loop variable cannot be 'const'");
+  }
   const String* loop_var_name = NULL;
   LocalVariable* loop_var = NULL;
   intptr_t loop_var_pos = 0;
@@ -4884,9 +4922,10 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     loop_var_name = ExpectIdentifier("variable name expected");
   } else {
     // The case without a type is handled above, so require a type here.
-    const AbstractType& type = AbstractType::ZoneHandle(ParseFinalVarOrType(
-      FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
-                                ClassFinalizer::kIgnore));
+    const AbstractType& type =
+        AbstractType::ZoneHandle(ParseConstFinalVarOrType(
+            FLAG_enable_type_checks ? ClassFinalizer::kCanonicalize :
+                                      ClassFinalizer::kIgnore));
     loop_var_pos = TokenPos();
     loop_var_name = ExpectIdentifier("variable name expected");
     loop_var = new LocalVariable(loop_var_pos, *loop_var_name, type);
@@ -5137,8 +5176,11 @@ void Parser::ParseCatchParameter(CatchParamDesc* catch_param) {
   catch_param->is_final = (CurrentToken() == Token::kFINAL);
   // The type of the catch parameter must always be resolved, even in unchecked
   // mode.
+  if (CurrentToken() == Token::kCONST) {
+    ErrorMsg("Catch parameter cannot be 'const'");
+  }
   catch_param->type = &AbstractType::ZoneHandle(
-      ParseFinalVarOrType(ClassFinalizer::kCanonicalizeWellFormed));
+      ParseConstFinalVarOrType(ClassFinalizer::kCanonicalizeWellFormed));
   catch_param->token_pos = TokenPos();
   catch_param->var = ExpectIdentifier("identifier expected");
 }
@@ -6534,7 +6576,9 @@ AstNode* Parser::GenerateStaticFieldLookup(const Field& field,
     return initializing_getter;
   }
   // The field is initialized.
-  if (field.is_const()) {
+  // TODO(hausner): Remove the is_final check when we support non-const
+  // final static variables.
+  if (field.is_const() || field.is_final()) {
     ASSERT(field.value() != Object::sentinel());
     ASSERT(field.value() != Object::transition_sentinel());
     return new LiteralNode(ident_pos, Instance::ZoneHandle(field.value()));
@@ -6992,7 +7036,9 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
   ASSERT(field.is_static());
   const Instance& value = Instance::Handle(field.value());
   if (value.raw() == Object::transition_sentinel()) {
-    if (field.is_const()) {
+    // TODO(hausner): Remove the check for is_final() once we support
+    // non-const final fields.
+    if (field.is_const() || field.is_final()) {
       ErrorMsg("circular dependency while initializing static field '%s'",
                String::Handle(field.name()).ToCString());
     } else {
@@ -7006,7 +7052,9 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     // This field has not been referenced yet and thus the value has
     // not been evaluated. If the field is const, call the static getter method
     // to evaluate the expression and canonicalize the value.
-    if (field.is_const()) {
+    // TODO(hausner): Remove the check for is_final() once we support
+    // non-const final fields.
+    if (field.is_const() || field.is_final()) {
       field.set_value(Instance::Handle(Object::transition_sentinel()));
       const String& field_name = String::Handle(field.name());
       const String& getter_name =
@@ -8186,10 +8234,15 @@ AstNode* Parser::ParseStringLiteral() {
       }
       // Check if this interpolated string is still considered a compile time
       // constant. If it is we need to evaluate if the current string part is
-      // a constant or not.
+      // a constant or not. Only stings, numbers, booleans and null values
+      // are allowed in compile time const interpolations.
       if (is_compiletime_const) {
         const Object* const_expr = expr->EvalConstExpr();
-        if (const_expr != NULL) {
+        if ((const_expr != NULL) &&
+            (const_expr->IsNumber() ||
+            const_expr->IsString() ||
+            const_expr->IsBool() ||
+            const_expr->IsNull())) {
           // Change expr into a literal.
           expr = new LiteralNode(expr_pos, EvaluateConstExpr(expr));
         } else {

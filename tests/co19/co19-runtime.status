@@ -10,7 +10,6 @@ Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # issue 1604 (call operator not implemented)
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (call operator not implemented)
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
-Language/10_Expressions/01_Constants_A10_t01: Fail # issue 1671
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 152.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.
@@ -298,6 +297,7 @@ Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
 Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail
 Language/07_Classes/07_Classes_A02_t29: Fail
 Language/07_Classes/07_Classes_A02_t31: Fail
+Language/10_Expressions/01_Constants_A15_t24: Fail # co19 issue 162
 Language/10_Expressions/05_Strings/1_String_Interpolation_A03_t02: Fail
 Language/10_Expressions/05_Strings/1_String_Interpolation_A04_t02: Fail
 Language/10_Expressions/05_Strings_A20_t01: Fail
@@ -406,18 +406,11 @@ Language/10_Expressions/20_Equality_A03_t01: Fail
 Language/10_Expressions/20_Equality_A03_t02: Fail
 Language/10_Expressions/20_Equality_A03_t03: Fail
 
-
-# keyword 'const' not allowed in field declaration
-Language/07_Classes/4_Instance_Variables_A02_t01: Fail
-Language/07_Classes/4_Instance_Variables_A02_t06: Fail
-Language/07_Classes/7_Static_Variables_A01_t01: Fail
-Language/07_Classes/7_Static_Variables_A01_t05: Fail
+# Issue 3558: (Currently static finals are considered to be compile time const values)
+Language/10_Expressions/01_Constants_A15_t38: Fail # Use of final var in const expression.
 
 
-# missing 'var', 'final' or type in field declaration
-Language/07_Classes/4_Instance_Variables_A03_t01: Fail
-Language/07_Classes/7_Static_Variables/1_Evaluation_of_Static_Variable_Getters_A01_t04: Fail
-Language/07_Classes/7_Static_Variables_A02_t01: Fail
+Language/07_Classes/4_Instance_Variables_A02_t01: Fail # co19 issue 161
 
 
 # parameter name or type expected
@@ -428,14 +421,6 @@ Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail
 # prefix should be an identifier
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail
 
-
-# unexpected token 'const'
-Language/05_Variables/05_Variables_A01_t01: Fail
-Language/05_Variables/05_Variables_A04_t09: Fail
-Language/05_Variables/05_Variables_A05_t03: Fail
-Language/10_Expressions/01_Constants_A05_t01: Fail
-Language/10_Expressions/01_Constants_A06_t01: Fail
-Language/10_Expressions/01_Constants_A18_t02: Fail
 
 
 # using 'x' in this context is invalid
