@@ -146,8 +146,8 @@ void FlowGraphAllocator::ComputeInitialSets() {
     Value* val = graph_entry->start_env()->values()[i];
     if (val->IsUse()) {
       const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
-      kill_[0]->Add(vreg);
-      live_in_[0]->Remove(vreg);
+      kill_[graph_entry->postorder_number()]->Add(vreg);
+      live_in_[graph_entry->postorder_number()]->Remove(vreg);
     }
   }
 
