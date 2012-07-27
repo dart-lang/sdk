@@ -1091,7 +1091,8 @@ public class DartCompiler {
       File outputDirectory = config.getOutputDirectory();
       DefaultDartArtifactProvider provider = new DefaultDartArtifactProvider(outputDirectory);
       // Compile the Dart application and its dependencies.
-      final LibrarySource lib = new UrlLibrarySource(sourceFile);
+      SystemLibraryManager libraryManager = config.getSystemLibraryManager();
+      final LibrarySource lib = new UrlLibrarySource(sourceFile.toURI(),libraryManager);
       DefaultDartCompilerListener listener;
       if (config.getCompilerOptions().showSourceFromAst()) {
         listener = new DefaultDartCompilerListener(config.printErrorFormat()) {

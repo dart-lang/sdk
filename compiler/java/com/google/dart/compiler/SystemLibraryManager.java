@@ -284,6 +284,7 @@ public class SystemLibraryManager {
     if (roots == null || roots.isEmpty()){
       this.packageRoots = DEFAULT_PACKAGE_ROOTS;
     } else {
+      packageRoots.clear();
       for (File file : roots){   
         packageRoots.add(file.getAbsoluteFile());
       }
