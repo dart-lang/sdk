@@ -2384,19 +2384,23 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       (CurrentToken() == Token::kARROW)) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
-               "abstract method '%s' may not have function body",
+               "abstract method '%s' may not have a function body",
                method->name->ToCString());
     } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have function body",
+               "const constructor '%s' may not have a function body",
                method->name->ToCString());
     } else if (method->IsFactory() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const factory '%s' may not have function body",
+               "const factory '%s' may not have a function body",
                method->name->ToCString());
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
                "function body not allowed in interface declaration");
+    }
+    if (method->redirect_name != NULL) {
+      ErrorMsg(method->name_pos,
+               "Constructor with redirection may not have a function body");
     }
     if (CurrentToken() == Token::kLBRACE) {
       SkipBlock();
@@ -2409,15 +2413,19 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else if (IsLiteral("native")) {
     if (method->has_abstract) {
       ErrorMsg(method->name_pos,
-               "abstract method '%s' may not have function body",
+               "abstract method '%s' may not have a function body",
                method->name->ToCString());
     } else if (members->is_interface()) {
       ErrorMsg(method->name_pos,
                "function body not allowed in interface declaration");
     } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
-               "const constructor '%s' may not have function body",
+               "const constructor '%s' may not have a function body",
                method->name->ToCString());
+    }
+    if (method->redirect_name != NULL) {
+      ErrorMsg(method->name_pos,
+               "Constructor with redirection may not have a function body");
     }
     ParseNativeDeclaration();
   } else if (CurrentToken() == Token::kSEMICOLON) {
