@@ -45,6 +45,7 @@ class Heap {
   ~Heap();
 
   uword Allocate(intptr_t size, Space space) {
+    ASSERT(!read_only_);
     switch (space) {
       case kNew:
         // Do not attempt to allocate very large objects in new space.
@@ -63,6 +64,7 @@ class Heap {
   }
 
   uword TryAllocate(intptr_t size, Space space) {
+    ASSERT(!read_only_);
     switch (space) {
       case kNew:
         return new_space_->TryAllocate(size);
@@ -117,6 +119,9 @@ class Heap {
   // called before any user code is executed.
   void EnableGrowthControl();
 
+  // Protect access to the heap.
+  void WriteProtect(bool read_only);
+
   // Accessors for inlined allocation in generated code.
   uword TopAddress();
   uword EndAddress();
@@ -150,6 +155,9 @@ class Heap {
   Scavenger* new_space_;
   PageSpace* old_space_;
   PageSpace* code_space_;
+
+  // This heap is in read-only mode: No allocation is allowed.
+  bool read_only_;
 
   friend class GCTestHelper;
   DISALLOW_COPY_AND_ASSIGN(Heap);

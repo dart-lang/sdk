@@ -87,6 +87,12 @@ RawObject* HeapPage::FindObject(FindObjectVisitor* visitor) const {
 }
 
 
+void HeapPage::WriteProtect(bool read_only) {
+  memory_->Protect(
+      read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+}
+
+
 PageSpace::PageSpace(Heap* heap, intptr_t max_capacity, bool is_executable)
     : freelist_(),
       heap_(heap),
@@ -337,6 +343,20 @@ RawObject* PageSpace::FindObject(FindObjectVisitor* visitor) const {
     page = page->next();
   }
   return Object::null();
+}
+
+
+void PageSpace::WriteProtect(bool read_only) {
+  HeapPage* page = pages_;
+  while (page != NULL) {
+    page->WriteProtect(read_only);
+    page = page->next();
+  }
+  page = large_pages_;
+  while (page != NULL) {
+    page->WriteProtect(read_only);
+    page = page->next();
+  }
 }
 
 

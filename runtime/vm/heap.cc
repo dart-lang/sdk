@@ -36,7 +36,7 @@ DEFINE_FLAG(int, code_heap_size, Heap::kCodeHeapSizeInMB,
             "code heap size in MB,"
             "e.g: --code_heap_size=8 allocates a 8MB code heap");
 
-Heap::Heap() {
+  Heap::Heap() : read_only_(false) {
   new_space_ = new Scavenger(this,
                              (FLAG_new_gen_heap_size * MB),
                              kNewObjectAlignmentOffset);
@@ -223,6 +223,15 @@ void Heap::CollectAllGarbage() {
 
 void Heap::EnableGrowthControl() {
   old_space_->EnableGrowthControl();
+}
+
+
+void Heap::WriteProtect(bool read_only) {
+  read_only_ = read_only;
+  new_space_->WriteProtect(read_only);
+  old_space_->WriteProtect(read_only);
+  // TODO(iposva): Merge old and code space.
+  // code_space_->WriteProtect(read_only);
 }
 
 

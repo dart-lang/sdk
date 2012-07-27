@@ -428,6 +428,9 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::New<OneByteString>();
   isolate->object_store()->set_one_byte_string_class(cls);
+
+  // TODO(asiva): Assign the names of shared classes instead of relying on the
+  // lookup switch in Object::GetSingletonClassName.
 }
 
 
@@ -765,11 +768,11 @@ RawError* Object::Init(Isolate* isolate) {
   // because their names are reserved keywords. Their names are not heap
   // allocated, because the classes reside in the VM isolate.
   // The corresponding types are stored in the object store.
-  cls = null_class_;
+  cls = null_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  cls = void_class_;
+  cls = void_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
 
@@ -777,10 +780,9 @@ RawError* Object::Init(Isolate* isolate) {
   // is a built-in identifier, rather than a reserved keyword. Its name is not
   // heap allocated, because the class resides in the VM isolate.
   // The corresponding type, the "unknown type", is stored in the object store.
-  cls = dynamic_class_;
+  cls = dynamic_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
-  core_lib.AddClass(cls);
 
   // Allocate pre-initialized values.
   Bool& bool_value = Bool::Handle();
@@ -6051,6 +6053,12 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_lib.AddImport(core_impl_lib);
   core_impl_lib.AddImport(core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
+
+  // Hook up predefined classes without setting their library pointers. These
+  // classes are coming from the VM isolate, and are shared between multiple
+  // isolates so setting their library pointers would be wrong.
+  const Class& cls = Class::Handle(Object::dynamic_class());
+  core_lib.AddObject(cls, String::Handle(cls.Name()));
 }
 
 

@@ -525,4 +525,10 @@ void Scavenger::Scavenge(bool invoke_api_callbacks) {
   scavenging_ = false;
 }
 
+
+void Scavenger::WriteProtect(bool read_only) {
+  space_->Protect(
+      read_only ? VirtualMemory::kReadOnly : VirtualMemory::kReadWrite);
+}
+
 }  // namespace dart

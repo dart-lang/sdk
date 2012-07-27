@@ -13,6 +13,14 @@ namespace dart {
 
 class VirtualMemory {
  public:
+  enum Protection {
+    kNoAccess,
+    kReadOnly,
+    kReadWrite,
+    kReadExecute,
+    kReadWriteExecute
+  };
+
   // The reserved memory is unmapped on destruction.
   ~VirtualMemory();
 
@@ -31,6 +39,9 @@ class VirtualMemory {
   bool Commit(bool is_executable) {
     return Commit(start(), size(), is_executable);
   }
+
+  // Changes the protection of the virtual memory area.
+  bool Protect(Protection mode);
 
   // Reserves a virtual memory segment with size. If a segment of the requested
   // size cannot be allocated NULL is returned.

@@ -57,6 +57,8 @@ class HeapPage {
 
   RawObject* FindObject(FindObjectVisitor* visitor) const;
 
+  void WriteProtect(bool read_only);
+
  private:
   static HeapPage* Initialize(VirtualMemory* memory, bool is_executable);
   static HeapPage* Allocate(intptr_t size, bool is_executable);
@@ -192,6 +194,8 @@ class PageSpace {
   void EnableGrowthControl() {
     page_space_controller_.Enable();
   }
+
+  void WriteProtect(bool read_only);
 
  private:
   static const intptr_t kAllocatablePageSize = kPageSize - sizeof(HeapPage);

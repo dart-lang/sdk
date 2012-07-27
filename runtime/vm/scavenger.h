@@ -85,6 +85,8 @@ class Scavenger {
     return had_promotion_failure_;
   }
 
+  void WriteProtect(bool read_only);
+
  private:
   uword FirstObjectStart() const { return to_->start() | object_alignment_; }
   void Prologue(Isolate* isolate, bool invoke_api_callbacks);

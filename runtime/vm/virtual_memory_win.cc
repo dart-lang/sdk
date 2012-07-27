@@ -59,4 +59,28 @@ bool VirtualMemory::Commit(uword addr, intptr_t size, bool executable) {
   return true;
 }
 
+
+bool VirtualMemory::Protect(Protection mode) {
+  int prot = 0;
+  switch (mode) {
+    case kNoAccess:
+      prot = PAGE_NOACCESS;
+      break;
+    case kReadOnly:
+      prot = PAGE_READONLY;
+      break;
+    case kReadWrite:
+      prot = PAGE_READWRITE;
+      break;
+    case kReadExecute:
+      prot = PAGE_EXECUTE_READ;
+      break;
+    case kReadWriteExecute:
+      prot = PAGE_EXECUTE_READWRITE;
+      break;
+  }
+  int old_prot = 0;
+  return VirtualProtect(address(), size(), prot, &old_prot);
+}
+
 }  // namespace dart
