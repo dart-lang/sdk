@@ -887,25 +887,40 @@ public class DartCompiler {
   }
 
   /**
+   * Provides cached parse and resolution results during selective compilation
+   */
+  public abstract static class SelectiveCache {
+
+    /**
+     * Answer the cached resolved libraries
+     * 
+     * @return a mapping (not <code>null</code>) of library source URI to cached {@link LibraryUnit}
+     */
+    public abstract Map<URI, LibraryUnit> getResolvedLibraries();
+
+    /**
+     * Answer the cached unresolved {@link DartUnit} for the specified source
+     * 
+     * @param dartSrc the source (not <code>null</code>)
+     * @return the cached unit or <code>null</code> if it is not cached
+     */
+    public abstract DartUnit getUnresolvedDartUnit(DartSource dartSrc);
+  }
+
+  /**
    * Selectively compile a library. Use supplied libraries and ASTs when available.
    * This allows programming tools to provide customized ASTs for code that is currently being
    * edited, and may not compile correctly.
    */
-  private static class SelectiveCompiler extends Compiler {
-    /** Map from source URI to AST representing the source */
-    private final Map<URI, LibraryUnit> resolvedLibraries;
-    private final Map<URI,DartUnit> parsedUnits;
+  static class SelectiveCompiler extends Compiler {
+    private final SelectiveCache selectiveCache;
     private Collection<LibraryUnit> librariesToProcess;
-    private final SystemLibraryManager libraryManager;
 
-    private SelectiveCompiler(LibrarySource app, Map<URI, LibraryUnit> resolvedLibraries,
-        Map<URI,DartUnit> parsedUnits, CompilerConfiguration config,
-        DartCompilerMainContext context, SystemLibraryManager libraryManager) {
+    private SelectiveCompiler(LibrarySource app, SelectiveCache selectiveCache,
+        CompilerConfiguration config, DartCompilerMainContext context) {
       super(app, Collections.<LibrarySource>emptyList(), config, context);
-      this.resolvedLibraries = resolvedLibraries;
-      this.parsedUnits = parsedUnits;
-      this.libraryManager = libraryManager;
-      addResolvedLibraries(resolvedLibraries);
+      this.selectiveCache = selectiveCache;
+      addResolvedLibraries(selectiveCache.getResolvedLibraries());
     }
 
     @Override
@@ -913,29 +928,16 @@ public class DartCompiler {
       if (librariesToProcess == null) {
         librariesToProcess = new ArrayList<LibraryUnit>();
         librariesToProcess.addAll(super.getLibrariesToProcess());
-        librariesToProcess.removeAll(resolvedLibraries.values());
+        librariesToProcess.removeAll(selectiveCache.getResolvedLibraries().values());
       }
       return librariesToProcess;
     }
 
     @Override
     DartUnit parse(DartSource dartSrc, Set<String> prefixes, boolean diet) throws IOException {
-      if (parsedUnits == null) {
-        return super.parse(dartSrc, prefixes, diet);
-      }
-      URI srcUri = dartSrc.getUri();
-      // Remove the parsed unit from the map if present
-      // so that it will not be consumed a 2nd time if it is sourced by multiple libraries
-      DartUnit parsedUnit = parsedUnits.remove(srcUri);
+      DartUnit parsedUnit = selectiveCache.getUnresolvedDartUnit(dartSrc);
       if (parsedUnit != null) {
         return parsedUnit;
-      }
-      if (libraryManager != null) {
-        URI fileUri = libraryManager.resolveDartUri(srcUri);
-        parsedUnit = parsedUnits.remove(fileUri);
-        if (parsedUnit != null) {
-          return parsedUnit;
-        }
       }
       return super.parse(dartSrc, prefixes, diet);
     }
@@ -1186,60 +1188,28 @@ public class DartCompiler {
    * Analyzes the given library and all its transitive dependencies.
    *
    * @param lib The library to be analyzed
-   * @param parsedUnits A collection of unresolved ASTs that should be used
-   * instead of parsing the associated source from storage. Intended for
-   * IDE use when modified buffers must be analyzed. AST nodes in the map may be
-   * ignored if not referenced by {@code lib}. (May be null.)
-   * @param config The compiler configuration (phases will not be used), but resolution and
-   * type-analysis will be invoked
-   * @param provider A mechanism for specifying where code should be generated
-   * @param listener An object notified when compilation errors occur
-   * @throws NullPointerException if any of the arguments except {@code parsedUnits}
-   * are {@code null}
-   * @throws IOException on IO errors, which are not logged
-   */
-  public static LibraryUnit analyzeLibrary(LibrarySource lib, Map<URI, DartUnit> parsedUnits,
-      CompilerConfiguration config, DartArtifactProvider provider, DartCompilerListener listener)
-      throws IOException {
-    HashMap<URI, LibraryUnit> resolvedLibs = new HashMap<URI, LibraryUnit>();
-    Map<URI, LibraryUnit> libraryUnit = analyzeLibraries(lib, resolvedLibs, parsedUnits, config,
-        provider, null, listener, false);
-    return libraryUnit != null ? libraryUnit.get(lib.getUri()) : null;
-  }
-
-  /**
-   * Analyzes the given library and all its transitive dependencies.
-   *
-   * @param lib The library to be analyzed
-   * @param resolvedLibs A collection of library units that should be used
-   * instead of parsing and resolving the associated source from storage.
-   * @param parsedUnits A collection of unresolved ASTs that should be used
-   * instead of parsing the associated source from storage. Intended for
-   * IDE use when modified buffers must be analyzed. 
-   * Units are removed from this map as they are used. AST nodes in the map may be
-   * ignored if not referenced by {@code lib}. (May be null.)
+   * @param selectiveCache Provides cached parse and resolution results 
+   *    during selective compilation (not <code>null</code>)
    * @param config The compiler configuration (phases and backends
-   * will not be used), but resolution and type-analysis will be
-   * invoked
+   *    will not be used), but resolution and type-analysis will be invoked
    * @param provider A mechanism for specifying where code should be generated
-   * @param libraryManager 
    * @param listener An object notified when compilation errors occur
    * @param resolveAllNewLibs <code>true</code> if all new libraries should be resolved
-   * or false if only the library specified by the "lib" parameter should be resolved
+   *    or false if only the library specified by the "lib" parameter should be resolved
    * @throws NullPointerException if any of the arguments except {@code parsedUnits}
-   * are {@code null}
+   *    are {@code null}
    * @throws IOException on IO errors, which are not logged
    */
   public static Map<URI, LibraryUnit> analyzeLibraries(LibrarySource lib,
-      Map<URI, LibraryUnit> resolvedLibs, Map<URI, DartUnit> parsedUnits,
-      CompilerConfiguration config, DartArtifactProvider provider, SystemLibraryManager libraryManager, 
-      DartCompilerListener listener, boolean resolveAllNewLibs) throws IOException {
+      SelectiveCache selectiveCache, CompilerConfiguration config,
+      DartArtifactProvider provider, DartCompilerListener listener, 
+      boolean resolveAllNewLibs) throws IOException {
     lib.getClass(); // Quick null check.
     provider.getClass(); // Quick null check.
     listener.getClass(); // Quick null check.
-    resolvedLibs.getClass(); // Quick null check.
+    Map<URI, LibraryUnit> resolvedLibs = selectiveCache.getResolvedLibraries();
     DartCompilerMainContext context = new DartCompilerMainContext(lib, provider, listener, config);
-    Compiler compiler = new SelectiveCompiler(lib, resolvedLibs, parsedUnits, config, context, libraryManager);
+    Compiler compiler = new SelectiveCompiler(lib, selectiveCache, config, context);
 
     LibraryUnit topLibUnit = compiler.updateAndResolve();
     if (topLibUnit == null) {
