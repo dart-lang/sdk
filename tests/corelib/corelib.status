@@ -92,19 +92,5 @@ string_base_vm_test: Fail # BUG(3304): Maybe this doesn't time out?
 core_runtime_types_test: Fail
 
 [ $compiler == dart2dart ]
-big_integer_vm_test: Fail
-compare_to2_test: Fail
-exception_implementation_test: Fail
-expando_test: Fail
-expression_test: Fail
-futures_test: Fail
-growable_object_array2_vm_test: Fail
-growable_object_array_vm_test: Fail
-map_test: Fail
-maps_test: Fail
-queue_test: Fail
-splay_tree_test: Fail
-sort_test: Fail
-string_base_vm_test: Fail
-unicode_test: Fail
-
+# Skip until we stabilize language tests.
+*: Skip

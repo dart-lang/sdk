@@ -47,6 +47,5 @@ dummy_compiler_test: Fail # Issue 3529.
 *_layout_test: Skip
 
 [ $compiler == dart2dart ]
-dummy_compiler_test: Fail
-uri_test: Fail
-utf8_test: Fail
+# Skip until we stabilize language tests.
+*: Skip

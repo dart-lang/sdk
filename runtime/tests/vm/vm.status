@@ -27,11 +27,8 @@ dart/isolate_mirror*: Skip # compilers not aware of dart:mirrors
 dart/byte_array_test: Skip # compilers not aware of byte arrays
 
 [ $compiler == dart2dart ]
-cc/*: Skip
-dart/byte_array_test: Fail
-dart/import_map_test: Fail
-dart/isolate_mirror_local_test: Crash
-dart/isolate_mirror_remote_test: Crash
+# Skip until we stabilize language tests.
+*: Skip
 
 [ $arch == arm ]
 dart/*: Skip
