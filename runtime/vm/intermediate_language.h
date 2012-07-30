@@ -695,7 +695,7 @@ class StaticCallComp : public Computation {
                  intptr_t try_index,
                  const Function& function,
                  const Array& argument_names,
-                 ZoneGrowableArray<Value*>* arguments)
+                 ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : token_pos_(token_pos),
         try_index_(try_index),
         function_(function),
@@ -715,16 +715,19 @@ class StaticCallComp : public Computation {
   intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   MethodRecognizer::Kind recognized() const { return recognized_; }
   void set_recognized(MethodRecognizer::Kind kind) { recognized_ = kind; }
 
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
+  virtual intptr_t InputCount() const { return 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
   }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -733,7 +736,7 @@ class StaticCallComp : public Computation {
   const intptr_t try_index_;
   const Function& function_;
   const Array& argument_names_;
-  ZoneGrowableArray<Value*>* arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
   MethodRecognizer::Kind recognized_;
 
   DISALLOW_COPY_AND_ASSIGN(StaticCallComp);

@@ -116,11 +116,6 @@ intptr_t InstanceCallComp::InputCount() const {
 }
 
 
-intptr_t StaticCallComp::InputCount() const {
-  return ArgumentCount();
-}
-
-
 intptr_t AllocateObjectComp::InputCount() const {
   return arguments().length();
 }
@@ -1191,7 +1186,6 @@ LocationSummary* StaticCallComp::MakeLocationSummary() const {
 
 
 void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
   Label done;
   if (recognized() == MethodRecognizer::kMathSqrt) {
     compiler->GenerateInlinedMathSqrt(&done);

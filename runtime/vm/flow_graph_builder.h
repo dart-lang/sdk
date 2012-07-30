@@ -142,6 +142,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void TieLoop(const TestGraphVisitor& test_fragment,
                const EffectGraphVisitor& body_fragment);
 
+  // Wraps a value in a push-argument instruction and adds the result to the
+  // graph.
+  PushArgumentInstr* PushArgument(Value* value);
+
  protected:
   Computation* BuildStoreLocal(const LocalVariable& local, Value* value);
   Computation* BuildLoadLocal(const LocalVariable& local);
@@ -209,7 +213,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   }
 
   Value* BuildObjectAllocation(ConstructorCallNode* node);
-  void BuildConstructorCall(ConstructorCallNode* node, Value* alloc_value);
+  void BuildConstructorCall(ConstructorCallNode* node,
+                            PushArgumentInstr* alloc_value);
 
   void BuildStoreContext(const LocalVariable& variable);
   void BuildLoadContext(const LocalVariable& variable);

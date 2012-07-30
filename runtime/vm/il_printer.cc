@@ -195,7 +195,7 @@ void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    ArgumentAt(i)->PrintTo(f);
+    f->Print("cid%d", ArgumentAt(i)->cid());
   }
 }
 
