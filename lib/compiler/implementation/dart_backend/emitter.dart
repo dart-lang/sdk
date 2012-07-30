@@ -34,6 +34,7 @@ class Emitter {
     if (classNode.typeParameters !== null) {
       sb.add(unparser.unparse(classNode.typeParameters));
     }
+    renamer.setContext(classElement);
     if (classNode.extendsKeyword !== null) {
       sb.add(' ');
       classNode.extendsKeyword.value.printOn(sb);

@@ -210,6 +210,123 @@ testAbstractClass() {
   testDart2Dart('main(){A.foo;}abstract class A{final static num foo;}');
 }
 
+testConflictSendsRename() {
+  // Various Send-s to current library and external library. Verify that
+  // everything is renamed correctly in conflicting class names and global
+  // functions.
+  var librarySrc = '''
+#library("mylib.dart");
+
+globalfoo() {}
+
+class A {
+  A(){}
+  A.fromFoo(){}
+  static staticfoo(){}
+  foo(){}
+  static final field = 5;
+}
+''';
+  var mainSrc = '''
+#import("mylib.dart", prefix: "mylib");
+
+globalfoo() {}
+
+class A {
+  A(){}
+  A.fromFoo(){}
+  static staticfoo(){}
+  foo(){}
+  static final field = 5;
+}
+
+main() {
+  globalfoo();
+  A.field;
+  A.staticfoo();
+  new A();
+  new A.fromFoo();
+  new A().foo();
+
+  mylib.globalfoo();
+  mylib.A.field;
+  mylib.A.staticfoo();
+  new mylib.A();
+  new mylib.A.fromFoo();
+  new mylib.A().foo();
+}
+''';
+  var expectedResult = 'globalfoo(){}'
+      '_globalfoo(){}'
+      'main(){_globalfoo(); A.field; A.staticfoo(); new A(); '
+          'new A.fromFoo(); new A().foo(); globalfoo(); _A.field; '
+          '_A.staticfoo(); new _A(); new _A.fromFoo(); new _A().foo();}'
+      'class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}'
+          'static final field=5;}'
+      'class _A{_A(){}_A.fromFoo(){}foo(){}static staticfoo(){}'
+          'static final field=5;}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
+testNoConflictSendsRename() {
+  // Various Send-s to current library and external library. Nothing should be
+  // renamed here, only library prefixes must be cut.
+  var librarySrc = '''
+#library("mylib.dart");
+
+globalfoo() {}
+
+class A {
+  A(){}
+  A.fromFoo(){}
+  static staticfoo(){}
+  foo(){}
+  static final field = 5;
+}
+''';
+  var mainSrc = '''
+#import("mylib.dart", prefix: "mylib");
+
+myglobalfoo() {}
+
+class MyA {
+  MyA(){}
+  MyA.myfromFoo(){}
+  static mystaticfoo(){}
+  myfoo(){}
+  static final myfield = 5;
+}
+
+main() {
+  myglobalfoo();
+  MyA.myfield;
+  MyA.mystaticfoo();
+  new MyA();
+  new MyA.myfromFoo();
+  new MyA().myfoo();
+
+  mylib.globalfoo();
+  mylib.A.field;
+  mylib.A.staticfoo();
+  new mylib.A();
+  new mylib.A.fromFoo();
+  new mylib.A().foo();
+}
+''';
+  var expectedResult = 'myglobalfoo(){}'
+      'globalfoo(){}'
+      'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA(); '
+          'new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field; '
+          'A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}'
+      'class MyA{MyA(){}MyA.myfromFoo(){}myfoo(){}'
+          'static final myfield=5;static mystaticfoo(){}}'
+      'class A{A(){}A.fromFoo(){}foo(){}'
+          'static staticfoo(){}static final field=5;}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 testConflictLibraryClassRename() {
   var librarySrc = '''
 #library('mylib');
@@ -250,7 +367,7 @@ main() {
   var expectedResult = 'topfoo(){}_topfoo(){var x=5;}A getA()=> null;'
       'main(){var a=new A(); a.foo(); var b=new _A.fromFoo(); b.foo(); '
           'var GREATVAR=b.myliba; b.mylist; a=getA(); _topfoo(); topfoo();}'
-      'class _A{_A.fromFoo(){}List<List> mylist;num foo(){}A myliba;}'
+      'class _A{_A.fromFoo(){}List<_A> mylist;num foo(){}A myliba;}'
       'class A{foo(){}}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
@@ -276,4 +393,6 @@ main() {
   testTopLevelField();
   testAbstractClass();
   testConflictLibraryClassRename();
+  testNoConflictSendsRename();
+  testConflictSendsRename();
 }

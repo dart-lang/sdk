@@ -699,9 +699,9 @@ class TypeResolver {
   final Compiler compiler;
   TypeResolver(this.compiler);
 
-  Element resolveTypeName(Scope context, TypeAnnotation node) {
-    Identifier typeName = node.typeName.asIdentifier();
-    Send send = node.typeName.asSend();
+  Element resolveTypeName(Scope context, Node typeNode) {
+    Identifier typeName = typeNode.asIdentifier();
+    Send send = typeNode.asSend();
     if (send !== null) {
       typeName = send.selector;
     }
@@ -744,9 +744,26 @@ class TypeResolver {
                                           whenResolved);
   }
 
+  Type resolveTypeVariableInContext(Scope context, TypeVariable node,
+                                    onFailure) {
+    Element element = resolveTypeName(context, node.name);
+    Type type;
+    if (element === null) {
+      onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.name]);
+    } else if (!element.impliesType()) {
+      onFailure(node, MessageKind.NOT_A_TYPE, [node.name]);
+    } else if (element.isTypeVariable()) {
+      type = element.computeType(compiler);
+    } else {
+      compiler.cancel("unexpected element kind ${element.kind}",
+                      node: node);
+    }
+    return type;
+  }
+
   Type resolveTypeAnnotationInContext(Scope context, TypeAnnotation node,
                                       onFailure, whenResolved) {
-    Element element = resolveTypeName(context, node);
+    Element element = resolveTypeName(context, node.typeName);
     Type type;
     if (element === null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
@@ -769,10 +786,16 @@ class TypeResolver {
               onFailure(typeArguments.head,
                         MessageKind.ADDITIONAL_TYPE_ARGUMENT);
             }
-            Type argType = resolveTypeAnnotationInContext(context,
-                                                          typeArguments.head,
-                                                          onFailure,
-                                                          whenResolved);
+            // TypeVariable may happen in default clause of an interface.
+            Type argType;
+            if (typeArguments.head is TypeVariable) {
+              argType = resolveTypeVariableInContext(
+                  new ClassScope(cls, cls.getLibrary()), typeArguments.head,
+                  onFailure);
+            } else {
+              argType = resolveTypeAnnotationInContext(context,
+                  typeArguments.head, onFailure, whenResolved);
+            }
             arguments.addLast(argType);
           }
           if (index < cls.typeParameters.length) {

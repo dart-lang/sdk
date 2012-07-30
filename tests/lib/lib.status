@@ -36,7 +36,6 @@ fixnum/int_64_test: Fail # Issue 3720.
 
 [ $compiler == dart2dart ]
 args/args_test: Fail
-crypto/base64_test: Fail
 crypto/hmac_md5_test: Fail
 crypto/hmac_sha1_test: Fail
 crypto/hmac_sha256_test: Fail

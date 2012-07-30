@@ -12,6 +12,7 @@ assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
+function_type_alias6_test: Fail # "const EmptyLink<Element>" must be a compile-time constant.
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
@@ -38,8 +39,12 @@ void_type_test: Fail # does not detect type error in checked mode.
 
 arithmetic_test: Fail
 
+[ $compiler == dart2js && $host_checked ]
+function_type_alias6_test: Crash # infinite loop.
+
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail, OK
+function_type_alias6_test: Fail # "const EmptyLink<Element>" must be a compile-time constant.
 
 [ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
@@ -62,7 +67,6 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
-function_type_alias6_test: Crash # infinite loop.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters

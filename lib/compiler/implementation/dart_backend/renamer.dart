@@ -4,7 +4,7 @@
 
 /**
  * Renames only top-level elements that would let to ambiguity if not renamed.
- * TODO(smok): Make sure that top-level fields and methods correctly renamed.
+ * TODO(smok): Make sure that top-level fields are correctly renamed.
  */
 class ConflictingRenamer extends Renamer {
   final Compiler compiler;
@@ -25,39 +25,39 @@ class ConflictingRenamer extends Renamer {
     contextElements = resolvedElements[element];
   }
 
+  String getFactoryName(FunctionExpression node) =>
+      node.name.asSend().selector.asIdentifier().source.slowToString();
+
+  bool isNamedConstructor(Element element) =>
+      element.isGenerativeConstructor()
+          && element.asFunctionElement().cachedNode.name is Send;
+
   String renameSendMethod(Send send) {
-    // Rename only if this Send is a function call.
-    if (contextElements[send] !== null && contextElements[send].isFunction()) {
-      return renameElement(contextElements[send]);
+    if (contextElements[send] === null) return null;
+    Element element = contextElements[send];
+    if (element.isTopLevel()) {
+      return renameElement(element);
+    } else if (isNamedConstructor(element)
+        // Don't want to rename redirects to :this(args).
+        && !Initializers.isConstructorRedirect(send)
+        // Don't want to rename super calls.
+        && !Initializers.isSuperConstructorCall(send)) {
+      FunctionExpression constructor = element.asFunctionElement().cachedNode;
+      return '${renameType(element.getEnclosingClass().type)}'
+          '.${getFactoryName(constructor)}';
     } else {
       return null;
     }
   }
 
   String renameTypeName(TypeAnnotation typeAnnotation) {
-    if (contextElements === null
-        || contextElements.getType(typeAnnotation) === null) {
-      // We have no info about this type from resolver.
-      // This happens for class member fields.
-      // TODO(smok): Maybe resolver should have this information, fix if so.
-      if (context.isField()
-          && context.variables.computeType(compiler) !== null) {
-        // A field.
-        return renameType(context.variables.type);
-      } else {
-        return typeAnnotation.typeName.unparse();
-      }
-    }
-
-    // TODO(smok): Check if resolver can help us identifying factory
-    // constructors.
-    Type type = contextElements.getType(typeAnnotation);
-    if (typeAnnotation.typeName is Send
-        && typeAnnotation.typeName.receiver.source.slowToString() 
-            == type.name.slowToString()) {
-      // Got factory invocation. Need to rename first part.
-      return "${renameType(type)}."
-          "${typeAnnotation.typeName.selector.source.slowToString()}";
+    Type type;
+    if (context.isClass()) {
+      // This only happens if we're unparsing class declaration.
+      type = new TypeResolver(compiler)
+          .resolveTypeAnnotation(typeAnnotation, null, context);
+    } else {
+      type = compiler.resolveTypeAnnotation(context, typeAnnotation);
     }
     return renameType(type);
   }
@@ -66,8 +66,8 @@ class ConflictingRenamer extends Renamer {
 
   String renameIdentifier(Identifier node) {
     if (context.isGenerativeConstructor()) {
-      // This is either a factory constructor or simple one.
-      // TODO(smok): Check if resolver can help us identifying factory
+      // This is either a named constructor or simple one.
+      // TODO(smok): Check if resolver can help us identifying named
       // constructors.
       var enclosingClass = context.getEnclosingClass();
       if (node.token.slowToString() == context.name.slowToString()

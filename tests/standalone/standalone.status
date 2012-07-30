@@ -87,9 +87,6 @@ io/http_date_test: Fail # TODO(floitsch): I'm on it.
 [ $compiler == dart2dart ]
 assert_test: Fail
 byte_array_test: Fail
-crypto/base64_test: Fail
-deoptimization_test: Fail
-double_temp_test: Fail
 io/chunked_stream_test: Fail
 io/compile_all_test: Fail
 io/dart_std_io_pipe_test: Fail
@@ -112,10 +109,8 @@ io/http_connection_close_test: Fail
 io/http_connection_header_test: Fail
 io/http_connection_info_test: Fail
 io/http_content_length_test: Fail
-io/http_date_test: Fail
 io/http_headers_test: Fail
 io/http_head_test: Fail
-io/http_parser_test: Fail
 io/http_read_test: Fail
 io/http_redirect_test: Fail
 io/http_server_early_client_close_test: Fail
@@ -128,7 +123,6 @@ io/list_input_stream_test: Fail
 io/list_output_stream_test: Fail
 io/many_directory_operations_test: Fail
 io/many_file_operations_test: Fail
-io/mime_multipart_parser_test: Fail
 io/multiple_timer_test: Fail
 io/options_test: Fail
 io/path_test: Fail
@@ -162,10 +156,7 @@ io/timer_cancel_test: Fail
 io/timer_repeat_test: Fail
 io/timer_test: Fail
 io/url_encoding_test: Fail
-io/web_socket_protocol_processor_test: Fail
 io/web_socket_test: Fail
 medium_integer_test: Fail
-package/package1_test: Fail
-package/package_test: Fail
 status_expression_test: Fail
 test_extension_test/none: Fail
