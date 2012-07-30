@@ -82,4 +82,9 @@ public class DelegatingCompilerConfiguration implements CompilerConfiguration {
   public ErrorFormat printErrorFormat() {
     return delegate.printErrorFormat();
   }
+
+  @Override
+  public SystemLibraryManager getSystemLibraryManager() {
+    return delegate.getSystemLibraryManager();
+  }
 }

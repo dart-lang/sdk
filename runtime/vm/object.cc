@@ -428,6 +428,9 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::New<OneByteString>();
   isolate->object_store()->set_one_byte_string_class(cls);
+
+  // TODO(asiva): Assign the names of shared classes instead of relying on the
+  // lookup switch in Object::GetSingletonClassName.
 }
 
 
@@ -765,11 +768,11 @@ RawError* Object::Init(Isolate* isolate) {
   // because their names are reserved keywords. Their names are not heap
   // allocated, because the classes reside in the VM isolate.
   // The corresponding types are stored in the object store.
-  cls = null_class_;
+  cls = null_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_null_type(type);
 
-  cls = void_class_;
+  cls = void_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_void_type(type);
 
@@ -777,10 +780,9 @@ RawError* Object::Init(Isolate* isolate) {
   // is a built-in identifier, rather than a reserved keyword. Its name is not
   // heap allocated, because the class resides in the VM isolate.
   // The corresponding type, the "unknown type", is stored in the object store.
-  cls = dynamic_class_;
+  cls = dynamic_class();
   type = Type::NewNonParameterizedType(cls);
   object_store->set_dynamic_type(type);
-  core_lib.AddClass(cls);
 
   // Allocate pre-initialized values.
   Bool& bool_value = Bool::Handle();
@@ -2534,14 +2536,14 @@ bool AbstractType::TypeTest(TypeTestKind test_kind,
   // run time.
   if (IsMalformed()) {
     ASSERT(FLAG_enable_type_checks);
-    if (malformed_error->IsNull()) {
+    if ((malformed_error != NULL) && malformed_error->IsNull()) {
       *malformed_error = this->malformed_error();
     }
     return false;
   }
   if (other.IsMalformed()) {
     ASSERT(FLAG_enable_type_checks);
-    if (malformed_error->IsNull()) {
+    if ((malformed_error != NULL) && malformed_error->IsNull()) {
       *malformed_error = other.malformed_error();
     }
     return false;
@@ -3310,7 +3312,7 @@ bool AbstractTypeArguments::IsWithinBoundsOf(
           !this_type_arg.IsSubtypeOf(bound, malformed_error)) {
         // Ignore this bound error if another malformed error was already
         // reported for this type test.
-        if (malformed_error->IsNull()) {
+        if ((malformed_error != NULL) && malformed_error->IsNull()) {
           const String& type_arg_name =
               String::Handle(this_type_arg.UserVisibleName());
           const String& class_name = String::Handle(cls.Name());
@@ -3793,7 +3795,9 @@ intptr_t Function::NumberOfImplicitParameters() const {
       return 2;  // Instance, phase.
     }
   }
-  if (!is_static()) {
+  if (!is_static() && (kind() != RawFunction::kClosureFunction)) {
+    // Closure functions defined inside instance (i.e. non-static) functions are
+    // marked as non-static, but they do not have a receiver.
     return 1;  // Receiver.
   }
   return 0;  // No implicit parameters.
@@ -4464,6 +4468,7 @@ RawField* Field::New() {
 RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
+                     bool is_const,
                      intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   const Field& result = Field::Handle(Field::New());
@@ -4475,6 +4480,7 @@ RawField* Field::New(const String& name,
     result.SetOffset(0);
   }
   result.set_is_final(is_final);
+  result.set_is_const(is_const);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
@@ -4484,15 +4490,16 @@ RawField* Field::New(const String& name,
 const char* Field::ToCString() const {
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
-  const char* kFormat = "Field <%s.%s>:%s%s";
+  const char* kF2 = is_const() ? " const" : "";
+  const char* kFormat = "Field <%s.%s>:%s%s%s";
   const char* field_name = String::Handle(name()).ToCString();
   const Class& cls = Class::Handle(owner());
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   intptr_t len =
-      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1) + 1;
+      OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1);
+  OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
 }
 
@@ -4563,9 +4570,13 @@ RawString* TokenStream::GenerateSource() const {
   String& literal = String::Handle();
   String& blank = String::Handle(String::New(" "));
   String& newline = String::Handle(String::New("\n"));
+  String& two_newlines = String::Handle(String::New("\n\n"));
   String& double_quotes = String::Handle(String::New("\""));
+  String& dollar = String::Handle(String::New("$"));
+  String& two_spaces = String::Handle(String::New("  "));
   Object& obj = Object::Handle();
   Token::Kind kind = iterator.CurrentTokenKind();
+  int indent = 0;
   while (kind != Token::kEOS) {
     obj = iterator.CurrentToken();
     literal = iterator.MakeLiteralToken(obj);
@@ -4585,16 +4596,72 @@ RawString* TokenStream::GenerateSource() const {
         literals.Add(literal);
       }
       literals.Add(double_quotes);
+    } else if (kind == Token::kINTERPOL_VAR) {
+      literals.Add(double_quotes);
+      literals.Add(dollar);
+      literals.Add(literal);
+      literals.Add(double_quotes);
+    } else if (kind == Token::kINTERPOL_START) {
+      literals.Add(double_quotes);
+      literals.Add(literal);
+    } else if (kind == Token::kINTERPOL_END) {
+      literals.Add(literal);
+      literals.Add(double_quotes);
     } else {
       literals.Add(literal);
     }
-    if (kind == Token::kLBRACE) {
-      literals.Add(newline);
-    } else {
-      literals.Add(blank);
+    // Determine the separation text based on this current token.
+    const String* separator = NULL;
+    switch (kind) {
+      case Token::kLBRACE:
+        indent++;
+        separator = &newline;
+        break;
+      case Token::kRBRACE:
+        if (indent == 0) {
+          separator = &two_newlines;
+        } else {
+          separator = &newline;
+        }
+        break;
+      case Token::kSEMICOLON:
+        separator = &newline;
+        break;
+      case Token::kPERIOD:
+      case Token::kLPAREN:
+        break;
+      default:
+        separator = &blank;
+        break;
     }
+    // Advance the iterator.
     iterator.Advance();
     kind = iterator.CurrentTokenKind();
+    // Determine whether the separation text needs to be updated based on the
+    // next token.
+    switch (kind) {
+      case Token::kRBRACE:
+        indent--;
+        break;
+      case Token::kSEMICOLON:
+      case Token::kPERIOD:
+      case Token::kCOMMA:
+      case Token::kLPAREN:
+      case Token::kRPAREN:
+        separator = NULL;
+        break;
+      default:
+        // Do nothing.
+        break;
+    }
+    if (separator != NULL) {
+      literals.Add(*separator);
+      if (separator == &newline) {
+        for (int i = 0; i < indent; i++) {
+          literals.Add(two_spaces);
+        }
+      }
+    }
   }
   const Array& source = Array::Handle(Array::MakeArray(literals));
   return String::ConcatAll(source);
@@ -5989,6 +6056,12 @@ void Library::InitCoreLibrary(Isolate* isolate) {
   core_lib.AddImport(core_impl_lib);
   core_impl_lib.AddImport(core_lib);
   isolate->object_store()->set_root_library(Library::Handle());
+
+  // Hook up predefined classes without setting their library pointers. These
+  // classes are coming from the VM isolate, and are shared between multiple
+  // isolates so setting their library pointers would be wrong.
+  const Class& cls = Class::Handle(Object::dynamic_class());
+  core_lib.AddObject(cls, String::Handle(cls.Name()));
 }
 
 

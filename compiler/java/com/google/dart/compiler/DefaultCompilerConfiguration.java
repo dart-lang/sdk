@@ -14,6 +14,7 @@ import java.io.File;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -26,6 +27,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   private final CompilerMetrics compilerMetrics;
 
   private final SystemLibraryManager systemLibraryManager;
+
 
   /**
    * A default configuration.
@@ -50,6 +52,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
     this.compilerOptions = compilerOptions;
     this.compilerMetrics = compilerOptions.showMetrics() ? new CompilerMetrics() : null;
     this.systemLibraryManager = libraryManager;
+    systemLibraryManager.setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
   }
 
   @Override
@@ -123,7 +126,7 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
 
     return new UrlLibrarySource(systemUri, this.systemLibraryManager);
   }
-
+  
   @Override
   public CompilerOptions getCompilerOptions() {
     return compilerOptions;
@@ -132,5 +135,10 @@ public class DefaultCompilerConfiguration implements CompilerConfiguration {
   @Override
   public ErrorFormat printErrorFormat() {
     return compilerOptions.printErrorFormat();
+  }
+  
+  @Override
+  public SystemLibraryManager getSystemLibraryManager() {
+    return systemLibraryManager;
   }
 }

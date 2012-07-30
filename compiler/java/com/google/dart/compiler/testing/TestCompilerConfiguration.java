@@ -91,4 +91,9 @@ public class TestCompilerConfiguration implements CompilerConfiguration {
   public ErrorFormat printErrorFormat() {
     return ErrorFormat.MACHINE;
   }
+
+  @Override
+  public SystemLibraryManager getSystemLibraryManager() {
+    return systemLibraryManager;
+  }
 }

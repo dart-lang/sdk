@@ -465,8 +465,7 @@ static bool IsStaticTypeMoreSpecific(Value* value,
   // guaranteed to be a subtype of the static type, is also guaranteed to be
   // a subtype of the destination type and the type check can therefore be
   // eliminated.
-  Error& malformed_error = Error::Handle();
-  return static_type.IsMoreSpecificThan(dst_type, &malformed_error);
+  return static_type.IsMoreSpecificThan(dst_type, NULL);
 }
 
 
@@ -737,9 +736,7 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
   const bool negate_result = (node->kind() == Token::kISNOT);
   // All objects are instances of type T if Object type is a subtype of type T.
   const Type& object_type = Type::Handle(Type::ObjectType());
-  Error& malformed_error = Error::Handle();
-  if (type.IsInstantiated() &&
-      object_type.IsSubtypeOf(type, &malformed_error)) {
+  if (type.IsInstantiated() && object_type.IsSubtypeOf(type, NULL)) {
     // Must evaluate left side.
     EffectGraphVisitor for_left_value(owner(), temp_index());
     node->left()->Visit(&for_left_value);
@@ -762,13 +759,9 @@ void ValueGraphVisitor::BuildTypeTest(ComparisonNode* node) {
       // instantiated).
       result = new ConstantVal(negate_result ? bool_true : bool_false);
     } else {
-      Error& malformed_error = Error::Handle();
-      if (literal_value.IsInstanceOf(type,
-                                     TypeArguments::Handle(),
-                                     &malformed_error)) {
+      if (literal_value.IsInstanceOf(type, TypeArguments::Handle(), NULL)) {
         result = new ConstantVal(negate_result ? bool_false : bool_true);
       } else {
-        ASSERT(malformed_error.IsNull());
         result = new ConstantVal(negate_result ? bool_true : bool_false);
       }
     }
@@ -1375,6 +1368,11 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   } else {
     receiver = BuildNullValue();
   }
+  PushArgumentInstr* push_receiver = new PushArgumentInstr(receiver);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  arguments->Add(push_receiver);
+  AddInstruction(push_receiver);
   ASSERT(function.context_scope() != ContextScope::null());
 
   // The function type of a closure may have type arguments. In that case, pass
@@ -1389,10 +1387,12 @@ void EffectGraphVisitor::VisitClosureNode(ClosureNode* node) {
   } else {
     type_arguments = BuildNullValue();
   }
-
-  CreateClosureComp* create = new CreateClosureComp(
-      node, owner()->try_index(), type_arguments, receiver);
-  ReturnComputation(create);
+  PushArgumentInstr* push_type_arguments =
+      new PushArgumentInstr(type_arguments);
+  arguments->Add(push_type_arguments);
+  AddInstruction(push_type_arguments);
+  ReturnComputation(
+      new CreateClosureComp(node, owner()->try_index(), arguments));
 }
 
 
@@ -1406,6 +1406,21 @@ void EffectGraphVisitor::TranslateArgumentList(
     values->Add(for_argument.value());
   }
 }
+
+
+void EffectGraphVisitor::BuildPushArguments(
+    const ArgumentListNode& node,
+    ZoneGrowableArray<PushArgumentInstr*>* values) {
+  for (intptr_t i = 0; i < node.length(); ++i) {
+    ValueGraphVisitor for_argument(owner(), temp_index());
+    node.NodeAt(i)->Visit(&for_argument);
+    Append(for_argument);
+    PushArgumentInstr* push_arg = new PushArgumentInstr(for_argument.value());
+    AddInstruction(push_arg);
+    values->Add(push_arg);
+  }
+}
+
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
   ArgumentListNode* arguments = node->arguments();
@@ -1447,11 +1462,13 @@ ClosureCallComp* EffectGraphVisitor::BuildClosureCall(
   ValueGraphVisitor for_closure(owner(), temp_index());
   node->closure()->Visit(&for_closure);
   Append(for_closure);
+  PushArgumentInstr* push_closure = new PushArgumentInstr(for_closure.value());
+  AddInstruction(push_closure);
 
-  ZoneGrowableArray<Value*>* arguments =
-      new ZoneGrowableArray<Value*>(node->arguments()->length());
-  arguments->Add(for_closure.value());
-  TranslateArgumentList(*node->arguments(), arguments);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
+  arguments->Add(push_closure);
+  BuildPushArguments(*node->arguments(), arguments);
 
   // Save context around the call.
   BuildStoreContext(*owner()->parsed_function().expression_temp_var());
@@ -1496,14 +1513,13 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
   Computation* allocate_comp = NULL;
-  Error& malformed_error = Error::Handle();
   if (FLAG_enable_type_checks &&
       requires_type_arguments &&
       !node->type_arguments().IsNull() &&
       !node->type_arguments().IsInstantiated() &&
       !node->type_arguments().IsWithinBoundsOf(cls,
                                                node->type_arguments(),
-                                               &malformed_error)) {
+                                               NULL)) {
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
     // Although the type arguments may be uninstantiated at compile time, they
@@ -2286,7 +2302,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   ASSERT(!for_effect.is_open());
   GrowableArray<intptr_t> parent;
   GrowableArray<BitVector*> assigned_vars;
-  intptr_t variable_count = parsed_function_.function().num_fixed_parameters() +
+
+  const intptr_t fixed_parameter_count =
+      parsed_function_.function().num_fixed_parameters();
+  const intptr_t variable_count = fixed_parameter_count +
       parsed_function_.copied_parameter_count() +
       parsed_function_.stack_local_count();
   // Perform a depth-first traversal of the graph to build preorder and
@@ -2296,7 +2315,8 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
                                &postorder_block_entries_,
                                &parent,
                                &assigned_vars,
-                               variable_count);
+                               variable_count,
+                               fixed_parameter_count);
   // Number blocks in reverse postorder.
   intptr_t block_count = postorder_block_entries_.length();
   for (intptr_t i = 0; i < block_count; ++i) {
@@ -2542,7 +2562,9 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   // Initialize start environment.
   GrowableArray<Value*> start_env(var_count);
   intptr_t i = 0;
-  for (; i < parsed_function().function().num_fixed_parameters(); ++i) {
+  const intptr_t fixed_parameter_count =
+      parsed_function().function().num_fixed_parameters();
+  for (; i < fixed_parameter_count; ++i) {
     ParameterInstr* param = new ParameterInstr(i);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     start_env.Add(new UseVal(param));
@@ -2553,13 +2575,14 @@ void FlowGraphBuilder::Rename(intptr_t var_count) {
   for (; i < var_count; i++) {
     start_env.Add(null_value);
   }
-  graph_entry_->set_start_env(new Environment(start_env));
+  graph_entry_->set_start_env(
+      new Environment(start_env, fixed_parameter_count));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
   GrowableArray<Value*> env(var_count);
   env.AddArray(start_env);
-  RenameRecursive(normal_entry, &env, var_count);
+  RenameRecursive(normal_entry, &env, var_count, fixed_parameter_count);
 }
 
 
@@ -2573,7 +2596,8 @@ static Value* CopyValue(Value* value) {
 
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
                                        GrowableArray<Value*>* env,
-                                       intptr_t var_count) {
+                                       intptr_t var_count,
+                                       intptr_t fixed_parameter_count) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
     JoinEntryInstr* join = block_entry->AsJoinEntry();
@@ -2595,7 +2619,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // TODO(fschneider): Currently each instruction gets a full copy of the
     // environment. This should be optimized: Only instructions that can
     // deoptimize should have uses of the environment values.
-    current->set_env(new Environment(*env));
+    current->set_env(new Environment(*env, fixed_parameter_count));
 
     // 2a. Handle uses:
     // Update expression stack environment for each use.
@@ -2610,14 +2634,16 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       BindInstr* as_bind = v->AsUse()->definition()->AsBind();
       if ((as_bind != NULL) && as_bind->computation()->IsLoadLocal()) {
         Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(var_count);
+        intptr_t index =
+            comp->AsLoadLocal()->local().BitIndexIn(fixed_parameter_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
       if ((as_bind != NULL) && as_bind->computation()->IsStoreLocal()) {
         // For each use of a StoreLocal: Replace it with the value from the
         // environment.
         Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(var_count);
+        intptr_t index =
+            comp->AsStoreLocal()->local().BitIndexIn(fixed_parameter_count);
         current->SetInputAt(i, CopyValue((*env)[index]));
       }
     }
@@ -2632,14 +2658,14 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       if ((load != NULL) || (store != NULL)) {
         intptr_t index;
         if (store != NULL) {
-          index = store->local().BitIndexIn(var_count);
+          index = store->local().BitIndexIn(fixed_parameter_count);
           // Update renaming environment.
           (*env)[index] = store->value();
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(bind->is_used());
-          index = load->local().BitIndexIn(var_count);
+          index = load->local().BitIndexIn(fixed_parameter_count);
         }
         // Update expression stack and remove from graph.
         if (bind->is_used()) {
@@ -2662,7 +2688,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Value*> new_env(env->length());
     new_env.AddArray(*env);
-    RenameRecursive(block, &new_env, var_count);
+    RenameRecursive(block, &new_env, var_count, fixed_parameter_count);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks

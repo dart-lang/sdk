@@ -70,7 +70,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 
   // Access methods for symbols stored in the vm isolate.
 #define DEFINE_SYMBOL_ACCESSOR(symbol, literal)                                \
-  static RawString* symbol() { return predefined_[k##symbol]; }
+  static RawString* symbol() { return Symbols::New(literal); }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 #undef DEFINE_SYMBOL_ACCESSOR
 

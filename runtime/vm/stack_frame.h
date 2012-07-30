@@ -138,6 +138,7 @@ class StackFrameIterator : public ValueObject {
   static const bool kDontValidateFrames = false;
 
   explicit StackFrameIterator(bool validate);
+  StackFrameIterator(uword last_fp, bool validate);
 
   // Checks if a next frame exists.
   bool HasNextFrame() const { return frames_.fp_ != 0; }
@@ -204,7 +205,8 @@ class StackFrameIterator : public ValueObject {
 class DartFrameIterator : public ValueObject {
  public:
   DartFrameIterator() : frames_(StackFrameIterator::kDontValidateFrames) { }
-
+  explicit DartFrameIterator(uword last_fp)
+      : frames_(last_fp, StackFrameIterator::kDontValidateFrames) {}
   // Get next dart frame.
   StackFrame* NextFrame() {
     StackFrame* frame = frames_.NextFrame();

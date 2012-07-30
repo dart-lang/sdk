@@ -17,6 +17,9 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, enable_type_checks);
+
+
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {
   // Only core library methods can be recognized.
@@ -96,14 +99,6 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 }
 
 
-// True iff. the v2 is above v1 on stack, or one of them is constant.
-static bool VerifyValues(Value* v1, Value* v2) {
-  ASSERT(v1->IsUse() && v2->IsUse());
-  return (v1->AsUse()->definition()->temp_index() + 1) ==
-     v2->AsUse()->definition()->temp_index();
-}
-
-
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
@@ -122,11 +117,6 @@ intptr_t InstanceCallComp::InputCount() const {
 
 
 intptr_t StaticCallComp::InputCount() const {
-  return ArgumentCount();
-}
-
-
-intptr_t ClosureCallComp::InputCount() const {
   return ArgumentCount();
 }
 
@@ -268,6 +258,27 @@ void GotoInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+intptr_t PushArgumentInstr::InputCount() const {
+  return 1;
+}
+
+
+Value* PushArgumentInstr::InputAt(intptr_t i) const {
+  if (i == 0) return value();
+  UNREACHABLE();
+  return NULL;
+}
+
+
+void PushArgumentInstr::SetInputAt(intptr_t i, Value* value) {
+  if (i == 0) {
+    value_ = value;
+    return;
+  }
+  UNREACHABLE();
+}
+
+
 intptr_t ReturnInstr::InputCount() const {
   return 1;
 }
@@ -319,6 +330,12 @@ void PhiInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
+RawAbstractType* PhiInstr::StaticType() const {
+  // TODO(regis): Return the least upper bound of the input static types.
+  return Type::DynamicType();
+}
+
+
 intptr_t ParameterInstr::InputCount() const {
   return 0;
 }
@@ -332,6 +349,17 @@ Value* ParameterInstr::InputAt(intptr_t i) const {
 
 void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
   UNREACHABLE();
+}
+
+
+RawAbstractType* ParameterInstr::StaticType() const {
+  // TODO(regis): Can type feedback provide information about the static type
+  // of a passed-in parameter?
+  // Note that in checked mode, we could return the static type of the formal
+  // parameter. However, this would be wrong if ParameterInstr is used to type
+  // check the passed-in parameter, since the type check would then always be
+  // wrongly eliminated.
+  return Type::DynamicType();
 }
 
 
@@ -392,25 +420,29 @@ intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
 
 
 // ==== Recording assigned variables.
-void Computation::RecordAssignedVars(BitVector* assigned_vars) {
+void Computation::RecordAssignedVars(BitVector* assigned_vars,
+                                     intptr_t fixed_parameter_count) {
   // Nothing to do for the base class.
 }
 
 
-void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars) {
+void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars,
+                                        intptr_t fixed_parameter_count) {
   if (!local().is_captured()) {
-    assigned_vars->Add(local().BitIndexIn(assigned_vars->length()));
+    assigned_vars->Add(local().BitIndexIn(fixed_parameter_count));
   }
 }
 
 
-void Instruction::RecordAssignedVars(BitVector* assigned_vars) {
+void Instruction::RecordAssignedVars(BitVector* assigned_vars,
+                                     intptr_t fixed_parameter_count) {
   // Nothing to do for the base class.
 }
 
 
-void BindInstr::RecordAssignedVars(BitVector* assigned_vars) {
-  computation()->RecordAssignedVars(assigned_vars);
+void BindInstr::RecordAssignedVars(BitVector* assigned_vars,
+                                   intptr_t fixed_parameter_count) {
+  computation()->RecordAssignedVars(assigned_vars, fixed_parameter_count);
 }
 
 
@@ -421,7 +453,8 @@ void GraphEntryInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   // We only visit this block once, first of all blocks.
   ASSERT(preorder_number() == -1);
   ASSERT(current_block == NULL);
@@ -445,10 +478,12 @@ void GraphEntryInstr::DiscoverBlocks(
   // must visit the normal entry last.
   for (intptr_t i = catch_entries_.length() - 1; i >= 0; --i) {
     catch_entries_[i]->DiscoverBlocks(this, preorder, postorder,
-                                      parent, assigned_vars, variable_count);
+                                      parent, assigned_vars,
+                                      variable_count, fixed_parameter_count);
   }
   normal_entry_->DiscoverBlocks(this, preorder, postorder,
-                                parent, assigned_vars, variable_count);
+                                parent, assigned_vars,
+                                variable_count, fixed_parameter_count);
 
   // Assign postorder number.
   set_postorder_number(postorder->length());
@@ -463,7 +498,8 @@ void BlockEntryInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   // We have already visited the graph entry, so we can assume current_block
   // is non-null and preorder array is non-empty.
   ASSERT(current_block != NULL);
@@ -503,7 +539,9 @@ void BlockEntryInstr::DiscoverBlocks(
     while ((next_instr != NULL) &&
            !next_instr->IsBlockEntry() &&
            !next_instr->IsBranch()) {
-      if (vars != NULL) next_instr->RecordAssignedVars(vars);
+      if (vars != NULL) {
+        next_instr->RecordAssignedVars(vars, fixed_parameter_count);
+      }
       set_last_instruction(next_instr);
       GotoInstr* goto_instr = next_instr->AsGoto();
       next_instr =
@@ -512,7 +550,8 @@ void BlockEntryInstr::DiscoverBlocks(
   }
   if (next_instr != NULL) {
     next_instr->DiscoverBlocks(this, preorder, postorder,
-                               parent, assigned_vars, variable_count);
+                               parent, assigned_vars,
+                               variable_count, fixed_parameter_count);
   }
 
   // 6. Assign postorder number and add the block entry to the list.
@@ -527,7 +566,8 @@ void BranchInstr::DiscoverBlocks(
     GrowableArray<BlockEntryInstr*>* postorder,
     GrowableArray<intptr_t>* parent,
     GrowableArray<BitVector*>* assigned_vars,
-    intptr_t variable_count) {
+    intptr_t variable_count,
+    intptr_t fixed_parameter_count) {
   current_block->set_last_instruction(this);
   // Visit the false successor before the true successor so they appear in
   // true/false order in reverse postorder used as the block ordering in the
@@ -535,9 +575,11 @@ void BranchInstr::DiscoverBlocks(
   ASSERT(true_successor_ != NULL);
   ASSERT(false_successor_ != NULL);
   false_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                   parent, assigned_vars, variable_count);
+                                   parent, assigned_vars,
+                                   variable_count, fixed_parameter_count);
   true_successor_->DiscoverBlocks(current_block, preorder, postorder,
-                                  parent, assigned_vars, variable_count);
+                                  parent, assigned_vars,
+                                  variable_count, fixed_parameter_count);
 }
 
 
@@ -628,6 +670,11 @@ RawAbstractType* UseVal::StaticType() const {
 
 
 RawAbstractType* AssertAssignableComp::StaticType() const {
+  const AbstractType& value_static_type =
+      AbstractType::Handle(value()->StaticType());
+  if (value_static_type.IsMoreSpecificThan(dst_type(), NULL)) {
+    return value_static_type.raw();
+  }
   return dst_type().raw();
 }
 
@@ -659,6 +706,8 @@ RawAbstractType* ClosureCallComp::StaticType() const {
 
 
 RawAbstractType* InstanceCallComp::StaticType() const {
+  // TODO(regis): Return a more specific type than Dynamic for recognized
+  // combinations of receiver static type and method name.
   return Type::DynamicType();
 }
 
@@ -674,18 +723,16 @@ RawAbstractType* StaticCallComp::StaticType() const {
 
 
 RawAbstractType* LoadLocalComp::StaticType() const {
-  return local().type().raw();
+  // TODO(regis): Verify that the type of the receiver is properly set.
+  if (FLAG_enable_type_checks) {
+    return local().type().raw();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreLocalComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of local.
-    return local().type().raw();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
@@ -729,46 +776,33 @@ RawAbstractType* InstanceSetterComp::StaticType() const {
 
 
 RawAbstractType* StaticSetterComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of setter
-    // value parameter.
-    return setter_function().ParameterTypeAt(0);
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
 RawAbstractType* LoadInstanceFieldComp::StaticType() const {
-  return field().type();
+  if (FLAG_enable_type_checks) {
+    return field().type();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreInstanceFieldComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return field().type();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
 RawAbstractType* LoadStaticFieldComp::StaticType() const {
-  return field().type();
+  if (FLAG_enable_type_checks) {
+    return field().type();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* StoreStaticFieldComp::StaticType() const {
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return field().type();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
@@ -814,14 +848,7 @@ RawAbstractType* LoadVMFieldComp::StaticType() const {
 
 
 RawAbstractType* StoreVMFieldComp::StaticType() const {
-  ASSERT(!type().IsNull());
-  const AbstractType& assigned_value_type =
-      AbstractType::Handle(value()->StaticType());
-  if (assigned_value_type.IsDynamicType()) {
-    // Static type of assigned value is unknown, return static type of field.
-    return type().raw();
-  }
-  return assigned_value_type.raw();
+  return value()->StaticType();
 }
 
 
@@ -956,7 +983,6 @@ LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
 
 
 void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyValues(instance(), value()));
   Register instance_reg = locs()->in(0).reg();
   Register value_reg = locs()->in(1).reg();
 
@@ -1115,7 +1141,6 @@ void StrictCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
   // The arguments to the stub include the closure.  The arguments
   // descriptor describes the closure's arguments (and so does not include
   // the closure).
@@ -1301,6 +1326,29 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(), try_index(), &label,
                          PcDescriptors::kOther);
   __ Drop(2);  // Discard type arguments and receiver.
+}
+
+
+LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps= 0;
+  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  // TODO(fschneider): Use Any() once it is supported by all code generators.
+  locs->set_in(0, Location::RequiresRegister());
+  return locs;
+}
+
+
+void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  // In SSA mode, we need an explicit push. Nothing to do in non-SSA mode
+  // where PushArgument is handled in FrameRegisterAllocator::AllocateRegisters.
+  // Instead of popping the value it is left alone on the simulated frame
+  // and materialized on the physical stack before the call.
+  // TODO(fschneider): Avoid special-casing for SSA mode here.
+  if (compiler->is_ssa()) {
+    ASSERT(locs()->in(0).IsRegister());
+    __ PushRegister(locs()->in(0).reg());
+  }
 }
 
 

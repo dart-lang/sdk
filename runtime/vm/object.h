@@ -1654,9 +1654,7 @@ class Field : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   bool is_static() const { return raw_ptr()->is_static_; }
   bool is_final() const { return raw_ptr()->is_final_; }
-  // TODO(regis): Implement support for const fields. Until then, current final
-  // fields are considered const.
-  bool is_const() const { return raw_ptr()->is_final_; }
+  bool is_const() const { return raw_ptr()->is_const_; }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value) const;
@@ -1679,6 +1677,7 @@ class Field : public Object {
   static RawField* New(const String& name,
                        bool is_static,
                        bool is_final,
+                       bool is_const,
                        intptr_t token_pos);
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }
@@ -1707,6 +1706,9 @@ class Field : public Object {
   }
   void set_is_final(bool is_final) const {
     raw_ptr()->is_final_ = is_final;
+  }
+  void set_is_const(bool value) const {
+    raw_ptr()->is_const_ = value;
   }
   void set_token_pos(intptr_t token_pos) const {
     raw_ptr()->token_pos_ = token_pos;

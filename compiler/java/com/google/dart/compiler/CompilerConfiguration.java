@@ -74,6 +74,11 @@ public interface CompilerConfiguration {
   LibrarySource getSystemLibraryFor(String importSpec);
 
   /**
+   * Return the system library manager 
+   */
+  public SystemLibraryManager getSystemLibraryManager();
+  
+  /**
    * Return {@link CompilerOptions} instance.
    * @return command line options passed to the compiler.
    */

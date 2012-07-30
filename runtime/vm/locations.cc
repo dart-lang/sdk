@@ -44,7 +44,7 @@ const char* Location::Name() const {
   switch (kind()) {
     case kInvalid: return "?";
     case kRegister: return Assembler::RegisterName(reg());
-    case kSpillSlot: return "S";
+    case kStackSlot: return "S";
     case kUnallocated:
       switch (policy()) {
         case kAny:
@@ -66,8 +66,8 @@ const char* Location::Name() const {
 
 
 void Location::PrintTo(BufferFormatter* f) const {
-  if (kind() == kSpillSlot) {
-    f->Print("S%d", spill_index());
+  if (kind() == kStackSlot) {
+    f->Print("[fp%+d]", stack_index());
   } else {
     f->Print("%s", Name());
   }

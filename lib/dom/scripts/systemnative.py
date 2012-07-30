@@ -549,7 +549,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return
 
     is_custom = 'Custom' in operation.ext_attrs
-    has_optional_arguments = any(_IsArgumentOptionalInWebCore(argument) for argument in operation.arguments)
+    has_optional_arguments = any(self._IsArgumentOptionalInWebCore(operation, argument) for argument in operation.arguments)
     needs_dispatcher = not is_custom and (len(info.operations) > 1 or has_optional_arguments)
 
     if not needs_dispatcher:
@@ -624,14 +624,14 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
     if len(operations) > 1:
       for operation in operations:
         for position, argument in enumerate(operation.arguments):
-          if _IsArgumentOptionalInWebCore(argument):
+          if self._IsArgumentOptionalInWebCore(operation, argument):
             GenerateChecksAndCall(operation, position)
         GenerateChecksAndCall(operation, len(operation.arguments))
       body.Emit('    throw "Incorrect number or type of arguments";\n');
     else:
       operation = operations[0]
       for position, argument in list(enumerate(operation.arguments))[::-1]:
-        if _IsArgumentOptionalInWebCore(argument):
+        if self._IsArgumentOptionalInWebCore(operation, argument):
           check = '%s === _null' % argument_names[position]
           GenerateCall(operation, position, [check])
       GenerateCall(operation, len(operation.arguments), [])
@@ -660,51 +660,39 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       return_type,
       raises_dom_exception):
     ext_attrs = node.ext_attrs
+
     cpp_arguments = []
-
-    requires_v8_scope = False
+    requires_v8_scope = \
+        any((self._TypeInfo(argument.type.id).requires_v8_scope() for argument in arguments))
     runtime_check = None
-    raises_exceptions = False
-    requires_script_execution_context = False
-    requires_dom_window = False
-    requires_stack_info = False
+    raises_exceptions = raises_dom_exception or arguments
 
-    if raises_dom_exception or arguments:
-      raises_exceptions = True
-
-    if ext_attrs.get('CallWith') == 'ScriptArguments|CallStack':
+    requires_stack_info = ext_attrs.get('CallWith') == 'ScriptArguments|CallStack'
+    if requires_stack_info:
       raises_exceptions = True
       requires_v8_scope = True
-      requires_stack_info = True
-      self._cpp_impl_includes.add('"ScriptArguments.h"')
-      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       cpp_arguments = ['scriptArguments', 'scriptCallStack']
       # WebKit uses scriptArguments to reconstruct last argument, so
       # it's not needed and should be just removed.
       arguments = arguments[:-1]
 
-    if ext_attrs.get('CallWith') == 'ScriptExecutionContext':
+    requires_script_execution_context = ext_attrs.get('CallWith') == 'ScriptExecutionContext'
+    if requires_script_execution_context:
       raises_exceptions = True
-      requires_script_execution_context = True
       cpp_arguments = ['context']
+
+    requires_dom_window = 'NamedConstructor' in ext_attrs
+    if requires_dom_window:
+      raises_exceptions = True
+      cpp_arguments = ['document']
 
     if 'ImplementedBy' in ext_attrs:
       assert needs_receiver
       self._cpp_impl_includes.add('"%s.h"' % ext_attrs['ImplementedBy'])
       cpp_arguments.append('receiver')
 
-    if 'NamedConstructor' in ext_attrs:
-      raises_exceptions = True
-      requires_dom_window = True
-      self._cpp_impl_includes.add('"DOMWindow.h"')
-      cpp_arguments = ['document']
-
     if 'Reflect' in ext_attrs:
       cpp_arguments = [self._GenerateWebCoreReflectionAttributeName(node)]
-
-    for argument in arguments:
-      if self._TypeInfo(argument.type.id).requires_v8_scope():
-        requires_v8_scope = True
 
     assert (not (
       'synthesizedV8EnabledPerContext' in ext_attrs and
@@ -772,6 +760,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           '        }\n\n')
 
     if requires_dom_window:
+      self._cpp_impl_includes.add('"DOMWindow.h"')
       body_emitter.Emit(
           '        DOMWindow* domWindow = DartUtilities::domWindowForCurrentIsolate();\n'
           '        if (!domWindow) {\n'
@@ -786,6 +775,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           WEBCORE_CLASS_NAME=self._interface_type_info.native_type())
 
     if requires_stack_info:
+      self._cpp_impl_includes.add('"ScriptArguments.h"')
+      self._cpp_impl_includes.add('"ScriptCallStack.h"')
       body_emitter.Emit(
           '\n'
           '        Dart_Handle customArgument = Dart_GetNativeArgument(args, $INDEX);\n'
@@ -805,6 +796,7 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       cpp_arguments.append(type_info.emit_to_native(
           body_emitter,
           argument,
+          (IsOptional(argument) and not self._IsArgumentOptionalInWebCore(node, argument)) or (argument.ext_attrs.get('Optional') == 'DefaultIsNullString'),
           # TODO(antonm): all IDs should be renamed when database is generated.
           # That will allow to get rid of argument_name argument altogether.
           DartDomNameOfAttribute(argument),
@@ -812,19 +804,6 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           self._interface.id))
 
     body_emitter.Emit('\n')
-
-    # FIXME: rework in IDLs.
-    if node.id in ['addEventListener', 'removeEventListener']:
-      # addEventListener's and removeEventListener's last argument is marked
-      # as optional in idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('false')
-
-    if self._interface.id == 'CSSStyleDeclaration' and node.id == 'setProperty':
-      # CSSStyleDeclaration.setProperty priority parameter is optional in Dart
-      # idl, but is not optional in webcore implementation.
-      if len(arguments) == 2:
-        cpp_arguments.append('String()')
 
     if 'NeedsUserGestureCheck' in ext_attrs:
       cpp_arguments.append('DartUtilities::processingUserGesture');
@@ -904,6 +883,19 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
   def _TypeInfo(self, type_name):
     return self._system._type_registry.TypeInfo(type_name)
 
+  def _IsArgumentOptionalInWebCore(self, operation, argument):
+    if not IsOptional(argument):
+      return False
+    if 'Callback' in argument.ext_attrs:
+      return False
+    if operation.id in ['addEventListener', 'removeEventListener'] and argument.id == 'useCapture':
+      return False
+    # Another option would be to adjust in IDLs, but let's keep it here for now
+    # as it's a single instance.
+    if self._interface.id == 'CSSStyleDeclaration' and operation.id == 'setProperty' and argument.id == 'priority':
+      return False
+    return True
+
 
 def _GenerateCPPIncludes(includes):
   return ''.join(['#include %s\n' % include for include in sorted(includes)])
@@ -919,9 +911,6 @@ def _FindInHierarchy(database, interface, test):
     parent_interface = _FindInHierarchy(database, parent_interface, test)
     if parent_interface:
       return parent_interface
-
-def _IsArgumentOptionalInWebCore(argument):
-  return IsOptional(argument) and not 'Callback' in argument.ext_attrs
 
 def _ToWebKitName(name):
   name = name[0].lower() + name[1:]

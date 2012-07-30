@@ -674,9 +674,9 @@ DART_EXPORT Dart_Handle Dart_NewWeakReferenceSet(Dart_Handle* keys,
         CURRENT_FUNC);
   }
 
-  WeakReference* reference = new WeakReference(keys, num_keys,
-                                               values, num_values);
-  state->DelayWeakReference(reference);
+  WeakReferenceSet* reference_set = new WeakReferenceSet(keys, num_keys,
+                                                         values, num_values);
+  state->DelayWeakReferenceSet(reference_set);
   return Api::Success(isolate);
 }
 
@@ -2899,6 +2899,9 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
   *fixed_param_count = (func.num_fixed_parameters() -
                         func.NumberOfImplicitParameters());
   *opt_param_count = func.num_optional_parameters();
+
+  ASSERT(*fixed_param_count >= 0);
+  ASSERT(*opt_param_count >= 0);
 
   return Api::Success(isolate);
 }

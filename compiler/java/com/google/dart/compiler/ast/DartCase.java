@@ -13,8 +13,8 @@ public class DartCase extends DartSwitchMember {
 
   private DartExpression expr;
 
-  public DartCase(DartExpression expr, DartLabel label, List<DartStatement> statements) {
-    super(label, statements);
+  public DartCase(DartExpression expr, List<DartLabel> labels, List<DartStatement> statements) {
+    super(labels, statements); 
     this.expr = becomeParentOf(expr);
   }
 

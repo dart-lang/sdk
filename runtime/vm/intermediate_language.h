@@ -113,6 +113,7 @@ class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
 class Instruction;
+class PushArgumentInstr;
 class Value;
 
 class Computation : public ZoneAllocated {
@@ -146,7 +147,8 @@ class Computation : public ZoneAllocated {
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual const char* DebugName() const = 0;
 
@@ -459,7 +461,7 @@ class ClosureCallComp : public Computation {
  public:
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
-                  ZoneGrowableArray<Value*>* arguments)
+                  ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
         try_index_(try_index),
         arguments_(arguments) { }
@@ -471,20 +473,23 @@ class ClosureCallComp : public Computation {
   intptr_t try_index() const { return try_index_; }
 
   intptr_t ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
   }
+
+  virtual intptr_t InputCount() const { return 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(ClosureCallComp);
 };
@@ -772,7 +777,8 @@ class StoreLocalComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
   intptr_t context_level() const { return context_level_; }
 
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1235,33 +1241,32 @@ class CreateArrayComp : public TemplateComputation<1> {
 };
 
 
-class CreateClosureComp : public TemplateComputation<2> {
+class CreateClosureComp : public TemplateComputation<0> {
  public:
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
-                    Value* type_arguments,
-                    Value* receiver)
+                    ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node),
-        try_index_(try_index) {
-    ASSERT(type_arguments != NULL);
-    ASSERT(receiver != NULL);
-    inputs_[0] = type_arguments;
-    inputs_[1] = receiver;
-  }
+        try_index_(try_index),
+        arguments_(arguments) { }
 
   DECLARE_COMPUTATION(CreateClosure)
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
-  Value* type_arguments() const { return inputs_[0]; }
-  Value* receiver() const { return inputs_[1]; }
+
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const ClosureNode& ast_node_;
   const intptr_t try_index_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateClosureComp);
 };
@@ -1680,6 +1685,7 @@ FOR_EACH_COMPUTATION(DEFINE_PREDICATE)
   M(Bind)                                                                      \
   M(Parameter)                                                                 \
   M(ParallelMove)                                                              \
+  M(PushArgument)                                                              \
   M(Return)                                                                    \
   M(Throw)                                                                     \
   M(ReThrow)                                                                   \
@@ -1794,14 +1800,16 @@ class Instruction : public ZoneAllocated {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count) {
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count) {
     // Never called for instructions except block entries and branches.
     UNREACHABLE();
   }
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the instruction.
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   // Printing support.
   virtual void PrintTo(BufferFormatter* f) const = 0;
@@ -1812,12 +1820,6 @@ class Instruction : public ZoneAllocated {
   virtual type##Instr* As##type() { return NULL; }
 FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 #undef INSTRUCTION_TYPE_CHECK
-
-  // Static type of the instruction.
-  virtual RawAbstractType* StaticType() const {
-    UNREACHABLE();
-    return AbstractType::null();
-  }
 
   // Returns structure describing location constraints required
   // to emit native code for this instruction.
@@ -1918,7 +1920,8 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
  protected:
   BlockEntryInstr()
@@ -2000,7 +2003,8 @@ class GraphEntryInstr : public BlockEntryInstr {
       : BlockEntryInstr(),
         normal_entry_(normal_entry),
         catch_entries_(),
-        start_env_(NULL) { }
+        start_env_(NULL),
+        spill_slot_count_(0) { }
 
   DECLARE_INSTRUCTION(GraphEntry)
 
@@ -2020,7 +2024,8 @@ class GraphEntryInstr : public BlockEntryInstr {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
   void AddCatchEntry(TargetEntryInstr* entry) { catch_entries_.Add(entry); }
 
@@ -2029,10 +2034,17 @@ class GraphEntryInstr : public BlockEntryInstr {
   Environment* start_env() const { return start_env_; }
   void set_start_env(Environment* env) { start_env_ = env; }
 
+  intptr_t spill_slot_count() const { return spill_slot_count_; }
+  void set_spill_slot_count(intptr_t count) {
+    ASSERT(count >= 0);
+    spill_slot_count_ = count;
+  }
+
  private:
   TargetEntryInstr* normal_entry_;
   GrowableArray<TargetEntryInstr*> catch_entries_;
   Environment* start_env_;
+  intptr_t spill_slot_count_;
 
   DISALLOW_COPY_AND_ASSIGN(GraphEntryInstr);
 };
@@ -2140,6 +2152,9 @@ class Definition : public Instruction {
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
 
+  // Static type of the definition.
+  virtual RawAbstractType* StaticType() const = 0;
+
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
@@ -2175,7 +2190,8 @@ class BindInstr : public Definition {
     return computation()->StaticType();
   }
 
-  virtual void RecordAssignedVars(BitVector* assigned_vars);
+  virtual void RecordAssignedVars(BitVector* assigned_vars,
+                                  intptr_t fixed_parameter_count);
 
   virtual LocationSummary* locs() {
     return computation()->locs();
@@ -2199,6 +2215,9 @@ class PhiInstr : public Definition {
     }
   }
 
+  // Least upper bound of the static types of the inputs.
+  virtual RawAbstractType* StaticType() const;
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
@@ -2214,12 +2233,34 @@ class ParameterInstr : public Definition {
 
   intptr_t index() const { return index_; }
 
+  // Static type of the passed-in parameter.
+  virtual RawAbstractType* StaticType() const;
+
   DECLARE_INSTRUCTION(Parameter)
 
  private:
   const intptr_t index_;
 
   DISALLOW_COPY_AND_ASSIGN(ParameterInstr);
+};
+
+
+class PushArgumentInstr : public InstructionWithInputs {
+ public:
+  explicit PushArgumentInstr(Value* value) : value_(value) { }
+
+  DECLARE_INSTRUCTION(PushArgument)
+
+  Value* value() const { return value_; }
+
+  virtual LocationSummary* MakeLocationSummary() const;
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+ private:
+  Value* value_;
+
+  DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
 
@@ -2385,7 +2426,8 @@ class BranchInstr : public InstructionWithInputs {
       GrowableArray<BlockEntryInstr*>* postorder,
       GrowableArray<intptr_t>* parent,
       GrowableArray<BitVector*>* assigned_vars,
-      intptr_t variable_count);
+      intptr_t variable_count,
+      intptr_t fixed_parameter_count);
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2467,7 +2509,7 @@ class MoveOperands : public ZoneAllocated {
 
 class ParallelMoveInstr : public Instruction {
  public:
-  explicit ParallelMoveInstr() : moves_(4) {
+  ParallelMoveInstr() : moves_(4) {
   }
 
   DECLARE_INSTRUCTION(ParallelMove)
@@ -2500,8 +2542,11 @@ class Environment : public ZoneAllocated {
   // TODO(vegorov): it's absolutely crucial that locations_ backing store
   // is preallocated and never reallocated.  We use pointers into it
   // during register allocation.
-  explicit Environment(const GrowableArray<Value*>& values)
-      : values_(values.length()), locations_(values.length()) {
+  explicit Environment(const GrowableArray<Value*>& values,
+                       intptr_t fixed_parameter_count)
+      : values_(values.length()),
+        locations_(values.length()),
+        fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
   }
 
@@ -2521,11 +2566,17 @@ class Environment : public ZoneAllocated {
     return & locations_[ix];
   }
 
+  intptr_t fixed_parameter_count() const {
+    return fixed_parameter_count_;
+  }
+
   void PrintTo(BufferFormatter* f) const;
 
  private:
   GrowableArray<Value*> values_;
   GrowableArray<Location> locations_;
+  const intptr_t fixed_parameter_count_;
+
   DISALLOW_COPY_AND_ASSIGN(Environment);
 };
 

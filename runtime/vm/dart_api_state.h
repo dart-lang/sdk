@@ -361,17 +361,17 @@ class FinalizablePersistentHandles
 };
 
 
-class WeakReference {
+class WeakReferenceSet {
  public:
-  WeakReference(Dart_Handle* keys, intptr_t keys_length,
-                Dart_Handle* values, intptr_t values_length)
+  WeakReferenceSet(Dart_Handle* keys, intptr_t keys_length,
+                   Dart_Handle* values, intptr_t values_length)
       : next_(NULL),
         keys_(keys), num_keys_(keys_length),
         values_(values), num_values_(values_length) {
   }
-  ~WeakReference() {}
+  ~WeakReferenceSet() {}
 
-  WeakReference* next() const { return next_; }
+  WeakReferenceSet* next() const { return next_; }
 
   intptr_t num_keys() const { return num_keys_; }
   RawObject** get_key(intptr_t i) {
@@ -387,9 +387,9 @@ class WeakReference {
     return reinterpret_cast<RawObject**>(values_[i]);
   }
 
-  static WeakReference* Pop(WeakReference** queue) {
+  static WeakReferenceSet* Pop(WeakReferenceSet** queue) {
     ASSERT(queue != NULL);
-    WeakReference* head = *queue;
+    WeakReferenceSet* head = *queue;
     if (head != NULL) {
       *queue = head->next();
       head->next_ = NULL;
@@ -397,20 +397,20 @@ class WeakReference {
     return head;
   }
 
-  static void Push(WeakReference* reference, WeakReference** queue) {
-    ASSERT(reference != NULL);
+  static void Push(WeakReferenceSet* reference_set, WeakReferenceSet** queue) {
+    ASSERT(reference_set != NULL);
     ASSERT(queue != NULL);
-    reference->next_ = *queue;
-    *queue = reference;
+    reference_set->next_ = *queue;
+    *queue = reference_set;
   }
 
  private:
-  WeakReference* next_;
+  WeakReferenceSet* next_;
   Dart_Handle* keys_;
   intptr_t num_keys_;
   Dart_Handle* values_;
   intptr_t num_values_;
-  DISALLOW_COPY_AND_ASSIGN(WeakReference);
+  DISALLOW_COPY_AND_ASSIGN(WeakReferenceSet);
 };
 
 
@@ -446,7 +446,7 @@ class ApiLocalScope {
 // basis and destroyed when the isolate is shutdown.
 class ApiState {
  public:
-  ApiState() : top_scope_(NULL), delayed_weak_references_(NULL),
+  ApiState() : top_scope_(NULL), delayed_weak_reference_sets_(NULL),
                null_(NULL), true_(NULL), false_(NULL) { }
   ~ApiState() {
     while (top_scope_ != NULL) {
@@ -482,9 +482,11 @@ class ApiState {
     return prologue_weak_persistent_handles_;
   }
 
-  WeakReference* delayed_weak_references() { return delayed_weak_references_; }
-  void set_delayed_weak_references(WeakReference* reference) {
-    delayed_weak_references_ = reference;
+  WeakReferenceSet* delayed_weak_reference_sets() {
+    return delayed_weak_reference_sets_;
+  }
+  void set_delayed_weak_reference_sets(WeakReferenceSet* reference_set) {
+    delayed_weak_reference_sets_ = reference_set;
   }
 
   void UnwindScopes(uword sp) {
@@ -596,8 +598,8 @@ class ApiState {
     return false_;
   }
 
-  void DelayWeakReference(WeakReference* reference) {
-    WeakReference::Push(reference, &delayed_weak_references_);
+  void DelayWeakReferenceSet(WeakReferenceSet* reference_set) {
+    WeakReferenceSet::Push(reference_set, &delayed_weak_reference_sets_);
   }
 
  private:
@@ -605,7 +607,7 @@ class ApiState {
   FinalizablePersistentHandles weak_persistent_handles_;
   FinalizablePersistentHandles prologue_weak_persistent_handles_;
   ApiLocalScope* top_scope_;
-  WeakReference* delayed_weak_references_;
+  WeakReferenceSet* delayed_weak_reference_sets_;
 
   // Persistent handles to important objects.
   PersistentHandle* null_;

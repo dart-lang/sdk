@@ -498,6 +498,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
   field.set_token_pos(reader->ReadIntptrValue());
   field.set_is_static(reader->Read<bool>());
   field.set_is_final(reader->Read<bool>());
+  field.set_is_const(reader->Read<bool>());
   field.set_has_initializer(reader->Read<bool>());
 
   // Set all the object fields.
@@ -529,6 +530,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->token_pos_);
   writer->Write<bool>(ptr()->is_static_);
   writer->Write<bool>(ptr()->is_final_);
+  writer->Write<bool>(ptr()->is_const_);
   writer->Write<bool>(ptr()->has_initializer_);
 
   // Write out all the object pointer fields.

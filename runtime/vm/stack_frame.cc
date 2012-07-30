@@ -170,6 +170,11 @@ StackFrameIterator::StackFrameIterator(bool validate)
   SetupLastExitFrameData();  // Setup data for last exit frame.
 }
 
+StackFrameIterator::StackFrameIterator(uword last_fp, bool validate)
+    : validate_(validate), entry_(), exit_(), current_frame_(NULL) {
+  frames_.fp_ = last_fp;
+}
+
 
 StackFrame* StackFrameIterator::NextFrame() {
   // When we are at the start of iteration after having created an

@@ -63,7 +63,8 @@ class FlowGraphBuilder: public ValueObject {
   void Rename(intptr_t var_count);
   void RenameRecursive(BlockEntryInstr* block_entry,
                        GrowableArray<Value*>* env,
-                       intptr_t var_count);
+                       intptr_t var_count,
+                       intptr_t param_count);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                   const GrowableArray<BitVector*>& assigned_vars,
@@ -148,6 +149,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   // Helpers for translating parts of the AST.
   void TranslateArgumentList(const ArgumentListNode& node,
                              ZoneGrowableArray<Value*>* values);
+  void BuildPushArguments(const ArgumentListNode& node,
+                          ZoneGrowableArray<PushArgumentInstr*>* values);
 
   // Creates an instantiated type argument vector used in preparation of an
   // allocation call.

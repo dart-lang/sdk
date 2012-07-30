@@ -391,9 +391,11 @@ class Parser : ValueObject {
   // Add the inlined finally block to the specified node.
   void AddFinallyBlockToNode(AstNode* node, InlinedFinallyNode* finally_node);
   AstNode* ParseTryStatement(String* label_name);
-  RawAbstractType* ParseFinalVarOrType(
+  RawAbstractType* ParseConstFinalVarOrType(
       ClassFinalizer::FinalizationKind finalization);
-  AstNode* ParseVariableDeclaration(const AbstractType& type, bool is_const);
+  AstNode* ParseVariableDeclaration(const AbstractType& type,
+                                    bool is_final,
+                                    bool is_const);
   AstNode* ParseVariableDeclarationList();
   AstNode* ParseFunctionStatement(bool is_literal);
   AstNode* ParseStatement();

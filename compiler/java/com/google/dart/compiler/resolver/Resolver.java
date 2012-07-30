@@ -68,6 +68,7 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
+import com.google.dart.compiler.ast.NodeList;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
@@ -964,8 +965,8 @@ public class Resolver {
     }
 
     private void recordSwitchMamberLabel(DartSwitchMember x) {
-      DartLabel label = x.getLabel();
-      if (label != null) {
+      List<DartLabel> labels = x.getLabels();
+      for (DartLabel label : labels) {
         LabelElement labelElement =  Elements.switchMemberLabelElement(label, label.getName(),
             innermostFunction);
         recordElement(label.getLabel(), labelElement);

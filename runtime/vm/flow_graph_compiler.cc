@@ -141,8 +141,12 @@ void FlowGraphCompiler::Bailout(const char* reason) {
 
 
 intptr_t FlowGraphCompiler::StackSize() const {
-  return parsed_function_.stack_local_count() +
-      parsed_function_.copied_parameter_count();
+  if (is_ssa_) {
+    return block_order_[0]->AsGraphEntry()->spill_slot_count();
+  } else {
+    return parsed_function_.stack_local_count() +
+        parsed_function_.copied_parameter_count();
+  }
 }
 
 
@@ -599,7 +603,9 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
       locs->set_in(i, Location::RegisterLocation(reg));
     }
 
-    Pop(reg, instr->InputAt(i));
+    // Inputs are consumed from the simulated frame. In case of a call argument
+    // we leave it until the call instruction.
+    if (!instr->IsPushArgument()) Pop(reg, instr->InputAt(i));
   }
 
   // If this instruction is call spill everything that was not consumed by

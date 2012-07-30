@@ -1332,9 +1332,8 @@ DEFINE_RUNTIME_ENTRY(OptimizeInvokedFunction, 1) {
     return;
   }
   if ((FLAG_optimization_filter != NULL) &&
-      (strncmp(function.ToFullyQualifiedCString(),
-               FLAG_optimization_filter,
-               strlen(FLAG_optimization_filter)) != 0)) {
+      (strstr(function.ToFullyQualifiedCString(),
+              FLAG_optimization_filter) == NULL)) {
     function.set_usage_counter(kLowInvocationCount);
     return;
   }

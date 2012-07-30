@@ -836,7 +836,7 @@ public class SyntaxTest extends AbstractParserTest {
             "method() {",
             "  switch(1) {",
             "  A: case 0:",
-            "  B: case 1:",
+            "  B: C: case 1:",
             "    break;",
             "  }",
             "}"));

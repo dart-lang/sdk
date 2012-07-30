@@ -483,22 +483,21 @@ class IDLTypeInfo(object):
   def requires_v8_scope(self):
     return self._data.requires_v8_scope
 
-  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
     if 'Callback' in idl_node.ext_attrs:
-      if set(['Optional', 'Callback']).issubset(idl_node.ext_attrs.keys()):
-        flag = 'DartUtilities::ConvertNullToDefaultValue'
-      else:
-        flag = 'DartUtilities::ConvertNone'
+      function_name = 'create'
+      if accept_null:
+        function_name += 'WithNullCheck'
       emitter.Emit(
         '\n'
-        '        RefPtr<$TYPE> $NAME = Dart$IDL_TYPE::create($HANDLE, $FLAG, exception);\n'
+        '        RefPtr<$TYPE> $NAME = Dart$IDL_TYPE::$FUNCTION_NAME($HANDLE, exception);\n'
         '        if (exception)\n'
         '            goto fail;\n',
         TYPE=self.native_type(),
         NAME=name,
+        FUNCTION_NAME=function_name,
         IDL_TYPE=self.idl_type(),
-        HANDLE=handle,
-        FLAG=flag)
+        HANDLE=handle)
       return name
 
     argument = name
@@ -596,7 +595,8 @@ class DOMStringArrayTypeInfo(SequenceIDLTypeInfo):
   def __init__(self, data, item_info):
     super(DOMStringArrayTypeInfo, self).__init__('DOMString[]', data, item_info)
 
-  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
+    assert not accept_null
     emitter.Emit(
         '\n'
         '        RefPtr<DOMStringList> $NAME = DartDOMStringList::toNative($HANDLE, exception);\n'
@@ -614,9 +614,9 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
   def __init__(self, idl_type, data):
     super(PrimitiveIDLTypeInfo, self).__init__(idl_type, data)
 
-  def emit_to_native(self, emitter, idl_node, name, handle, interface_name):
+  def emit_to_native(self, emitter, idl_node, accept_null, name, handle, interface_name):
     function_name = 'dartTo%s' % self._capitalized_native_type()
-    if idl_node.ext_attrs.get('Optional') == 'DefaultIsNullString':
+    if accept_null:
       function_name += 'WithNullCheck'
     type = self.native_type()
     if type == 'SerializedScriptValue':
@@ -646,13 +646,12 @@ class PrimitiveIDLTypeInfo(IDLTypeInfo):
     return []
 
   def to_dart_conversion(self, value, interface_name=None, attributes=None):
-    conversion_arguments = [value]
-    if attributes and 'TreatReturnedNullStringAs' in attributes:
-      conversion_arguments.append('DartUtilities::ConvertNullToDefaultValue')
     function_name = self._capitalized_native_type()
     function_name = function_name[0].lower() + function_name[1:]
     function_name = 'DartUtilities::%sToDart' % function_name
-    return '%s(%s)' % (function_name, ', '.join(conversion_arguments))
+    if attributes and 'TreatReturnedNullStringAs' in attributes:
+      function_name += 'WithNullCheck'
+    return '%s(%s)' % (function_name, value)
 
   def webcore_getter_name(self):
     return self._data.webcore_getter_name

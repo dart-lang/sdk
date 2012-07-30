@@ -60,10 +60,16 @@ class DartBackend extends Backend {
      * Tells whether we should output given element. Corelib classes like
      * Object should not be in the resulting code.
      */
-    bool shouldOutput(Element element) {
-      return element.kind !== ElementKind.VOID
-          && element.getLibrary() !== compiler.coreLibrary;
-    }
+    final LIBS_TO_IGNORE = [
+      compiler.jsHelperLibrary,
+      compiler.interceptorsLibrary,
+    ];
+    compiler.libraries.forEach((uri, lib) {
+      if (uri.startsWith('dart:')) LIBS_TO_IGNORE.add(lib);
+    });
+    bool shouldOutput(Element element) =>
+      element.kind !== ElementKind.VOID &&
+      LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1;
 
     try {
       Emitter emitter = new Emitter(compiler);

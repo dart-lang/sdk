@@ -152,8 +152,8 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i == 0) f->Print(", ");
-    ArgumentAt(i)->PrintTo(f);
+    if (i > 0) f->Print(", ");
+    f->Print("cid%d", ArgumentAt(i)->cid());
   }
 }
 
@@ -295,10 +295,10 @@ void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function().ToCString());
-  f->Print(", ");
-  type_arguments()->PrintTo(f);
-  f->Print(", ");
-  receiver()->PrintTo(f);
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    f->Print("cid%d", ArgumentAt(i)->cid());
+  }
 }
 
 
@@ -419,6 +419,12 @@ void BindInstr::PrintTo(BufferFormatter* f) const {
     f->Print("    t%d <- ", temp_index());
   }
   computation()->PrintTo(f);
+}
+
+
+void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
+  f->Print("    %s:%d ", DebugName(), cid());
+  value()->PrintTo(f);
 }
 
 
@@ -677,6 +683,12 @@ void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
     f->Print("t%d ", temp_index());
   }
   computation()->PrintTo(f);
+}
+
+
+void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
+  f->Print("_ %s:%d ", DebugName(), cid());
+  value()->PrintTo(f);
 }
 
 
