@@ -256,15 +256,15 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'globalfoo(){}'
-      '_globalfoo(){}'
-      'main(){_globalfoo(); A.field; A.staticfoo(); new A(); '
-          'new A.fromFoo(); new A().foo(); globalfoo(); _A.field; '
-          '_A.staticfoo(); new _A(); new _A.fromFoo(); new _A().foo();}'
-      'class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}'
-          'static final field=5;}'
-      'class _A{_A(){}_A.fromFoo(){}foo(){}static staticfoo(){}'
-          'static final field=5;}';
+  var expectedResult = @'globalfoo(){}'
+      @'$globalfoo(){}'
+      @'main(){$globalfoo(); A.field; A.staticfoo(); new A(); '
+          @'new A.fromFoo(); new A().foo(); globalfoo(); $A.field; '
+          @'$A.staticfoo(); new $A(); new $A.fromFoo(); new $A().foo();}'
+      @'class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}'
+          @'static final field=5;}'
+      @'class $A{$A(){}$A.fromFoo(){}foo(){}static staticfoo(){}'
+          @'static final field=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -364,11 +364,11 @@ main() {
   mylib.topfoo();
 }
 ''';
-  var expectedResult = 'topfoo(){}_topfoo(){var x=5;}A getA()=> null;'
-      'main(){var a=new A(); a.foo(); var b=new _A.fromFoo(); b.foo(); '
-          'var GREATVAR=b.myliba; b.mylist; a=getA(); _topfoo(); topfoo();}'
-      'class _A{_A.fromFoo(){}List<_A> mylist;num foo(){}A myliba;}'
-      'class A{foo(){}}';
+  var expectedResult = @'topfoo(){}$topfoo(){var x=5;}A getA()=> null;'
+      @'main(){var a=new A(); a.foo(); var b=new $A.fromFoo(); b.foo(); '
+          @'var GREATVAR=b.myliba; b.mylist; a=getA(); $topfoo(); topfoo();}'
+      @'class $A{$A.fromFoo(){}List<$A> mylist;num foo(){}A myliba;}'
+      @'class A{foo(){}}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
