@@ -181,6 +181,12 @@ public class NegativeParserTest extends CompilerTestCase {
         errEx(ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED, 1, 18, 5));
   }
 
+  public void test_missingEndOfOptionalParameters() {
+    parseExpectErrors(
+        "class A {void m(var p1, [var p2 = const []) {} }",
+        errEx(ParserErrorCode.MISSING_NAMED_PARAMETER_END, 1, 43, 1));
+  }
+
   public void test_namedParameterValue_inOperator() {
     parseExpectErrors(
         "class A { operator []=(int a, [int b]); }",

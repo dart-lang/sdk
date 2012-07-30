@@ -1744,6 +1744,9 @@ public class DartParser extends CompletionHooksParserBase {
       // Ensure termination if token is anything other than COMMA.
       // Must keep Token.COMMA in sync with @Terminals above
       if (!optional(Token.COMMA)) {
+        if (isNamed && !optional(Token.RBRACK)) {
+          reportErrorWithoutAdvancing(ParserErrorCode.MISSING_NAMED_PARAMETER_END);
+        }
         // Must keep Token.RPAREN in sync with @Terminals above
         expectCloseParen();
         done = true;

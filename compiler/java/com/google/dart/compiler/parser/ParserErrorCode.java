@@ -90,6 +90,7 @@ public enum ParserErrorCode implements ErrorCode {
   LABEL_NOT_FOLLOWED_BY_CASE_OR_DEFAULT("Label not followed by 'case', 'default', or statement"),
   LOCAL_CANNOT_BE_STATIC("Local function cannot be static"),
   MISSING_FUNCTION_NAME(ErrorSeverity.WARNING, "a function name is required for a declaration"),
+  MISSING_NAMED_PARAMETER_END("Expected ']' to close the list of named parameters"),
   NAMED_PARAMETER_NOT_ALLOWED("Named parameter is not allowed for operator or setter method"),
   NO_SPACE_AFTER_PLUS("Cannot have space between plus and numeric literal"),
   NO_SOUP_FOR_YOU("Too many errors"),
