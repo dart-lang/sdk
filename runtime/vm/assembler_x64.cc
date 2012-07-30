@@ -1674,33 +1674,38 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
-void Assembler::PreserveCallerSavedRegisters() {
-  // Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
-  pushq(RAX);
-  pushq(RCX);
-  pushq(RDX);
-  pushq(RSI);
-  pushq(RDI);
-  pushq(R8);
-  pushq(R9);
-  pushq(R10);
-  pushq(R11);
-  // TODO(srdjan): Add XMM registers once they are used by the compiler.
+// TODO(srdjan): Add XMM registers once they are used by the compiler.
+// Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
+static const intptr_t kNumberOfVolatileCpuRegisters = 9;
+static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
+    RAX, RCX, RDX, RSI, RDI, R8, R9, R10, R11
+};
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  enter(Immediate(0));
+
+  // Preserve volatile registers.
+  for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
+    pushq(volatile_cpu_registers[i]);
+  }
+
+  ReserveAlignedFrameSpace(frame_space);
 }
 
 
-void Assembler::RestoreCallerSavedRegisters() {
-  // Based on http://x86-64.org/documentation/abi.pdf Fig. 3.4
-  // TODO(srdjan): Add XMM registers once they are used by the compiler.
-  popq(R11);
-  popq(R10);
-  popq(R9);
-  popq(R8);
-  popq(RDI);
-  popq(RSI);
-  popq(RDX);
-  popq(RCX);
-  popq(RAX);
+void Assembler::LeaveCallRuntimeFrame() {
+  // RSP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  leaq(RSP, Address(RBP, -kNumberOfVolatileCpuRegisters * kWordSize));
+
+  // Restore volatile registers.
+  for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
+    popq(volatile_cpu_registers[i]);
+  }
+
+  leave();
 }
 
 

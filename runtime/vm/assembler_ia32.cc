@@ -1525,17 +1525,37 @@ void Assembler::ReserveAlignedFrameSpace(intptr_t frame_space) {
 }
 
 
-void Assembler::PreserveCallerSavedRegisters() {
-  pushl(EAX);
-  pushl(ECX);
-  pushl(EDX);
+// TODO(srdjan): Add XMM registers once they are used by the compiler.
+static const intptr_t kNumberOfVolatileCpuRegisters = 3;
+static const Register volatile_cpu_registers[kNumberOfVolatileCpuRegisters] = {
+    EAX, ECX, EDX
+};
+
+
+void Assembler::EnterCallRuntimeFrame(intptr_t frame_space) {
+  enter(Immediate(0));
+
+  // Preserve volatile registers.
+  for (intptr_t i = 0; i < kNumberOfVolatileCpuRegisters; i++) {
+    pushl(volatile_cpu_registers[i]);
+  }
+
+  ReserveAlignedFrameSpace(frame_space);
 }
 
 
-void Assembler::RestoreCallerSavedRegisters() {
-  popl(EDX);
-  popl(ECX);
-  popl(EAX);
+void Assembler::LeaveCallRuntimeFrame() {
+  // ESP might have been modified to reserve space for arguments
+  // and ensure proper alignment of the stack frame.
+  // We need to restore it before restoring registers.
+  leal(ESP, Address(EBP, -kNumberOfVolatileCpuRegisters * kWordSize));
+
+  // Restore volatile registers.
+  for (intptr_t i = kNumberOfVolatileCpuRegisters - 1; i >= 0; i--) {
+    popl(volatile_cpu_registers[i]);
+  }
+
+  leave();
 }
 
 

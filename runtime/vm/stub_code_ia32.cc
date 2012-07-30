@@ -100,16 +100,10 @@ END_LEAF_RUNTIME_ENTRY
 //   EAX : stop message (const char*).
 // Must preserve all registers, except EAX.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ enter(Immediate(0));
-  __ PreserveCallerSavedRegisters();
-
-  // Call the runtime leaf function.
-  __ ReserveAlignedFrameSpace(1 * kWordSize);
+  __ EnterCallRuntimeFrame(1 * kWordSize);
   __ movl(Address(ESP, 0), EAX);
   __ CallRuntime(kPrintStopMessageRuntimeEntry);
-
-  __ RestoreCallerSavedRegisters();
-  __ leave();
+  __ LeaveCallRuntimeFrame();
   __ ret();
 }
 
@@ -1109,15 +1103,13 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
-  __ enter(Immediate(0));
-  __ PreserveCallerSavedRegisters();
+
+  __ EnterCallRuntimeFrame(1 * kWordSize);
   __ movl(EAX, FieldAddress(CTX, Context::isolate_offset()));
-  __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ movl(Address(ESP, 0), EAX);  // Push the isolate as the only argument.
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
   // Restore callee-saved registers, tear down frame.
-  __ RestoreCallerSavedRegisters();
-  __ leave();
+  __ LeaveCallRuntimeFrame();
   __ ret();
 }
 
