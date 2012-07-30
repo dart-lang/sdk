@@ -85,7 +85,7 @@ namespace dart {
   V(MathNatives_asin, 1)                                                       \
   V(MathNatives_acos, 1)                                                       \
   V(MathNatives_atan, 1)                                                       \
-  V(MathNatives_2atan, 2)                                                      \
+  V(MathNatives_atan2, 2)                                                      \
   V(MathNatives_exp, 1)                                                        \
   V(MathNatives_log, 1)                                                        \
   V(MathNatives_random, 0)                                                     \

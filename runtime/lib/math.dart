@@ -32,7 +32,7 @@ class MathNatives {
   static double _acos(double value) native "MathNatives_acos";
   static double _asin(double value) native "MathNatives_asin";
   static double _atan(double value) native "MathNatives_atan";
-  static double _atan2(double a, double b) native "MathNatives_2atan";
+  static double _atan2(double a, double b) native "MathNatives_atan2";
   static double _exp(double value) native "MathNatives_exp";
   static double _log(double value) native "MathNatives_log";
   static int _parseInt(String str) native "MathNatives_parseInt";
