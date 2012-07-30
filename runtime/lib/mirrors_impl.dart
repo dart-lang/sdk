@@ -268,15 +268,7 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
     // Walk the arguments and make sure they are legal.
     for (int i = 0; i < positionalArguments.length; i++) {
       var arg = positionalArguments[i];
-      if (arg is Mirror) {
-        if (arg is! InstanceMirror) {
-          throw new MirrorException(
-              'positional argument $i ($arg) was not an InstanceMirror');
-        }
-      } else if (!isSimpleValue(arg)) {
-        throw new MirrorException(
-            'positional argument $i ($arg) was not a simple value');
-      }
+      _LocalObjectMirrorImpl._validateArgument(i, arg);
     }
     Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
     try {
@@ -393,6 +385,30 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   String toString() {
     return "InterfaceMirror on '$simpleName'";
   }
+
+  Future<InstanceMirror> newInstance(String constructorName,
+                                List positionalArguments,
+                                [Map<String,Dynamic> namedArguments]) {
+    if (namedArguments !== null) {
+      throw new NotImplementedException('named arguments not implemented');
+    }
+    // Walk the arguments and make sure they are legal.
+    for (int i = 0; i < positionalArguments.length; i++) {
+      var arg = positionalArguments[i];
+      _LocalObjectMirrorImpl._validateArgument(i, arg);
+    }
+    Completer<InstanceMirror> completer = new Completer<InstanceMirror>();
+    try {
+      completer.complete(
+          _invokeConstructor(this, constructorName, positionalArguments));
+    } catch (var exception) {
+      completer.completeException(exception);
+    }
+    return completer.future;
+  }
+
+  static _invokeConstructor(ref, constructorName, positionalArguments)
+      native 'LocalInterfaceMirrorImpl_invokeConstructor';
 }
 
 class _LazyLibraryMirror {

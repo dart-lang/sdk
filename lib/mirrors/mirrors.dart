@@ -266,6 +266,15 @@ interface InterfaceMirror extends TypeMirror, ObjectMirror {
    * declarations in this library.
    */
   Map<String, VariableMirror> variables();
+
+  /**
+   * Invokes the named constructor and returns a mirror on the result.
+   *
+   * TODO(turnidge): Properly document.
+   */
+  Future<InstanceMirror> newInstance(String constructorName,
+                                List<Object> positionalArguments,
+                                [Map<String,Object> namedArguments]);
 }
 
 /**

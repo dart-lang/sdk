@@ -906,6 +906,36 @@ void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
 }
 
 
+void NATIVE_ENTRY_FUNCTION(LocalInterfaceMirrorImpl_invokeConstructor)(
+    Dart_NativeArguments args) {
+  Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
+  Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);
+  Dart_Handle wrapped_args = Dart_GetNativeArgument(args, 2);
+
+  Dart_Handle klass = UnwrapMirror(klass_mirror);
+  GrowableArray<Dart_Handle> invoke_args;
+  Dart_Handle result = UnwrapArgList(wrapped_args, &invoke_args);
+  if (Dart_IsError(result)) {
+    Dart_PropagateError(result);
+  }
+  result = Dart_New(klass,
+                    constructor_name,
+                    invoke_args.length(),
+                    invoke_args.data());
+  if (Dart_IsError(result)) {
+    // Instead of propagating the error from an invoke directly, we
+    // provide reflective access to the error.
+    Dart_PropagateError(CreateMirroredError(result));
+  }
+
+  Dart_Handle wrapped_result = CreateInstanceMirror(result);
+  if (Dart_IsError(wrapped_result)) {
+    Dart_PropagateError(wrapped_result);
+  }
+  Dart_SetReturnValue(args, wrapped_result);
+}
+
+
 void HandleMirrorsMessage(Isolate* isolate,
                           Dart_Port reply_port,
                           const Instance& message) {
