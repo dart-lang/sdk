@@ -77,25 +77,30 @@ FOR_EACH_INSTRUCTION(DEFINE_ACCEPT)
 #undef DEFINE_ACCEPT
 
 
-void ForwardInstructionIterator::RemoveCurrentFromGraph() {
-  ASSERT(!current_->IsBlockEntry());
-  ASSERT(!current_->IsBranch());
-  ASSERT(!current_->IsThrow());
-  ASSERT(!current_->IsReturn());
-  ASSERT(!current_->IsReThrow());
-  ASSERT(current_->previous() != NULL);
-  ASSERT(current_ != block_entry_->last_instruction());
-  Instruction* prev = current_->previous();
-  Instruction* next = current_->next();
-  ASSERT(next != NULL);
-  ASSERT(!next->IsBlockEntry());
-  prev->set_next(next);
-  next->set_previous(prev);
+Instruction* Instruction::RemoveFromGraph(bool return_previous) {
+  ASSERT(!IsBlockEntry());
+  ASSERT(!IsBranch());
+  ASSERT(!IsThrow());
+  ASSERT(!IsReturn());
+  ASSERT(!IsReThrow());
+  ASSERT(!IsGoto());
+  ASSERT(previous() != NULL);
+  Instruction* prev_instr = previous();
+  Instruction* next_instr = next();
+  ASSERT(next_instr != NULL);
+  ASSERT(!next_instr->IsBlockEntry());
+  prev_instr->set_next(next_instr);
+  next_instr->set_previous(prev_instr);
   // Reset successor and previous instruction to indicate
   // that the instruction is removed from the graph.
-  current_->set_previous(NULL);
-  current_->set_next(NULL);
-  current_ = prev;
+  set_previous(NULL);
+  set_next(NULL);
+  return return_previous ? prev_instr : next_instr;
+}
+
+
+void ForwardInstructionIterator::RemoveCurrentFromGraph() {
+  current_ = current_->RemoveFromGraph(true);  // Set current_ to previous.
 }
 
 
@@ -108,11 +113,6 @@ void FlowGraphVisitor::VisitBlocks() {
       it.Current()->Accept(this);
     }
   }
-}
-
-
-intptr_t InstanceCallComp::InputCount() const {
-  return ArgumentCount();
 }
 
 
@@ -1160,7 +1160,6 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(VerifyCallComputation(this));
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
                                  cid(),
                                  token_pos(),
@@ -1172,11 +1171,6 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  ArgumentCount(),
                                  argument_names(),
                                  checked_argument_count());
-}
-
-
-bool InstanceCallComp::VerifyComputation() {
-  return VerifyCallComputation(this);
 }
 
 

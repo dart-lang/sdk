@@ -142,6 +142,10 @@ class Computation : public ZoneAllocated {
   virtual Value* InputAt(intptr_t i) const = 0;
   virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
+  // Call computations override this function and return the
+  // number of pushed arguments.
+  virtual intptr_t ArgumentCount() const = 0;
+
   // Static type of the computation.
   virtual RawAbstractType* StaticType() const = 0;
 
@@ -304,6 +308,7 @@ class Value : public TemplateComputation<0> {
   virtual ComputationType computation_type() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
+  virtual intptr_t ArgumentCount() const { return 0; }                         \
   virtual const char* DebugName() const { return #ShortName; }                 \
   virtual RawAbstractType* StaticType() const;                                 \
   virtual LocationSummary* MakeLocationSummary() const;                        \
@@ -313,6 +318,24 @@ class Value : public TemplateComputation<0> {
 #define DECLARE_VALUE(ShortName)                                               \
   DECLARE_COMPUTATION(ShortName)                                               \
   virtual void PrintTo(BufferFormatter* f) const;
+
+
+// Function defined in all call computation classes.
+#define DECLARE_CALL_COMPUTATION(ShortName)                                    \
+  virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr);            \
+  virtual ComputationType computation_type() const {                           \
+    return Computation::k##ShortName;                                          \
+  }                                                                            \
+  virtual intptr_t InputCount() const { return 0; }                            \
+  virtual Value* InputAt(intptr_t i) const {                                   \
+    UNREACHABLE();                                                             \
+    return NULL;                                                               \
+  }                                                                            \
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }         \
+  virtual const char* DebugName() const { return #ShortName; }                 \
+  virtual RawAbstractType* StaticType() const;                                 \
+  virtual LocationSummary* MakeLocationSummary() const;                        \
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
 
 class Definition;
@@ -466,7 +489,7 @@ class ClosureCallComp : public Computation {
         try_index_(try_index),
         arguments_(arguments) { }
 
-  DECLARE_COMPUTATION(ClosureCall)
+  DECLARE_CALL_COMPUTATION(ClosureCall)
 
   const Array& argument_names() const { return ast_node_.arguments()->names(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
@@ -476,13 +499,6 @@ class ClosureCallComp : public Computation {
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
-
-  virtual intptr_t InputCount() const { return 0; }
-  virtual Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -501,7 +517,7 @@ class InstanceCallComp : public Computation {
                    intptr_t try_index,
                    const String& function_name,
                    Token::Kind token_kind,
-                   ZoneGrowableArray<Value*>* arguments,
+                   ZoneGrowableArray<PushArgumentInstr*>* arguments,
                    const Array& argument_names,
                    intptr_t checked_argument_count)
       : token_pos_(token_pos),
@@ -520,33 +536,27 @@ class InstanceCallComp : public Computation {
            token_kind == Token::kILLEGAL);
   }
 
-  DECLARE_COMPUTATION(InstanceCall)
+  DECLARE_CALL_COMPUTATION(InstanceCall)
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
   intptr_t ArgumentCount() const { return arguments_->length(); }
-  Value* ArgumentAt(intptr_t index) const { return (*arguments_)[index]; }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
   const Array& argument_names() const { return argument_names_; }
   intptr_t checked_argument_count() const { return checked_argument_count_; }
 
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return ArgumentAt(i); }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
-  }
-
   virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  bool VerifyComputation();
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
   const String& function_name_;
   const Token::Kind token_kind_;  // Binary op, unary op, kGET or kILLEGAL.
-  ZoneGrowableArray<Value*>* const arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
   const Array& argument_names_;
   const intptr_t checked_argument_count_;
 
@@ -563,13 +573,12 @@ class PolymorphicInstanceCallComp : public Computation {
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
-  virtual intptr_t InputCount() const { return instance_call()->InputCount(); }
+  virtual intptr_t InputCount() const { return 0; }
   virtual Value* InputAt(intptr_t i) const {
-    return instance_call()->ArgumentAt(i);
+    UNREACHABLE();
+    return NULL;
   }
-  virtual void SetInputAt(intptr_t index, Value* value) {
-    instance_call()->SetInputAt(index, value);
-  }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -706,7 +715,7 @@ class StaticCallComp : public Computation {
     ASSERT(argument_names.IsZoneHandle());
   }
 
-  DECLARE_COMPUTATION(StaticCall)
+  DECLARE_CALL_COMPUTATION(StaticCall)
 
   // Accessors forwarded to the AST node.
   const Function& function() const { return function_; }
@@ -721,13 +730,6 @@ class StaticCallComp : public Computation {
 
   MethodRecognizer::Kind recognized() const { return recognized_; }
   void set_recognized(MethodRecognizer::Kind kind) { recognized_ = kind; }
-
-  virtual intptr_t InputCount() const { return 0; }
-  virtual Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1244,7 +1246,7 @@ class CreateArrayComp : public TemplateComputation<1> {
 };
 
 
-class CreateClosureComp : public TemplateComputation<0> {
+class CreateClosureComp : public Computation {
  public:
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
@@ -1253,7 +1255,7 @@ class CreateClosureComp : public TemplateComputation<0> {
         try_index_(try_index),
         arguments_(arguments) { }
 
-  DECLARE_COMPUTATION(CreateClosure)
+  DECLARE_CALL_COMPUTATION(CreateClosure)
 
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
@@ -1753,6 +1755,10 @@ class Instruction : public ZoneAllocated {
   virtual Value* InputAt(intptr_t i) const = 0;
   virtual void SetInputAt(intptr_t i, Value* value) = 0;
 
+  // Call instructions override this function and return the
+  // number of pushed arguments.
+  virtual intptr_t ArgumentCount() const = 0;
+
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
 
@@ -1775,6 +1781,9 @@ class Instruction : public ZoneAllocated {
     // condition should be handled in the graph builder
     next_ = instr;
   }
+
+  // Removed this instruction from the graph.
+  Instruction* RemoveFromGraph(bool return_previous = true);
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
@@ -1860,6 +1869,8 @@ class InstructionWithInputs : public Instruction {
  public:
   InstructionWithInputs() : locs_(NULL) { }
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
       locs_ = MakeLocationSummary();
@@ -1925,6 +1936,8 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count,
       intptr_t fixed_parameter_count);
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
  protected:
   BlockEntryInstr()
@@ -2184,6 +2197,10 @@ class BindInstr : public Definition {
 
   DECLARE_INSTRUCTION(Bind)
 
+  virtual intptr_t ArgumentCount() const {
+    return computation()->ArgumentCount();
+  }
+
   Computation* computation() const { return computation_; }
   void set_computation(Computation* value) { computation_ = value; }
   bool is_used() const { return is_used_; }
@@ -2221,6 +2238,8 @@ class PhiInstr : public Definition {
   // Least upper bound of the static types of the inputs.
   virtual RawAbstractType* StaticType() const;
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
@@ -2238,6 +2257,8 @@ class ParameterInstr : public Definition {
 
   // Static type of the passed-in parameter.
   virtual RawAbstractType* StaticType() const;
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   DECLARE_INSTRUCTION(Parameter)
 
@@ -2516,6 +2537,8 @@ class ParallelMoveInstr : public Instruction {
   }
 
   DECLARE_INSTRUCTION(ParallelMove)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   MoveOperands* AddMove(Location dest, Location src) {
     MoveOperands* move = new MoveOperands(dest, src);

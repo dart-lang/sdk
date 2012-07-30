@@ -559,12 +559,17 @@ void EffectGraphVisitor::VisitBinaryOpNode(BinaryOpNode* node) {
   ValueGraphVisitor for_left_value(owner(), temp_index());
   node->left()->Visit(&for_left_value);
   Append(for_left_value);
+  PushArgumentInstr* push_left = PushArgument(for_left_value.value());
+
   ValueGraphVisitor for_right_value(owner(), temp_index());
   node->right()->Visit(&for_right_value);
   Append(for_right_value);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(2);
-  arguments->Add(for_left_value.value());
-  arguments->Add(for_right_value.value());
+  PushArgumentInstr* push_right = PushArgument(for_right_value.value());
+
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  arguments->Add(push_left);
+  arguments->Add(push_right);
   const String& name = String::ZoneHandle(Symbols::New(node->Name()));
   InstanceCallComp* call = new InstanceCallComp(node->token_pos(),
                                                 owner()->try_index(),
@@ -908,11 +913,12 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->operand()->Visit(&for_value);
   Append(for_value);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
-  arguments->Add(for_value.value());
+  PushArgumentInstr* push_value = PushArgument(for_value.value());
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  arguments->Add(push_value);
   Token::Kind token_kind =
       (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
-
   const String& name =
       String::ZoneHandle(Symbols::New(Token::Str(token_kind)));
   InstanceCallComp* call = new InstanceCallComp(
@@ -1426,20 +1432,20 @@ void EffectGraphVisitor::BuildPushArguments(
 
 
 void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
-  ArgumentListNode* arguments = node->arguments();
-  int length = arguments->length();
-  ZoneGrowableArray<Value*>* values = new ZoneGrowableArray<Value*>(length + 1);
-
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  values->Add(for_receiver.value());
+  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(
+          node->arguments()->length() + 1);
+  arguments->Add(push_receiver);
 
-  TranslateArgumentList(*arguments, values);
+  BuildPushArguments(*node->arguments(), arguments);
   InstanceCallComp* call = new InstanceCallComp(
       node->token_pos(), owner()->try_index(),
-      node->function_name(), Token::kILLEGAL, values,
-      arguments->names(), 1);
+      node->function_name(), Token::kILLEGAL, arguments,
+      node->arguments()->names(), 1);
   ReturnComputation(call);
 }
 
@@ -1447,9 +1453,8 @@ void EffectGraphVisitor::VisitInstanceCallNode(InstanceCallNode* node) {
 // <Expression> ::= StaticCall { function: Function
 //                               arguments: <ArgumentList> }
 void EffectGraphVisitor::VisitStaticCallNode(StaticCallNode* node) {
-  int length = node->arguments()->length();
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(length);
+      new ZoneGrowableArray<PushArgumentInstr*>(node->arguments()->length());
   BuildPushArguments(*node->arguments(), arguments);
   StaticCallComp* call =
       new StaticCallComp(node->token_pos(),
@@ -1770,8 +1775,10 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  ZoneGrowableArray<Value*>* arguments = new ZoneGrowableArray<Value*>(1);
-  arguments->Add(for_receiver.value());
+  PushArgumentInstr* push_receiver = PushArgument(for_receiver.value());
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  arguments->Add(push_receiver);
   const String& name =
       String::ZoneHandle(Field::GetterSymbol(node->field_name()));
   InstanceCallComp* call = new InstanceCallComp(
@@ -2658,6 +2665,11 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
       }
     }
 
+    // Drop pushed arguments for calls.
+    for (intptr_t j = 0; j < current->ArgumentCount(); j++) {
+      env->RemoveLast();
+    }
+
     // 2b. Handle LoadLocal and StoreLocal.
     // For each LoadLocal: Remove it from the graph.
     // For each StoreLocal: Remove it from the graph and update the environment.
@@ -2690,6 +2702,12 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
           env->Add(new UseVal(bind));
         }
       }
+    }
+
+    // 2c. Handle pushed argument.
+    PushArgumentInstr* push = current->AsPushArgument();
+    if (push != NULL) {
+      env->Add(push->value());
     }
   }
 
