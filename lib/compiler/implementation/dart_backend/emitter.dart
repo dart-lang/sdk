@@ -9,7 +9,7 @@ class Emitter {
 
   final Compiler compiler;
   final StringBuffer sb;
-  final Renamer renamer;
+  final ConflictingRenamer renamer;
 
   Emitter(Compiler compiler) :
       this.compiler = compiler,
@@ -72,5 +72,20 @@ class Emitter {
     }
   }
 
-  String toString() => sb.toString();
+  String toString() {
+    final result = new StringBuffer();
+    final libraries = compiler.libraries;
+    for (final uri in libraries.getKeys()) {
+      // Same library element may be a value for different uris as of now
+      // e.g., core libraryElement is a value for both keys 'dart:core'
+      // and full file name.  Only care about uris with dart scheme.
+      if (!uri.startsWith('dart:')) continue;
+      final lib = libraries[uri];
+      if (renamer.imports.containsKey(lib)) {
+        result.add('#import("$uri", prefix: "${renamer.imports[lib]}");');
+      }
+    }
+    result.add(sb);
+    return result.toString();
+  }
 }

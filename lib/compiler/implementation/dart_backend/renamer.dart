@@ -10,6 +10,7 @@ class ConflictingRenamer extends Renamer {
   final Compiler compiler;
   final Map<Element, String> renamed;
   final Set<String> usedTopLevelIdentifiers;
+  final Map<LibraryElement, String> imports;
   TreeElements contextElements;
   Element context;
 
@@ -18,7 +19,8 @@ class ConflictingRenamer extends Renamer {
 
   ConflictingRenamer(this.compiler) :
       renamed = new Map<Element, String>(),
-      usedTopLevelIdentifiers = new Set<String>();
+      usedTopLevelIdentifiers = new Set<String>(),
+      imports = new Map<LibraryElement, String>();
 
   void setContext(Element element) {
     this.context = element;
@@ -82,23 +84,28 @@ class ConflictingRenamer extends Renamer {
   }
 
   String renameElement(Element element) {
-    String originalName = element.name.slowToString();
-    if (element.getLibrary() == compiler.coreLibrary || !element.isTopLevel()) {
-      return originalName;
-    }
-    if (renamed[element] !== null) {
-      return renamed[element];
-    }
-
-    // Not renamed and top element.
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
-    String name = originalName;
-    while (usedTopLevelIdentifiers.contains(name)) {
-      name = "_$name";
+    if (renamed[element] !== null) return renamed[element];
+
+    generateUniqueName(name) {
+      while (usedTopLevelIdentifiers.contains(name)) {
+        name = "\$$name";
+      }
+      usedTopLevelIdentifiers.add(name);
+      return name;
     }
-    usedTopLevelIdentifiers.add(name);
-    renamed[element] = name;
-    return name;
+
+    String originalName = element.name.slowToString();
+    // TODO(antonm): we should rename lib private names as well.
+    if (!element.isTopLevel()) return originalName;
+    final library = element.getLibrary();
+    if (library === compiler.coreLibrary) return originalName;
+    if (isDartCoreLib(compiler, library)) {
+      final prefix =
+          imports.putIfAbsent(library, () => generateUniqueName('p'));
+      return '$prefix.$originalName';
+    }
+    return renamed[element] = generateUniqueName(originalName);
   }
 }
