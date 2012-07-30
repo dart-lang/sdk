@@ -111,13 +111,10 @@ indexeddb_1_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 indexeddb_2_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_3_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
 indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIndexedDB
-instance_of_test: Fail     # Issue 2535
 # setup code fails. prepare. (DOM callback has errors) Caught [object Event]
 inner_frame_test: Skip
 js_interop_3_test: Fail
 js_interop_4_test: Fail
-localstorage_test: Fail
-mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
@@ -189,7 +186,11 @@ isolates_test: Skip   # Timeout because leg does not support web workers.
 typed_arrays_1_test: Fail # dart2js doesn't support is checks with generic types.
 
 [ $compiler == dart2js && $runtime == ff && $system == linux]
+canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
 indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Error: The data provided does not meet the requirements of the function.
+instance_of_test: Fail     # Issue 2535
+localstorage_test: Fail
+mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) && $system == linux]
 # DOM errors.
@@ -204,7 +205,6 @@ fileapi_test: Skip # Issue 3022
 
 [ $compiler == dart2js && $runtime == ff ]
 cache_test: Fail # Expectation: ApplicationCache. Caught NoSuchMethodException : method not found: 'get$status'
-canvas_pixel_array_type_alias_test: Fail # Expectation: CreateImageData. Caught NoSuchMethodException : method not found: 'get$data'
 xhr_test: Skip # Timeout
 inner_frame_test: Skip # Timeout
 svg_3_test: Skip # Timeout
