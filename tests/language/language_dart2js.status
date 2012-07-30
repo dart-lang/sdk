@@ -12,7 +12,6 @@ assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
-function_type_alias6_test: Fail # "const EmptyLink<Element>" must be a compile-time constant.
 type_variable_bounds_test/01: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
@@ -39,15 +38,16 @@ void_type_test: Fail # does not detect type error in checked mode.
 
 arithmetic_test: Fail
 
-[ $compiler == dart2js && $host_checked ]
-function_type_alias6_test: Crash # infinite loop.
-
 [ $compiler == dart2js && $unchecked ]
 assertion_test: Fail, OK
-function_type_alias6_test: Fail # "const EmptyLink<Element>" must be a compile-time constant.
 
 [ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
+
+# Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
+# Crash infinite loop on Mac and dart2js checked mode on linux.
+function_type_alias6_test: Crash, Fail
+
 static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
