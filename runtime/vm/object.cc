@@ -7123,24 +7123,18 @@ RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
   }
   // A stack map is present in the code object, use the stack map to visit
   // frame slots which are marked as having objects.
-  RawStackmap* previous_map = Stackmap::null();
   *maps = stackmaps();
   *map = Stackmap::null();
   for (intptr_t i = 0; i < maps->Length(); i++) {
     *map ^= maps->At(i);
     ASSERT(!map->IsNull());
     if (map->PC() == pc) {
-      break;  // We found a stack map for this frame.
+      return map->raw();  // We found a stack map for this frame.
     }
-    if (map->PC() > pc) {
-      // We have not found a stackmap corresponding to the PC of this frame,
-      // we will use the closest previous stack map.
-      *map = previous_map;
-      break;
-    }
-    previous_map = map->raw();
   }
-  return map->raw();
+  // If the code has stackmaps, it must have them for all safepoints.
+  UNREACHABLE();
+  return Stackmap::null();
 }
 
 

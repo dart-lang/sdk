@@ -63,7 +63,6 @@ class StackmapBuilder : public ZoneAllocated {
  public:
   StackmapBuilder() :
       builder_(new BitmapBuilder()),
-      code_(Code::ZoneHandle()),
       stack_map_(Stackmap::ZoneHandle()),
       list_(GrowableObjectArray::ZoneHandle(
           GrowableObjectArray::New(Heap::kOld))) { }
@@ -106,7 +105,6 @@ class StackmapBuilder : public ZoneAllocated {
   RawStackmap* Map(int index) const;
 
   BitmapBuilder* builder_;
-  Code& code_;
   Stackmap& stack_map_;
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackmapBuilder);

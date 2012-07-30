@@ -201,8 +201,15 @@ TEST_CASE(StackmapGC) {
   builder->SetSlotAsValue(2);  // var k.
   builder->SetSlotAsObject(3);  // var s2.
   builder->SetSlotAsObject(4);  // var s3.
-  builder->AddEntry(0);  // Add a stack map entry at pc offset 0.
   const Code& code = Code::Handle(function_foo.unoptimized_code());
+  // Search for the pc of the call to 'func'.
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  for (int i = 0; i < descriptors.Length(); ++i) {
+    if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
+      builder->AddEntry(descriptors.PC(i) - code.EntryPoint());
+    }
+  }
   const Array& stack_maps = Array::Handle(builder->FinalizeStackmaps(code));
   code.set_stackmaps(stack_maps);
 
