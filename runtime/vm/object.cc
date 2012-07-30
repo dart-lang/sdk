@@ -5101,15 +5101,17 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  intptr_t first_src_pos;
-  intptr_t last_src_pos;
   const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   Scanner scanner(src, dummy_key);
-  scanner.TokenRangeAtLine(line_number, &first_src_pos, &last_src_pos);
-  *first_token_index = tkns.ComputeTokenPosition(first_src_pos);
-  *last_token_index = tkns.ComputeTokenPosition(last_src_pos);
+  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
+  if (*first_token_index >= 0) {
+    *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
+  }
+  if (*last_token_index >= 0) {
+    *last_token_index = tkns.ComputeTokenPosition(*last_token_index);
+  }
 }
 
 

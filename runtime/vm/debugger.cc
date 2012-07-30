@@ -870,12 +870,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   if (best_fit_index >= 0) {
     CodeBreakpoint* bpt = GetCodeBreakpoint(desc.PC(best_fit_index));
     // We should only ever have one code breakpoint at the same address.
-    // If we find an existing breakpoint, it must be an internal one which
-    // is used for stepping, or one that was left over from previously
-    // deleting a source breakpoint. Make sure it's enabled.
     if (bpt != NULL) {
-      ASSERT(bpt->src_bpt() == NULL);
-      bpt->Enable();
       return bpt;
     }
 
@@ -903,10 +898,31 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
     return NULL;
   }
   EnsureFunctionIsDeoptimized(target_function);
-  SourceBreakpoint* bpt = GetSourceBreakpoint(target_function, first_token_pos);
-  if (bpt != NULL) {
-    // A breakpoint for this location already exists, return it.
-    return bpt;
+
+  CodeBreakpoint* cbpt = NULL;
+  SourceBreakpoint* bpt = NULL;
+  if (target_function.HasCode()) {
+    cbpt = MakeCodeBreakpoint(target_function, first_token_pos, last_token_pos);
+    if (cbpt != NULL) {
+      if (cbpt->src_bpt() != NULL) {
+        // There is already a source breakpoint for the location.
+        ASSERT(cbpt->src_bpt() ==
+               GetSourceBreakpoint(target_function, cbpt->token_pos()));
+        return cbpt->src_bpt();
+      }
+      // No source breakpoint exists yet that is associated with the code
+      // breakpoint we found. (This is an internal breakpoint.) Adjust
+      // the breakpoint location to the actual position where breakpoint
+      // got set.
+      first_token_pos = cbpt->token_pos();
+    }
+  } else {
+    bpt = GetSourceBreakpoint(target_function, first_token_pos);
+    if (bpt != NULL) {
+      // A source breakpoint for this uncompiled location already
+      // exists.
+      return bpt;
+    }
   }
   bpt = new SourceBreakpoint(nextId(), target_function, first_token_pos);
   RegisterSourceBreakpoint(bpt);
@@ -917,19 +933,15 @@ SourceBreakpoint* Debugger::SetBreakpoint(const Function& target_function,
               bpt->LineNumber());
   }
 
-  if (target_function.HasCode()) {
-    CodeBreakpoint* cbpt =
-        MakeCodeBreakpoint(target_function, first_token_pos, last_token_pos);
-    if (cbpt != NULL) {
-      ASSERT(cbpt->src_bpt() == NULL);
-      cbpt->set_src_bpt(bpt);
-      SignalBpResolved(bpt);
-    } else {
-      if (verbose) {
-        OS::Print("Failed to set breakpoint at '%s' line %d\n",
-                  String::Handle(bpt->SourceUrl()).ToCString(),
-                  bpt->LineNumber());
-      }
+  if (cbpt != NULL) {
+    ASSERT(cbpt->src_bpt() == NULL);
+    cbpt->set_src_bpt(bpt);
+    SignalBpResolved(bpt);
+  } else {
+    if (verbose) {
+      OS::Print("Failed to set breakpoint at '%s' line %d\n",
+                String::Handle(bpt->SourceUrl()).ToCString(),
+                bpt->LineNumber());
     }
   }
   bpt->Enable();
