@@ -6630,22 +6630,22 @@ void Stackmap::SetCode(const Code& code) const {
 }
 
 
-bool Stackmap::GetBit(intptr_t bit_offset) const {
-  ASSERT(InRange(bit_offset));
-  int byte_offset = bit_offset >> kBitsPerByteLog2;
-  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+bool Stackmap::GetBit(intptr_t bit_index) const {
+  ASSERT(InRange(bit_index));
+  int byte_index = bit_index >> kBitsPerByteLog2;
+  int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t byte = raw_ptr()->data_[byte_offset];
+  uint8_t byte = raw_ptr()->data_[byte_index];
   return (byte & byte_mask);
 }
 
 
-void Stackmap::SetBit(intptr_t bit_offset, bool value) const {
-  ASSERT(InRange(bit_offset));
-  int byte_offset = bit_offset >> kBitsPerByteLog2;
-  int bit_remainder = bit_offset & (kBitsPerByte - 1);
+void Stackmap::SetBit(intptr_t bit_index, bool value) const {
+  ASSERT(InRange(bit_index));
+  int byte_index = bit_index >> kBitsPerByteLog2;
+  int bit_remainder = bit_index & (kBitsPerByte - 1);
   uint8_t byte_mask = 1U << bit_remainder;
-  uint8_t* byte_addr = &(raw_ptr()->data_[byte_offset]);
+  uint8_t* byte_addr = &(raw_ptr()->data_[byte_index]);
   if (value) {
     *byte_addr |= byte_mask;
   } else {
@@ -6674,8 +6674,8 @@ RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
   for (intptr_t i = 0; i < bound; i++) {
     result.SetBit(i, bmap->Get(i));
   }
-  result.SetMinBitOffset(bmap->Minimum());
-  result.SetMaxBitOffset(bmap->Maximum());
+  result.SetMinBitIndex(bmap->Minimum());
+  result.SetMaxBitIndex(bmap->Maximum());
   return result.raw();
 }
 
@@ -6693,12 +6693,12 @@ const char* Stackmap::ToCString() const {
   } else {
     intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
     intptr_t alloc_size =
-        index + ((MaximumBitOffset() + 1) * 2) + 2;  // "{ 1 0 .... }".
+        index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
     char* chars = reinterpret_cast<char*>(
         isolate->current_zone()->Allocate(alloc_size));
     index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
-    for (intptr_t i = 0; i <= MaximumBitOffset(); i++) {
+    for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
       index += OS::SNPrint((chars + index),
                            (alloc_size - index),
                            "%d ",
@@ -7113,8 +7113,8 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
 
 
 RawStackmap* Code::GetStackmap(uword pc, Array* maps, Stackmap* map) const {
-  // This code is used only during iterating frames during a GC and hence
-  // it should not in turn start a GC.
+  // This code is used during iterating frames during a GC and hence it
+  // should not in turn start a GC.
   NoGCScope no_gc;
   if (stackmaps() == Array::null()) {
     // No stack maps are present in the code object which means this

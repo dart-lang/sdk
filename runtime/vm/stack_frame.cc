@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,15 +62,19 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     if (!map.IsNull()) {
       // A stack map is present in the code object, use the stack map to visit
       // frame slots which are marked as having objects.
-      intptr_t bit_offset = map.MinimumBitOffset();
-      intptr_t end_bit_offset = map.MaximumBitOffset();
-      while (bit_offset <= end_bit_offset) {
-        uword addr = (fp() - ((bit_offset + 1) * kWordSize));
+      intptr_t bit_index = map.MinimumBitIndex();
+      ASSERT(bit_index != Stackmap::kNoMinimum);
+      intptr_t end_bit_index = map.MaximumBitIndex();
+      ASSERT(end_bit_index != Stackmap::kNoMaximum);
+      uword base_addr =
+          fp() + (ParsedFunction::kFirstLocalSlotIndex * kWordSize);
+      while (bit_index <= end_bit_index) {
+        uword addr = base_addr - (bit_index * kWordSize);
         ASSERT(addr >= sp());
-        if (map.IsObject(bit_offset)) {
+        if (map.IsObject(bit_index)) {
           visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
         }
-        bit_offset += 1;
+        ++bit_index;
       }
       return;
     }

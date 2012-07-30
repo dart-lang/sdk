@@ -789,8 +789,8 @@ class RawStackmap : public RawObject {
     return reinterpret_cast<RawObject**>(&ptr()->bitmap_size_in_bytes_);
   }
   uword pc_;  // PC corresponding to this stack map representation.
-  intptr_t min_set_bit_offset_;  // Minimum bit offset which is set.
-  intptr_t max_set_bit_offset_;  // Maximum bit offset which is set.
+  intptr_t min_set_bit_index_;  // Minimum bit offset which is set.
+  intptr_t max_set_bit_index_;  // Maximum bit offset which is set.
 
   // Variable length data follows here (bitmap of the stack layout).
   uint8_t data_[0];

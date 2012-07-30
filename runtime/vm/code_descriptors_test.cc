@@ -63,8 +63,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     builder->SetSlotAsValue(1);
     EXPECT(!builder->IsSlotObject(1));
     builder->SetSlotAsObject(2);
-    builder->AddEntry(1);  // Add a stack map entry at pc offset 1.
     EXPECT(builder->IsSlotObject(2));
+    builder->AddEntry(1);  // Add a stack map entry at pc offset 1.
     builder->SetSlotRangeAsObject(3, 5);
     for (intptr_t i = 3; i <= 5; i++) {
       EXPECT(builder->IsSlotObject(i));
@@ -75,6 +75,7 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT(!builder->IsSlotObject(i));
     }
     builder->SetSlotAsObject(10);
+    EXPECT(builder->IsSlotObject(10));
     builder->AddEntry(3);  // Add a stack map entry at pc offset 3.
 
     const Error& error =
@@ -92,16 +93,16 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     // Validate the first stack map entry.
     stack_map ^= stack_map_list.At(0);
     EXPECT(stack_map.IsObject(0));
-    EXPECT_EQ(0, stack_map.MinimumBitOffset());
-    EXPECT_EQ(0, stack_map.MaximumBitOffset());
+    EXPECT_EQ(0, stack_map.MinimumBitIndex());
+    EXPECT_EQ(0, stack_map.MaximumBitIndex());
 
     // Validate the second stack map entry.
     stack_map ^= stack_map_list.At(1);
     EXPECT(stack_map.IsObject(0));
     EXPECT(!stack_map.IsObject(1));
     EXPECT(stack_map.IsObject(2));
-    EXPECT_EQ(0, stack_map.MinimumBitOffset());
-    EXPECT_EQ(2, stack_map.MaximumBitOffset());
+    EXPECT_EQ(0, stack_map.MinimumBitIndex());
+    EXPECT_EQ(2, stack_map.MaximumBitIndex());
 
     // Validate the third stack map entry.
     stack_map ^= stack_map_list.At(2);
@@ -110,8 +111,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
     for (intptr_t i = 2; i <= 5; i++) {
       EXPECT(stack_map.IsObject(i));
     }
-    EXPECT_EQ(0, stack_map.MinimumBitOffset());
-    EXPECT_EQ(5, stack_map.MaximumBitOffset());
+    EXPECT_EQ(0, stack_map.MinimumBitIndex());
+    EXPECT_EQ(5, stack_map.MaximumBitIndex());
 
     // Validate the fourth stack map entry.
     stack_map ^= stack_map_list.At(3);
@@ -124,8 +125,8 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
       EXPECT(!stack_map.IsObject(i));
     }
     EXPECT(stack_map.IsObject(10));
-    EXPECT_EQ(0, stack_map.MinimumBitOffset());
-    EXPECT_EQ(10, stack_map.MaximumBitOffset());
+    EXPECT_EQ(0, stack_map.MinimumBitIndex());
+    EXPECT_EQ(10, stack_map.MaximumBitIndex());
     retval = true;
   } else {
     retval = false;
@@ -192,8 +193,8 @@ TEST_CASE(StackmapGC) {
   EXPECT(CompilerTest::TestCompileFunction(function_foo));
   EXPECT(function_foo.HasCode());
 
-  // Build and setup a stackmap for function 'A.foo' in order to test the
-  // traversal of stack maps when a GC happens.
+  // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
+  // to test the traversal of stack maps when a GC happens.
   StackmapBuilder* builder = new StackmapBuilder();
   EXPECT(builder != NULL);
   builder->SetSlotAsValue(0);  // var i.
@@ -201,15 +202,22 @@ TEST_CASE(StackmapGC) {
   builder->SetSlotAsValue(2);  // var k.
   builder->SetSlotAsObject(3);  // var s2.
   builder->SetSlotAsObject(4);  // var s3.
+  builder->SetSlotAsObject(5);  // First argument to func(i, k).
+  builder->SetSlotAsObject(6);  // Second argument to func(i, k).
   const Code& code = Code::Handle(function_foo.unoptimized_code());
   // Search for the pc of the call to 'func'.
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
+  int call_count = 0;
   for (int i = 0; i < descriptors.Length(); ++i) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
       builder->AddEntry(descriptors.PC(i) - code.EntryPoint());
+      ++call_count;
     }
   }
+  // We can't easily check that we put the stackmap at the correct pc, but
+  // we did if there was exactly one call seen.
+  EXPECT(call_count == 1);
   const Array& stack_maps = Array::Handle(builder->FinalizeStackmaps(code));
   code.set_stackmaps(stack_maps);
 
