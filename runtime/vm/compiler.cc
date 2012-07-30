@@ -448,6 +448,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.
+        false,  // not external.
         fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));

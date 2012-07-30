@@ -3752,6 +3752,11 @@ void Function::set_is_const(bool is_const) const {
 }
 
 
+void Function::set_is_external(bool value) const {
+  raw_ptr()->is_external_ = value;
+}
+
+
 void Function::set_token_pos(intptr_t pos) const {
   ASSERT(pos >= 0);
   raw_ptr()->token_pos_ = pos;
@@ -4106,6 +4111,7 @@ RawFunction* Function::New(const String& name,
                            RawFunction::Kind kind,
                            bool is_static,
                            bool is_const,
+                           bool is_external,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   const Function& result = Function::Handle(Function::New());
@@ -4115,6 +4121,7 @@ RawFunction* Function::New(const String& name,
   result.set_kind(kind);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
+  result.set_is_external(is_external);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
@@ -4139,6 +4146,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     RawFunction::kClosureFunction,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
+                    /* is_external = */ false,
                     token_pos));
   result.set_parent_function(parent);
   result.set_owner(parent_class);

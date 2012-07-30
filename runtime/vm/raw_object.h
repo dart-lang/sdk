@@ -582,6 +582,7 @@ class RawFunction : public RawObject {
   bool is_const_;
   bool is_optimizable_;
   bool is_native_;
+  bool is_external_;
 };
 
 

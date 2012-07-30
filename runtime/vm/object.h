@@ -1401,6 +1401,7 @@ class Function : public Object {
 
   bool is_static() const { return raw_ptr()->is_static_; }
   bool is_const() const { return raw_ptr()->is_const_; }
+  bool is_external() const { return raw_ptr()->is_external_; }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
@@ -1599,6 +1600,7 @@ class Function : public Object {
                           RawFunction::Kind kind,
                           bool is_static,
                           bool is_const,
+                          bool is_external,
                           intptr_t token_pos);
 
   // Allocates a new Function object representing a closure function, as well as
@@ -1618,6 +1620,7 @@ class Function : public Object {
   void set_kind(RawFunction::Kind value) const;
   void set_is_static(bool is_static) const;
   void set_is_const(bool is_const) const;
+  void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;

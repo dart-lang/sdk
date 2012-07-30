@@ -101,6 +101,22 @@ super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
 
 
+# External tests.
+external_test/01: Fail
+external_test/02: Fail
+external_test/11: Fail
+external_test/12: Fail
+external_test/13: Skip  # Runtime error (missing patch).
+external_test/14: Fail
+external_test/15: Fail
+external_test/20: Skip  # Runtime error (missing patch).
+external_test/21: Fail
+external_test/22: Fail
+external_test/23: Fail
+external_test/30: Fail
+external_test/31: Fail
+
+
 # Implementation errors (library or generated code).
 generic_deep_test: Fail # Expect.isTrue(false) fails.
 generic_inheritance_test: Fail # Expect.isTrue(false) fails.

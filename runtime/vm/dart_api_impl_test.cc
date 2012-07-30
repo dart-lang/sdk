@@ -5371,6 +5371,49 @@ TEST_CASE(LoadSource_LateLoad) {
   EXPECT_STREQ("bar", result_cstr);
 }
 
+
+TEST_CASE(ParsePatchLibrary) {
+  const char* kLibraryChars =
+  "#library('patched_library');\n"
+  "class A {\n"
+  "  external method(var value);\n"
+  "}\n"
+  "external int topLevel(var value);\n";
+
+  const char* kPatchChars =
+  "patch int topLevel(var value) => value * value;\n";
+
+  const char* kScriptChars =
+  "#import('theLibrary');\n"
+  "main() {\n"
+  // TODO(iposva): Implement patching.
+  "  return 4 /* topLevel(2) */;\n"
+  "}\n";
+
+  Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
+  EXPECT_VALID(result);
+
+  Dart_Handle lib_url = Dart_NewString("theLibrary");
+  Dart_Handle source = Dart_NewString(kLibraryChars);
+  result = Dart_LoadLibrary(lib_url, source);
+  EXPECT_VALID(result);
+
+  // TODO(iposva): Implement patching.
+  source = Dart_NewString(kPatchChars);
+
+  Dart_Handle script_url = Dart_NewString("theScript");
+  source = Dart_NewString(kScriptChars);
+  result = Dart_LoadScript(script_url, source);
+  EXPECT_VALID(result);
+  result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  int64_t value = 0;
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(4, value);
+}
+
+
 static void MyNativeFunction1(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_NewInteger(654321));
