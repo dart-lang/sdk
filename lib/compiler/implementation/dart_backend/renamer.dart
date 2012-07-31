@@ -50,10 +50,6 @@ class ConflictingRenamer extends Renamer {
       } else if (send.selector.receiver is TypeAnnotation) {
         // <complex generic type>.<name> case.
         typeAnnotation = send.selector.receiver;
-        compiler.cancel(
-          reason: "Don't know how to deduce type ${send.toDebugString()}",
-          element: element,
-          node: send);
       } else {
         compiler.cancel(
           reason: "Don't know how to deduce type",
