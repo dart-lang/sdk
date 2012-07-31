@@ -52,13 +52,19 @@ class FlowGraphAllocator : public ValueObject {
   // linearly assign consequent lifetime positions to every instruction.
   // We assign position as follows:
   //
-  //    2 * n     - even position corresponding to an implicit parallel move
-  //                preceding the instruction;
+  //    2 * n     - even position corresponding to instruction's start;
   //
-  //    2 * n + 1 - odd position corresponding to instruction itself;
+  //    2 * n + 1 - odd position corresponding to instruction's end;
   //
-  // Having positions corresponding to parallel moves between every two
-  // instructions allows us to capture non-trivial shapes of use intervals.
+  // Having two positions per instruction allows us to capture non-trivial
+  // shapes of use intervals: e.g. by placing a use at the start or the
+  // end position we can distinguish between instructions that need value
+  // at the register only at their start and those instructions that
+  // need value in the register until the end of instruction's body.
+  // Register allocator can perform splitting of live ranges at any position.
+  // An implicit ParallelMove will be inserted by ConnectSplitSiblings where
+  // required to resolve data flow between split siblings when allocation
+  // is finished.
   // For specific examples see comments inside ProcessOneInstruction.
   // Additionally creates parallel moves at the joins' predecessors
   // that will be used for phi resolution.
@@ -74,7 +80,7 @@ class FlowGraphAllocator : public ValueObject {
   Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block);
   void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
-  void BlockLocation(Location loc, intptr_t from, intptr_t to);
+  void BlockLocation(Location loc, intptr_t pos);
 
   // Process live ranges sorted by their start and assign registers
   // to them
