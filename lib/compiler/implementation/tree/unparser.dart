@@ -143,10 +143,14 @@ class Unparser implements Visitor {
 
   visitLiteralDouble(LiteralDouble node) {
     add(node.token.value);
+    // -Lit is represented as a send.
+    if (node.token.kind == PLUS_TOKEN) add(node.token.next.value);
   }
 
   visitLiteralInt(LiteralInt node) {
     add(node.token.value);
+    // -Lit is represented as a send.
+    if (node.token.kind == PLUS_TOKEN) add(node.token.next.value);
   }
 
   visitLiteralString(LiteralString node) {

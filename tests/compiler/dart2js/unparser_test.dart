@@ -75,6 +75,19 @@ testDart2DartWithLibrary(
       const ['--output-type=dart', '--unparse-validation']).then(continuation);
 }
 
+testSignedConstants() {
+  testUnparse('var x=+42;');
+  testUnparse('var x=+.42;');
+  testUnparse('var x=-42;');
+  testUnparse('var x=-.42;');
+  testUnparse('var x=+0;');
+  testUnparse('var x=+0.0;');
+  testUnparse('var x=+.0;');
+  testUnparse('var x=-0;');
+  testUnparse('var x=-0.0;');
+  testUnparse('var x=-.0;');
+}
+
 testGenericTypes() {
   testUnparse('var x=new List<List<int>>();');
   testUnparse('var x=new List<List<List<int>>>();');
@@ -374,6 +387,7 @@ main() {
 }
 
 main() {
+  testSignedConstants();
   testGenericTypes();
   testForLoop();
   testEmptyList();

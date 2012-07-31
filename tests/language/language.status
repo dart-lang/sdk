@@ -336,7 +336,6 @@ super_operator_test: Fail
 super_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail
-ternary_test: Fail
 throw1_test: Fail
 throw2_test: Fail
 throw4_test: Fail
@@ -365,6 +364,3 @@ type_variable_scope_test/02: Fail
 type_variable_scope_test/03: Fail
 type_variable_scope_test/04: Fail
 type_variable_scope_test/05: Fail
-unary2_test: Fail
-unary_test: Fail
-
