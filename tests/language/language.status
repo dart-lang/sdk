@@ -213,7 +213,6 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
-compile_time_constant8_test: Fail
 cond_expr_test: Fail
 condition_bailout_test: Fail
 const_objects_are_immutable_test: Fail
