@@ -195,6 +195,8 @@ assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
 assign_static_type_test/05: Fail
+final_syntax_test/03: Fail
+final_syntax_test/04: Fail
 # Call operator is not supported by dart2js frontend.
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
@@ -213,12 +215,8 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
-cond_expr_test: Fail
 condition_bailout_test: Fail
-const_objects_are_immutable_test: Fail
-constructor2_test: Fail
 const_test: Fail
-ct_const_test: Fail
 cyclic_type_variable_test/01: Fail
 cyclic_type_variable_test/02: Fail
 cyclic_type_variable_test/03: Fail
@@ -248,7 +246,6 @@ field_optimization_test: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
-final_syntax_test/none: Fail
 function_literals_test: Fail
 function_type_alias3_test: Fail
 function_type_alias4_test: Crash, Fail
@@ -314,7 +311,6 @@ static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
 string_interpolation7_test: Fail
-super_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail
 throw1_test: Fail
@@ -322,7 +318,6 @@ throw2_test: Fail
 throw4_test: Fail
 throw5_test: Fail
 top_level_prefixed_declaration_test: Fail
-top_level_var_test: Fail
 try_catch2_test: Fail
 try_catch3_test: Fail
 try_catch_syntax_test/09: Fail

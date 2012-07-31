@@ -10,11 +10,13 @@ class Emitter {
   final Compiler compiler;
   final StringBuffer sb;
   final ConflictingRenamer renamer;
+  final Set<VariableListElement> processedVariableLists;
 
   Emitter(Compiler compiler) :
       this.compiler = compiler,
       sb = new StringBuffer(),
-      renamer = new ConflictingRenamer(compiler);
+      renamer = new ConflictingRenamer(compiler),
+      processedVariableLists = new Set<VariableListElement>();
 
   /**
    * Outputs given class element with selected inner elements.
@@ -66,7 +68,14 @@ class Emitter {
         || element is AbstractFieldElement) return;
     if (element.isField()) {
       assert(element is VariableElement);
-      sb.add(unparser.unparse(element.variables.parseNode(compiler)));
+      // Different VariableElement's may refer to the same VariableListElement.
+      // Output this list only once.
+      // TODO: only emit used variables.
+      final variableList = element.variables;
+      if (!processedVariableLists.contains(variableList)) {
+        processedVariableLists.add(variableList);
+        sb.add(unparser.unparse(variableList.parseNode(compiler)));
+      }
     } else {
       sb.add(unparser.unparse(element.parseNode(compiler)));
     }
