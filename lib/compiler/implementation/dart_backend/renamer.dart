@@ -30,16 +30,14 @@ class ConflictingRenamer extends Renamer {
   String getFactoryName(FunctionExpression node) =>
       node.name.asSend().selector.asIdentifier().source.slowToString();
 
-  bool isNamedConstructor(Element element) =>
-      element.isGenerativeConstructor()
-          && element.asFunctionElement().cachedNode.name is Send;
-
   String renameSendMethod(Send send) {
     if (contextElements[send] === null) return null;
     Element element = contextElements[send];
     if (element.isTopLevel()) {
       return renameElement(element);
-    } else if (isNamedConstructor(element)
+    } else if (
+        (element.isGenerativeConstructor() || element.isFactoryConstructor())
+        && element.asFunctionElement().cachedNode.name is Send
         // Don't want to rename redirects to :this(args).
         && !Initializers.isConstructorRedirect(send)
         // Don't want to rename super calls.

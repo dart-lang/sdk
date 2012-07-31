@@ -201,7 +201,6 @@ call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
 # Should be triaged.
-class_test: Fail
 closure7_test: Fail
 closure_with_super_send_test: Fail
 compile_time_constant8_test: Fail
@@ -233,7 +232,6 @@ duplicate_implements_test/04: Fail
 dynamic_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
-factory_test: Fail
 fauxverride_test/none: Fail
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
@@ -263,6 +261,7 @@ function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 gc_test: Fail
 generic_deep_test: Fail
+generic_instanceof2_test: Fail
 generic_instanceof3_test: Fail
 get_set_syntax_test/none: Fail
 getters_setters2_test/03: Fail
