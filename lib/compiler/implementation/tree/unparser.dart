@@ -233,7 +233,12 @@ class Unparser implements Visitor {
     if (node.receiver !== null) {
       visit(node.receiver);
       if (op === null) {
-        sb.add('.');
+        CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+        if (asCascadeReceiver !== null) {
+          add(asCascadeReceiver.cascadeOperator.value);
+        } else {
+          sb.add('.');
+        }
       } else if (isCheck) {
         sb.add(' ');
       }
