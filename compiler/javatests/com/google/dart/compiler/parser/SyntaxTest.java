@@ -53,6 +53,13 @@ public class SyntaxTest extends AbstractParserTest {
         "}"));
   }
 
+  public void test_index_literalMap() {
+    parseUnit("test.dart", Joiner.on('\n').join(
+        "main() {",
+        "  try { {'1' : 1, '2' : 2}['1']++; } catch(var e) {}",
+        "}"));
+  }
+
   public void test_setter() {
     parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",

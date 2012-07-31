@@ -39,7 +39,6 @@ Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 149
-Language/10_Expressions/07_Maps_A01_t01: Fail # Issue 1489
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
@@ -65,7 +64,6 @@ Language/10_Expressions/21_Relational_Expressions_A01_t01: Fail # Issue 1489
 Language/10_Expressions/22_Shift_A01_t01: Fail # Issue 1489
 Language/10_Expressions/26_Postfix_Expressions_A01_t01: Fail # Issue 1489,2439
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # Issue 1489
-Language/10_Expressions/27_Assignable_Expressions_A01_t27: Fail # Issue 1439
 Language/10_Expressions/28_Identifier_Reference_A05_t08: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t09: Fail # Issue 3476
 Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Issue 3476
@@ -74,8 +72,6 @@ Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
-Language/11_Statements/02_Expression_Statements_A01_t05: Fail # Issue 1489
-Language/11_Statements/02_Expression_Statements_A01_t07: Fail # Issue 1489
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # co19 issue 160
 Language/11_Statements/11_Labels_A03_t04: Fail # co19 issue 137
