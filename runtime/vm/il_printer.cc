@@ -380,6 +380,10 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
       (*phis_)[i]->PrintTo(f);
     }
   }
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
+  }
 }
 
 
@@ -406,6 +410,10 @@ void TargetEntryInstr::PrintTo(BufferFormatter* f) const {
     f->Print(" catch %d]", try_index());
   } else {
     f->Print("]");
+  }
+  if (HasParallelMove()) {
+    f->Print("\n");
+    parallel_move()->PrintTo(f);
   }
 }
 
@@ -449,7 +457,12 @@ void ReThrowInstr::PrintTo(BufferFormatter* f) const {
 
 
 void GotoInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    goto %d", successor()->block_id());
+  if (HasParallelMove()) {
+    parallel_move()->PrintTo(f);
+  } else {
+    f->Print("    ");
+  }
+  f->Print(" goto %d", successor()->block_id());
 }
 
 

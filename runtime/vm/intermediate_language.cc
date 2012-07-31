@@ -952,6 +952,9 @@ void GraphEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 
 void JoinEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   __ Bind(compiler->GetBlockLabel(this));
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
 }
 
 
@@ -960,6 +963,9 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
   if (HasTryIndex()) {
     compiler->AddExceptionHandler(try_index(),
                                   compiler->assembler()->CodeSize());
+  }
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
   }
 }
 
@@ -1044,6 +1050,10 @@ LocationSummary* GotoInstr::MakeLocationSummary() const {
 
 
 void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (HasParallelMove()) {
+    compiler->parallel_move_resolver()->EmitNativeCode(parallel_move());
+  }
+
   // We can fall through if the successor is the next block in the list.
   // Otherwise, we need a jump.
   if (!compiler->IsNextBlock(successor())) {

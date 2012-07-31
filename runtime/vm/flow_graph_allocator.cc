@@ -38,11 +38,6 @@ static intptr_t MinPosition(intptr_t a, intptr_t b) {
 }
 
 
-static bool IsParallelMovePosition(intptr_t pos) {
-  return (pos & 1) == 0;
-}
-
-
 static bool IsInstructionStartPosition(intptr_t pos) {
   return (pos & 1) == 0;
 }
@@ -329,14 +324,16 @@ LiveRange* FlowGraphAllocator::GetLiveRange(intptr_t vreg) {
 }
 
 
+// Block location from the start of the instruction to its end.
 void FlowGraphAllocator::BlockLocation(Location loc, intptr_t pos) {
   ASSERT(loc.IsRegister());
+  ASSERT(IsInstructionStartPosition(pos));
   const Register reg = loc.reg();
   if (blocked_cpu_regs_[reg]) return;
   if (cpu_regs_[reg].length() == 0) {
     cpu_regs_[reg].Add(new LiveRange(kNoVirtualRegister));
   }
-  cpu_regs_[reg][0]->AddUseInterval(pos, pos + 2);
+  cpu_regs_[reg][0]->AddUseInterval(pos, pos + 1);
 }
 
 
@@ -480,12 +477,11 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
   // join with phis.  The phi inputs contribute uses to each predecessor
   // block (and the phi outputs contribute definitions in the successor
   // block).
-  ParallelMoveInstr* parallel_move = goto_instr->previous()->AsParallelMove();
-  if (parallel_move == NULL) return goto_instr->previous();
+  if (!goto_instr->HasParallelMove()) return goto_instr->previous();
+  ParallelMoveInstr* parallel_move = goto_instr->parallel_move();
 
   // All uses are recorded at the position of parallel move preceding goto.
   const intptr_t pos = goto_instr->lifetime_position();
-  ASSERT(parallel_move->lifetime_position() == pos);
 
   JoinEntryInstr* join = goto_instr->successor();
   ASSERT(join != NULL);
@@ -526,7 +522,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
 
   // Begin backward iteration with the instruction before the parallel
   // move.
-  return parallel_move->previous();
+  return goto_instr->previous();
 }
 
 
@@ -560,12 +556,10 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
 
       for (intptr_t pred_idx = 0; pred_idx < phi->InputCount(); pred_idx++) {
         BlockEntryInstr* pred = block->PredecessorAt(pred_idx);
-        ASSERT(pred->last_instruction()->IsGoto());
-        Instruction* move_instr = pred->last_instruction()->previous();
-        ASSERT(move_instr->IsParallelMove());
-
+        GotoInstr* goto_instr = pred->last_instruction()->AsGoto();
+        ASSERT((goto_instr != NULL) && (goto_instr->HasParallelMove()));
         MoveOperands* move =
-            move_instr->AsParallelMove()->MoveOperandsAt(move_idx);
+            goto_instr->parallel_move()->MoveOperandsAt(move_idx);
         move->set_dest(Location::PrefersRegister());
         range->AddUse(pos, move->dest_slot());
       }
@@ -679,7 +673,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // Expected shape of live range:
     //
     //              i  i'
-    //              [-----)
+    //              [--)
     //
 
     Location temp = locs->temp(j);
@@ -700,7 +694,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // Expected shape of live range:
     //
     //              i  i'
-    //              [-----)
+    //              [--)
     //
 
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
@@ -747,7 +741,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // Fixed output location. Expected shape of live range:
     //
     //                    i  i' j  j'
-    //    register        [-----)
+    //    register        [--)
     //    output             [-------
     //
     BlockLocation(*out, pos);
@@ -758,7 +752,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // that will be allocated for this output's live range.
     // Special case: fixed output followed by a fixed input last use.
     UsePosition* use = range->first_use();
-    if (use->pos() == (pos + 2)) {
+    if (use->pos() == (pos + 1)) {
       ASSERT(use->location_slot()->IsUnallocated());
       *(use->location_slot()) = *out;
 
@@ -769,11 +763,11 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // Shorten live range to the point of definition, this might make the range
     // empty (if the only use immediately follows). If range is not empty add
     // move from a fixed register to an unallocated location.
-    range->DefineAt(pos + 2);
+    range->DefineAt(pos + 1);
     if (range->Start() == range->End()) return;
 
-    MoveOperands* move = AddMoveAt(pos + 2, Location::PrefersRegister(), *out);
-    range->AddUse(pos + 2, move->dest_slot());
+    MoveOperands* move = AddMoveAt(pos + 1, Location::PrefersRegister(), *out);
+    range->AddUse(pos + 1, move->dest_slot());
   } else if (output_same_as_first_input) {
     // Output register will contain a value of the first input at instruction's
     // start. Expected shape of live ranges:
@@ -898,26 +892,12 @@ void FlowGraphAllocator::NumberInstructions() {
         Instruction* last = block->PredecessorAt(i)->last_instruction();
         ASSERT(last->IsGoto());
 
-        ParallelMoveInstr* move =
-            CreateParallelMoveBefore(last, last->lifetime_position());
+        ParallelMoveInstr* move = last->AsGoto()->GetParallelMove();
 
         // Populate the ParallelMove with empty moves.
         for (intptr_t j = 0; j < phi_count; j++) {
           move->AddMove(Location::NoLocation(), Location::NoLocation());
         }
-
-        // Replace Goto instruction with the corresponding move in
-        // the array of instructions.  This is done to ensure that
-        // this parallel move will be treated as a normal instruction
-        // by AddMoveAt for the purpose of live ranges connections (i.e.
-        // a separate move will be inserted by AddMoveAt)
-        // This move can't be reused by AddMoveAt to insert
-        // moves at Goto position because such range connecting moves might
-        // come into a conflict with phi connecting moves due to implicit
-        // interference: phi-value's liferange starts only at successor block
-        // but the move is actually performed at the predecessor.
-        ASSERT(instructions_[last->lifetime_position() / 2] == last);
-        instructions_[last->lifetime_position() / 2] = move;
       }
     }
   }
@@ -930,7 +910,7 @@ Instruction* FlowGraphAllocator::InstructionAt(intptr_t pos) const {
 
 
 bool FlowGraphAllocator::IsBlockEntry(intptr_t pos) const {
-  return InstructionAt(pos)->IsBlockEntry();
+  return IsInstructionStartPosition(pos) && InstructionAt(pos)->IsBlockEntry();
 }
 
 
@@ -1042,6 +1022,7 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
 
   UseInterval* interval = finger_.first_pending_use_interval();
   ASSERT(interval->start() < split_pos);
+  ASSERT(split_pos < End());
 
   // Corner case. We need to start over to find previous interval.
   if (interval->start() == split_pos) interval = first_use_interval_;
@@ -1100,9 +1081,6 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
   TRACE_ALLOC(("  split sibling [%d, %d)\n",
                next_sibling_->Start(), next_sibling_->End()));
 
-  // Split sibling can only start at a parallel move.
-  ASSERT(IsParallelMovePosition(next_sibling_->Start()));
-
   last_use_interval_ = last_before_split;
   last_use_interval_->next_ = NULL;
   return next_sibling_;
@@ -1120,6 +1098,11 @@ LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
   if (from < ToInstructionStart(to)) {
     to = ToInstructionStart(to);
   }
+
+  // Splitting at the end is not allowed as it produces an empty
+  // live range.
+  if (to == range->End()) to -= 1;
+  ASSERT(from <= to);
 
   return range->SplitAt(to);
 }
@@ -1423,8 +1406,9 @@ bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
 MoveOperands* FlowGraphAllocator::AddMoveAt(intptr_t pos,
                                             Location to,
                                             Location from) {
+  ASSERT(!IsBlockEntry(pos));
+
   Instruction* instr = InstructionAt(pos);
-  ASSERT(!instr->IsBlockEntry());
 
   ParallelMoveInstr* parallel_move = NULL;
   if (IsInstructionStartPosition(pos)) {
@@ -1610,11 +1594,10 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* range,
 
   Instruction* last = source_block->last_instruction();
   if (last->SuccessorCount() == 1) {
-    CreateParallelMoveBefore(last, last->lifetime_position())->
-      AddMove(target, source);
+    ASSERT(last->IsGoto());
+    last->AsGoto()->GetParallelMove()->AddMove(target, source);
   } else {
-    CreateParallelMoveAfter(target_block, target_block->start_pos())->
-      AddMove(target, source);
+    target_block->GetParallelMove()->AddMove(target, source);
   }
 }
 
@@ -1628,6 +1611,11 @@ void FlowGraphAllocator::ResolveControlFlow() {
 
     while (range->next_sibling() != NULL) {
       LiveRange* sibling = range->next_sibling();
+      TRACE_ALLOC(("connecting [%d, %d) [%s] to [%d, %d) [%s]\n",
+                  range->Start(), range->End(),
+                  range->assigned_location().Name(),
+                  sibling->Start(), sibling->End(),
+                  sibling->assigned_location().Name()));
       if ((range->End() == sibling->Start()) &&
           !range->assigned_location().Equals(sibling->assigned_location()) &&
           !IsBlockEntry(range->End())) {

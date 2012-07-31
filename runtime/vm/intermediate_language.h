@@ -1886,6 +1886,93 @@ class InstructionWithInputs : public Instruction {
 };
 
 
+class MoveOperands : public ZoneAllocated {
+ public:
+  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
+
+  Location src() const { return src_; }
+  Location dest() const { return dest_; }
+
+  Location* src_slot() { return &src_; }
+  Location* dest_slot() { return &dest_; }
+
+  void set_src(const Location& value) { src_ = value; }
+  void set_dest(const Location& value) { dest_ = value; }
+
+  // The parallel move resolver marks moves as "in-progress" by clearing the
+  // destination (but not the source).
+  Location MarkPending() {
+    ASSERT(!IsPending());
+    Location dest = dest_;
+    dest_ = Location::NoLocation();
+    return dest;
+  }
+
+  void ClearPending(Location dest) {
+    ASSERT(IsPending());
+    dest_ = dest;
+  }
+
+  bool IsPending() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return dest_.IsInvalid() && !src_.IsInvalid();
+  }
+
+  // True if this move a move from the given location.
+  bool Blocks(Location loc) const {
+    return !IsEliminated() && src_.Equals(loc);
+  }
+
+  // A move is redundant if it's been eliminated, if its source and
+  // destination are the same, or if its destination is unneeded.
+  bool IsRedundant() const {
+    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
+  }
+
+  // We clear both operands to indicate move that's been eliminated.
+  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
+  bool IsEliminated() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return src_.IsInvalid();
+  }
+
+ private:
+  Location dest_;
+  Location src_;
+
+  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
+};
+
+
+class ParallelMoveInstr : public Instruction {
+ public:
+  ParallelMoveInstr() : moves_(4) {
+  }
+
+  DECLARE_INSTRUCTION(ParallelMove)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  MoveOperands* AddMove(Location dest, Location src) {
+    MoveOperands* move = new MoveOperands(dest, src);
+    moves_.Add(move);
+    return move;
+  }
+
+  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
+
+  void SetSrcSlotAt(intptr_t index, const Location& loc);
+  void SetDestSlotAt(intptr_t index, const Location& loc);
+
+  intptr_t NumMoves() const { return moves_.length(); }
+
+ private:
+  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
+
+  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
+};
+
+
 // Basic block entries are administrative nodes.  There is a distinguished
 // graph entry with no predecessor.  Joins are the only nodes with multiple
 // predecessors.  Targets are all other basic block entries.  The types
@@ -1928,6 +2015,21 @@ class BlockEntryInstr : public Instruction {
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
@@ -1946,7 +2048,8 @@ class BlockEntryInstr : public Instruction {
         block_id_(-1),
         dominator_(NULL),
         dominated_blocks_(1),
-        last_instruction_(NULL) { }
+        last_instruction_(NULL),
+        parallel_move_(NULL) { }
 
  private:
   intptr_t preorder_number_;
@@ -1960,6 +2063,10 @@ class BlockEntryInstr : public Instruction {
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the start of the block.
+  ParallelMoveInstr* parallel_move_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -2381,7 +2488,10 @@ class ReThrowInstr : public InstructionWithInputs {
 
 class GotoInstr : public InstructionWithInputs {
  public:
-  explicit GotoInstr(JoinEntryInstr* entry) : successor_(entry) { }
+  explicit GotoInstr(JoinEntryInstr* entry)
+    : successor_(entry),
+      parallel_move_(NULL) {
+  }
 
   DECLARE_INSTRUCTION(Goto)
 
@@ -2394,8 +2504,27 @@ class GotoInstr : public InstructionWithInputs {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
  private:
   JoinEntryInstr* successor_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the end of the block and resolve phis.
+  ParallelMoveInstr* parallel_move_;
 };
 
 
@@ -2472,92 +2601,6 @@ class BranchInstr : public InstructionWithInputs {
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
-
-class MoveOperands : public ZoneAllocated {
- public:
-  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
-
-  Location src() const { return src_; }
-  Location dest() const { return dest_; }
-
-  Location* src_slot() { return &src_; }
-  Location* dest_slot() { return &dest_; }
-
-  void set_src(const Location& value) { src_ = value; }
-  void set_dest(const Location& value) { dest_ = value; }
-
-  // The parallel move resolver marks moves as "in-progress" by clearing the
-  // destination (but not the source).
-  Location MarkPending() {
-    ASSERT(!IsPending());
-    Location dest = dest_;
-    dest_ = Location::NoLocation();
-    return dest;
-  }
-
-  void ClearPending(Location dest) {
-    ASSERT(IsPending());
-    dest_ = dest;
-  }
-
-  bool IsPending() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return dest_.IsInvalid() && !src_.IsInvalid();
-  }
-
-  // True if this move a move from the given location.
-  bool Blocks(Location loc) const {
-    return !IsEliminated() && src_.Equals(loc);
-  }
-
-  // A move is redundant if it's been eliminated, if its source and
-  // destination are the same, or if its destination is unneeded.
-  bool IsRedundant() const {
-    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
-  }
-
-  // We clear both operands to indicate move that's been eliminated.
-  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
-  bool IsEliminated() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return src_.IsInvalid();
-  }
-
- private:
-  Location dest_;
-  Location src_;
-
-  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
-};
-
-
-class ParallelMoveInstr : public Instruction {
- public:
-  ParallelMoveInstr() : moves_(4) {
-  }
-
-  DECLARE_INSTRUCTION(ParallelMove)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  MoveOperands* AddMove(Location dest, Location src) {
-    MoveOperands* move = new MoveOperands(dest, src);
-    moves_.Add(move);
-    return move;
-  }
-
-  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
-
-  void SetSrcSlotAt(intptr_t index, const Location& loc);
-  void SetDestSlotAt(intptr_t index, const Location& loc);
-
-  intptr_t NumMoves() const { return moves_.length(); }
-
- private:
-  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
-
-  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
-};
 
 #undef DECLARE_INSTRUCTION
 
