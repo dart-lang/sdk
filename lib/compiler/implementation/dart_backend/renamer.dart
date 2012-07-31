@@ -43,8 +43,25 @@ class ConflictingRenamer extends Renamer {
         // Don't want to rename super calls.
         && !Initializers.isSuperConstructorCall(send)) {
       FunctionExpression constructor = element.asFunctionElement().cachedNode;
-      return '${renameType(element.getEnclosingClass().type)}'
-          '.${getFactoryName(constructor)}';
+      TypeAnnotation typeAnnotation;
+      if (send.selector is TypeAnnotation) {
+        // <simple class name>.<name> case.
+        typeAnnotation = send.selector;
+      } else if (send.selector.receiver is TypeAnnotation) {
+        // <complex generic type>.<name> case.
+        typeAnnotation = send.selector.receiver;
+        compiler.cancel(
+          reason: "Don't know how to deduce type ${send.toDebugString()}",
+          element: element,
+          node: send);
+      } else {
+        compiler.cancel(
+          reason: "Don't know how to deduce type",
+          element: element,
+          node: send);
+      }
+      final type = new Unparser(this).unparse(typeAnnotation);
+      return '$type.${getFactoryName(constructor)}';
     } else {
       return null;
     }

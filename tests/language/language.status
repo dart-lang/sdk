@@ -261,7 +261,6 @@ function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 gc_test: Fail
 generic_deep_test: Fail
-generic_instanceof2_test: Fail
 generic_instanceof3_test: Fail
 get_set_syntax_test/none: Fail
 getters_setters2_test/03: Fail
