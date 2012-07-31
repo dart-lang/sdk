@@ -26,6 +26,7 @@ crypto/sha1_test: Fail
 crypto/sha256_test: Fail
 
 [ $compiler == dartc ]
+unittest/mock_regexp_negative_test: fail
 
 [ $runtime == opera ]
 *: Skip
