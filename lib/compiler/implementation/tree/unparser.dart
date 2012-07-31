@@ -225,7 +225,8 @@ class Unparser implements Visitor {
 
   unparseSendPart(Send node) {
     Operator op = node.selector.asOperator();
-    bool isCheck = op !== null && op.source.stringValue === 'is';
+    bool spacesNeeded = op !== null &&
+        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
 
     if (node.isPrefix) {
       visit(node.selector);
@@ -237,14 +238,14 @@ class Unparser implements Visitor {
         add(asCascadeReceiver.cascadeOperator.value);
       } else if (op === null) {
         sb.add('.');
-      } else if (isCheck) {
+      } else if (spacesNeeded) {
         sb.add(' ');
       }
     }
     if (!node.isPrefix && !node.isIndex) {
       visit(node.selector);
     }
-    if (isCheck) {
+    if (spacesNeeded) {
       sb.add(' ');
     }
   }
