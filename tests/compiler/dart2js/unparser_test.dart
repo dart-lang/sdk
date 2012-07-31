@@ -389,6 +389,18 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testDefaultClassWithArgs() {
+  testDart2Dart('main(){var result=new IA<String>();}'
+      'interface IA<T> default A<T extends Object>{IA();}'
+      'class A<T extends Object> implements IA<T>{factory A(){}}');
+}
+
+testClassExtendsWithArgs() {
+  testDart2Dart('main(){new B<Object>();}'
+    'class A<T extends Object>{}'
+    'class B<T extends Object> extends A<T>{}');
+}
+
 testStaticInvocation() {
   testDart2Dart('main(){var x=Math.parseDouble("1");}');
 }
@@ -417,4 +429,6 @@ main() {
   testConflictLibraryClassRename();
   testNoConflictSendsRename();
   testConflictSendsRename();
+  testDefaultClassWithArgs();
+  testClassExtendsWithArgs();
 }

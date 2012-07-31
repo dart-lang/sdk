@@ -186,6 +186,7 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_illegal_test/15: Fail
 pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
+type_variable_bounds_test/01: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
 # Test annotations are not processed correctly by dart2dart test
@@ -262,7 +263,6 @@ function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 gc_test: Fail
 generic_deep_test: Fail
-generic_inheritance_test: Fail
 generic_instanceof3_test: Fail
 get_set_syntax_test/none: Fail
 getters_setters2_test/03: Fail

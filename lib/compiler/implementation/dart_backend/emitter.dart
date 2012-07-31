@@ -39,7 +39,7 @@ class Emitter {
       sb.add(' ');
       classNode.extendsKeyword.value.printOn(sb);
       sb.add(' ');
-      sb.add(renamer.renameType(classElement.supertype));
+      sb.add(unparser.unparse(classNode.superclass));
     }
     if (!classNode.interfaces.isEmpty()) {
       sb.add(classElement.isInterface() ? ' extends ' : ' implements ');
@@ -47,7 +47,7 @@ class Emitter {
     }
     if (classNode.defaultClause !== null) {
       sb.add(' default ');
-      sb.add(renamer.renameType(classElement.defaultClass));
+      sb.add(unparser.unparse(classNode.defaultClause));
     }
     sb.add('{');
     innerElements.forEach((element) {
