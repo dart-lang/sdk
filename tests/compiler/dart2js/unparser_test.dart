@@ -31,6 +31,9 @@ interface Closure {}
 interface Dynamic {}
 interface Null {}
 assert() {}
+class Math {
+  static double parseDouble(String s) => 1.0;
+}
 ''';
 
 testDart2Dart(String src, [void continuation(String s)]) {
@@ -386,6 +389,10 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testStaticInvocation() {
+  testDart2Dart('main(){var x=Math.parseDouble("1");}');
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -396,6 +403,7 @@ main() {
   testNativeMethods();
   testPrefixIncrements();
   testConstModifier();
+  testStaticInvocation();
   testSimpleFileUnparse();
   testSimpleObjectInstantiation();
   testSimpleTopLevelClass();
