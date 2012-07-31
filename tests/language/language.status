@@ -200,9 +200,21 @@ assign_static_type_test/05: Fail
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
+# DartVM problem.
+closure_with_super_send_test: Fail
+constructor5_test: Fail
+constructor6_test: Fail
+constructor_duplicate_initializers_test/02: Fail
+fauxverride_test/none: Fail
+gc_test: Fail
+parameter_initializer6_negative_test: Fail
+prefix_core_test: Fail
+private_member3_negative_test: Fail
+super_closure_test: Fail
+super_field_access_test: Fail
+super_first_constructor_test: Fail
 # Should be triaged.
 closure7_test: Fail
-closure_with_super_send_test: Fail
 compile_time_constant8_test: Fail
 compile_time_constant_d_test: Fail
 compile_time_constant_e_test: Fail
@@ -211,9 +223,6 @@ cond_expr_test: Fail
 condition_bailout_test: Fail
 const_objects_are_immutable_test: Fail
 constructor2_test: Fail
-constructor5_test: Fail
-constructor6_test: Fail
-constructor_duplicate_initializers_test/02: Fail
 const_test: Fail
 ct_const_test: Fail
 cyclic_type_variable_test/01: Fail
@@ -232,7 +241,6 @@ duplicate_implements_test/04: Fail
 dynamic_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
-fauxverride_test/none: Fail
 f_bounded_quantification_test/01: Fail
 f_bounded_quantification_test/02: Fail
 f_bounded_quantification_test/none: Fail
@@ -259,7 +267,6 @@ function_type_alias7_test/00: Fail
 function_type_alias_test: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
-gc_test: Fail
 generic_deep_test: Fail
 generic_instanceof3_test: Fail
 get_set_syntax_test/none: Fail
@@ -298,16 +305,13 @@ operator1_negative_test: Fail
 operator3_test: Fail
 operator_test: Fail
 optimization_test: Fail
-parameter_initializer6_negative_test: Fail
 prefix14_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 prefix21_test: Fail
-prefix_core_test: Fail
 private3_test: Fail
 private_member1_negative_test: Fail
-private_member3_negative_test: Fail
 private_member_test: Fail
 private_test: Fail
 rethrow_test: Fail
@@ -324,9 +328,6 @@ string_interpolate_test: Fail
 string_interpolation7_test: Fail
 string_interpolation_test/01: Fail
 string_interpolation_test/none: Fail
-super_closure_test: Fail
-super_field_access_test: Fail
-super_first_constructor_test: Fail
 super_operator_test: Fail
 super_test: Fail
 switch_label_test: Fail
