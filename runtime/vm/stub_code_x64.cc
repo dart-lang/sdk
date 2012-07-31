@@ -102,15 +102,10 @@ END_LEAF_RUNTIME_ENTRY
 //   RDI : stop message (const char*).
 // Must preserve all registers.
 void StubCode::GeneratePrintStopMessageStub(Assembler* assembler) {
-  __ enter(Immediate(0));
-  __ PreserveCallerSavedRegisters();
-
+  __ EnterCallRuntimeFrame(0);
   // Call the runtime leaf function. RDI already contains the parameter.
-  __ ReserveAlignedFrameSpace(0);
   __ CallRuntime(kPrintStopMessageRuntimeEntry);
-
-  __ RestoreCallerSavedRegisters();
-  __ leave();
+  __ LeaveCallRuntimeFrame();
   __ ret();
 }
 
@@ -1087,14 +1082,10 @@ void StubCode::GenerateUpdateStoreBufferStub(Assembler* assembler) {
   // Handle overflow: Call the runtime leaf function.
   __ Bind(&L);
   // Setup frame, push callee-saved registers.
-  __ enter(Immediate(0));
-  __ PreserveCallerSavedRegisters();
-  __ ReserveAlignedFrameSpace(0);
+  __ EnterCallRuntimeFrame(0);
   __ movq(RDI, FieldAddress(CTX, Context::isolate_offset()));
   __ CallRuntime(kStoreBufferBlockProcessRuntimeEntry);
-  // Restore callee-saved registers, tear down frame.
-  __ RestoreCallerSavedRegisters();
-  __ leave();
+  __ LeaveCallRuntimeFrame();
   __ ret();
 }
 

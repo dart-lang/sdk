@@ -2258,8 +2258,8 @@ class Stackmap : public Object {
   static const intptr_t kNoMaximum = -1;
   static const intptr_t kNoMinimum = -1;
 
-  bool IsObject(intptr_t offset) const {
-    return InRange(offset) && GetBit(offset);
+  bool IsObject(intptr_t index) const {
+    return InRange(index) && GetBit(index);
   }
   uword PC() const { return raw_ptr()->pc_; }
   void SetPC(uword value) const { raw_ptr()->pc_ = value; }
@@ -2267,11 +2267,11 @@ class Stackmap : public Object {
   RawCode* GetCode() const { return raw_ptr()->code_; }
   void SetCode(const Code& code) const;
 
-  // Return the offset of the highest stack slot that has an object.
-  intptr_t MaximumBitOffset() const { return raw_ptr()->max_set_bit_offset_; }
+  // Return the index of the highest stack slot that has an object.
+  intptr_t MaximumBitIndex() const { return raw_ptr()->max_set_bit_index_; }
 
-  // Return the offset of the lowest stack slot that has an object.
-  intptr_t MinimumBitOffset() const { return raw_ptr()->min_set_bit_offset_; }
+  // Return the index of the lowest stack slot that has an object.
+  intptr_t MinimumBitIndex() const { return raw_ptr()->min_set_bit_index_; }
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
@@ -2285,17 +2285,17 @@ class Stackmap : public Object {
  private:
   inline intptr_t SizeInBits() const;
 
-  void SetMinBitOffset(intptr_t value) const {
-    raw_ptr()->min_set_bit_offset_ = value;
+  void SetMinBitIndex(intptr_t value) const {
+    raw_ptr()->min_set_bit_index_ = value;
   }
-  void SetMaxBitOffset(intptr_t value) const {
-    raw_ptr()->max_set_bit_offset_ = value;
+  void SetMaxBitIndex(intptr_t value) const {
+    raw_ptr()->max_set_bit_index_ = value;
   }
 
-  bool InRange(intptr_t offset) const { return offset < SizeInBits(); }
+  bool InRange(intptr_t index) const { return index < SizeInBits(); }
 
-  bool GetBit(intptr_t bit_offset) const;
-  void SetBit(intptr_t bit_offset, bool value) const;
+  bool GetBit(intptr_t bit_index) const;
+  void SetBit(intptr_t bit_index, bool value) const;
 
   void set_bitmap_size_in_bytes(intptr_t value) const;
 

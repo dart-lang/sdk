@@ -1342,4 +1342,20 @@ public class NegativeResolverTest extends CompilerTestCase {
             "}"),
             errEx(ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, 4, 5, 6));
   }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4090
+   */
+  public void test_forEachVariableIsNotVisibleInIterableExpression() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "List foo(var a) {}",
+            "main() {",
+            "  for (var y in foo(y)) {",
+            "  }",
+            "}"),
+            errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 21, 1));
+  }
 }

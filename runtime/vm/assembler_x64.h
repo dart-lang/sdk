@@ -558,9 +558,12 @@ class Assembler : public ValueObject {
   void LeaveFrame();
   void ReserveAlignedFrameSpace(intptr_t frame_space);
 
-  // Preserve and restore caller save registers according to the C ABI.
-  void PreserveCallerSavedRegisters();
-  void RestoreCallerSavedRegisters();
+  // Create a frame for calling into runtime that preserves all volatile
+  // registers.  Frame's RSP is guaranteed to be correctly aligned and
+  // frame_space bytes are reserved under it.
+  void EnterCallRuntimeFrame(intptr_t frame_space);
+  void LeaveCallRuntimeFrame();
+
 
   void CallRuntime(const RuntimeEntry& entry);
 

@@ -171,6 +171,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final DartCompilerContext context;
     private final Types types;
     private Type expected;
+    private MethodElement currentMethod;
     private InterfaceType currentClass;
     private final InterfaceType boolType;
     private final InterfaceType numType;
@@ -1231,6 +1232,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitMethodInvocation(DartMethodInvocation node) {
+      if (node.getFunctionName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+        return dynamicType;
+      }
       DartIdentifier nameNode = node.getFunctionName();
       String name = node.getFunctionNameString();
       Element element = node.getElement();
@@ -1245,6 +1249,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Member member = lookupMember(receiver, name, nameNode);
       if (member != null) {
         Element methodElement = member.getElement();
+        checkIllegalPrivateAccess(node.getFunctionName(), methodElement, name);
         node.setElement(methodElement);
         if (nameNode != null) {
           nameNode.setElement(methodElement);
@@ -1253,6 +1258,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
       return checkInvocation(node, nameNode, name, methodType);
+    }
+
+    private void checkIllegalPrivateAccess(DartNode diagnosticNode, Element element, String name) {
+      if (DartIdentifier.isPrivateName(name)) {
+        if (element != null) {
+          Element enclosingLibrary = Elements.getLibraryElement(currentMethod);
+          Element identifierEnclosingLibrary = Elements.getLibraryElement(element);
+          if (!enclosingLibrary.equals(identifierEnclosingLibrary)) {
+            onError(diagnosticNode, TypeErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, name);
+          }
+        }
+      }
     }
 
     @Override
@@ -1766,8 +1783,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
           typeError(returnTypeNode, TypeErrorCode.OPERATOR_INDEX_ASSIGN_VOID_RETURN_TYPE);
         }
       }
-      // done
-      return typeAsVoid(node);
+      // visit children
+      MethodElement prevMethod = currentMethod;
+      currentMethod = methodElement;
+      try {
+        return typeAsVoid(node);
+      } finally {
+        currentMethod = prevMethod;
+      }
     }
 
     /**

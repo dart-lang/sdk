@@ -62,9 +62,9 @@ void BitmapBuilder::SetRange(intptr_t min, intptr_t max, bool value) {
 }
 
 
-void BitmapBuilder::SetBits(const Stackmap& bitmap) {
-  intptr_t min = bitmap.MinimumBitOffset();
-  intptr_t max = bitmap.MaximumBitOffset();
+void BitmapBuilder::SetBits(const Stackmap& stackmap) {
+  intptr_t min = stackmap.MinimumBitIndex();
+  intptr_t max = stackmap.MaximumBitIndex();
   if (min == Stackmap::kNoMinimum || max == Stackmap::kNoMaximum) {
     return;
   }
@@ -72,7 +72,7 @@ void BitmapBuilder::SetBits(const Stackmap& bitmap) {
     Set(i, false);
   }
   for (intptr_t i = min; i <= max; i++) {
-    Set(i, bitmap.IsObject(i));
+    Set(i, stackmap.IsObject(i));
   }
   intptr_t bound = SizeInBits();
   for (intptr_t i = (max + 1); i < bound; i++) {

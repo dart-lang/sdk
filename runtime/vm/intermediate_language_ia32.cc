@@ -2042,7 +2042,6 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 
 
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(instance_call()->VerifyComputation());
   Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
                                         instance_call()->token_pos(),
                                         instance_call()->try_index(),

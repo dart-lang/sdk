@@ -910,12 +910,12 @@ public class Resolver {
       getContext().pushScope("<for in>");
       addLabelToStatement(x);
 
+      x.getIterable().accept(this);
       if (x.introducesVariable()) {
         resolveVariableStatement(x.getVariableStatement(), true);
       } else {
         x.getIdentifier().accept(this);
       }
-      x.getIterable().accept(this);
       x.getBody().accept(this);
       getContext().popScope();
       return null;

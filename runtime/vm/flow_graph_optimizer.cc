@@ -114,6 +114,14 @@ static bool HasOnlyTwoDouble(const ICData& ic_data) {
 }
 
 
+static void RemovePushArguments(InstanceCallComp* comp) {
+  // Remove original push arguments.
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
+    comp->ArgumentAt(i)->RemoveFromGraph();
+  }
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                 InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
@@ -163,9 +171,9 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
       UNREACHABLE();
   };
 
-  ASSERT(comp->InputCount() == 2);
-  Value* left = comp->InputAt(0);
-  Value* right = comp->InputAt(1);
+  ASSERT(comp->ArgumentCount() == 2);
+  Value* left = comp->ArgumentAt(0)->value();
+  Value* right = comp->ArgumentAt(1)->value();
   BinaryOpComp* bin_op =
       new BinaryOpComp(op_kind,
                        operands_type,
@@ -174,6 +182,7 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                        right);
   bin_op->set_ic_data(comp->ic_data());
   instr->set_computation(bin_op);
+  RemovePushArguments(comp);
   return true;
 }
 
@@ -185,19 +194,19 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
     // TODO(srdjan): Not yet supported.
     return false;
   }
-  ASSERT(comp->InputCount() == 1);
+  ASSERT(comp->ArgumentCount() == 1);
   Computation* unary_op = NULL;
   if (HasOneSmi(*comp->ic_data())) {
-    unary_op = new UnarySmiOpComp(op_kind, comp, comp->InputAt(0));
+    unary_op = new UnarySmiOpComp(op_kind, comp, comp->ArgumentAt(0)->value());
   } else if (HasOneDouble(*comp->ic_data()) && (op_kind == Token::kNEGATE)) {
-    unary_op = new NumberNegateComp(comp, comp->InputAt(0));
+    unary_op = new NumberNegateComp(comp, comp->ArgumentAt(0)->value());
   }
-  if (unary_op != NULL) {
-    unary_op->set_ic_data(comp->ic_data());
-    instr->set_computation(unary_op);
-    return true;
-  }
-  return false;
+  if (unary_op == NULL) return false;
+
+  unary_op->set_ic_data(comp->ic_data());
+  instr->set_computation(unary_op);
+  RemovePushArguments(comp);
+  return true;
 }
 
 
@@ -257,9 +266,10 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
     LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-        field, comp->InputAt(0), comp);
+        field, comp->ArgumentAt(0)->value(), comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
 
@@ -288,12 +298,13 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         UNREACHABLE();
     }
     LoadVMFieldComp* load = new LoadVMFieldComp(
-        comp->InputAt(0),
+        comp->ArgumentAt(0)->value(),
         length_offset,
         Type::ZoneHandle(Type::IntInterface()));
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
 
@@ -304,12 +315,13 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
     }
     ASSERT(HasOneTarget(ic_data));
     LoadVMFieldComp* load = new LoadVMFieldComp(
-        comp->InputAt(0),
+        comp->ArgumentAt(0)->value(),
         String::length_offset(),
         Type::ZoneHandle(Type::IntInterface()));
     load->set_original(comp);
     load->set_ic_data(comp->ic_data());
     instr->set_computation(load);
+    RemovePushArguments(comp);
     return true;
   }
   return false;
@@ -344,8 +356,9 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
     return false;
   }
   ToDoubleComp* coerce = new ToDoubleComp(
-      comp->InputAt(0), from_kind, comp);
+      comp->ArgumentAt(0)->value(), from_kind, comp);
   instr->set_computation(coerce);
+  RemovePushArguments(comp);
   return true;
 }
 

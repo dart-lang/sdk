@@ -64,12 +64,10 @@ class DartBackend extends Backend {
       compiler.jsHelperLibrary,
       compiler.interceptorsLibrary,
     ];
-    compiler.libraries.forEach((uri, lib) {
-      if (uri.startsWith('dart:')) LIBS_TO_IGNORE.add(lib);
-    });
     bool shouldOutput(Element element) =>
       element.kind !== ElementKind.VOID &&
-      LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1;
+      LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
+      !isDartCoreLib(compiler, element.getLibrary());
 
     try {
       Emitter emitter = new Emitter(compiler);
@@ -102,4 +100,18 @@ main() {
   }
 
   log(String message) => compiler.log('[DartBackend] $message');
+}
+
+/**
+ * Checks if [:libraryElement:] is a core lib, that is a library
+ * provided by the implementation like dart:core, dart:coreimpl, etc.
+ */
+bool isDartCoreLib(Compiler compiler, LibraryElement libraryElement) {
+  final libraries = compiler.libraries;
+  for (final uri in libraries.getKeys()) {
+    if (libraryElement === libraries[uri]) {
+      if (uri.startsWith('dart:')) return true;
+    }
+  }
+  return false;
 }

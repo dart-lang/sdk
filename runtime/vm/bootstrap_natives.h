@@ -85,7 +85,7 @@ namespace dart {
   V(MathNatives_asin, 1)                                                       \
   V(MathNatives_acos, 1)                                                       \
   V(MathNatives_atan, 1)                                                       \
-  V(MathNatives_2atan, 2)                                                      \
+  V(MathNatives_atan2, 2)                                                      \
   V(MathNatives_exp, 1)                                                        \
   V(MathNatives_log, 1)                                                        \
   V(MathNatives_random, 0)                                                     \
@@ -183,6 +183,7 @@ namespace dart {
   V(LocalObjectMirrorImpl_getField, 2)                                         \
   V(LocalObjectMirrorImpl_setField, 3)                                         \
   V(LocalClosureMirrorImpl_apply, 2)                                           \
+  V(LocalInterfaceMirrorImpl_invokeConstructor, 3)                             \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \

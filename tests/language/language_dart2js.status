@@ -43,6 +43,11 @@ assertion_test: Fail, OK
 
 [ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
+
+# Fail "const EmptyLink<Element>" must be a compile-time constant if unchecked on linux.
+# Crash infinite loop on Mac and dart2js checked mode on linux.
+function_type_alias6_test: Crash, Fail
+
 static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
@@ -62,7 +67,6 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
-function_type_alias6_test: Crash # infinite loop.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters

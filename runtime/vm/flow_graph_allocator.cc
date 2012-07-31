@@ -1535,6 +1535,9 @@ void FlowGraphAllocator::AllocateCPURegisters() {
 void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* range,
                                               BlockEntryInstr* source_block,
                                               BlockEntryInstr* target_block) {
+  TRACE_ALLOC(("Connect source_block=%d, target_block=%d\n",
+               source_block->block_id(),
+               target_block->block_id()));
   if (range->next_sibling() == NULL) {
     // Nothing to connect. The whole range was allocated to the same location.
     TRACE_ALLOC(("range %d has no siblings\n", range->vreg()));

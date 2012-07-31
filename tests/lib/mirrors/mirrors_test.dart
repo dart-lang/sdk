@@ -12,6 +12,8 @@
 var topLevelField;
 
 class Class {
+  Class() { this.field = "default value"; }
+  Class.withInitialValue(this.field);
   var field;
   static var staticField;
 }
@@ -61,10 +63,30 @@ testClosureMirrors(mirrors) {
   }));
 }
 
+testInvokeConstructor(mirrors) {
+  var libMirror = mirrors.libraries()["MirrorsTest.dart"];
+  var classMirror = libMirror.classes()["Class"];
+  
+  var future = classMirror.newInstance('', []);
+  future.then(expectAsync1((resultMirror) {
+    var instance = resultMirror.reflectee;
+    expect(instance is Class, equals(true));
+    expect(instance.field, equals("default value"));
+  }));
+
+  future = classMirror.newInstance('withInitialValue', [45]);
+  future.then(expectAsync1((resultMirror) {
+    var instance = resultMirror.reflectee;
+    expect(instance is Class, equals(true));
+    expect(instance.field, equals(45));
+  }));
+}
+
 main() {
   var mirrors = currentMirrorSystem();
 
   test("Test field access", () { testFieldAccess(mirrors); });
   test("Test closure mirrors", () { testClosureMirrors(mirrors); });
+  test("Test invoke constructor", () { testInvokeConstructor(mirrors); });
 }
 

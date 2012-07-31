@@ -36,6 +36,7 @@ public enum TypeErrorCode implements ErrorCode {
   FIELD_IS_FINAL("Field '%s' is final"),
   FOR_IN_WITH_ITERATOR_FIELD("iterator is a field, expected an iterator() method"),
   FOR_IN_WITH_INVALID_ITERATOR_RETURN_TYPE("iterator method's return type is not assignable to %s"),
+  ILLEGAL_ACCESS_TO_PRIVATE("'%s' is private and not defined in this library"),
   INCOMPATIBLE_TYPES_IN_HIERARCHY(ErrorSeverity.INFO,
       "Class inherits two variations of the same interface '%s' and '%s' with parameters that are not assignable to each other."),
   INSTANTIATION_OF_ABSTRACT_CLASS("instantiation of an abstract class '%s'"),

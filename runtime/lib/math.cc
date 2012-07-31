@@ -51,9 +51,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_atan, 1) {
   arguments->SetReturn(Double::Handle(Double::New(atan(operand.value()))));
 }
 
-// It is not possible to call the native MathNatives_atan2. Somehow this leads
-// to a dynamic error "native function 'MathNatives_atan2' cannot be found".
-DEFINE_NATIVE_ENTRY(MathNatives_2atan, 2) {
+DEFINE_NATIVE_ENTRY(MathNatives_atan2, 2) {
   GET_NATIVE_ARGUMENT(Double, operand1, arguments->At(0));
   GET_NATIVE_ARGUMENT(Double, operand2, arguments->At(1));
   arguments->SetReturn(Double::Handle(Double::New(

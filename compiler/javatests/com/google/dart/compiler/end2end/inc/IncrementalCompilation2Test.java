@@ -723,9 +723,72 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
 
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4072
+   */
+  public void test_inaccessibleMethod_fromOtherLibrary_static() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "class A {",
+            "  static _privateStatic() {}",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart');",
+            "main() {",
+            "  A._privateStatic();",
+            "}",
+            ""));
+    // do compile, check errors
+    compile();
+    assertErrors(
+        errors,
+        errEx(ResolverErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, 5, 5, 14));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4072
+   */
+  public void test_inaccessibleMethod_fromOtherLibrary_instance() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('A');",
+            "class A {",
+            "  _privateInstance() {}",
+            "}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('A.dart');",
+            "main() {",
+            "  A a = new A();",
+            "  a._privateInstance();",
+            "}",
+            ""));
+    // do compile, check errors
+    compile();
+    assertErrors(
+        errors,
+        errEx(TypeErrorCode.ILLEGAL_ACCESS_TO_PRIVATE, 6, 5, 16));
+  }
+  
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=3266
    */
-  public void test_inaccessibleMethod_fromOtherLibrary() throws Exception {
+  public void test_inaccessibleSuperMethod_fromOtherLibrary() throws Exception {
     appSource.setContent(
         "A.dart",
         makeCode(
