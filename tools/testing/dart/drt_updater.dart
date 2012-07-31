@@ -58,14 +58,14 @@ _DartiumUpdater runtimeUpdater(Map configuration) {
     // Download the default DumpRenderTree from Google Storage.
     if (_dumpRenderTreeUpdater === null) {
       _dumpRenderTreeUpdater = new _DartiumUpdater('DumpRenderTree',
-                                                   'get_drt.py');
+                                                   'get_archive.py', 'drt');
     }
     return _dumpRenderTreeUpdater;
   } else if (runtime == 'dartium' && configuration['dartium'] == '') {
     // Download the default Dartium from Google Storage.
     if (_dartiumUpdater === null) {
-      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome', 'get_drt.py',
-                                            '--dartium');
+      _dartiumUpdater = new _DartiumUpdater('Dartium Chrome', 'get_archive.py',
+                                            'dartium');
     }
     return _dartiumUpdater;
   } else {
