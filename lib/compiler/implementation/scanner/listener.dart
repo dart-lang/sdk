@@ -871,7 +871,8 @@ class ElementListener extends Listener {
     if (isLast) {
       pushNode(string);
     } else {
-      NodeList partNodes = new NodeList(null, parts, null, null);
+      NodeList partNodes =
+          new NodeList(null, parts, null, const SourceString(""));
       pushNode(new StringInterpolation(string, partNodes));
     }
   }

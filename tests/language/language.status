@@ -161,7 +161,6 @@ issue1363_test: Fail
 list_literal4_test: Fail
 map_literal4_test: Fail
 math_vm_test: Fail
-named_parameters_test: Fail
 static_implicit_closure_test: Fail, Pass
 static_initializer_type_error_test: Fail
 type_cast_vm_test: Fail
@@ -214,11 +213,7 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
-closure7_test: Fail
 compile_time_constant8_test: Fail
-compile_time_constant_d_test: Fail
-compile_time_constant_e_test: Fail
-compile_time_constant_o_test: Fail
 cond_expr_test: Fail
 condition_bailout_test: Fail
 const_objects_are_immutable_test: Fail
@@ -255,7 +250,6 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 final_syntax_test/none: Fail
-for2_test: Fail
 function_literals_test: Fail
 function_type_alias3_test: Fail
 function_type_alias4_test: Crash, Fail
@@ -283,8 +277,6 @@ instanceof2_test: Fail
 instanceof3_test: Fail
 instanceof_test: Fail
 interface_factory_constructor_negative_test: Fail
-interface_factory_multi_test: Fail
-interface_factory_test: Fail
 interface_inherit_field_test: Fail
 interface_static_method_negative_test: Fail
 interface_test: Fail
@@ -304,7 +296,6 @@ numbers_test: Fail
 operator1_negative_test: Fail
 operator3_test: Fail
 operator_test: Fail
-optimization_test: Fail
 prefix14_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail
@@ -323,12 +314,7 @@ static_top_level_test/02: Fail
 static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
-string_interpolate2_test: Fail
-string_interpolate_test: Fail
 string_interpolation7_test: Fail
-string_interpolation_test/01: Fail
-string_interpolation_test/none: Fail
-super_operator_test: Fail
 super_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail

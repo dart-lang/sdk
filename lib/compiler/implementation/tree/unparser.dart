@@ -194,7 +194,7 @@ class Unparser implements Visitor {
    */
   unparseNodeListFrom(NodeList node, Link<Node> from) {
     if (from.isEmpty()) return;
-    String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
+    String delimiter = (node.delimiter === null) ? " " : "${node.delimiter}";
     visit(from.head);
     for (Link link = from.tail; !link.isEmpty(); link = link.tail) {
       sb.add(delimiter);

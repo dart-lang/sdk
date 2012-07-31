@@ -113,7 +113,7 @@ testClosure() {
 
 testIndexedOperatorDecl() {
   testUnparseMember('operator[](int i)=> null;');
-  testUnparseMember('operator[]=(int i, int j)=> null;');
+  testUnparseMember('operator[]=(int i,int j)=> null;');
 }
 
 testNativeMethods() {
@@ -132,7 +132,7 @@ testConstModifier() {
   testUnparse('foo([var a=const []]){}');
   testUnparse('foo([var a=const{}]){}');
   testUnparse('foo(){var a=const []; var b=const{};}');
-  testUnparse('foo([var a=const [const{"a": const [1, 2, 3]}]]){}');
+  testUnparse('foo([var a=const [const{"a": const [1,2,3]}]]){}');
 }
 
 testSimpleFileUnparse() {
@@ -178,8 +178,8 @@ testExtendsImplements() {
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){final var x, y; final String s;}');
-  testDart2Dart('foo(f, g){}main(){foo(1, 2);}');
+  testDart2Dart('main(){final var x,y; final String s;}');
+  testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
   testDart2Dart('main(){A.a; A.b;}class A{static final String a="5";'
