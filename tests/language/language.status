@@ -195,8 +195,9 @@ assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
 assign_static_type_test/05: Fail
-# Should be triaged.
+# Call operator is not supported by dart2js frontend.
 call_operator_test: Fail
+# Should be triaged.
 cascade_in_expression_function_test: Fail
 cascade_precedence_test: Fail
 cascade_test/none: Fail
