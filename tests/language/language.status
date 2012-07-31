@@ -233,7 +233,6 @@ duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
 dynamic_test: Fail
 empty_body_member_negative_test: Fail
-factory2_test: Fail
 factory4_test: Fail
 factory_test: Fail
 fauxverride_test/none: Fail
