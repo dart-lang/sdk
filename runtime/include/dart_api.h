@@ -2071,6 +2071,19 @@ DART_EXPORT bool Dart_IsFunction(Dart_Handle handle);
 DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function);
 
 /**
+ * Returns a handle to the enclosing class or library for a function. If this
+ * function is an instance method, a static method or the function of a closure
+ * defined in such, it has an enclosing class. If this function is a top-level
+ * function or the function of a closure defined in such, it has an enclosing
+ * library.
+ *
+ * \return A valid handle on the enclosing class or library of the function, or
+ * an error handle if the argument is not a valid handle to a function.
+ */
+DART_EXPORT Dart_Handle Dart_FunctionEnclosingClassOrLibrary(
+    Dart_Handle function);
+
+/**
  * Determines whether a function handle refers to an abstract method.
  *
  * \param function A handle to a function or method declaration.

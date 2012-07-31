@@ -2783,6 +2783,32 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_FunctionEnclosingClassOrLibrary(
+    Dart_Handle function) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  const Class& owner = Class::Handle(func.owner());
+  ASSERT(!owner.IsNull());
+  if (owner.IsTopLevel()) {
+    // Top-level functions are implemented as members of a hidden class. We hide
+    // that class here and instead answer the library.
+#if defined(DEBUG)
+    const Library& lib = Library::Handle(owner.library());
+    if (lib.IsNull()) {
+      ASSERT(owner.IsDynamicClass() || owner.IsVoidClass());
+    }
+#endif
+    return Api::NewHandle(isolate, owner.library());
+  } else {
+    return Api::NewHandle(isolate, owner.raw());
+  }
+}
+
+
 DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
                                                 bool* is_abstract) {
   Isolate* isolate = Isolate::Current();
