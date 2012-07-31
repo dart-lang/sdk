@@ -12,7 +12,8 @@ class _IsNot extends BaseMatcher {
 
   const _IsNot(Matcher this._matcher);
 
-  bool matches(item) => !_matcher.matches(item);
+  bool matches(item, MatchState matchState) =>
+      !_matcher.matches(item, matchState);
 
   Description describe(Description description) =>
     description.add('not ').addDescriptionOf(_matcher);
@@ -75,23 +76,25 @@ class _AllOf extends BaseMatcher {
 
   const _AllOf(this._matchers);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
      for (var matcher in _matchers) {
-       if (!matcher.matches(item)) {
+       if (!matcher.matches(item, matchState)) {
+         matchState.state = {
+             'matcher': matcher,
+             'state': matchState.state
+         };
          return false;
        }
      }
      return true;
   }
 
-  Description describeMismatch(item, Description mismatchDescription) {
-    for (var matcher in _matchers) {
-      if (!matcher.matches(item)) {
-        mismatchDescription.addDescriptionOf(matcher).add(' ');
-        matcher.describeMismatch(item, mismatchDescription);
-        break;
-      }
-    }
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    var matcher = matchState.state['matcher'];
+    mismatchDescription.addDescriptionOf(matcher).add(' ');
+        matcher.describeMismatch(item, mismatchDescription,
+            matchState.state['state'], verbose);
     return mismatchDescription;
   }
 
@@ -161,9 +164,9 @@ class _AnyOf extends BaseMatcher {
 
   const _AnyOf(this._matchers);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
      for (var matcher in _matchers) {
-       if (matcher.matches(item)) {
+       if (matcher.matches(item, matchState)) {
          return true;
        }
      }

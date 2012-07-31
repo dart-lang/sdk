@@ -21,6 +21,10 @@
  * pass a [failureHandler] to [expect] as a final parameter for fine-
  * grained control.
  *
+ * In some cases extra diagnostic info can be produced on failure (for
+ * example, stack traces on mismatched exceptions). To enable these,
+ * [verbose] should be specified as true;
+ *
  * expect() is a 3rd generation assertion mechanism, drawing
  * inspiration from [Hamcrest] and Ladislav Thon's [dart-matchers]
  * library.
@@ -30,11 +34,13 @@
  *     [dart-matchers] https://github.com/Ladicek/dart-matchers
  */
 void expect(actual, [matcher = isTrue, String reason = null,
-            failureHandler = null]) {
+            FailureHandler failureHandler = null,
+            bool verbose = false]) {
   matcher = wrapMatcher(matcher);
-  var doesMatch;
+  bool doesMatch;
+  var matchState = new MatchState();
   try {
-    doesMatch = matcher.matches(actual);
+    doesMatch = matcher.matches(actual, matchState);
   } catch (var e, var trace) {
     doesMatch = false;
     if (reason == null) {
@@ -45,7 +51,7 @@ void expect(actual, [matcher = isTrue, String reason = null,
     if (failureHandler == null) {
       failureHandler = getOrCreateExpectFailureHandler();
     }
-    failureHandler.failMatch(actual, matcher, reason);
+    failureHandler.failMatch(actual, matcher, reason, matchState, verbose);
   }
 }
 
@@ -78,8 +84,9 @@ class DefaultFailureHandler implements FailureHandler {
   void fail(String reason) {
     throw new ExpectException(reason);
   }
-  void failMatch(actual, Matcher matcher, String reason) {
-    fail(_assertErrorFormatter(actual, matcher, reason));
+  void failMatch(actual, Matcher matcher, String reason,
+      MatchState matchState, bool verbose) {
+    fail(_assertErrorFormatter(actual, matcher, reason, matchState, verbose));
   }
 }
 
@@ -107,12 +114,16 @@ FailureHandler getOrCreateExpectFailureHandler() {
 ErrorFormatter _assertErrorFormatter = null;
 
 // The default error formatter implementation.
-String _defaultErrorFormatter(actual, Matcher matcher, String reason) {
+String _defaultErrorFormatter(actual, Matcher matcher, String reason,
+    MatchState matchState, bool verbose) {
   var description = new StringDescription();
   description.add('Expected: ').addDescriptionOf(matcher).
       add('\n     but: ');
-  matcher.describeMismatch(actual, description);
+  matcher.describeMismatch(actual, description, matchState, verbose);
   description.add('.\n');
+  if (verbose && actual is Iterable) {
+    description.add('Actual: ').addDescriptionOf(actual).add('\n');
+  }
   if (reason != null) {
     description.add(reason).add('\n');
   }

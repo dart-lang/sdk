@@ -29,7 +29,7 @@ class _Completes extends BaseMatcher {
 
   const _Completes(this._matcher);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item is! Future) return false;
 
     item.onComplete(expectAsync1((future) {

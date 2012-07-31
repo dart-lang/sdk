@@ -16,7 +16,8 @@ class _IsEqualIgnoringCase extends _StringMatcher {
     _matchValue = _value.toLowerCase();
   }
 
-  bool matches(item) => item is String && _matchValue == item.toLowerCase();
+  bool matches(item, MatchState mismatchState) =>
+      item is String && _matchValue == item.toLowerCase();
 
   Description describe(Description description) =>
       description.addDescriptionOf(_value).add(' ignoring case');
@@ -41,18 +42,20 @@ class _IsEqualIgnoringWhitespace extends _StringMatcher {
     _matchValue = collapseWhitespace(_value);
   }
 
-  bool matches(item) =>
+  bool matches(item, MatchState matchState) =>
       item is String && _matchValue == collapseWhitespace(item);
 
   Description describe(Description description) =>
     description.addDescriptionOf(_matchValue).add(' ignoring whitespace');
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item is String) {
       return mismatchDescription.add('was ').
           addDescriptionOf(collapseWhitespace(item));
     } else {
-      return super.describeMismatch(item, mismatchDescription);
+      return super.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
     }
   }
 }
@@ -91,7 +94,8 @@ class _StringStartsWith extends _StringMatcher {
 
   const _StringStartsWith(this._prefix);
 
-  bool matches(item) => item is String && item.startsWith(_prefix);
+  bool matches(item, MatchState matchState) =>
+      item is String && item.startsWith(_prefix);
 
   Description describe(Description description) =>
       description.add('a string starting with ').addDescriptionOf(_prefix);
@@ -109,7 +113,8 @@ class _StringEndsWith extends _StringMatcher {
 
   const _StringEndsWith(this._suffix);
 
-  bool matches(item) => item is String && item.endsWith(_suffix);
+  bool matches(item, MatchState matchState) =>
+      item is String && item.endsWith(_suffix);
 
   Description describe(Description description) =>
       description.add('a string ending with ').addDescriptionOf(_suffix);
@@ -131,7 +136,7 @@ class _StringContainsInOrder extends _StringMatcher {
 
   const _StringContainsInOrder(this._substrings);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (!(item is String)) {
       return false;
     }
@@ -170,7 +175,8 @@ class _MatchesRegExp extends _StringMatcher {
     }
   }
 
-  bool matches(String item) => _regexp.hasMatch(item);
+  bool matches(String item, MatchState matchState) =>
+        _regexp.hasMatch(item);
 
   Description describe(Description description) =>
       description.add("match '${_regexp.pattern}'");
@@ -180,13 +186,15 @@ class _MatchesRegExp extends _StringMatcher {
 // class to give better mismatch error messages than the base Matcher class.
 /* abstract */ class _StringMatcher extends BaseMatcher {
   const _StringMatcher();
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (!(item is String)) {
       return mismatchDescription.
           addDescriptionOf(item).
           add(' not a string');
     } else {
-      return super.describeMismatch(item, mismatchDescription);
+      return super.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
     }
   }
 }
