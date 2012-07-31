@@ -57,6 +57,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -1035,6 +1036,7 @@ public class DartCompiler {
     }
 
     CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
+    config.getSystemLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
     return compilerMain(sourceFile, config);
   }
 
