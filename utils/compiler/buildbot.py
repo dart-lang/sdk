@@ -223,7 +223,7 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
   elif (runtime == 'ff' or runtime == 'chrome') and is_buildbot:
     # Print out browser version numbers if we're running on the buildbot (where
     # we know the paths to these browser installations).
-    version_query_string = '%s --version' % GetPath(runtime)
+    version_query_string = '"%s" --version' % GetPath(runtime)
     if runtime == 'ff' and system == 'win7':
       version_query_string += '| more'
     elif runtime == 'chrome' and system == 'win7':
