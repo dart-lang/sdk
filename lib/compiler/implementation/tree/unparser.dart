@@ -232,13 +232,11 @@ class Unparser implements Visitor {
     }
     if (node.receiver !== null) {
       visit(node.receiver);
-      if (op === null) {
-        CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
-        if (asCascadeReceiver !== null) {
-          add(asCascadeReceiver.cascadeOperator.value);
-        } else {
-          sb.add('.');
-        }
+      CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+      if (asCascadeReceiver !== null) {
+        add(asCascadeReceiver.cascadeOperator.value);
+      } else if (op === null) {
+        sb.add('.');
       } else if (isCheck) {
         sb.add(' ');
       }
@@ -275,6 +273,10 @@ class Unparser implements Visitor {
       add(node.assignmentOperator.token.value);
     }
     visit(node.receiver);
+    CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+    if (asCascadeReceiver !== null) {
+      add(asCascadeReceiver.cascadeOperator.value);
+    }
     sb.add('[');
     sb.add(node.arguments.head);
     sb.add(']');
