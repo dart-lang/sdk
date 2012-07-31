@@ -1408,6 +1408,7 @@ void Assembler::StoreIntoObjectFilter(Register object,
 void Assembler::StoreIntoObject(Register object,
                                 const FieldAddress& dest,
                                 Register value) {
+  // TODO(kmillikin): pass temp registers to avoid pushing registers.
   movl(dest, value);
   Label done;
   pushl(value);

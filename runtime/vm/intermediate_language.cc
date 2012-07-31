@@ -967,7 +967,8 @@ void TargetEntryInstr::PrepareEntry(FlowGraphCompiler* compiler) {
 LocationSummary* StoreInstanceFieldComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   const intptr_t num_temps = HasICData() ? 1 : 0;
-  LocationSummary* summary = new LocationSummary(kNumInputs, num_temps);
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, num_temps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RequiresRegister());
   summary->set_in(1, Location::RequiresRegister());
   if (HasICData()) {
@@ -1038,7 +1039,7 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* GotoInstr::MakeLocationSummary() const {
-  return new LocationSummary(0, 0);
+  return new LocationSummary(0, 0, LocationSummary::kNoCall);
 }
 
 
@@ -1087,7 +1088,9 @@ void BranchInstr::EmitBranchOnCondition(FlowGraphCompiler* compiler,
 
 
 LocationSummary* CurrentContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(0, Location::RequiresRegister());
+  return LocationSummary::Make(0,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1099,7 +1102,8 @@ void CurrentContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* StoreContextComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps = 0;
-  LocationSummary* summary = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   summary->set_in(0, Location::RegisterLocation(CTX));
   return summary;
 }
@@ -1112,7 +1116,9 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StrictCompareComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
+  return LocationSummary::Make(2,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1216,7 +1222,7 @@ void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreStaticFieldComp::MakeLocationSummary() const {
-  LocationSummary* locs = new LocationSummary(1, 1);
+  LocationSummary* locs = new LocationSummary(1, 1, LocationSummary::kNoCall);
   locs->set_in(0, Location::RequiresRegister());
   locs->set_temp(0, Location::RequiresRegister());
   locs->set_out(Location::SameAsFirstInput());
@@ -1235,7 +1241,9 @@ void StoreStaticFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* BooleanNegateComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::RequiresRegister());
+  return LocationSummary::Make(1,
+                               Location::RequiresRegister(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1253,7 +1261,9 @@ void BooleanNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ChainContextComp::MakeLocationSummary() const {
-  return LocationSummary::Make(1, Location::NoLocation());
+  return LocationSummary::Make(1,
+                               Location::NoLocation(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1270,7 +1280,9 @@ void ChainContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreVMFieldComp::MakeLocationSummary() const {
-  return LocationSummary::Make(2, Location::SameAsFirstInput());
+  return LocationSummary::Make(2,
+                               Location::SameAsFirstInput(),
+                               LocationSummary::kNoCall);
 }
 
 
@@ -1320,7 +1332,8 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* PushArgumentInstr::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
   const intptr_t kNumTemps= 0;
-  LocationSummary* locs = new LocationSummary(kNumInputs, kNumTemps);
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
   // TODO(fschneider): Use Any() once it is supported by all code generators.
   locs->set_in(0, Location::RequiresRegister());
   return locs;
