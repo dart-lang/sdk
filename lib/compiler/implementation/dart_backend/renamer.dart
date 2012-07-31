@@ -90,7 +90,7 @@ class ConflictingRenamer extends Renamer {
 
     generateUniqueName(name) {
       while (usedTopLevelIdentifiers.contains(name)) {
-        name = "\$$name";
+        name = "p_$name";
       }
       usedTopLevelIdentifiers.add(name);
       return name;
