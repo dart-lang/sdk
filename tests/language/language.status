@@ -197,11 +197,12 @@ assign_static_type_test/04: Fail
 assign_static_type_test/05: Fail
 # Call operator is not supported by dart2js frontend.
 call_operator_test: Fail
+# dart2js frontend doesn't even analyse problematic classes.
+class_extends_negative_test: Fail
 # Should be triaged.
 cast_test/04: Fail
 cast_test/05: Fail
 cast_test/none: Fail
-class_extends_negative_test: Fail
 class_test: Fail
 closure7_test: Fail
 closure_with_super_send_test: Fail
