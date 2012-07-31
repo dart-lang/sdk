@@ -54,36 +54,70 @@ CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   LongJump jump;
   isolate->set_long_jump_base(&jump);
   if (setjmp(*jump.Set()) == 0) {
-    // Build some stack map entries.
-    StackmapBuilder* builder = new StackmapBuilder();
-    EXPECT(builder != NULL);
-    builder->SetSlotAsObject(0);
-    EXPECT(builder->IsSlotObject(0));
-    builder->AddEntry(0);  // Add a stack map entry at pc offset 0.
-    builder->SetSlotAsValue(1);
-    EXPECT(!builder->IsSlotObject(1));
-    builder->SetSlotAsObject(2);
-    EXPECT(builder->IsSlotObject(2));
-    builder->AddEntry(1);  // Add a stack map entry at pc offset 1.
-    builder->SetSlotRangeAsObject(3, 5);
+    // Build a stackmap table and some stackmap table entries.
+    StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
+    EXPECT(stackmap_table_builder != NULL);
+    BitmapBuilder* stackmap = new BitmapBuilder();
+    EXPECT(stackmap != NULL);
+    stackmap->Set(0, true);
+    EXPECT(stackmap->Get(0));
+    // Add a stack map entry at pc offset 0.
+    stackmap_table_builder->AddEntry(0, stackmap);
+
+    stackmap = new BitmapBuilder();
+    EXPECT(stackmap != NULL);
+    stackmap->Set(0, true);
+    stackmap->Set(1, false);
+    stackmap->Set(2, true);
+    EXPECT(stackmap->Get(0));
+    EXPECT(!stackmap->Get(1));
+    EXPECT(stackmap->Get(2));
+    // Add a stack map entry at pc offset 1.
+    stackmap_table_builder->AddEntry(1, stackmap);
+
+    stackmap = new BitmapBuilder();
+    EXPECT(stackmap != NULL);
+    stackmap->Set(0, true);
+    stackmap->Set(1, false);
+    stackmap->Set(2, true);
+    stackmap->SetRange(3, 5, true);
+    EXPECT(stackmap->Get(0));
+    EXPECT(!stackmap->Get(1));
+    EXPECT(stackmap->Get(2));
     for (intptr_t i = 3; i <= 5; i++) {
-      EXPECT(builder->IsSlotObject(i));
+      EXPECT(stackmap->Get(i));
     }
-    builder->AddEntry(2);  // Add a stack map entry at pc offset 2.
-    builder->SetSlotRangeAsValue(6, 9);
+    // Add a stack map entry at pc offset 2.
+    stackmap_table_builder->AddEntry(2, stackmap);
+
+    stackmap = new BitmapBuilder();
+    EXPECT(stackmap != NULL);
+    stackmap->Set(0, true);
+    stackmap->Set(1, false);
+    stackmap->Set(2, true);
+    stackmap->SetRange(3, 5, true);
+    stackmap->SetRange(6, 9, false);
+    stackmap->Set(10, true);
+    EXPECT(stackmap->Get(0));
+    EXPECT(!stackmap->Get(1));
+    EXPECT(stackmap->Get(2));
+    for (intptr_t i = 3; i <= 5; i++) {
+      EXPECT(stackmap->Get(i));
+    }
     for (intptr_t i = 6; i <= 9; i++) {
-      EXPECT(!builder->IsSlotObject(i));
+      EXPECT(!stackmap->Get(i));
     }
-    builder->SetSlotAsObject(10);
-    EXPECT(builder->IsSlotObject(10));
-    builder->AddEntry(3);  // Add a stack map entry at pc offset 3.
+    EXPECT(stackmap->Get(10));
+    // Add a stack map entry at pc offset 3.
+    stackmap_table_builder->AddEntry(3, stackmap);
 
     const Error& error =
         Error::Handle(Compiler::CompileParsedFunction(parsed_function));
     EXPECT(error.IsNull());
     const Code& code = Code::Handle(function.CurrentCode());
 
-    const Array& stack_maps = Array::Handle(builder->FinalizeStackmaps(code));
+    const Array& stack_maps =
+        Array::Handle(stackmap_table_builder->FinalizeStackmaps(code));
     code.set_stackmaps(stack_maps);
     const Array& stack_map_list = Array::Handle(code.stackmaps());
     EXPECT(!stack_map_list.IsNull());
@@ -195,15 +229,17 @@ TEST_CASE(StackmapGC) {
 
   // Build and setup a stackmap for the call to 'func' in 'A.foo' in order
   // to test the traversal of stack maps when a GC happens.
-  StackmapBuilder* builder = new StackmapBuilder();
-  EXPECT(builder != NULL);
-  builder->SetSlotAsValue(0);  // var i.
-  builder->SetSlotAsObject(1);  // var s1.
-  builder->SetSlotAsValue(2);  // var k.
-  builder->SetSlotAsObject(3);  // var s2.
-  builder->SetSlotAsObject(4);  // var s3.
-  builder->SetSlotAsObject(5);  // First argument to func(i, k).
-  builder->SetSlotAsObject(6);  // Second argument to func(i, k).
+  StackmapTableBuilder* stackmap_table_builder = new StackmapTableBuilder();
+  EXPECT(stackmap_table_builder != NULL);
+  BitmapBuilder* stackmap = new BitmapBuilder();
+  EXPECT(stackmap != NULL);
+  stackmap->Set(0, false);  // var i.
+  stackmap->Set(1, true);  // var s1.
+  stackmap->Set(2, false);  // var k.
+  stackmap->Set(3, true);  // var s2.
+  stackmap->Set(4, true);  // var s3.
+  stackmap->Set(5, true);  // First argument to func(i, k).
+  stackmap->Set(6, true);  // Second argument to func(i, k).
   const Code& code = Code::Handle(function_foo.unoptimized_code());
   // Search for the pc of the call to 'func'.
   const PcDescriptors& descriptors =
@@ -211,14 +247,16 @@ TEST_CASE(StackmapGC) {
   int call_count = 0;
   for (int i = 0; i < descriptors.Length(); ++i) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kFuncCall) {
-      builder->AddEntry(descriptors.PC(i) - code.EntryPoint());
+      stackmap_table_builder->AddEntry(descriptors.PC(i) - code.EntryPoint(),
+                                       stackmap);
       ++call_count;
     }
   }
   // We can't easily check that we put the stackmap at the correct pc, but
   // we did if there was exactly one call seen.
   EXPECT(call_count == 1);
-  const Array& stack_maps = Array::Handle(builder->FinalizeStackmaps(code));
+  const Array& stack_maps =
+      Array::Handle(stackmap_table_builder->FinalizeStackmaps(code));
   code.set_stackmaps(stack_maps);
 
   // Now invoke 'A.moo' and it will trigger a GC when the native function

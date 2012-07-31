@@ -42,7 +42,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
-      stackmap_builder_(NULL),
+      stackmap_table_builder_(NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
@@ -232,13 +232,13 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
-  if (stackmap_builder_ == NULL) {
+  if (stackmap_table_builder_ == NULL) {
     // The unoptimizing compiler has no stack maps.
     code.set_stackmaps(Array::Handle());
   } else {
     // Finalize the stack map array and add it to the code object.
     code.set_stackmaps(
-        Array::Handle(stackmap_builder_->FinalizeStackmaps(code)));
+        Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
   }
 }
 
