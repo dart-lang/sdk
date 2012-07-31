@@ -143,7 +143,7 @@ uword AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, 0));
+                    true, false, false, false, 0));
   const Code& code = Code::Handle(Code::FinalizeCode(function, assembler_));
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
@@ -166,7 +166,8 @@ CodeGenTest::CodeGenTest(const char* name)
   ASSERT(name != NULL);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   function_ = Function::New(
-      function_name, RawFunction::kRegularFunction, true, false, false, 0);
+      function_name, RawFunction::kRegularFunction,
+      true, false, false, false, 0);
   function_.set_result_type(Type::Handle(Type::DynamicType()));
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.

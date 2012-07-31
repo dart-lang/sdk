@@ -16,7 +16,7 @@ const Function& RegisterFakeFunction(const char* name, const Code& code) {
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, 0));
+                    true, false, false, false, 0));
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();
   cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);

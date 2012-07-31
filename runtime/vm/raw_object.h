@@ -542,17 +542,84 @@ class RawFunction : public RawObject {
     kRegularFunction,
     kClosureFunction,
     kSignatureFunction,  // represents a signature only without actual code.
-    kGetterFunction,  // represents getter functions e.g: get foo() { .. }.
-    kSetterFunction,  // represents setter functions e.g: set foo(..) { .. }.
-    kAbstract,
+    kGetterFunction,     // represents getter functions e.g: get foo() { .. }.
+    kSetterFunction,     // represents setter functions e.g: set foo(..) { .. }.
     kConstructor,
-    kImplicitGetter,  // represents an implicit getter for fields.
-    kImplicitSetter,  // represents an implicit setter for fields.
+    kImplicitGetter,     // represents an implicit getter for fields.
+    kImplicitSetter,     // represents an implicit setter for fields.
     kConstImplicitGetter,  // represents an implicit const getter for fields.
   };
 
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Function);
+
+  enum KindTagBits {
+    kStaticBit = 1,
+    kConstBit = 2,
+    kOptimizableBit = 3,
+    kNativeBit = 4,
+    kAbstractBit = 5,
+    kExternalBit = 5,
+    kKindTagBit = 6,
+    kKindTagSize = 4,
+  };
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class NativeBit : public BitField<bool, kNativeBit, 1> {};
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class KindBits : public BitField<Kind, kKindTagBit, kKindTagSize> {};
+
+  bool IsStatic() const {
+    return StaticBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsStatic(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = StaticBit::update(value, bits);
+  }
+  bool IsConst() const {
+    return ConstBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsConst(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = ConstBit::update(value, bits);
+  }
+  bool IsOptimizable() const {
+    return OptimizableBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsOptimizable(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = OptimizableBit::update(value, bits);
+  }
+  bool IsNative() const {
+    return NativeBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsNative(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = NativeBit::update(value, bits);
+  }
+  bool IsAbstract() const {
+    return AbstractBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsAbstract(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = AbstractBit::update(value, bits);
+  }
+  bool IsExternal() const {
+    return ExternalBit::decode(ptr()->kind_tag_);
+  }
+  void SetIsExternal(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = ExternalBit::update(value, bits);
+  }
+  Kind GetKind() const {
+    return KindBits::decode(ptr()->kind_tag_);
+  }
+  void SetKind(Kind value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = KindBits::update(value, bits);
+  }
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
@@ -577,12 +644,7 @@ class RawFunction : public RawObject {
   intptr_t num_optional_parameters_;
   intptr_t usage_counter_;  // Incremented while function is running.
   intptr_t deoptimization_counter_;
-  Kind kind_;
-  bool is_static_;
-  bool is_const_;
-  bool is_optimizable_;
-  bool is_native_;
-  bool is_external_;
+  intptr_t kind_tag_;
 };
 
 

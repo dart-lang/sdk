@@ -3748,22 +3748,22 @@ void Function::set_parameter_names(const Array& value) const {
 
 
 void Function::set_kind(RawFunction::Kind value) const {
-  raw_ptr()->kind_ = value;
+  raw()->SetKind(value);
 }
 
 
 void Function::set_is_static(bool is_static) const {
-  raw_ptr()->is_static_ = is_static;
+  raw()->SetIsStatic(is_static);
 }
 
 
 void Function::set_is_const(bool is_const) const {
-  raw_ptr()->is_const_ = is_const;
+  raw()->SetIsConst(is_const);
 }
 
 
-void Function::set_is_external(bool value) const {
-  raw_ptr()->is_external_ = value;
+void Function::set_is_external(bool is_external) const {
+  raw()->SetIsExternal(is_external);
 }
 
 
@@ -3786,12 +3786,17 @@ void Function::set_num_optional_parameters(intptr_t n) const {
 
 
 void Function::set_is_optimizable(bool value) const {
-  raw_ptr()->is_optimizable_ = value;
+  raw()->SetIsOptimizable(value);
 }
 
 
 void Function::set_is_native(bool value) const {
-  raw_ptr()->is_native_ = value;
+  raw()->SetIsNative(value);
+}
+
+
+void Function::set_is_abstract(bool value) const {
+  raw()->SetIsAbstract(value);
 }
 
 
@@ -4121,6 +4126,7 @@ RawFunction* Function::New(const String& name,
                            RawFunction::Kind kind,
                            bool is_static,
                            bool is_const,
+                           bool is_abstract,
                            bool is_external,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
@@ -4140,6 +4146,7 @@ RawFunction* Function::New(const String& name,
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
   result.set_is_native(false);
+  result.set_is_abstract(is_abstract);
   return result.raw();
 }
 
@@ -4156,6 +4163,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     RawFunction::kClosureFunction,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
+                    /* is_abstract = */ false,
                     /* is_external = */ false,
                     token_pos));
   result.set_parent_function(parent);
@@ -4355,43 +4363,43 @@ bool Function::HasOptimizedCode() const {
 
 
 const char* Function::ToCString() const {
-  const char* f0 = is_static() ? " static" : "";
-  const char* f1 = NULL;
-  const char* f2 = is_const() ? " const" : "";
+  const char* static_str = is_static() ? " static" : "";
+  const char* abstract_str = is_abstract() ? " abstract" : "";
+  const char* kind_str = NULL;
+  const char* const_str = is_const() ? " const" : "";
   switch (kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
-      f1 = "";
+      kind_str = "";
       break;
     case RawFunction::kSignatureFunction:
-      f1 = " signature";
-      break;
-    case RawFunction::kAbstract:
-      f1 = " abstract";
+      kind_str = " signature";
       break;
     case RawFunction::kConstructor:
-      f1 = is_static() ? " factory" : " constructor";
+      kind_str = is_static() ? " factory" : " constructor";
       break;
     case RawFunction::kImplicitGetter:
-      f1 = " getter";
+      kind_str = " getter";
       break;
     case RawFunction::kImplicitSetter:
-      f1 = " setter";
+      kind_str = " setter";
       break;
     case RawFunction::kConstImplicitGetter:
-      f1 = " const-getter";
+      kind_str = " const-getter";
       break;
     default:
       UNREACHABLE();
   }
-  const char* kFormat = "Function '%s':%s%s%s.";
+  const char* kFormat = "Function '%s':%s%s%s%s.";
   const char* function_name = String::Handle(name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, f0, f1, f2) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
+                             static_str, abstract_str, kind_str, const_str) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, function_name, f0, f1, f2);
+  OS::SNPrint(chars, len, kFormat, function_name,
+              static_str, abstract_str, kind_str, const_str);
   return chars;
 }
 

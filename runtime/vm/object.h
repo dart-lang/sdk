@@ -1400,22 +1400,19 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
 
-  RawFunction::Kind kind() const { return raw_ptr()->kind_; }
+  RawFunction::Kind kind() const { return raw()->GetKind(); }
 
-  bool is_static() const { return raw_ptr()->is_static_; }
-  bool is_const() const { return raw_ptr()->is_const_; }
-  bool is_external() const { return raw_ptr()->is_external_; }
+  bool is_static() const { return raw()->IsStatic(); }
+  bool is_const() const { return raw()->IsConst(); }
+  bool is_external() const { return raw()->IsExternal(); }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
   bool IsFactory() const {
     return (kind() == RawFunction::kConstructor) && is_static();
   }
-  bool IsAbstract() const {
-    return kind() == RawFunction::kAbstract;
-  }
   bool IsDynamicFunction() const {
-    if (is_static()) {
+    if (is_static() || is_abstract()) {
       return false;
     }
     switch (kind()) {
@@ -1428,7 +1425,6 @@ class Function : public Object {
       case RawFunction::kClosureFunction:
       case RawFunction::kConstructor:
       case RawFunction::kConstImplicitGetter:
-      case RawFunction::kAbstract:
         return false;
       default:
         UNREACHABLE();
@@ -1497,13 +1493,14 @@ class Function : public Object {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
-  bool is_optimizable() const {
-    return raw_ptr()->is_optimizable_;
-  }
+  bool is_optimizable() const { return raw()->IsOptimizable(); }
   void set_is_optimizable(bool value) const;
 
-  bool is_native() const { return raw_ptr()->is_native_; }
+  bool is_native() const { return raw()->IsNative(); }
   void set_is_native(bool value) const;
+
+  bool is_abstract() const { return raw()->IsAbstract(); }
+  void set_is_abstract(bool value) const;
 
   bool HasOptimizedCode() const;
 
@@ -1603,6 +1600,7 @@ class Function : public Object {
                           RawFunction::Kind kind,
                           bool is_static,
                           bool is_const,
+                          bool is_abstract,
                           bool is_external,
                           intptr_t token_pos);
 

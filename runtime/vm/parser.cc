@@ -1069,6 +1069,7 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         RawFunction::kSignatureFunction,
                         /* is_static = */ false,
                         /* is_const = */ false,
+                        /* is_abstract = */ false,
                         /* is_external = */ false,
                         parameter.name_pos));
       signature_function.set_owner(current_class());
@@ -2475,8 +2476,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   RawFunction::Kind function_kind;
   if (method->IsFactoryOrConstructor()) {
     function_kind = RawFunction::kConstructor;
-  } else if (method->has_abstract) {
-    function_kind = RawFunction::kAbstract;
   } else if (method->IsGetter()) {
     function_kind = RawFunction::kGetterFunction;
   } else if (method->IsSetter()) {
@@ -2489,6 +2488,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     function_kind,
                     method->has_static,
                     method->has_const,
+                    method->has_abstract,
                     method->has_external,
                     method_pos));
   func.set_result_type(*method->type);
@@ -2568,6 +2568,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
                              field->has_static, field->has_final, false,
+                             /* is_abstract */ false,
                              field->name_pos);
       getter.set_result_type(*field->type);
       members->AddFunction(getter);
@@ -2578,6 +2579,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kImplicitGetter,
                              field->has_static, field->has_final, false,
+                             /* is_abstract */ false,
                              field->name_pos);
       ParamList params;
       params.AddReceiver(TokenPos());
@@ -2589,6 +2591,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         String& setter_name = String::Handle(Field::SetterSymbol(*field->name));
         setter = Function::New(setter_name, RawFunction::kImplicitSetter,
                                field->has_static, field->has_final, false,
+                               /* is_abstract */ false,
                                field->name_pos);
         ParamList params;
         params.AddReceiver(TokenPos());
@@ -2968,6 +2971,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
                       RawFunction::kConstructor,
                       /* is_static = */ false,
                       /* is_const = */ false,
+                      /* is_abstract = */ false,
                       /* is_external = */ false,
                       class_desc->token_pos()));
     ParamList params;
@@ -3087,6 +3091,7 @@ void Parser::ParseFunctionTypeAlias(
                     RawFunction::kSignatureFunction,
                     /* is_static = */ false,
                     /* is_const = */ false,
+                    /* is_abstract = */ false,
                     /* is_external = */ false,
                     alias_name_pos));
   signature_function.set_owner(alias_owner);
@@ -3519,7 +3524,7 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       // Create a static const getter.
       String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
       getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                             is_static, is_final, false, name_pos);
+                             is_static, is_final, false, false, name_pos);
       getter.set_result_type(type);
       top_level->functions.Add(getter);
     } else if (is_final || is_const) {
@@ -3600,7 +3605,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   }
   Function& func = Function::Handle(
       Function::New(func_name, RawFunction::kRegularFunction,
-                    is_static, false, is_external, function_pos));
+                    is_static, false, false, is_external, function_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -3682,7 +3687,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
       Function::New(accessor_name,
                     is_getter? RawFunction::kGetterFunction :
                                RawFunction::kSetterFunction,
-                    is_static, false, false, accessor_pos));
+                    is_static, false, false, false, accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);

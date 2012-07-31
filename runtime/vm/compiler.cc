@@ -419,7 +419,7 @@ RawError* Compiler::CompileAllFunctions(const Class& cls) {
   for (int i = 0; i < functions.Length(); i++) {
     func ^= functions.At(i);
     ASSERT(!func.IsNull());
-    if (!func.HasCode() && !func.IsAbstract()) {
+    if (!func.HasCode() && !func.is_abstract()) {
       error = CompileFunction(func);
       if (!error.IsNull()) {
         return error.raw();
@@ -448,6 +448,7 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         RawFunction::kConstImplicitGetter,
         true,  // static function.
         false,  // not const function.
+        false,  // not abstract
         false,  // not external.
         fragment->token_pos()));
 
