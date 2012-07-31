@@ -118,6 +118,10 @@ public class CommandLineOptions {
         usage = "For debugging, continue on with resolution even if there are parse errors.")
     private boolean resolveDespiteParseErrors;
 
+    @Option(name = "--version",
+        usage = "Show analyzer version")
+    private boolean showVersion = false;
+
     @Argument
     private final List<String> sourceFiles = new ArrayList<String>();
 
@@ -210,6 +214,10 @@ public class CommandLineOptions {
 
     public boolean showMetrics() {
       return showMetrics;
+    }
+
+    public boolean showVersion() {
+      return showVersion;
     }
 
     /**
