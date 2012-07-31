@@ -228,7 +228,7 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
       version_query_string += '| more'
     elif runtime == 'chrome' and system == 'win7':
       version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' + 
-          '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" \\v Version''')
+          '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" /v Version''')
     p = subprocess.Popen(version_query_string,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
     output, stderr = p.communicate()
