@@ -3635,6 +3635,16 @@ void Function::SetCode(const Code& value) const {
 }
 
 
+void Function::SwitchToUnoptimizedCode() const {
+  ASSERT(HasOptimizedCode());
+  // Patch entry of the optimized code.
+  CodePatcher::PatchEntry(Code::Handle(CurrentCode()));
+  // Use previously compiled unoptimized code.
+  SetCode(Code::Handle(unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
+}
+
+
 void Function::set_unoptimized_code(const Code& value) const {
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }

@@ -214,6 +214,18 @@ class Isolate : public BaseIsolate {
     return shutdown_callback_;
   }
 
+  intptr_t* deopt_registers_copy() const { return deopt_registers_copy_; }
+  void set_deopt_registers_copy(intptr_t* value) {
+    deopt_registers_copy_ = value;
+  }
+  intptr_t* deopt_frame_copy() const { return deopt_frame_copy_; }
+  void SetDeoptFrameCopy(intptr_t* value, intptr_t size) {
+    ASSERT((value == NULL) || (size > 0));
+    deopt_frame_copy_ = value;
+    deopt_frame_copy_size_ = size;
+  }
+  intptr_t deopt_frame_copy_size() const { return deopt_frame_copy_size_; }
+
  private:
   Isolate();
 
@@ -253,6 +265,10 @@ class Isolate : public BaseIsolate {
   uword spawn_data_;
   GcPrologueCallbacks gc_prologue_callbacks_;
   GcEpilogueCallbacks gc_epilogue_callbacks_;
+  // Deoptimization support.
+  intptr_t* deopt_registers_copy_;
+  intptr_t* deopt_frame_copy_;
+  intptr_t deopt_frame_copy_size_;
 
   static Dart_IsolateCreateCallback create_callback_;
   static Dart_IsolateInterruptCallback interrupt_callback_;

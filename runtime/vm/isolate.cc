@@ -166,7 +166,10 @@ Isolate::Isolate()
       message_handler_(NULL),
       spawn_data_(NULL),
       gc_prologue_callbacks_(),
-      gc_epilogue_callbacks_() {
+      gc_epilogue_callbacks_(),
+      deopt_registers_copy_(NULL),
+      deopt_frame_copy_(NULL),
+      deopt_frame_copy_size_(0) {
 }
 
 

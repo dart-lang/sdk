@@ -79,7 +79,6 @@ class RuntimeEntry : public ValueObject {
   type DLRT_##name(__VA_ARGS__) {                                              \
     CHECK_STACK_ALIGNMENT;                                                     \
     NoGCScope no_gc_scope;                                                     \
-    NoHandleScope no_handle_scope;                                             \
 
 #define END_LEAF_RUNTIME_ENTRY }
 

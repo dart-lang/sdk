@@ -1369,6 +1369,9 @@ class Function : public Object {
   // Sets function's code and code's function.
   void SetCode(const Code& value) const;
 
+  // Disables optimized code and switches to unoptimized code.
+  void SwitchToUnoptimizedCode() const;
+
   // Return the most recently compiled and installed code for this function.
   // It is not the only Code object that points to this function.
   RawCode* CurrentCode() const { return raw_ptr()->code_; }
