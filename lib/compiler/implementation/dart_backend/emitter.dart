@@ -47,7 +47,7 @@ class Emitter {
     }
     if (classNode.defaultClause !== null) {
       sb.add(' default ');
-      sb.add(unparser.unparse(classNode.defaultClause));
+      sb.add(renamer.renameType(classElement.defaultClass));
     }
     sb.add('{');
     innerElements.forEach((element) {

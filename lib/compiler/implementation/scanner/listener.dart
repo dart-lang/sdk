@@ -590,16 +590,15 @@ class ElementListener extends Listener {
 
   void endInterface(int supertypeCount, Token interfaceKeyword,
                     Token extendsKeyword, Token endToken) {
+    // TODO(ahe): Record the defaultClause.
     Node defaultClause = popNode();
     NodeList supertypes =
         makeNodeList(supertypeCount, extendsKeyword, null, ",");
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     int id = idGenerator();
-    ClassElement element = new PartialClassElement(
-        name.source, interfaceKeyword, endToken, compilationUnitElement, id);
-    pushElement(element);
-    if (defaultClause !== null) element.defaultClause = defaultClause;
+    pushElement(new PartialClassElement(
+        name.source, interfaceKeyword, endToken, compilationUnitElement, id));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
