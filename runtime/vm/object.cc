@@ -1494,9 +1494,6 @@ void Class::SetFields(const Array& value) const {
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
     field.set_owner(*this);
-    // Only static const fields may contain the Object::sentinel value.
-    ASSERT(!(field.is_static() && field.is_final()) ||
-           (field.value() == Object::sentinel()));
   }
   // The value of static fields is already initialized to null.
   StorePointer(&raw_ptr()->fields_, value.raw());

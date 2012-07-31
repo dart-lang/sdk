@@ -2529,15 +2529,26 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   Function& getter = Function::Handle();
   Function& setter = Function::Handle();
   Field& class_field = Field::Handle();
+  Instance& init_value = Instance::Handle();
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
+    bool has_simple_literal = false;
     if (has_initializer) {
       ConsumeToken();
+      init_value = Object::sentinel();
       // For static final fields, the initialization expression
       // will be parsed through the kConstImplicitGetter method
       // invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
+      // For static fields with very simple initializer expressions
+      // (e.g. a literal number or string) we optimize away the
+      // kConstImplicitGetter and initialize the field here.
+
+      if (field->has_static && (field->has_final || field->has_const) &&
+          (LookaheadToken(1) == Token::kSEMICOLON)) {
+        has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
+      }
       SkipExpr();
     } else {
       if (field->has_const || (field->has_static && field->has_final)) {
@@ -2564,14 +2575,17 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // For static final fields, set value to "uninitialized" and
     // create a kConstImplicitGetter getter method.
     if (field->has_static && has_initializer) {
-      class_field.set_value(Instance::Handle(Object::sentinel()));
-      String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
-      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                             field->has_static, field->has_final, false,
-                             /* is_abstract */ false,
-                             field->name_pos);
-      getter.set_result_type(*field->type);
-      members->AddFunction(getter);
+      class_field.set_value(init_value);
+      if (!has_simple_literal) {
+        String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
+        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                               field->has_static, field->has_final,
+                               /* is_abstract */ false,
+                               /* is_external */ false,
+                               field->name_pos);
+        getter.set_result_type(*field->type);
+        members->AddFunction(getter);
+      }
     }
 
     // For instance fields, we create implicit getter and setter methods.
@@ -3519,14 +3533,22 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     library_.AddObject(field, var_name);
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
+      Instance& field_value = Instance::Handle(Object::sentinel());
+      bool has_simple_literal = false;
+      if ((is_final || is_const) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+        has_simple_literal = IsSimpleLiteral(type, &field_value);
+      }
       SkipExpr();
-      field.set_value(Instance::Handle(Object::sentinel()));
-      // Create a static const getter.
-      String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
-      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                             is_static, is_final, false, false, name_pos);
-      getter.set_result_type(type);
-      top_level->functions.Add(getter);
+      field.set_value(field_value);
+      if (!has_simple_literal) {
+        // Create a static const getter.
+        String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
+        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                               is_static, is_final, false, false, name_pos);
+        getter.set_result_type(type);
+        top_level->functions.Add(getter);
+      }
+
     } else if (is_final || is_const) {
       ErrorMsg(name_pos, "missing initializer for final or const variable");
     }
@@ -4465,6 +4487,36 @@ bool Parser::TryParseTypeParameter() {
     }
   }
   return true;
+}
+
+
+bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
+  bool no_check = type.IsDynamicType();
+  if ((CurrentToken() == Token::kINTEGER) &&
+      (no_check || type.IsIntInterface() || type.IsNumberInterface())) {
+    *value = CurrentIntegerLiteral();
+    return true;
+  } else if ((CurrentToken() == Token::kDOUBLE) &&
+      (no_check || type.IsDoubleInterface() || type.IsNumberInterface())) {
+    *value = CurrentDoubleLiteral();
+    return true;
+  } else if ((CurrentToken() == Token::kSTRING) &&
+      (no_check || type.IsStringInterface())) {
+    *value = CurrentLiteral()->raw();
+    return true;
+  } else if ((CurrentToken() == Token::kTRUE) &&
+      (no_check || type.IsBoolInterface())) {
+    *value = Bool::True();
+    return true;
+  } else if ((CurrentToken() == Token::kFALSE) &&
+      (no_check || type.IsBoolInterface())) {
+    *value = Bool::False();
+    return true;
+  } else if (CurrentToken() == Token::kNULL) {
+    *value = Instance::null();
+    return true;
+  }
+  return false;
 }
 
 
