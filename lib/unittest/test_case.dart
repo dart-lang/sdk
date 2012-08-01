@@ -16,10 +16,16 @@ class TestCase {
   final String description;
 
   /** The setup function to call before the test, if any. */
-  final _setup;
+  Function _setUp;
+
+  Function get setUp() => _setUp;
+  set setUp(Function value) => _setUp = value;
 
   /** The teardown function to call after the test, if any. */
-  final _teardown;
+  Function _tearDown;
+
+  Function get tearDown() => _tearDown;
+  set tearDown(Function value) => _tearDown = value;
 
   /** The body of the test case. */
   TestFunction test;
@@ -51,8 +57,8 @@ class TestCase {
 
   TestCase(this.id, this.description, this.test, this.callbacks)
   : currentGroup = _currentGroup,
-    _setup = _testSetup,
-    _teardown = _testTeardown;
+    _setUp = _testSetup,
+    _tearDown = _testTeardown;
 
   bool get isComplete() => !enabled || result != null;
 
@@ -62,8 +68,8 @@ class TestCase {
       message = '';
 
       _doneTeardown = false;
-      if (_setup != null) {
-        _setup();
+      if (_setUp != null) {
+        _setUp();
       }
       _config.onTestStart(this);
       test();
@@ -72,8 +78,8 @@ class TestCase {
 
   void _complete() {
     if (!_doneTeardown) {
-      if (_teardown != null) {
-        _teardown();
+      if (_tearDown != null) {
+        _tearDown();
       }
       _doneTeardown = true;
     }

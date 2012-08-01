@@ -241,6 +241,8 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
       _doneWrap = true;
       for (int i = 0; i < testCases.length; i++) {
         testCases[i].test = wrapTest(testCases[i]);
+        testCases[i].setUp = null;
+        testCases[i].tearDown = null;
       }
     }
     window.on.message.add(_messageHandler);
@@ -249,6 +251,9 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
   static final _notAlphaNumeric = const RegExp('[^a-z0-9A-Z]');
 
   String _stringToDomId(String s) {
+    if (s.length == 0) {
+      return '-None-';
+    }
     return s.trim().replaceAll(_notAlphaNumeric, '-');
   }
 
@@ -368,7 +373,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
     if (!testCase.enabled) return;
     super.onTestResult(testCase);
     if (testCase.message != '') {
-      logMessage(testCase, '-1 ${testCase.message}');
+      logMessage(testCase, _Message.text(_Message.LOG, -1, testCase.message));
     }
     int id = testCase.id;
     var testItem = document.query('#$_testIdPrefix$id');
