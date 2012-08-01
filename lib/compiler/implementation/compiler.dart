@@ -556,8 +556,12 @@ class Compiler implements DiagnosticListener {
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
       Element originalElement = lookup(patchElement.name);
-      // Getters and setters are kept inside a synthetic field.
-      if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+      if (patchElement.isAccessor()) {
+        // Skip accessors. An accessor always has an abstract field,
+        // representing the accessor in the lookup scope. We can thus skip the
+        // accessors and just handle the abstract field.
+      } else if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
+        // Getters and setters are kept inside a synthetic field.
         if (originalElement !== null &&
             originalElement.kind !== ElementKind.ABSTRACT_FIELD) {
           internalError("Cannot patch non-getter/setter with getter/setter",

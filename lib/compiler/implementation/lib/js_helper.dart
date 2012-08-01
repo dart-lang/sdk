@@ -544,9 +544,11 @@ class Primitives {
   }
 
   static getWeekday(receiver) {
-    return (receiver.isUtc)
+    int weekday = (receiver.isUtc)
       ? JS('int', @'#.getUTCDay()', lazyAsJsDate(receiver))
       : JS('int', @'#.getDay()', lazyAsJsDate(receiver));
+    // Adjust by one because JS weeks start on Sunday.
+    return (weekday + 6) % 7 + 1;
   }
 
   static valueFromDateString(str) {
