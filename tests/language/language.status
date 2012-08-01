@@ -232,7 +232,7 @@ super_first_constructor_test: Fail
 condition_bailout_test: Fail
 const_test: Fail
 default_factory3_test: Fail # Depends on empty class processing.
-dynamic_test: Fail
+dynamic_test: Fail # Depends on empty class processing.
 empty_body_member_negative_test: Fail
 factory4_test: Fail
 f_bounded_quantification_test/01: Fail
