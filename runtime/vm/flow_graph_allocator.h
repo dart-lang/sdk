@@ -27,6 +27,9 @@ class FlowGraphAllocator : public ValueObject {
   void AnalyzeLiveness();
 
  private:
+  // Eliminate unnecessary environments from the IL.
+  void EliminateEnvironmentUses();
+
   // Compute initial values for live-out, kill and live-in sets.
   void ComputeInitialSets();
 

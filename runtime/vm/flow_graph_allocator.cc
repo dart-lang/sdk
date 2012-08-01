@@ -77,6 +77,17 @@ FlowGraphAllocator::FlowGraphAllocator(
 }
 
 
+void FlowGraphAllocator::EliminateEnvironmentUses() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* block = block_order_[i];
+    for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
+      Instruction* current = it.Current();
+      if (!current->CanDeoptimize()) current->set_env(NULL);
+    }
+  }
+}
+
+
 void FlowGraphAllocator::ComputeInitialSets() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = 0; i < block_count; i++) {
@@ -1650,6 +1661,8 @@ void FlowGraphAllocator::ResolveControlFlow() {
 
 
 void FlowGraphAllocator::AllocateRegisters() {
+  EliminateEnvironmentUses();
+
   AnalyzeLiveness();
 
   BuildLiveRanges();

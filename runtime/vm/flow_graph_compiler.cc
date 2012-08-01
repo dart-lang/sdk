@@ -202,11 +202,13 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_pos, try_index, reason);
   if (pending_deoptimization_env_ == NULL) {
+    ASSERT(!is_ssa_);
     frame_register_allocator()->SpillInDeoptStub(stub);
     if (reg1 != kNoRegister) stub->Push(reg1);
     if (reg2 != kNoRegister) stub->Push(reg2);
     if (reg3 != kNoRegister) stub->Push(reg3);
   } else {
+    ASSERT(pending_deoptimization_env_ != NULL);
     stub->set_deoptimization_env(pending_deoptimization_env_);
   }
   deopt_stubs_.Add(stub);
