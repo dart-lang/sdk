@@ -3458,12 +3458,10 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 
 
 RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
-  if ((len < 0) || (len > kMaxTypes)) {
-    // TODO(iposva): Should we throw an illegal parameter exception?
-    UNIMPLEMENTED();
-    return null();
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TypeArguments::New: invalid len %ld\n", len);
   }
-
   TypeArguments& result = TypeArguments::Handle();
   {
     RawObject* raw = Object::Allocate(TypeArguments::kInstanceKind,
@@ -4719,6 +4717,10 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 
 RawTokenStream* TokenStream::New(intptr_t len) {
   ASSERT(Object::token_stream_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TokenStream::New: invalid len %ld\n", len);
+  }
   TokenStream& result = TokenStream::Handle();
   {
     RawObject* raw = Object::Allocate(TokenStream::kInstanceKind,
@@ -6473,6 +6475,10 @@ RawError* Library::CompileAll() {
 
 RawInstructions* Instructions::New(intptr_t size) {
   ASSERT(Object::instructions_class() != Class::null());
+  if (size < 0 || size > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Instructions::New: invalid size %ld\n", size);
+  }
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
@@ -6558,6 +6564,11 @@ void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
 
 RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
+  if (num_descriptors < 0 || num_descriptors > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in PcDescriptors::New: invalid num_descriptors %ld\n",
+           num_descriptors);
+  }
   PcDescriptors& result = PcDescriptors::Handle();
   {
     uword size = PcDescriptors::InstanceSize(num_descriptors);
@@ -6684,6 +6695,10 @@ RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
   intptr_t size = bmap->SizeInBytes();
+  if (size < 0 || size > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in PcDescriptors::New: invalid size %ld\n", size);
+  }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
@@ -6770,6 +6785,11 @@ const char* LocalVarDescriptors::ToCString() const {
 
 RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in LocalVarDescriptors::New: "
+           "invalid num_variables %ld\n", num_variables);
+  }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
@@ -6826,6 +6846,11 @@ void ExceptionHandlers::SetHandlerPC(intptr_t index,
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
+  if (num_handlers < 0 || num_handlers > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExceptionHandlers::New: invalid num_handlers %ld\n",
+           num_handlers);
+  }
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
@@ -6868,6 +6893,10 @@ const char* ExceptionHandlers::ToCString() const {
 
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
+  if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Code::Comments::New: invalid count %ld\n", count);
+  }
   if (count == 0) {
     comments = new Comments(Array::Empty());
   } else {
@@ -6929,7 +6958,12 @@ void Code::set_comments(const Code::Comments& comments) const {
 }
 
 
-RawCode* Code::New(int pointer_offsets_length) {
+RawCode* Code::New(intptr_t pointer_offsets_length) {
+  if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %ld\n",
+           pointer_offsets_length);
+  }
   ASSERT(Object::code_class() != Class::null());
   Code& result = Code::Handle();
   {
@@ -7167,6 +7201,11 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
   ASSERT(Object::context_class() != Class::null());
 
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Context::New: invalid num_variables %ld\n",
+           num_variables);
+  }
   Context& result = Context::Handle();
   {
     RawObject* raw = Object::Allocate(Context::kInstanceKind,
@@ -7188,6 +7227,11 @@ const char* Context::ToCString() const {
 
 RawContextScope* ContextScope::New(intptr_t num_variables) {
   ASSERT(Object::context_scope_class() != Class::null());
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ContextScope::New: invalid num_variables %ld\n",
+           num_variables);
+  }
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
   {
@@ -8413,7 +8457,10 @@ int Bigint::CompareWith(const Integer& other) const {
 
 
 RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
-  ASSERT(length >= 0);
+  if (length < 0 || length > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Bigint::Allocate: invalid length %ld\n", length);
+  }
   ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
   {
@@ -9174,6 +9221,10 @@ RawOneByteString* OneByteString::New(intptr_t len,
   ASSERT(Isolate::Current() == Dart::vm_isolate() ||
          Isolate::Current()->object_store()->one_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in OneByteString::New: invalid len %ld\n", len);
+  }
   OneByteString& result = OneByteString::Handle();
   {
     RawObject* raw = Object::Allocate(OneByteString::kInstanceKind,
@@ -9312,6 +9363,10 @@ RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
 RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->two_byte_string_class());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TwoByteString::New: invalid len %ld\n", len);
+  }
   TwoByteString& result = TwoByteString::Handle();
   {
     RawObject* raw = Object::Allocate(TwoByteString::kInstanceKind,
@@ -9441,6 +9496,10 @@ RawFourByteString* FourByteString::New(intptr_t len,
                                        Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->four_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in FourByteString::New: invalid len %ld\n", len);
+  }
   FourByteString& result = FourByteString::Handle();
   {
     RawObject* raw = Object::Allocate(FourByteString::kInstanceKind,
@@ -9548,6 +9607,10 @@ RawExternalOneByteString* ExternalOneByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %ld\n", len);
+  }
   ExternalOneByteString& result = ExternalOneByteString::Handle();
   ExternalStringData<uint8_t>* external_data =
       new ExternalStringData<uint8_t>(data, peer, callback);
@@ -9595,6 +9658,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %ld\n", len);
+  }
   ExternalTwoByteString& result = ExternalTwoByteString::Handle();
   ExternalStringData<uint16_t>* external_data =
       new ExternalStringData<uint16_t>(data, peer, callback);
@@ -9632,6 +9699,11 @@ RawExternalFourByteString* ExternalFourByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->
          external_four_byte_string_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalFourByteString::New: invalid len %ld\n",
+           len);
+  }
   ExternalFourByteString& result = ExternalFourByteString::Handle();
   ExternalStringData<uint32_t>* external_data =
       new ExternalStringData<uint32_t>(data, peer, callback);
@@ -9735,11 +9807,9 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 
 
 RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
-  if ((len < 0) || (len > kMaxArrayElements)) {
-    // TODO(srdjan): Verify that illegal argument is the right thing to throw.
-    GrowableArray<const Object*> args;
-    args.Add(&Smi::Handle(Smi::New(len)));
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  if (len < 0 || len > Array::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Array::New: invalid len %ld\n", len);
   }
   Array& result = Array::Handle();
   {
@@ -10040,6 +10110,10 @@ RawT* ByteArray::NewExternalImpl(const Class& cls,
                                  void* peer,
                                  Dart_PeerFinalizer callback,
                                  Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewExternalImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   ExternalByteArrayData<ElementT>* external_data =
       new ExternalByteArrayData<ElementT>(data, peer, callback);
@@ -10078,6 +10152,10 @@ const char* ByteArray::ToCString() const {
 
 template<typename HandleT, typename RawT>
 RawT* ByteArray::NewImpl(const Class& cls, intptr_t len, Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   {
     RawObject* raw = Object::Allocate(cls.id(),
@@ -10099,6 +10177,10 @@ RawT* ByteArray::NewImpl(const Class& cls,
                          const ElementT* data,
                          intptr_t len,
                          Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   {
     RawObject* raw = Object::Allocate(cls.id(),
@@ -10801,6 +10883,10 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->jsregexp_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in JSRegexp::New: invalid len %ld\n", len);
+  }
   JSRegExp& result = JSRegExp::Handle();
   {
     RawObject* raw = Object::Allocate(JSRegExp::kInstanceKind,

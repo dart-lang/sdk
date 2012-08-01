@@ -66,6 +66,17 @@ const char* CanonicalFunction(const char* func) {
                        CURRENT_FUNC, #parameter);
 
 
+#define CHECK_LENGTH(length, max_elements)                                     \
+  do {                                                                         \
+    intptr_t len = (length);                                                   \
+    intptr_t max = (max_elements);                                             \
+    if (len < 0 || len > max) {                                                \
+      return Api::NewError(                                                    \
+          "%s expects argument '%s' to be in the range [0..%ld].",             \
+          CURRENT_FUNC, #length, max);                                         \
+    }                                                                          \
+  } while (0)
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -1580,6 +1591,10 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1588,6 +1603,10 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1596,6 +1615,10 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1635,10 +1658,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1653,10 +1673,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1671,10 +1688,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1824,6 +1838,7 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  CHECK_LENGTH(length, Array::kMaxElements);
   return Api::NewHandle(isolate, Array::New(length));
 }
 
@@ -2164,6 +2179,7 @@ DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  CHECK_LENGTH(length, Uint8Array::kMaxElements);
   return Api::NewHandle(isolate, Uint8Array::New(length));
 }
 
@@ -2177,10 +2193,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, ExternalUint8Array::kMaxElements);
   return Api::NewHandle(
       isolate, ExternalUint8Array::New(data, length, peer, callback));
 }

@@ -1241,6 +1241,9 @@ class TypeArguments : public AbstractTypeArguments {
   virtual RawAbstractTypeArguments* InstantiateFrom(
       const AbstractTypeArguments& instantiator_type_arguments) const;
 
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t length_offset() {
     return OFFSET_OF(RawTypeArguments, length_);
   }
@@ -1253,14 +1256,14 @@ class TypeArguments : public AbstractTypeArguments {
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that the types_ is not adding to the object length.
     ASSERT(sizeof(RawTypeArguments) == (sizeof(RawObject) + (1 * kWordSize)));
-    return RoundedAllocationSize(sizeof(RawTypeArguments) + (len * kWordSize));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawTypeArguments) + (len * kBytesPerElement));
   }
 
   static RawTypeArguments* New(intptr_t len, Heap::Space space = Heap::kOld);
 
  private:
-  // Make sure that the array size cannot wrap around.
-  static const intptr_t kMaxTypes = 512 * 1024 * 1024;
   RawAbstractType** TypeAddr(intptr_t index) const;
   void SetLength(intptr_t value) const;
 
@@ -1758,12 +1761,17 @@ class TokenStream : public Object {
   intptr_t ComputeSourcePosition(intptr_t tok_pos) const;
   intptr_t ComputeTokenPosition(intptr_t src_pos) const;
 
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTokenStream) == OFFSET_OF(RawTokenStream, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawTokenStream) + len);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawTokenStream) + (len * kBytesPerElement));
   }
 
   static RawTokenStream* New(intptr_t length);
@@ -2098,6 +2106,11 @@ class Instructions : public Object {
     return reinterpret_cast<uword>(raw_ptr()) + HeaderSize();
   }
 
+  static const intptr_t kMaxElements = (kIntptrMax -
+                                        (sizeof(RawInstructions) +
+                                         sizeof(RawObject) +
+                                         (2 * OS::kMaxPreferredCodeAlignment)));
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawInstructions) == OFFSET_OF(RawInstructions, data_));
     return 0;
@@ -2153,15 +2166,19 @@ class LocalVarDescriptors : public Object {
 
   void GetInfo(intptr_t var_index, RawLocalVarDescriptors::VarInfo* info) const;
 
+  static const intptr_t kBytesPerElement =
+      sizeof(RawLocalVarDescriptors::VarInfo);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawLocalVarDescriptors) ==
         OFFSET_OF(RawLocalVarDescriptors, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawLocalVarDescriptors) +
-        (len * sizeof(RawLocalVarDescriptors::VarInfo)));
+        sizeof(RawLocalVarDescriptors) + (len * kBytesPerElement));
   }
 
   static RawLocalVarDescriptors* New(intptr_t num_variables);
@@ -2173,6 +2190,19 @@ class LocalVarDescriptors : public Object {
 
 
 class PcDescriptors : public Object {
+ private:
+  // Describes the layout of PC descriptor data.
+  enum {
+    kPcEntry = 0,      // PC value of the descriptor, unique.
+    kKindEntry,
+    kNodeIdEntry,      // AST node id.
+    kTokenIndexEntry,  // Token position in source of PC.
+    kTryIndexEntry,    // Try block index of PC.
+    // We would potentially be adding other objects here like
+    // pointer maps for optimized functions, local variables information  etc.
+    kNumberOfEntries
+  };
+
  public:
   enum Kind {
     kDeopt = 0,  // Deoptimization cotinuation point.
@@ -2205,13 +2235,17 @@ class PcDescriptors : public Object {
     SetTryIndex(index, try_index);
   }
 
+  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawPcDescriptors) == OFFSET_OF(RawPcDescriptors, data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
     return RoundedAllocationSize(
-        sizeof(RawPcDescriptors) + (len * kNumberOfEntries * kWordSize));
+        sizeof(RawPcDescriptors) + (len * kBytesPerElement));
   }
 
   static RawPcDescriptors* New(intptr_t num_descriptors);
@@ -2223,18 +2257,6 @@ class PcDescriptors : public Object {
   // pc descriptors table to visit objects if any in the table.
 
  private:
-  // Describes the layout of PC descriptor data.
-  enum {
-    kPcEntry = 0,      // PC value of the descriptor, unique.
-    kKindEntry,
-    kNodeIdEntry,      // AST node id.
-    kTokenIndexEntry,  // Token position in source of PC.
-    kTryIndexEntry,    // Try block index of PC.
-    // We would potentially be adding other objects here like
-    // pointer maps for optimized functions, local variables information  etc.
-    kNumberOfEntries
-  };
-
   void SetPC(intptr_t index, uword value) const;
   void SetKind(intptr_t index, PcDescriptors::Kind kind) const;
   void SetNodeId(intptr_t index, intptr_t value) const;
@@ -2277,12 +2299,17 @@ class Stackmap : public Object {
   // Return the index of the lowest stack slot that has an object.
   intptr_t MinimumBitIndex() const { return raw_ptr()->min_set_bit_index_; }
 
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t size) {
-    return RoundedAllocationSize(sizeof(RawStackmap) + (size * kWordSize));
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawStackmap) + (len * kBytesPerElement));
   }
   static RawStackmap* New(uword pc, BitmapBuilder* bmap);
 
@@ -2310,6 +2337,14 @@ class Stackmap : public Object {
 
 
 class ExceptionHandlers : public Object {
+ private:
+  // Describes the layout of exception handler data.
+  enum {
+    kTryIndexEntry = 0,  // Try block index associated with handler.
+    kHandlerPcEntry,  // PC value of handler.
+    kNumberOfEntries
+  };
+
  public:
   intptr_t Length() const;
 
@@ -2323,14 +2358,18 @@ class ExceptionHandlers : public Object {
     SetHandlerPC(index, handler_pc);
   }
 
+  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawExceptionHandlers) == OFFSET_OF(RawExceptionHandlers,
                                                      data_));
     return 0;
   }
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawExceptionHandlers) +
-                                 (len * kNumberOfEntries * kWordSize));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawExceptionHandlers) + (len * kBytesPerElement));
   }
 
   static RawExceptionHandlers* New(intptr_t num_handlers);
@@ -2339,13 +2378,6 @@ class ExceptionHandlers : public Object {
   // exception handler table to visit objects if any in the table.
 
  private:
-  // Describes the layout of exception handler data.
-  enum {
-    kTryIndexEntry = 0,  // Try block index associated with handler.
-    kHandlerPcEntry,  // PC value of handler.
-    kNumberOfEntries
-  };
-
   void SetTryIndex(intptr_t index, intptr_t value) const;
   void SetHandlerPC(intptr_t index, intptr_t value) const;
 
@@ -2456,13 +2488,17 @@ class Code : public Object {
   // We would have a VisitPointers function here to traverse all the
   // embedded objects in the instructions using pointer_offsets.
 
+  static const intptr_t kBytesPerElement =
+      sizeof(reinterpret_cast<RawCode*>(0)->data_[0]);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawCode) == OFFSET_OF(RawCode, data_));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t pointer_offsets_length) {
-    return RoundedAllocationSize(
-        sizeof(RawCode) + (pointer_offsets_length * kEntrySize));
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawCode) + (len * kBytesPerElement));
   }
   static RawCode* FinalizeCode(const Function& function, Assembler* assembler);
   static RawCode* FinalizeCode(const char* name, Assembler* assembler);
@@ -2529,7 +2565,7 @@ class Code : public Object {
   // only be created using the Code::FinalizeCode method. This method creates
   // the RawInstruction and RawCode objects, sets up the pointer offsets
   // and links the two in a GC safe manner.
-  static RawCode* New(int pointer_offsets_length);
+  static RawCode* New(intptr_t pointer_offsets_length);
 
   HEAP_OBJECT_IMPLEMENTATION(Code, Object);
   friend class Class;
@@ -2558,6 +2594,9 @@ class Context : public Object {
   }
   inline void SetAt(intptr_t context_index, const Instance& value) const;
 
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t variable_offset(intptr_t context_index) {
     return OFFSET_OF(RawContext, data_[context_index]);
   }
@@ -2567,9 +2606,9 @@ class Context : public Object {
     return 0;
   }
 
-  static intptr_t InstanceSize(intptr_t num_variables) {
-    return RoundedAllocationSize(sizeof(RawContext) +
-                                 (num_variables * kWordSize));
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawContext) + (len * kBytesPerElement));
   }
 
   static RawContext* New(intptr_t num_variables,
@@ -2625,14 +2664,19 @@ class ContextScope : public Object {
   intptr_t ContextLevelAt(intptr_t scope_index) const;
   void SetContextLevelAt(intptr_t scope_index, intptr_t context_level) const;
 
+  static const intptr_t kBytesPerElement =
+      sizeof(RawContextScope::VariableDesc);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawContextScope) == OFFSET_OF(RawContextScope, data_));
     return 0;
   }
 
-  static intptr_t InstanceSize(intptr_t num_variables) {
-    return RoundedAllocationSize(sizeof(RawContextScope) +
-        (num_variables * sizeof(RawContextScope::VariableDesc)));
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawContextScope) + (len * kBytesPerElement));
   }
 
   static RawContextScope* New(intptr_t num_variables);
@@ -3001,11 +3045,9 @@ class Integer : public Number {
 
 class Smi : public Integer {
  public:
-  // Smi value range is from -(2^N) to (2^N)-1.
-  // N=30 (32-bit build) or N=62 (64-bit build).
-  static const intptr_t kBits = kBitsPerWord - 2;
-  static const intptr_t kMaxValue = (static_cast<intptr_t>(1) << kBits) - 1;
-  static const intptr_t kMinValue =  -(static_cast<intptr_t>(1) << kBits);
+  static const intptr_t kBits = kSmiBits;
+  static const intptr_t kMaxValue = kSmiMax;
+  static const intptr_t kMinValue =  kSmiMin;
 
   intptr_t Value() const {
     return ValueFromRaw(raw_value());
@@ -3108,6 +3150,11 @@ class Mint : public Integer {
 
 
 class Bigint : public Integer {
+ private:
+  typedef uint32_t Chunk;
+  typedef uint64_t DoubleChunk;
+  static const int kChunkSize = sizeof(Chunk);
+
  public:
   virtual bool IsZero() const { return raw_ptr()->signed_length_ == 0; }
   virtual bool IsNegative() const { return raw_ptr()->signed_length_ < 0; }
@@ -3119,20 +3166,20 @@ class Bigint : public Integer {
 
   virtual int CompareWith(const Integer& other) const;
 
-  static intptr_t InstanceSize(intptr_t length) {
-    ASSERT(length >= 0);
-    return RoundedAllocationSize(sizeof(RawBigint) + (length * sizeof(Chunk)));
-  }
+  static const intptr_t kBytesPerElement = kChunkSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() { return 0; }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawBigint) + (len * kBytesPerElement));
+  }
 
   static RawBigint* New(const String& str, Heap::Space space = Heap::kNew);
   static RawBigint* New(int64_t value, Heap::Space space = Heap::kNew);
 
  private:
-  typedef uint32_t Chunk;
-  typedef uint64_t DoubleChunk;
-  static const int kChunkSize = sizeof(Chunk);
-
   Chunk GetChunkAt(intptr_t i) const {
     return *ChunkAddr(i);
   }
@@ -3225,6 +3272,12 @@ class String : public Instance {
   static const intptr_t kOneByteChar = 1;
   static const intptr_t kTwoByteChar = 2;
   static const intptr_t kFourByteChar = 4;
+
+  // All strings share the same maximum element count to keep things
+  // simple.  We choose a value that will prevent integer overflow for
+  // 4 byte strings, since it is the worst case.
+  static const intptr_t kSizeofRawString = sizeof(RawObject) + (2 * kWordSize);
+  static const intptr_t kMaxElements = kSmiMax / kFourByteChar;
 
   intptr_t Length() const { return Smi::Value(raw_ptr()->length_); }
   static intptr_t length_offset() { return OFFSET_OF(RawString, length_); }
@@ -3382,6 +3435,10 @@ class OneByteString : public String {
 
   bool EqualsIgnoringPrivateKey(const OneByteString& str) const;
 
+  // We use the same maximum elements for all strings.
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = String::kMaxElements;
+
   static intptr_t data_offset() { return OFFSET_OF(RawOneByteString, data_); }
 
   static intptr_t InstanceSize() {
@@ -3390,7 +3447,10 @@ class OneByteString : public String {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawOneByteString) + len);
+    ASSERT(sizeof(RawOneByteString) == kSizeofRawString);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawOneByteString) + (len * kBytesPerElement));
   }
 
   static RawOneByteString* New(intptr_t len,
@@ -3449,13 +3509,20 @@ class TwoByteString : public String {
 
   RawTwoByteString* EscapeDoubleQuotes() const;
 
+  // We use the same maximum elements for all strings.
+  static const intptr_t kBytesPerElement = 2;
+  static const intptr_t kMaxElements = String::kMaxElements;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawTwoByteString) == OFFSET_OF(RawTwoByteString, data_));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawTwoByteString) + (2 * len));
+    ASSERT(sizeof(RawTwoByteString) == kSizeofRawString);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawTwoByteString) + (len * kBytesPerElement));
   }
 
   static RawTwoByteString* New(intptr_t len,
@@ -3504,13 +3571,19 @@ class FourByteString : public String {
 
   RawFourByteString* EscapeDoubleQuotes() const;
 
+  static const intptr_t kBytesPerElement = 4;
+  static const intptr_t kMaxElements = String::kMaxElements;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawFourByteString) == OFFSET_OF(RawFourByteString, data_));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawFourByteString) + (4 * len));
+    ASSERT(sizeof(RawTwoByteString) == kSizeofRawString);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawFourByteString) + (len * kBytesPerElement));
   }
 
   static RawFourByteString* New(intptr_t len,
@@ -3559,6 +3632,10 @@ class ExternalOneByteString : public String {
     return raw_ptr()->external_data_->peer();
   }
 
+  // We use the same maximum elements for all strings.
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = String::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalOneByteString));
   }
@@ -3603,6 +3680,10 @@ class ExternalTwoByteString : public String {
     return raw_ptr()->external_data_->peer();
   }
 
+  // We use the same maximum elements for all strings.
+  static const intptr_t kBytesPerElement = 2;
+  static const intptr_t kMaxElements = String::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalTwoByteString));
   }
@@ -3646,6 +3727,10 @@ class ExternalFourByteString : public String {
   virtual void* GetPeer() const {
     return raw_ptr()->external_data_->peer();
   }
+
+  // We use the same maximum elements for all strings.
+  static const intptr_t kBytesPerElement = 4;
+  static const intptr_t kMaxElements = String::kMaxElements;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalFourByteString));
@@ -3731,6 +3816,9 @@ class Array : public Instance {
 
   virtual bool Equals(const Instance& other) const;
 
+  static const intptr_t kBytesPerElement = kWordSize;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(RawArray, type_arguments_);
   }
@@ -3743,7 +3831,8 @@ class Array : public Instance {
   static intptr_t InstanceSize(intptr_t len) {
     // Ensure that variable length data is not adding to the object length.
     ASSERT(sizeof(RawArray) == (sizeof(RawObject) + (2 * kWordSize)));
-    return RoundedAllocationSize(sizeof(RawArray) + (len * kWordSize));
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawArray) + (len * kBytesPerElement));
   }
 
   // Make the array immutable to Dart code by switching the class pointer
@@ -3778,9 +3867,6 @@ class Array : public Instance {
                        Heap::Space space = Heap::kNew);
 
  private:
-  // Make sure that the array size cannot wrap around.
-  static const intptr_t kMaxArrayElements = 512 * 1024 * 1024;
-
   RawObject** ObjectAddr(intptr_t index) const {
     // TODO(iposva): Determine if we should throw an exception here.
     ASSERT((index >= 0) && (index < Length()));
@@ -3982,6 +4068,9 @@ class Int8Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -3992,7 +4081,9 @@ class Int8Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawInt8Array) + len);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawInt8Array) + (len * kBytesPerElement));
   }
 
   static RawInt8Array* New(intptr_t len,
@@ -4029,6 +4120,9 @@ class Uint8Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4039,7 +4133,9 @@ class Uint8Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawUint8Array) + len);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint8Array) + (len * kBytesPerElement));
   }
 
   static RawUint8Array* New(intptr_t len,
@@ -4076,6 +4172,9 @@ class Int16Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 2;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4086,8 +4185,9 @@ class Int16Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawInt16Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawInt16Array) + (len * kBytesPerElement));
   }
 
   static RawInt16Array* New(intptr_t len,
@@ -4097,8 +4197,6 @@ class Int16Array : public ByteArray {
                             Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 2;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4126,6 +4224,9 @@ class Uint16Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 2;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4136,8 +4237,9 @@ class Uint16Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawUint16Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint16Array) + (len * kBytesPerElement));
   }
 
   static RawUint16Array* New(intptr_t len,
@@ -4147,8 +4249,6 @@ class Uint16Array : public ByteArray {
                              Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 2;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4176,6 +4276,9 @@ class Int32Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 4;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4186,8 +4289,9 @@ class Int32Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawInt32Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawInt32Array) + (len * kBytesPerElement));
   }
 
   static RawInt32Array* New(intptr_t len,
@@ -4197,8 +4301,6 @@ class Int32Array : public ByteArray {
                             Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4226,6 +4328,9 @@ class Uint32Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 4;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4236,8 +4341,9 @@ class Uint32Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawUint32Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint32Array) + (len * kBytesPerElement));
   }
 
   static RawUint32Array* New(intptr_t len,
@@ -4247,8 +4353,6 @@ class Uint32Array : public ByteArray {
                              Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4276,6 +4380,9 @@ class Int64Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 8;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4286,8 +4393,9 @@ class Int64Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawInt64Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawInt64Array) + (len * kBytesPerElement));
   }
 
   static RawInt64Array* New(intptr_t len,
@@ -4297,8 +4405,6 @@ class Int64Array : public ByteArray {
                             Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4326,6 +4432,9 @@ class Uint64Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 8;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4336,8 +4445,9 @@ class Uint64Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawUint64Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawUint64Array) + (len * kBytesPerElement));
   }
 
   static RawUint64Array* New(intptr_t len,
@@ -4347,8 +4457,6 @@ class Uint64Array : public ByteArray {
                              Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4376,6 +4484,9 @@ class Float32Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 4;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t data_offset() {
     return length_offset() + kWordSize;
   }
@@ -4386,8 +4497,9 @@ class Float32Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawFloat32Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawFloat32Array) + (len * kBytesPerElement));
   }
 
   static RawFloat32Array* New(intptr_t len,
@@ -4397,8 +4509,6 @@ class Float32Array : public ByteArray {
                               Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4426,6 +4536,9 @@ class Float64Array : public ByteArray {
     raw_ptr()->data_[index] = value;
   }
 
+  static const intptr_t kBytesPerElement = 8;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawFloat64Array) == OFFSET_OF(RawFloat64Array, data_));
     return 0;
@@ -4436,8 +4549,9 @@ class Float64Array : public ByteArray {
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    intptr_t data_size = len * kBytesPerElement;
-    return RoundedAllocationSize(sizeof(RawFloat64Array) + data_size);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawFloat64Array) + (len * kBytesPerElement));
   }
 
   static RawFloat64Array* New(intptr_t len,
@@ -4447,8 +4561,6 @@ class Float64Array : public ByteArray {
                               Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     return reinterpret_cast<uint8_t*>(&raw_ptr()->data_) + byte_offset;
@@ -4480,6 +4592,12 @@ class ExternalInt8Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 1;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Int8Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalInt8Array));
   }
@@ -4491,8 +4609,6 @@ class ExternalInt8Array : public ByteArray {
                                    Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 1;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4530,6 +4646,12 @@ class ExternalUint8Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 1;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Uint8Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalUint8Array));
   }
@@ -4541,8 +4663,6 @@ class ExternalUint8Array : public ByteArray {
                                     Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 1;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4580,6 +4700,12 @@ class ExternalInt16Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 2;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Int16Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalInt16Array));
   }
@@ -4591,8 +4717,6 @@ class ExternalInt16Array : public ByteArray {
                                     Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 2;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4630,6 +4754,12 @@ class ExternalUint16Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 2;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Uint16Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalUint16Array));
   }
@@ -4641,8 +4771,6 @@ class ExternalUint16Array : public ByteArray {
                                      Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 2;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4680,6 +4808,12 @@ class ExternalInt32Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 4;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Int32Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalInt32Array));
   }
@@ -4691,8 +4825,6 @@ class ExternalInt32Array : public ByteArray {
                                     Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4730,6 +4862,12 @@ class ExternalUint32Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 4;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Uint32Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalUint32Array));
   }
@@ -4741,8 +4879,6 @@ class ExternalUint32Array : public ByteArray {
                                      Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4780,6 +4916,12 @@ class ExternalInt64Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 8;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Int64Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalInt64Array));
   }
@@ -4791,8 +4933,6 @@ class ExternalInt64Array : public ByteArray {
                                     Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4830,6 +4970,12 @@ class ExternalUint64Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 8;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Uint64Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalUint64Array));
   }
@@ -4841,8 +4987,6 @@ class ExternalUint64Array : public ByteArray {
                                      Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4880,6 +5024,12 @@ class ExternalFloat32Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 4;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Float32Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalFloat32Array));
   }
@@ -4891,8 +5041,6 @@ class ExternalFloat32Array : public ByteArray {
                                       Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 4;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -4930,6 +5078,12 @@ class ExternalFloat64Array : public ByteArray {
     return raw_ptr()->external_data_->peer();
   }
 
+  static const intptr_t kBytesPerElement = 8;
+
+  // Since external arrays may be serialized to non-external ones,
+  // enforce the same maximum element count.
+  static const intptr_t kMaxElements = Float64Array::kMaxElements;
+
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawExternalFloat64Array));
   }
@@ -4941,8 +5095,6 @@ class ExternalFloat64Array : public ByteArray {
                                       Heap::Space space = Heap::kNew);
 
  private:
-  static const intptr_t kBytesPerElement = 8;
-
   uint8_t* ByteAddr(intptr_t byte_offset) const {
     ASSERT((byte_offset >= 0) && (byte_offset < ByteLength()));
     uint8_t* data =
@@ -5082,13 +5234,18 @@ class JSRegExp : public Instance {
 
   virtual bool Equals(const Instance& other) const;
 
+  static const intptr_t kBytesPerElement = 1;
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawJSRegExp) == OFFSET_OF(RawJSRegExp, data_));
     return 0;
   }
 
   static intptr_t InstanceSize(intptr_t len) {
-    return RoundedAllocationSize(sizeof(RawJSRegExp) + len);
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(
+        sizeof(RawJSRegExp) + (len * kBytesPerElement));
   }
 
   static RawJSRegExp* New(intptr_t length, Heap::Space space = Heap::kNew);

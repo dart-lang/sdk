@@ -18,9 +18,13 @@ DEFINE_NATIVE_ENTRY(ObjectArray_allocate, 2) {
   ASSERT(type_arguments.IsNull() ||
          (type_arguments.IsInstantiated() && (type_arguments.Length() == 1)));
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(1));
-  if (length.Value() < 0) {
+  intptr_t len = length.Value();
+  if (len < 0 || len > Array::kMaxElements) {
+    const String& error = String::Handle(String::NewFormatted(
+        "length (%ld) must be in the range [0..%ld]",
+        len, Array::kMaxElements));
     GrowableArray<const Object*> args;
-    args.Add(&length);
+    args.Add(&error);
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   const Array& new_array = Array::Handle(Array::New(length.Value()));

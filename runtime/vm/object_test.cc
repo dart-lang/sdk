@@ -2797,6 +2797,11 @@ TEST_CASE(EqualsIgnoringPrivate) {
 }
 
 
+TEST_CASE(ArrayNew_Overflow_Crash) {
+  Array::Handle(Array::New(Array::kMaxElements + 1));
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

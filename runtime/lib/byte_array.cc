@@ -13,14 +13,32 @@ namespace dart {
 
 // ByteArray
 
+// Checks to see if (index * num_bytes) is in the range
+// [0..array.ByteLength()).  without the risk of integer overflow.  If
+// the index is out of range, then an IndexOutOfRangeException is thrown.
 static void RangeCheck(const ByteArray& array,
                        intptr_t index,
                        intptr_t num_bytes) {
   if (!Utils::RangeCheck(index, num_bytes, array.ByteLength())) {
-    GrowableArray<const Object*> arguments;
-    const Smi &index_object = Smi::Handle(Smi::New(index));
-    arguments.Add(&index_object);
-    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, arguments);
+    const String& error = String::Handle(String::NewFormatted(
+        "index (%ld) must be in the range [0..%ld)",
+        index, (array.ByteLength() / num_bytes)));
+    GrowableArray<const Object*> args;
+    args.Add(&error);
+    Exceptions::ThrowByType(Exceptions::kIndexOutOfRange, args);
+  }
+}
+
+
+// Checks to see if a length is in the range [0..max].  If the length
+// is out of range, then an IllegalArgumentException is thrown.
+static void LengthCheck(intptr_t len, intptr_t max) {
+  if (len < 0 || len > max) {
+    const String& error = String::Handle(String::NewFormatted(
+        "length (%ld) must be in the range [0..%ld]", len, max));
+    GrowableArray<const Object*> args;
+    args.Add(&error);
+    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
 }
 
@@ -247,7 +265,10 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   intptr_t src_start_value = src_start.Value();
   intptr_t dst_start_value = dst_start.Value();
   if (length_value < 0) {
+    const String& error = String::Handle(String::NewFormatted(
+        "length (%ld) must be non-negative", index));
     GrowableArray<const Object*> args;
+    args.Add(&error);
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
   }
   RangeCheck(src, src_start_value, length_value);
@@ -260,13 +281,9 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
 
 DEFINE_NATIVE_ENTRY(Int8Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Int8Array& new_array =
-      Int8Array::Handle(Int8Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int8Array::kMaxElements);
+  const Int8Array& new_array = Int8Array::Handle(Int8Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -285,13 +302,9 @@ DEFINE_NATIVE_ENTRY(Int8Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Uint8Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Uint8Array& new_array =
-      Uint8Array::Handle(Uint8Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint8Array::kMaxElements);
+  const Uint8Array& new_array = Uint8Array::Handle(Uint8Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -310,13 +323,9 @@ DEFINE_NATIVE_ENTRY(Uint8Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Int16Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Int16Array& new_array =
-      Int16Array::Handle(Int16Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int16Array::kMaxElements);
+  const Int16Array& new_array = Int16Array::Handle(Int16Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -335,13 +344,9 @@ DEFINE_NATIVE_ENTRY(Int16Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Uint16Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Uint16Array& new_array =
-      Uint16Array::Handle(Uint16Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint16Array::kMaxElements);
+  const Uint16Array& new_array = Uint16Array::Handle(Uint16Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -360,13 +365,9 @@ DEFINE_NATIVE_ENTRY(Uint16Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Int32Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Int32Array& new_array =
-      Int32Array::Handle(Int32Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int32Array::kMaxElements);
+  const Int32Array& new_array = Int32Array::Handle(Int32Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -385,13 +386,9 @@ DEFINE_NATIVE_ENTRY(Int32Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Uint32Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Uint32Array& new_array =
-      Uint32Array::Handle(Uint32Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint32Array::kMaxElements);
+  const Uint32Array& new_array = Uint32Array::Handle(Uint32Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -410,13 +407,9 @@ DEFINE_NATIVE_ENTRY(Uint32Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Int64Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Int64Array& new_array =
-      Int64Array::Handle(Int64Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Int64Array::kMaxElements);
+  const Int64Array& new_array = Int64Array::Handle(Int64Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -435,13 +428,9 @@ DEFINE_NATIVE_ENTRY(Int64Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Uint64Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Uint64Array& new_array =
-      Uint64Array::Handle(Uint64Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Uint64Array::kMaxElements);
+  const Uint64Array& new_array = Uint64Array::Handle(Uint64Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -460,13 +449,9 @@ DEFINE_NATIVE_ENTRY(Uint64Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Float32Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Float32Array& new_array =
-      Float32Array::Handle(Float32Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float32Array::kMaxElements);
+  const Float32Array& new_array = Float32Array::Handle(Float32Array::New(len));
   arguments->SetReturn(new_array);
 }
 
@@ -485,13 +470,9 @@ DEFINE_NATIVE_ENTRY(Float32Array_setIndexed, 3) {
 
 DEFINE_NATIVE_ENTRY(Float64Array_new, 1) {
   GET_NATIVE_ARGUMENT(Smi, length, arguments->At(0));
-  if (length.Value() < 0) {
-    GrowableArray<const Object*> args;
-    args.Add(&length);
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
-  }
-  const Float64Array& new_array =
-      Float64Array::Handle(Float64Array::New(length.Value()));
+  intptr_t len = length.Value();
+  LengthCheck(len, Float64Array::kMaxElements);
+  const Float64Array& new_array = Float64Array::Handle(Float64Array::New(len));
   arguments->SetReturn(new_array);
 }
 

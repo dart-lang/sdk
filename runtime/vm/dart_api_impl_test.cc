@@ -6492,6 +6492,31 @@ TEST_CASE(NativeStaticFunctionClosure) {
   EXPECT_EQ(0, value);
 }
 
+
+TEST_CASE(RangeLimits) {
+  uint8_t chars8[1] = {'a'};
+  uint16_t chars16[1] = {'a'};
+  uint32_t chars32[1] = {'a'};
+
+  EXPECT_ERROR(Dart_NewList(-1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewList(Array::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString8(chars8, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString8(chars8, OneByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString16(chars16, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString16(chars16, TwoByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString32(chars32, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString32(chars32, FourByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart
