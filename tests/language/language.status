@@ -213,6 +213,8 @@ duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
 # dart2js allows duplicate constructor definitions.
 duplicate_constructor_test/01: Fail
+# Bug in dart2js frontend: cannot find the constructor.
+default_factory_library_test: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
 constructor5_test: Fail
@@ -229,8 +231,7 @@ super_first_constructor_test: Fail
 # Should be triaged.
 condition_bailout_test: Fail
 const_test: Fail
-default_factory3_test: Fail
-default_factory_library_test: Fail
+default_factory3_test: Fail # Depends on empty class processing.
 dynamic_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
