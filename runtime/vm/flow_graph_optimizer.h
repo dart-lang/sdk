@@ -68,6 +68,32 @@ class FlowGraphAnalyzer : public ValueObject {
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAnalyzer);
 };
 
+
+class ParsedFunction;
+
+
+class FlowGraphTypePropagator : public FlowGraphVisitor {
+ public:
+  FlowGraphTypePropagator(const ParsedFunction& parsed_function,
+                          const GrowableArray<BlockEntryInstr*>& blocks)
+      : FlowGraphVisitor(blocks),
+        parsed_function_(parsed_function) { }
+  virtual ~FlowGraphTypePropagator() {}
+
+  const ParsedFunction& parsed_function() const { return parsed_function_; }
+
+  void PropagateTypes();
+
+  virtual void VisitAssertAssignable(AssertAssignableComp* comp,
+                                     BindInstr* instr);
+
+  virtual void VisitBind(BindInstr* instr);
+
+ private:
+  const ParsedFunction& parsed_function_;
+  DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
+};
+
 }  // namespace dart
 
 #endif  // VM_FLOW_GRAPH_OPTIMIZER_H_

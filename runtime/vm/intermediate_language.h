@@ -118,12 +118,12 @@ class Value;
 
 class Computation : public ZoneAllocated {
  public:
-  static const int kNoCid = -1;
+  static const intptr_t kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
+  Computation() : cid_(kNoCid), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
-    cid_ = GetNextCid(isolate);
-    ic_data_ = GetICDataForCid(cid_, isolate);
+    cid_ = isolate->GetNextCid();
+    ic_data_ = isolate->GetICDataForCid(cid_);
   }
 
   // Unique computation/instruction id, used for deoptimization.
@@ -197,34 +197,14 @@ class Computation : public ZoneAllocated {
   virtual ComputationType computation_type() const = 0;
 
   // Declare predicate for each computation.
-#define DECLARE_PREDICATE(ShortName, ClassName)                             \
-  inline bool Is##ShortName() const;                                        \
+#define DECLARE_PREDICATE(ShortName, ClassName)                                \
+  inline bool Is##ShortName() const;                                           \
+  inline const ClassName* As##ShortName() const;                               \
   inline ClassName* As##ShortName();
-  FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
+FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
 
  private:
-  friend class Instruction;
-  static intptr_t GetNextCid(Isolate* isolate) {
-    intptr_t tmp = isolate->computation_id();
-    isolate->set_computation_id(tmp + 1);
-    return tmp;
-  }
-  static ICData* GetICDataForCid(intptr_t cid, Isolate* isolate) {
-    if (isolate->ic_data_array() == Array::null()) {
-      return NULL;
-    } else {
-      const Array& array_handle = Array::Handle(isolate->ic_data_array());
-      if (cid >= array_handle.Length()) {
-        // For computations being added in the optimizing compiler.
-        return NULL;
-      }
-      ICData& ic_data_handle = ICData::ZoneHandle();
-      ic_data_handle ^= array_handle.At(cid);
-      return &ic_data_handle;
-    }
-  }
-
   intptr_t cid_;
   ICData* ic_data_;
   LocationSummary* locs_;
@@ -299,6 +279,8 @@ class TemplateComputation : public Computation {
 class Value : public TemplateComputation<0> {
  public:
   Value() { }
+
+  bool StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -1760,6 +1742,10 @@ class ToDoubleComp : public TemplateComputation<1> {
 bool Computation::Is##ShortName() const {                                      \
   return computation_type() == k##ShortName;                                   \
 }                                                                              \
+const ClassName* Computation::As##ShortName() const {                          \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<const ClassName*>(this);                                  \
+}                                                                              \
 ClassName* Computation::As##ShortName() {                                      \
   if (!Is##ShortName()) return NULL;                                           \
   return static_cast<ClassName*>(this);                                        \
@@ -1815,25 +1801,7 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
 class Instruction : public ZoneAllocated {
  public:
   Instruction()
-      : cid_(-1),
-        lifetime_position_(-1),
-        ic_data_(NULL),
-        previous_(NULL),
-        next_(NULL),
-        env_(NULL) {
-    Isolate* isolate = Isolate::Current();
-    cid_ = Computation::GetNextCid(isolate);
-    ic_data_ = Computation::GetICDataForCid(cid_, isolate);
-  }
-
-  // Unique computation/instruction id, used for deoptimization, e.g. for
-  // ReturnInstr, ThrowInstr and ReThrowInstr.
-  intptr_t cid() const { return cid_; }
-
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
-  }
+      : lifetime_position_(-1), previous_(NULL), next_(NULL), env_(NULL) { }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -1949,9 +1917,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
-  intptr_t cid_;  // Computation id.
   intptr_t lifetime_position_;  // Position used by register allocator.
-  ICData* ic_data_;
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
@@ -2503,14 +2469,18 @@ class PushArgumentInstr : public InstructionWithInputs {
 class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
-      : InstructionWithInputs(), token_pos_(token_pos), value_(value) {
+      : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
+        token_pos_(token_pos),
+        value_(value) {
     ASSERT(value_ != NULL);
   }
 
   DECLARE_INSTRUCTION(Return)
 
-  Value* value() const { return value_; }
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
+  Value* value() const { return value_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2519,6 +2489,7 @@ class ReturnInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   Value* value_;
 
@@ -2532,6 +2503,7 @@ class ThrowInstr : public InstructionWithInputs {
              intptr_t try_index,
              Value* exception)
       : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
         try_index_(try_index),
         exception_(exception) {
@@ -2540,6 +2512,7 @@ class ThrowInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(Throw)
 
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
@@ -2551,6 +2524,7 @@ class ThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* exception_;
@@ -2566,6 +2540,7 @@ class ReThrowInstr : public InstructionWithInputs {
                Value* exception,
                Value* stack_trace)
       : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
         try_index_(try_index),
         exception_(exception),
@@ -2576,6 +2551,7 @@ class ReThrowInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(ReThrow)
 
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   Value* exception() const { return exception_; }
@@ -2588,6 +2564,7 @@ class ReThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* exception_;
@@ -2645,10 +2622,12 @@ class BranchInstr : public InstructionWithInputs {
  public:
   BranchInstr(intptr_t token_pos,
               intptr_t try_index,
-               Value* left,
-             Value* right,
+              Value* left,
+              Value* right,
               Token::Kind kind)
       : InstructionWithInputs(),
+        cid_(Computation::kNoCid),
+        ic_data_(NULL),
         token_pos_(token_pos),
         try_index_(try_index),
         left_(left),
@@ -2661,6 +2640,9 @@ class BranchInstr : public InstructionWithInputs {
     ASSERT(Token::IsEqualityOperator(kind) ||
            Token::IsRelationalOperator(kind) ||
            Token::IsTypeTestOperator(kind));
+    Isolate* isolate = Isolate::Current();
+    cid_ = isolate->GetNextCid();
+    ic_data_ = isolate->GetICDataForCid(cid_);
   }
 
   DECLARE_INSTRUCTION(Branch)
@@ -2674,6 +2656,14 @@ class BranchInstr : public InstructionWithInputs {
            Token::IsTypeTestOperator(kind));
     kind_ = kind;
   }
+
+  intptr_t cid() const { return cid_; }
+
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
+
   intptr_t token_pos() const { return token_pos_;}
   intptr_t try_index() const { return try_index_; }
 
@@ -2705,6 +2695,8 @@ class BranchInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
+  intptr_t cid_;  // Computation/instruction id.
+  ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* left_;

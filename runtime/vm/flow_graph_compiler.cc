@@ -411,7 +411,7 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
   char buffer[256];
   BufferFormatter f(buffer, sizeof(buffer));
   instr->PrintTo(&f);
-  assembler()->Comment("@%d: %s", instr->cid(), buffer);
+  assembler()->Comment("%s", buffer);
 }
 
 

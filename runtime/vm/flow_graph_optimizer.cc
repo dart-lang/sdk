@@ -10,8 +10,10 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
+DECLARE_FLAG(bool, trace_type_check_elimination);
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -363,8 +365,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
 }
 
 
-
-
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
                                            BindInstr* instr) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
@@ -439,7 +439,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   instr->set_computation(store);
   return true;
 }
-
 
 
 void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp,
@@ -544,6 +543,29 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 }
 
 
+void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
+                                                    BindInstr* instr) {
+  if (FLAG_eliminate_type_checks &&
+      (comp->value() != NULL) &&
+      !comp->dst_type().IsMalformed() &&
+      comp->value()->StaticTypeIsMoreSpecificThan(comp->dst_type())) {
+    // TODO(regis): Eliminate type check by removing comp node from graph.
+    if (FLAG_trace_type_check_elimination) {
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       comp->dst_type(),
+                                       comp->dst_name(),
+                                       /*eliminated*/ true);
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitBind(BindInstr* instr) {
+  instr->computation()->Accept(this, instr);
+}
+
 
 void FlowGraphAnalyzer::Analyze() {
   is_leaf_ = true;
@@ -557,6 +579,11 @@ void FlowGraphAnalyzer::Analyze() {
       }
     }
   }
+}
+
+
+void FlowGraphTypePropagator::PropagateTypes() {
+  VisitBlocks();
 }
 
 }  // namespace dart

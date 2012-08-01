@@ -28,6 +28,9 @@ class BufferFormatter : public ValueObject {
 };
 
 
+class ParsedFunction;
+
+
 // Graph printing.
 class FlowGraphPrinter : public ValueObject {
  public:
@@ -44,6 +47,12 @@ class FlowGraphPrinter : public ValueObject {
   void PrintBlocks();
   void PrintInstruction(Instruction* instr);
   static void PrintComputation(Computation* comp);
+  static void PrintTypeCheck(const ParsedFunction& parsed_function,
+                             intptr_t token_pos,
+                             Value* value,
+                             const AbstractType& dst_type,
+                             const String& dst_name,
+                             bool eliminated);
 
  private:
   const Function& function_;

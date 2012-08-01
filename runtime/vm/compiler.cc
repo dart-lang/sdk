@@ -173,6 +173,10 @@ static bool CompileParsedFunctionHelper(
         FlowGraphOptimizer optimizer(block_order);
         optimizer.ApplyICData();
 
+        // Propagate types and eliminate more type tests.
+        FlowGraphTypePropagator propagator(parsed_function, block_order);
+        propagator.PropagateTypes();
+
         if (use_ssa) {
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(block_order, &graph_builder);

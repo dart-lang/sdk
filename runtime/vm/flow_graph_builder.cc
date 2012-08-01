@@ -399,11 +399,21 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
-// Helper routine returning true if the static type of the given value is more
-// specific than the given dst_type.
-static bool IsStaticTypeMoreSpecific(Value* value,
-                                     const AbstractType& dst_type) {
-  ASSERT(!dst_type.IsMalformed());
+// Returns true if the type check can be skipped, for example, if the
+// destination type is Dynamic or if the static type of the value is a subtype
+// of the destination type.
+bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
+                                          Value* value,
+                                          const AbstractType& dst_type,
+                                          const String& dst_name) {
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+
+  // If the destination type is malformed, a dynamic type error must be thrown
+  // at run time.
+  if (dst_type.IsMalformed()) {
+    return false;
+  }
 
   // Any type is more specific than the Dynamic type and than the Object type.
   if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
@@ -422,94 +432,14 @@ static bool IsStaticTypeMoreSpecific(Value* value,
     return false;
   }
 
-  // If the value is the null constant, its type (NullType) is more specific
-  // than the destination type, even if the destination type is the void type,
-  // since a void function is allowed to return null.
-  if (value->IsConstant() && value->AsConstant()->value().IsNull()) {
-    return true;
-  }
-
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  // In case of a null constant, we have already returned true above, else we
-  // return false here.
-  if (dst_type.IsVoidType()) {
-    return false;
-  }
-
-  // Consider the static type of the value.
-  const AbstractType& static_type = AbstractType::Handle(value->StaticType());
-  ASSERT(!static_type.IsMalformed());
-
-  // If the static type of the value is void, we are type checking the result of
-  // a void function, which was checked to be null at the return statement
-  // inside the function.
-  if (static_type.IsVoidType()) {
-    return true;
-  }
-
-  // If the static type of the value is NullType, the type test is eliminated.
-  // There are only three instances that can be of Class Null:
-  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-  // The inline code and run time code performing the type check will never
-  // encounter the 2 sentinel values. The type check of a sentinel value
-  // will always be eliminated here, because these sentinel values can only
-  // be encountered as constants, never as actual value of a heap object
-  // being type checked.
-  if (static_type.IsNullType()) {
-    return true;
-  }
-
-  // The run time type of the value is guaranteed to be a subtype of the
-  // compile time static type of the value. However, establishing here that
-  // the static type is a subtype of the destination type does not guarantee
-  // that the run time type will also be a subtype of the destination type,
-  // because the subtype relation is not transitive.
-  // However, the 'more specific than' relation is transitive and is used
-  // here. In other words, if the static type of the value is more specific
-  // than the destination type, the run time type of the value, which is
-  // guaranteed to be a subtype of the static type, is also guaranteed to be
-  // a subtype of the destination type and the type check can therefore be
-  // eliminated.
-  return static_type.IsMoreSpecificThan(dst_type, NULL);
-}
-
-
-// Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the static type of the value is a subtype
-// of the destination type.
-bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
-                                          Value* value,
-                                          const AbstractType& dst_type,
-                                          const String& dst_name) {
-  ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsFinalized());
-
-  // If the destination type is malformed, a dynamic type error must be thrown
-  // at run time.
-  if (dst_type.IsMalformed()) {
-    return false;
-  }
-
-  const bool eliminated = IsStaticTypeMoreSpecific(value, dst_type);
-  if (FLAG_eliminate_type_checks && FLAG_trace_type_check_elimination) {
-    const Class& cls = Class::Handle(
-        owner()->parsed_function().function().owner());
-    const Script& script = Script::Handle(cls.script());
-    const char* static_type_name = "unknown";
-    if (value != NULL) {
-      const AbstractType& type = AbstractType::Handle(value->StaticType());
-      static_type_name = String::Handle(type.UserVisibleName()).ToCString();
-    }
-    Parser::PrintMessage(script, token_pos, "",
-                         "%s type check: static type '%s' is %s specific than "
-                         "type '%s' of '%s'.",
-                         eliminated ? "Eliminated" : "Generated",
-                         static_type_name,
-                         eliminated ? "more" : "not more",
-                         String::Handle(dst_type.UserVisibleName()).ToCString(),
-                         dst_name.ToCString());
+  const bool eliminated = value->StaticTypeIsMoreSpecificThan(dst_type);
+  if (FLAG_trace_type_check_elimination) {
+    FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
+                                     token_pos,
+                                     value,
+                                     dst_type,
+                                     dst_name,
+                                     eliminated);
   }
   return eliminated;
 }

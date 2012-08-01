@@ -116,6 +116,68 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
+// Returns true if the static type of this value is more specific than the
+// given dst_type.
+// TODO(regis): Should we support a set of static types?
+bool Value::StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
+  ASSERT(!dst_type.IsMalformed());  // Should be tested by caller.
+  ASSERT(!dst_type.IsDynamicType());  // Should be tested by caller.
+  ASSERT(!dst_type.IsObjectType());  // Should be tested by caller.
+
+  // If the value is the null constant, its type (NullType) is more specific
+  // than the destination type, even if the destination type is the void type,
+  // since a void function is allowed to return null.
+  if (IsConstant() && AsConstant()->value().IsNull()) {
+    return true;
+  }
+
+  // Functions that do not explicitly return a value, implicitly return null,
+  // except generative constructors, which return the object being constructed.
+  // It is therefore acceptable for void functions to return null.
+  // In case of a null constant, we have already returned true above, else we
+  // return false here.
+  if (dst_type.IsVoidType()) {
+    return false;
+  }
+
+  // Consider the static type of the value.
+  const AbstractType& static_type = AbstractType::Handle(StaticType());
+  ASSERT(!static_type.IsMalformed());
+
+  // If the static type of the value is void, we are type checking the result of
+  // a void function, which was checked to be null at the return statement
+  // inside the function.
+  if (static_type.IsVoidType()) {
+    return true;
+  }
+
+  // If the static type of the value is NullType, the type test is eliminated.
+  // There are only three instances that can be of Class Null:
+  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
+  // The inline code and run time code performing the type check will never
+  // encounter the 2 sentinel values. The type check of a sentinel value
+  // will always be eliminated here, because these sentinel values can only
+  // be encountered as constants, never as actual value of a heap object
+  // being type checked.
+  if (static_type.IsNullType()) {
+    return true;
+  }
+
+  // The run time type of the value is guaranteed to be a subtype of the
+  // compile time static type of the value. However, establishing here that
+  // the static type is a subtype of the destination type does not guarantee
+  // that the run time type will also be a subtype of the destination type,
+  // because the subtype relation is not transitive.
+  // However, the 'more specific than' relation is transitive and is used
+  // here. In other words, if the static type of the value is more specific
+  // than the destination type, the run time type of the value, which is
+  // guaranteed to be a subtype of the static type, is also guaranteed to be
+  // a subtype of the destination type and the type check can therefore be
+  // eliminated.
+  return static_type.IsMoreSpecificThan(dst_type, NULL);
+}
+
+
 intptr_t AllocateObjectComp::InputCount() const {
   return arguments().length();
 }
@@ -327,7 +389,26 @@ void PhiInstr::SetInputAt(intptr_t i, Value* value) {
 
 RawAbstractType* PhiInstr::StaticType() const {
   // TODO(regis): Return the least upper bound of the input static types.
-  return Type::DynamicType();
+  // It is much simpler to compute the least specific of the input static types,
+  // and it may be good enough in practice.
+  // Even better: we could keep the set of the input static types intact.
+  AbstractType& least_specific_type =
+      AbstractType::Handle(InputAt(0)->StaticType());
+  AbstractType& input_type = AbstractType::Handle();
+  for (intptr_t i = 1; i < InputCount(); i++) {
+    input_type = InputAt(i)->StaticType();
+    if (input_type.IsMoreSpecificThan(least_specific_type, NULL)) {
+      // Type least_specific_type is less specific than input_type. No change.
+    } else if (least_specific_type.IsMoreSpecificThan(input_type, NULL)) {
+      // Type input_type is less specific than the current least_specific_type.
+      least_specific_type = input_type.raw();
+    } else {
+      // The types are unrelated. No need to continue.
+      least_specific_type = Type::ObjectType();
+      break;
+    }
+  }
+  return least_specific_type.raw();
 }
 
 
@@ -825,8 +906,8 @@ RawAbstractType* CreateClosureComp::StaticType() const {
 
 
 RawAbstractType* AllocateObjectComp::StaticType() const {
-  UNREACHABLE();
-  return AbstractType::null();
+  // TODO(regis): Be more specific.
+  return Type::DynamicType();
 }
 
 
