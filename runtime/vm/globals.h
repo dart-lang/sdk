@@ -22,6 +22,12 @@
 
 namespace dart {
 
+// Smi value range is from -(2^N) to (2^N)-1.
+// N=30 (32-bit build) or N=62 (64-bit build).
+const intptr_t kSmiBits = kBitsPerWord - 2;
+const intptr_t kSmiMax = (static_cast<intptr_t>(1) << kSmiBits) - 1;
+const intptr_t kSmiMin =  -(static_cast<intptr_t>(1) << kSmiBits);
+
 // The expression ARRAY_SIZE(array) is a compile-time constant of type
 // size_t which represents the number of elements of the given
 // array. You should only use ARRAY_SIZE on statically allocated
