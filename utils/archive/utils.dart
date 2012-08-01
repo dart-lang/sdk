@@ -58,6 +58,32 @@ Uint8List bytesForC(List<int> input) {
 }
 
 /**
+ * Attaches [callback] as a finalizer for [object]. After [object] has been
+ * garbage collected, [callback] will be called and passed [peer] as an
+ * argument.
+ *
+ * Neither [callback] nor [peer] should contain any references to [object];
+ * otherwise, [object] will never be collected and [callback] will never be
+ * called.
+ */
+void attachFinalizer(object, void callback(peer), [peer])
+    native "Archive_AttachFinalizer";
+
+/**
+ * A reference to a single value.
+ *
+ * This is primarily meant to be used when a finalizer needs to refer to a field
+ * on the object being finalized that may be set to null during the lifetime of
+ * the object. Since the object itself has been garbage collected once the
+ * finalizer runs, it needs a second-order reference to check if the field is
+ * null.
+ */
+class Reference<E> {
+  E value;
+  Reference(this.value);
+}
+
+/**
  * Returns a [Future] that completes immediately upon hitting the event loop.
  */
 Future async() {

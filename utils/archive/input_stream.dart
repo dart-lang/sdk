@@ -8,8 +8,6 @@
 #import("read_request.dart");
 #import("utils.dart");
 
-// TODO(nweiz): ensure that the C struct associated with an input stream gets
-// freed if the stream gets garbage collected before it's closed.
 /**
  * A stream of [ArchiveEntry]s being read from an archive.
  *
@@ -22,7 +20,7 @@ class ArchiveInputStream {
    * This will be set to null once the input stream has finished reading from
    * the archive.
    */
-  int _id;
+  final Reference<int> _id;
 
   /** A [Completer] that will fire once the [_onEntry] callback is set. */
   final Completer<Function> _onEntryCompleter;
@@ -36,7 +34,9 @@ class ArchiveInputStream {
   /** The entry that is currently eligible to read data from the archive. */
   ArchiveEntry _currentEntry;
 
-  ArchiveInputStream(this._id) : _onEntryCompleter = new Completer<Function>() {
+  ArchiveInputStream(int id)
+    : _id = new Reference<int>(id),
+      _onEntryCompleter = new Completer<Function>() {
     var future = _consumeHeaders();
     future.handleException((e) {
       if (_onError != null) {
@@ -51,10 +51,14 @@ class ArchiveInputStream {
       close();
       if (_onClosed != null) _onClosed();
     });
+
+    attachFinalizer(this, (id) {
+      if (id.value != null) call(FREE, id.value).then(() {});
+    }, _id);
   }
 
   /** Whether this stream has finished reading entries. */
-  bool get closed() => _id == null;
+  bool get closed() => _id.value == null;
 
   /**
    * Sets a callback to call when a new entry is read from the archive.
@@ -96,8 +100,8 @@ class ArchiveInputStream {
    */
   void close() {
     if (closed) return;
-    call(FREE, _id).then((_) {});
-    _id = null;
+    call(FREE, _id.value).then((_) {});
+    _id.value = null;
     if (_currentEntry != null) _currentEntry.close();
     if (!_onEntryCompleter.future.isComplete) _onEntryCompleter.complete(null);
   }
@@ -108,10 +112,10 @@ class ArchiveInputStream {
   Future _consumeHeaders() {
     if (closed) return new Future.immediate(null);
     var data;
-    return call(NEXT_HEADER, _id).chain((_data) {
+    return call(NEXT_HEADER, _id.value).chain((_data) {
       data = _data;
       if (data == null) return new Future.immediate(null);
-      return _emit(new ArchiveEntry(_id, data)).
+      return _emit(new ArchiveEntry(_id.value, data)).
         chain((_) => _consumeHeaders());
     });
   }

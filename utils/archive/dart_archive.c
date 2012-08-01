@@ -201,6 +201,46 @@ static void archiveServicePort(Dart_NativeArguments arguments) {
 }
 
 /**
+ * The C callback that runs the Dart finalizer for an object. Set up by
+ * [attachDartFinalizer]. [handle] is the object that's been collected, and
+ * [peerPtr] is a Dart list containing the callback and its argument.
+ */
+static void runDartFinalizer(Dart_Handle handle, void* peerPtr) {
+  Dart_EnterScope();
+  Dart_Handle wrappedPeer = (Dart_Handle) peerPtr;
+  Dart_Handle callback = handleError(Dart_ListGetAt(wrappedPeer, 0));
+  Dart_Handle peer = handleError(Dart_ListGetAt(wrappedPeer, 1));
+
+  handleError(Dart_InvokeClosure(callback, 1, &peer));
+  Dart_DeletePersistentHandle(wrappedPeer);
+  Dart_ExitScope();
+}
+
+/**
+ * Attaches a finalizer callback to a Dart object.
+ *
+ * This takes a Dart object, a callback function, and an argument to pass to the
+ * callback function. The callback will be called with the given argument some
+ * time after the object has been garbage collected.
+ */
+static void attachDartFinalizer(Dart_NativeArguments arguments) {
+  Dart_EnterScope();
+  Dart_SetReturnValue(arguments, Dart_Null());
+  Dart_Handle object = handleError(Dart_GetNativeArgument(arguments, 0));
+  Dart_Handle callback = handleError(Dart_GetNativeArgument(arguments, 1));
+  Dart_Handle peer = handleError(Dart_GetNativeArgument(arguments, 2));
+
+  Dart_Handle wrappedPeer = handleError(Dart_NewList(2));
+  handleError(Dart_ListSetAt(wrappedPeer, 0, callback));
+  handleError(Dart_ListSetAt(wrappedPeer, 1, peer));
+  wrappedPeer = handleError(Dart_NewPersistentHandle(wrappedPeer));
+
+  handleError(Dart_NewWeakPersistentHandle(
+      object, wrappedPeer, runDartFinalizer));
+  Dart_ExitScope();
+}
+
+/**
  * A struct representing a function exposed to Dart and the name under which it
  * can be looked up.
  */
@@ -212,6 +252,7 @@ struct FunctionLookup {
 /** The list of functions exposed to Dart. */
 struct FunctionLookup function_list[] = {
   {"Archive_ServicePort", archiveServicePort},
+  {"Archive_AttachFinalizer", attachDartFinalizer},
   {NULL, NULL}
 };
 

@@ -341,7 +341,5 @@ void archiveReadClose(Dart_Port p, struct archive* a) {
 }
 
 void archiveReadFree(Dart_Port p, struct archive* a) {
-  // TODO(nweiz): Should we attach a finalizer to the Dart object that calls
-  // this automatically?
   checkResult(p, a, archive_read_free(a));
 }
