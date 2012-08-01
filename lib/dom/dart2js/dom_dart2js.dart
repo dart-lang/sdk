@@ -1562,39 +1562,6 @@ class _DelayNodeJs extends _AudioNodeJs implements DelayNode native "*DelayNode"
   final _AudioParamJs delayTime;
 }
 
-class _DeprecatedPeerConnectionJs extends _EventTargetJs implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final _MediaStreamListJs localStreams;
-
-  final int readyState;
-
-  final _MediaStreamListJs remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  void addStream(_MediaStreamJs stream) native;
-
-  void close() native;
-
-  bool dispatchEvent(_EventJs event) native;
-
-  void processSignalingMessage(String message) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  void removeStream(_MediaStreamJs stream) native;
-
-  void send(String text) native;
-}
-
 class _DeviceMotionEventJs extends _EventJs implements DeviceMotionEvent native "*DeviceMotionEvent" {
 
   final num interval;
@@ -4292,7 +4259,7 @@ class _IDBDatabaseJs extends _EventTargetJs implements IDBDatabase native "*IDBD
 
   final List<String> objectStoreNames;
 
-  final String version;
+  final version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]) native;
 
@@ -5119,13 +5086,27 @@ class _MediaStreamListJs extends _DOMTypeJs implements MediaStreamList native "*
   _MediaStreamJs item(int index) native;
 }
 
-class _MediaStreamTrackJs extends _DOMTypeJs implements MediaStreamTrack native "*MediaStreamTrack" {
+class _MediaStreamTrackJs extends _EventTargetJs implements MediaStreamTrack native "*MediaStreamTrack" {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   bool enabled;
 
   final String kind;
 
   final String label;
+
+  final int readyState;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _MediaStreamTrackEventJs extends _EventJs implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
@@ -5436,13 +5417,13 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   final _BatteryManagerJs webkitBattery;
 
-  final _GamepadListJs webkitGamepads;
-
   final _PointerLockJs webkitPointer;
 
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
+
+  _GamepadListJs webkitGetGamepads() native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
@@ -9519,6 +9500,28 @@ class _SharedWorkerContextJs extends _WorkerContextJs implements SharedWorkerCon
   final String name;
 }
 
+class _SourceBufferJs extends _DOMTypeJs implements SourceBuffer native "*SourceBuffer" {
+
+  final _TimeRangesJs buffered;
+
+  void abort() native;
+
+  void append(_Uint8ArrayJs data) native;
+}
+
+class _SourceBufferListJs extends _EventTargetJs implements SourceBufferList native "*SourceBufferList" {
+
+  final int length;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  _SourceBufferJs item(int index) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+
 class _SpeechGrammarJs extends _DOMTypeJs implements SpeechGrammar native "*SpeechGrammar" {
 
   String src;
@@ -9621,6 +9624,8 @@ class _SpeechRecognitionEventJs extends _EventJs implements SpeechRecognitionEve
 }
 
 class _SpeechRecognitionResultJs extends _DOMTypeJs implements SpeechRecognitionResult native "*SpeechRecognitionResult" {
+
+  final _DocumentJs emma;
 
   bool get finalValue() native "return this.final;";
 
@@ -12007,14 +12012,6 @@ class _DataViewFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DeprecatedPeerConnectionFactoryProvider {
-  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
-      '''return new DeprecatedPeerConnection(serverConfiguration, signalingCallback);''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) native
       '''return new EventSource(scriptUrl);''';
@@ -14106,46 +14103,6 @@ interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {
 interface DelayNode extends AudioNode {
 
   final AudioParam delayTime;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
-
-  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17195,7 +17152,7 @@ interface IDBDatabase extends EventTarget {
 
   final List<String> objectStoreNames;
 
-  final String version;
+  final /*IDBAny*/ version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -17882,13 +17839,27 @@ interface MediaStreamList {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamTrack {
+interface MediaStreamTrack extends EventTarget {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   bool enabled;
 
   final String kind;
 
   final String label;
+
+  final int readyState;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18200,13 +18171,13 @@ interface Navigator {
 
   final BatteryManager webkitBattery;
 
-  final GamepadList webkitGamepads;
-
   final PointerLock webkitPointer;
 
   void getStorageUpdates();
 
   bool javaEnabled();
+
+  GamepadList webkitGetGamepads();
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
@@ -21876,7 +21847,32 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+interface SourceBuffer {
+
+  final TimeRanges buffered;
+
+  void abort();
+
+  void append(Uint8Array data);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SourceBufferList extends EventTarget {
+
+  final int length;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  SourceBuffer item(int index);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -22036,6 +22032,8 @@ interface SpeechRecognitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 interface SpeechRecognitionResult {
+
+  final Document emma;
 
   final bool finalValue;
 

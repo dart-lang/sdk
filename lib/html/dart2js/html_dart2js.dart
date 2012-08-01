@@ -4625,58 +4625,6 @@ class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode native "*DelayN
   final _AudioParamImpl delayTime;
 }
 
-class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements DeprecatedPeerConnection native "*DeprecatedPeerConnection" {
-
-  _DeprecatedPeerConnectionEventsImpl get on() =>
-    new _DeprecatedPeerConnectionEventsImpl(this);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final _MediaStreamListImpl localStreams;
-
-  final int readyState;
-
-  final _MediaStreamListImpl remoteStreams;
-
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
-
-  void addStream(_MediaStreamImpl stream) native;
-
-  void close() native;
-
-  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
-
-  void processSignalingMessage(String message) native;
-
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
-
-  void removeStream(_MediaStreamImpl stream) native;
-
-  void send(String text) native;
-}
-
-class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
-  _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream() => this['addstream'];
-
-  EventListenerList get connecting() => this['connecting'];
-
-  EventListenerList get message() => this['message'];
-
-  EventListenerList get open() => this['open'];
-
-  EventListenerList get removeStream() => this['removestream'];
-
-  EventListenerList get stateChange() => this['statechange'];
-}
-
 class _DetailsElementImpl extends _ElementImpl implements DetailsElement native "*HTMLDetailsElement" {
 
   bool open;
@@ -7589,7 +7537,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase native "*
 
   final List<String> objectStoreNames;
 
-  final String version;
+  final Dynamic version;
 
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
 
@@ -8943,13 +8891,40 @@ class _MediaStreamListImpl implements MediaStreamList native "*MediaStreamList" 
   _MediaStreamImpl item(int index) native;
 }
 
-class _MediaStreamTrackImpl implements MediaStreamTrack native "*MediaStreamTrack" {
+class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack native "*MediaStreamTrack" {
+
+  _MediaStreamTrackEventsImpl get on() =>
+    new _MediaStreamTrackEventsImpl(this);
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   bool enabled;
 
   final String kind;
 
   final String label;
+
+  final int readyState;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
+class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
+  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended() => this['ended'];
+
+  EventListenerList get mute() => this['mute'];
+
+  EventListenerList get unmute() => this['unmute'];
 }
 
 class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackEvent native "*MediaStreamTrackEvent" {
@@ -9384,13 +9359,13 @@ class _NavigatorImpl implements Navigator native "*Navigator" {
 
   final _BatteryManagerImpl webkitBattery;
 
-  final _GamepadListImpl webkitGamepads;
-
   final _PointerLockImpl webkitPointer;
 
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
+
+  _GamepadListImpl webkitGetGamepads() native;
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native;
 }
@@ -14078,6 +14053,28 @@ class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements
   EventListenerList get connect() => this['connect'];
 }
 
+class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
+
+  final _TimeRangesImpl buffered;
+
+  void abort() native;
+
+  void append(_Uint8ArrayImpl data) native;
+}
+
+class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList native "*SourceBufferList" {
+
+  final int length;
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  _SourceBufferImpl item(int index) native;
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
 class _SourceElementImpl extends _ElementImpl implements SourceElement native "*HTMLSourceElement" {
 
   String media;
@@ -14223,6 +14220,8 @@ class _SpeechRecognitionEventImpl extends _EventImpl implements SpeechRecognitio
 }
 
 class _SpeechRecognitionResultImpl implements SpeechRecognitionResult native "*SpeechRecognitionResult" {
+
+  final _DocumentImpl emma;
 
   bool get finalValue() native "return this.final;";
 
@@ -17345,14 +17344,6 @@ class _DataViewFactoryProvider {
           if (byteLength == null) return new DataView(buffer, byteOffset);
           return new DataView(buffer, byteOffset, byteLength);
       ''';
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DeprecatedPeerConnectionFactoryProvider {
-  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native
-      '''return new DeprecatedPeerConnection(serverConfiguration, signalingCallback);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -22589,78 +22580,6 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DeprecatedPeerConnection
-interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
-
-  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  DeprecatedPeerConnectionEvents get on();
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  /** @domName DeprecatedPeerConnection.localStreams */
-  final MediaStreamList localStreams;
-
-  /** @domName DeprecatedPeerConnection.readyState */
-  final int readyState;
-
-  /** @domName DeprecatedPeerConnection.remoteStreams */
-  final MediaStreamList remoteStreams;
-
-  /** @domName DeprecatedPeerConnection.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DeprecatedPeerConnection.addStream */
-  void addStream(MediaStream stream);
-
-  /** @domName DeprecatedPeerConnection.close */
-  void close();
-
-  /** @domName DeprecatedPeerConnection.dispatchEvent */
-  bool $dom_dispatchEvent(Event event);
-
-  /** @domName DeprecatedPeerConnection.processSignalingMessage */
-  void processSignalingMessage(String message);
-
-  /** @domName DeprecatedPeerConnection.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DeprecatedPeerConnection.removeStream */
-  void removeStream(MediaStream stream);
-
-  /** @domName DeprecatedPeerConnection.send */
-  void send(String text);
-}
-
-interface DeprecatedPeerConnectionEvents extends Events {
-
-  EventListenerList get addStream();
-
-  EventListenerList get connecting();
-
-  EventListenerList get message();
-
-  EventListenerList get open();
-
-  EventListenerList get removeStream();
-
-  EventListenerList get stateChange();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLDetailsElement
 interface DetailsElement extends Element default _Elements {
 
@@ -24953,7 +24872,7 @@ interface IDBDatabase extends EventTarget {
   final List<String> objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  final String version;
+  final Dynamic version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -26629,7 +26548,18 @@ interface MediaStreamList {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamTrack
-interface MediaStreamTrack {
+interface MediaStreamTrack extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamTrackEvents get on();
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   /** @domName MediaStreamTrack.enabled */
   bool enabled;
@@ -26639,6 +26569,27 @@ interface MediaStreamTrack {
 
   /** @domName MediaStreamTrack.label */
   final String label;
+
+  /** @domName MediaStreamTrack.readyState */
+  final int readyState;
+
+  /** @domName MediaStreamTrack.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaStreamTrack.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName MediaStreamTrack.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamTrackEvents extends Events {
+
+  EventListenerList get ended();
+
+  EventListenerList get mute();
+
+  EventListenerList get unmute();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -27171,9 +27122,6 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.webkitGamepads */
-  final GamepadList webkitGamepads;
-
   /** @domName Navigator.webkitPointer */
   final PointerLock webkitPointer;
 
@@ -27182,6 +27130,9 @@ interface Navigator {
 
   /** @domName Navigator.javaEnabled */
   bool javaEnabled();
+
+  /** @domName Navigator.webkitGetGamepads */
+  GamepadList webkitGetGamepads();
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -32342,7 +32293,42 @@ interface SharedWorkerContextEvents extends WorkerContextEvents {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+/// @domName SourceBuffer
+interface SourceBuffer {
+
+  /** @domName SourceBuffer.buffered */
+  final TimeRanges buffered;
+
+  /** @domName SourceBuffer.abort */
+  void abort();
+
+  /** @domName SourceBuffer.append */
+  void append(Uint8Array data);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName SourceBufferList
+interface SourceBufferList extends EventTarget {
+
+  /** @domName SourceBufferList.length */
+  final int length;
+
+  /** @domName SourceBufferList.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName SourceBufferList.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName SourceBufferList.item */
+  SourceBuffer item(int index);
+
+  /** @domName SourceBufferList.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -32603,6 +32589,9 @@ interface SpeechRecognitionEvent extends Event {
 
 /// @domName SpeechRecognitionResult
 interface SpeechRecognitionResult {
+
+  /** @domName SpeechRecognitionResult.emma */
+  final Document emma;
 
   /** @domName SpeechRecognitionResult.finalValue */
   final bool finalValue;
