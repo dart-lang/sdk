@@ -722,6 +722,7 @@ registerException(e, [trace]) {
           trace == null ? '' : trace.toString());
     }
   }
+  _nextTestCase();
 }
 
 /**

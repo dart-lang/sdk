@@ -123,6 +123,11 @@ runTest() {
              () => (_testconfig.count == 10));
              _defer(_callback);
       });
+    } else if (testName == 'async exception test') {
+      test(testName, () {
+        expectAsync0(() {});
+        _defer(() => guardAsync(() { throw "error!"; }));
+      });
     }
   });
 }
@@ -152,7 +157,8 @@ main() {
     'setup and teardown test',
     'correct callback test',
     'excess callback test',
-    'completion test'
+    'completion test',
+    'async exception test'
   ];
 
   expected = [
@@ -168,7 +174,8 @@ main() {
     buildStatusString(1, 0, 0, tests[7], 1),
     buildStatusString(0, 0, 1, tests[8], 1,
         message: 'Callback called more times than expected (2 > 1).'),
-    buildStatusString(1, 0, 0, tests[9], 10)
+    buildStatusString(1, 0, 0, tests[9], 10),
+    buildStatusString(0, 0, 1, tests[10], message: 'Caught error!'),
   ];
 
   actual = [];
