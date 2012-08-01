@@ -16,6 +16,8 @@ xcodebuild
 *.vcxproj.user
 .children
 .project
+*.so
+*.o
 
 # Generated files
 /samples/third_party/dromaeo/tests/frog/
