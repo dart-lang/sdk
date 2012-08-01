@@ -266,7 +266,7 @@ DEFINE_NATIVE_ENTRY(ByteArray_setRange, 5) {
   intptr_t dst_start_value = dst_start.Value();
   if (length_value < 0) {
     const String& error = String::Handle(String::NewFormatted(
-        "length (%ld) must be non-negative", index));
+        "length (%ld) must be non-negative", length_value));
     GrowableArray<const Object*> args;
     args.Add(&error);
     Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
