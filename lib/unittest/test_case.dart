@@ -47,6 +47,8 @@ class TestCase {
 
   bool enabled = true;
 
+  bool _doneTeardown;
+
   TestCase(this.id, this.description, this.test, this.callbacks)
   : currentGroup = _currentGroup,
     _setup = _testSetup,
@@ -59,36 +61,41 @@ class TestCase {
       result = stackTrace = null;
       message = '';
 
+      _doneTeardown = false;
       if (_setup != null) {
         _setup();
       }
-      try {
-        _config.onTestStart(this);
-        test();
-      } finally {
-        if (_teardown != null) {
-          _teardown();
-        }
-      }
+      _config.onTestStart(this);
+      test();
     }
+  }
+
+  void _complete() {
+    if (!_doneTeardown) {
+      if (_teardown != null) {
+        _teardown();
+      }
+      _doneTeardown = true;
+    }
+    _config.onTestResult(this);
   }
 
   void pass() {
     result = _PASS;
-    _config.onTestResult(this);
+    _complete();
   }
 
   void fail(String messageText, String stack) {
     result = _FAIL;
     message = messageText;
     stackTrace = stack;
-    _config.onTestResult(this);
+    _complete();
   }
 
   void error(String messageText, String stack) {
     result = _ERROR;
     message = messageText;
     stackTrace = stack;
-    _config.onTestResult(this);
+    _complete();
   }
 }
