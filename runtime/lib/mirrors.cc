@@ -808,11 +808,12 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_invoke)(
     Dart_NativeArguments args) {
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle member = Dart_GetNativeArgument(args, 1);
-  Dart_Handle raw_invoke_args = Dart_GetNativeArgument(args, 2);
+  // The wrapped arguments are either simple values or instance mirrors.
+  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 2);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(raw_invoke_args, &invoke_args);
+  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -857,10 +858,11 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
     Dart_NativeArguments args) {
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle fieldName = Dart_GetNativeArgument(args, 1);
-  Dart_Handle raw_arg = Dart_GetNativeArgument(args, 2);
+  // The wrapped argument is either a simple value or instance mirror.
+  Dart_Handle wrapped_arg = Dart_GetNativeArgument(args, 2);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
-  Dart_Handle set_arg = UnwrapArg(raw_arg);
+  Dart_Handle set_arg = UnwrapArg(wrapped_arg);
   if (Dart_IsError(set_arg)) {
     Dart_PropagateError(set_arg);
   }
@@ -882,11 +884,12 @@ void NATIVE_ENTRY_FUNCTION(LocalObjectMirrorImpl_setField)(
 void NATIVE_ENTRY_FUNCTION(LocalClosureMirrorImpl_apply)(
     Dart_NativeArguments args) {
   Dart_Handle mirror = Dart_GetNativeArgument(args, 0);
-  Dart_Handle raw_invoke_args = Dart_GetNativeArgument(args, 1);
+  // The wrapped arguments are either simple values or instance mirrors.
+  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 1);
 
   Dart_Handle reflectee = UnwrapMirror(mirror);
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(raw_invoke_args, &invoke_args);
+  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }
@@ -910,11 +913,12 @@ void NATIVE_ENTRY_FUNCTION(LocalInterfaceMirrorImpl_invokeConstructor)(
     Dart_NativeArguments args) {
   Dart_Handle klass_mirror = Dart_GetNativeArgument(args, 0);
   Dart_Handle constructor_name = Dart_GetNativeArgument(args, 1);
-  Dart_Handle wrapped_args = Dart_GetNativeArgument(args, 2);
+  // The wrapped arguments are either simple values or instance mirrors.
+  Dart_Handle wrapped_invoke_args = Dart_GetNativeArgument(args, 2);
 
   Dart_Handle klass = UnwrapMirror(klass_mirror);
   GrowableArray<Dart_Handle> invoke_args;
-  Dart_Handle result = UnwrapArgList(wrapped_args, &invoke_args);
+  Dart_Handle result = UnwrapArgList(wrapped_invoke_args, &invoke_args);
   if (Dart_IsError(result)) {
     Dart_PropagateError(result);
   }

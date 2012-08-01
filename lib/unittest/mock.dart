@@ -8,11 +8,12 @@
  * it is instead a [signature] describing the method signature filter
  * that was used to select the logs that were verified.
  */
-String _mockingErrorFormatter(actual, Matcher matcher, String signature) {
+String _mockingErrorFormatter(actual, Matcher matcher, String signature,
+                              MatchState matchState, bool verbose) {
   var description = new StringDescription();
   description.add('Expected ${signature} ').addDescriptionOf(matcher).
       add('\n     but: ');
-  matcher.describeMismatch(actual, description).add('.');
+  matcher.describeMismatch(actual, description, matchState, verbose).add('.');
   return description.toString();
 }
 
@@ -28,8 +29,10 @@ class _MockFailureHandler implements FailureHandler {
   void fail(String reason) {
     proxy.fail(reason);
   }
-  void failMatch(actual, Matcher matcher, String reason) {
-    proxy.fail(_mockingErrorFormatter(actual, matcher, reason));
+  void failMatch(actual, Matcher matcher, String reason,
+                 MatchState matchState, bool verbose) {
+    proxy.fail(_mockingErrorFormatter(actual, matcher, reason,
+        matchState, verbose));
   }
 }
 
@@ -157,14 +160,15 @@ class CallMatcher {
    * if it matches this [CallMatcher.
    */
   bool matches(String method, List arguments) {
-    if (!nameFilter.matches(method)) {
+    var matchState = new MatchState();
+    if (!nameFilter.matches(method, matchState)) {
       return false;
     }
     if (arguments.length < argMatchers.length) {
       throw new Exception("Less arguments than matchers for $method.");
     }
     for (var i = 0; i < argMatchers.length; i++) {
-      if (!argMatchers[i].matches(arguments[i])) {
+      if (!argMatchers[i].matches(arguments[i], matchState)) {
         return false;
       }
     }
@@ -309,9 +313,11 @@ class LogEntry {
       d.add('$secs.$msecs>  ');
     }
     d.add('${_qualifiedName(mockName, methodName)}(');
-    for (var i = 0; i < args.length; i++) {
-      if (i != 0) d.add(', ');
-      d.addDescriptionOf(args[i]);
+    if (args != null) {
+      for (var i = 0; i < args.length; i++) {
+        if (i != 0) d.add(', ');
+        d.addDescriptionOf(args[i]);
+      }
     }
     d.add(') ${action == Action.THROW ? "threw" : "returned"} ');
     d.addDescriptionOf(value);
@@ -392,10 +398,13 @@ class LogEntryList {
     Function entryFilter = _makePredicate(logFilter);
     String filterName = _qualifiedName(mockNameFilter, logFilter.toString());
     LogEntryList rtn = new LogEntryList(filterName);
+    MatchState matchState = new MatchState();
     for (var i = 0; i < logs.length; i++) {
       LogEntry entry = logs[i];
-      if (mockNameFilter.matches(entry.mockName) && entryFilter(entry)) {
-        if (actionMatcher == null || actionMatcher.matches(entry)) {
+      if (mockNameFilter.matches(entry.mockName, matchState) &&
+          entryFilter(entry)) {
+        if (actionMatcher == null ||
+            actionMatcher.matches(entry, matchState)) {
           rtn.add(entry);
           if (destructive) {
             logs.removeRange(i--, 1);
@@ -694,6 +703,7 @@ class LogEntryList {
 
     var keyIterator = keys.logs.iterator();
     LogEntry keyEntry = keyIterator.next();
+    MatchState matchState = new MatchState();
 
     for (LogEntry logEntry in logs) {
       // If we have a log entry match, copy the saved matches from the
@@ -722,7 +732,7 @@ class LogEntryList {
           break;
         }
       } else if (remainingCount > 0 &&
-                 mockNameFilter.matches(logEntry.mockName) &&
+                 mockNameFilter.matches(logEntry.mockName, matchState) &&
                  logFilter(logEntry)) {
         if (scratch != null) {
           scratch.add(logEntry);
@@ -798,11 +808,11 @@ class _TimesMatcher extends BaseMatcher {
 
   const _TimesMatcher(this.min, [this.max = -1]);
 
-  bool matches(logList) => logList.length >= min &&
+  bool matches(logList, MatchState matchState) => logList.length >= min &&
       (max < 0 || logList.length <= max);
 
   Description describe(Description description) {
-    description.add(' to be called ');
+    description.add('to be called ');
     if (max < 0) {
       description.add('at least $min');
     } else if (max == min) {
@@ -815,7 +825,8 @@ class _TimesMatcher extends BaseMatcher {
     return description.add(' times');
   }
 
-  Description describeMismatch(logList, Description mismatchDescription) =>
+  Description describeMismatch(logList, Description mismatchDescription,
+                               MatchState matchState, bool verbose) =>
       mismatchDescription.add('was called ${logList.length} times');
 }
 
@@ -856,7 +867,7 @@ class _ResultMatcher extends BaseMatcher {
 
   const _ResultMatcher(this.action, this.value);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item is! LogEntry) {
      return false;
     }
@@ -865,7 +876,7 @@ class _ResultMatcher extends BaseMatcher {
     if (eaction == Action.PROXY) {
       eaction = Action.RETURN;
     }
-    return (eaction == action && value.matches(item.value));
+    return (eaction == action && value.matches(item.value, matchState));
   }
 
   Description describe(Description description) {
@@ -877,7 +888,8 @@ class _ResultMatcher extends BaseMatcher {
     return description.addDescriptionOf(value);
   }
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item.action == Action.RETURN || item.action == Action.PROXY) {
       mismatchDescription.add('returned ');
     } else {
@@ -935,15 +947,19 @@ class _ResultSetMatcher extends BaseMatcher {
 
   const _ResultSetMatcher(this.action, this.value, this.frequency);
 
-  bool matches(logList) {
+  bool matches(logList, MatchState matchState) {
     for (LogEntry entry in logList) {
       // normalize the action; PROXY is like RETURN.
       Action eaction = entry.action;
       if (eaction == Action.PROXY) {
         eaction = Action.RETURN;
       }
-      if (eaction == action && value.matches(entry.value)) {
+      if (eaction == action && value.matches(entry.value, matchState)) {
         if (frequency == _Frequency.NONE) {
+          matchState.state = {
+              'state' : matchState.state,
+              'entry' : entry
+          };
           return false;
         } else if (frequency == _Frequency.SOME) {
           return true;
@@ -951,6 +967,10 @@ class _ResultSetMatcher extends BaseMatcher {
       } else {
         // Mismatch.
         if (frequency == _Frequency.ALL) { // We need just one mismatch to fail.
+          matchState.state = {
+              'state' : matchState.state,
+              'entry' : entry
+          };
           return false;
         }
       }
@@ -972,19 +992,20 @@ class _ResultSetMatcher extends BaseMatcher {
     return description.addDescriptionOf(value);
   }
 
-  Description describeMismatch(logList, Description mismatchDescription) {
+  Description describeMismatch(logList, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (frequency != _Frequency.SOME) {
-      for (LogEntry entry in logList) {
-        if (entry.action != action || !value.matches(entry.value)) {
-          if (entry.action == Action.RETURN || entry.action == Action.PROXY)
-            mismatchDescription.add('returned ');
-          else
-            mismatchDescription.add('threw ');
-          mismatchDescription.add(entry.value);
-          mismatchDescription.add(' at least once');
-          break;
-        }
+      LogEntry entry = matchState.state['entry'];
+      if (entry.action == Action.RETURN || entry.action == Action.PROXY) {
+        mismatchDescription.add('returned ');
+      } else {
+        mismatchDescription.add('threw ');
       }
+      mismatchDescription.add(entry.value);
+      mismatchDescription.add(' that ');
+      value.describeMismatch(entry.value, mismatchDescription,
+        matchState.state['state'], verbose);
+      mismatchDescription.add(' at least once');
     } else {
       mismatchDescription.add('never did');
     }
@@ -1198,9 +1219,10 @@ class Mock {
       method = 'get ${method.substring(4)}';
     }
     bool matchedMethodName = false;
+    MatchState matchState = new MatchState();
     for (String k in _behaviors.getKeys()) {
       Behavior b = _behaviors[k];
-      if (b.matcher.nameFilter.matches(method)) {
+      if (b.matcher.nameFilter.matches(method, matchState)) {
         matchedMethodName = true;
       }
       if (b.matches(method, args)) {

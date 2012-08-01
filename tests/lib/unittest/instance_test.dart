@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
 #library('instance_test');
 #import('../../../lib/unittest/unittest.dart');
 #source('test_utils.dart');
@@ -23,7 +22,7 @@ main() {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
         "Expected: throws an exception which matches 'Y' "
-        "but:  no exception or exception does not match 'Y'.");
+        "but:  exception 'X' does not match 'Y'.");
     });
   });
 }

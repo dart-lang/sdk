@@ -1,10 +1,7 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-
-// Dart isolate's API and implementation for frog. Since dartdocs are generated
-// using frog, we include here some additional library level comments.
 
 /**
  * The `dart:isolate` library defines APIs to spawn and communicate with
@@ -39,12 +36,26 @@
  */
 #library("dart:isolate");
 
-#import("../uri/uri.dart");
+#import("dart:uri");
 #source("isolate_api.dart");
-#source("frog/compiler_hooks.dart");
-#source("frog/isolateimpl.dart");
-#source("frog/ports.dart");
-#source("frog/messages.dart");
 #source("timer.dart");
 #source("timer_hook.dart");
-#native("frog/natives.js");
+#source("serialization.dart");
+#source("dart2js/compiler_hooks.dart");
+#source("dart2js/isolateimpl.dart");
+#source("dart2js/ports.dart");
+#source("dart2js/messages.dart");
+
+/**
+ * Called by the compiler to support switching
+ * between isolates when we get a callback from the DOM.
+ */
+void _callInIsolate(_IsolateContext isolate, Function function) {
+  isolate.eval(function);
+  _globalState.topEventLoop.run();
+}
+
+/**
+ * Called by the compiler to fetch the current isolate context.
+ */
+void _currentIsolate() => _globalState.currentContext;

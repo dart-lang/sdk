@@ -403,6 +403,7 @@ class Parser : ValueObject {
                                      SourceLabel* label);
   void ParseStatementSequence();
   bool IsIdentifier();
+  bool IsSimpleLiteral(const AbstractType& type, Instance* value);
   bool IsFunctionTypeAliasName();
   bool TryParseTypeParameter();
   bool TryParseOptionalType();

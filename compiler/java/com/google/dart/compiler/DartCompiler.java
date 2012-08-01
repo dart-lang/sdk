@@ -48,13 +48,16 @@ import com.google.dart.compiler.util.DefaultTextOutput;
 import org.kohsuke.args4j.CmdLineException;
 import org.kohsuke.args4j.CmdLineParser;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintStream;
 import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -969,6 +972,10 @@ public class DartCompiler {
     CompilerOptions topCompilerOptions = processCommandLineOptions(topArgs);
     boolean result = false;
     try {
+      if (topCompilerOptions.showVersion()) {
+        showVersion(topCompilerOptions);
+        System.exit(0);
+      }
       if (topCompilerOptions.shouldBatch()) {
         if (topArgs.length > 1) {
           System.err.println("(Extra arguments specified with -batch ignored.)");
@@ -1016,19 +1023,20 @@ public class DartCompiler {
   public static boolean compilerMain(CompilerOptions compilerOptions) throws IOException {
     List<String> sourceFiles = compilerOptions.getSourceFiles();
     if (sourceFiles.size() == 0) {
-      System.err.println("dartc: no source files were specified.");
+      System.err.println("dart_analyzer: no source files were specified.");
       showUsage(null, System.err);
       return false;
     }
 
     File sourceFile = new File(sourceFiles.get(0));
     if (!sourceFile.exists()) {
-      System.err.println("dartc: file not found: " + sourceFile);
+      System.err.println("dart_analyzer: file not found: " + sourceFile);
       showUsage(null, System.err);
       return false;
     }
 
     CompilerConfiguration config = new DefaultCompilerConfiguration(compilerOptions);
+    config.getSystemLibraryManager().setPackageRoots(Arrays.asList(new File[]{compilerOptions.getPackageRoot()}));
     return compilerMain(sourceFile, config);
   }
 
@@ -1063,7 +1071,7 @@ public class DartCompiler {
   }
 
   private static void showUsage(CmdLineParser cmdLineParser, PrintStream out) {
-    out.println("Usage: dartc [<options>] <dart-script> [script-arguments]");
+    out.println("Usage: dart_analyzer [<options>] <dart-script> [script-arguments]");
     out.println("Available options:");
     if (cmdLineParser == null) {
       cmdLineParser = new CmdLineParser(new CompilerOptions());
@@ -1346,5 +1354,33 @@ public class DartCompiler {
 
   public static LibraryUnit getCoreLib(LibraryUnit libraryUnit) {
     return findLibrary(libraryUnit, "dart:core", new HashSet<LibraryElement>());
+  }
+
+  private static void showVersion(CompilerOptions options) {
+    String revision = getSdkRevision(options);
+    if (revision == null) {
+      revision = "<unkown>";
+    }
+    System.out.println("dart_analyzer version " + revision);
+  }
+
+  /**
+   * @return the numeric revision of SDK, may be <code>null</code> if cannot find.
+   */
+  private static String getSdkRevision(CompilerOptions options) {
+    try {
+      File sdkPath = options.getDartSdkPath();
+      File revisionFile = new File(sdkPath, "revision");
+      if (revisionFile.exists() && revisionFile.isFile()) {
+        BufferedReader br = new BufferedReader(new FileReader(revisionFile));
+        try {
+          return br.readLine();
+        } finally {
+          br.close();
+        }
+      }
+    } catch (Throwable e) {
+    }
+    return null;
   }
 }

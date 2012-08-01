@@ -2753,8 +2753,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
     ASSERT(func_kind == RawFunction::kRegularFunction ||
            func_kind == RawFunction::kGetterFunction ||
            func_kind == RawFunction::kSetterFunction ||
-           func_kind == RawFunction::kConstructor ||
-           func_kind == RawFunction::kAbstract);
+           func_kind == RawFunction::kConstructor);
   }
 #endif
   return Api::NewHandle(isolate, func.raw());
@@ -2784,6 +2783,32 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
 }
 
 
+DART_EXPORT Dart_Handle Dart_FunctionEnclosingClassOrLibrary(
+    Dart_Handle function) {
+  Isolate* isolate = Isolate::Current();
+  DARTSCOPE(isolate);
+  const Function& func = Api::UnwrapFunctionHandle(isolate, function);
+  if (func.IsNull()) {
+    RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  const Class& owner = Class::Handle(func.owner());
+  ASSERT(!owner.IsNull());
+  if (owner.IsTopLevel()) {
+    // Top-level functions are implemented as members of a hidden class. We hide
+    // that class here and instead answer the library.
+#if defined(DEBUG)
+    const Library& lib = Library::Handle(owner.library());
+    if (lib.IsNull()) {
+      ASSERT(owner.IsDynamicClass() || owner.IsVoidClass());
+    }
+#endif
+    return Api::NewHandle(isolate, owner.library());
+  } else {
+    return Api::NewHandle(isolate, owner.raw());
+  }
+}
+
+
 DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
                                                 bool* is_abstract) {
   Isolate* isolate = Isolate::Current();
@@ -2795,7 +2820,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsAbstract(Dart_Handle function,
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-  *is_abstract = (func.kind() == RawFunction::kAbstract);
+  *is_abstract = func.is_abstract();
   return Api::Success(isolate);
 }
 
@@ -2843,13 +2868,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-  // TODO(turnidge): It would be nice if I could just use func.kind()
-  // to check for a getter function here, but unfortunately the only
-  // way to distinguish abstract getter functions is to use the name
-  // itself.  Consider adding a RawFunction::kAbstractGetter type.
-  const String& func_name = String::Handle(isolate, func.name());
-  *is_getter = Field::IsGetterName(func_name);
-
+  *is_getter = (func.kind() == RawFunction::kGetterFunction);
   return Api::Success(isolate);
 }
 
@@ -2865,13 +2884,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsSetter(Dart_Handle function,
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-  // TODO(turnidge): It would be nice if I could just use func.kind()
-  // to check for a setter function here, but unfortunately the only
-  // way to distinguish abstract setter functions is to use the name
-  // itself.  Consider adding a RawFunction::kAbstractSetter type.
-  const String& func_name = String::Handle(isolate, func.name());
-  *is_setter = Field::IsSetterName(func_name);
-
+  *is_setter = (func.kind() == RawFunction::kSetterFunction);
   return Api::Success(isolate);
 }
 

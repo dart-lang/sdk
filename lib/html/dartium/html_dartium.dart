@@ -84,31 +84,11 @@ class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker {
   _AbstractWorkerEventsImpl get on() =>
     new _AbstractWorkerEventsImpl(this);
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "AbstractWorker_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "AbstractWorker_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "AbstractWorker_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "AbstractWorker_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "AbstractWorker_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "AbstractWorker_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -605,31 +585,11 @@ class _BatteryManagerImpl extends _EventTargetImpl implements BatteryManager {
 
   num get level() native "BatteryManager_level_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "BatteryManager_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "BatteryManager_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "BatteryManager_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "BatteryManager_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "BatteryManager_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "BatteryManager_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -907,17 +867,7 @@ class _CSSStyleDeclarationImpl extends NativeFieldWrapperClass1 implements CSSSt
 
   String removeProperty(String propertyName) native "CSSStyleDeclaration_removeProperty_Callback";
 
-  void setProperty(propertyName, value, [priority = _null]) {
-    if (priority === _null) {
-      _setProperty_1(propertyName, value);
-      return;
-    }
-    _setProperty_2(propertyName, value, priority);
-  }
-
-  void _setProperty_1(propertyName, value) native "CSSStyleDeclaration_setProperty_1_Callback";
-
-  void _setProperty_2(propertyName, value, priority) native "CSSStyleDeclaration_setProperty_2_Callback";
+  void setProperty(String propertyName, String value, [String priority]) native "CSSStyleDeclaration_setProperty_Callback";
 
 
   // TODO(jacobr): generate this list of properties using the existing script.
@@ -4582,31 +4532,11 @@ class _DOMApplicationCacheImpl extends _EventTargetImpl implements DOMApplicatio
 
   void abort() native "DOMApplicationCache_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "DOMApplicationCache_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "DOMApplicationCache_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "DOMApplicationCache_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "DOMApplicationCache_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "DOMApplicationCache_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "DOMApplicationCache_removeEventListener_Callback";
 
   void swapCache() native "DOMApplicationCache_swapCache_Callback";
 
@@ -5674,84 +5604,6 @@ class _DedicatedWorkerContextImpl extends _WorkerContextImpl implements Dedicate
 class _DelayNodeImpl extends _AudioNodeImpl implements DelayNode {
 
   AudioParam get delayTime() native "DelayNode_delayTime_Getter";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-class _DeprecatedPeerConnectionFactoryProvider {
-  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) => _createDeprecatedPeerConnection(serverConfiguration, signalingCallback);
-  static DeprecatedPeerConnection _createDeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) native "DeprecatedPeerConnection_constructor_Callback";
-}
-
-class _DeprecatedPeerConnectionEventsImpl extends _EventsImpl implements DeprecatedPeerConnectionEvents {
-  _DeprecatedPeerConnectionEventsImpl(_ptr) : super(_ptr);
-
-  EventListenerList get addStream() => this['addstream'];
-
-  EventListenerList get connecting() => this['connecting'];
-
-  EventListenerList get message() => this['message'];
-
-  EventListenerList get open() => this['open'];
-
-  EventListenerList get removeStream() => this['removestream'];
-
-  EventListenerList get stateChange() => this['statechange'];
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-class _DeprecatedPeerConnectionImpl extends _EventTargetImpl implements DeprecatedPeerConnection {
-
-  _DeprecatedPeerConnectionEventsImpl get on() =>
-    new _DeprecatedPeerConnectionEventsImpl(this);
-
-  MediaStreamList get localStreams() native "DeprecatedPeerConnection_localStreams_Getter";
-
-  int get readyState() native "DeprecatedPeerConnection_readyState_Getter";
-
-  MediaStreamList get remoteStreams() native "DeprecatedPeerConnection_remoteStreams_Getter";
-
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "DeprecatedPeerConnection_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "DeprecatedPeerConnection_addEventListener_2_Callback";
-
-  void addStream(MediaStream stream) native "DeprecatedPeerConnection_addStream_Callback";
-
-  void close() native "DeprecatedPeerConnection_close_Callback";
-
-  bool $dom_dispatchEvent(Event event) native "DeprecatedPeerConnection_dispatchEvent_Callback";
-
-  void processSignalingMessage(String message) native "DeprecatedPeerConnection_processSignalingMessage_Callback";
-
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "DeprecatedPeerConnection_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "DeprecatedPeerConnection_removeEventListener_2_Callback";
-
-  void removeStream(MediaStream stream) native "DeprecatedPeerConnection_removeStream_Callback";
-
-  void send(String text) native "DeprecatedPeerConnection_send_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7721,33 +7573,13 @@ class _EventSourceImpl extends _EventTargetImpl implements EventSource {
 
   String get url() native "EventSource_url_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "EventSource_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "EventSource_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_addEventListener_Callback";
 
   void close() native "EventSource_close_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "EventSource_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "EventSource_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "EventSource_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventSource_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -7810,31 +7642,11 @@ class _EventTargetImpl extends NativeFieldWrapperClass1 implements EventTarget {
 
   Events get on() => new _EventsImpl(this);
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "EventTarget_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "EventTarget_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "EventTarget_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "EventTarget_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "EventTarget_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "EventTarget_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8044,17 +7856,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void abort() native "FileReader_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "FileReader_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "FileReader_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "FileReader_dispatchEvent_Callback";
 
@@ -8076,17 +7878,7 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
 
   void _readAsText_2(blob, encoding) native "FileReader_readAsText_2_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "FileReader_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "FileReader_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8160,31 +7952,11 @@ class _FileWriterImpl extends _EventTargetImpl implements FileWriter {
 
   void abort() native "FileWriter_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "FileWriter_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "FileWriter_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "FileWriter_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "FileWriter_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "FileWriter_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileWriter_removeEventListener_Callback";
 
   void seek(int position) native "FileWriter_seek_Callback";
 
@@ -11430,19 +11202,9 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   List<String> get objectStoreNames() native "IDBDatabase_objectStoreNames_Getter";
 
-  String get version() native "IDBDatabase_version_Getter";
+  Dynamic get version() native "IDBDatabase_version_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "IDBDatabase_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "IDBDatabase_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_addEventListener_Callback";
 
   void close() native "IDBDatabase_close_Callback";
 
@@ -11461,17 +11223,7 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
 
   bool $dom_dispatchEvent(Event evt) native "IDBDatabase_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "IDBDatabase_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "IDBDatabase_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBDatabase_removeEventListener_Callback";
 
   IDBVersionChangeRequest setVersion(String version) native "IDBDatabase_setVersion_Callback";
 
@@ -11942,31 +11694,11 @@ class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest {
 
   String get webkitErrorMessage() native "IDBRequest_webkitErrorMessage_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "IDBRequest_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "IDBRequest_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "IDBRequest_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "IDBRequest_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "IDBRequest_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBRequest_removeEventListener_Callback";
 
 }
 
@@ -11998,33 +11730,13 @@ class _IDBTransactionImpl extends _EventTargetImpl implements IDBTransaction {
 
   void abort() native "IDBTransaction_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "IDBTransaction_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "IDBTransaction_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "IDBTransaction_dispatchEvent_Callback";
 
   IDBObjectStore objectStore(String name) native "IDBTransaction_objectStore_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "IDBTransaction_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "IDBTransaction_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBTransaction_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12055,31 +11767,11 @@ class _IDBVersionChangeRequestImpl extends _IDBRequestImpl implements IDBVersion
   _IDBVersionChangeRequestEventsImpl get on() =>
     new _IDBVersionChangeRequestEventsImpl(this);
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "IDBVersionChangeRequest_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "IDBVersionChangeRequest_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "IDBVersionChangeRequest_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "IDBVersionChangeRequest_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "IDBVersionChangeRequest_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "IDBVersionChangeRequest_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "IDBVersionChangeRequest_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12449,31 +12141,11 @@ class _JavaScriptAudioNodeImpl extends _AudioNodeImpl implements JavaScriptAudio
 
   int get bufferSize() native "JavaScriptAudioNode_bufferSize_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "JavaScriptAudioNode_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "JavaScriptAudioNode_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "JavaScriptAudioNode_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "JavaScriptAudioNode_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "JavaScriptAudioNode_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "JavaScriptAudioNode_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "JavaScriptAudioNode_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12542,31 +12214,11 @@ class _LocalMediaStreamImpl extends _MediaStreamImpl implements LocalMediaStream
 
   void stop() native "LocalMediaStream_stop_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "LocalMediaStream_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "LocalMediaStream_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "LocalMediaStream_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "LocalMediaStream_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "LocalMediaStream_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "LocalMediaStream_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12668,17 +12320,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   void set volume(num) native "MediaController_volume_Setter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "MediaController_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "MediaController_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "MediaController_dispatchEvent_Callback";
 
@@ -12686,17 +12328,7 @@ class _MediaControllerImpl extends _EventTargetImpl implements MediaController {
 
   void play() native "MediaController_play_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "MediaController_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "MediaController_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaController_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12919,31 +12551,11 @@ class _MediaStreamImpl extends _EventTargetImpl implements MediaStream {
 
   MediaStreamTrackList get videoTracks() native "MediaStream_videoTracks_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "MediaStream_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "MediaStream_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "MediaStream_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "MediaStream_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "MediaStream_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStream_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12970,13 +12582,26 @@ class _MediaStreamTrackEventImpl extends _EventImpl implements MediaStreamTrackE
   MediaStreamTrack get track() native "MediaStreamTrackEvent_track_Getter";
 
 }
+
+class _MediaStreamTrackEventsImpl extends _EventsImpl implements MediaStreamTrackEvents {
+  _MediaStreamTrackEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get ended() => this['ended'];
+
+  EventListenerList get mute() => this['mute'];
+
+  EventListenerList get unmute() => this['unmute'];
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 // WARNING: Do not edit - generated code.
 
-class _MediaStreamTrackImpl extends NativeFieldWrapperClass1 implements MediaStreamTrack {
+class _MediaStreamTrackImpl extends _EventTargetImpl implements MediaStreamTrack {
+
+  _MediaStreamTrackEventsImpl get on() =>
+    new _MediaStreamTrackEventsImpl(this);
 
   bool get enabled() native "MediaStreamTrack_enabled_Getter";
 
@@ -12985,6 +12610,14 @@ class _MediaStreamTrackImpl extends NativeFieldWrapperClass1 implements MediaStr
   String get kind() native "MediaStreamTrack_kind_Getter";
 
   String get label() native "MediaStreamTrack_label_Getter";
+
+  int get readyState() native "MediaStreamTrack_readyState_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "MediaStreamTrack_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrack_removeEventListener_Callback";
 
 }
 
@@ -13010,17 +12643,7 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 
   void add(MediaStreamTrack track) native "MediaStreamTrackList_add_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "MediaStreamTrackList_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "MediaStreamTrackList_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event event) native "MediaStreamTrackList_dispatchEvent_Callback";
 
@@ -13028,17 +12651,7 @@ class _MediaStreamTrackListImpl extends _EventTargetImpl implements MediaStreamT
 
   void remove(MediaStreamTrack track) native "MediaStreamTrackList_remove_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "MediaStreamTrackList_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "MediaStreamTrackList_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaStreamTrackList_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13117,17 +12730,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
   _MessagePortEventsImpl get on() =>
     new _MessagePortEventsImpl(this);
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "MessagePort_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "MessagePort_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_addEventListener_Callback";
 
   void close() native "MessagePort_close_Callback";
 
@@ -13135,17 +12738,7 @@ class _MessagePortImpl extends _EventTargetImpl implements MessagePort {
 
   void postMessage(String message, [List messagePorts]) native "MessagePort_postMessage_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "MessagePort_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "MessagePort_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MessagePort_removeEventListener_Callback";
 
   void start() native "MessagePort_start_Callback";
 
@@ -13491,13 +13084,13 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   BatteryManager get webkitBattery() native "Navigator_webkitBattery_Getter";
 
-  GamepadList get webkitGamepads() native "Navigator_webkitGamepads_Getter";
-
   PointerLock get webkitPointer() native "Navigator_webkitPointer_Getter";
 
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
+
+  GamepadList webkitGetGamepads() native "Navigator_webkitGetGamepads_Callback";
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]) native "Navigator_webkitGetUserMedia_Callback";
 
@@ -13686,17 +13279,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   void set text(String) native "Node_textContent_Setter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "Node_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "Node_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Node_addEventListener_Callback";
 
   Node $dom_appendChild(Node newChild) native "Node_appendChild_Callback";
 
@@ -13712,17 +13295,7 @@ class _NodeImpl extends _EventTargetImpl implements Node {
 
   Node $dom_removeChild(Node oldChild) native "Node_removeChild_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "Node_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "Node_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Node_removeEventListener_Callback";
 
   Node $dom_replaceChild(Node newChild, Node oldChild) native "Node_replaceChild_Callback";
 
@@ -14008,17 +13581,7 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set tag(String) native "Notification_tag_Setter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "Notification_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "Notification_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_addEventListener_Callback";
 
   void cancel() native "Notification_cancel_Callback";
 
@@ -14028,17 +13591,7 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   static String permissionLevel() native "Notification_permissionLevel_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "Notification_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "Notification_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
   static void requestPermission(NotificationPermissionCallback callback) native "Notification_requestPermission_Callback";
 
@@ -14198,17 +13751,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   MediaStreamList get remoteStreams() native "PeerConnection00_remoteStreams_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "PeerConnection00_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "PeerConnection00_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
   void addStream(stream, [mediaStreamHints = _null]) {
     if (mediaStreamHints === _null) {
@@ -14250,17 +13793,7 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
 
   void processIceMessage(IceCandidate candidate) native "PeerConnection00_processIceMessage_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "PeerConnection00_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "PeerConnection00_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_removeEventListener_Callback";
 
   void removeStream(MediaStream stream) native "PeerConnection00_removeStream_Callback";
 
@@ -15452,31 +14985,11 @@ class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGEle
 
   SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
 
-  void addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "SVGElementInstance_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "SVGElementInstance_addEventListener_2_Callback";
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
 
   bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
 
-  void removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "SVGElementInstance_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "SVGElementInstance_removeEventListener_2_Callback";
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18649,6 +18162,40 @@ class _SharedWorkerImpl extends _AbstractWorkerImpl implements SharedWorker {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// WARNING: Do not edit - generated code.
+
+class _SourceBufferImpl extends NativeFieldWrapperClass1 implements SourceBuffer {
+
+  TimeRanges get buffered() native "SourceBuffer_buffered_Getter";
+
+  void abort() native "SourceBuffer_abort_Callback";
+
+  void append(Uint8Array data) native "SourceBuffer_append_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _SourceBufferListImpl extends _EventTargetImpl implements SourceBufferList {
+
+  int get length() native "SourceBufferList_length_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "SourceBufferList_dispatchEvent_Callback";
+
+  SourceBuffer item(int index) native "SourceBufferList_item_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SourceBufferList_removeEventListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _SpeechGrammarFactoryProvider {
   factory SpeechGrammar() => _createSpeechGrammar();
   static SpeechGrammar _createSpeechGrammar() native "SpeechGrammar_constructor_Callback";
@@ -18858,31 +18405,11 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 
   void abort() native "SpeechRecognition_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "SpeechRecognition_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "SpeechRecognition_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "SpeechRecognition_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "SpeechRecognition_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "SpeechRecognition_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "SpeechRecognition_removeEventListener_Callback";
 
   void start() native "SpeechRecognition_start_Callback";
 
@@ -18896,6 +18423,8 @@ class _SpeechRecognitionImpl extends _EventTargetImpl implements SpeechRecogniti
 // WARNING: Do not edit - generated code.
 
 class _SpeechRecognitionResultImpl extends NativeFieldWrapperClass1 implements SpeechRecognitionResult {
+
+  Document get emma() native "SpeechRecognitionResult_emma_Getter";
 
   bool get finalValue() native "SpeechRecognitionResult_final_Getter";
 
@@ -19262,33 +18791,13 @@ class _TextTrackCueImpl extends _EventTargetImpl implements TextTrackCue {
 
   void set vertical(String) native "TextTrackCue_vertical_Setter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "TextTrackCue_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "TextTrackCue_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "TextTrackCue_dispatchEvent_Callback";
 
   DocumentFragment getCueAsHTML() native "TextTrackCue_getCueAsHTML_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "TextTrackCue_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "TextTrackCue_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackCue_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19339,33 +18848,13 @@ class _TextTrackImpl extends _EventTargetImpl implements TextTrack {
 
   void addCue(TextTrackCue cue) native "TextTrack_addCue_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "TextTrack_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "TextTrack_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "TextTrack_dispatchEvent_Callback";
 
   void removeCue(TextTrackCue cue) native "TextTrack_removeCue_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "TextTrack_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "TextTrack_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrack_removeEventListener_Callback";
 
 }
 
@@ -19387,33 +18876,13 @@ class _TextTrackListImpl extends _EventTargetImpl implements TextTrackList {
 
   int get length() native "TextTrackList_length_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "TextTrackList_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "TextTrackList_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "TextTrackList_dispatchEvent_Callback";
 
   TextTrack item(int index) native "TextTrackList_item_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "TextTrackList_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "TextTrackList_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "TextTrackList_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20960,33 +20429,29 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
 
   String get url() native "WebSocket_url_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
+
+  void close([code = _null, reason = _null]) {
+    if (reason === _null) {
+      _close_1(code);
       return;
     }
-    _addEventListener_2(type, listener, useCapture);
+    if (code === _null) {
+      _close_2();
+      return;
+    }
+    _close_3(code, reason);
   }
 
-  void _addEventListener_1(type, listener) native "WebSocket_addEventListener_1_Callback";
+  void _close_1(code) native "WebSocket_close_1_Callback";
 
-  void _addEventListener_2(type, listener, useCapture) native "WebSocket_addEventListener_2_Callback";
+  void _close_2() native "WebSocket_close_2_Callback";
 
-  void close([int code, String reason]) native "WebSocket_close_Callback";
+  void _close_3(code, reason) native "WebSocket_close_3_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "WebSocket_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "WebSocket_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_removeEventListener_Callback";
 
   bool send(String data) native "WebSocket_send_Callback";
 
@@ -21037,17 +20502,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   NotificationCenter get webkitNotifications() native "WorkerContext_webkitNotifications_Getter";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "WorkerContext_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "WorkerContext_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_addEventListener_Callback";
 
   void clearInterval(int handle) native "WorkerContext_clearInterval_Callback";
 
@@ -21063,17 +20518,7 @@ class _WorkerContextImpl extends _EventTargetImpl implements WorkerContext {
 
   DatabaseSync openDatabaseSync(String name, String version, String displayName, int estimatedSize, [DatabaseCallback creationCallback]) native "WorkerContext_openDatabaseSync_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "WorkerContext_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "WorkerContext_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WorkerContext_removeEventListener_Callback";
 
   int setInterval(TimeoutHandler handler, int timeout) native "WorkerContext_setInterval_Callback";
 
@@ -21248,17 +20693,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void abort() native "XMLHttpRequest_abort_Callback";
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "XMLHttpRequest_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "XMLHttpRequest_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequest_dispatchEvent_Callback";
 
@@ -21270,17 +20705,7 @@ class _XMLHttpRequestImpl extends _EventTargetImpl implements XMLHttpRequest {
 
   void overrideMimeType(String override) native "XMLHttpRequest_overrideMimeType_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "XMLHttpRequest_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "XMLHttpRequest_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequest_removeEventListener_Callback";
 
   void send([data]) native "XMLHttpRequest_send_Callback";
 
@@ -21327,31 +20752,11 @@ class _XMLHttpRequestUploadImpl extends _EventTargetImpl implements XMLHttpReque
   _XMLHttpRequestUploadEventsImpl get on() =>
     new _XMLHttpRequestUploadEventsImpl(this);
 
-  void $dom_addEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _addEventListener_1(type, listener);
-      return;
-    }
-    _addEventListener_2(type, listener, useCapture);
-  }
-
-  void _addEventListener_1(type, listener) native "XMLHttpRequestUpload_addEventListener_1_Callback";
-
-  void _addEventListener_2(type, listener, useCapture) native "XMLHttpRequestUpload_addEventListener_2_Callback";
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_addEventListener_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "XMLHttpRequestUpload_dispatchEvent_Callback";
 
-  void $dom_removeEventListener(type, listener, [useCapture = _null]) {
-    if (useCapture === _null) {
-      _removeEventListener_1(type, listener);
-      return;
-    }
-    _removeEventListener_2(type, listener, useCapture);
-  }
-
-  void _removeEventListener_1(type, listener) native "XMLHttpRequestUpload_removeEventListener_1_Callback";
-
-  void _removeEventListener_2(type, listener, useCapture) native "XMLHttpRequestUpload_removeEventListener_2_Callback";
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "XMLHttpRequestUpload_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -26523,78 +25928,6 @@ interface DelayNode extends AudioNode {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName DeprecatedPeerConnection
-interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
-
-  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  /**
-   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
-   */
-  DeprecatedPeerConnectionEvents get on();
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  /** @domName DeprecatedPeerConnection.localStreams */
-  final MediaStreamList localStreams;
-
-  /** @domName DeprecatedPeerConnection.readyState */
-  final int readyState;
-
-  /** @domName DeprecatedPeerConnection.remoteStreams */
-  final MediaStreamList remoteStreams;
-
-  /** @domName DeprecatedPeerConnection.addEventListener */
-  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DeprecatedPeerConnection.addStream */
-  void addStream(MediaStream stream);
-
-  /** @domName DeprecatedPeerConnection.close */
-  void close();
-
-  /** @domName DeprecatedPeerConnection.dispatchEvent */
-  bool $dom_dispatchEvent(Event event);
-
-  /** @domName DeprecatedPeerConnection.processSignalingMessage */
-  void processSignalingMessage(String message);
-
-  /** @domName DeprecatedPeerConnection.removeEventListener */
-  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName DeprecatedPeerConnection.removeStream */
-  void removeStream(MediaStream stream);
-
-  /** @domName DeprecatedPeerConnection.send */
-  void send(String text);
-}
-
-interface DeprecatedPeerConnectionEvents extends Events {
-
-  EventListenerList get addStream();
-
-  EventListenerList get connecting();
-
-  EventListenerList get message();
-
-  EventListenerList get open();
-
-  EventListenerList get removeStream();
-
-  EventListenerList get stateChange();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName HTMLDetailsElement
 interface DetailsElement extends Element default _Elements {
 
@@ -28887,7 +28220,7 @@ interface IDBDatabase extends EventTarget {
   final List<String> objectStoreNames;
 
   /** @domName IDBDatabase.version */
-  final String version;
+  final Dynamic version;
 
   /** @domName IDBDatabase.addEventListener */
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
@@ -30563,7 +29896,18 @@ interface MediaStreamList {
 // WARNING: Do not edit - generated code.
 
 /// @domName MediaStreamTrack
-interface MediaStreamTrack {
+interface MediaStreamTrack extends EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  MediaStreamTrackEvents get on();
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   /** @domName MediaStreamTrack.enabled */
   bool enabled;
@@ -30573,6 +29917,27 @@ interface MediaStreamTrack {
 
   /** @domName MediaStreamTrack.label */
   final String label;
+
+  /** @domName MediaStreamTrack.readyState */
+  final int readyState;
+
+  /** @domName MediaStreamTrack.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaStreamTrack.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName MediaStreamTrack.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+
+interface MediaStreamTrackEvents extends Events {
+
+  EventListenerList get ended();
+
+  EventListenerList get mute();
+
+  EventListenerList get unmute();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -31105,9 +30470,6 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.webkitGamepads */
-  final GamepadList webkitGamepads;
-
   /** @domName Navigator.webkitPointer */
   final PointerLock webkitPointer;
 
@@ -31116,6 +30478,9 @@ interface Navigator {
 
   /** @domName Navigator.javaEnabled */
   bool javaEnabled();
+
+  /** @domName Navigator.webkitGetGamepads */
+  GamepadList webkitGetGamepads();
 
   /** @domName Navigator.webkitGetUserMedia */
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
@@ -36276,7 +35641,42 @@ interface SharedWorkerContextEvents extends WorkerContextEvents {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+/// @domName SourceBuffer
+interface SourceBuffer {
+
+  /** @domName SourceBuffer.buffered */
+  final TimeRanges buffered;
+
+  /** @domName SourceBuffer.abort */
+  void abort();
+
+  /** @domName SourceBuffer.append */
+  void append(Uint8Array data);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName SourceBufferList
+interface SourceBufferList extends EventTarget {
+
+  /** @domName SourceBufferList.length */
+  final int length;
+
+  /** @domName SourceBufferList.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName SourceBufferList.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName SourceBufferList.item */
+  SourceBuffer item(int index);
+
+  /** @domName SourceBufferList.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -36537,6 +35937,9 @@ interface SpeechRecognitionEvent extends Event {
 
 /// @domName SpeechRecognitionResult
 interface SpeechRecognitionResult {
+
+  /** @domName SpeechRecognitionResult.emma */
+  final Document emma;
 
   /** @domName SpeechRecognitionResult.finalValue */
   final bool finalValue;

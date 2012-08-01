@@ -17,8 +17,24 @@ class PrettyPrinter implements Visitor {
   int depth;
   /** Prefix for the type passed to the next [openNode()] call. */
   String nextTypePrefix;
+  /** Nodes that were opened with [openNode()] calls. */
+  Link<String> currentNodeTypes;
 
-  PrettyPrinter() : sb = new StringBuffer(), depth = 0;
+  PrettyPrinter() :
+      sb = new StringBuffer(),
+      depth = 0,
+      currentNodeTypes = new EmptyLink<String>();
+
+  void pushCurrentNodeType(String nodeType) {
+    currentNodeTypes = currentNodeTypes.prepend(nodeType);
+  }
+
+  String popCurrentNodeType() {
+    assert(!currentNodeTypes.isEmpty());
+    String currentNodeType = currentNodeTypes.head;
+    currentNodeTypes = currentNodeTypes.tail;
+    return currentNodeType;
+  }
 
   /**
    * Adds given string to result string.
@@ -27,58 +43,67 @@ class PrettyPrinter implements Visitor {
     string.printOn(sb);
   }
 
+  void addBeginAndEndTokensToParams(Node node, Map params) {
+    params['getBeginToken'] = tokenToStringOrNull(node.getBeginToken());
+    params['getEndToken'] = tokenToStringOrNull(node.getEndToken());
+  }
+
   /**
    * Adds given node type to result string, increasing current depth by 1.
    * The method "opens" the node, meaning that all output after calling
    * this method and before calling closeNode() will represent contents
    * of given node.
    */
-  void openNode(String type, [Map params]) {
+  void openNode(Node node, String type, [Map params]) {
+    if (params === null) params = new Map();
     addCurrentIndent();
     sb.add("<");
+    addBeginAndEndTokensToParams(node, params);
     addTypeWithParams(type, params);
     sb.add(">\n");
+    pushCurrentNodeType(type);
     depth++;
   }
 
   /**
    * Adds given node to result string, depth is not affected.
    */
-  void openAndCloseNode(String type, [Map params]) {
+  void openAndCloseNode(Node node, String type, [Map params]) {
+    if (params === null) params = new Map();
     addCurrentIndent();
     sb.add("<");
+    addBeginAndEndTokensToParams(node, params);
     addTypeWithParams(type, params);
     sb.add("/>\n");
   }
 
   /**
-   * Closes given node type, decreasing current depth by 1.
+   * Closes current node type, decreasing current depth by 1.
    */
-  void closeNode(String type, [Map params]) {
+  void closeNode() {
     depth--;
     addCurrentIndent();
     sb.add("</");
-    addTypeWithParams(type, params);
+    addTypeWithParams(popCurrentNodeType());
     sb.add(">\n");
   }
 
   void addTypeWithParams(String type, [Map params]) {
+    if (params === null) params = new Map();
     if (nextTypePrefix !== null) {
       sb.add(nextTypePrefix);
       nextTypePrefix = null;
     }
     sb.add("${type}");
-    if (params != null) {
-      // TODO(smok): Escape doublequotes in values.
-      params.forEach((k, v) {
-        sb.add(' $k=');
-        if (v !== null) {
-          sb.add('"$v"');
-        } else {
-          sb.add('null');
-        }
-      });
-    }
+    // TODO(smok): Escape doublequotes in values.
+    params.forEach((k, v) {
+      sb.add(' $k=');
+      if (v !== null) {
+        sb.add('"$v"');
+      } else {
+        sb.add('null');
+      }
+    });
   }
 
   void addCurrentIndent() {
@@ -97,9 +122,9 @@ class PrettyPrinter implements Visitor {
   }
 
   visitNodeWithChildren(Node node, String type) {
-    openNode(type);
+    openNode(node, type);
     node.visitChildren(this);
-    closeNode(type);
+    closeNode();
   }
 
   visitBlock(Block node) {
@@ -127,9 +152,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    openNode("ClassNode", {
-      "beginToken" : tokenToStringOrNull(node.getBeginToken()),
-      "endToken" : tokenToStringOrNull(node.getEndToken()),
+    openNode(node, "ClassNode", {
       "extendsKeyword" : tokenToStringOrNull(node.extendsKeyword)
     });
     visitWithPrefix(node.name, "name:");
@@ -137,7 +160,7 @@ class PrettyPrinter implements Visitor {
     visitWithPrefix(node.interfaces, "interfaces:");
     visitWithPrefix(node.typeParameters, "typeParameters:");
     visitWithPrefix(node.defaultClause, "defaultClause:");
-    closeNode("ClassNode");
+    closeNode();
   }
 
   visitConditional(Conditional node) {
@@ -173,7 +196,7 @@ class PrettyPrinter implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    openNode("FunctionExpression", {
+    openNode(node, "FunctionExpression", {
       "getOrSet" : tokenToStringOrNull(node.getOrSet)
     });
     visitWithPrefix(node.modifiers, "modifiers:");
@@ -182,11 +205,11 @@ class PrettyPrinter implements Visitor {
     visitWithPrefix(node.parameters, "parameters:");
     visitWithPrefix(node.initializers, "initializers:");
     visitWithPrefix(node.body, "body:");
-    closeNode("FunctionExpression");
+    closeNode();
   }
 
   visitIdentifier(Identifier node) {
-    openAndCloseNode("Identifier", {"token" : node.token.slowToString()});
+    openAndCloseNode(node, "Identifier", {"token" : node.token.slowToString()});
   }
 
   visitIf(If node) {
@@ -203,7 +226,7 @@ class PrettyPrinter implements Visitor {
 
   // Custom.
   visitLiteral(Literal node, String type) {
-    openAndCloseNode(type, {"value" : node.value.toString()});
+    openAndCloseNode(node, type, {"value" : node.value.toString()});
   }
 
   visitLiteralBool(LiteralBool node) {
@@ -222,12 +245,12 @@ class PrettyPrinter implements Visitor {
   tokenToStringOrNull(Token token) => token === null ? null : token.stringValue;
 
   visitLiteralList(LiteralList node) {
-    openNode("LiteralList", {
+    openNode(node, "LiteralList", {
       "constKeyword" : tokenToStringOrNull(node.constKeyword)
     });
     visitWithPrefix(node.type, "type:");
     visitWithPrefix(node.elements, "elements:");
-    closeNode("LiteralList");
+    closeNode();
   }
 
   visitLiteralMap(LiteralMap node) {
@@ -243,7 +266,8 @@ class PrettyPrinter implements Visitor {
   }
 
   visitLiteralString(LiteralString node) {
-    openAndCloseNode("LiteralString", {"value" : node.token.slowToString()});
+    openAndCloseNode(node, "LiteralString",
+        {"value" : node.token.slowToString()});
   }
 
   visitModifiers(Modifiers node) {
@@ -261,20 +285,19 @@ class PrettyPrinter implements Visitor {
   visitNodeList(NodeList node) {
     var params = {
         "delimiter" :
-            node.delimiter !== null ? node.delimiter.stringValue : null,
-        "beginToken" : tokenToStringOrNull(node.getBeginToken()),
-        "endToken" : tokenToStringOrNull(node.getEndToken())};
+            node.delimiter !== null ? node.delimiter.stringValue : null
+    };
     if (node.nodes.toList().length == 0) {
-      openAndCloseNode("NodeList", params);
+      openAndCloseNode(node, "NodeList", params);
     } else {
-      openNode("NodeList", params);
+      openNode(node, "NodeList", params);
       node.visitChildren(this);
-      closeNode("NodeList");
+      closeNode();
     }
   }
 
   visitOperator(Operator node) {
-    openAndCloseNode("Operator", {"value" : node.token.slowToString()});
+    openAndCloseNode(node, "Operator", {"value" : node.token.slowToString()});
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -282,13 +305,9 @@ class PrettyPrinter implements Visitor {
   }
 
   visitReturn(Return node) {
-    var beginToken = node.getBeginToken() !== null
-        ? node.getBeginToken().stringValue : "null";
-    var endToken = node.getEndToken() !== null
-        ? node.getEndToken().stringValue : "null";
-    openNode("Return", {"beginToken" : beginToken, "endToken" : endToken});
+    openNode(node, "Return");
     visitWithPrefix(node.expression, "expression:");
-    closeNode("Return");
+    closeNode();
   }
 
   visitScriptTag(ScriptTag node) {
@@ -303,12 +322,10 @@ class PrettyPrinter implements Visitor {
   }
 
   openSendNodeWithFields(Send node, String type) {
-    openNode(type, {
+    openNode(node, type, {
         "isPrefix" : "${node.isPrefix}",
         "isPostfix" : "${node.isPostfix}",
-        "isIndex" : "${node.isIndex}",
-        "beginToken" : tokenToStringOrNull(node.getBeginToken()),
-        "endToken" : tokenToStringOrNull(node.getEndToken())
+        "isIndex" : "${node.isIndex}"
     });
     visitWithPrefix(node.receiver, "receiver:");
     visitWithPrefix(node.selector, "selector:");
@@ -317,13 +334,13 @@ class PrettyPrinter implements Visitor {
 
   visitSend(Send node) {
     openSendNodeWithFields(node, "Send");
-    closeNode("Send");
+    closeNode();
   }
 
   visitSendSet(SendSet node) {
     openSendNodeWithFields(node, "SendSet");
     visitWithPrefix(node.assignmentOperator, "assignmentOperator:");
-    closeNode("SendSet");
+    closeNode();
   }
 
   visitStringInterpolation(StringInterpolation node) {
@@ -355,13 +372,10 @@ class PrettyPrinter implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    openNode("TypeAnnotation", {
-      "beginToken" : tokenToStringOrNull(node.getBeginToken()),
-      "endToken" : tokenToStringOrNull(node.getEndToken())
-    });
+    openNode(node, "TypeAnnotation");
     visitWithPrefix(node.typeName, "typeName:");
     visitWithPrefix(node.typeArguments, "typeArguments:");
-    closeNode("TypeAnnotation");
+    closeNode();
   }
 
   visitTypedef(Typedef node) {
@@ -369,18 +383,18 @@ class PrettyPrinter implements Visitor {
   }
 
   visitTypeVariable(TypeVariable node) {
-    visitNodeWithChildren(node, "TypeVariable");
+    openNode(node, "TypeVariable");
+    visitWithPrefix(node.name, "name:");
+    visitWithPrefix(node.bound, "bound:");
+    closeNode();
   }
 
   visitVariableDefinitions(VariableDefinitions node) {
-    openNode("VariableDefinitions", {
-      "beginToken" : "${node.getBeginToken().stringValue}",
-      "endToken" : "${node.getEndToken().stringValue}"
-    });
+    openNode(node, "VariableDefinitions");
     visitWithPrefix(node.type, "type:");
     visitWithPrefix(node.modifiers, "modifiers:");
     visitWithPrefix(node.definitions, "definitions:");
-    closeNode("VariableDefinitions");
+    closeNode();
   }
 
   visitWhile(While node) {

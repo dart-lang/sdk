@@ -30,23 +30,34 @@ class ConflictingRenamer extends Renamer {
   String getFactoryName(FunctionExpression node) =>
       node.name.asSend().selector.asIdentifier().source.slowToString();
 
-  bool isNamedConstructor(Element element) =>
-      element.isGenerativeConstructor()
-          && element.asFunctionElement().cachedNode.name is Send;
-
   String renameSendMethod(Send send) {
     if (contextElements[send] === null) return null;
     Element element = contextElements[send];
     if (element.isTopLevel()) {
       return renameElement(element);
-    } else if (isNamedConstructor(element)
+    } else if (
+        (element.isGenerativeConstructor() || element.isFactoryConstructor())
+        && element.asFunctionElement().cachedNode.name is Send
         // Don't want to rename redirects to :this(args).
         && !Initializers.isConstructorRedirect(send)
         // Don't want to rename super calls.
         && !Initializers.isSuperConstructorCall(send)) {
       FunctionExpression constructor = element.asFunctionElement().cachedNode;
-      return '${renameType(element.getEnclosingClass().type)}'
-          '.${getFactoryName(constructor)}';
+      TypeAnnotation typeAnnotation;
+      if (send.selector is TypeAnnotation) {
+        // <simple class name>.<name> case.
+        typeAnnotation = send.selector;
+      } else if (send.selector.receiver is TypeAnnotation) {
+        // <complex generic type>.<name> case.
+        typeAnnotation = send.selector.receiver;
+      } else {
+        compiler.cancel(
+          reason: "Don't know how to deduce type",
+          element: element,
+          node: send);
+      }
+      final type = new Unparser(this).unparse(typeAnnotation);
+      return '$type.${getFactoryName(constructor)}';
     } else {
       return null;
     }
@@ -90,7 +101,7 @@ class ConflictingRenamer extends Renamer {
 
     generateUniqueName(name) {
       while (usedTopLevelIdentifiers.contains(name)) {
-        name = "\$$name";
+        name = "p_$name";
       }
       usedTopLevelIdentifiers.add(name);
       return name;

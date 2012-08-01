@@ -1494,9 +1494,6 @@ void Class::SetFields(const Array& value) const {
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
     field.set_owner(*this);
-    // Only static const fields may contain the Object::sentinel value.
-    ASSERT(!(field.is_static() && field.is_final()) ||
-           (field.value() == Object::sentinel()));
   }
   // The value of static fields is already initialized to null.
   StorePointer(&raw_ptr()->fields_, value.raw());
@@ -3635,6 +3632,16 @@ void Function::SetCode(const Code& value) const {
 }
 
 
+void Function::SwitchToUnoptimizedCode() const {
+  ASSERT(HasOptimizedCode());
+  // Patch entry of the optimized code.
+  CodePatcher::PatchEntry(Code::Handle(CurrentCode()));
+  // Use previously compiled unoptimized code.
+  SetCode(Code::Handle(unoptimized_code()));
+  CodePatcher::RestoreEntry(Code::Handle(unoptimized_code()));
+}
+
+
 void Function::set_unoptimized_code(const Code& value) const {
   StorePointer(&raw_ptr()->unoptimized_code_, value.raw());
 }
@@ -3738,17 +3745,22 @@ void Function::set_parameter_names(const Array& value) const {
 
 
 void Function::set_kind(RawFunction::Kind value) const {
-  raw_ptr()->kind_ = value;
+  raw()->SetKind(value);
 }
 
 
 void Function::set_is_static(bool is_static) const {
-  raw_ptr()->is_static_ = is_static;
+  raw()->SetIsStatic(is_static);
 }
 
 
 void Function::set_is_const(bool is_const) const {
-  raw_ptr()->is_const_ = is_const;
+  raw()->SetIsConst(is_const);
+}
+
+
+void Function::set_is_external(bool is_external) const {
+  raw()->SetIsExternal(is_external);
 }
 
 
@@ -3771,12 +3783,17 @@ void Function::set_num_optional_parameters(intptr_t n) const {
 
 
 void Function::set_is_optimizable(bool value) const {
-  raw_ptr()->is_optimizable_ = value;
+  raw()->SetIsOptimizable(value);
 }
 
 
 void Function::set_is_native(bool value) const {
-  raw_ptr()->is_native_ = value;
+  raw()->SetIsNative(value);
+}
+
+
+void Function::set_is_abstract(bool value) const {
+  raw()->SetIsAbstract(value);
 }
 
 
@@ -4106,6 +4123,8 @@ RawFunction* Function::New(const String& name,
                            RawFunction::Kind kind,
                            bool is_static,
                            bool is_const,
+                           bool is_abstract,
+                           bool is_external,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   const Function& result = Function::Handle(Function::New());
@@ -4115,6 +4134,7 @@ RawFunction* Function::New(const String& name,
   result.set_kind(kind);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
+  result.set_is_external(is_external);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
@@ -4123,6 +4143,7 @@ RawFunction* Function::New(const String& name,
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
   result.set_is_native(false);
+  result.set_is_abstract(is_abstract);
   return result.raw();
 }
 
@@ -4139,6 +4160,8 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     RawFunction::kClosureFunction,
                     /* is_static = */ parent.is_static(),
                     /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
                     token_pos));
   result.set_parent_function(parent);
   result.set_owner(parent_class);
@@ -4337,43 +4360,43 @@ bool Function::HasOptimizedCode() const {
 
 
 const char* Function::ToCString() const {
-  const char* f0 = is_static() ? " static" : "";
-  const char* f1 = NULL;
-  const char* f2 = is_const() ? " const" : "";
+  const char* static_str = is_static() ? " static" : "";
+  const char* abstract_str = is_abstract() ? " abstract" : "";
+  const char* kind_str = NULL;
+  const char* const_str = is_const() ? " const" : "";
   switch (kind()) {
     case RawFunction::kRegularFunction:
     case RawFunction::kClosureFunction:
     case RawFunction::kGetterFunction:
     case RawFunction::kSetterFunction:
-      f1 = "";
+      kind_str = "";
       break;
     case RawFunction::kSignatureFunction:
-      f1 = " signature";
-      break;
-    case RawFunction::kAbstract:
-      f1 = " abstract";
+      kind_str = " signature";
       break;
     case RawFunction::kConstructor:
-      f1 = is_static() ? " factory" : " constructor";
+      kind_str = is_static() ? " factory" : " constructor";
       break;
     case RawFunction::kImplicitGetter:
-      f1 = " getter";
+      kind_str = " getter";
       break;
     case RawFunction::kImplicitSetter:
-      f1 = " setter";
+      kind_str = " setter";
       break;
     case RawFunction::kConstImplicitGetter:
-      f1 = " const-getter";
+      kind_str = " const-getter";
       break;
     default:
       UNREACHABLE();
   }
-  const char* kFormat = "Function '%s':%s%s%s.";
+  const char* kFormat = "Function '%s':%s%s%s%s.";
   const char* function_name = String::Handle(name()).ToCString();
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, f0, f1, f2) + 1;
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
+                             static_str, abstract_str, kind_str, const_str) + 1;
   char* chars = reinterpret_cast<char*>(
       Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, kFormat, function_name, f0, f1, f2);
+  OS::SNPrint(chars, len, kFormat, function_name,
+              static_str, abstract_str, kind_str, const_str);
   return chars;
 }
 
@@ -5101,15 +5124,17 @@ void Script::GetTokenLocation(intptr_t token_pos,
 void Script::TokenRangeAtLine(intptr_t line_number,
                               intptr_t* first_token_index,
                               intptr_t* last_token_index) const {
-  intptr_t first_src_pos;
-  intptr_t last_src_pos;
   const String& src = String::Handle(Source());
   const String& dummy_key = String::Handle(Symbols::Empty());
   const TokenStream& tkns = TokenStream::Handle(tokens());
   Scanner scanner(src, dummy_key);
-  scanner.TokenRangeAtLine(line_number, &first_src_pos, &last_src_pos);
-  *first_token_index = tkns.ComputeTokenPosition(first_src_pos);
-  *last_token_index = tkns.ComputeTokenPosition(last_src_pos);
+  scanner.TokenRangeAtLine(line_number, first_token_index, last_token_index);
+  if (*first_token_index >= 0) {
+    *first_token_index = tkns.ComputeTokenPosition(*first_token_index);
+  }
+  if (*last_token_index >= 0) {
+    *last_token_index = tkns.ComputeTokenPosition(*last_token_index);
+  }
 }
 
 

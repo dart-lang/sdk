@@ -10,7 +10,7 @@ final Matcher isEmpty = const _Empty();
 
 class _Empty extends BaseMatcher {
   const _Empty();
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item is Map || item is Collection) {
       return item.isEmpty();
     } else if (item is String) {
@@ -31,14 +31,14 @@ final Matcher isNotNull = const _IsNotNull();
 
 class _IsNull extends BaseMatcher {
   const _IsNull();
-  bool matches(item) => item == null;
+  bool matches(item, MatchState matchState) => item == null;
   Description describe(Description description) =>
       description.add('null');
 }
 
 class _IsNotNull extends BaseMatcher {
   const _IsNotNull();
-  bool matches(item) => item != null;
+  bool matches(item, MatchState matchState) => item != null;
   Description describe(Description description) =>
       description.add('not null');
 }
@@ -51,14 +51,14 @@ final Matcher isFalse = const _IsFalse();
 
 class _IsTrue extends BaseMatcher {
   const _IsTrue();
-  bool matches(item) => item == true;
+  bool matches(item, MatchState matchState) => item == true;
   Description describe(Description description) =>
       description.add('true');
 }
 
 class _IsFalse extends BaseMatcher {
   const _IsFalse();
-  bool matches(item) => item != true;
+  bool matches(item, MatchState matchState) => item != true;
   Description describe(Description description) =>
       description.add('false');
 }
@@ -72,7 +72,7 @@ Matcher same(expected) => new _IsSameAs(expected);
 class _IsSameAs extends BaseMatcher {
   final _expected;
   const _IsSameAs(this._expected);
-  bool matches(item) => item === _expected;
+  bool matches(item, MatchState matchState) => item === _expected;
   // If all types were hashable we could show a hash here.
   Description describe(Description description) =>
       description.add('same instance as ').addDescriptionOf(_expected);
@@ -177,12 +177,15 @@ class _DeepMatcher extends BaseMatcher {
     return reason == null ? null : reason.toString();
   }
 
-  bool matches(item) => _match(_expected, item) == null;
+  // TODO(gram) - see if we can make use of matchState here to avoid
+  // recursing again in describeMismatch.
+  bool matches(item, MatchState matchState) => _match(_expected, item) == null;
 
   Description describe(Description description) =>
     description.addDescriptionOf(_expected);
 
-  Description describeMismatch(item, Description mismatchDescription) =>
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) =>
     mismatchDescription.add(_match(_expected, item));
 }
 
@@ -191,7 +194,7 @@ final Matcher anything = const _IsAnything();
 
 class _IsAnything extends BaseMatcher {
   const _IsAnything();
-  bool matches(item) => true;
+  bool matches(item, MatchState matchState) => true;
   Description describe(Description description) =>
       description.add('anything');
 }
@@ -216,7 +219,7 @@ class _IsAnything extends BaseMatcher {
 class isInstanceOf<T> extends BaseMatcher {
   final String _name;
   const isInstanceOf([name = 'specified type']) : this._name = name;
-  bool matches(obj) => obj is T;
+  bool matches(obj, MatchState matchState) => obj is T;
   // The description here is lame :-(
   Description describe(Description description) =>
       description.add('an instance of ${_name}');
@@ -228,8 +231,7 @@ class isInstanceOf<T> extends BaseMatcher {
  *   * A [Function] that throws an exception when called. The function cannot
  *     take any arguments. If you want to test that a function expecting
  *     arguments throws, wrap it in another zero-argument function that calls
- *     the one you want to test. The function will be called once upon success,
- *     or twice upon failure (the second time to get the failure description).
+ *     the one you want to test.
  *
  *   * A [Future] that completes with an exception. Note that this creates an
  *     asynchronous expectation. The call to `expect()` that includes this will
@@ -269,9 +271,10 @@ final Matcher returnsNormally = const _ReturnsNormally();
 class _Throws extends BaseMatcher {
   final Matcher _matcher;
 
-  const _Throws([Matcher matcher = null]) : this._matcher = matcher;
+  const _Throws([Matcher matcher]) :
+    this._matcher = matcher;
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item is Future) {
       // Queue up an asynchronous expectation that validates when the future
       // completes.
@@ -297,8 +300,16 @@ class _Throws extends BaseMatcher {
     try {
       item();
       return false;
-    } catch (final e) {
-      return _matcher == null || _matcher.matches(e);
+    } catch (final e, final s) {
+      if (_matcher == null ||_matcher.matches(e, matchState)) {
+        return true;
+      } else {
+        matchState.state = {
+            'exception' :e,
+            'stack': s
+        };
+        return false;
+      }
     }
   }
 
@@ -311,26 +322,36 @@ class _Throws extends BaseMatcher {
     }
   }
 
-  Description describeMismatch(item, Description mismatchDescription) {
-    if (_matcher == null) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState,
+                               bool verbose) {
+    if (_matcher == null ||  matchState.state == null) {
       return mismatchDescription.add(' no exception');
     } else {
-      return mismatchDescription.
-          add(' no exception or exception does not match ').
-          addDescriptionOf(_matcher);
+      mismatchDescription.
+          add(' exception ').addDescriptionOf(matchState.state['exception']);
+      if (verbose) {
+          mismatchDescription.add(' at ').
+          add(matchState.state['stack'].toString());
+      }
+       mismatchDescription.add(' does not match ').addDescriptionOf(_matcher);
+       return mismatchDescription;
     }
   }
 }
 
 class _ReturnsNormally extends BaseMatcher {
-
   const _ReturnsNormally();
 
-  bool matches(f) {
+  bool matches(f, MatchState matchState) {
     try {
       f();
       return true;
-    } catch (final e) {
+    } catch (final e, final s) {
+      matchState.state = {
+          'exception' : e,
+          'stack': s
+      };
       return false;
     }
   }
@@ -338,8 +359,16 @@ class _ReturnsNormally extends BaseMatcher {
   Description describe(Description description) =>
       description.add("return normally");
 
-  Description describeMismatch(item, Description mismatchDescription) {
-      return mismatchDescription.add(' threw exception');
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState,
+                               bool verbose) {
+      mismatchDescription.add(' threw ').
+          addDescriptionOf(matchState.state['exception']);
+      if (verbose) {
+        mismatchDescription.add(' at ').
+        add(matchState.state['stack'].toString());
+      }
+      return mismatchDescription;
   }
 }
 
@@ -380,7 +409,7 @@ final Matcher throwsBadNumberFormatException =
 
 class _BadNumberFormatException extends _ExceptionMatcher {
   const _BadNumberFormatException() : super("BadNumberFormatException");
-  bool matches(item) => item is BadNumberFormatException;
+  bool matches(item, MatchState matchState) => item is BadNumberFormatException;
 }
 
 /** A matcher for Exceptions. */
@@ -391,7 +420,7 @@ final Matcher throwsException = const _Throws(isException);
 
 class _Exception extends _ExceptionMatcher {
   const _Exception() : super("Exception");
-  bool matches(item) => item is Exception;
+  bool matches(item, MatchState matchState) => item is Exception;
 }
 
 /** A matcher for IllegalArgumentExceptions. */
@@ -403,7 +432,7 @@ final Matcher throwsIllegalArgumentException =
 
 class _IllegalArgumentException extends _ExceptionMatcher {
   const _IllegalArgumentException() : super("IllegalArgumentException");
-  bool matches(item) => item is IllegalArgumentException;
+  bool matches(item, MatchState matchState) => item is IllegalArgumentException;
 }
 
 /** A matcher for IllegalJSRegExpExceptions. */
@@ -415,7 +444,7 @@ final Matcher throwsIllegalJSRegExpException =
 
 class _IllegalJSRegExpException extends _ExceptionMatcher {
   const _IllegalJSRegExpException() : super("IllegalJSRegExpException");
-  bool matches(item) => item is IllegalJSRegExpException;
+  bool matches(item, MatchState matchState) => item is IllegalJSRegExpException;
 }
 
 /** A matcher for IndexOutOfRangeExceptions. */
@@ -427,7 +456,7 @@ final Matcher throwsIndexOutOfRangeException =
 
 class _IndexOutOfRangeException extends _ExceptionMatcher {
   const _IndexOutOfRangeException() : super("IndexOutOfRangeException");
-  bool matches(item) => item is IndexOutOfRangeException;
+  bool matches(item, MatchState matchState) => item is IndexOutOfRangeException;
 }
 
 /** A matcher for NoSuchMethodExceptions. */
@@ -439,7 +468,7 @@ final Matcher throwsNoSuchMethodException =
 
 class _NoSuchMethodException extends _ExceptionMatcher {
   const _NoSuchMethodException() : super("NoSuchMethodException");
-  bool matches(item) => item is NoSuchMethodException;
+  bool matches(item, MatchState matchState) => item is NoSuchMethodException;
 }
 
 /** A matcher for NotImplementedExceptions. */
@@ -451,7 +480,7 @@ final Matcher throwsNotImplementedException =
 
 class _NotImplementedException extends _ExceptionMatcher {
   const _NotImplementedException() : super("NotImplementedException");
-  bool matches(item) => item is NotImplementedException;
+  bool matches(item, MatchState matchState) => item is NotImplementedException;
 }
 
 /** A matcher for NullPointerExceptions. */
@@ -463,7 +492,7 @@ final Matcher throwsNullPointerException =
 
 class _NullPointerException extends _ExceptionMatcher {
   const _NullPointerException() : super("NullPointerException");
-  bool matches(item) => item is NullPointerException;
+  bool matches(item, MatchState matchState) => item is NullPointerException;
 }
 
 /** A matcher for UnsupportedOperationExceptions. */
@@ -476,7 +505,7 @@ final Matcher throwsUnsupportedOperationException =
 class _UnsupportedOperationException extends _ExceptionMatcher {
   const _UnsupportedOperationException() :
       super("UnsupportedOperationException");
-  bool matches(item) => item is UnsupportedOperationException;
+  bool matches(item, MatchState matchState) => item is UnsupportedOperationException;
 }
 
 /**
@@ -490,16 +519,17 @@ class _HasLength extends BaseMatcher {
   final Matcher _matcher;
   const _HasLength([Matcher matcher = null]) : this._matcher = matcher;
 
-  bool matches(item) {
-    return _matcher.matches(item.length);
+  bool matches(item, MatchState matchState) {
+    return _matcher.matches(item.length, matchState);
   }
 
   Description describe(Description description) =>
     description.add('an object with length of ').
         addDescriptionOf(_matcher);
 
-  Description describeMismatch(item, Description mismatchDescription) {
-    super.describeMismatch(item, mismatchDescription);
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    super.describeMismatch(item, mismatchDescription, matchState, verbose);
     try {
       // We want to generate a different description if there is no length
       // property. This is harmless code that will throw if no length property
@@ -529,12 +559,12 @@ class _Contains extends BaseMatcher {
 
   const _Contains(this._expected);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item is String) {
       return item.indexOf(_expected) >= 0;
     } else if (item is Collection) {
       if (_expected is Matcher) {
-        return item.some((e) => _expected.matches(e));
+        return item.some((e) => _expected.matches(e, matchState));
       } else {
         return item.some((e) => e == _expected);
       }
@@ -560,7 +590,7 @@ class _In extends BaseMatcher {
 
   const _In(this._expected);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (_expected is String) {
       return _expected.indexOf(item) >= 0;
     } else if (_expected is Collection) {
@@ -589,7 +619,7 @@ class _Predicate extends BaseMatcher {
 
   const _Predicate(this._matcher, this._description);
 
-  bool matches(item) => _matcher(item);
+  bool matches(item, MatchState matchState) => _matcher(item);
 
   Description describe(Description description) =>
       description.add(_description);

@@ -554,17 +554,57 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                           intptr_t deopt_reason,
+                           intptr_t* saved_registers_address);
+
+DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
+
+// This stub translates optimized frame into unoptimized frame. The optimized
+// frame can contain values in registers and on stack, the unoptimized
+// frame contains all values on stack.
+// Deoptimization occurs in following steps:
+// - Push all registers that can contain values.
+// - Call C routine to copy the stack and saved registers into temporary buffer.
+// - Adjust caller's frame to correct unoptimized frame size.
+// - Fill the unoptimized frame.
+// Stack:
+//   +------------------+
+//   | 0 as PC marker   | <- TOS
+//   +------------------+
+//   | Saved FP         |
+//   +------------------+
+//   | return-address   |  (deoptimization point)
+//   +------------------+
+//   | optimized frame  |
+//   |  ...             |
+//
+// RAX: Deoptimization reason id.
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  AssemblerMacros::EnterStubFrame(assembler);
-  // RAX: deoptimization reason id.
-  // Stack at this point:
-  // TOS + 0: PC marker => RawInstruction object.
-  // TOS + 1: Saved EBP of function frame that will be deoptimized. <== EBP
-  // TOS + 2: Deoptimization point (return address), will be patched.
-  // TOS + 3: top-of-stack at deoptimization point (all arguments on stack).
-  __ pushq(RAX);
-  __ CallRuntime(kDeoptimizeRuntimeEntry);
-  __ popq(RAX);
+  __ EnterFrame(0);
+  // Push registers in their enumeration order: lowest register number at
+  // lowest address.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
+    __ pushq(static_cast<Register>(i));
+  }
+  __ movq(RCX, RSP);  // Saved saved registers block.
+  __ ReserveAlignedFrameSpace(0);
+  __ SmiUntag(RAX);
+  __ movq(RDI, RAX);  // Set up argument 1 deopt_reason.
+  __ movq(RSI, RCX);  // Set up argument 2 saved_registers_address.
+
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.
+  __ LeaveFrame();
+  __ popq(RCX);  // Discard return address.
+  __ movq(RSP, RBP);
+  __ subq(RSP, RAX);
+
+  __ EnterFrame(0);
+  __ movq(RCX, RSP);  // Get last FP address.
+  __ ReserveAlignedFrameSpace(0);
+  __ movq(RDI, RCX);  // Set up argument 1 last_fp.
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
   __ LeaveFrame();
   __ ret();
 }

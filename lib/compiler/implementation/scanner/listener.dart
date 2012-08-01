@@ -590,16 +590,15 @@ class ElementListener extends Listener {
 
   void endInterface(int supertypeCount, Token interfaceKeyword,
                     Token extendsKeyword, Token endToken) {
+    // TODO(ahe): Record the defaultClause.
     Node defaultClause = popNode();
     NodeList supertypes =
         makeNodeList(supertypeCount, extendsKeyword, null, ",");
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     int id = idGenerator();
-    ClassElement element = new PartialClassElement(
-        name.source, interfaceKeyword, endToken, compilationUnitElement, id);
-    pushElement(element);
-    if (defaultClause !== null) element.defaultClause = defaultClause;
+    pushElement(new PartialClassElement(
+        name.source, interfaceKeyword, endToken, compilationUnitElement, id));
   }
 
   void endFunctionTypeAlias(Token typedefKeyword, Token endToken) {
@@ -872,7 +871,8 @@ class ElementListener extends Listener {
     if (isLast) {
       pushNode(string);
     } else {
-      NodeList partNodes = new NodeList(null, parts, null, null);
+      NodeList partNodes =
+          new NodeList(null, parts, null, const SourceString(""));
       pushNode(new StringInterpolation(string, partNodes));
     }
   }
@@ -899,7 +899,7 @@ class NodeListener extends ElementListener {
                            Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
-        makeNodeList(interfacesCount, implementsKeyword, null, ",");
+        makeNodeList(interfacesCount, null, null, ",");
     TypeAnnotation supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
@@ -920,8 +920,7 @@ class NodeListener extends ElementListener {
                     Token extendsKeyword, Token endToken) {
     NodeList body = popNode();
     TypeAnnotation defaultClause = popNode();
-    NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
-                                       null, ',');
+    NodeList supertypes = makeNodeList(supertypeCount, null, null, ',');
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, null, supertypes,
@@ -1269,8 +1268,15 @@ class NodeListener extends ElementListener {
                          Token endToken) {
     NodeList elements = makeNodeList(count, beginToken, endToken, ',');
     NodeList typeArguments = popNode();
-    // TODO(ahe): Type arguments are discarded.
-    pushNode(new LiteralList(null, elements, constKeyword));
+    TypeAnnotation type = null;
+    if (typeArguments !== null) {
+      if (typeArguments.length() != 1) {
+        error('Type annotations for list literal should have a single type',
+              constKeyword.next);
+      }
+      type = typeArguments.iterator().next();
+    }
+    pushNode(new LiteralList(type, elements, constKeyword));
   }
 
   void handleIndexedExpression(Token openSquareBracket,

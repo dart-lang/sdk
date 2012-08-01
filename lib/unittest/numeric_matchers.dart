@@ -95,10 +95,10 @@ class _OrderingComparison extends BaseMatcher {
     this._lessThanValue,
     this._greaterThanValue,
     this._comparisonDescription,
-    [valueInDescription = true]) : 
+    [valueInDescription = true]) :
       this._valueInDescription = valueInDescription;
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (item == _value) {
       return _equalValue;
     } else if (item < _value) {
@@ -130,7 +130,7 @@ class _IsCloseTo extends BaseMatcher {
 
   const _IsCloseTo(this._value, this._delta);
 
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     if (!_isNumeric(item)) {
       return false;
     }
@@ -145,7 +145,8 @@ class _IsCloseTo extends BaseMatcher {
         add(' of ').
         addDescriptionOf(_value);
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item is !num) {
       return mismatchDescription.
           addDescriptionOf(item).
@@ -192,7 +193,7 @@ class _InRange extends BaseMatcher {
   const _InRange(this._low, this._high,
     this._lowMatchValue, this._highMatchValue);
 
-  bool matches(value) {
+  bool matches(value, MatchState matchState) {
     if (value is !num) {
       return false;
     }
@@ -213,13 +214,15 @@ class _InRange extends BaseMatcher {
         "$_low (${_lowMatchValue ? 'inclusive' : 'exclusive'}) to "
         "$_high (${_highMatchValue ? 'inclusive' : 'exclusive'})");
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item is !num) {
       return mismatchDescription.
           addDescriptionOf(item).
           add(' not numeric');
     } else {
-      return super.describeMismatch(item, mismatchDescription);
+      return super.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
     }
   }
 }

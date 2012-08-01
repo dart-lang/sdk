@@ -42,7 +42,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
-      stackmap_builder_(NULL),
+      stackmap_table_builder_(NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
       is_optimizing_(is_optimizing),
@@ -202,11 +202,13 @@ Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
   DeoptimizationStub* stub =
       new DeoptimizationStub(deopt_id, deopt_token_pos, try_index, reason);
   if (pending_deoptimization_env_ == NULL) {
+    ASSERT(!is_ssa_);
     frame_register_allocator()->SpillInDeoptStub(stub);
     if (reg1 != kNoRegister) stub->Push(reg1);
     if (reg2 != kNoRegister) stub->Push(reg2);
     if (reg3 != kNoRegister) stub->Push(reg3);
   } else {
+    ASSERT(pending_deoptimization_env_ != NULL);
     stub->set_deoptimization_env(pending_deoptimization_env_);
   }
   deopt_stubs_.Add(stub);
@@ -232,13 +234,13 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
 
 
 void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
-  if (stackmap_builder_ == NULL) {
+  if (stackmap_table_builder_ == NULL) {
     // The unoptimizing compiler has no stack maps.
     code.set_stackmaps(Array::Handle());
   } else {
     // Finalize the stack map array and add it to the code object.
     code.set_stackmaps(
-        Array::Handle(stackmap_builder_->FinalizeStackmaps(code)));
+        Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
   }
 }
 

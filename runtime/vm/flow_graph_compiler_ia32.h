@@ -294,7 +294,7 @@ class FlowGraphCompiler : public ValueObject {
   BlockEntryInstr* current_block_;
   ExceptionHandlerList* exception_handlers_list_;
   DescriptorList* pc_descriptors_list_;
-  StackmapBuilder* stackmap_builder_;
+  StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
   const bool is_optimizing_;

@@ -59,42 +59,15 @@ class DescriptorList : public ZoneAllocated {
 };
 
 
-class StackmapBuilder : public ZoneAllocated {
+class StackmapTableBuilder : public ZoneAllocated {
  public:
-  StackmapBuilder() :
-      builder_(new BitmapBuilder()),
+  StackmapTableBuilder() :
       stack_map_(Stackmap::ZoneHandle()),
       list_(GrowableObjectArray::ZoneHandle(
           GrowableObjectArray::New(Heap::kOld))) { }
-  ~StackmapBuilder() { }
+  ~StackmapTableBuilder() { }
 
-  // Gets state of stack slot (object or regular value).
-  bool IsSlotObject(intptr_t stack_slot) const {
-    ASSERT(builder_ != NULL);
-    return builder_->Get(stack_slot);
-  }
-  // Sets stack slot as containing an object.
-  void SetSlotAsObject(intptr_t stack_slot) {
-    ASSERT(builder_ != NULL);
-    builder_->Set(stack_slot, true);
-  }
-  // Sets stack slot as containing regular value.
-  void SetSlotAsValue(intptr_t stack_slot) {
-    ASSERT(builder_ != NULL);
-    builder_->Set(stack_slot, false);
-  }
-  // Sets min..max (inclusive) as stack slots containing objects.
-  void SetSlotRangeAsObject(intptr_t min_stack_slot, intptr_t max_stack_slot) {
-    ASSERT(builder_ != NULL);
-    builder_->SetRange(min_stack_slot, max_stack_slot, true);
-  }
-  // Sets min..max (inclusive) as stack slots containing regular values.
-  void SetSlotRangeAsValue(intptr_t min_stack_slot, intptr_t max_stack_slot) {
-    ASSERT(builder_ != NULL);
-    builder_->SetRange(min_stack_slot, max_stack_slot, false);
-  }
-
-  void AddEntry(intptr_t pc_offset);
+  void AddEntry(intptr_t pc_offset, BitmapBuilder* bitmap);
 
   bool Verify();
 
@@ -104,10 +77,9 @@ class StackmapBuilder : public ZoneAllocated {
   intptr_t Length() const { return list_.Length(); }
   RawStackmap* Map(int index) const;
 
-  BitmapBuilder* builder_;
   Stackmap& stack_map_;
   GrowableObjectArray& list_;
-  DISALLOW_COPY_AND_ASSIGN(StackmapBuilder);
+  DISALLOW_COPY_AND_ASSIGN(StackmapTableBuilder);
 };
 
 

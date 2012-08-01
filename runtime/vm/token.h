@@ -153,6 +153,7 @@ namespace dart {
   KW(kDO, "do", 0, kKeyword)                                                   \
   KW(kELSE, "else", 0, kKeyword)                                               \
   KW(kEXTENDS, "extends", 0, kKeyword)                                         \
+  KW(kEXTERNAL, "external", 0, kPseudoKeyword)                                 \
   KW(kFACTORY, "factory", 0, kPseudoKeyword)                                   \
   KW(kFALSE, "false", 0, kKeyword)                                             \
   KW(kFINAL, "final", 0, kKeyword)                                             \

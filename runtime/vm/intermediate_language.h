@@ -146,6 +146,9 @@ class Computation : public ZoneAllocated {
   // number of pushed arguments.
   virtual intptr_t ArgumentCount() const = 0;
 
+  // Returns true, if this computation can deoptimize.
+  virtual bool CanDeoptimize() const  = 0;
+
   // Static type of the computation.
   virtual RawAbstractType* StaticType() const = 0;
 
@@ -352,6 +355,8 @@ class UseVal : public Value {
     definition_ = definition;
   }
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   Definition* definition_;
 
@@ -370,6 +375,8 @@ class ConstantVal: public Value {
   DECLARE_VALUE(Constant)
 
   const Object& value() const { return value_; }
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const Object& value_;
@@ -416,6 +423,8 @@ class AssertAssignableComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -443,6 +452,8 @@ class AssertBooleanComp : public TemplateComputation<1> {
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -459,6 +470,8 @@ class CurrentContextComp : public TemplateComputation<0> {
 
   DECLARE_COMPUTATION(CurrentContext)
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(CurrentContextComp);
 };
@@ -474,6 +487,8 @@ class StoreContextComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(StoreContext);
 
   Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StoreContextComp);
@@ -501,6 +516,8 @@ class ClosureCallComp : public Computation {
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const ClosureCallNode& ast_node_;
@@ -551,6 +568,8 @@ class InstanceCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -583,6 +602,8 @@ class PolymorphicInstanceCallComp : public Computation {
   void PrintTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(PolymorphicInstanceCall)
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   InstanceCallComp* instance_call_;
@@ -623,6 +644,8 @@ class StrictCompareComp : public ComparisonComp {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
@@ -650,6 +673,8 @@ class EqualityCompareComp : public ComparisonComp {
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
   intptr_t receiver_class_id() const { return receiver_class_id_; }
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -688,6 +713,8 @@ class RelationalOpComp : public ComparisonComp {
   intptr_t operands_class_id() const { return operands_class_id_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -733,6 +760,8 @@ class StaticCallComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -757,6 +786,8 @@ class LoadLocalComp : public TemplateComputation<0> {
   intptr_t context_level() const { return context_level_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const LocalVariable& local_;
@@ -786,6 +817,8 @@ class StoreLocalComp : public TemplateComputation<1> {
                                   intptr_t fixed_parameter_count);
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const LocalVariable& local_;
@@ -825,6 +858,8 @@ class NativeCallComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const NativeBodyNode& ast_node_;
   const intptr_t try_index_;
@@ -850,6 +885,8 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
   const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   const Field& field_;
@@ -883,6 +920,8 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const Field& field_;
   const InstanceSetterComp* original_;  // For optimizations.
@@ -900,6 +939,8 @@ class LoadStaticFieldComp : public TemplateComputation<0> {
   const Field& field() const { return field_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const Field& field_;
@@ -923,6 +964,8 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
   Value* value() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const Field& field_;
@@ -960,6 +1003,8 @@ class LoadIndexedComp : public TemplateComputation<2> {
   ObjectKind receiver_type() const {
     return receiver_type_;
   }
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   const intptr_t token_pos_;
@@ -1003,6 +1048,8 @@ class StoreIndexedComp : public TemplateComputation<3> {
     return receiver_type_;
   }
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1036,6 +1083,8 @@ class InstanceSetterComp : public TemplateComputation<2> {
   Value* receiver() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1066,6 +1115,8 @@ class StaticSetterComp : public TemplateComputation<1> {
   const Function& setter_function() const { return setter_function_; }
   Value* value() const { return inputs_[0]; }
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1085,6 +1136,8 @@ class BooleanNegateComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(BooleanNegate)
 
   Value* value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(BooleanNegateComp);
@@ -1126,6 +1179,8 @@ class InstanceOfComp : public TemplateComputation<3> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1164,6 +1219,8 @@ class AllocateObjectComp : public Computation {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
@@ -1196,6 +1253,8 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const ConstructorCallNode& ast_node_;
@@ -1237,6 +1296,8 @@ class CreateArrayComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1267,6 +1328,8 @@ class CreateClosureComp : public Computation {
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const ClosureNode& ast_node_;
@@ -1300,6 +1363,8 @@ class LoadVMFieldComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -1332,6 +1397,8 @@ class StoreVMFieldComp : public TemplateComputation<2> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t offset_in_bytes_;
   const AbstractType& type_;
@@ -1363,6 +1430,8 @@ class InstantiateTypeArgumentsComp : public TemplateComputation<1> {
   intptr_t try_index() const { return try_index_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -1398,6 +1467,8 @@ class ExtractConstructorTypeArgumentsComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1425,6 +1496,8 @@ class ExtractConstructorInstantiatorComp : public TemplateComputation<1> {
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const ConstructorCallNode& ast_node_;
 
@@ -1449,6 +1522,8 @@ class AllocateContextComp : public TemplateComputation<0> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1468,6 +1543,8 @@ class ChainContextComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(ChainContext)
 
   Value* context_value() const { return inputs_[0]; }
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(ChainContextComp);
@@ -1491,6 +1568,8 @@ class CloneContextComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(CloneContext)
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -1511,6 +1590,8 @@ class CatchEntryComp : public TemplateComputation<0> {
   DECLARE_COMPUTATION(CatchEntry)
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const LocalVariable& exception_var_;
@@ -1556,6 +1637,8 @@ class BinaryOpComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(BinaryOp)
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const Token::Kind op_kind_;
   const OperandsType operands_type_;
@@ -1585,6 +1668,8 @@ class UnarySmiOpComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(UnarySmiOp)
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const Token::Kind op_kind_;
   InstanceCallComp* instance_call_;
@@ -1608,6 +1693,8 @@ class NumberNegateComp : public TemplateComputation<1> {
 
   DECLARE_COMPUTATION(NumberNegate)
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   InstanceCallComp* instance_call_;
 
@@ -1625,6 +1712,8 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
   intptr_t try_index() const { return try_index_; }
 
   DECLARE_COMPUTATION(CheckStackOverflow)
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -1652,6 +1741,8 @@ class ToDoubleComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   DECLARE_COMPUTATION(ToDouble)
+
+  virtual bool CanDeoptimize() const { return true; }
 
  private:
   const ObjectKind from_;
@@ -1758,6 +1849,9 @@ class Instruction : public ZoneAllocated {
   // Call instructions override this function and return the
   // number of pushed arguments.
   virtual intptr_t ArgumentCount() const = 0;
+
+  // Returns true, if this instruction can deoptimize.
+  virtual bool CanDeoptimize() const = 0;
 
   // Visiting support.
   virtual void Accept(FlowGraphVisitor* visitor) = 0;
@@ -1886,6 +1980,94 @@ class InstructionWithInputs : public Instruction {
 };
 
 
+class MoveOperands : public ZoneAllocated {
+ public:
+  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
+
+  Location src() const { return src_; }
+  Location dest() const { return dest_; }
+
+  Location* src_slot() { return &src_; }
+  Location* dest_slot() { return &dest_; }
+
+  void set_src(const Location& value) { src_ = value; }
+  void set_dest(const Location& value) { dest_ = value; }
+
+  // The parallel move resolver marks moves as "in-progress" by clearing the
+  // destination (but not the source).
+  Location MarkPending() {
+    ASSERT(!IsPending());
+    Location dest = dest_;
+    dest_ = Location::NoLocation();
+    return dest;
+  }
+
+  void ClearPending(Location dest) {
+    ASSERT(IsPending());
+    dest_ = dest;
+  }
+
+  bool IsPending() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return dest_.IsInvalid() && !src_.IsInvalid();
+  }
+
+  // True if this move a move from the given location.
+  bool Blocks(Location loc) const {
+    return !IsEliminated() && src_.Equals(loc);
+  }
+
+  // A move is redundant if it's been eliminated, if its source and
+  // destination are the same, or if its destination is unneeded.
+  bool IsRedundant() const {
+    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
+  }
+
+  // We clear both operands to indicate move that's been eliminated.
+  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
+  bool IsEliminated() const {
+    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
+    return src_.IsInvalid();
+  }
+
+ private:
+  Location dest_;
+  Location src_;
+
+  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
+};
+
+
+class ParallelMoveInstr : public Instruction {
+ public:
+  ParallelMoveInstr() : moves_(4) { }
+
+  DECLARE_INSTRUCTION(ParallelMove)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  virtual bool CanDeoptimize() const { return false; }
+
+  MoveOperands* AddMove(Location dest, Location src) {
+    MoveOperands* move = new MoveOperands(dest, src);
+    moves_.Add(move);
+    return move;
+  }
+
+  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
+
+  void SetSrcSlotAt(intptr_t index, const Location& loc);
+  void SetDestSlotAt(intptr_t index, const Location& loc);
+
+  intptr_t NumMoves() const { return moves_.length(); }
+
+ private:
+  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
+
+  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
+};
+
+
 // Basic block entries are administrative nodes.  There is a distinguished
 // graph entry with no predecessor.  Joins are the only nodes with multiple
 // predecessors.  Targets are all other basic block entries.  The types
@@ -1928,6 +2110,21 @@ class BlockEntryInstr : public Instruction {
   Instruction* last_instruction() const { return last_instruction_; }
   void set_last_instruction(Instruction* instr) { last_instruction_ = instr; }
 
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
   virtual void DiscoverBlocks(
       BlockEntryInstr* current_block,
       GrowableArray<BlockEntryInstr*>* preorder,
@@ -1939,6 +2136,8 @@ class BlockEntryInstr : public Instruction {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
+  virtual bool CanDeoptimize() const { return false; }
+
  protected:
   BlockEntryInstr()
       : preorder_number_(-1),
@@ -1946,7 +2145,8 @@ class BlockEntryInstr : public Instruction {
         block_id_(-1),
         dominator_(NULL),
         dominated_blocks_(1),
-        last_instruction_(NULL) { }
+        last_instruction_(NULL),
+        parallel_move_(NULL) { }
 
  private:
   intptr_t preorder_number_;
@@ -1960,6 +2160,10 @@ class BlockEntryInstr : public Instruction {
   // TODO(fschneider): Optimize the case of one child to save space.
   GrowableArray<BlockEntryInstr*> dominated_blocks_;
   Instruction* last_instruction_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the start of the block.
+  ParallelMoveInstr* parallel_move_;
 
   DISALLOW_COPY_AND_ASSIGN(BlockEntryInstr);
 };
@@ -2201,6 +2405,8 @@ class BindInstr : public Definition {
     return computation()->ArgumentCount();
   }
 
+  virtual bool CanDeoptimize() const { return computation()->CanDeoptimize(); }
+
   Computation* computation() const { return computation_; }
   void set_computation(Computation* value) { computation_ = value; }
   bool is_used() const { return is_used_; }
@@ -2240,6 +2446,8 @@ class PhiInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
+  virtual bool CanDeoptimize() const { return false; }
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
@@ -2253,6 +2461,8 @@ class ParameterInstr : public Definition {
  public:
   explicit ParameterInstr(intptr_t index) : index_(index) { }
 
+  DECLARE_INSTRUCTION(Parameter)
+
   intptr_t index() const { return index_; }
 
   // Static type of the passed-in parameter.
@@ -2260,7 +2470,7 @@ class ParameterInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  DECLARE_INSTRUCTION(Parameter)
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t index_;
@@ -2280,6 +2490,8 @@ class PushArgumentInstr : public InstructionWithInputs {
   virtual LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   Value* value_;
@@ -2303,6 +2515,8 @@ class ReturnInstr : public InstructionWithInputs {
   virtual LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -2333,6 +2547,8 @@ class ThrowInstr : public InstructionWithInputs {
   virtual LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
@@ -2369,6 +2585,8 @@ class ReThrowInstr : public InstructionWithInputs {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
+  virtual bool CanDeoptimize() const { return false; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -2381,7 +2599,10 @@ class ReThrowInstr : public InstructionWithInputs {
 
 class GotoInstr : public InstructionWithInputs {
  public:
-  explicit GotoInstr(JoinEntryInstr* entry) : successor_(entry) { }
+  explicit GotoInstr(JoinEntryInstr* entry)
+    : successor_(entry),
+      parallel_move_(NULL) {
+  }
 
   DECLARE_INSTRUCTION(Goto)
 
@@ -2394,8 +2615,29 @@ class GotoInstr : public InstructionWithInputs {
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
+  virtual bool CanDeoptimize() const { return false; }
+
+  ParallelMoveInstr* parallel_move() const {
+    return parallel_move_;
+  }
+
+  bool HasParallelMove() const {
+    return parallel_move_ != NULL;
+  }
+
+  ParallelMoveInstr* GetParallelMove() {
+    if (parallel_move_ == NULL) {
+      parallel_move_ = new ParallelMoveInstr();
+    }
+    return parallel_move_;
+  }
+
  private:
   JoinEntryInstr* successor_;
+
+  // Parallel move that will be used by linear scan register allocator to
+  // connect live ranges at the end of the block and resolve phis.
+  ParallelMoveInstr* parallel_move_;
 };
 
 
@@ -2460,6 +2702,8 @@ class BranchInstr : public InstructionWithInputs {
   void EmitBranchOnCondition(FlowGraphCompiler* compiler,
                              Condition true_condition);
 
+  virtual bool CanDeoptimize() const { return true; }
+
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -2472,92 +2716,6 @@ class BranchInstr : public InstructionWithInputs {
   DISALLOW_COPY_AND_ASSIGN(BranchInstr);
 };
 
-
-class MoveOperands : public ZoneAllocated {
- public:
-  MoveOperands(Location dest, Location src) : dest_(dest), src_(src) { }
-
-  Location src() const { return src_; }
-  Location dest() const { return dest_; }
-
-  Location* src_slot() { return &src_; }
-  Location* dest_slot() { return &dest_; }
-
-  void set_src(const Location& value) { src_ = value; }
-  void set_dest(const Location& value) { dest_ = value; }
-
-  // The parallel move resolver marks moves as "in-progress" by clearing the
-  // destination (but not the source).
-  Location MarkPending() {
-    ASSERT(!IsPending());
-    Location dest = dest_;
-    dest_ = Location::NoLocation();
-    return dest;
-  }
-
-  void ClearPending(Location dest) {
-    ASSERT(IsPending());
-    dest_ = dest;
-  }
-
-  bool IsPending() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return dest_.IsInvalid() && !src_.IsInvalid();
-  }
-
-  // True if this move a move from the given location.
-  bool Blocks(Location loc) const {
-    return !IsEliminated() && src_.Equals(loc);
-  }
-
-  // A move is redundant if it's been eliminated, if its source and
-  // destination are the same, or if its destination is unneeded.
-  bool IsRedundant() const {
-    return IsEliminated() || dest_.IsInvalid() || src_.Equals(dest_);
-  }
-
-  // We clear both operands to indicate move that's been eliminated.
-  void Eliminate() { src_ = dest_ = Location::NoLocation(); }
-  bool IsEliminated() const {
-    ASSERT(!src_.IsInvalid() || dest_.IsInvalid());
-    return src_.IsInvalid();
-  }
-
- private:
-  Location dest_;
-  Location src_;
-
-  DISALLOW_COPY_AND_ASSIGN(MoveOperands);
-};
-
-
-class ParallelMoveInstr : public Instruction {
- public:
-  ParallelMoveInstr() : moves_(4) {
-  }
-
-  DECLARE_INSTRUCTION(ParallelMove)
-
-  virtual intptr_t ArgumentCount() const { return 0; }
-
-  MoveOperands* AddMove(Location dest, Location src) {
-    MoveOperands* move = new MoveOperands(dest, src);
-    moves_.Add(move);
-    return move;
-  }
-
-  MoveOperands* MoveOperandsAt(intptr_t index) const { return moves_[index]; }
-
-  void SetSrcSlotAt(intptr_t index, const Location& loc);
-  void SetDestSlotAt(intptr_t index, const Location& loc);
-
-  intptr_t NumMoves() const { return moves_.length(); }
-
- private:
-  GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
-
-  DISALLOW_COPY_AND_ASSIGN(ParallelMoveInstr);
-};
 
 #undef DECLARE_INSTRUCTION
 

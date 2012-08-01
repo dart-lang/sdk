@@ -143,10 +143,14 @@ class Unparser implements Visitor {
 
   visitLiteralDouble(LiteralDouble node) {
     add(node.token.value);
+    // -Lit is represented as a send.
+    if (node.token.kind == PLUS_TOKEN) add(node.token.next.value);
   }
 
   visitLiteralInt(LiteralInt node) {
     add(node.token.value);
+    // -Lit is represented as a send.
+    if (node.token.kind == PLUS_TOKEN) add(node.token.next.value);
   }
 
   visitLiteralString(LiteralString node) {
@@ -190,7 +194,7 @@ class Unparser implements Visitor {
    */
   unparseNodeListFrom(NodeList node, Link<Node> from) {
     if (from.isEmpty()) return;
-    String delimiter = (node.delimiter === null) ? " " : "${node.delimiter} ";
+    String delimiter = (node.delimiter === null) ? " " : "${node.delimiter}";
     visit(from.head);
     for (Link link = from.tail; !link.isEmpty(); link = link.tail) {
       sb.add(delimiter);
@@ -221,23 +225,27 @@ class Unparser implements Visitor {
 
   unparseSendPart(Send node) {
     Operator op = node.selector.asOperator();
-    bool isCheck = op !== null && op.source.stringValue === 'is';
+    bool spacesNeeded = op !== null &&
+        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
 
     if (node.isPrefix) {
       visit(node.selector);
     }
     if (node.receiver !== null) {
       visit(node.receiver);
-      if (op === null) {
+      CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+      if (asCascadeReceiver !== null) {
+        add(asCascadeReceiver.cascadeOperator.value);
+      } else if (op === null) {
         sb.add('.');
-      } else if (isCheck) {
+      } else if (spacesNeeded) {
         sb.add(' ');
       }
     }
     if (!node.isPrefix && !node.isIndex) {
       visit(node.selector);
     }
-    if (isCheck) {
+    if (spacesNeeded) {
       sb.add(' ');
     }
   }
@@ -266,6 +274,10 @@ class Unparser implements Visitor {
       add(node.assignmentOperator.token.value);
     }
     visit(node.receiver);
+    CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+    if (asCascadeReceiver !== null) {
+      add(asCascadeReceiver.cascadeOperator.value);
+    }
     sb.add('[');
     sb.add(node.arguments.head);
     sb.add(']');

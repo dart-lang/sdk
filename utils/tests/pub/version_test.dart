@@ -384,13 +384,14 @@ class VersionConstraintMatcher implements Matcher {
 
   VersionConstraintMatcher(this._expected, this._allow);
 
-  bool matches(item) => (item is VersionConstraint) &&
+  bool matches(item, MatchState matchState) => (item is VersionConstraint) &&
       _expected.every((version) => item.allows(version) == _allow);
 
   Description describe(Description description) =>
       description.add(' ${_allow ? "allows" : "does not allow"} versions');
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+      MatchState matchState, bool verbose) {
     if (item is! VersionConstraint) {
       mismatchDescription.add('was not a VersionConstraint');
       return mismatchDescription;

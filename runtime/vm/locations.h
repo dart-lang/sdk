@@ -52,7 +52,7 @@ class Location : public ValueObject {
   enum {
     // Number of bits required to encode Kind value.
     kBitsForKind = 3,
-    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind
+    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
   };
 
   static const uword kInvalidLocation = 0;
@@ -214,10 +214,9 @@ class LocationSummary : public ZoneAllocated {
     kCall,
   };
 
-  // TODO(vegorov): remove unsafe kNoCall default.
   LocationSummary(intptr_t input_count,
                   intptr_t temp_count,
-                  ContainsCall call = kNoCall);
+                  LocationSummary::ContainsCall contains_call);
 
   intptr_t input_count() const {
     return input_locations_.length();
@@ -275,7 +274,7 @@ class LocationSummary : public ZoneAllocated {
 
   static LocationSummary* Make(intptr_t input_count,
                                Location out,
-                               ContainsCall contains_call = kNoCall);
+                               LocationSummary::ContainsCall contains_call);
 
  private:
   // TODO(vegorov): replace with ZoneArray.

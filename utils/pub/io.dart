@@ -27,7 +27,7 @@ void printError(value) {
  * [File] objects.
  */
 String join(part1, [part2, part3, part4]) {
-  final parts = _getPath(part1).split('/');
+  final parts = _getPath(part1).replaceAll('\\', '/').split('/');
 
   for (final part in [part2, part3, part4]) {
     if (part == null) continue;
@@ -152,20 +152,21 @@ Future<Directory> ensureDir(path) {
 
   return dirExists(path).chain((exists) {
     if (exists) return new Future.immediate(new Directory(path));
-    return ensureDir(dirname(path));
-  }).chain((_) {
-    var completer = new Completer<Directory>();
-    var future = createDir(path);
-    future.handleException((error) {
-      if (error is! DirectoryIOException) return false;
-      // Error 17 means the directory already exists.
-      if (error.osError.errorCode != 17) return false;
+    return ensureDir(dirname(path)).chain((_) {
+      var completer = new Completer<Directory>();
+      var future = createDir(path);
+      future.handleException((error) {
+        if (error is! DirectoryIOException) return false;
+        // Error 17 means the directory already exists (or 183 on Windows).
+        if (error.osError.errorCode != 17 &&
+            error.osError.errorCode != 183) return false;
 
-      completer.complete(_getDirectory(path));
-      return true;
+        completer.complete(_getDirectory(path));
+        return true;
+      });
+      future.then(completer.complete);
+      return completer.future;
     });
-    future.then(completer.complete);
-    return completer.future;
   });
 }
 

@@ -2368,6 +2368,63 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
+  private int skipStringLiteral(int offset) {
+    Token token = peek(offset);
+    while (token == Token.STRING || token == Token.STRING_SEGMENT || token == Token.STRING_EMBED_EXP_START) {
+      switch(token) {
+        case STRING:
+          offset = offset + 1;
+  
+        case STRING_SEGMENT:
+        case STRING_EMBED_EXP_START:
+          offset = skipStringInterpolation(offset);
+      }
+      token = peek(offset);
+    }
+    return offset;
+  }
+
+  private int skipStringInterpolation(int offset) {
+    Token token = peek(offset);
+    if (token == Token.STRING_LAST_SEGMENT) {
+      return -1;
+    }
+    boolean inString = true;
+    while (inString) { // Iterate until we find the last string segment.
+      switch (token) {
+        case STRING_SEGMENT:
+          offset = offset + 1;
+          token = peek(offset);
+          break;
+        case STRING_LAST_SEGMENT:
+          offset = offset + 1;
+          token = peek(offset);
+          inString = false;
+          break;
+        case STRING_EMBED_EXP_START: {
+          offset = offset + 1;
+          token = peek(offset);
+          while (token != Token.EOS && token != Token.STRING_EMBED_EXP_END && token != Token.STRING_LAST_SEGMENT) {
+            if (token == Token.STRING || token == Token.STRING_SEGMENT || token == Token.STRING_EMBED_EXP_START) {
+              offset = skipStringLiteral(offset);
+            } else {
+              offset = offset + 1;
+            }
+            token = peek(offset);
+          }
+          if (token != Token.STRING_EMBED_EXP_END) {
+            inString = Token.STRING_LAST_SEGMENT != token;
+          }
+          break;
+        }
+        default:
+          inString = false;
+          break;
+      }
+    }
+    return offset;
+  }
+
   /**
    * Parse any literal that is not a function literal (those have already been
    * handled before this method is called, so we don't need to handle them
@@ -3618,6 +3675,13 @@ public class DartParser extends CompletionHooksParserBase {
       }
 
       case LBRACE:
+        Token token = peek(1);
+        if (token == Token.STRING || token == Token.STRING_SEGMENT || token == Token.STRING_EMBED_EXP_START) {
+          int offset = skipStringLiteral(1);
+          if (peek(offset) == Token.COLON) {
+            return parseExpressionStatement();
+          }
+        }
         return parseBlock();
 
       case CONTINUE:

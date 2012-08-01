@@ -586,7 +586,7 @@ public class DartScanner {
       int ch = source.codePointAt(internalState.nextLookaheadPos);
       internalState.lookahead[NUM_LOOKAHEAD - 1] = ch;
       internalState.lookaheadPos[NUM_LOOKAHEAD - 1] = internalState.nextLookaheadPos;
-      internalState.nextLookaheadPos++;
+      internalState.nextLookaheadPos = source.offsetByCodePoints(internalState.nextLookaheadPos, 1);
     } else {
       // Let the last look-ahead position be past the source. This makes
       // the position information for the last token correct.

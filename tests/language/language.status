@@ -77,6 +77,7 @@ constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
 duplicate_implements_test: Skip # Issue 976
+external_test: Skip  # Not yet supported.
 factory5_test/00: Fail # issue 3079
 field_method4_negative_test: Fail  # Runtime only test, rewrite as multitest
 final_syntax_test/*: Skip  # can't handle base case
@@ -143,151 +144,30 @@ prefix_core_test: Fail # Issue 2264.
 *: Skip
 
 [ $compiler == dart2dart ]
-abstract_syntax_test/01: Fail
-abstract_syntax_test/02: Fail
+# Passes VMOptions, should be supported in test framework.
 assertion_test: Fail
-assign_static_type_test/01: Fail
-assign_static_type_test/02: Fail
-assign_static_type_test/03: Fail
-assign_static_type_test/04: Fail
-assign_static_type_test/05: Fail
 bootstrap_test: Fail
-call_operator_test: Fail
-cascade_in_expression_function_test: Fail
-cascade_precedence_test: Fail
-cascade_test/none: Fail
-cast_test/04: Fail
-cast_test/05: Fail
-cast_test/none: Fail
-class_extends_negative_test: Fail
-class_test: Fail
-closure7_test: Fail
-closure_with_super_send_test: Fail
-compile_time_constant8_test: Fail
-compile_time_constant_d_test: Fail
-compile_time_constant_e_test: Fail
-compile_time_constant_o_test: Fail
-cond_expr_test: Fail
-condition_bailout_test: Fail
-const_objects_are_immutable_test: Fail
-constructor2_test: Fail
-constructor5_test: Fail
-constructor6_test: Fail
-constructor_duplicate_initializers_test/02: Fail
-const_test: Fail
 ct_const2_test: Fail, Pass
-ct_const_test: Fail
-cyclic_type_variable_test/01: Fail
-cyclic_type_variable_test/02: Fail
-cyclic_type_variable_test/03: Fail
-cyclic_type_variable_test/04: Fail
-cyclic_type_variable_test/none: Fail
-default_factory2_test/01: Fail
-default_factory3_test: Fail
-default_factory_library_test: Fail
 disable_privacy_test: Fail
-duplicate_constructor_test/01: Fail
-duplicate_implements_test/01: Fail
-duplicate_implements_test/02: Fail
-duplicate_implements_test/03: Fail
-duplicate_implements_test/04: Fail
-dynamic_test: Fail
-empty_body_member_negative_test: Fail
-factory2_test: Fail
 factory3_test: Fail
-factory4_test: Fail
-factory_test: Fail
-fauxverride_test/none: Fail
-f_bounded_quantification_test/01: Fail
-f_bounded_quantification_test/02: Fail
-f_bounded_quantification_test/none: Fail
-field2_negative_test: Fail
-field4_negative_test: Fail
-field5_negative_test: Fail
-field6a_negative_test: Fail
-field7a_negative_test: Fail
-field_optimization2_test: Fail
-field_optimization_test: Fail
-field_override_test/01: Fail
-field_override_test/02: Fail
-field_override_test/none: Fail
-final_syntax_test/none: Fail
-for2_test: Fail
 function_field_test: Fail
-function_literals_test: Fail
 function_type_alias2_test: Fail
-function_type_alias3_test: Fail
-function_type_alias4_test: Crash
-function_type_alias5_test/00: Fail
-function_type_alias5_test/01: Fail
-function_type_alias5_test/02: Fail
-function_type_alias6_test: Fail
-function_type_alias7_test/00: Fail
-function_type_alias_test: Fail
-function_type_parameter2_test: Fail
-function_type_parameter_test: Fail
-gc_test: Fail
-generic_deep_test: Fail
-generic_inheritance_test: Fail
-generic_instanceof3_test: Fail
-generics2_test: Fail
 generic_test: Fail
-get_set_syntax_test/none: Fail
-getters_setters2_test/03: Fail
+generics2_test: Fail
 hello_dart_test: Fail
 implicit_closure1_test: Fail
 implicit_closure_test: Fail, Pass
-implicit_scope_test: Fail
-implicit_this_test/01: Fail
-implicit_this_test/02: Fail
-implicit_this_test/03: Fail
-implicit_this_test/04: Fail
-implicit_this_test/none: Fail
-implied_interface_test: Fail
-incr_op_test: Fail
-instanceof2_test: Fail
-instanceof3_test: Fail
-instanceof_test: Fail
-interface_factory_constructor_negative_test: Fail
-interface_factory_multi_test: Fail
-interface_factory_test: Fail
-interface_inherit_field_test: Fail
-interface_static_method_negative_test: Fail
-interface_test: Fail
-is_operator_test: Fail
 issue1363_test: Fail
-library5_test: Fail
-library_prefixes_test: Fail
-library_same_name_used_test: Fail
 list_literal4_test: Fail
-local_function2_test: Fail
 map_literal4_test: Fail
-math_vm_test: Fail
-method_name_test: Fail
-method_override2_test/none: Fail
-method_override_test: Fail
-named_parameters_test: Fail
-named_parameters_type_test: Fail
-naming_test: Fail
-non_const_super_negative_test: Fail
-number_identifier_negative_test: Fail
-numbers_test: Fail
-operator1_negative_test: Fail
-operator3_test: Fail
-operator_test: Fail
-optimization_test: Fail
-parameter_initializer6_negative_test: Fail
-prefix14_test: Fail
-prefix15_test: Fail
-prefix18_negative_test: Fail
-prefix20_negative_test: Fail
-prefix21_test: Fail
-prefix_core_test: Fail
-private3_test: Fail
-private_member1_negative_test: Fail
-private_member3_negative_test: Fail
-private_member_test: Fail
-private_test: Fail
+static_implicit_closure_test: Fail, Pass
+static_initializer_type_error_test: Fail
+type_checks_in_factory_method_test: Fail
+# Common problems with dart2js.  In illegal family, invalid
+# declarations are simply not parsed.  In pseudo kw dart2js
+# chokes on things like typedef(x) => "typedef $x" and alike.
+abstract_syntax_test/01: Fail
+abstract_syntax_test/02: Fail
 pseudo_kw_illegal_test/01: Fail
 pseudo_kw_illegal_test/05: Fail
 pseudo_kw_illegal_test/06: Fail
@@ -302,42 +182,146 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_illegal_test/15: Fail
 pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
+type_variable_bounds_test/01: Fail
+# external keyword is not yet supported by dart2js/dart2dart.
+external_test/*: Skip
+# Test annotations are not processed correctly by dart2dart test
+# framework: necessary errors are thrown, but treated incorrectly.
+assign_static_type_test/01: Fail
+assign_static_type_test/02: Fail
+assign_static_type_test/03: Fail
+assign_static_type_test/04: Fail
+assign_static_type_test/05: Fail
+cyclic_type_variable_test/01: Fail
+cyclic_type_variable_test/02: Fail
+cyclic_type_variable_test/03: Fail
+cyclic_type_variable_test/04: Fail
+cyclic_type_variable_test/none: Fail
+default_factory2_test/01: Fail
+final_syntax_test/03: Fail
+final_syntax_test/04: Fail
+# Call operator is not supported by dart2js frontend.
+call_operator_test: Fail
+# dart2js frontend doesn't even analyse problematic classes.
+class_extends_negative_test: Fail
+duplicate_implements_test/01: Fail
+duplicate_implements_test/02: Fail
+duplicate_implements_test/03: Fail
+duplicate_implements_test/04: Fail
+# dart2js allows duplicate constructor definitions.
+duplicate_constructor_test/01: Fail
+# Bug in dart2js frontend: cannot find the constructor.
+default_factory_library_test: Fail
+# Common with language_dart2js.
+function_type_alias3_test: Fail
+function_type_alias4_test: Crash, Fail
+function_type_alias5_test/00: Fail
+function_type_alias5_test/01: Fail
+function_type_alias5_test/02: Fail
+function_type_alias7_test/00: Fail
+function_type_alias_test: Fail
+function_type_parameter2_test: Fail
+function_type_parameter_test: Fail
+generic_deep_test: Fail
+get_set_syntax_test/none: Fail
+implicit_scope_test: Fail
+instanceof2_test: Fail
+instanceof3_test: Fail
+library_prefixes_test: Fail
+method_name_test: Fail
+method_override_test: Fail
+named_parameters_type_test: Fail
+numbers_test: Fail
+# DartVM problem.
+closure_with_super_send_test: Fail
+constructor5_test: Fail
+constructor6_test: Fail
+constructor_duplicate_initializers_test/02: Fail
+fauxverride_test/none: Fail
+gc_test: Fail
+parameter_initializer6_negative_test: Fail
+prefix_core_test: Fail
+private_member3_negative_test: Fail
+super_closure_test: Fail
+super_field_access_test: Fail
+super_first_constructor_test: Fail
+# Should be triaged.
+condition_bailout_test: Fail
+const_test: Fail
+default_factory3_test: Fail # Depends on empty class processing.
+dynamic_test: Fail # Depends on empty class processing.
+empty_body_member_negative_test: Fail
+factory4_test: Fail
+f_bounded_quantification_test/01: Fail
+f_bounded_quantification_test/02: Fail
+f_bounded_quantification_test/none: Fail
+field2_negative_test: Fail
+field4_negative_test: Fail
+field5_negative_test: Fail
+field6a_negative_test: Fail
+field7a_negative_test: Fail
+field_optimization2_test: Fail
+field_optimization_test: Fail
+field_override_test/01: Fail
+field_override_test/02: Fail
+field_override_test/none: Fail
+function_literals_test: Fail
+function_type_alias6_test: Fail
+generic_instanceof3_test: Fail
+getters_setters2_test/03: Fail
+implicit_this_test/01: Fail
+implicit_this_test/02: Fail
+implicit_this_test/03: Fail
+implicit_this_test/04: Fail
+implicit_this_test/none: Fail
+implied_interface_test: Fail
+incr_op_test: Fail
+instanceof_test: Fail
+interface_factory_constructor_negative_test: Fail
+interface_inherit_field_test: Fail
+interface_static_method_negative_test: Fail
+interface_test: Fail
+is_operator_test: Fail
+library5_test: Fail
+library_same_name_used_test: Fail
+local_function2_test: Fail
+method_override2_test/none: Fail
+naming_test: Fail
+non_const_super_negative_test: Fail
+number_identifier_negative_test: Fail
+operator1_negative_test: Fail
+operator3_test: Fail
+operator_test: Fail
+prefix14_test: Fail
+prefix15_test: Fail
+prefix18_negative_test: Fail
+prefix20_negative_test: Fail
+prefix21_test: Fail
+private3_test: Fail
+private_member1_negative_test: Fail
+private_member_test: Fail
+private_test: Fail
 rethrow_test: Fail
 savannah_test: Fail
 static_final_field_negative_test: Fail
-static_implicit_closure_test: Fail, Pass
-static_initializer_type_error_test: Fail
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
 static_top_level_test/02: Fail
 static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
-string_interpolate2_test: Fail
-string_interpolate_test: Fail
 string_interpolation7_test: Fail
-string_interpolation_test/01: Fail
-string_interpolation_test/none: Fail
-super_closure_test: Fail
-super_field_access_test: Fail
-super_first_constructor_test: Fail
-super_operator_test: Fail
-super_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail
-ternary_test: Fail
 throw1_test: Fail
 throw2_test: Fail
 throw4_test: Fail
 throw5_test: Fail
 top_level_prefixed_declaration_test: Fail
-top_level_var_test: Fail
 try_catch2_test: Fail
 try_catch3_test: Fail
 try_catch_syntax_test/09: Fail
 try_catch_test: Fail
-type_cast_vm_test: Fail
-type_checks_in_factory_method_test: Fail
 typed_message_test: Fail
 type_variable_bounds2_test/00: Fail
 type_variable_bounds2_test/01: Fail
@@ -356,7 +340,3 @@ type_variable_scope_test/02: Fail
 type_variable_scope_test/03: Fail
 type_variable_scope_test/04: Fail
 type_variable_scope_test/05: Fail
-type_vm_test: Fail
-unary2_test: Fail
-unary_test: Fail
-

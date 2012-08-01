@@ -2632,10 +2632,9 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   // 2. Process normal instructions.
   for (ForwardInstructionIterator it(block_entry); !it.Done(); it.Advance()) {
     Instruction* current = it.Current();
-    // Attach current environment to the instruction.
-    // TODO(fschneider): Currently each instruction gets a full copy of the
-    // environment. This should be optimized: Only instructions that can
-    // deoptimize should have uses of the environment values.
+    // Attach current environment to the instruction. First, each instruction
+    // gets a full copy of the environment. Later we optimize this by
+    // eliminating unnecessary environments.
     current->set_env(new Environment(*env, fixed_parameter_count));
 
     // 2a. Handle uses:

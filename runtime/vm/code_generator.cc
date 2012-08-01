@@ -12,6 +12,7 @@
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
 #include "vm/exceptions.h"
+#include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
@@ -1404,16 +1405,97 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-// The top Dart frame belongs to the optimized method that needs to be
-// deoptimized. The pc of the Dart frame points to the deoptimization point.
-// Find the node id of the deoptimization point and find the continuation
-// pc in the unoptimized code.
-// Since both unoptimized and optimized code have the same layout, we need only
-// to patch the pc of the Dart frame and to disable/enable appropriate code.
-DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
-  ASSERT(arguments.Count() == kDeoptimizeRuntimeEntry.argument_count());
-  const Smi& deoptimization_reason_id = Smi::CheckedHandle(arguments.At(0));
-  DartFrameIterator iterator;
+static intptr_t GetDeoptInfo(const Code& code, uword pc) {
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  ASSERT(!descriptors.IsNull());
+  // Locate deopt id at deoptimization point inside optimized code.
+  for (int i = 0; i < descriptors.Length(); i++) {
+    if (static_cast<uword>(descriptors.PC(i)) == pc) {
+      return descriptors.NodeId(i);
+    }
+  }
+  return Computation::kNoCid;
+}
+
+
+// Copy saved registers and caller's frame into temporary buffers.
+// Access the deopt information for the deoptimization point.
+// Return the new stack size (including PC marker and deopt return address,
+// excluding FP).
+DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                          intptr_t deopt_reason,
+                          intptr_t* saved_registers_address) {
+  Isolate* isolate = Isolate::Current();
+  Zone zone(isolate);
+  HANDLESCOPE(isolate);
+
+  const uword last_fp =
+      reinterpret_cast<uword>(saved_registers_address + kNumberOfCpuRegisters);
+  // Copy saved registers.
+  intptr_t* registers_copy = new intptr_t[kNumberOfCpuRegisters];
+  ASSERT(registers_copy != NULL);
+  ASSERT(saved_registers_address != NULL);
+  for (intptr_t i = 0; i < kNumberOfCpuRegisters; i++) {
+    registers_copy[i] = *saved_registers_address;
+    saved_registers_address++;
+  }
+  isolate->set_deopt_registers_copy(registers_copy);
+  ASSERT(reinterpret_cast<uword>(saved_registers_address) == last_fp);
+  DartFrameIterator iterator(last_fp);
+  StackFrame* caller_frame = iterator.NextFrame();
+  ASSERT(caller_frame != NULL);
+  const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
+  ASSERT(optimized_code.is_optimized());
+
+  const intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
+  ASSERT(deopt_id != Computation::kNoCid);
+
+  // Add incoming arguments.
+  const Function& function = Function::Handle(optimized_code.function());
+  // Think of copied arguments.
+  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+      0 : function.num_fixed_parameters();
+  // FP, PC marker and return address will all be copied.
+  const intptr_t frame_copy_size =
+      1  // Deoptimized function's return address: caller_frame->pc().
+      + ((caller_frame->fp() - caller_frame->sp()) / kWordSize)
+      + 1  // PC marker.
+      + 1  // Caller return address.
+      + num_args;
+  intptr_t* frame_copy = new intptr_t[frame_copy_size];
+  ASSERT(frame_copy != NULL);
+  // Include the return address of deoptimized code.
+  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
+  for (intptr_t i = 0; i < frame_copy_size; i++) {
+    frame_copy[i] = *(start + i);
+  }
+  isolate->SetDeoptFrameCopy(frame_copy, frame_copy_size);
+  if (FLAG_trace_deopt) {
+    OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s'\n",
+        deopt_reason,
+        DeoptReasonToText(deopt_reason),
+        caller_frame->pc(),
+        deopt_id,
+        function.ToFullyQualifiedCString());
+  }
+  // TODO(srdjan): find deopt info and the size of stack, currently stack size
+  // is the same as before.
+  const intptr_t stack_size_in_bytes = caller_frame->fp() - caller_frame->sp();
+  // Include the space for return address.
+  return stack_size_in_bytes + kWordSize;
+}
+END_LEAF_RUNTIME_ENTRY
+
+
+// The stack has been adjusted to fit all values for unoptimized frame.
+// Fill the unoptimized frame.
+DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
+  Isolate* isolate = Isolate::Current();
+  Zone zone(isolate);
+  HANDLESCOPE(isolate);
+
+  DartFrameIterator iterator(last_fp);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
@@ -1422,69 +1504,46 @@ DEFINE_RUNTIME_ENTRY(Deoptimize, 1) {
   const Code& unoptimized_code = Code::Handle(function.unoptimized_code());
   ASSERT(!optimized_code.IsNull() && optimized_code.is_optimized());
   ASSERT(!unoptimized_code.IsNull() && !unoptimized_code.is_optimized());
-  const PcDescriptors& descriptors =
-      PcDescriptors::Handle(optimized_code.pc_descriptors());
-  ASSERT(!descriptors.IsNull());
-  // Locate node id at deoptimization point inside optimized code.
-  intptr_t deopt_node_id = AstNode::kNoId;
-  intptr_t deopt_token_index = 0;
-  for (int i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
-      deopt_node_id = descriptors.NodeId(i);
-      deopt_token_index = descriptors.TokenIndex(i);
-      break;
-    }
-  }
-  ASSERT(deopt_node_id != AstNode::kNoId);
-  uword continue_at_pc =
-      unoptimized_code.GetDeoptPcAtNodeId(deopt_node_id);
-  ASSERT(continue_at_pc != 0);
+
+  intptr_t* frame_copy = isolate->deopt_frame_copy();
+  intptr_t* registers_copy = isolate->deopt_registers_copy();
+
+  intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
+  ASSERT(deopt_id != Computation::kNoCid);
+  uword continue_at_pc = unoptimized_code.GetDeoptPcAtNodeId(deopt_id);
   if (FLAG_trace_deopt) {
-    OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s' "
-        "-> continue at 0x%x \n",
-        deoptimization_reason_id.Value(),
-        DeoptReasonToText(deoptimization_reason_id.Value()),
-        caller_frame->pc(),
-        deopt_node_id,
-        function.ToFullyQualifiedCString(),
-        continue_at_pc);
-    const Class& cls = Class::Handle(function.owner());
-    const Script& script = Script::Handle(cls.script());
-    intptr_t line, column;
-    script.GetTokenLocation(deopt_token_index, &line, &column);
-    OS::Print("  Line: %d Column: %d ", line, column);
-    OS::Print(">>  %s\n", String::Handle(script.GetLine(line)).ToCString());
+    OS::Print("  -> continue at 0x%x\n", continue_at_pc);
+    // TODO(srdjan): If we could allow GC, we could print the line where
+    // deoptimization occured.
   }
+  const intptr_t deopt_frame_copy_size = isolate->deopt_frame_copy_size();
+  // TODO(srdjan): Use deopt info to copy the values to right place.
+  const intptr_t pc_marker_index =
+      ((caller_frame->fp() - caller_frame->sp()) / kWordSize);
   // Patch the return PC and saved PC marker in frame to point to the
   // unoptimized version.
-  caller_frame->set_pc(continue_at_pc);
-  caller_frame->SetEntrypointMarker(
-      unoptimized_code.EntryPoint() +
-      AssemblerMacros::kOffsetOfSavedPCfromEntrypoint);
+  frame_copy[0] = continue_at_pc;
+  frame_copy[pc_marker_index] = unoptimized_code.EntryPoint() +
+                                AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
+  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
+  for (intptr_t i = 0; i < deopt_frame_copy_size; i++) {
+     *(start + i) = frame_copy[i];
+  }
+  isolate->SetDeoptFrameCopy(NULL, 0);
+  isolate->set_deopt_registers_copy(NULL);
+  delete[] frame_copy;
+  delete[] registers_copy;
 
   // Clear invocation counter so that the function gets optimized after
-  // types/classes have been collected.
+  // classes have been collected.
   function.set_usage_counter(0);
   function.set_deoptimization_counter(function.deoptimization_counter() + 1);
 
-  // We have to skip the following otherwise the compiler will complain
-  // when it attempts to install unoptimized code into a function that
-  // was already deoptimized.
   if (function.HasOptimizedCode()) {
-    // Get unoptimized code. Compilation restores (reenables) the entry of
-    // unoptimized code.
-    const Error& error = Error::Handle(Compiler::CompileFunction(function));
-    if (!error.IsNull()) {
-      Exceptions::PropagateError(error);
-    }
-  }
-  // TODO(srdjan): Handle better complex cases, e.g. when an older optimized
-  // code is alive on frame and gets deoptimized after the function was
-  // optimized a second time.
-  if (FLAG_trace_deopt) {
-    OS::Print("After patching ->0x%x:\n", continue_at_pc);
+    function.SwitchToUnoptimizedCode();
   }
 }
+END_LEAF_RUNTIME_ENTRY
 
 
 // We are entering function name for a valid argument count.

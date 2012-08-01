@@ -13,12 +13,39 @@ class _EveryElement extends _CollectionMatcher {
 
   _EveryElement(Matcher this._matcher);
 
-  bool matches(item) {
-    return item.every((e) => _matcher.matches(e));
+  bool matches(item, MatchState matchState) {
+    if (item is! Iterable) {
+      return false;
+    }
+    var i = 0;
+    for (var element in item) {
+      if (!_matcher.matches(element, matchState)) {
+        matchState.state = {
+            'index': i,
+            'element': element,
+            'state': matchState.state
+        };
+        return false;
+      }
+      ++i;
+    }
+    return true;
   }
 
   Description describe(Description description) =>
       description.add('every element ').addDescriptionOf(_matcher);
+
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
+    if (matchState.state != null) {
+      var index = matchState.state['index'];
+      var element = matchState.state['element'];
+      return _matcher.describeMismatch(element, mismatchDescription,
+            matchState.state['state'], verbose).add(' at position $index');
+    }
+    return super.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
+  }
 }
 
 /**
@@ -32,8 +59,8 @@ class _SomeElement extends _CollectionMatcher {
 
   _SomeElement(this._matcher);
 
-  bool matches(item) {
-    return item.some( (e) => _matcher.matches(e) );
+  bool matches(item, MatchState matchState) {
+    return item.some( (e) => _matcher.matches(e, matchState) );
   }
 
   Description describe(Description description) =>
@@ -56,16 +83,19 @@ class _OrderedEquals extends BaseMatcher {
     _matcher = equals(_expected, 1);
   }
 
-  bool matches(item) => (item is Iterable) && _matcher.matches(item);
+  bool matches(item, MatchState matchState) =>
+      (item is Iterable) && _matcher.matches(item, matchState);
 
   Description describe(Description description) =>
       description.add('equals ').addDescriptionOf(_expected).add(' ordered');
 
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item is !Iterable) {
       return mismatchDescription.add('not an Iterable');
     } else {
-      return _matcher.describeMismatch(item, mismatchDescription);
+      return _matcher.describeMismatch(item, mismatchDescription,
+          matchState, verbose);
     }
   }
 }
@@ -139,12 +169,13 @@ class _UnorderedEquals extends BaseMatcher {
     return null;
   }
 
-  bool matches(item) => (_test(item) == null);
+  bool matches(item, MatchState mismatchState) => (_test(item) == null);
 
   Description describe(Description description) =>
       description.add('equals ').addDescriptionOf(_expected).add(' unordered');
 
-  Description describeMismatch(item, Description mismatchDescription) =>
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) =>
       mismatchDescription.add(_test(item));
 }
 
@@ -154,13 +185,15 @@ class _UnorderedEquals extends BaseMatcher {
  */
 /* abstract */ class _CollectionMatcher extends BaseMatcher {
   const _CollectionMatcher();
-  Description describeMismatch(item, Description mismatchDescription) {
+  Description describeMismatch(item, Description mismatchDescription,
+                               MatchState matchState, bool verbose) {
     if (item is !Collection) {
       return mismatchDescription.
           addDescriptionOf(item).
           add(' not a collection');
     } else {
-      return super.describeMismatch(item, mismatchDescription);
+      return super.describeMismatch(item, mismatchDescription, matchState,
+        verbose);
     }
   }
 }

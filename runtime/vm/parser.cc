@@ -452,6 +452,7 @@ struct MemberDesc {
   }
   void Clear() {
     has_abstract = false;
+    has_external = false;
     has_final = false;
     has_const = false;
     has_static = false;
@@ -480,6 +481,7 @@ struct MemberDesc {
     return kind == RawFunction::kSetterFunction;
   }
   bool has_abstract;
+  bool has_external;
   bool has_final;
   bool has_const;
   bool has_static;
@@ -1067,6 +1069,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         RawFunction::kSignatureFunction,
                         /* is_static = */ false,
                         /* is_const = */ false,
+                        /* is_abstract = */ false,
+                        /* is_external = */ false,
                         parameter.name_pos));
       signature_function.set_owner(current_class());
       signature_function.set_result_type(result_type);
@@ -2167,6 +2171,13 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     current_block_->statements->Add(new ReturnNode(expr_pos, expr));
   } else if (IsLiteral("native")) {
     ParseNativeFunctionBlock(&params, func);
+  } else if (func.is_external()) {
+    // Body of an external method contains a single throw.
+    current_block_->statements->Add(
+        new ThrowNode(TokenPos(),
+            new LiteralNode(TokenPos(),
+                String::ZoneHandle(
+                    Symbols::New("External implementation missing."))), NULL));
   } else {
     UnexpectedToken();
   }
@@ -2295,6 +2306,10 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     ErrorMsg(method->name_pos,
              "'abstract' method only allowed in class definition");
   }
+  if (method->has_external && members->is_interface()) {
+    ErrorMsg(method->name_pos,
+             "'external' method only allowed in class definition");
+  }
 
   if (members->FunctionNameExists(*method->name, method->kind)) {
     ErrorMsg(method->name_pos,
@@ -2386,6 +2401,10 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
       ErrorMsg(method->name_pos,
                "abstract method '%s' may not have a function body",
                method->name->ToCString());
+    } else if (method->has_external) {
+      ErrorMsg(method->name_pos,
+               "external method '%s' may not have a function body",
+               method->name->ToCString());
     } else if (method->IsConstructor() && method->has_const) {
       ErrorMsg(method->name_pos,
                "const constructor '%s' may not have a function body",
@@ -2431,6 +2450,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else if (CurrentToken() == Token::kSEMICOLON) {
     if (members->is_interface() ||
         method->has_abstract ||
+        method->has_external ||
         (method->redirect_name != NULL) ||
         method->IsConstructor()) {
       ConsumeToken();
@@ -2442,6 +2462,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   } else {
     if (members->is_interface() ||
         method->has_abstract ||
+        method->has_external ||
         (method->redirect_name != NULL) ||
         (method->IsConstructor() && method->has_const)) {
       ExpectSemicolon();
@@ -2455,8 +2476,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   RawFunction::Kind function_kind;
   if (method->IsFactoryOrConstructor()) {
     function_kind = RawFunction::kConstructor;
-  } else if (method->has_abstract) {
-    function_kind = RawFunction::kAbstract;
   } else if (method->IsGetter()) {
     function_kind = RawFunction::kGetterFunction;
   } else if (method->IsSetter()) {
@@ -2469,6 +2488,8 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     function_kind,
                     method->has_static,
                     method->has_const,
+                    method->has_abstract,
+                    method->has_external,
                     method_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
@@ -2495,6 +2516,9 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   if (field->has_abstract) {
     ErrorMsg("keyword 'abstract' not allowed in field declaration");
   }
+  if (field->has_external) {
+    ErrorMsg("keyword 'external' not allowed in field declaration");
+  }
   if (field->has_factory) {
     ErrorMsg("keyword 'factory' not allowed in field declaration");
   }
@@ -2505,15 +2529,26 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
   Function& getter = Function::Handle();
   Function& setter = Function::Handle();
   Field& class_field = Field::Handle();
+  Instance& init_value = Instance::Handle();
   while (true) {
     bool has_initializer = CurrentToken() == Token::kASSIGN;
+    bool has_simple_literal = false;
     if (has_initializer) {
       ConsumeToken();
+      init_value = Object::sentinel();
       // For static final fields, the initialization expression
       // will be parsed through the kConstImplicitGetter method
       // invocation/compilation.
       // For instance fields, the expression is parsed when a constructor
       // is compiled.
+      // For static fields with very simple initializer expressions
+      // (e.g. a literal number or string) we optimize away the
+      // kConstImplicitGetter and initialize the field here.
+
+      if (field->has_static && (field->has_final || field->has_const) &&
+          (LookaheadToken(1) == Token::kSEMICOLON)) {
+        has_simple_literal = IsSimpleLiteral(*field->type, &init_value);
+      }
       SkipExpr();
     } else {
       if (field->has_const || (field->has_static && field->has_final)) {
@@ -2540,20 +2575,25 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     // For static final fields, set value to "uninitialized" and
     // create a kConstImplicitGetter getter method.
     if (field->has_static && has_initializer) {
-      class_field.set_value(Instance::Handle(Object::sentinel()));
-      String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
-      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                             field->has_static, field->has_final,
-                             field->name_pos);
-      getter.set_result_type(*field->type);
-      members->AddFunction(getter);
+      class_field.set_value(init_value);
+      if (!has_simple_literal) {
+        String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
+        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                               field->has_static, field->has_final,
+                               /* is_abstract */ false,
+                               /* is_external */ false,
+                               field->name_pos);
+        getter.set_result_type(*field->type);
+        members->AddFunction(getter);
+      }
     }
 
     // For instance fields, we create implicit getter and setter methods.
     if (!field->has_static) {
       String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kImplicitGetter,
-                             field->has_static, field->has_final,
+                             field->has_static, field->has_final, false,
+                             /* is_abstract */ false,
                              field->name_pos);
       ParamList params;
       params.AddReceiver(TokenPos());
@@ -2564,7 +2604,8 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         // Build a setter accessor for non-const fields.
         String& setter_name = String::Handle(Field::SetterSymbol(*field->name));
         setter = Function::New(setter_name, RawFunction::kImplicitSetter,
-                               field->has_static, field->has_final,
+                               field->has_static, field->has_final, false,
+                               /* is_abstract */ false,
                                field->name_pos);
         ParamList params;
         params.AddReceiver(TokenPos());
@@ -2617,6 +2658,11 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       (LookaheadToken(1) != Token::kLPAREN)) {
     ConsumeToken();
     member.has_abstract = true;
+  }
+  if ((CurrentToken() == Token::kEXTERNAL) &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
+    ConsumeToken();
+    member.has_external = true;
   }
   if ((CurrentToken() == Token::kSTATIC) &&
       (LookaheadToken(1) != Token::kLPAREN)) {
@@ -2939,6 +2985,8 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
                       RawFunction::kConstructor,
                       /* is_static = */ false,
                       /* is_const = */ false,
+                      /* is_abstract = */ false,
+                      /* is_external = */ false,
                       class_desc->token_pos()));
     ParamList params;
     // Add implicit 'this' parameter.
@@ -3057,6 +3105,8 @@ void Parser::ParseFunctionTypeAlias(
                     RawFunction::kSignatureFunction,
                     /* is_static = */ false,
                     /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
                     alias_name_pos));
   signature_function.set_owner(alias_owner);
   signature_function.set_result_type(result_type);
@@ -3483,14 +3533,22 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     library_.AddObject(field, var_name);
     if (CurrentToken() == Token::kASSIGN) {
       ConsumeToken();
+      Instance& field_value = Instance::Handle(Object::sentinel());
+      bool has_simple_literal = false;
+      if ((is_final || is_const) && (LookaheadToken(1) == Token::kSEMICOLON)) {
+        has_simple_literal = IsSimpleLiteral(type, &field_value);
+      }
       SkipExpr();
-      field.set_value(Instance::Handle(Object::sentinel()));
-      // Create a static const getter.
-      String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
-      getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                             is_static, is_final, name_pos);
-      getter.set_result_type(type);
-      top_level->functions.Add(getter);
+      field.set_value(field_value);
+      if (!has_simple_literal) {
+        // Create a static const getter.
+        String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
+        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
+                               is_static, is_final, false, false, name_pos);
+        getter.set_result_type(type);
+        top_level->functions.Add(getter);
+      }
+
     } else if (is_final || is_const) {
       ErrorMsg(name_pos, "missing initializer for final or const variable");
     }
@@ -3511,6 +3569,11 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   TRACE_PARSER("ParseTopLevelFunction");
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
+  bool is_external = false;
+  if (CurrentToken() == Token::kEXTERNAL) {
+    ConsumeToken();
+    is_external = true;
+  }
   if (CurrentToken() == Token::kVOID) {
     ConsumeToken();
     result_type = Type::VoidType();
@@ -3547,7 +3610,9 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   ParseFormalParameterList(allow_explicit_default_values, &params);
 
   intptr_t function_end_pos = function_pos;
-  if (CurrentToken() == Token::kLBRACE) {
+  if (is_external) {
+    ExpectSemicolon();
+  } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
     function_end_pos = TokenPos();
   } else if (CurrentToken() == Token::kARROW) {
@@ -3562,7 +3627,7 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   }
   Function& func = Function::Handle(
       Function::New(func_name, RawFunction::kRegularFunction,
-                    is_static, false, function_pos));
+                    is_static, false, false, is_external, function_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -3644,7 +3709,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
       Function::New(accessor_name,
                     is_getter? RawFunction::kGetterFunction :
                                RawFunction::kSetterFunction,
-                    is_static, false, accessor_pos));
+                    is_static, false, false, false, accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
@@ -4425,6 +4490,36 @@ bool Parser::TryParseTypeParameter() {
 }
 
 
+bool Parser::IsSimpleLiteral(const AbstractType& type, Instance* value) {
+  bool no_check = type.IsDynamicType();
+  if ((CurrentToken() == Token::kINTEGER) &&
+      (no_check || type.IsIntInterface() || type.IsNumberInterface())) {
+    *value = CurrentIntegerLiteral();
+    return true;
+  } else if ((CurrentToken() == Token::kDOUBLE) &&
+      (no_check || type.IsDoubleInterface() || type.IsNumberInterface())) {
+    *value = CurrentDoubleLiteral();
+    return true;
+  } else if ((CurrentToken() == Token::kSTRING) &&
+      (no_check || type.IsStringInterface())) {
+    *value = CurrentLiteral()->raw();
+    return true;
+  } else if ((CurrentToken() == Token::kTRUE) &&
+      (no_check || type.IsBoolInterface())) {
+    *value = Bool::True();
+    return true;
+  } else if ((CurrentToken() == Token::kFALSE) &&
+      (no_check || type.IsBoolInterface())) {
+    *value = Bool::False();
+    return true;
+  } else if (CurrentToken() == Token::kNULL) {
+    *value = Instance::null();
+    return true;
+  }
+  return false;
+}
+
+
 // Returns true if the current token is kIDENT or a pseudo-keyword.
 bool Parser::IsIdentifier() {
   return Token::IsIdentifier(CurrentToken());
@@ -4513,6 +4608,12 @@ bool Parser::IsVariableDeclaration() {
 // a function declaration. Token position remains unchanged.
 bool Parser::IsFunctionDeclaration() {
   const intptr_t saved_pos = TokenPos();
+  bool is_external = false;
+  if (is_top_level_ && (CurrentToken() == Token::kEXTERNAL)) {
+    // Skip over 'external' for top-level function declarations.
+    is_external = true;
+    ConsumeToken();
+  }
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     // Possibly a function without explicit return type.
     ConsumeToken();  // Consume function identifier.
@@ -4531,7 +4632,8 @@ bool Parser::IsFunctionDeclaration() {
     SkipToMatchingParenthesis();
     if ((CurrentToken() == Token::kLBRACE) ||
         (CurrentToken() == Token::kARROW) ||
-        (is_top_level_ && IsLiteral("native"))) {
+        (is_top_level_ && IsLiteral("native")) ||
+        is_external) {
       SetPosition(saved_pos);
       return true;
     }

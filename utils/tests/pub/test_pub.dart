@@ -254,6 +254,8 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
       var platform = Platform.operatingSystem;
       var dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
 
+      if (platform == 'windows') dartBin = '$dartBin.exe';
+
       // Find the main pub entrypoint.
       var pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
 

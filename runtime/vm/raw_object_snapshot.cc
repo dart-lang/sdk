@@ -434,6 +434,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_is_const(reader->Read<bool>());
   func.set_is_optimizable(reader->Read<bool>());
   func.set_is_native(reader->Read<bool>());
+  func.set_is_abstract(reader->Read<bool>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -468,11 +469,12 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
-  writer->WriteIntptrValue(ptr()->kind_);
-  writer->Write<bool>(ptr()->is_static_);
-  writer->Write<bool>(ptr()->is_const_);
-  writer->Write<bool>(ptr()->is_optimizable_);
-  writer->Write<bool>(ptr()->is_native_);
+  writer->WriteIntptrValue(GetKind());
+  writer->Write<bool>(IsStatic());
+  writer->Write<bool>(IsConst());
+  writer->Write<bool>(IsOptimizable());
+  writer->Write<bool>(IsNative());
+  writer->Write<bool>(IsAbstract());
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

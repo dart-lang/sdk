@@ -12,7 +12,7 @@ doesThrow() { throw 'X'; }
 class PrefixMatcher extends BaseMatcher {
   final String _prefix;
   const PrefixMatcher(this._prefix);
-  bool matches(item) {
+  bool matches(item, MatchState matchState) {
     return item is String &&
         (collapseWhitespace(item)).startsWith(collapseWhitespace(_prefix));
   }
@@ -83,7 +83,7 @@ void main() {
       shouldPass(doesThrow, throwsA(equals('X')));
       shouldFail(doesThrow, throwsA(equals('Y')),
         "Expected: throws an exception which matches 'Y' "
-        "but:  no exception or exception does not match 'Y'.");
+        "but:  exception 'X' does not match 'Y'.");
     });
 
     test('throwsBadNumberFormatException', () {
@@ -92,7 +92,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsBadNumberFormatException,
         "Expected: throws an exception which matches BadNumberFormatException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "BadNumberFormatException.");
     });
 
@@ -102,7 +102,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsIllegalArgumentException,
         "Expected: throws an exception which matches IllegalArgumentException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "IllegalArgumentException.");
     });
 
@@ -112,7 +112,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsIllegalJSRegExpException,
         "Expected: throws an exception which matches IllegalJSRegExpException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "IllegalJSRegExpException.");
     });
 
@@ -122,7 +122,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsIndexOutOfRangeException,
         "Expected: throws an exception which matches IndexOutOfRangeException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "IndexOutOfRangeException.");
     });
 
@@ -132,7 +132,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsNoSuchMethodException,
         "Expected: throws an exception which matches NoSuchMethodException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "NoSuchMethodException.");
     });
 
@@ -142,7 +142,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsNotImplementedException,
         "Expected: throws an exception which matches NotImplementedException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "NotImplementedException.");
     });
 
@@ -152,7 +152,7 @@ void main() {
       shouldFail(() { throw new Exception(); },
           throwsNullPointerException,
         "Expected: throws an exception which matches NullPointerException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "NullPointerException.");
     });
 
@@ -163,14 +163,14 @@ void main() {
           throwsUnsupportedOperationException,
         "Expected: throws an exception which matches "
             "UnsupportedOperationException "
-        "but:  no exception or exception does not match "
+        "but:  exception <Exception> does not match "
             "UnsupportedOperationException.");
     });
 
     test('returnsNormally', () {
       shouldPass(doesNotThrow, returnsNormally);
       shouldFail(doesThrow, returnsNormally,
-        "Expected: return normally but: threw exception.");
+        "Expected: return normally but: threw 'X'.");
     });
 
     test('hasLength', () {
@@ -412,7 +412,7 @@ void main() {
       var d = [1, 2];
       var e = [1, 1, 1];
       shouldFail(d, everyElement(1),
-          "Expected: every element <1> but: was <[1, 2]>.");
+          "Expected: every element <1> but: was <2> at position 1.");
       shouldPass(e, everyElement(1));
     });
 

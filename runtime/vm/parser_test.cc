@@ -130,18 +130,7 @@ TEST_CASE(ParseClassDefinition) {
   CheckField(lib, "A", "f4", false, true);
   CheckField(lib, "A", "s1", true, false);
   CheckField(lib, "A", "s2", true, false);
-  // No field entries are added for static const fields.
-  String& fieldname = String::Handle(String::New("s3"));
-  const String& classname = String::Handle(Symbols::New("A"));
-  const Class& cls = Class::Handle(lib.LookupClass(classname));
-  const Field& field = Field::Handle(cls.LookupStaticField(fieldname));
-  EXPECT(!field.IsNull());
-  Object& val = Object::Handle(field.value());
-  // The static const field initializer is not evaluated and the field
-  // value is not initialized until the field is referenced by code that
-  // is compiled.
-  EXPECT(val.raw() == Object::sentinel());
-
+  CheckField(lib, "A", "s3", true, true);
   CheckFunction(lib, "A", "bar", true);
   CheckFunction(lib, "A", "foo", true);
 }

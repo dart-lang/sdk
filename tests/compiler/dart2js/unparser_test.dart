@@ -31,6 +31,9 @@ interface Closure {}
 interface Dynamic {}
 interface Null {}
 assert() {}
+class Math {
+  static double parseDouble(String s) => 1.0;
+}
 ''';
 
 testDart2Dart(String src, [void continuation(String s)]) {
@@ -75,6 +78,19 @@ testDart2DartWithLibrary(
       const ['--output-type=dart', '--unparse-validation']).then(continuation);
 }
 
+testSignedConstants() {
+  testUnparse('var x=+42;');
+  testUnparse('var x=+.42;');
+  testUnparse('var x=-42;');
+  testUnparse('var x=-.42;');
+  testUnparse('var x=+0;');
+  testUnparse('var x=+0.0;');
+  testUnparse('var x=+.0;');
+  testUnparse('var x=-0;');
+  testUnparse('var x=-0.0;');
+  testUnparse('var x=-.0;');
+}
+
 testGenericTypes() {
   testUnparse('var x=new List<List<int>>();');
   testUnparse('var x=new List<List<List<int>>>();');
@@ -97,7 +113,7 @@ testClosure() {
 
 testIndexedOperatorDecl() {
   testUnparseMember('operator[](int i)=> null;');
-  testUnparseMember('operator[]=(int i, int j)=> null;');
+  testUnparseMember('operator[]=(int i,int j)=> null;');
 }
 
 testNativeMethods() {
@@ -116,7 +132,7 @@ testConstModifier() {
   testUnparse('foo([var a=const []]){}');
   testUnparse('foo([var a=const{}]){}');
   testUnparse('foo(){var a=const []; var b=const{};}');
-  testUnparse('foo([var a=const [const{"a": const [1, 2, 3]}]]){}');
+  testUnparse('foo([var a=const [const{"a": const [1,2,3]}]]){}');
 }
 
 testSimpleFileUnparse() {
@@ -162,8 +178,8 @@ testExtendsImplements() {
 }
 
 testVariableDefinitions() {
-  testDart2Dart('main(){final var x, y; final String s;}');
-  testDart2Dart('foo(f, g){}main(){foo(1, 2);}');
+  testDart2Dart('main(){final var x,y; final String s;}');
+  testDart2Dart('foo(f,g){}main(){foo(1,2);}');
   testDart2Dart('foo(f(arg)){}main(){foo(main);}');
   // A couple of static/finals inside a class.
   testDart2Dart('main(){A.a; A.b;}class A{static final String a="5";'
@@ -257,13 +273,13 @@ main() {
 }
 ''';
   var expectedResult = @'globalfoo(){}'
-      @'$globalfoo(){}'
-      @'main(){$globalfoo(); A.field; A.staticfoo(); new A(); '
-          @'new A.fromFoo(); new A().foo(); globalfoo(); $A.field; '
-          @'$A.staticfoo(); new $A(); new $A.fromFoo(); new $A().foo();}'
+      @'p_globalfoo(){}'
+      @'main(){p_globalfoo(); A.field; A.staticfoo(); new A(); '
+          @'new A.fromFoo(); new A().foo(); globalfoo(); p_A.field; '
+          @'p_A.staticfoo(); new p_A(); new p_A.fromFoo(); new p_A().foo();}'
       @'class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}'
           @'static final field=5;}'
-      @'class $A{$A(){}$A.fromFoo(){}foo(){}static staticfoo(){}'
+      @'class p_A{p_A(){}p_A.fromFoo(){}foo(){}static staticfoo(){}'
           @'static final field=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
@@ -364,16 +380,33 @@ main() {
   mylib.topfoo();
 }
 ''';
-  var expectedResult = @'topfoo(){}$topfoo(){var x=5;}A getA()=> null;'
-      @'main(){var a=new A(); a.foo(); var b=new $A.fromFoo(); b.foo(); '
-          @'var GREATVAR=b.myliba; b.mylist; a=getA(); $topfoo(); topfoo();}'
-      @'class $A{$A.fromFoo(){}List<$A> mylist;num foo(){}A myliba;}'
+  var expectedResult = @'topfoo(){}p_topfoo(){var x=5;}A getA()=> null;'
+      @'main(){var a=new A(); a.foo(); var b=new p_A.fromFoo(); b.foo(); '
+          @'var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}'
+      @'class p_A{p_A.fromFoo(){}List<p_A> mylist;num foo(){}A myliba;}'
       @'class A{foo(){}}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testDefaultClassWithArgs() {
+  testDart2Dart('main(){var result=new IA<String>();}'
+      'interface IA<T> default A<T extends Object>{IA();}'
+      'class A<T extends Object> implements IA<T>{factory A(){}}');
+}
+
+testClassExtendsWithArgs() {
+  testDart2Dart('main(){new B<Object>();}'
+    'class A<T extends Object>{}'
+    'class B<T extends Object> extends A<T>{}');
+}
+
+testStaticInvocation() {
+  testDart2Dart('main(){var x=Math.parseDouble("1");}');
+}
+
 main() {
+  testSignedConstants();
   testGenericTypes();
   testForLoop();
   testEmptyList();
@@ -382,6 +415,7 @@ main() {
   testNativeMethods();
   testPrefixIncrements();
   testConstModifier();
+  testStaticInvocation();
   testSimpleFileUnparse();
   testSimpleObjectInstantiation();
   testSimpleTopLevelClass();
@@ -395,4 +429,6 @@ main() {
   testConflictLibraryClassRename();
   testNoConflictSendsRename();
   testConflictSendsRename();
+  testDefaultClassWithArgs();
+  testClassExtendsWithArgs();
 }

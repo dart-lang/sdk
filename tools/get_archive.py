@@ -7,6 +7,7 @@
 # Gets or updates a DumpRenderTree (a nearly headless build of chrome). This is
 # used for running browser tests of client applications.
 
+import json
 import optparse
 import os
 import platform
@@ -15,6 +16,8 @@ import subprocess
 import sys
 import tempfile
 import zipfile
+
+import utils
 
 def NormJoin(path1, path2):
   return os.path.normpath(os.path.join(path1, path2))
@@ -44,6 +47,15 @@ CHROMEDRIVER_LATEST_PATTERN = (
     'gs://dartium-archive/latest/chromedriver-%(osname)s-inc-*.zip')
 CHROMEDRIVER_PERMANENT_PREFIX = (
     'gs://dartium-archive/chromedriver-%(osname)s-inc')
+
+SDK_DIR = os.path.join(utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
+    'dart-sdk')
+SDK_VERSION = os.path.join(SDK_DIR, 'LAST_VERSION')
+SDK_LATEST_PATTERN = 'gs://dart-editor-archive-continuous/latest/VERSION'
+# TODO(efortuna): Once the x64 VM also is optimized, select the version
+# based on whether we are running on a 32-bit or 64-bit system.
+SDK_PERMANENT = ('gs://dart-editor-archive-continuous/%(version_num)s/' + 
+    'dartsdk-%(osname)s-32.zip')
 
 sys.path.append(os.path.join(GSUTIL_DIR, 'boto'))
 import boto
@@ -106,25 +118,80 @@ def ensure_config():
     sys.exit(1)
 
 
-def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
-  """Get the latest DumpRenderTree or Dartium binary depending on arguments.
+def get_dartium_latest(name, directory, version_file, latest_pattern,
+    permanent_prefix):
+  """Get the latest binary that is stored in the dartium archive.
 
   Args:
+    name: the name of the desired download.
     directory: target directory (recreated) to install binary
     version_file: name of file with the current version stamp
     latest_pattern: the google store url pattern pointing to the latest binary
     permanent_prefix: stable google store folder used to download versions
   """
+  osdict = {'Darwin':'mac', 'Linux':'lucid64', 'Windows':'win'}
+  def latest_func(out, osname):
+    output_lines = out.split()
+    latest = output_lines[-1]
+    latest = (permanent_prefix % { 'osname' : osname }
+              + latest[latest.rindex('/'):])
+    return latest
+    
+  get_from_gsutil(name, directory, version_file, latest_pattern, osdict, 
+                  latest_func)
+
+def get_sdk_revision(name, directory, version_file, latest_pattern,
+    permanent_prefix, revision_num):
+  """Get a revision of the SDK from the editor build archive.
+
+  Args:
+    name: the name of the desired download
+    directory: target directory (recreated) to install binary
+    version_file: name of file with the current version stamp
+    latest_pattern: the google store url pattern pointing to the latest binary
+    permanent_prefix: stable google store folder used to download versions
+    revision_num: the desired revision number, or None for the most recent
+  """
+  osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'win32'}
+  def find_permanent_url(out, osname):
+    rev_num = revision_num
+    if not rev_num:
+      temp_file = tempfile.NamedTemporaryFile()
+      temp_file_url = 'file://' + temp_file.name
+      gsutil('cp', latest_pattern % {'osname' : osname }, temp_file_url)
+      temp_file.seek(0)
+      version_info = temp_file.read()
+      temp_file.close()
+      if version_info != '':
+        rev_num = json.loads(version_info)['revision']
+      else:
+        print 'Unable to get latest version information.'
+        return ''
+    latest = (permanent_prefix % { 'osname' : osname, 'version_num': rev_num})
+    return latest
+    
+  get_from_gsutil(name, directory, version_file, latest_pattern, osdict,
+                  find_permanent_url)
+
+def get_from_gsutil(name, directory, version_file, latest_pattern,
+    os_name_dict, get_permanent_url):
+  """Download and unzip the desired file from Google Storage.
+    Args:
+    name: the name of the desired download
+    directory: target directory (recreated) to install binary
+    version_file: name of file with the current version stamp
+    latest_pattern: the google store url pattern pointing to the latest binary
+    os_name_dict: a dictionary of operating system names and their corresponding
+        strings on the google storage site.
+    get_permanent_url: a function that accepts a listing of available files
+        and the os name, and returns a permanent URL for downloading.
+  """
   system = platform.system()
-  if system == 'Darwin':
-    osname = 'mac'
-  elif system == 'Linux':
-    osname = 'lucid64'
-  elif system == 'Windows':
-    osname = 'win'
-  else:
+  try:
+    osname = os_name_dict[system]
+  except KeyError:
     print >>sys.stderr, ('WARNING: platform "%s" does not support'
-        '%s for tests') % (system, name)
+        '%s.') % (system, name)
     return 0
 
   ensure_config()
@@ -133,15 +200,13 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
   pattern = latest_pattern  % { 'osname' : osname }
   result, out = gsutil('ls', pattern)
   if result == 0:
-    latest = out.split()[-1]
     # use permanent link instead, just in case the latest zip entry gets deleted
     # while we are downloading it.
-    latest = (permanent_prefix % { 'osname' : osname }
-              + latest[latest.rindex('/'):])
+    latest = get_permanent_url(out, osname)
   else: # e.g. no access
     print "Couldn't download %s: %s\n%s" % (name, pattern, out)
     if not os.path.exists(version_file):
-      print "Tests using %s will not work. Please try again later." % name
+      print "Using %s will not work. Please try again later." % name
     return 0
 
   # Check if we need to update the file
@@ -172,13 +237,15 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
       if result != 0:
         raise Exception('Execution of "unzip %s -d %s" failed: %s' %
                         (temp_zip, temp_dir, str(out)))
-      unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-4] #Remove .zip
+      unzipped_dir = temp_dir + '/' + os.path.basename(latest)[:-len('.zip')]
     else:
       z = zipfile.ZipFile(temp_zip)
       z.extractall(temp_dir)
-      # -4 = remove .zip for dir name
-      unzipped_dir = os.path.join(temp_dir, os.path.basename(latest)[:-4])
+      unzipped_dir = os.path.join(temp_dir,
+                                  os.path.basename(latest)[:-len('.zip')])
       z.close()
+    if directory == SDK_DIR:
+      unzipped_dir = os.path.join(temp_dir, 'dart-sdk')
     shutil.move(unzipped_dir, directory)
   finally:
     shutil.rmtree(temp_dir)
@@ -193,24 +260,33 @@ def get_latest(name, directory, version_file, latest_pattern, permanent_prefix):
 
 
 def main():
-  parser = optparse.OptionParser()
-  parser.add_option('--dartium', dest='dartium',
-                    help='Get latest Dartium', action='store_true',
-                    default=False)
-  parser.add_option('--chromedriver', dest='chromedriver',
-                    help='Get the latest built ChromeDriver',
-                    action='store_true', default=False)
-  args, _ = parser.parse_args()
+  parser = optparse.OptionParser(usage='usage: %prog [options] download_name')
+  parser.add_option('-r', '--revision', dest='revision',
+                    help='Desired revision number to retrieve for the SDK. If '
+                    'unspecified, retrieve the latest SDK build.',
+                    action='store', default=None)
+  args, positional = parser.parse_args()
 
-  if args.dartium:
-    get_latest('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
-               DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PREFIX)
-  elif args.chromedriver:
-    get_latest('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
-               CHROMEDRIVER_LATEST_PATTERN, CHROMEDRIVER_PERMANENT_PREFIX)
+  if args.revision and positional[0] != 'sdk':
+    print ('Error: You can only specify the revision number for the SDK target.'
+        ' For all other targets we return the latest build.')
+    sys.exit(1)
+  if positional[0] == 'dartium':
+    get_dartium_latest('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
+                       DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PREFIX)
+  elif positional[0] == 'chromedriver':
+    get_dartium_latest('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
+                       CHROMEDRIVER_LATEST_PATTERN,
+                       CHROMEDRIVER_PERMANENT_PREFIX)
+  elif positional[0] == 'sdk':
+    get_sdk_revision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
+        SDK_PERMANENT, args.revision)
+  elif positional[0] == 'drt':
+    get_dartium_latest('DumpRenderTree', DRT_DIR, DRT_VERSION,
+                       DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)
   else:
-    get_latest('DumpRenderTree', DRT_DIR, DRT_VERSION,
-               DRT_LATEST_PATTERN, DRT_PERMANENT_PREFIX)
+    print ('Please specify the target you wish to download from Google Storage '
+        '("drt", "dartium", "chromedriver", or "sdk")')
 
 if __name__ == '__main__':
   sys.exit(main())

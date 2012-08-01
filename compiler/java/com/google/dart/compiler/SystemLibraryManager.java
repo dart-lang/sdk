@@ -200,7 +200,7 @@ public class SystemLibraryManager {
     URI relativeUri = sdkLibPathUri.relativize(fileUri);
     if (relativeUri.getScheme() == null) {
       try {
-        return new URI(null, null, "dart://" + relativeUri.getPath(), null);
+        return new URI(null, null, "dart://" + relativeUri.getPath(), null, null);
       } catch (URISyntaxException e) {
         //$FALL-THROUGH$
       }
@@ -210,7 +210,7 @@ public class SystemLibraryManager {
       relativeUri = rootUri.relativize(fileUri);
         if (relativeUri.getScheme() == null) {
           try {
-            return new URI(null, null, "package://" + relativeUri.getPath(), null);
+            return new URI(null, null, "package://" + relativeUri.getPath(), null, null);
           } catch (URISyntaxException e) {
         //$FALL-THROUGH$
         }
@@ -228,6 +228,9 @@ public class SystemLibraryManager {
   public URI resolvePackageUri(String packageUriRef) {
     if (packageUriRef.startsWith(PACKAGE_SCHEME_SPEC)) {
       String relPath = packageUriRef.substring(PACKAGE_SCHEME_SPEC.length());
+      if (relPath.startsWith("/")){
+        relPath = relPath.replaceAll("^\\/+", "");
+      }
       for (URI rootUri : packageRootsUri){
         URI fileUri = rootUri.resolve(relPath);
         if (new File(fileUri).exists()){
@@ -252,7 +255,7 @@ public class SystemLibraryManager {
     shortUri = getRelativeUri(uri);
     if (shortUri != null){
       try {
-        return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getHost() + shortUri.getPath(),null);
+        return new URI(null, null, shortUri.getScheme() + ":" +  shortUri.getHost() + shortUri.getPath(),null, null);
       } catch (URISyntaxException e) {
       }
     }
@@ -328,6 +331,20 @@ public class SystemLibraryManager {
     }
     return uri;
   }
+  
+  /**
+   * Given a uri, resolve against the list of package roots, used to find generated files
+   * @return uri - resolved uri if file exists, else return given uri 
+   */
+  public URI findExistingFileInPackages(URI fileUri){
+    
+    URI resolvedUri = getRelativeUri(fileUri);
+    if (isPackageUri(resolvedUri)){
+      resolvedUri = resolvePackageUri(resolvedUri.toString());
+      return resolvedUri;
+    }
+    return fileUri;
+  }
 
   /**
    * Resolves the given uri against the package root uri
@@ -369,7 +386,7 @@ public class SystemLibraryManager {
 
       File file;
       try {
-        file = new File(base.resolve(new URI(null, null, path, null)).normalize());
+        file = new File(base.resolve(new URI(null, null, path, null, null)).normalize());
       } catch (URISyntaxException e) {
         continue;
       }

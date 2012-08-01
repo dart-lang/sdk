@@ -33,8 +33,8 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
       return null;
     }
     try {
-      // Force the creation of an escaped relative URI to deal with spaces, etc.
-      URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();
+      // Force the creation of an escaped relative URI to deal with spaces, etc.s
+      URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
       return new UrlDartSource(uri, relPath, this, systemLibraryManager);
     } catch (Throwable e) {
       return null;
@@ -48,23 +48,27 @@ public class UrlLibrarySource extends UrlSource implements LibrarySource {
     }
     try {
       // Force the creation of an escaped relative URI to deal with spaces, etc.
-      URI uri = getUri().resolve(new URI(null, null, relPath, null)).normalize();
+      URI uri = getUri().resolve(new URI(null, null, relPath, null, null)).normalize();
       String path = uri.getPath();
       // Resolve relative reference out of one system library into another
-      if (SystemLibraryManager.isDartUri(uri) && path != null && path.startsWith("/..")) {
-        URI fileUri = systemLibraryManager.resolveDartUri(uri);
-        URI shortUri = systemLibraryManager.getShortUri(fileUri);
-        if (shortUri != null) {
-          uri = shortUri;
+      if (SystemLibraryManager.isDartUri(uri)) {
+        if(path != null && path.startsWith("/..")) {
+          URI fileUri = systemLibraryManager.resolveDartUri(uri);
+          URI shortUri = systemLibraryManager.getShortUri(fileUri);
+          if (shortUri != null) {
+            uri = shortUri;
+          }
         }
-      }
-      if (SystemLibraryManager.isPackageUri(uri)){
+      } else if (SystemLibraryManager.isPackageUri(uri)){
         URI fileUri = systemLibraryManager.resolveDartUri(uri);
         if (fileUri != null){
           uri = fileUri;
         }
-       
+      } else if (path != null && !(new File(path).exists())){
+        // resolve against package root directories to find file
+         uri = systemLibraryManager.findExistingFileInPackages(uri);
       }
+     
       return new UrlLibrarySource(uri, systemLibraryManager);
     } catch (Throwable e) {
       return null;

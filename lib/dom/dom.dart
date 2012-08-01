@@ -48,13 +48,6 @@ class _DataViewFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class _DeprecatedPeerConnectionFactoryProvider {
-  factory DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback) => _dummy();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
 class _EventSourceFactoryProvider {
   factory EventSource(String scriptUrl) => _dummy();
 }
@@ -2097,46 +2090,6 @@ interface DedicatedWorkerContext extends DedicatedWorkerGlobalScope {
 interface DelayNode extends AudioNode {
 
   final AudioParam delayTime;
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
-interface DeprecatedPeerConnection extends EventTarget default _DeprecatedPeerConnectionFactoryProvider {
-
-  DeprecatedPeerConnection(String serverConfiguration, SignalingCallback signalingCallback);
-
-  static final int ACTIVE = 2;
-
-  static final int CLOSED = 3;
-
-  static final int NEGOTIATING = 1;
-
-  static final int NEW = 0;
-
-  final MediaStreamList localStreams;
-
-  final int readyState;
-
-  final MediaStreamList remoteStreams;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void addStream(MediaStream stream);
-
-  void close();
-
-  bool dispatchEvent(Event event);
-
-  void processSignalingMessage(String message);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
-
-  void removeStream(MediaStream stream);
-
-  void send(String text);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5186,7 +5139,7 @@ interface IDBDatabase extends EventTarget {
 
   final List<String> objectStoreNames;
 
-  final String version;
+  final /*IDBAny*/ version;
 
   void addEventListener(String type, EventListener listener, [bool useCapture]);
 
@@ -5873,13 +5826,27 @@ interface MediaStreamList {
 
 // WARNING: Do not edit - generated code.
 
-interface MediaStreamTrack {
+interface MediaStreamTrack extends EventTarget {
+
+  static final int ENDED = 2;
+
+  static final int LIVE = 0;
+
+  static final int MUTED = 1;
 
   bool enabled;
 
   final String kind;
 
   final String label;
+
+  final int readyState;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6191,13 +6158,13 @@ interface Navigator {
 
   final BatteryManager webkitBattery;
 
-  final GamepadList webkitGamepads;
-
   final PointerLock webkitPointer;
 
   void getStorageUpdates();
 
   bool javaEnabled();
+
+  GamepadList webkitGetGamepads();
 
   void webkitGetUserMedia(Map options, NavigatorUserMediaSuccessCallback successCallback, [NavigatorUserMediaErrorCallback errorCallback]);
 }
@@ -9867,7 +9834,32 @@ interface SharedWorkerContext extends SharedWorkerGlobalScope {
 
 // WARNING: Do not edit - generated code.
 
-typedef bool SignalingCallback(String message, DeprecatedPeerConnection source);
+interface SourceBuffer {
+
+  final TimeRanges buffered;
+
+  void abort();
+
+  void append(Uint8Array data);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface SourceBufferList extends EventTarget {
+
+  final int length;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  SourceBuffer item(int index);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
@@ -10027,6 +10019,8 @@ interface SpeechRecognitionEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 interface SpeechRecognitionResult {
+
+  final Document emma;
 
   final bool finalValue;
 

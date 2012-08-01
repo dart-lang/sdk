@@ -54,9 +54,6 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
     for (intptr_t i = 0; i < values.length(); i++) {
       Location destination = Location::StackSlot(i - fixed_parameter_count);
       Location source = deoptimization_env_->LocationAt(i);
-      if (!source.IsRegister() && !source.IsInvalid()) {
-        compiler->Bailout("unsupported deoptimization state");
-      }
       if (source.IsInvalid()) {
         ASSERT(values[i]->IsConstant());
         source = Location::Constant(values[i]->AsConstant()->value());

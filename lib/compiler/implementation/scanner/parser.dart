@@ -230,6 +230,7 @@ class Parser {
     Token implementsKeyword;
     int interfacesCount = 0;
     if (optional('implements', token)) {
+      implementsKeyword = token;
       do {
         token = parseType(token.next);
         ++interfacesCount;

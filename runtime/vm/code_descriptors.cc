@@ -37,13 +37,14 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
 }
 
 
-void StackmapBuilder::AddEntry(intptr_t pc_offset) {
-  stack_map_ = Stackmap::New(pc_offset, builder_);
+void StackmapTableBuilder::AddEntry(intptr_t pc_offset,
+                                    BitmapBuilder* bitmap) {
+  stack_map_ = Stackmap::New(pc_offset, bitmap);
   list_.Add(stack_map_);
 }
 
 
-bool StackmapBuilder::Verify() {
+bool StackmapTableBuilder::Verify() {
   intptr_t num_entries = Length();
   Stackmap& map1 = Stackmap::Handle();
   Stackmap& map2 = Stackmap::Handle();
@@ -59,7 +60,7 @@ bool StackmapBuilder::Verify() {
 }
 
 
-RawArray* StackmapBuilder::FinalizeStackmaps(const Code& code) {
+RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   ASSERT(Verify());
   intptr_t num_entries = Length();
   uword entry_point = code.EntryPoint();
@@ -75,7 +76,7 @@ RawArray* StackmapBuilder::FinalizeStackmaps(const Code& code) {
 }
 
 
-RawStackmap* StackmapBuilder::Map(int index) const {
+RawStackmap* StackmapTableBuilder::Map(int index) const {
   Stackmap& map = Stackmap::Handle();
   map ^= list_.At(index);
   return map.raw();

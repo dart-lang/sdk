@@ -561,19 +561,56 @@ void StubCode::GenerateMegamorphicLookupStub(Assembler* assembler) {
 }
 
 
+DECLARE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                           intptr_t deopt_reason,
+                           intptr_t* saved_registers_address);
+
+DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
+
+// This stub translates optimized frame into unoptimized frame. The optimized
+// frame can contain values in registers and on stack, the unoptimized
+// frame contains all values on stack.
+// Deoptimization occurs in following steps:
+// - Push all registers that can contain values.
+// - Call C routine to copy the stack and saved registers into temporary buffer.
+// - Adjust caller's frame to correct unoptimized frame size.
+// - Fill the unoptimized frame.
+// Stack:
+//   +------------------+
+//   | 0 as PC marker   | <- TOS
+//   +------------------+
+//   | Saved FP         |
+//   +------------------+
+//   | return-address   |  (deoptimization point)
+//   +------------------+
+//   | optimized frame  |
+//   |  ...             |
+//
+// EAX: Deoptimization reason id.
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
-  // Create a stub frame as we are pushing some objects on the stack before
-  // calling into the runtime.
-  AssemblerMacros::EnterStubFrame(assembler);
-  // EAX: deoptimization reason id.
-  // Stack at this point:
-  // TOS + 0: PC marker => RawInstruction object.
-  // TOS + 1: Saved EBP of function frame that will be deoptimized. <== EBP
-  // TOS + 2: Deoptimization point (return address), will be patched.
-  // TOS + 3: top-of-stack at deoptimization point (all arguments on stack).
-  __ pushl(EAX);
-  __ CallRuntime(kDeoptimizeRuntimeEntry);
-  __ popl(EAX);
+  __ EnterFrame(0);
+  // Push registers in their enumeration order: lowest register number at
+  // lowest address.
+  for (intptr_t i = kNumberOfCpuRegisters - 1; i >= 0; i--) {
+    __ pushl(static_cast<Register>(i));
+  }
+  __ movl(ECX, ESP);  // Saved saved registers block.
+  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ SmiUntag(EAX);
+  __ movl(Address(ESP, 0), EAX);  // Deopt reason (untagged).
+  __ movl(Address(ESP, kWordSize), ECX);  // Start of register block.
+  __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
+  // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
+  __ LeaveFrame();
+  __ popl(EDX);  // Discard return address.
+  __ movl(ESP, EBP);
+  __ subl(ESP, EAX);
+
+  __ EnterFrame(0);
+  __ movl(ECX, ESP);  // Get last FP address.
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
+  __ movl(Address(ESP, 0), ECX);
+  __ CallRuntime(kDeoptimizeFillFrameRuntimeEntry);
   __ LeaveFrame();
   __ ret();
 }
