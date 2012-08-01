@@ -2892,9 +2892,30 @@ public class TypeAnalyzer implements DartCompilationPhase {
           int numRequired = getNumRequiredParameters(parameters);
           int superNumRequired = getNumRequiredParameters(superParameters);
           if (numRequired != superNumRequired) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(method.getName());
+            builder.append("(");
+            boolean inNamed = false;
+            int parameterCount = superParameters.size();
+            for (int i = 0; i < parameterCount; i++) {
+              if (i > 0) {
+                builder.append(", ");
+              }
+              VariableElement parameter = superParameters.get(i);
+              if (!inNamed && parameter.isNamed()) {
+                builder.append("[");
+                inNamed = true;
+              }
+              builder.append(parameter.getType().toString());
+            }
+            if (inNamed) {
+              builder.append("]");
+            }
+            builder.append(")");
             onError(errorTarget,
                     ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS,
-                    method.getName());
+                    builder.toString(),
+                    superMethod.getEnclosingElement().getName());
             return false;
           }
         }
