@@ -743,6 +743,10 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     // that will be allocated for this output's live range.
     // Special case: fixed output followed by a fixed input last use.
     UsePosition* use = range->first_use();
+
+    // If the value has no uses we don't need to allocate it.
+    if (use == NULL) return;
+
     if (use->pos() == (pos + 1)) {
       ASSERT(use->location_slot()->IsUnallocated());
       *(use->location_slot()) = *out;
