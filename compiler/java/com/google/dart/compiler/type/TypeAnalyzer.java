@@ -1248,16 +1248,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type receiver = nonVoidTypeOf(target);
       Member member = lookupMember(receiver, name, nameNode);
       if (member != null) {
-        Element methodElement = member.getElement();
-        checkIllegalPrivateAccess(node.getFunctionName(), methodElement, name);
-        node.setElement(methodElement);
+        element = member.getElement();
+        checkIllegalPrivateAccess(node.getFunctionName(), element, name);
+        node.setElement(element);
         if (nameNode != null) {
-          nameNode.setElement(methodElement);
+          nameNode.setElement(element);
         }
       }
       checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
-      return checkInvocation(node, nameNode, name, methodType);
+      Type returnType = checkInvocation(node, nameNode, name, methodType);
+      returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
+      return returnType;
     }
 
     private void checkIllegalPrivateAccess(DartNode diagnosticNode, Element element, String name) {
@@ -2302,7 +2304,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
       }
       checkDeprecated(target, element);
-      return checkInvocation(node, target, name, type);
+      Type returnType = checkInvocation(node, target, name, type);
+      returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
+      return returnType;
     }
 
     /**

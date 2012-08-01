@@ -1803,7 +1803,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "f() {",
         "  var v0 = true;",
         "  var v1 = true && false;",
@@ -1830,47 +1830,50 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     // check each "v" type
     for (int i = 0; i < expectedList.size(); i++) {
       String expectedTypeString = expectedList.get(i);
-      assertInferredElementTypeString(libraryResult, "v" + i, expectedTypeString);
+      assertInferredElementTypeString(testUnit, "v" + i, expectedTypeString);
     }
   }
 
   public void test_typesPropagation_secondAssign_sameType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  var v = true;",
         "  v = false;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "bool");
+    assertInferredElementTypeString(testUnit, "v", "bool");
   }
 
   public void test_typesPropagation_secondAssign_differentType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  var v = true;",
         "  v = 0;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v", "<dynamic>");
   }
 
   /**
    * When we can not identify type of assigned value we should keep "Dynamic" as type of variable.
    */
   public void test_typesPropagation_assign_newUnknownType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "f() {",
         "  var v1 = new Unknown();",
         "  var v2 = new Unknown.name();",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
   }
 
   public void test_typesPropagation_ifAsType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if ((v as String).length != 0) {",
         "    var v1 = v;",
@@ -1878,8 +1881,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
   }
 
   /**
@@ -1887,7 +1890,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * successful.
    */
   public void test_typesPropagation_ifAsType_negation() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (!(v as String).isEmpty()) {",
         "    var v1 = v;",
@@ -1895,12 +1899,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "f(var v) {",
         "  if (v is List<String>) {",
         "    var v1 = v;",
@@ -1911,16 +1915,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "List<String>");
-    assertInferredElementTypeString(libraryResult, "v2", "Map<int, String>");
-    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "List<String>");
+    assertInferredElementTypeString(testUnit, "v2", "Map<int, String>");
+    assertInferredElementTypeString(testUnit, "v3", "<dynamic>");
   }
 
   /**
    * We should not make variable type less specific, even if there is such (useless) user code.
    */
   public void test_typesPropagation_ifIsType_mostSpecific() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "f() {",
         "  int a;",
         "  num b;",
@@ -1935,9 +1939,9 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "a1", "int");
-    assertInferredElementTypeString(libraryResult, "a2", "int");
-    assertInferredElementTypeString(libraryResult, "b1", "int");
+    assertInferredElementTypeString(testUnit, "a1", "int");
+    assertInferredElementTypeString(testUnit, "a2", "int");
+    assertInferredElementTypeString(testUnit, "b1", "int");
   }
 
   /**
@@ -1945,18 +1949,19 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * instead we fall back to "Dynamic".
    */
   public void test_typesPropagation_ifIsType_conflictingTypes() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(int v) {",
         "  if (v is String) {",
         "    var v1 = v;",
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsType_negation() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "f(var v) {",
         "  if (v is! String) {",
         "    var v1 = v;",
@@ -1969,13 +1974,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
-    assertInferredElementTypeString(libraryResult, "v3", "String");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v3", "String");
   }
 
   public void test_typesPropagation_ifIsType_and() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var a, var b) {",
         "  if (a is String && b is List<String>) {",
         "    var a1 = a;",
@@ -1983,12 +1989,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "a1", "String");
-    assertInferredElementTypeString(libraryResult, "b1", "List<String>");
+    assertInferredElementTypeString(testUnit, "a1", "String");
+    assertInferredElementTypeString(testUnit, "b1", "List<String>");
   }
 
   public void test_typesPropagation_ifIsType_or() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (true || v is String) {",
         "    var v1 = v;",
@@ -1998,12 +2005,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
   }
 
   public void test_typesPropagation_whileIsType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  var v = null;",
         "  while (v is String) {",
@@ -2012,12 +2020,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
-    assertInferredElementTypeString(libraryResult, "v2", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v2", "<dynamic>");
   }
 
   public void test_typesPropagation_forIsType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  var v = null;",
         "  for (; v is String; () {var v2 = v;} ()) {",
@@ -2026,13 +2035,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
-    assertInferredElementTypeString(libraryResult, "v2", "String");
-    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v3", "<dynamic>");
   }
 
   public void test_typesPropagation_forEach() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  List<String> values = [];",
         "  for (var v in values) {",
@@ -2040,11 +2050,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  }",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
   public void test_typesPropagation_ifIsNotType_withElse() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (v is! String) {",
         "    var v1 = v;",
@@ -2055,15 +2066,16 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     // we don't know type, but not String
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
     // we know that String
-    assertInferredElementTypeString(libraryResult, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v2", "String");
     // again, we don't know after "if"
-    assertInferredElementTypeString(libraryResult, "v3", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v3", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenReturn() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  var v1 = v;",
         "  if (v is! String) {",
@@ -2072,12 +2084,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
-    assertInferredElementTypeString(libraryResult, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v2", "String");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenThrow() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (v is! String) {",
         "    throw new Exception();",
@@ -2085,22 +2098,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
   public void test_typesPropagation_ifIsNotType_emptyThen() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (v is! String) {",
         "  }",
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_otherThen() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (v is! String) {",
         "    ;",
@@ -2108,11 +2123,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_hasThenThrow_withCatch() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  try {",
         "    if (v is! String) {",
@@ -2123,11 +2139,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_or() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var p1, var p2) {",
         "  if (p1 is! int || p2 is! String) {",
         "    return;",
@@ -2136,12 +2153,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v2 = p2;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "int");
-    assertInferredElementTypeString(libraryResult, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "String");
   }
 
   public void test_typesPropagation_ifIsNotType_and() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (v is! String && true) {",
         "    return;",
@@ -2149,11 +2167,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_not() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (!(v is! String)) {",
         "    return;",
@@ -2161,11 +2180,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "<dynamic>");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_ifIsNotType_not2() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (!!(v is! String)) {",
         "    return;",
@@ -2173,11 +2193,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
   public void test_typesPropagation_ifNotIsType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
         "f(var v) {",
         "  if (!(v is String)) {",
         "    return;",
@@ -2185,11 +2206,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v1 = v;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "String");
+    assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
   public void test_typesPropagation_field_inClass() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
         "  var v1 = 123;",
@@ -2197,25 +2218,25 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v3 = 1 + 2.0;",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "int");
-    assertInferredElementTypeString(libraryResult, "v2", "double");
-    assertInferredElementTypeString(libraryResult, "v3", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v3", "double");
   }
 
   public void test_typesPropagation_field_topLevel() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "var v1 = 123;",
         "var v2 = Math.random();",
         "var v3 = 1 + 2.0;",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "int");
-    assertInferredElementTypeString(libraryResult, "v2", "double");
-    assertInferredElementTypeString(libraryResult, "v3", "double");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "double");
+    assertInferredElementTypeString(testUnit, "v3", "double");
   }
 
   public void test_typesPropagation_FunctionAliasType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "typedef F();",
         "foo(F f) {",
@@ -2224,7 +2245,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "F");
+    assertInferredElementTypeString(testUnit, "v", "F");
   }
 
   /**
@@ -2236,7 +2257,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3712
    */
   public void test_typesPropagation_parameterOfClosure_invocationNormalParameter() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "typedef void EventListener(Event event);",
@@ -2248,7 +2269,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event");
   }
 
   /**
@@ -2256,7 +2277,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3712
    */
   public void test_typesPropagation_parameterOfClosure_invocationNamedPositionalParameter() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "typedef void EventListener(Event event);",
@@ -2268,7 +2289,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event");
   }
 
   /**
@@ -2276,7 +2297,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * http://code.google.com/p/dart/issues/detail?id=3712
    */
   public void test_typesPropagation_parameterOfClosure_invocationNamedParameter() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "typedef void EventListener(Event event);",
@@ -2288,14 +2309,14 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event");
   }
 
   /**
    * http://code.google.com/p/dart/issues/detail?id=3712
    */
   public void test_typesPropagation_parameterOfClosure_invocationOfMethod() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "typedef void EventListener(Event event);",
@@ -2310,7 +2331,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event");
   }
 
   /**
@@ -2318,7 +2339,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * without using {@link FunctionAliasType}.
    */
   public void test_typesPropagation_parameterOfClosure_functionType() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class Event {}",
         "class Button<T> {",
@@ -2332,11 +2353,11 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  });",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v", "Event");
+    assertInferredElementTypeString(testUnit, "v", "Event");
   }
 
   public void test_getType_binaryExpression() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+    analyzeLibrary(
         "f(var arg) {",
         "  var v1 = 1 + 2;",
         "  var v2 = 1 - 2;",
@@ -2357,23 +2378,23 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  var v17 = arg as int",
         "}",
         "");
-    assertInferredElementTypeString(libraryResult, "v1", "int");
-    assertInferredElementTypeString(libraryResult, "v2", "int");
-    assertInferredElementTypeString(libraryResult, "v3", "int");
-    assertInferredElementTypeString(libraryResult, "v4", "int");
-    assertInferredElementTypeString(libraryResult, "v5", "int");
-    assertInferredElementTypeString(libraryResult, "v6", "double");
-    assertInferredElementTypeString(libraryResult, "v7", "double");
-    assertInferredElementTypeString(libraryResult, "v8", "double");
-    assertInferredElementTypeString(libraryResult, "v9", "double");
-    assertInferredElementTypeString(libraryResult, "v10", "double");
-    assertInferredElementTypeString(libraryResult, "v11", "double");
-    assertInferredElementTypeString(libraryResult, "v12", "double");
-    assertInferredElementTypeString(libraryResult, "v13", "double");
-    assertInferredElementTypeString(libraryResult, "v14", "double");
-    assertInferredElementTypeString(libraryResult, "v15", "double");
-    assertInferredElementTypeString(libraryResult, "v16", "double");
-    assertInferredElementTypeString(libraryResult, "v17", "int");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "int");
+    assertInferredElementTypeString(testUnit, "v3", "int");
+    assertInferredElementTypeString(testUnit, "v4", "int");
+    assertInferredElementTypeString(testUnit, "v5", "int");
+    assertInferredElementTypeString(testUnit, "v6", "double");
+    assertInferredElementTypeString(testUnit, "v7", "double");
+    assertInferredElementTypeString(testUnit, "v8", "double");
+    assertInferredElementTypeString(testUnit, "v9", "double");
+    assertInferredElementTypeString(testUnit, "v10", "double");
+    assertInferredElementTypeString(testUnit, "v11", "double");
+    assertInferredElementTypeString(testUnit, "v12", "double");
+    assertInferredElementTypeString(testUnit, "v13", "double");
+    assertInferredElementTypeString(testUnit, "v14", "double");
+    assertInferredElementTypeString(testUnit, "v15", "double");
+    assertInferredElementTypeString(testUnit, "v16", "double");
+    assertInferredElementTypeString(testUnit, "v17", "int");
   }
 
   /**
@@ -2426,8 +2447,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(libraryResult, "v1", "int");
-    assertInferredElementTypeString(libraryResult, "v2", "bool");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "bool");
   }
 
   public void test_getType_getterInNegation_generic() throws Exception {
@@ -2451,8 +2472,8 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-    assertInferredElementTypeString(libraryResult, "v1", "bool");
-    assertInferredElementTypeString(libraryResult, "v2", "bool");
+    assertInferredElementTypeString(testUnit, "v1", "bool");
+    assertInferredElementTypeString(testUnit, "v2", "bool");
   }
 
   public void test_getType_getterInSwitch_default() throws Exception {
@@ -2506,44 +2527,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertErrors(libraryResult.getErrors());
-  }
-
-  /**
-   * Asserts that {@link Element} with given name has expected type.
-   */
-  private void assertInferredElementTypeString(
-      AnalyzeLibraryResult libraryResult,
-      String variableName,
-      String expectedType) {
-    // find element
-    Element element = getNamedElement(libraryResult, variableName);
-    assertNotNull(element);
-    // check type
-    Type actualType = element.getType();
-    assertEquals(element.getName(), expectedType, actualType.toString());
-    // should be inferred
-    if (TypeKind.of(actualType) != TypeKind.DYNAMIC) {
-      assertTrue("Should be marked as inferred", actualType.isInferred());
-    }
-  }
-
-  /**
-   * @return the {@link Element} with given name, may be <code>null</code>.
-   */
-  private Element getNamedElement(AnalyzeLibraryResult libraryResult, final String name) {
-    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
-    final Element[] result = {null};
-    unit.accept(new ASTVisitor<Void>() {
-      @Override
-      public Void visitIdentifier(DartIdentifier node) {
-        Element element = node.getElement();
-        if (element != null && element.getName().equals(name)) {
-          result[0] = element;
-        }
-        return super.visitIdentifier(node);
-      }
-    });
-    return result[0];
   }
 
   /**

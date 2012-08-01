@@ -13,6 +13,7 @@ import com.google.dart.compiler.CommandLineOptions.CompilerOptions;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartFunctionTypeAlias;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.LibraryUnit;
@@ -20,6 +21,9 @@ import com.google.dart.compiler.common.ErrorExpectation;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.DartParser;
 import com.google.dart.compiler.parser.DartParserRunner;
+import com.google.dart.compiler.resolver.Element;
+import com.google.dart.compiler.type.Type;
+import com.google.dart.compiler.type.TypeKind;
 
 import junit.framework.TestCase;
 
@@ -38,6 +42,7 @@ public abstract class CompilerTestCase extends TestCase {
 
   private static final String UTF8 = "UTF-8";
   protected CompilerConfiguration compilerConfiguration;
+  protected DartUnit testUnit;
 
   /**
    * Instance of {@link CompilerConfiguration} for incremental check-only compilation.
@@ -171,8 +176,18 @@ public abstract class CompilerTestCase extends TestCase {
     compilerConfiguration = CHECK_ONLY_CONFIGURATION;
   }
 
+  @Override
+  protected void tearDown() throws Exception {
+    compilerConfiguration = null;
+    testUnit = null;
+    super.tearDown();
+  }
+
   protected AnalyzeLibraryResult analyzeLibrary(String... lines) throws Exception {
-    return analyzeLibrary(getName(), makeCode(lines));
+    String name = getName();
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(name, makeCode(lines));
+    testUnit = libraryResult.getLibraryUnitResult().getUnit(name);
+    return libraryResult;
   }
 
   /**
@@ -400,5 +415,43 @@ public abstract class CompilerTestCase extends TestCase {
   public static String getNodeSource(String code, DartNode node) {
     SourceInfo sourceInfo = node.getSourceInfo();
     return code.substring(sourceInfo.getOffset(), sourceInfo.getEnd());
+  }
+
+
+  /**
+   * Asserts that {@link Element} with given name has expected type.
+   */
+  protected static void assertInferredElementTypeString(
+      DartUnit unit,
+      String variableName,
+      String expectedType) {
+    // find element
+    Element element = getNamedElement(unit, variableName);
+    assertNotNull(element);
+    // check type
+    Type actualType = element.getType();
+    assertEquals(element.getName(), expectedType, actualType.toString());
+    // should be inferred
+    if (TypeKind.of(actualType) != TypeKind.DYNAMIC) {
+      assertTrue("Should be marked as inferred", actualType.isInferred());
+    }
+  }
+
+  /**
+   * @return the {@link Element} with given name, may be <code>null</code>.
+   */
+  private static Element getNamedElement(DartUnit unit, final String name) {
+    final Element[] result = {null};
+    unit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitIdentifier(DartIdentifier node) {
+        Element element = node.getElement();
+        if (element != null && element.getName().equals(name)) {
+          result[0] = element;
+        }
+        return super.visitIdentifier(node);
+      }
+    });
+    return result[0];
   }
 }
