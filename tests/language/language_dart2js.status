@@ -2,7 +2,7 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-[ $compiler == dart2js ]
+[ $compiler == dart2js || $compiler == dart2dart ]
 # VM specific tests that should not be run by dart2js.
 *vm_test: Skip
 *vm_negative_test: Skip

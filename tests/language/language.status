@@ -160,12 +160,9 @@ implicit_closure_test: Fail, Pass
 issue1363_test: Fail
 list_literal4_test: Fail
 map_literal4_test: Fail
-math_vm_test: Fail
 static_implicit_closure_test: Fail, Pass
 static_initializer_type_error_test: Fail
-type_cast_vm_test: Fail
 type_checks_in_factory_method_test: Fail
-type_vm_test: Fail
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
 # chokes on things like typedef(x) => "typedef $x" and alike.
@@ -215,6 +212,26 @@ duplicate_implements_test/04: Fail
 duplicate_constructor_test/01: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
+# Common with language_dart2js.
+function_type_alias3_test: Fail
+function_type_alias4_test: Crash, Fail
+function_type_alias5_test/00: Fail
+function_type_alias5_test/01: Fail
+function_type_alias5_test/02: Fail
+function_type_alias7_test/00: Fail
+function_type_alias_test: Fail
+function_type_parameter2_test: Fail
+function_type_parameter_test: Fail
+generic_deep_test: Fail
+get_set_syntax_test/none: Fail
+implicit_scope_test: Fail
+instanceof2_test: Fail
+instanceof3_test: Fail
+library_prefixes_test: Fail
+method_name_test: Fail
+method_override_test: Fail
+named_parameters_type_test: Fail
+numbers_test: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
 constructor5_test: Fail
@@ -249,21 +266,9 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 function_literals_test: Fail
-function_type_alias3_test: Fail
-function_type_alias4_test: Crash, Fail
-function_type_alias5_test/00: Fail
-function_type_alias5_test/01: Fail
-function_type_alias5_test/02: Fail
 function_type_alias6_test: Fail
-function_type_alias7_test/00: Fail
-function_type_alias_test: Fail
-function_type_parameter2_test: Fail
-function_type_parameter_test: Fail
-generic_deep_test: Fail
 generic_instanceof3_test: Fail
-get_set_syntax_test/none: Fail
 getters_setters2_test/03: Fail
-implicit_scope_test: Fail
 implicit_this_test/01: Fail
 implicit_this_test/02: Fail
 implicit_this_test/03: Fail
@@ -271,8 +276,6 @@ implicit_this_test/04: Fail
 implicit_this_test/none: Fail
 implied_interface_test: Fail
 incr_op_test: Fail
-instanceof2_test: Fail
-instanceof3_test: Fail
 instanceof_test: Fail
 interface_factory_constructor_negative_test: Fail
 interface_inherit_field_test: Fail
@@ -280,17 +283,12 @@ interface_static_method_negative_test: Fail
 interface_test: Fail
 is_operator_test: Fail
 library5_test: Fail
-library_prefixes_test: Fail
 library_same_name_used_test: Fail
 local_function2_test: Fail
-method_name_test: Fail
 method_override2_test/none: Fail
-method_override_test: Fail
-named_parameters_type_test: Fail
 naming_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
-numbers_test: Fail
 operator1_negative_test: Fail
 operator3_test: Fail
 operator_test: Fail
