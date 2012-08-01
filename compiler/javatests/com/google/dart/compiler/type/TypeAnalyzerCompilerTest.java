@@ -52,6 +52,7 @@ import java.io.StringReader;
 import java.net.URI;
 import java.util.Iterator;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 /**
@@ -3172,6 +3173,80 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.RETHROW_NOT_IN_CATCH, 3, 3, 6));
+  }
+
+  public void test_externalKeyword_OK() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "external topFunction();",
+        "external get topGetter();",
+        "external set topSetter(var v);",
+        "class A {",
+        "  external const A.con();",
+        "  external A();",
+        "  external factory A.named();",
+        "  external classMethod();",
+        "  external static classMethodStatic();",
+        "  external get classGetter();",
+        "  external set classSetter(var v);",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+    // all method-like nodes here are "external"
+    final AtomicInteger methodCounter = new AtomicInteger();
+    testUnit.accept(new ASTVisitor<Void>() {
+      @Override
+      public Void visitMethodDefinition(DartMethodDefinition node) {
+        methodCounter.incrementAndGet();
+        assertTrue(node.getModifiers().isExternal());
+        return null;
+      }
+    });
+    assertEquals(10, methodCounter.get());
+  }
+
+  /**
+   * Modifier "external" can be applied only to method-like elements.
+   */
+  public void test_externalKeyword_bad_field() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "external var topVar1;",
+        "external int topVar2;",
+        "class A {",
+        "  external var field1;",
+        "  external int field2;",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 2, 14, 7),
+        errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 3, 14, 7),
+        errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 5, 16, 6),
+        errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 6, 16, 6));
+  }
+  
+  /**
+   * Methods with "external" cannot have body.
+   */
+  public void test_externalKeyword_bad_body() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "external topFunction() {}",
+        "class A {",
+        "  external A() {}",
+        "  external factory A.named() {}",
+        "  external classMethod() {}",
+        "  external abstract classMethodAbstract();",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 2, 24, 2),
+        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 4, 16, 2),
+        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 5, 30, 2),
+        errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 6, 26, 2),
+        errEx(ParserErrorCode.EXTERNAL_ABSTRACT, 7, 12, 8));
   }
 
   private static <T extends DartNode> T findNode(

@@ -64,6 +64,9 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_TOKEN("Unexpected token '%s' (expected '%s')"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_VAR_FINAL_OR_TYPE("Expected 'var', 'final' or type"),
+  EXTERNAL_ONLY_METHOD("Only a top-level function, a method, a getter, a setter or an non-redirecting constructor can be specified as external"),
+  EXTERNAL_METHOD_BODY("External methods cannot have body"),
+  EXTERNAL_ABSTRACT("External methods cannot be abstract"),
   // TODO(zundel): this error message is out of date
   NATIVE_ONLY_CLASS("Native keyword can be specified only for classes"),
   NATIVE_ONLY_CORE_LIB("Native keyword can be used only in corelib"),

@@ -140,6 +140,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
   //private static final String EXPORT_KEYWORD = "export";
+  private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
   //private static final String HIDE_KEYWORD = "hide";
@@ -162,6 +163,7 @@ public class DartParser extends CompletionHooksParserBase {
     ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
+    EXTERNAL_KEYWORD,
     FACTORY_KEYWORD,
     GETTER_KEYWORD,
     IMPLEMENTS_KEYWORD,
@@ -1002,6 +1004,9 @@ public class DartParser extends CompletionHooksParserBase {
   private DartNode parseFieldOrMethod(boolean allowStatic) {
     beginClassMember();
     Modifiers modifiers = Modifiers.NONE;
+    if (peek(1) != Token.LPAREN && optionalPseudoKeyword(EXTERNAL_KEYWORD)) {
+      modifiers = modifiers.makeExternal();
+    }
     if (peek(1) != Token.LPAREN && optionalPseudoKeyword(STATIC_KEYWORD)) {
       if (!allowStatic) {
         reportError(position(), ParserErrorCode.TOP_LEVEL_CANNOT_BE_STATIC);
@@ -1019,6 +1024,9 @@ public class DartParser extends CompletionHooksParserBase {
       }
       if (modifiers.isStatic()) {
         reportError(position(), ParserErrorCode.STATIC_MEMBERS_CANNOT_BE_ABSTRACT);
+      }
+      if (modifiers.isExternal()) {
+        reportError(position(), ParserErrorCode.EXTERNAL_ABSTRACT);
       }
       modifiers = modifiers.makeAbstract();
     }
@@ -1297,7 +1305,8 @@ public class DartParser extends CompletionHooksParserBase {
       modifiers = modifiers.makeNative();
       function = new DartFunction(formals, parseNativeBlock(modifiers), null);
     } else {
-      function = new DartFunction(formals, parseFunctionStatementBody(true), null);
+      function = new DartFunction(formals,
+          parseFunctionStatementBody(!modifiers.isExternal(), true), null);
     }
     doneWithoutConsuming(function);
     return DartMethodDefinition.create(name, function, modifiers, null);
@@ -1463,7 +1472,7 @@ public class DartParser extends CompletionHooksParserBase {
         modifiers = modifiers.makeNative();
         body = parseNativeBlock(modifiers);
       } else {
-        body = parseFunctionStatementBody(true);
+        body = parseFunctionStatementBody(!modifiers.isExternal(), true);
       }
       if (body != null && modifiers.isRedirectedConstructor()) {
         reportError(position(), ParserErrorCode.REDIRECTING_CONSTRUCTOR_CANNOT_HAVE_A_BODY);
@@ -1490,7 +1499,7 @@ public class DartParser extends CompletionHooksParserBase {
       //if (!modifiers.isStatic()) {
       //  reportError(position(), ParserErrorCode.EXPORTED_FUNCTIONS_MUST_BE_STATIC);
       //}
-      return done(parseFunctionStatementBody(true));
+      return done(parseFunctionStatementBody(!modifiers.isExternal(), true));
     } else {
       expect(Token.SEMICOLON);
       return done(new DartNativeBlock());
@@ -1700,6 +1709,9 @@ public class DartParser extends CompletionHooksParserBase {
         if (value != null) {
           modifiers = modifiers.makeInitialized();
         }
+      }
+      if (modifiers.isExternal()) {
+        reportError(name, ParserErrorCode.EXTERNAL_ONLY_METHOD);
       }
       fields.add(done(new DartField(name, modifiers, null, value)));
     } while (optional(Token.COMMA));
@@ -3051,7 +3063,7 @@ public class DartParser extends CompletionHooksParserBase {
         return null;
     }
     List<DartParameter> params = parseFormalParameterList();
-    DartBlock body = parseFunctionStatementBody(isDeclaration);
+    DartBlock body = parseFunctionStatementBody(true, isDeclaration);
     DartFunction function = new DartFunction(params, body, returnType);
     doneWithoutConsuming(function);
     return function;
@@ -3378,7 +3390,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @param requireSemicolonForArrow true if a semicolon is required after an arrow expression
    * @return {@link DartBlock} instance containing function body
    */
-  private DartBlock parseFunctionStatementBody(boolean requireSemicolonForArrow) {
+  private DartBlock parseFunctionStatementBody(boolean allowBody, boolean requireSemicolonForArrow) {
     // A break inside a function body should have nothing to do with a loop in
     // the code surrounding the definition.
     boolean oldInLoopStatement = inLoopStatement;
@@ -3391,7 +3403,9 @@ public class DartParser extends CompletionHooksParserBase {
       } else {
         beginFunctionStatementBody();
         if (optional(Token.SEMICOLON)) {
-          reportError(position(), ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY);
+          if (allowBody) {
+            reportError(position(), ParserErrorCode.EXPECTED_FUNCTION_STATEMENT_BODY);
+          }
           result = done(null);
         } else if (optional(Token.ARROW)) {
           DartExpression expr = parseExpression();
@@ -3405,6 +3419,9 @@ public class DartParser extends CompletionHooksParserBase {
         } else {
           result = done(parseBlock());
         }
+      }
+      if (!allowBody && result != null) {
+        reportError(result, ParserErrorCode.EXTERNAL_METHOD_BODY);
       }
       return result;
     } finally {

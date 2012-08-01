@@ -649,6 +649,7 @@ public class Resolver {
       if (body == null
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
+          && !member.getModifiers().isExternal()
           && !isInterface) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }

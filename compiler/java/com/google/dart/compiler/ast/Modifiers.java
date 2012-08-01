@@ -28,6 +28,7 @@ public class Modifiers {
   private static final int FLAG_FINAL = FLAG_REDIRECTEDCONSTRUCTOR << 1;
   private static final int FLAG_NAMED = FLAG_FINAL << 1;
   private static final int FLAG_INITIALIZED = FLAG_NAMED << 1;
+  private static final int FLAG_EXTERNAL = FLAG_INITIALIZED << 1;
 
   private final int value;
 
@@ -45,6 +46,7 @@ public class Modifiers {
   public boolean isFinal() { return is(FLAG_FINAL); }
   public boolean isNamed() { return is(FLAG_NAMED); }
   public boolean isInitialized() { return is(FLAG_INITIALIZED); }
+  public boolean isExternal() { return is(FLAG_EXTERNAL); }
 
   public Modifiers makeStatic() { return make(FLAG_STATIC); }
   public Modifiers makeConstant() { return make(FLAG_CONSTANT); }
@@ -60,6 +62,7 @@ public class Modifiers {
   public Modifiers makeFinal() { return make(FLAG_FINAL); }
   public Modifiers makeNamed() { return make(FLAG_NAMED); }
   public Modifiers makeInitialized() { return make(FLAG_INITIALIZED); }
+  public Modifiers makeExternal() { return make(FLAG_EXTERNAL); }
 
   public Modifiers removeStatic() { return remove(FLAG_STATIC); }
   public Modifiers removeConstant() { return remove(FLAG_CONSTANT); }
@@ -75,6 +78,7 @@ public class Modifiers {
   public Modifiers removeFinal() { return remove(FLAG_FINAL); }
   public Modifiers removeNamed() { return remove(FLAG_NAMED); }
   public Modifiers removeIniitalized() { return remove(FLAG_INITIALIZED); }
+  public Modifiers removeExternal() { return remove(FLAG_EXTERNAL); }
 
   public boolean is(int flag) {
     return (value & flag) != 0;
