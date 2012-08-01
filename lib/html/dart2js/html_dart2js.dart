@@ -15328,13 +15328,7 @@ class _UnknownElementImpl extends _ElementImpl implements UnknownElement native 
   // Hooks to support custom WebComponents.
   var xtag;
 
-  noSuchMethod(String name, List args) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodException(this, name, args);
-    } else {
-      return dynamicUnknownElementDispatcher(this, name, args);
-    }
-  }
+  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {

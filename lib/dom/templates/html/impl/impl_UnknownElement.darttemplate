@@ -11,6 +11,7 @@ $!MEMBERS
   // Hooks to support custom WebComponents.
   var xtag;
 
+$if DARTIUM
   noSuchMethod(String name, List args) {
     if (dynamicUnknownElementDispatcher == null) {
       throw new NoSuchMethodException(this, name, args);
@@ -18,4 +19,7 @@ $!MEMBERS
       return dynamicUnknownElementDispatcher(this, name, args);
     }
   }
+$else
+  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
+$endif
 }
