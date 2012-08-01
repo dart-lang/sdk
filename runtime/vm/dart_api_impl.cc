@@ -964,7 +964,6 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
 
 // --- Messages and Ports ---
 
-
 DART_EXPORT void Dart_SetMessageNotifyCallback(
     Dart_MessageNotifyCallback message_notify_callback) {
   Isolate* isolate = Isolate::Current();
@@ -1093,7 +1092,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   if (handler == NULL) {
     OS::PrintErr("%s expects argument 'handler' to be non-null.\n",
                  CURRENT_FUNC);
-    return kIllegalPort;
+    return ILLEGAL_PORT;
   }
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());

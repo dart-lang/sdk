@@ -805,10 +805,10 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate);
 typedef int64_t Dart_Port;
 
 /**
- * kIllegalPort is a port number guaranteed never to be associated
- * with a valid port.
+ * ILLEGAL_PORT is a port number guaranteed never to be associated with a valid
+ * port.
  */
-const Dart_Port kIllegalPort = 0;
+#define ILLEGAL_PORT ((Dart_Port) 0)
 
 /**
  * A message notification callback.
@@ -978,7 +978,7 @@ typedef void (*Dart_NativeMessageHandler)(Dart_Port dest_port_id,
  *                            native port concurrently?
  *
  * \return If successful, returns the port id for the native port.  In
- *   case of error, returns kIllegalPort.
+ *   case of error, returns ILLEGAL_PORT.
  */
 DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
                                          Dart_NativeMessageHandler handler,

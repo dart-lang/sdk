@@ -5875,7 +5875,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
-  EXPECT_EQ(kIllegalPort, error_port);
+  EXPECT_EQ(ILLEGAL_PORT, error_port);
 
   // Create the port w/o a current isolate, just to make sure that works.
   Dart_Port port_id1 =

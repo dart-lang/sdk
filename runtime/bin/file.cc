@@ -964,16 +964,16 @@ Dart_Port File::GetServicePort() {
     service_ports_ = new Dart_Port[service_ports_size_];
     service_ports_index_ = 0;
     for (int i = 0; i < service_ports_size_; i++) {
-      service_ports_[i] = kIllegalPort;
+      service_ports_[i] = ILLEGAL_PORT;
     }
   }
 
   Dart_Port result = service_ports_[service_ports_index_];
-  if (result == kIllegalPort) {
+  if (result == ILLEGAL_PORT) {
     result = Dart_NewNativePort("FileService",
                                 FileService,
                                 true);
-    ASSERT(result != kIllegalPort);
+    ASSERT(result != ILLEGAL_PORT);
     service_ports_[service_ports_index_] = result;
   }
   service_ports_index_ = (service_ports_index_ + 1) % service_ports_size_;
@@ -985,7 +985,7 @@ void FUNCTION_NAME(File_NewServicePort)(Dart_NativeArguments args) {
   Dart_EnterScope();
   Dart_SetReturnValue(args, Dart_Null());
   Dart_Port service_port = File::GetServicePort();
-  if (service_port != kIllegalPort) {
+  if (service_port != ILLEGAL_PORT) {
     // Return a send port for the service port.
     Dart_Handle send_port = Dart_NewSendPort(service_port);
     Dart_SetReturnValue(args, send_port);
