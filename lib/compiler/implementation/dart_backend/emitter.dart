@@ -23,7 +23,6 @@ class Emitter {
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
     Unparser unparser = new Unparser(renamer);
-    renamer.setContext(classElement.getCompilationUnit());
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
     sb.add(classElement.beginToken.slowToString());
@@ -32,7 +31,7 @@ class Emitter {
       sb.add(classElement.beginToken.next.slowToString());  // 'class'
     }
     sb.add(' ');
-    sb.add(renamer.renameType(classElement.type));
+    sb.add(renamer.renameElement(classElement));
     if (classNode.typeParameters !== null) {
       sb.add(unparser.unparse(classNode.typeParameters));
     }
