@@ -127,15 +127,6 @@ void FlowGraphAllocator::ComputeInitialSets() {
           if (phi == NULL) continue;
           kill->Add(phi->ssa_temp_index());
           live_in->Remove(phi->ssa_temp_index());
-
-          for (intptr_t k = 0; k < phi->InputCount(); k++) {
-            Value* val = phi->InputAt(k);
-            if (val->IsUse()) {
-              BlockEntryInstr* pred = block->PredecessorAt(k);
-              const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-              live_out_[pred->postorder_number()]->Add(use);
-            }
-          }
         }
       }
     }
