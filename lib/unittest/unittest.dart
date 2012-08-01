@@ -166,7 +166,7 @@ Configuration configure(Configuration config) {
   return _oldConfig;
 }
 
-void log(String message) => _config.log(message);
+void logMessage(String message) => _config.log(message);
 
 /**
  * Description text of the current test group. If multiple groups are nested,
