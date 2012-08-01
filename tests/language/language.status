@@ -200,12 +200,19 @@ cyclic_type_variable_test/02: Fail
 cyclic_type_variable_test/03: Fail
 cyclic_type_variable_test/04: Fail
 cyclic_type_variable_test/none: Fail
+default_factory2_test/01: Fail
 final_syntax_test/03: Fail
 final_syntax_test/04: Fail
 # Call operator is not supported by dart2js frontend.
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
+duplicate_implements_test/01: Fail
+duplicate_implements_test/02: Fail
+duplicate_implements_test/03: Fail
+duplicate_implements_test/04: Fail
+# dart2js allows duplicate constructor definitions.
+duplicate_constructor_test/01: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
 constructor5_test: Fail
@@ -222,14 +229,8 @@ super_first_constructor_test: Fail
 # Should be triaged.
 condition_bailout_test: Fail
 const_test: Fail
-default_factory2_test/01: Fail
 default_factory3_test: Fail
 default_factory_library_test: Fail
-duplicate_constructor_test/01: Fail
-duplicate_implements_test/01: Fail
-duplicate_implements_test/02: Fail
-duplicate_implements_test/03: Fail
-duplicate_implements_test/04: Fail
 dynamic_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
