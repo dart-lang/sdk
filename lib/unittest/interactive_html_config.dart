@@ -117,8 +117,13 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
    * a timestamp and posts them back to the master window.
    */
   void logMessage(TestCase testCase, String message) {
-    Date end = new Date.now();
-    int elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
+    int elapsed;
+    if (testCase == null) {
+      elapsed = -1;
+    } else {
+      Date end = new Date.now();
+      elapsed = end.difference(_testStarts[testCase.id]).inMilliseconds;
+    }
     masterWindow.postMessage(
       _Message.text(_Message.LOG, elapsed, message).toString(), '*');
   }
@@ -344,14 +349,19 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
   // is in the format used by [_Message].
   void logMessage(TestCase testCase, String message) {
     var msg = new _Message.fromString(message);
-    var actions = document.query('#$_testIdPrefix${testCase.id}').
-        query('.test-actions');
-    String elapsedText = msg.elapsed >= 0 ? "${msg.elapsed}ms" : "";
-    actions.nodes.add(new Element.html(
-        "<li style='list-style-stype:none>"
-            "<div class='timer-result'>${elapsedText}</div>"
-            "<div class='test-title'>${msg.body}</div>"
-        "</li>"));
+    if (msg.elapsed < 0) { // No associated test case.
+      document.query('#otherlogs').nodes.add(
+          new Element.html('<p>${msg.body}</p>'));
+    } else {
+      var actions = document.query('#$_testIdPrefix${testCase.id}').
+          query('.test-actions');
+      String elapsedText = msg.elapsed >= 0 ? "${msg.elapsed}ms" : "";
+      actions.nodes.add(new Element.html(
+          "<li style='list-style-stype:none>"
+              "<div class='timer-result'>${elapsedText}</div>"
+              "<div class='test-title'>${msg.body}</div>"
+          "</li>"));
+    }
   }
 
   void onTestResult(TestCase testCase) {
@@ -414,6 +424,10 @@ void _prepareDom() {
       startButton.disabled = true;
       rerunTests();
     });
+  }
+  if (document.query('#otherlogs') == null) {
+    document.body.nodes.add(new Element.html(
+        "<div id='otherlogs'></div>"));
   }
   if (document.query('#specs') == null) {
     document.body.nodes.add(new Element.html(
