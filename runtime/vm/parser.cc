@@ -1609,7 +1609,9 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
 }
 
 
-AstNode* Parser::ParseInitializer(const Class& cls, LocalVariable* receiver) {
+AstNode* Parser::ParseInitializer(const Class& cls,
+                                  LocalVariable* receiver,
+                                  GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializer");
   const intptr_t field_pos = TokenPos();
   if (CurrentToken() == Token::kTHIS) {
@@ -1630,6 +1632,7 @@ AstNode* Parser::ParseInitializer(const Class& cls, LocalVariable* receiver) {
     ErrorMsg(field_pos, "unresolved reference to instance field '%s'",
              field_name.ToCString());
   }
+  CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
   AstNode* instance = new LoadLocalNode(field_pos, *receiver);
   return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
 }
@@ -1671,7 +1674,8 @@ struct FieldInitExpression {
 
 
 void Parser::ParseInitializedInstanceFields(const Class& cls,
-                 GrowableArray<FieldInitExpression>* initializers) {
+                 GrowableArray<FieldInitExpression>* initializers,
+                 GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializedInstanceFields");
   const Array& fields = Array::Handle(cls.fields());
   Field& f = Field::Handle();
@@ -1681,11 +1685,18 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
     if (!f.is_static() && f.has_initializer()) {
       Field& field = Field::ZoneHandle();
       field ^= fields.At(i);
+      if (field.is_final()) {
+        // Final fields with initializer expression may not be initialized
+        // again by constructors. Remember that this field is already
+        // initialized.
+        initialized_fields->Add(&field);
+      }
       intptr_t field_pos = field.token_pos();
       SetPosition(field_pos);
       ASSERT(IsIdentifier());
       ConsumeToken();
       ExpectToken(Token::kASSIGN);
+      // TODO(hausner): Allow non-const expressions here for final fields.
       AstNode* init_expr = ParseConstExpr();
       ASSERT(init_expr != NULL);
       FieldInitExpression initializer;
@@ -1698,7 +1709,25 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
 }
 
 
-void Parser::ParseInitializers(const Class& cls, LocalVariable* receiver) {
+void Parser::CheckDuplicateFieldInit(intptr_t init_pos,
+                                    GrowableArray<Field*>* initialized_fields,
+                                    Field* field) {
+  ASSERT(!field->is_static());
+  for (int i = 0; i < initialized_fields->length(); i++) {
+    Field* initialized_field = (*initialized_fields)[i];
+    if (initialized_field->raw() == field->raw()) {
+      ErrorMsg(init_pos,
+               "duplicate initialization for field %s",
+               String::Handle(field->name()).ToCString());
+    }
+  }
+  initialized_fields->Add(field);
+}
+
+
+void Parser::ParseInitializers(const Class& cls,
+                               LocalVariable* receiver,
+                               GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializers");
   bool super_init_seen = false;
   if (CurrentToken() == Token::kCOLON) {
@@ -1724,7 +1753,7 @@ void Parser::ParseInitializers(const Class& cls, LocalVariable* receiver) {
         init_statement = ParseSuperInitializer(cls, receiver);
         super_init_seen = true;
       } else {
-        init_statement = ParseInitializer(cls, receiver);
+        init_statement = ParseInitializer(cls, receiver, initialized_fields);
       }
       current_block_->statements->Add(init_statement);
     } while (CurrentToken() == Token::kCOMMA);
@@ -1799,8 +1828,9 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // Parse expressions of instance fields that have an explicit
   // initializers.
   GrowableArray<FieldInitExpression> initializers;
+  GrowableArray<Field*> initialized_fields;
   Class& cls = Class::Handle(func.owner());
-  ParseInitializedInstanceFields(cls, &initializers);
+  ParseInitializedInstanceFields(cls, &initializers, &initialized_fields);
 
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
@@ -1891,7 +1921,8 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   // the parameters are added to the scope, so that a parameter
   // name cannot shadow a name used in the field initializer expression.
   GrowableArray<FieldInitExpression> initializers;
-  ParseInitializedInstanceFields(cls, &initializers);
+  GrowableArray<Field*> initialized_fields;
+  ParseInitializedInstanceFields(cls, &initializers, &initialized_fields);
 
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
@@ -1926,6 +1957,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                    "unresolved reference to instance field '%s'",
                    field_name.ToCString());
         }
+        CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
         AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
         LocalVariable* p =
             current_block_->scope->LookupVariable(*param.name, false);
@@ -1943,7 +1975,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   }
 
   // Now parse the explicit initializer list or constructor redirection.
-  ParseInitializers(cls, receiver);
+  ParseInitializers(cls, receiver, &initialized_fields);
 
   SequenceNode* init_statements = CloseBlock();
   if (init_statements->length() > 0) {

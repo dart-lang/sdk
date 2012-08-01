@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A implements B {
-  final x = 4;
+  final x;
   const A(this.x);
 }
 

@@ -35,14 +35,8 @@ constructor6_test: Fail          # (Discussion ongoing)
 const_init6_negative_test: Fail       # Issue 811
 super_first_constructor_test: Fail # Issue 1372.
 
-# Issue 1034
-constructor_duplicate_initializers_test/01: Fail
-constructor_duplicate_initializers_test/02: Fail
-
 # Issue 1355
 call_operator_test: Fail
-
-const_constructor_syntax_test/05: Fail
 
 constructor_redirect_test/01: Fail # Issue 2103.
 

@@ -308,13 +308,21 @@ class Parser : ValueObject {
   void CheckConstFieldsInitialized(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
-           GrowableArray<FieldInitExpression>* initializers);
+           GrowableArray<FieldInitExpression>* initializers,
+           GrowableArray<Field*>* initialized_fields);
+  void CheckDuplicateFieldInit(intptr_t init_pos,
+                               GrowableArray<Field*>* initialized_fields,
+                               Field* field);
   void GenerateSuperConstructorCall(const Class& cls,
                                     LocalVariable* receiver);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
-  AstNode* ParseInitializer(const Class& cls, LocalVariable* receiver);
+  AstNode* ParseInitializer(const Class& cls,
+                            LocalVariable* receiver,
+                            GrowableArray<Field*>* initialized_fields);
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
-  void ParseInitializers(const Class& cls, LocalVariable* receiver);
+  void ParseInitializers(const Class& cls,
+                         LocalVariable* receiver,
+                         GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();

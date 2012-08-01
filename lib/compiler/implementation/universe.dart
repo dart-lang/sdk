@@ -86,11 +86,13 @@ class Selector implements Hashable {
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
   final SelectorKind kind;
-  final List<SourceString> namedArguments = const <SourceString>[];
-  final List<SourceString> orderedNamedArguments = const <SourceString>[];
+  final List<SourceString> namedArguments;
+  final List<SourceString> orderedNamedArguments;
 
   // The const constructor.
-  const Selector.constant(this.kind, this.argumentCount);
+  const Selector.constant(this.kind, this.argumentCount)
+    : this.namedArguments = const <SourceString>[],
+      this.orderedNamedArguments = const <SourceString>[];
 
   Selector(
       this.kind,
