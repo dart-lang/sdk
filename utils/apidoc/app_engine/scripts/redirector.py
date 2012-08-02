@@ -47,9 +47,9 @@ class ApiDocs(blobstore_handlers.BlobstoreDownloadHandler):
     return age
 
   def resolve_doc_path(self):
-    if self.request.path.startswith('/docs/latest'):
+    if self.request.path.startswith('/docs/continuous'):
       version = self.get_latest_version()
-      path = self.request.path.replace('/docs/latest',
+      path = self.request.path.replace('/docs/continuous',
           '/gs/dartlang-api-docs/' + str(version))
     else:
       path = self.request.path.replace('/docs', '/gs/dartlang-api-docs')
@@ -106,12 +106,12 @@ class ApiDocs(blobstore_handlers.BlobstoreDownloadHandler):
 def redir_to_latest(handler, *args, **kwargs):
   path = kwargs['path']
   if re.search(r'^(core|coreimpl|crypto|io|isolate|json|uri|utf|web)', path):
-    return '/docs/latest/dart_' + path
+    return '/docs/continuous/dart_' + path
   else:
-    return '/docs/latest/' + path
+    return '/docs/continuous/' + path
 
 def redir_dom(handler, *args, **kwargs):
-  return '/docs/latest/dart_html' + kwargs['path']
+  return '/docs/continuous/dart_html' + kwargs['path']
 
 application = WSGIApplication(
   [

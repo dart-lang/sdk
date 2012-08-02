@@ -36,13 +36,13 @@
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',
-            '<(PRODUCT_DIR)/api_docs/client-live-nav.js',
+            '<(PRODUCT_DIR)/api_docs/client-static.js',
           ],
           'action': [
             '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)dart<(EXECUTABLE_SUFFIX)',
             'apidoc.dart',
             '--out=<(PRODUCT_DIR)/api_docs',
-            '--mode=live-nav',
+            '--mode=static',
           ],
           'message': 'Running apidoc: <(_action)',
         },
