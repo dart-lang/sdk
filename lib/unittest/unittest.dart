@@ -323,6 +323,7 @@ class _SpreadArgsHelper {
   Function _callback;
   int _expectedCalls;
   int _calls = 0;
+  int _testNum;
   TestCase _testCase;
   Function _shouldCallBack;
   Function _isDone;
@@ -335,6 +336,7 @@ class _SpreadArgsHelper {
     _shouldCallBack = shouldCallBack;
     _isDone = isDone;
     _expectedCalls = expectedCalls;
+    _testNum = _currentTest;
     _testCase = _tests[_currentTest];
     if (expectedCalls > 0) {
       _testCase.callbacks++;
@@ -351,6 +353,10 @@ class _SpreadArgsHelper {
 
   _SpreadArgsHelper.variableCallCount(callback, isDone) {
     _init(callback, _always, isDone, 1);
+   }
+
+  _SpreadArgsHelper.optionalCalls(callback) {
+    _init(callback, _always, () => false, 0);
    }
 
   _after() {
@@ -398,7 +404,7 @@ class _SpreadArgsHelper {
         _state = _UNCAUGHT_ERROR;
       }
     },
-    _after);
+    _after, _testNum);
   }
 
   invoke0() {
@@ -409,7 +415,7 @@ class _SpreadArgsHelper {
             return _callback();
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   invoke1(arg1) {
@@ -420,7 +426,7 @@ class _SpreadArgsHelper {
             return _callback(arg1);
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   invoke2(arg1, arg2) {
@@ -431,7 +437,7 @@ class _SpreadArgsHelper {
             return _callback(arg1, arg2);
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   /** Returns false if we exceded the number of expected calls. */
@@ -524,6 +530,47 @@ Function expectAsyncUntil1(Function callback, Function isDone) {
 // TODO(sigmund): deprecate this API when issue 2706 is fixed.
 Function expectAsyncUntil2(Function callback, Function isDone) {
   return new _SpreadArgsHelper.variableCallCount(callback, isDone).invoke2;
+}
+
+/**
+ * Wraps the [callback] in a new function and returns that function. The new
+ * function will be able to handle exceptions by directing them to the correct
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take between 0 and 4 positional arguments (named arguments
+ * are not supported).
+ */
+Function _protectAsync(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke;
+}
+
+/**
+ * Wraps the [callback] in a new function and returns that function. The new
+ * function will be able to handle exceptions by directing them to the correct
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take 0 positional arguments (named arguments are not
+ * supported).
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync0(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke0;
+}
+
+/**
+ * Like [protectAsync0] but [callback] should take 1 positional argument.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync1(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke1;
+}
+
+/**
+ * Like [protectAsync0] but [callback] should take 2 positional arguments.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync2(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke2;
 }
 
 /**
@@ -689,11 +736,12 @@ rerunTests() {
  * Run [tryBody] guarded in a try-catch block. If an exception is thrown, update
  * the [_currentTest] status accordingly.
  */
-guardAsync(tryBody, [finallyBody]) {
+guardAsync(tryBody, [finallyBody, testNum = -1]) {
+  if (testNum < 0) testNum = _currentTest;
   try {
     return tryBody();
   } catch (var e, var trace) {
-    registerException(e, trace);
+    registerException(testNum, e, trace);
   } finally {
     _state = _READY;
     if (finallyBody != null) finallyBody();
@@ -703,26 +751,19 @@ guardAsync(tryBody, [finallyBody]) {
 /**
  * Registers that an exception was caught for the current test.
  */
-registerException(e, [trace]) {
-  if (e is ExpectException) {
-    Expect.isTrue(_currentTest < _tests.length);
-    if (_state != _UNCAUGHT_ERROR) {
-      _tests[_currentTest].fail(e.message,
-          trace == null ? '' : trace.toString());
+registerException(testNum, e, [trace]) {
+  if (_tests[testNum].result == null) {
+    if (e is ExpectException) {
+      _tests[testNum].fail(e.message, trace == null ? '' : trace.toString());
+    } else {
+      _tests[testNum].fail('Caught $e', trace == null ? '' : trace.toString());
     }
   } else {
-    if (_state == _RUNNING_TEST) {
-      // If a random exception is thrown from within a test, we consider that
-      // a test failure too. A test case implicitly has an expectation that it
-      // will run to completion without an uncaught exception being thrown.
-      _tests[_currentTest].fail('Caught $e',
-          trace == null ? '' : trace.toString());
-    } else if (_state != _UNCAUGHT_ERROR) {
-      _tests[_currentTest].error('Caught $e',
-          trace == null ? '' : trace.toString());
-    }
+    _tests[testNum].error('Caught $e', trace == null ? '' : trace.toString());
   }
-  _nextTestCase();
+  if (testNum == _currentTest) {
+    _nextTestCase();
+  }
 }
 
 /**

@@ -128,6 +128,17 @@ runTest() {
         expectAsync0(() {});
         _defer(() => guardAsync(() { throw "error!"; }));
       });
+    } else if (testName == 'late exception test') {
+      test('testOne', () {
+        var f = expectAsync0(() {});
+        _defer(protectAsync0(() {
+          _defer(protectAsync0(() => expect(false)));
+          expect(false);
+        }));
+      });
+      test('testTwo', () {
+        _defer(expectAsync0(() {}));
+      });
     }
   });
 }
@@ -158,7 +169,8 @@ main() {
     'correct callback test',
     'excess callback test',
     'completion test',
-    'async exception test'
+    'async exception test',
+    'late exception test'
   ];
 
   expected = [
@@ -175,7 +187,8 @@ main() {
     buildStatusString(0, 0, 1, tests[8], 1,
         message: 'Callback called more times than expected (2 > 1).'),
     buildStatusString(1, 0, 0, tests[9], 10),
-    buildStatusString(0, 0, 1, tests[10], message: 'Caught error!'),
+    buildStatusString(0, 1, 0, tests[10], message: 'Caught error!'),
+    buildStatusString(1, 0, 1, 'testOne', message: 'Callback called after already being marked as done (1).:testTwo:')
   ];
 
   actual = [];
