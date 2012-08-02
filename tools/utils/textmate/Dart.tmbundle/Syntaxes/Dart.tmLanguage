@@ -250,7 +250,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(static|final|native|abstract|const|class|interface)\b</string>
+					<string>\b(static|final|native|abstract|const|class|interface|get|set|operator)\b</string>
 					<key>name</key>
 					<string>storage.modifier.dart</string>
 				</dict>
