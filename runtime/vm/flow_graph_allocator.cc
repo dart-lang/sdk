@@ -1064,6 +1064,11 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
   if (Start() == split_pos) return this;
 
   UseInterval* interval = finger_.first_pending_use_interval();
+  if (interval == NULL) {
+    finger_.Initialize(this);
+    interval = finger_.first_pending_use_interval();
+  }
+
   ASSERT(interval->start() < split_pos);
   ASSERT(split_pos < End());
 
