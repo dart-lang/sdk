@@ -1590,7 +1590,7 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL) {
+  if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
   CHECK_LENGTH(length, String::kMaxElements);
@@ -1602,7 +1602,7 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL) {
+  if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
   CHECK_LENGTH(length, String::kMaxElements);
@@ -1614,7 +1614,7 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
-  if (codepoints == NULL) {
+  if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
   CHECK_LENGTH(length, String::kMaxElements);

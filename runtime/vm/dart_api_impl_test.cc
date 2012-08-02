@@ -6517,6 +6517,30 @@ TEST_CASE(RangeLimits) {
 }
 
 
+TEST_CASE(NewString_Null) {
+  Dart_Handle str = Dart_NewString8(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  intptr_t len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+
+  str = Dart_NewString16(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+
+  str = Dart_NewString32(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+}
+
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart
