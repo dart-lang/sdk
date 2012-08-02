@@ -28,7 +28,7 @@ testEncodeDecodeComponent(String orig, String encoded) {
   Expect.stringEquals(orig, d);
 }
 
-testUriPerRFCs(URI base) {
+testUriPerRFCs(Uri base) {
   // From RFC 3986.
   Expect.stringEquals("g:h", base.resolve("g:h").toString());
   Expect.stringEquals("http://a/b/c/g", base.resolve("g").toString());
