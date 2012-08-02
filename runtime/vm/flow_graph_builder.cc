@@ -1042,11 +1042,11 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 //                         condition: <Expression>
 //                         body:      <Sequence> }
 // The fragment is composed as follows:
-// a) continue-join (optional)
-// b) loop-join
-// c) [ test ] -> (body-entry-target, loop-exit-target)
-// d) body-entry-target
-// e) [ body ] -> (loop-join)
+// a) loop-join
+// b) [ test ] -> (body-entry-target, loop-exit-target)
+// c) body-entry-target
+// d) [ body ] -> (continue-join)
+// e) continue-join -> (loop-join)
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
@@ -1066,8 +1066,8 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(lbl != NULL);
   JoinEntryInstr* join = lbl->join_for_continue();
   if (join != NULL) {
-    Goto(join);
-    exit_ = join;
+    if (for_body.is_open()) for_body.Goto(join);
+    for_body.exit_ = join;
   }
   TieLoop(for_test, for_body);
   join = lbl->join_for_break();
