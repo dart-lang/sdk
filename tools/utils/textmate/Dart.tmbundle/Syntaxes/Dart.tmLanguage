@@ -166,6 +166,12 @@
 			<array>
 				<dict>
 					<key>match</key>
+					<string>\bas\b</string>
+					<key>name</key>
+					<string>keyword.cast.dart</string>
+				</dict>
+				<dict>
+					<key>match</key>
 					<string>\b(try|catch|finally|throw)\b</string>
 					<key>name</key>
 					<string>keyword.control.catch-exception.dart</string>
@@ -250,7 +256,7 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(static|final|native|abstract|const|class|interface|get|set|operator)\b</string>
+					<string>\b(static|final|native|abstract|const|class|interface|get|set|operator|external)\b</string>
 					<key>name</key>
 					<string>storage.modifier.dart</string>
 				</dict>

@@ -60,6 +60,9 @@
 		};
 		keywords = {
 			patterns = (
+				{	name = 'keyword.cast.dart';
+					match = '\bas\b';
+				},
 				{	name = 'keyword.control.catch-exception.dart';
 					match = '\b(try|catch|finally|throw)\b';
 				},
@@ -103,7 +106,7 @@
 					match = ';';
 				},
 				{	name = 'storage.modifier.dart';
-					match = '\b(static|final|native|abstract|const|class|interface)\b';
+					match = '\b(static|final|native|abstract|const|class|interface|get|set|operator|external)\b';
 				},
 				{	name = 'storage.type.primitive.dart';
 					match = '\b(?:void|bool|num|int|double|Dynamic|var)\b';
