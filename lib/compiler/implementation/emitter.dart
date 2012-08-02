@@ -535,11 +535,11 @@ function(collectedClasses) {
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
-      // Emit the noSuchMethods on the Object prototype now, so that
-      // the code in the dynamicMethod can find them. Note that the
-      // code in dynamicMethod is invoked before analyzing the full JS
-      // script.
-      emitNoSuchMethodCalls(defineInstanceMember);
+      // Emit the noSuchMethod handlers on the Object prototype now,
+      // so that the code in the dynamicFunction helper can find
+      // them. Note that this helper is invoked before analyzing the
+      // full JS script.
+      emitNoSuchMethodHandlers(defineInstanceMember);
     }
   }
 
@@ -865,8 +865,8 @@ $classesCollector.$mangledName = {'':
     }
   }
 
-  void emitNoSuchMethodCalls(DefineMemberFunction defineInstanceMember) {
-    // Do not generate no such method calls if there is no class.
+  void emitNoSuchMethodHandlers(DefineMemberFunction defineInstanceMember) {
+    // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
     ClassElement objectClass =
@@ -875,86 +875,92 @@ $classesCollector.$mangledName = {'':
         '${namer.isolateAccess(objectClass)}.prototype';
     String noSuchMethodName =
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
-    Collection<LibraryElement> libraries = compiler.libraries.getValues();
+
+    // Keep track of the JavaScript names we've already added so we
+    // do not introduce duplicates (bad for code size).
+    Set<String> addedJsNames = new Set<String>();
 
     CodeBuffer generateMethod(String methodName, Selector selector) {
-      CodeBuffer buffer = new CodeBuffer();
-      buffer.add('function');
       CodeBuffer args = new CodeBuffer();
       for (int i = 0; i < selector.argumentCount; i++) {
         if (i != 0) args.add(', ');
-        args.add('arg$i');
+        args.add('\$$i');
       }
       // We need to check if the object has a noSuchMethod. If not, it
       // means the object is a native object, and we can just call our
       // generic noSuchMethod. Note that when calling this method, the
       // 'this' object is not a Dart object.
-      buffer.add(' ($args) {\n');
+      CodeBuffer buffer = new CodeBuffer();
+      buffer.add('function($args) {\n');
       buffer.add('  return this.$noSuchMethodName\n');
       buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
       buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
       buffer.add("this, '$methodName', [$args])\n");
-      buffer.add('}');
+      buffer.add(' }');
       return buffer;
     }
 
-    compiler.codegenWorld.invokedNames.forEach((SourceString methodName,
-                                            Set<Selector> selectors) {
-      if (objectClass.lookupLocalMember(methodName) === null
-          && methodName != Elements.OPERATOR_EQUALS) {
-        for (Selector selector in selectors) {
-          if (methodName.isPrivate()) {
-            for (LibraryElement lib in libraries) {
-              String jsName =
-                namer.instanceMethodInvocationName(lib, methodName, selector);
-              CodeBuffer method =
-                  generateMethod(methodName.slowToString(), selector);
-              defineInstanceMember(jsName, method);
-            }
+    void addNoSuchMethodHandlers(SourceString name, Set<Selector> selectors) {
+      // TODO(kasperl): It seems wrong to avoid generating no such
+      // method handlers for methods that exist in the Object class
+      // without taking the selector (arity) into account. Needs more
+      // investigation.
+      if (objectClass.lookupLocalMember(name) !== null &&
+          name != Elements.OPERATOR_EQUALS) return;
+
+      // TODO(kasperl): We should really teach private selectors about
+      // which libraries they are used from. That way, we wouldn't
+      // have to conservatively generate versions for all libraries
+      // the name is used from.
+      String nameString = name.slowToString();
+      Collection<LibraryElement> libraries = name.isPrivate()
+          ? namer.usedPrivateNames[nameString]
+          : const [ null ];
+
+      for (Selector selector in selectors) {
+        // If the selector is typed, we check to see if that type may
+        // have a user-defined noSuchMethod implementation. If not, we
+        // skip the selector altogether.
+        if (selector is TypedSelector) {
+          Type receiverType = (selector as TypedSelector).receiverType;
+          // For now, we check the entire world to see if an object of
+          // the receiver type may have a user-defined noSuchMethod
+          // implementation. We could do better by only looking at
+          // instantiated classes.
+          if (!compiler.world.mayHaveUserDefinedNoSuchMethod(receiverType)) {
+            continue;
+          }
+        }
+
+        for (LibraryElement lib in libraries) {
+          String jsName = null;
+          String methodName = null;
+          if (selector.kind === SelectorKind.GETTER) {
+            jsName = namer.getterName(lib, name);
+            methodName = 'get $nameString';
+          } else if (selector.kind === SelectorKind.SETTER) {
+            jsName = namer.setterName(lib, name);
+            methodName = 'set $nameString';
+          } else if (selector.kind === SelectorKind.INVOCATION) {
+            jsName = namer.instanceMethodInvocationName(lib, name, selector);
+            methodName = nameString;
           } else {
-            String jsName =
-              namer.instanceMethodInvocationName(null, methodName, selector);
-            CodeBuffer method = generateMethod(methodName.slowToString(),
-                                               selector);
-            defineInstanceMember(jsName, method);
+            // We simply ignore selectors that do not need no such
+            // method handlers.
+            continue;
+          }
+          if (!addedJsNames.contains(jsName)) {
+            CodeBuffer jsCode = generateMethod(methodName, selector);
+            defineInstanceMember(jsName, jsCode);
+            addedJsNames.add(jsName);
           }
         }
       }
-    });
+    }
 
-    compiler.codegenWorld.invokedGetters.forEach((SourceString getterName,
-                                              Set<Selector> selectors) {
-      if (getterName.isPrivate()) {
-        for (LibraryElement lib in libraries) {
-          String jsName = namer.getterName(lib, getterName);
-          CodeBuffer method = generateMethod('get ${getterName.slowToString()}',
-                                             Selector.GETTER);
-          defineInstanceMember(jsName, method);
-        }
-      } else {
-        String jsName = namer.getterName(null, getterName);
-        CodeBuffer method = generateMethod('get ${getterName.slowToString()}',
-                                           Selector.GETTER);
-        defineInstanceMember(jsName, method);
-      }
-    });
-
-    compiler.codegenWorld.invokedSetters.forEach((SourceString setterName,
-                                              Set<Selector> selectors) {
-      if (setterName.isPrivate()) {
-        for (LibraryElement lib in libraries) {
-          String jsName = namer.setterName(lib, setterName);
-          CodeBuffer method = generateMethod('set ${setterName.slowToString()}',
-                                             Selector.SETTER);
-          defineInstanceMember(jsName, method);
-        }
-      } else {
-        String jsName = namer.setterName(null, setterName);
-        CodeBuffer method = generateMethod('set ${setterName.slowToString()}',
-                                           Selector.SETTER);
-        defineInstanceMember(jsName, method);
-      }
-    });
+    compiler.codegenWorld.invokedNames.forEach(addNoSuchMethodHandlers);
+    compiler.codegenWorld.invokedGetters.forEach(addNoSuchMethodHandlers);
+    compiler.codegenWorld.invokedSetters.forEach(addNoSuchMethodHandlers);
   }
 
   String buildIsolateSetup(CodeBuffer buffer,

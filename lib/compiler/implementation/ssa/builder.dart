@@ -2176,7 +2176,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = compiler.namer.closureInvocationName(
-        new Selector(SelectorKind.INVOCATION, params.requiredParameterCount));
+        new Selector.invocation(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
                       inputs));
