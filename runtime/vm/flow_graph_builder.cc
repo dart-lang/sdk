@@ -2259,21 +2259,11 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   GrowableArray<intptr_t> parent;
   GrowableArray<BitVector*> assigned_vars;
 
-  // Either all parameters are fixed (none are named) or they are all copied.
-  // This could change, so we keep fixed/named counts separate.
-  intptr_t fixed_parameter_count;
-  intptr_t named_parameter_count;
-  if (parsed_function_.copied_parameter_count() > 0) {
-    fixed_parameter_count = 0;
-    named_parameter_count = parsed_function_.copied_parameter_count();
-  } else {
-    fixed_parameter_count = parsed_function_.function().num_fixed_parameters();
-    named_parameter_count = 0;
-  }
-  const intptr_t stack_local_count = parsed_function_.stack_local_count();
-  const intptr_t variable_count =
-      stack_local_count + fixed_parameter_count + named_parameter_count;
-
+  const intptr_t fixed_parameter_count =
+      parsed_function_.function().num_fixed_parameters();
+  const intptr_t variable_count = fixed_parameter_count +
+      parsed_function_.copied_parameter_count() +
+      parsed_function_.stack_local_count();
   // Perform a depth-first traversal of the graph to build preorder and
   // postorder block orders.
   graph_entry_->DiscoverBlocks(NULL,  // Entry block predecessor.
@@ -2309,7 +2299,7 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
                assigned_vars,
                variable_count,
                dominance_frontier);
-    Rename(stack_local_count, fixed_parameter_count, named_parameter_count);
+    Rename(variable_count);
   }
   if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
@@ -2511,24 +2501,26 @@ void FlowGraphBuilder::InsertPhis(
 }
 
 
-void FlowGraphBuilder::Rename(intptr_t stack_local_count,
-                              intptr_t fixed_parameter_count,
-                              intptr_t named_parameter_count) {
-  // TODO(fschneider): Store counts in the FlowGraphBuilder instead of
+void FlowGraphBuilder::Rename(intptr_t var_count) {
+  // TODO(fschneider): Store var_count in the FlowGraphBuilder instead of
   // passing it around.
   // TODO(fschneider): Support catch-entry.
   if (graph_entry_->SuccessorCount() > 1) {
     Bailout("Catch-entry support in SSA.");
   }
-
-  const intptr_t parameter_count =
-      named_parameter_count + fixed_parameter_count;
-  const intptr_t variable_count = parameter_count + stack_local_count;
+  // TODO(fschneider): Support copied parameters.
+  if (parsed_function().copied_parameter_count() != 0) {
+    Bailout("Copied parameter support in SSA");
+  }
+  ASSERT(var_count == (parsed_function().stack_local_count() +
+                       parsed_function().function().num_fixed_parameters()));
 
   // Initialize start environment.
-  GrowableArray<Value*> start_env(variable_count);
+  GrowableArray<Value*> start_env(var_count);
   intptr_t i = 0;
-  for (; i < parameter_count; ++i) {
+  const intptr_t fixed_parameter_count =
+      parsed_function().function().num_fixed_parameters();
+  for (; i < fixed_parameter_count; ++i) {
     ParameterInstr* param = new ParameterInstr(i);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
     start_env.Add(new UseVal(param));
@@ -2536,7 +2528,7 @@ void FlowGraphBuilder::Rename(intptr_t stack_local_count,
 
   // All locals are initialized with #null.
   Value* null_value = new ConstantVal(Object::ZoneHandle());
-  for (; i < variable_count; i++) {
+  for (; i < var_count; i++) {
     start_env.Add(null_value);
   }
   graph_entry_->set_start_env(
@@ -2544,9 +2536,9 @@ void FlowGraphBuilder::Rename(intptr_t stack_local_count,
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  GrowableArray<Value*> env(variable_count);
+  GrowableArray<Value*> env(var_count);
   env.AddArray(start_env);
-  RenameRecursive(normal_entry, &env, variable_count, fixed_parameter_count);
+  RenameRecursive(normal_entry, &env, var_count, fixed_parameter_count);
 }
 
 

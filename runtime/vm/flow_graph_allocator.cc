@@ -448,8 +448,6 @@ void FlowGraphAllocator::BuildLiveRanges() {
     ConnectIncomingPhiMoves(block);
   }
 
-  const bool copied = builder_->parsed_function().copied_parameter_count() > 0;
-
   // Process incoming parameters.
   const intptr_t fixed_parameters_count =
       builder_->parsed_function().function().num_fixed_parameters();
@@ -464,13 +462,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
       range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
       range->DefineAt(graph_entry->start_pos());
 
-      // Slot index for the leftmost copied parameter is 0.
-      intptr_t slot_index = param->index();
-      if (!copied) {
-        // Slot index for the rightmost fixed parameter is -1.
-        slot_index -= fixed_parameters_count;
-      }
-
+      // Slot index for the rightmost parameter is -1.
+      const intptr_t slot_index = param->index() - fixed_parameters_count;
       range->set_assigned_location(Location::StackSlot(slot_index));
       range->set_spill_slot(Location::StackSlot(slot_index));
 
@@ -484,11 +477,6 @@ void FlowGraphAllocator::BuildLiveRanges() {
         AddToUnallocated(tail);
       }
       ConvertAllUses(range);
-
-      if (copied) {
-        ASSERT(spill_slots_.length() == slot_index);
-        spill_slots_.Add(range->End());
-      }
     }
   }
 }
