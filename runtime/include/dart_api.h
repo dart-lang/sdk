@@ -21,6 +21,12 @@
 #define DART_EXTERN_C
 #endif
 
+// __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
+// enable platform independent printf format specifiers.
+#ifndef __STDC_FORMAT_MACROS
+#define __STDC_FORMAT_MACROS
+#endif
+
 #if defined(__CYGWIN__)
 #error Tool chain and platform not supported.
 #elif defined(_WIN32)
@@ -38,11 +44,6 @@ typedef unsigned __int64 uint64_t;
 #define DART_EXPORT DART_EXTERN_C
 #endif
 #else
-// __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
-// enable platform independent printf format specifiers.
-#ifndef __STDC_FORMAT_MACROS
-#define __STDC_FORMAT_MACROS
-#endif
 #include <inttypes.h>
 #include <stdbool.h>
 #if __GNUC__ >= 4
