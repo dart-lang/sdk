@@ -6601,17 +6601,16 @@ const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
     return "No pc descriptors\n";
   }
-  const char* kFormat =
-      "0x%" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
+  const char* kFormat = "0x%x\t%s\t%ld\t%ld\t%ld\n";
   // First compute the buffer size required.
-  intptr_t len = 1;  // Trailing '\0'.
+  intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     len += OS::SNPrint(NULL, 0, kFormat,
         PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
   }
   // Allocate the buffer.
   char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+      Isolate::Current()->current_zone()->Allocate(len + 1));
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6871,20 +6870,20 @@ const char* ExceptionHandlers::ToCString() const {
     return "No exception handlers\n";
   }
   // First compute the buffer size required.
-  const char* kFormat = "%" PRIdPTR " => 0x%" PRIxPTR "\n";
-  intptr_t len = 1;  // Trailing '\0'.
+  intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
-    len += OS::SNPrint(NULL, 0, kFormat, TryIndex(i), HandlerPC(i));
+    len += OS::SNPrint(NULL, 0, "%ld => 0x%x\n",
+                       TryIndex(i), HandlerPC(i));
   }
   // Allocate the buffer.
   char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+      Isolate::Current()->current_zone()->Allocate(len + 1));
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     index += OS::SNPrint((buffer + index),
                          (len - index),
-                         kFormat,
+                         "%ld => 0x%x\n",
                          TryIndex(i),
                          HandlerPC(i));
   }
