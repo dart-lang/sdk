@@ -444,16 +444,7 @@ class VariableElement extends Element {
                   ElementKind kind,
                   Element enclosing,
                   [Node node])
-      : super(name, kind, enclosing), cachedNode = node;
-
-  VariableElement.from(SourceString name,
-                       VariableElement other,
-                       Element enclosing)
-      : this(name,
-             new VariableListElement.from(other.variables, enclosing),
-             other.kind,
-             enclosing,
-             other.cachedNode);
+    : super(name, kind, enclosing), cachedNode = node;
 
   Node parseNode(DiagnosticListener listener) {
     if (cachedNode !== null) return cachedNode;
@@ -530,24 +521,6 @@ class VariableListElement extends Element {
     : super(null, kind, enclosing),
       this.cachedNode = node,
       this.modifiers = node.modifiers;
-
-  factory VariableListElement.from(VariableListElement other,
-                                   Element enclosing) {
-    var variableList;
-    if (other is PartialFieldListElement) {
-      variableList = new PartialFieldListElement(other.beginToken,
-                                                 other.endToken,
-                                                 other.modifiers,
-                                                 enclosing);
-    } else {
-      variableList = new VariableListElement(other.kind,
-                                             other.modifiers,
-                                             enclosing);
-    }
-    variableList.cachedNode = other.cachedNode;
-    variableList.type = other.type;
-    return variableList;
-  }
 
   VariableDefinitions parseNode(DiagnosticListener listener) {
     return cachedNode;

@@ -22,7 +22,7 @@ class World {
            !link.isEmpty();
            link = link.tail) {
         Element element = link.head;
-        if (!element.isClass() || compiler.isPatchElement(element)) continue;
+        if (!element.isClass()) continue;
         ClassElement cls = element;
         compiler.resolveClass(cls);
         addSubtypes(cls);
