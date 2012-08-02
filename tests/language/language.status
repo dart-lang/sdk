@@ -229,7 +229,6 @@ numbers_test: Fail
 closure_with_super_send_test: Fail
 constructor5_test: Fail
 constructor6_test: Fail
-constructor_duplicate_initializers_test/02: Fail
 fauxverride_test/none: Fail
 gc_test: Fail
 parameter_initializer6_negative_test: Fail
