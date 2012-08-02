@@ -15,7 +15,7 @@ public class SystemLibraryManagerTest extends TestCase {
    * @return the scheme specific path.
    */
   private static String getPath(URI uri) {
-    if (uri.getPath() != null) {
+    if (uri.getPath() != null && uri.getPath().length() != 0){
       return uri.getPath();
     }
     return uri.getSchemeSpecificPart();
@@ -84,5 +84,34 @@ public class SystemLibraryManagerTest extends TestCase {
     String scheme = translatedURI.getScheme();
     assertTrue(scheme.equals("file"));
     assertTrue(getPath(translatedURI).endsWith("some/file.dart"));
+  }
+  
+  public void testPackageExpand1() throws Exception {
+    URI shortUri = new URI("package:test.dart");
+    URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
+    assertNotNull(fullUri);
+    assertEquals("package", fullUri.getScheme());
+    assertEquals("test.dart", fullUri.getHost());
+    assertTrue(getPath(fullUri).endsWith("/test.dart"));
+  }
+
+  public void testPackageExpand2() throws Exception {
+    URI shortUri = new URI("package:test.dart");
+    URI fullUri1 = systemLibraryManager.expandRelativeDartUri(shortUri);
+    URI fullUri2 = systemLibraryManager.expandRelativeDartUri(fullUri1);
+    assertNotNull(fullUri2);
+    assertEquals("package", fullUri2.getScheme());
+    assertEquals("test.dart", fullUri2.getHost());
+    assertTrue(getPath(fullUri2).endsWith("/test.dart"));
+  }
+
+  public void testPackageTranslate1() throws Exception {
+    URI shortUri = new URI("package:test.dart");
+    URI fullUri = systemLibraryManager.expandRelativeDartUri(shortUri);
+    URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
+    assertNotNull(translatedURI);
+    String scheme = translatedURI.getScheme();
+    assertTrue(scheme.equals("file"));
+    assertTrue(getPath(translatedURI).endsWith("/test.dart"));
   }
 }
