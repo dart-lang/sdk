@@ -365,8 +365,11 @@ class Parser : ValueObject {
 
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
-  void CaptureReceiver();
+  LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
+                                              bool test_only);
+  void CaptureInstantiator();
   AstNode* LoadReceiver(intptr_t token_pos);
+  AstNode* LoadTypeArgumentsParameter(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
   AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);
@@ -464,7 +467,8 @@ class Parser : ValueObject {
 
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  RawClass* TypeParametersScopeClass();
+  RawClass* TypeParametersScopeClass() const;
+  const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
   bool IsDefinedInLexicalScope(const String& ident);
   bool ResolveIdentInLocalScope(intptr_t ident_pos,

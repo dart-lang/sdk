@@ -48,11 +48,15 @@ CODEGEN_TEST2_RUN(PatchStaticCall, NativePatchStaticCall, Instance::null());
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(IcDataAccess, assembler) {
+  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  const Script& script = Script::Handle();
+  const Class& owner_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
   const String& function_name =
       String::ZoneHandle(Symbols::New("callerFunction"));
   const Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, 0));
+                    true, false, false, false, owner_class, 0));
 
   const String& target_name = String::Handle(String::New("targetFunction"));
   ICData& ic_data = ICData::ZoneHandle(

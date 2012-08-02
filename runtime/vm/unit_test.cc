@@ -141,9 +141,11 @@ Dart_Handle TestCase::library_handler(Dart_LibraryTag tag,
 
 uword AssemblerTest::Assemble() {
   const String& function_name = String::ZoneHandle(Symbols::New(name_));
+  const Class& cls = Class::ZoneHandle(
+       Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, 0));
+                    true, false, false, false, cls, 0));
   const Code& code = Code::Handle(Code::FinalizeCode(function, assembler_));
   if (FLAG_disassemble) {
     OS::Print("Code for test '%s' {\n", name_);
@@ -165,15 +167,14 @@ CodeGenTest::CodeGenTest(const char* name)
     default_parameter_values_(Array::ZoneHandle()) {
   ASSERT(name != NULL);
   const String& function_name = String::ZoneHandle(Symbols::New(name));
-  function_ = Function::New(
-      function_name, RawFunction::kRegularFunction,
-      true, false, false, false, 0);
-  function_.set_result_type(Type::Handle(Type::DynamicType()));
   // Add function to a class and that class to the class dictionary so that
   // frame walking can be used.
-  Class& cls = Class::ZoneHandle();
-  const Script& script = Script::Handle();
-  cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);
+  const Class& cls = Class::ZoneHandle(
+       Class::New(function_name, Script::Handle(), Scanner::kDummyTokenIndex));
+  function_ = Function::New(
+      function_name, RawFunction::kRegularFunction,
+      true, false, false, false, cls, 0);
+  function_.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function_);
   cls.SetFunctions(functions);

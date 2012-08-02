@@ -1241,13 +1241,15 @@ bool Class::HasInstanceFields() const {
 
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
-  // Bind all the functions in the array to this class.
+#if defined(DEBUG)
+  // Verify that all the functions in the array have this class as owner.
   Function& func = Function::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= value.At(i);
-    func.set_owner(*this);
+    ASSERT(func.owner() == raw());
   }
+#endif
   StorePointer(&raw_ptr()->functions_, value.raw());
 }
 
@@ -1497,12 +1499,15 @@ void Class::Finalize() const {
 
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
+#if defined(DEBUG)
+  // Verify that all the fields in the array have this class as owner.
   Field& field = Field::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
-    field.set_owner(*this);
+    ASSERT(field.owner() == raw());
   }
+#endif
   // The value of static fields is already initialized to null.
   StorePointer(&raw_ptr()->fields_, value.raw());
 }
@@ -1576,11 +1581,10 @@ RawClass* Class::NewSignatureClass(const String& name,
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
-  if (!signature_function.is_static()) {
-    if ((owner_class.NumTypeParameters() > 0) &&
-        !signature_function.HasInstantiatedSignature()) {
-      type_parameters = owner_class.type_parameters();
-    }
+  if (!signature_function.is_static() &&
+      (owner_class.NumTypeParameters() > 0) &&
+      !signature_function.HasInstantiatedSignature()) {
+    type_parameters = owner_class.type_parameters();
   }
   const intptr_t token_pos = signature_function.token_pos();
   Class& result = Class::Handle(New<Closure>(name, script, token_pos));
@@ -4131,8 +4135,10 @@ RawFunction* Function::New(const String& name,
                            bool is_const,
                            bool is_abstract,
                            bool is_external,
+                           const Class& owner,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
+  ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Array::Handle(Array::Empty()));
   result.set_parameter_names(Array::Handle(Array::Empty()));
@@ -4141,6 +4147,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_static(is_static);
   result.set_is_const(is_const);
   result.set_is_external(is_external);
+  result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
@@ -4168,9 +4175,9 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    parent_class,
                     token_pos));
   result.set_parent_function(parent);
-  result.set_owner(parent_class);
   return result.raw();
 }
 
@@ -4498,8 +4505,10 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
+                     const Class& owner,
                      intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
+  ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
@@ -4510,6 +4519,7 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
+  result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();

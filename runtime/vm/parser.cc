@@ -425,12 +425,11 @@ struct ParamList {
     this->parameters->Add(param);
   }
 
-  void AddReceiver(intptr_t name_pos) {
+  void AddReceiver(const Type* receiver_type) {
     ASSERT(this->parameters->is_empty());
-    // The receiver does not need to be type checked.
-    AddFinalParameter(name_pos,
+    AddFinalParameter(receiver_type->token_pos(),
                       &String::ZoneHandle(Symbols::This()),
-                      &Type::ZoneHandle(Type::DynamicType()));
+                      receiver_type);
   }
 
   void SetImplicitlyFinal() {
@@ -712,14 +711,19 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   // allocation of generic types.
   if (parser.IsInstantiatorRequired()) {
     // In the case of a local function, only set the instantiator if the
-    // receiver was captured.
+    // receiver (or type arguments parameter of a factory) was captured.
+    LocalVariable* instantiator = NULL;
     const bool kTestOnly = true;
-    LocalVariable* receiver =
-        parser.LookupReceiver(node_sequence->scope(), kTestOnly);
+    if (parser.current_function().IsInFactoryScope()) {
+      instantiator = parser.LookupTypeArgumentsParameter(node_sequence->scope(),
+                                                         kTestOnly);
+    } else {
+      instantiator = parser.LookupReceiver(node_sequence->scope(), kTestOnly);
+    }
     if (!parser.current_function().IsLocalFunction() ||
-        ((receiver != NULL) && receiver->is_captured())) {
+        ((instantiator != NULL) && instantiator->is_captured())) {
       parsed_function->set_instantiator(
-          new LoadLocalNode(node_sequence->token_pos(), *receiver));
+          new LoadLocalNode(node_sequence->token_pos(), *instantiator));
     }
   }
 
@@ -850,7 +854,8 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
 SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   TRACE_PARSER("ParseInstanceGetter");
   ParamList params;
-  params.AddReceiver(TokenPos());
+  ASSERT(current_class().raw() == func.owner());
+  params.AddReceiver(ReceiverType(TokenPos()));
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(func.num_optional_parameters() == 0);
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
@@ -895,7 +900,8 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   const AbstractType& field_type = AbstractType::ZoneHandle(field.type());
 
   ParamList params;
-  params.AddReceiver(TokenPos());
+  ASSERT(current_class().raw() == func.owner());
+  params.AddReceiver(ReceiverType(TokenPos()));
   params.AddFinalParameter(TokenPos(),
                            &String::ZoneHandle(Symbols::Value()),
                            &field_type);
@@ -1071,8 +1077,8 @@ void Parser::ParseFormalParameter(bool allow_explicit_default_value,
                         /* is_const = */ false,
                         /* is_abstract = */ false,
                         /* is_external = */ false,
+                        current_class(),
                         parameter.name_pos));
-      signature_function.set_owner(current_class());
       signature_function.set_result_type(result_type);
       AddFormalParamsToFunction(&func_params, signature_function);
       const String& signature = String::Handle(signature_function.Signature());
@@ -1435,7 +1441,7 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
     if (current_block_->scope->function_level() > 0) {
       const Class& signature_class = Class::Handle(func.signature_class());
       if (signature_class.NumTypeParameters() > 0) {
-        CaptureReceiver();
+        CaptureInstantiator();
       }
     }
   }
@@ -1841,7 +1847,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   LocalVariable* phase_parameter = new LocalVariable(
        ctor_pos,
        String::ZoneHandle(Symbols::PhaseParameter()),
-       Type::ZoneHandle(Type::DynamicType()));
+       Type::ZoneHandle(Type::IntInterface()));
   current_block_->scope->AddVariable(phase_parameter);
 
   // Now that the "this" parameter is in scope, we can generate the code
@@ -1897,13 +1903,14 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
   // Add implicit receiver parameter which is passed the allocated
   // but uninitialized instance to construct.
-  params.AddReceiver(TokenPos());
+  ASSERT(current_class().raw() == func.owner());
+  params.AddReceiver(ReceiverType(TokenPos()));
 
   // Add implicit parameter for construction phase.
   params.AddFinalParameter(
       TokenPos(),
       &String::ZoneHandle(Symbols::PhaseParameter()),
-      &Type::ZoneHandle(Type::DynamicType()));
+      &Type::ZoneHandle(Type::IntInterface()));
 
   if (func.is_const()) {
     params.SetImplicitlyFinal();
@@ -2143,15 +2150,19 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   // Static functions do not have a receiver.
   // An instance closure may capture and access the receiver, but via the
   // context and not via the first formal parameter.
-  // The first parameter of a factory is the AbstractTypeArguments vector of the
-  // type of the instance to be allocated. We name this hidden parameter 'this'.
-  const bool has_receiver = !func.IsClosureFunction() &&
-                            (!func.is_static() || func.IsFactory());
-  const bool allow_explicit_default_values = true;
-  if (has_receiver) {
-    params.AddReceiver(TokenPos());
+  // The first parameter of a factory is the AbstractTypeArguments vector of
+  // the type of the instance to be allocated.
+  if (!func.is_static() && !func.IsClosureFunction()) {
+    ASSERT(current_class().raw() == func.owner());
+    params.AddReceiver(ReceiverType(TokenPos()));
+  } else if (func.IsFactory()) {
+    params.AddFinalParameter(
+        TokenPos(),
+        &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
+        &Type::ZoneHandle(Type::DynamicType()));
   }
   ASSERT(CurrentToken() == Token::kLPAREN);
+  const bool allow_explicit_default_values = true;
   ParseFormalParameterList(allow_explicit_default_values, &params);
 
   // The number of parameters and their type are not yet set in local functions,
@@ -2184,9 +2195,9 @@ SequenceNode* Parser::ParseFunc(const Function& func,
     if (IsInstantiatorRequired()) {
       // Make sure that the receiver of the enclosing instance function
       // (or implicit first parameter of an enclosing factory) is marked as
-      // captured if type checks are enabled, because they may access the
-      // receiver to instantiate types.
-      CaptureReceiver();
+      // captured if type checks are enabled, because they may access it to
+      // instantiate types.
+      CaptureInstantiator();
     }
   }
 
@@ -2349,23 +2360,27 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   }
 
   // Parse the formal parameters.
-  // The first parameter of factory methods is an implicit parameter called
-  // 'this' of type AbstractTypeArguments.
-  const bool has_this_param =
-      !method->has_static || method->IsConstructor() || method->has_factory;
   const bool are_implicitly_final = method->has_const;
   const bool allow_explicit_default_values = true;
   const intptr_t formal_param_pos = TokenPos();
   method->params.Clear();
-  if (has_this_param) {
-    method->params.AddReceiver(formal_param_pos);
+  // Static functions do not have a receiver.
+  // The first parameter of a factory is the AbstractTypeArguments vector of
+  // the type of the instance to be allocated.
+  if (!method->has_static || method->IsConstructor()) {
+    method->params.AddReceiver(ReceiverType(formal_param_pos));
+  } else if (method->has_factory) {
+    method->params.AddFinalParameter(
+        formal_param_pos,
+        &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
+        &Type::ZoneHandle(Type::DynamicType()));
   }
   // Constructors have an implicit parameter for the construction phase.
   if (method->IsConstructor()) {
     method->params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::PhaseParameter()),
-        &Type::ZoneHandle(Type::DynamicType()));
+        &Type::ZoneHandle(Type::IntInterface()));
   }
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
@@ -2522,6 +2537,7 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
                     method->has_const,
                     method->has_abstract,
                     method->has_external,
+                    current_class(),
                     method_pos));
   func.set_result_type(*method->type);
   func.set_end_token_pos(method_end_pos);
@@ -2599,6 +2615,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              field->has_static,
                              field->has_final,
                              field->has_const || field->has_final,
+                             current_class(),
                              field->name_pos);
     class_field.set_type(*field->type);
     class_field.set_has_initializer(has_initializer);
@@ -2610,10 +2627,13 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
       class_field.set_value(init_value);
       if (!has_simple_literal) {
         String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
-        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                               field->has_static, field->has_final,
-                               /* is_abstract */ false,
-                               /* is_external */ false,
+        getter = Function::New(getter_name,
+                               RawFunction::kConstImplicitGetter,
+                               field->has_static,
+                               field->has_final,
+                               /* is_abstract = */ false,
+                               /* is_external = */ false,
+                               current_class(),
                                field->name_pos);
         getter.set_result_type(*field->type);
         members->AddFunction(getter);
@@ -2624,11 +2644,15 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
     if (!field->has_static) {
       String& getter_name = String::Handle(Field::GetterSymbol(*field->name));
       getter = Function::New(getter_name, RawFunction::kImplicitGetter,
-                             field->has_static, field->has_final, false,
-                             /* is_abstract */ false,
+                             field->has_static,
+                             field->has_final,
+                             /* is_abstract = */ false,
+                             /* is_external = */ false,
+                             current_class(),
                              field->name_pos);
       ParamList params;
-      params.AddReceiver(TokenPos());
+      ASSERT(current_class().raw() == getter.owner());
+      params.AddReceiver(ReceiverType(TokenPos()));
       getter.set_result_type(*field->type);
       AddFormalParamsToFunction(&params, getter);
       members->AddFunction(getter);
@@ -2636,11 +2660,15 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
         // Build a setter accessor for non-const fields.
         String& setter_name = String::Handle(Field::SetterSymbol(*field->name));
         setter = Function::New(setter_name, RawFunction::kImplicitSetter,
-                               field->has_static, field->has_final, false,
-                               /* is_abstract */ false,
+                               field->has_static,
+                               field->has_final,
+                               /* is_abstract = */ false,
+                               /* is_external = */ false,
+                               current_class(),
                                field->name_pos);
         ParamList params;
-        params.AddReceiver(TokenPos());
+        ASSERT(current_class().raw() == setter.owner());
+        params.AddReceiver(ReceiverType(TokenPos()));
         params.AddFinalParameter(TokenPos(),
                                  &String::ZoneHandle(Symbols::Value()),
                                  field->type);
@@ -3019,22 +3047,22 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
                       /* is_const = */ false,
                       /* is_abstract = */ false,
                       /* is_external = */ false,
+                      current_class(),
                       class_desc->token_pos()));
     ParamList params;
     // Add implicit 'this' parameter.
-    params.AddReceiver(TokenPos());
+    ASSERT(current_class().raw() == ctor.owner());
+    params.AddReceiver(ReceiverType(TokenPos()));
     // Add implicit parameter for construction phase.
     params.AddFinalParameter(
         TokenPos(),
         &String::ZoneHandle(Symbols::PhaseParameter()),
-        &Type::ZoneHandle(Type::DynamicType()));
+        &Type::ZoneHandle(Type::IntInterface()));
 
     AddFormalParamsToFunction(&params, ctor);
-    // The body of the constructor cannot modify the type arguments of the
-    // constructed instance, which is passed in as a hidden parameter.
-    // Therefore, there is no need to set the result type to be checked.
-    const AbstractType& result_type = Type::ZoneHandle(Type::DynamicType());
-    ctor.set_result_type(result_type);
+    // The body of the constructor cannot modify the type of the constructed
+    // instance, which is passed in as the receiver.
+    ctor.set_result_type(*((*params.parameters)[0].type));
     class_desc->AddFunction(ctor);
   }
 
@@ -3139,8 +3167,8 @@ void Parser::ParseFunctionTypeAlias(
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    alias_owner,
                     alias_name_pos));
-  signature_function.set_owner(alias_owner);
   signature_function.set_result_type(result_type);
   AddFormalParamsToFunction(&func_params, signature_function);
   const String& signature = String::Handle(signature_function.Signature());
@@ -3558,7 +3586,8 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
                var_name.ToCString());
     }
 
-    field = Field::New(var_name, is_static, is_final, is_const, name_pos);
+    field = Field::New(
+         var_name, is_static, is_final, is_const, current_class(), name_pos);
     field.set_type(type);
     field.set_value(Instance::Handle(Instance::null()));
     top_level->fields.Add(field);
@@ -3575,8 +3604,14 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
       if (!has_simple_literal) {
         // Create a static const getter.
         String& getter_name = String::ZoneHandle(Field::GetterSymbol(var_name));
-        getter = Function::New(getter_name, RawFunction::kConstImplicitGetter,
-                               is_static, is_final, false, false, name_pos);
+        getter = Function::New(getter_name,
+                               RawFunction::kConstImplicitGetter,
+                               is_static,
+                               is_final,
+                               /* is_abstract = */ false,
+                               /* is_external = */ false,
+                               current_class(),
+                               name_pos);
         getter.set_result_type(type);
         top_level->functions.Add(getter);
       }
@@ -3658,8 +3693,14 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
     ErrorMsg("function block expected");
   }
   Function& func = Function::Handle(
-      Function::New(func_name, RawFunction::kRegularFunction,
-                    is_static, false, false, is_external, function_pos));
+      Function::New(func_name,
+                    RawFunction::kRegularFunction,
+                    is_static,
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    is_external,
+                    current_class(),
+                    function_pos));
   func.set_result_type(result_type);
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
@@ -3741,7 +3782,12 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
       Function::New(accessor_name,
                     is_getter? RawFunction::kGetterFunction :
                                RawFunction::kSetterFunction,
-                    is_static, false, false, false, accessor_pos));
+                    is_static,
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
+                    current_class(),
+                    accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
@@ -4137,11 +4183,18 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
 
 
 LocalVariable* Parser::LookupReceiver(LocalScope* from_scope, bool test_only) {
+  ASSERT(!current_function().is_static());
   const String& this_name = String::Handle(Symbols::This());
   return from_scope->LookupVariable(this_name, test_only);
 }
 
 
+LocalVariable* Parser::LookupTypeArgumentsParameter(LocalScope* from_scope,
+                                                    bool test_only) {
+  ASSERT(current_function().IsInFactoryScope());
+  const String& param_name = String::Handle(Symbols::TypeArgumentsParameter());
+  return from_scope->LookupVariable(param_name, test_only);
+}
 LocalVariable* Parser::LookupPhaseParameter() {
   const String& phase_name =
       String::Handle(Symbols::PhaseParameter());
@@ -4150,27 +4203,42 @@ LocalVariable* Parser::LookupPhaseParameter() {
 }
 
 
-void Parser::CaptureReceiver() {
+void Parser::CaptureInstantiator() {
   ASSERT(current_block_->scope->function_level() > 0);
   const bool kTestOnly = false;
-  // Side effect of lookup captures the receiver variable.
-  LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
-  ASSERT(receiver != NULL);
+  // Side effect of lookup captures the instantiator variable.
+  LocalVariable* instantiator = NULL;
+  if (current_function().IsInFactoryScope()) {
+    instantiator = LookupTypeArgumentsParameter(current_block_->scope,
+                                                kTestOnly);
+  } else {
+    instantiator = LookupReceiver(current_block_->scope, kTestOnly);
+  }
+  ASSERT(instantiator != NULL);
 }
 
 
 AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   // A nested function may access 'this', referring to the receiver of the
   // outermost enclosing function.
-  // We should not be loading the receiver from a static scope.
-  ASSERT(!current_function().is_static() ||
-         current_function().IsInFactoryScope());
   const bool kTestOnly = false;
   LocalVariable* receiver = LookupReceiver(current_block_->scope, kTestOnly);
   if (receiver == NULL) {
     ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
   }
   return new LoadLocalNode(TokenPos(), *receiver);
+}
+
+
+AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
+  // A nested function may access ':type_arguments' to use as instantiator,
+  // referring to the implicit first parameter of the outermost enclosing
+  // factory function.
+  const bool kTestOnly = false;
+  LocalVariable* param = LookupTypeArgumentsParameter(current_block_->scope,
+                                                      kTestOnly);
+  ASSERT(param != NULL);
+  return new LoadLocalNode(TokenPos(), *param);
 }
 
 
@@ -4413,7 +4481,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
   // Make sure that the instantiator is captured.
   if ((signature_class.NumTypeParameters() > 0) &&
       (current_block_->scope->function_level() > 0)) {
-    CaptureReceiver();
+    CaptureInstantiator();
   }
 
   // Since the signature type is cached by the signature class, it may have
@@ -5567,7 +5635,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       if (!exception_param.type->IsInstantiated() &&
           (current_block_->scope->function_level() > 0)) {
         // Make sure that the instantiator is captured.
-        CaptureReceiver();
+        CaptureInstantiator();
       }
       TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
       AstNode* exception_var = new LoadLocalNode(catch_pos, *catch_excp_var);
@@ -6163,7 +6231,7 @@ AstNode* Parser::ParseBinaryExpr(int min_preced) {
         if (!type.IsInstantiated() &&
             (current_block_->scope->function_level() > 0)) {
           // Make sure that the instantiator is captured.
-          CaptureReceiver();
+          CaptureInstantiator();
         }
         right_operand = new TypeNode(type_pos, type);
         if ((op_kind == Token::kIS) && type.IsMalformed()) {
@@ -7134,7 +7202,7 @@ void Parser::CheckInstanceFieldAccess(intptr_t field_pos,
 
 // If type parameters are currently in scope, return their declaring class,
 // otherwise return null.
-RawClass* Parser::TypeParametersScopeClass() {
+RawClass* Parser::TypeParametersScopeClass() const {
   // Type parameters cannot be referred to from a static function, except from
   // a constructor or from a factory.
   // A constructor is considered as non-static by the compiler.
@@ -7155,6 +7223,22 @@ RawClass* Parser::TypeParametersScopeClass() {
     }
   }
   return Class::null();
+}
+
+
+const Type* Parser::ReceiverType(intptr_t type_pos) const {
+  ASSERT(!current_class().IsNull());
+  TypeArguments& type_arguments = TypeArguments::Handle();
+  if (current_class().NumTypeParameters() > 0) {
+    type_arguments = current_class().type_parameters();
+  }
+  Type& type = Type::ZoneHandle(
+       Type::New(current_class(), type_arguments, type_pos));
+  if (!is_top_level_) {
+    type ^= ClassFinalizer::FinalizeType(
+        current_class(), type, ClassFinalizer::kCanonicalizeWellFormed);
+  }
+  return &type;
 }
 
 
@@ -7364,8 +7448,8 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // The static getter may be changed later into an instance setter.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
-        if ((!current_function().is_static() ||
-             current_function().IsInFactoryScope()) &&
+        ASSERT(!current_function().IsInFactoryScope());
+        if (!current_function().is_static() &&
             (LookupReceiver(current_block_->scope, kTestOnly) != NULL)) {
           receiver = LoadReceiver(ident_pos);
         }
@@ -7788,7 +7872,7 @@ AstNode* Parser::ParseListLiteral(intptr_t type_pos,
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
-      CaptureReceiver();
+      CaptureInstantiator();
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(list);
@@ -8011,7 +8095,7 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
         !map_type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
-      CaptureReceiver();
+      CaptureInstantiator();
     }
     ArgumentListNode* factory_param = new ArgumentListNode(literal_pos);
     factory_param->Add(kv_pairs);
@@ -8286,7 +8370,7 @@ AstNode* Parser::ParseNewOperator() {
         !type_arguments.IsInstantiated() &&
         (current_block_->scope->function_level() > 0)) {
       // Make sure that the instantiator is captured.
-      CaptureReceiver();
+      CaptureInstantiator();
     }
     if (type.IsMalformed()) {
       // Compile the throw of a dynamic type error due to a bound error.

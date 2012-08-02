@@ -446,6 +446,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     }
 
     // Create a dummy function object for the code generator.
+    // The function needs to be associated with a named Class: the interface
+    // Function fits the bill.
     const char* kEvalConst = "eval_const";
     const Function& func = Function::Handle(Function::New(
         String::Handle(Symbols::New(kEvalConst)),
@@ -454,16 +456,12 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
         false,  // not const function.
         false,  // not abstract
         false,  // not external.
+        Class::Handle(Type::Handle(Type::FunctionInterface()).type_class()),
         fragment->token_pos()));
 
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);
     func.set_num_optional_parameters(0);
-
-    // The function needs to be associated with a named Class: the interface
-    // Function fits the bill.
-    func.set_owner(Class::Handle(
-        Type::Handle(Type::FunctionInterface()).type_class()));
 
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants

@@ -1608,6 +1608,7 @@ class Function : public Object {
                           bool is_const,
                           bool is_abstract,
                           bool is_external,
+                          const Class& owner,
                           intptr_t token_pos);
 
   // Allocates a new Function object representing a closure function, as well as
@@ -1688,6 +1689,7 @@ class Field : public Object {
                        bool is_static,
                        bool is_final,
                        bool is_const,
+                       const Class& owner,
                        intptr_t token_pos);
 
   static intptr_t value_offset() { return OFFSET_OF(RawField, value_); }

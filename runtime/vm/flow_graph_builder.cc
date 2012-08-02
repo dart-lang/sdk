@@ -347,14 +347,17 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
-    const RawFunction::Kind kind = owner()->parsed_function().function().kind();
-    const bool is_implicit_getter =
-        (kind == RawFunction::kImplicitGetter) ||
-        (kind == RawFunction::kConstImplicitGetter);
-    const bool is_static = owner()->parsed_function().function().is_static();
+    const Function& function = owner()->parsed_function().function();
+    const bool is_implicit_dynamic_getter =
+        (!function.is_static() &&
+        ((function.kind() == RawFunction::kImplicitGetter) ||
+         (function.kind() == RawFunction::kConstImplicitGetter)));
     // Implicit getters do not need a type check at return, unless they compute
     // the initial value of a static field.
-    if (is_static || !is_implicit_getter) {
+    // The body of a constructor cannot modify the type of the
+    // constructed instance, which is passed in as an implicit parameter.
+    // However, factories may create an instance of the wrong type.
+    if (!is_implicit_dynamic_getter && !function.IsConstructor()) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
