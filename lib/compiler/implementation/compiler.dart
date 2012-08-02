@@ -571,7 +571,7 @@ class Compiler implements DiagnosticListener {
         AbstractFieldElement originalField = originalElement;
         if (patchField.getter !== null) {
           if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter),
+            original.addGetterOrSetter(clonePatch(patchField.getter, original),
                                        originalField,
                                        this);
             if (originalField === null && patchField.setter !== null) {
@@ -584,7 +584,7 @@ class Compiler implements DiagnosticListener {
         }
         if (patchField.setter !== null) {
           if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter),
+            original.addGetterOrSetter(clonePatch(patchField.setter, original),
                                        originalField,
                                        this);
           } else {
@@ -596,7 +596,7 @@ class Compiler implements DiagnosticListener {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
         }
-        original.addMember(clonePatch(patchElement), this);
+        original.addMember(clonePatch(patchElement, original), this);
       } else {
         patchMember(originalElement, patchElement);
       }
@@ -610,7 +610,7 @@ class Compiler implements DiagnosticListener {
     return !element.metadata.isEmpty();
   }
 
-  Element clonePatch(Element patchElement) {
+  Element clonePatch(Element patchElement, Element enclosing) {
     // The original library does not have an element with the same name
     // as the patch library element.
     // In this case, the patch library element must not be marked as "patch",
@@ -619,9 +619,23 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot add non-private member '"
                     "${patchElement.name.slowToString()}' from patch.");
     }
+    if (patchElement.isFunction()) {
+      var function = new FunctionElement.from(patchElement.name,
+                                              patchElement,
+                                              enclosing);
+      // Give the cloned function a patch reference, so it gets the correct
+      // compilation unit for reporting diagnostics.
+      function.setPatch(patchElement);
+      return function;
+    } else if (patchElement.isField()) {
+      // TODO(ajohnsen): Decide if a VariableElement should have a patch field.
+      return new VariableElement.from(patchElement.name,
+                                      patchElement,
+                                      enclosing);
+    }
     // TODO(lrn): Create a copy of patchElement that isn't added to any
     // object/library yet, but which takes its source from patchElement.
-    throw "Adding members from patch is unsupported";
+    throw "Adding ${patchElement.kind} from patch is unsupported";
   }
 
   void patchMember(Element originalElement, Element patchElement) {
