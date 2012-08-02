@@ -311,10 +311,13 @@ public class SystemLibraryManager {
     if (isDartUri(uri)) {
       String host = uri.getHost();
       SystemLibrary library = hostMap.get(host);
-      if (library == null) {
-        throw new RuntimeException("No system library defined for " + uri);
+      if (library != null) {
+        return library.translateUri(uri);
       }
-      return library.translateUri(uri);
+      if (host != null) {
+        return new File(getSdkLibPath(), host).toURI().resolve("." + uri.getPath());
+      }
+      throw new RuntimeException("No system library defined for " + uri);
     } 
     if (isPackageUri(uri)){   
       URI fileUri;

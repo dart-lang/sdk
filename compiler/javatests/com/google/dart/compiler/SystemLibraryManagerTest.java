@@ -1,4 +1,4 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler;
@@ -8,6 +8,19 @@ import junit.framework.TestCase;
 import java.net.URI;
 
 public class SystemLibraryManagerTest extends TestCase {
+  /**
+   * For FS based {@link URI} the path is not <code>null</code>, for JAR {@link URI} the scheme
+   * specific part is not <code>null</code>.
+   * 
+   * @return the scheme specific path.
+   */
+  private static String getPath(URI uri) {
+    if (uri.getPath() != null) {
+      return uri.getPath();
+    }
+    return uri.getSchemeSpecificPart();
+  }
+
   SystemLibraryManager systemLibraryManager = new SystemLibraryManager();
 
   public void testExpand1() throws Exception {
@@ -66,26 +79,10 @@ public class SystemLibraryManagerTest extends TestCase {
 
   public void testTranslate3() throws Exception {
     URI fullUri = new URI("dart://doesnotexist/some/file.dart");
-    try {
-      URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
-      fail("Expected translate " + fullUri + " to fail, but returned " + translatedURI);
-    } catch (RuntimeException e) {
-      String message = e.getMessage();
-      assertTrue(message.startsWith("No system library"));
-      assertTrue(message.contains(fullUri.toString()));
-    }
-  }
-
-  /**
-   * For FS based {@link URI} the path is not <code>null</code>, for JAR {@link URI} the scheme
-   * specific part is not <code>null</code>.
-   * 
-   * @return the scheme specific path.
-   */
-  private static String getPath(URI uri) {
-    if (uri.getPath() != null) {
-      return uri.getPath();
-    }
-    return uri.getSchemeSpecificPart();
+    URI translatedURI = systemLibraryManager.resolveDartUri(fullUri);
+    assertNotNull(translatedURI);
+    String scheme = translatedURI.getScheme();
+    assertTrue(scheme.equals("file"));
+    assertTrue(getPath(translatedURI).endsWith("some/file.dart"));
   }
 }
