@@ -45,5 +45,8 @@
         },
       },
     },
+    'defines': [
+      '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
+    ],
   },
 }
