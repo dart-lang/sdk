@@ -5,8 +5,7 @@
 #ifndef PLATFORM_GLOBALS_H_
 #define PLATFORM_GLOBALS_H_
 
-// __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
-// enable platform independent printf format specifiers.
+// __STDC_FORMAT_MACROS has to be defined to enable platform independent printf.
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
 #endif
