@@ -8,6 +8,7 @@
  */
 #library("archive");
 
+#import("entry.dart", prefix: "entry");
 #import("reader.dart", prefix: "reader");
 
 // TODO(nweiz): Remove this when 3071 is fixed.
@@ -23,3 +24,13 @@ interface ArchiveException {
 // TODO(nweiz): Remove this when 3071 is fixed.
 /** See [reader.ArchiveReader]. */
 class ArchiveReader extends reader.ArchiveReader {}
+
+// TODO(nweiz): Remove this when 3071 is fixed.
+/** See [entry.ArchiveEntry]. */
+class ArchiveEntry extends entry.ArchiveEntry {
+  ArchiveEntry.internal(List properties, int archiveId)
+    : super.internal(properties, archiveId);
+
+  /** Create a new [ArchiveEntry] with default values for all of its fields. */
+  static Future<ArchiveEntry> create() => entry.ArchiveEntry.create();
+}

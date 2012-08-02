@@ -51,10 +51,26 @@ void postSuccess(Dart_Port p, Dart_CObject* response);
 bool checkError(Dart_Port p, struct archive* a, int result);
 
 /**
+ * Sends an error response if [pointer] is invalid. [name] is the name of the
+ * object being allocated, for error reporting.
+ * 
+ * Returns `true` if an error is detected and the containing function should
+ * short-circuit.
+ */
+bool checkPointerError(Dart_Port p, void* pointer, char* name);
+
+/**
  * Like [checkError], but sends a success message with no attached data if no
  * error is detected. No further responses should be sent after calling this.
  */
 void checkResult(Dart_Port p, struct archive* a, int result);
+
+/**
+ * Like [checkPointerError], but sends a success message with the pointer as a
+ * Dart integer if no error is detected. No further responses should be sent
+ * after calling this.
+ */
+void checkPointerResult(Dart_Port p, void* pointer, char* name);
 
 /**
  * Checks that [object] is of the expected type [type]. If not, sends an
@@ -90,6 +106,20 @@ Dart_CObject* getIntArgument(Dart_Port p, Dart_CObject* request, int i);
  * Note that this does not validate the type of its argument.
  */
 int64_t getInteger(Dart_CObject* object);
+
+/**
+ * Like [getArgument], but also ensures that the argument is a string or null.
+ * [getNullableString] should be used to extract the actual value of the
+ * argument.
+ */
+Dart_CObject* getNullableStringArgument(Dart_Port p, Dart_CObject* request,
+    int i);
+
+/**
+ * Gets the string value of [object] or `NULL` if it's null. Note that this does
+ * not validate the type of its argument.
+ */
+char* getNullableString(Dart_CObject* object);
 
 /** Declares a null [Dart_CObject] named [name]. */
 #define DART_NULL(name) \

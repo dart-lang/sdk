@@ -2,9 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * The request ids for read-related messages to send to the C extension.
- */
+/** The request ids for read-related messages to send to the C extension. */
 #library("read_request");
 
 final int NEW = 0;
@@ -20,7 +18,7 @@ final int SUPPORT_FORMAT_ALL = 9;
 final int SUPPORT_FORMAT_AR = 10;
 final int SUPPORT_FORMAT_CPIO = 11;
 final int SUPPORT_FORMAT_EMPTY = 12;
-final int SUPPORT_FORMAT_ISO9599 = 13;
+final int SUPPORT_FORMAT_ISO9660 = 13;
 final int SUPPORT_FORMAT_MTREE = 14;
 final int SUPPORT_FORMAT_RAW = 15;
 final int SUPPORT_FORMAT_TAR = 16;
@@ -35,3 +33,5 @@ final int DATA_BLOCK = 24;
 final int DATA_SKIP = 25;
 final int CLOSE = 26;
 final int FREE = 27;
+
+final int LAST = FREE;

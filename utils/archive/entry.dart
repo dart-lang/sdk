@@ -5,7 +5,9 @@
 #library("entry");
 
 #import("dart:io");
-#import("read_request.dart");
+#import("archive.dart", prefix: "archive");
+#import("entry_request.dart");
+#import("read_request.dart", prefix: 'read');
 #import("utils.dart");
 
 /**
@@ -42,109 +44,190 @@ class ArchiveEntry {
    */
   Future inputComplete;
 
-  ArchiveEntry(this._archiveId, this._properties);
+  ArchiveEntry.internal(this._properties, this._archiveId) {
+    attachFinalizer(this, (id) => call(FREE, id), _id);
+  }
+
+  /** Create a new [ArchiveEntry] with default values for all of its fields. */
+  static Future<ArchiveEntry> create() {
+    return call(NEW).transform((properties) {
+      return new archive.ArchiveEntry.internal(properties, null);
+    });
+  }
+
+  /** The id of the underlying archive entry. */
+  int get _id() => _properties[0];
 
   /** If this entry is a hardlink, this is the destination. Otherwise, null. */
-  String get hardlink() => _properties[0];
+  String get hardlink() => _properties[1];
+  set hardlink(String value) => _set(SET_HARDLINK, 1, value);
 
   /** The path to this entry in the archive. */
-  String get pathname() => _properties[1];
+  String get pathname() => _properties[2];
+  set pathname(String value) => _set(SET_PATHNAME, 2, value);
 
   /** The path to this entry on disk, */
-  String get sourcepath() => _properties[2];
+  String get sourcepath() => _properties[3];
+  set sourcepath(String value) => _set(SET_SOURCEPATH, 3, value);
 
   /** If this entry is a symlink, this is the destination. Otherwise, null. */
-  String get symlink() => _properties[3];
+  String get symlink() => _properties[4];
+  set symlink(String value) => _set(SET_SYMLINK, 4, value);
 
   /** The group identifier for this entry. */
-  int get gid() => _properties[4];
+  int get gid() => _properties[5];
+  set gid(int value) => _set(SET_GID, 5, value);
 
   /** The user identifier for this entry. */
-  int get uid() => _properties[5];
+  int get uid() => _properties[6];
+  set uid(int value) => _set(SET_UID, 6, value);
 
   /** The permissions bitmask for this entry. */
-  int get perm_mask() => _properties[6];
-
-  /** The String representation of the permissions for this entry. */
-  String get strmode() => _properties[7];
-
-  /** The name of the group this entry belongs to. */
-  String get gname() => _properties[8];
-
-  /** The name of the user this entry belongs to. */
-  String get uname() => _properties[9];
-
-  /** The file flag bits that should be set for this entry. */
-  int get fflags_set() => _properties[10];
-
-  /** The file flag bits that should be cleared for this entry. */
-  int get fflags_clear() => _properties[11];
-
-  /** The textual representation of the file flags for this entry. */
-  String get fflags_text() => _properties[12];
-
-  /** The filetype bitmask for this entry. */
-  int get filetype_mask() => _properties[13];
-
-  /** The filetype and permissions bitmask for this entry. */
-  int get mode_mask() => _properties[14];
-
-  /** The size of this entry in bytes, or null if it's unset. */
-  int get size() => _properties[15];
-
-  /** The ID of the device containing this entry, or null if it's unset. */
-  int get dev() => _properties[16];
-
-  /** The major number of the ID of the device containing this entry. */
-  int get devmajor() => _properties[17];
-
-  /** The minor number of the ID of the device containing this entry. */
-  int get devminor() => _properties[18];
-
-  /** The inode number of this entry, or null if it's unset. */
-  int get ino() => _properties[19];
-
-  /** The number of references to this entry. */
-  int get nlink() => _properties[20];
-
-  /** The device ID of this entry. */
-  int get rdev() => _properties[21];
-
-  /** The major number of the device ID of this entry. */
-  int get rdevmajor() => _properties[22];
-
-  /** The minor number of the device ID of this entry. */
-  int get rdevminor() => _properties[23];
-
-  /** The last time this entry was accessed. */
-  Date get atime() => new Date.fromMillisecondsSinceEpoch(_properties[24]);
-
-  /** The nanoseconds at the last time this entry was accessed. */
-  int get atime_nsec() => _properties[25];
-
-  /** The time this entry was created. */
-  Date get birthtime() => new Date.fromMillisecondsSinceEpoch(_properties[26]);
-
-  /** The nanoseconds at the time this entry was created. */
-  int get birthtime_nsec() => _properties[27];
-
-  /** The last time an inode property of this entry was changed. */
-  Date get ctime() => new Date.fromMillisecondsSinceEpoch(_properties[28]);
+  int get perm_mask() => _properties[7];
+  set perm_mask(int value) => _set(SET_PERM, 7, value);
 
   /**
-   * The nanoseconds at the last time an inode property of this entry was
-   * changed.
+   * The String representation of the permissions for this entry.
+   *
+   * Note that if you set [perm_mask], this value will not change.
    */
-  int get ctime_nsec() => _properties[29];
+  String get strmode() => _properties[8];
 
-  /** The last time this entry was modified. */
-  Date get mtime() => new Date.fromMillisecondsSinceEpoch(_properties[30]);
+  /** The name of the group this entry belongs to. */
+  String get gname() => _properties[9];
+  set gname(String value) => _set(SET_GNAME, 9, value);
 
-  /** The nanoseconds at the last time this entry was modified. */
-  int get mtime_nsec() => _properties[31];
+  /** The name of the user this entry belongs to. */
+  String get uname() => _properties[10];
+  set uname(String value) => _set(SET_UNAME, 10, value);
+
+  /**
+   * The file flag bits that should be set for this entry.
+   *
+   * Note that if you set [fflags_text], this value will not change, and vice
+   * versa.
+   */
+  int get fflags_set() => _properties[11];
+  set fflags_set(int value) => _set(SET_FFLAGS_SET, 11, value);
+
+  /**
+   * The file flag bits that should be cleared for this entry.
+   *
+   * Note that if you set [fflags_text], this value will not change, and vice
+   * versa.
+   */
+  int get fflags_clear() => _properties[12];
+  set fflags_clear(int value) => _set(SET_FFLAGS_CLEAR, 12, value);
+
+  /**
+   * The textual representation of the file flags for this entry.
+   *
+   * Note that if you set [fflags_set] or [fflags_clear], this value will not
+   * change, and vice versa.
+   */
+  String get fflags_text() => _properties[13];
+  set fflags_text(String value) => _set(SET_FFLAGS_TEXT, 13, value);
+
+  /** The filetype bitmask for this entry. */
+  int get filetype_mask() => _properties[14];
+  set filetype_mask(int value) => _set(SET_FILETYPE, 14, value);
+
+  /** The filetype and permissions bitmask for this entry. */
+  int get mode_mask() => _properties[15];
+  set mode_mask(int value) => _set(SET_MODE, 15, value);
+
+  /** The size of this entry in bytes, or null if it's unset. */
+  int get size() => _properties[16];
+  set size(int value) => _set(SET_SIZE, 16, value);
+
+  /** The ID of the device containing this entry, or null if it's unset. */
+  int get dev() => _properties[17];
+  set dev(int value) => _set(SET_DEV, 17, value);
+
+  /** The major number of the ID of the device containing this entry. */
+  int get devmajor() => _properties[18];
+  set devmajor(int value) => _set(SET_DEVMAJOR, 18, value);
+
+  /** The minor number of the ID of the device containing this entry. */
+  int get devminor() => _properties[19];
+  set devminor(int value) => _set(SET_DEVMINOR, 19, value);
+
+  /** The inode number of this entry, or null if it's unset. */
+  int get ino() => _properties[20];
+  set ino(int value) => _set(SET_INO, 20, value);
+
+  /** The number of references to this entry. */
+  int get nlink() => _properties[21];
+  set nlink(int value) => _set(SET_NLINK, 21, value);
+
+  /** The device ID of this entry. */
+  int get rdev() => _properties[22];
+  set rdev(int value) => _set(SET_RDEV, 22, value);
+
+  /** The major number of the device ID of this entry. */
+  int get rdevmajor() => _properties[23];
+  set rdevmajor(int value) => _set(SET_RDEVMAJOR, 23, value);
+
+  /** The minor number of the device ID of this entry. */
+  int get rdevminor() => _properties[24];
+  set rdevminor(int value) => _set(SET_RDEVMINOR, 24, value);
+
+  /** The last time this entry was accessed, or null if it's unset. */
+  Date get atime() => _fromMs(_properties[25]);
+  set atime(Date value) => _set(SET_ATIME, 25, _toMs(value));
+
+  /** The time this entry was created, or null if it's unset. */
+  Date get birthtime() => _fromMs(_properties[26]);
+  set birthtime(Date value) => _set(SET_BIRTHTIME, 26, _toMs(value));
+
+  /**
+   * The last time an inode property of this entry was changed, or null if it's
+   * unset.
+   */
+  Date get ctime() => _fromMs(_properties[27]);
+  set ctime(Date value) => _set(SET_CTIME, 27, _toMs(value));
+
+  /** The last time this entry was modified, or null if it's unset. */
+  Date get mtime() => _fromMs(_properties[28]);
+  set mtime(Date value) => _set(SET_MTIME, 28, _toMs(value));
 
   /** Whether [openInputStream] has been called. */
   bool get isInputOpen() => _input != null;
+
+  /** Create a deep copy of this [ArchiveEntry]. */
+  Future<ArchiveEntry> clone() {
+    return call(CLONE, _id).
+      transform((array) => new archive.ArchiveEntry.internal(array, null));
+  }
+
+  /**
+   * Set a property value with index [value] on the local representation of the
+   * archive entry and on the native representation.
+   */
+  void _set(int requestType, int index, value) {
+    _properties[index] = value;
+    // Since the native code processes messages in order, the SET_* messages
+    // will be received and processed before any further messages.
+    call(requestType, _id, [value]).then((_) {});
+  }
+
+  /**
+   * Converts [ms], the (possibly null) number of milliseconds since the epoch
+   * into a Date object (which may also be null).
+   */
+  Date _fromMs(int ms) {
+    if (ms == null) return null;
+    return new Date.fromMillisecondsSinceEpoch(ms);
+  }
+
+  /**
+   * Converts [date], which may be null, into the number of milliseconds since
+   * the epoch (which may also be null).
+   */
+  int _toMs(Date date) {
+    if (date == null) return null;
+    return date.millisecondsSinceEpoch;
+  }
 
   /**
    * Creates a new input stream for reading the contents of this entry.
@@ -159,8 +242,8 @@ class ArchiveEntry {
    */
   InputStream openInputStream() {
     if (_archiveId == null) {
-      throw new UnsupportedOperationException("Archive entry $pathname is no "
-          "longer being read from the archive.");
+      throw new UnsupportedOperationException("Cannot open input stream for "
+          "archive entry $pathname.");
     } else if (_input != null) {
       throw new UnsupportedOperationException("An input stream has already been"
           "opened for archive entry $pathname.");
@@ -206,7 +289,7 @@ class ArchiveEntry {
    */
   Future _consumeInput() {
     var data;
-    return call(DATA_BLOCK, _archiveId).chain((_data) {
+    return call(read.DATA_BLOCK, _archiveId).chain((_data) {
       data = _data;
       // TODO(nweiz): This async() call is only necessary because of issue 4222.
       return async();

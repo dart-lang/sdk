@@ -4,6 +4,7 @@
 
 #library("input_stream");
 
+#import("archive.dart", prefix: "archive");
 #import("entry.dart");
 #import("read_request.dart");
 #import("utils.dart");
@@ -115,7 +116,7 @@ class ArchiveInputStream {
     return call(NEXT_HEADER, _id.value).chain((_data) {
       data = _data;
       if (data == null) return new Future.immediate(null);
-      return _emit(new ArchiveEntry(_id.value, data)).
+      return _emit(new archive.ArchiveEntry.internal(data, _id.value)).
         chain((_) => _consumeHeaders());
     });
   }

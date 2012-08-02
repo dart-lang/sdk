@@ -7,7 +7,9 @@
 #include <stdlib.h>
 
 #include "dart_archive.h"
+#include "entry.h"
 #include "messaging.h"
+#include "reader.h"
 
 /** The enumeration of request types for communicating with Dart. */
 enum RequestType {
@@ -39,6 +41,36 @@ enum RequestType {
   kArchiveReadDataSkip,
   kArchiveReadClose,
   kArchiveReadFree,
+  kArchiveEntryClone,
+  kArchiveEntryFree,
+  kArchiveEntryNew,
+  kArchiveEntrySetHardlink,
+  kArchiveEntrySetPathname,
+  kArchiveEntrySetSourcepath,
+  kArchiveEntrySetSymlink,
+  kArchiveEntrySetGid,
+  kArchiveEntrySetUid,
+  kArchiveEntrySetPerm,
+  kArchiveEntrySetGname,
+  kArchiveEntrySetUname,
+  kArchiveEntrySetFflagsSet,
+  kArchiveEntrySetFflagsClear,
+  kArchiveEntrySetFflagsText,
+  kArchiveEntrySetFiletype,
+  kArchiveEntrySetMode,
+  kArchiveEntrySetSize,
+  kArchiveEntrySetDev,
+  kArchiveEntrySetDevmajor,
+  kArchiveEntrySetDevminor,
+  kArchiveEntrySetIno,
+  kArchiveEntrySetNlink,
+  kArchiveEntrySetRdev,
+  kArchiveEntrySetRdevmajor,
+  kArchiveEntrySetRdevminor,
+  kArchiveEntrySetAtime,
+  kArchiveEntrySetBirthtime,
+  kArchiveEntrySetCtime,
+  kArchiveEntrySetMtime,
   kNumberOfRequestTypes
 };
 
@@ -69,15 +101,14 @@ static void archiveDispatch(Dart_Port dest_port_id,
   }
   enum RequestType request_type = wrapped_request_type->value.as_int32;
 
-  Dart_CObject* archive_id = message->value.as_array.values[1];
-  struct archive* archive;
-  if (archive_id->type == kNull) {
-    archive = NULL;
-  } else if (archive_id->type == kInt64 || archive_id->type == kInt32) {
-    archive = (struct archive*) (intptr_t) getInteger(archive_id);
+  Dart_CObject* id = message->value.as_array.values[1];
+  void* ptr;
+  if (id->type == kNull) {
+    ptr = NULL;
+  } else if (id->type == kInt64 || id->type == kInt32) {
+    ptr = (void*) (intptr_t) getInteger(id);
   } else {
-    postInvalidArgument(reply_port_id, "Invalid archive id type %d.",
-      archive_id->type);
+    postInvalidArgument(reply_port_id, "Invalid id type %d.", id->type);
     return;
   }
 
@@ -86,86 +117,189 @@ static void archiveDispatch(Dart_Port dest_port_id,
     archiveReadNew(reply_port_id);
     break;
   case kArchiveReadSupportFilterAll:
-    archiveReadSupportFilterAll(reply_port_id, archive);
+    archiveReadSupportFilterAll(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterBzip2:
-    archiveReadSupportFilterBzip2(reply_port_id, archive);
+    archiveReadSupportFilterBzip2(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterCompress:
-    archiveReadSupportFilterCompress(reply_port_id, archive);
+    archiveReadSupportFilterCompress(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterGzip:
-    archiveReadSupportFilterGzip(reply_port_id, archive);
+    archiveReadSupportFilterGzip(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterLzma:
-    archiveReadSupportFilterLzma(reply_port_id, archive);
+    archiveReadSupportFilterLzma(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterXz:
-    archiveReadSupportFilterXz(reply_port_id, archive);
+    archiveReadSupportFilterXz(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFilterProgram:
-    archiveReadSupportFilterProgram(reply_port_id, archive, message);
+    archiveReadSupportFilterProgram(
+      reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadSupportFilterProgramSignature:
     archiveReadSupportFilterProgramSignature(
-        reply_port_id, archive, message);
+        reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadSupportFormatAll:
-    archiveReadSupportFormatAll(reply_port_id, archive);
+    archiveReadSupportFormatAll(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatAr:
-    archiveReadSupportFormatAr(reply_port_id, archive);
+    archiveReadSupportFormatAr(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatCpio:
-    archiveReadSupportFormatCpio(reply_port_id, archive);
+    archiveReadSupportFormatCpio(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatEmpty:
-    archiveReadSupportFormatEmpty(reply_port_id, archive);
+    archiveReadSupportFormatEmpty(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatIso9660:
-    archiveReadSupportFormatIso9660(reply_port_id, archive);
+    archiveReadSupportFormatIso9660(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatMtree:
-    archiveReadSupportFormatMtree(reply_port_id, archive);
+    archiveReadSupportFormatMtree(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatRaw:
-    archiveReadSupportFormatRaw(reply_port_id, archive);
+    archiveReadSupportFormatRaw(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatTar:
-    archiveReadSupportFormatTar(reply_port_id, archive);
+    archiveReadSupportFormatTar(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSupportFormatZip:
-    archiveReadSupportFormatZip(reply_port_id, archive);
+    archiveReadSupportFormatZip(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadSetFilterOptions:
-    archiveReadSetFilterOptions(reply_port_id, archive, message);
+    archiveReadSetFilterOptions(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadSetFormatOptions:
-    archiveReadSetFormatOptions(reply_port_id, archive, message);
+    archiveReadSetFormatOptions(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadSetOptions:
-    archiveReadSetOptions(reply_port_id, archive, message);
+    archiveReadSetOptions(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadOpenFilename:
-    archiveReadOpenFilename(reply_port_id, archive, message);
+    archiveReadOpenFilename(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadOpenMemory:
-    archiveReadOpenMemory(reply_port_id, archive, message);
+    archiveReadOpenMemory(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadNextHeader:
-    archiveReadNextHeader(reply_port_id, archive);
+    archiveReadNextHeader(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadDataBlock:
-    archiveReadDataBlock(reply_port_id, archive);
+    archiveReadDataBlock(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadDataSkip:
-    archiveReadDataSkip(reply_port_id, archive);
+    archiveReadDataSkip(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadClose:
-    archiveReadClose(reply_port_id, archive);
+    archiveReadClose(reply_port_id, (struct archive*) ptr);
     break;
   case kArchiveReadFree:
-    archiveReadFree(reply_port_id, archive);
+    archiveReadFree(reply_port_id, (struct archive*) ptr);
+    break;
+  case kArchiveEntryClone:
+    archiveEntryClone(reply_port_id, (struct archive_entry*) ptr);
+    break;
+  case kArchiveEntryFree:
+    archiveEntryFree(reply_port_id, (struct archive_entry*) ptr);
+    break;
+  case kArchiveEntryNew:
+    archiveEntryNew(reply_port_id);
+    break;
+  case kArchiveEntrySetHardlink:
+    archiveEntrySetHardlink(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetPathname:
+    archiveEntrySetPathname(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetSourcepath:
+    archiveEntrySetSourcepath(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetSymlink:
+    archiveEntrySetSymlink(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetGid:
+    archiveEntrySetGid(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetUid:
+    archiveEntrySetUid(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetPerm:
+    archiveEntrySetPerm(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetGname:
+    archiveEntrySetGname(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetUname:
+    archiveEntrySetUname(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetFflagsSet:
+    archiveEntrySetFflagsSet(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetFflagsClear:
+    archiveEntrySetFflagsClear(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetFflagsText:
+    archiveEntrySetFflagsText(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetFiletype:
+    archiveEntrySetFiletype(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetMode:
+    archiveEntrySetMode(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetSize:
+    archiveEntrySetSize(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetDev:
+    archiveEntrySetDev(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetDevmajor:
+    archiveEntrySetDevmajor(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetDevminor:
+    archiveEntrySetDevminor(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetIno:
+    archiveEntrySetIno(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetNlink:
+    archiveEntrySetNlink(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetRdev:
+    archiveEntrySetRdev(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetRdevmajor:
+    archiveEntrySetRdevmajor(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetRdevminor:
+    archiveEntrySetRdevminor(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetAtime:
+    archiveEntrySetAtime(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetBirthtime:
+    archiveEntrySetBirthtime(
+        reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetCtime:
+    archiveEntrySetCtime(reply_port_id, (struct archive_entry*) ptr, message);
+    break;
+  case kArchiveEntrySetMtime:
+    archiveEntrySetMtime(reply_port_id, (struct archive_entry*) ptr, message);
     break;
   default:
     postInvalidArgument(reply_port_id, "Invalid request id %d.", request_type);

@@ -30,7 +30,7 @@ SendPort _newServicePort() native "Archive_ServicePort";
  *
  * Returns a future that completes with the C extension's reply.
  */
-Future call(int requestType, int id, [List args]) {
+Future call(int requestType, [int id, List args]) {
   var fullArgs = [requestType, id];
   if (args != null) fullArgs.addAll(args);
   return servicePort.call(listForC(fullArgs)).transform((response) {

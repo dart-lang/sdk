@@ -77,7 +77,7 @@ class ArchiveReader {
    * returns its id.
    */
   Future<int> _createArchive() {
-    return call(NEW, null).chain((id) {
+    return call(NEW).chain((id) {
       if (id == 0 || id == null) {
         throw new ArchiveException("Archive is invalid or closed.");
       }
