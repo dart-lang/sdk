@@ -4410,7 +4410,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
   String value;
 }
 
-class _DOMStringListImpl implements DOMStringList native "*DOMStringList" {
+class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior native "*DOMStringList" {
 
   final int length;
 
@@ -6745,7 +6745,7 @@ class _FileExceptionImpl implements FileException native "*FileException" {
   String toString() native;
 }
 
-class _FileListImpl implements FileList native "*FileList" {
+class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*FileList" {
 
   final int length;
 
@@ -7307,7 +7307,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection native "*HTMLAllCollec
   _NodeListImpl tags(String name) native;
 }
 
-class _HTMLCollectionImpl implements HTMLCollection native "*HTMLCollection" {
+class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior native "*HTMLCollection" {
 
   final int length;
 
@@ -8743,7 +8743,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*Me
   final int systemCode;
 }
 
-class _MediaListImpl implements MediaList native "*MediaList" {
+class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*MediaList" {
 
   final int length;
 
@@ -9224,7 +9224,7 @@ class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
   final String type;
 }
 
-class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
+class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior native "*NamedNodeMap" {
 
   final int length;
 
@@ -9734,7 +9734,7 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
-class _NodeListImpl implements NodeList native "*NodeList" {
+class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*NodeList" {
   _NodeImpl _parent;
 
   // -- start List<Node> mixins.
@@ -14366,7 +14366,7 @@ class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
   final String type;
 }
 
-class _StyleSheetListImpl implements StyleSheetList native "*StyleSheetList" {
+class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior native "*StyleSheetList" {
 
   final int length;
 
@@ -14848,7 +14848,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent native "*TouchE
   void initTouchEvent(_TouchListImpl touches, _TouchListImpl targetTouches, _TouchListImpl changedTouches, String type, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
-class _TouchListImpl implements TouchList native "*TouchList" {
+class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*TouchList" {
 
   final int length;
 
