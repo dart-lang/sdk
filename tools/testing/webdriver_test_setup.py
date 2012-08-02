@@ -16,6 +16,7 @@ import optparse
 import os
 import platform
 import re
+import shutil
 import subprocess
 import sys
 import urllib
@@ -141,6 +142,17 @@ class GoogleCodeInstaller(object):
         z.extractall(self.download_location)
         z.close()
       os.remove(os.path.join(self.download_location, download_name))
+    chrome_path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
+        'orig-chromedriver')
+    if self.project_name == 'chromedriver' and os.path.exists(chrome_path):
+      # We have one additional location to make sure chromedriver is updated.
+      # TODO(efortuna): Remove this. See move_chrome_driver_if_needed in
+      # perf_testing/run_perf_tests.py
+      driver = 'chromedriver'
+      if platform.system() == 'Windows':
+        driver += '.exe'
+      shutil.copy(os.path.join(self.download_location, driver),
+          os.path.join(chrome_path, driver))
 
   @property
   def get_os_str(self):

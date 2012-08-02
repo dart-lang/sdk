@@ -727,6 +727,10 @@ class DromaeoTest(RuntimePerformanceTest):
           self.add_svn_revision_to_trace(self.test.trace_file, browser)
           file_path = '"%s"' % os.path.join(os.getcwd(), dromaeo_path,
               'index-js.html?%s' % version)
+          if platform.system() == 'Windows':
+            file_path = file_path.replace('&', '^&')
+            file_path = file_path.replace('?', '^?')
+            file_path = file_path.replace('|', '^|')
           self.test.test_runner.run_cmd(
               ['python', os.path.join('tools', 'testing', 'run_selenium.py'),
                '--out', file_path, '--browser', browser,
@@ -1078,7 +1082,7 @@ def update_set_of_done_cls(revision_num=None):
     results = set()
     pickle.dump(results, f)
     f.close()
-  f = open(filename)
+  f = open(filename, '+r')
   result_set = pickle.load(f)
   if revision_num:
     f.seek(0)
@@ -1121,9 +1125,6 @@ def main():
                   num_reruns=(10-number_of_results))
               if run == 0:
                 has_run_extra = True
-                results_set = update_set_of_done_cls(revision_num)
-              elif run == -1:
-                # This revision is a broken build. Don't try to run it again.
                 results_set = update_set_of_done_cls(revision_num)
           revision_num -= 1
         # No more extra back-runs to do (for now). Wait for new code.
