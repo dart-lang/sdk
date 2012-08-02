@@ -937,6 +937,11 @@ RawAbstractType* BinaryOpComp::StaticType() const {
 }
 
 
+RawAbstractType* DoubleBinaryOpComp::StaticType() const {
+  return Type::DoubleInterface();
+}
+
+
 RawAbstractType* UnarySmiOpComp::StaticType() const {
   return Type::IntInterface();
 }

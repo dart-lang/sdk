@@ -385,6 +385,11 @@ void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
 }
 
 
+void DoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
+}
+
+
 void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
   value()->PrintTo(f);

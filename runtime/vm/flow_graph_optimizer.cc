@@ -174,17 +174,23 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
   };
 
   ASSERT(comp->ArgumentCount() == 2);
-  Value* left = comp->ArgumentAt(0)->value();
-  Value* right = comp->ArgumentAt(1)->value();
-  BinaryOpComp* bin_op =
-      new BinaryOpComp(op_kind,
-                       operands_type,
-                       comp,
-                       left,
-                       right);
-  bin_op->set_ic_data(comp->ic_data());
-  instr->set_computation(bin_op);
-  RemovePushArguments(comp);
+  if (operands_type == BinaryOpComp::kDoubleOperands) {
+    DoubleBinaryOpComp* double_bin_op = new DoubleBinaryOpComp(op_kind, comp);
+    double_bin_op->set_ic_data(comp->ic_data());
+    instr->set_computation(double_bin_op);
+  } else {
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
+    BinaryOpComp* bin_op =
+        new BinaryOpComp(op_kind,
+                         operands_type,
+                         comp,
+                         left,
+                         right);
+    bin_op->set_ic_data(comp->ic_data());
+    instr->set_computation(bin_op);
+    RemovePushArguments(comp);
+  }
   return true;
 }
 

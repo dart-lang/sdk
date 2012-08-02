@@ -1503,9 +1503,8 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* BinaryOpComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
 
-  if (operands_type() == kDoubleOperands) {
-    return MakeCallSummary();  // Calls into a stub for allocation.
-  }
+  // Double operation are handled in DoubleBinaryOpComp.
+  ASSERT(operands_type() != kDoubleOperands);
 
   if (operands_type() == kMintOperands) {
     ASSERT(op_kind() == Token::kBIT_AND);
@@ -1811,48 +1810,6 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
 }
 
 
-static void EmitDoubleBinaryOp(FlowGraphCompiler* compiler,
-                               BinaryOpComp* comp) {
-  Register left = EBX;
-  Register right = ECX;
-  Register temp = EDX;
-  Register result = comp->locs()->out().reg();
-
-  const Class& double_class = compiler->double_class();
-  const Code& stub =
-    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
-  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
-  compiler->GenerateCall(comp->instance_call()->token_pos(),
-                         comp->instance_call()->try_index(),
-                         &label,
-                         PcDescriptors::kOther);
-  // Newly allocated object is now in the result register (RAX).
-  ASSERT(result == EAX);
-  __ popl(right);
-  __ popl(left);
-
-  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->cid(),
-                                        comp->instance_call()->token_pos(),
-                                        comp->instance_call()->try_index(),
-                                        kDeoptDoubleBinaryOp,
-                                        left,
-                                        right);
-
-  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
-  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
-
-  switch (comp->op_kind()) {
-    case Token::kADD: __ addsd(XMM0, XMM1); break;
-    case Token::kSUB: __ subsd(XMM0, XMM1); break;
-    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
-    case Token::kDIV: __ divsd(XMM0, XMM1); break;
-    default: UNREACHABLE();
-  }
-
-  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
-}
-
-
 void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   switch (operands_type()) {
     case kSmiOperands:
@@ -1863,13 +1820,55 @@ void BinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       EmitMintBinaryOp(compiler, this);
       break;
 
-    case kDoubleOperands:
-      EmitDoubleBinaryOp(compiler, this);
-      break;
-
     default:
       UNREACHABLE();
   }
+}
+
+
+LocationSummary* DoubleBinaryOpComp::MakeLocationSummary() const {
+  return MakeCallSummary();  // Calls into a stub for allocation.
+}
+
+
+void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register left = EBX;
+  Register right = ECX;
+  Register temp = EDX;
+  Register result = locs()->out().reg();
+
+  const Class& double_class = compiler->double_class();
+  const Code& stub =
+    Code::Handle(StubCode::GetAllocationStubForClass(double_class));
+  const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
+  compiler->GenerateCall(instance_call()->token_pos(),
+                         instance_call()->try_index(),
+                         &label,
+                         PcDescriptors::kOther);
+  // Newly allocated object is now in the result register (RAX).
+  ASSERT(result == EAX);
+  __ popl(right);
+  __ popl(left);
+
+  Label* deopt = compiler->AddDeoptStub(instance_call()->cid(),
+                                        instance_call()->token_pos(),
+                                        instance_call()->try_index(),
+                                        kDeoptDoubleBinaryOp,
+                                        left,
+                                        right);
+
+  compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
+  compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
+
+  switch (op_kind()) {
+    case Token::kADD: __ addsd(XMM0, XMM1); break;
+    case Token::kSUB: __ subsd(XMM0, XMM1); break;
+    case Token::kMUL: __ mulsd(XMM0, XMM1); break;
+    case Token::kDIV: __ divsd(XMM0, XMM1); break;
+    default: UNREACHABLE();
+  }
+
+  __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
 }
 
 

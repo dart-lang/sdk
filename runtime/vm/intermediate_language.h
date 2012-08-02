@@ -97,6 +97,7 @@ class LocalVariable;
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
   M(BinaryOp, BinaryOpComp)                                                    \
+  M(DoubleBinaryOp, DoubleBinaryOpComp)                                        \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
@@ -492,7 +493,7 @@ class ClosureCallComp : public Computation {
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -541,7 +542,7 @@ class InstanceCallComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -732,7 +733,7 @@ class StaticCallComp : public Computation {
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -1059,7 +1060,7 @@ class InstanceSetterComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -1306,7 +1307,7 @@ class CreateClosureComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -1629,6 +1630,31 @@ class BinaryOpComp : public TemplateComputation<2> {
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(BinaryOpComp);
+};
+
+
+class DoubleBinaryOpComp : public Computation {
+ public:
+  DoubleBinaryOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
+      : op_kind_(op_kind), instance_call_(instance_call) { }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_CALL_COMPUTATION(DoubleBinaryOp)
+
+  virtual intptr_t ArgumentCount() const { return 2; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleBinaryOpComp);
 };
 
 
