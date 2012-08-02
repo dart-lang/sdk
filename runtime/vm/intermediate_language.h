@@ -1041,36 +1041,38 @@ class StoreIndexedComp : public TemplateComputation<3> {
 };
 
 
-// Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
-class InstanceSetterComp : public TemplateComputation<2> {
+// TODO(fschneider): Make this an instance call.
+class InstanceSetterComp : public Computation {
  public:
   InstanceSetterComp(intptr_t token_pos,
                      intptr_t try_index,
                      const String& field_name,
-                     Value* receiver,
-                     Value* value)
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : token_pos_(token_pos),
         try_index_(try_index),
-        field_name_(field_name) {
-    inputs_[0] = receiver;
-    inputs_[1] = value;
-  }
+        field_name_(field_name),
+        arguments_(arguments) { }
 
-  DECLARE_COMPUTATION(InstanceSetter)
+  DECLARE_CALL_COMPUTATION(InstanceSetter)
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
-  Value* receiver() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
+
+  intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
   const String& field_name_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
 };

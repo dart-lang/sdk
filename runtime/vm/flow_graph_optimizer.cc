@@ -432,11 +432,15 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   ASSERT(!field.IsNull());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
-      comp->InputAt(0),
-      comp->InputAt(1),
+      comp->ArgumentAt(0)->value(),
+      comp->ArgumentAt(1)->value(),
       comp);
   store->set_ic_data(comp->ic_data());
   instr->set_computation(store);
+  // Remove original push arguments.
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
+    comp->ArgumentAt(i)->RemoveFromGraph();
+  }
   return true;
 }
 
@@ -515,8 +519,6 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
     comp->set_operands_class_id(kSmi);
   } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDouble);
-  } else {
-    return;
   }
 }
 

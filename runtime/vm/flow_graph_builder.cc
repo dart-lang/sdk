@@ -1718,43 +1718,52 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
 }
 
 
-void EffectGraphVisitor::BuildInstanceSetterValues(
-    InstanceSetterNode* node, Value** receiver, Value** value) {
+void EffectGraphVisitor::BuildInstanceSetterArguments(
+    InstanceSetterNode* node,
+    ZoneGrowableArray<PushArgumentInstr*>* arguments,
+    bool result_is_needed) {
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  ValueGraphVisitor for_value(owner(), for_receiver.temp_index());
+  arguments->Add(PushArgument(for_receiver.value()));
+
+  ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  *receiver = for_receiver.value();
-  *value = for_value.value();
+
+  Value* value = NULL;
+  if (result_is_needed) {
+    value = Bind(
+        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                        for_value.value()));
+  } else {
+    value = for_value.value();
+  }
+  arguments->Add(PushArgument(value));
 }
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Value *receiver, *value;
-  BuildInstanceSetterValues(node, &receiver, &value);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  BuildInstanceSetterArguments(node, arguments, false);  // Value not used.
   InstanceSetterComp* setter =
       new InstanceSetterComp(node->token_pos(),
                              owner()->try_index(),
                              node->field_name(),
-                             receiver,
-                             value);
+                             arguments);
   ReturnComputation(setter);
 }
 
 
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Value *receiver, *value;
-  BuildInstanceSetterValues(node, &receiver, &value);
-  Value* saved_value = Bind(
-      BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                      value));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  BuildInstanceSetterArguments(node, arguments, true);  // Value used.
   Do(new InstanceSetterComp(node->token_pos(),
                             owner()->try_index(),
                             node->field_name(),
-                            receiver,
-                            saved_value));
+                            arguments));
   ReturnComputation(
        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }

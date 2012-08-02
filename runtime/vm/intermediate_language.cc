@@ -847,7 +847,9 @@ RawAbstractType* StoreIndexedComp::StaticType() const {
 
 
 RawAbstractType* InstanceSetterComp::StaticType() const {
-  return value()->StaticType();
+  // This computation does not have a result value.
+  UNREACHABLE();
+  return AbstractType::null();
 }
 
 

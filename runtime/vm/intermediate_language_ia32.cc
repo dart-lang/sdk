@@ -2143,9 +2143,7 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
     // Otherwise polymorphic dispatch.
   }
   // Call.
-  LocationSummary* result = new LocationSummary(0, 0, LocationSummary::kCall);
-  result->set_out(Location::RegisterLocation(EAX));
-  return result;
+  return Computation::MakeCallSummary();
 }
 
 
