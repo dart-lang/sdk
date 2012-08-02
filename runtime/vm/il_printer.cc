@@ -186,7 +186,7 @@ void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
 void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    if (i > 0) f->Print(", ");
+    f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
   }
 }
@@ -479,15 +479,11 @@ void ReturnInstr::PrintTo(BufferFormatter* f) const {
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s:%d ", DebugName(), cid());
-  exception()->PrintTo(f);
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    %s:%d ", DebugName(), cid());
-  exception()->PrintTo(f);
-  f->Print(", ");
-  stack_trace()->PrintTo(f);
 }
 
 
@@ -748,15 +744,11 @@ void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s:%d ", DebugName(), cid());
-  exception()->PrintTo(f);
 }
 
 
 void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
   f->Print("_ %s:%d ", DebugName(), cid());
-  exception()->PrintTo(f);
-  f->Print(", ");
-  stack_trace()->PrintTo(f);
 }
 
 

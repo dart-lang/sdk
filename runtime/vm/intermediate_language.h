@@ -1800,6 +1800,21 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 
+#define DECLARE_CALL_INSTRUCTION(type)                                         \
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual bool Is##type() const { return true; }                               \
+  virtual type##Instr* As##type() { return this; }                             \
+  virtual intptr_t InputCount() const { return 0; }                            \
+  virtual Value* InputAt(intptr_t i) const {                                   \
+    UNREACHABLE();                                                             \
+    return NULL;                                                               \
+  }                                                                            \
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }         \
+  virtual const char* DebugName() const { return #type; }                      \
+  virtual void PrintTo(BufferFormatter* f) const;                              \
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
+
+
 class Instruction : public ZoneAllocated {
  public:
   Instruction()
@@ -1930,8 +1945,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 class InstructionWithInputs : public Instruction {
  public:
   InstructionWithInputs() : locs_(NULL) { }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -2453,6 +2466,8 @@ class PushArgumentInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(PushArgument)
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   Value* value() const { return value_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -2480,6 +2495,8 @@ class ReturnInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(Return)
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return value_; }
@@ -2501,23 +2518,19 @@ class ReturnInstr : public InstructionWithInputs {
 
 class ThrowInstr : public InstructionWithInputs {
  public:
-  ThrowInstr(intptr_t token_pos,
-             intptr_t try_index,
-             Value* exception)
+  ThrowInstr(intptr_t token_pos, intptr_t try_index)
       : InstructionWithInputs(),
         cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
-        try_index_(try_index),
-        exception_(exception) {
-    ASSERT(exception_ != NULL);
-  }
+        try_index_(try_index) { }
 
-  DECLARE_INSTRUCTION(Throw)
+  DECLARE_CALL_INSTRUCTION(Throw)
+
+  virtual intptr_t ArgumentCount() const { return 1; }
 
   intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  Value* exception() const { return exception_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2529,7 +2542,6 @@ class ThrowInstr : public InstructionWithInputs {
   const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Value* exception_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -2538,26 +2550,19 @@ class ThrowInstr : public InstructionWithInputs {
 class ReThrowInstr : public InstructionWithInputs {
  public:
   ReThrowInstr(intptr_t token_pos,
-               intptr_t try_index,
-               Value* exception,
-               Value* stack_trace)
+               intptr_t try_index)
       : InstructionWithInputs(),
         cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
-        try_index_(try_index),
-        exception_(exception),
-        stack_trace_(stack_trace) {
-    ASSERT(exception_ != NULL);
-    ASSERT(stack_trace_ != NULL);
-  }
+        try_index_(try_index) { }
 
-  DECLARE_INSTRUCTION(ReThrow)
+  DECLARE_CALL_INSTRUCTION(ReThrow)
+
+  virtual intptr_t ArgumentCount() const { return 2; }
 
   intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  Value* exception() const { return exception_; }
-  Value* stack_trace() const { return stack_trace_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2569,8 +2574,6 @@ class ReThrowInstr : public InstructionWithInputs {
   const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Value* exception_;
-  Value* stack_trace_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
@@ -2584,6 +2587,8 @@ class GotoInstr : public InstructionWithInputs {
   }
 
   DECLARE_INSTRUCTION(Goto)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   JoinEntryInstr* successor() const { return successor_; }
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
@@ -2648,6 +2653,8 @@ class BranchInstr : public InstructionWithInputs {
   }
 
   DECLARE_INSTRUCTION(Branch)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   Value* left() const { return left_; }
   Value* right() const { return right_; }

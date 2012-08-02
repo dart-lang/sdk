@@ -2191,19 +2191,16 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
+  PushArgument(for_exception.value());
   Instruction* instr = NULL;
   if (node->stacktrace() == NULL) {
-    instr = new ThrowInstr(node->token_pos(),
-                           owner()->try_index(),
-                           for_exception.value());
+    instr = new ThrowInstr(node->token_pos(), owner()->try_index());
   } else {
     ValueGraphVisitor for_stack_trace(owner(), temp_index());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
-    instr = new ReThrowInstr(node->token_pos(),
-                             owner()->try_index(),
-                             for_exception.value(),
-                             for_stack_trace.value());
+    PushArgument(for_stack_trace.value());
+    instr = new ReThrowInstr(node->token_pos(), owner()->try_index());
   }
   AddInstruction(instr);
 }

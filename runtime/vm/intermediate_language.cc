@@ -252,53 +252,6 @@ void ParallelMoveInstr::SetInputAt(intptr_t i, Value* value) {
 }
 
 
-intptr_t ReThrowInstr::InputCount() const {
-  return 2;
-}
-
-
-Value* ReThrowInstr::InputAt(intptr_t i) const {
-  if (i == 0) return exception();
-  if (i == 1) return stack_trace();
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void ReThrowInstr::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    exception_ = value;
-    return;
-  }
-  if (i == 1) {
-    stack_trace_ = value;
-    return;
-  }
-  UNREACHABLE();
-}
-
-
-intptr_t ThrowInstr::InputCount() const {
-  return 1;
-}
-
-
-Value* ThrowInstr::InputAt(intptr_t i) const {
-  if (i == 0) return exception();
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void ThrowInstr::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    exception_ = value;
-    return;
-  }
-  UNREACHABLE();
-}
-
-
 intptr_t GotoInstr::InputCount() const {
   return 0;
 }
@@ -1092,15 +1045,12 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ThrowInstr::MakeLocationSummary() const {
-  const int kNumInputs = 0;
-  const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  return new LocationSummary(0, 0, LocationSummary::kCall);
 }
 
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(exception()->IsUse());
   compiler->GenerateCallRuntime(cid(),
                                 token_pos(),
                                 try_index(),
@@ -1110,15 +1060,11 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* ReThrowInstr::MakeLocationSummary() const {
-  const int kNumInputs = 0;
-  const int kNumTemps = 0;
-  return new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  return new LocationSummary(0, 0, LocationSummary::kCall);
 }
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  ASSERT(exception()->IsUse());
-  ASSERT(stack_trace()->IsUse());
   compiler->GenerateCallRuntime(cid(),
                                 token_pos(),
                                 try_index(),
