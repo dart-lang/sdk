@@ -28,7 +28,10 @@ Token scan(String text) => new StringScanner(text).tokenize();
 Node parseBodyCode(String text, Function parseMethod) {
   Token tokens = scan(text);
   LoggerCanceler lc = new LoggerCanceler();
-  Script script = new Script(new Uri(scheme: "source"), new MockFile(text));
+  Script script =
+      new Script(
+          new Uri.fromComponents(scheme: "source"),
+          new MockFile(text));
   LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
   NodeListener listener = new NodeListener(lc, library);
@@ -62,7 +65,7 @@ class MockFile extends SourceFile {
 Link<Element> parseUnit(String text, Compiler compiler,
                         LibraryElement library) {
   Token tokens = scan(text);
-  Uri uri = new Uri(scheme: "source");
+  Uri uri = new Uri.fromComponents(scheme: "source");
   var script = new Script(uri, new MockFile(text));
   var unit = new CompilationUnitElement(script, library);
   int id = 0;

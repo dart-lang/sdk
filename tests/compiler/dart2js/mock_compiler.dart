@@ -74,7 +74,7 @@ class MockCompiler extends Compiler {
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super() {
-    Uri uri = new Uri(scheme: "source");
+    Uri uri = new Uri.fromComponents(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
@@ -199,7 +199,7 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 }
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
-  Uri uri = new Uri(scheme: "source");
+  Uri uri = new Uri.fromComponents(scheme: "source");
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;

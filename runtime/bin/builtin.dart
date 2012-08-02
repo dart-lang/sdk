@@ -64,7 +64,10 @@ String _resolveScriptUri(String cwd, String scriptName, bool isWindows) {
     }
     _logResolution("## scriptName: $scriptName");
   }
-  var base = new Uri(scheme: "file", path: cwd.endsWith("/") ? cwd : "$cwd/");
+  var base =
+      new Uri.fromComponents(
+          scheme: "file",
+          path: cwd.endsWith("/") ? cwd : "$cwd/");
   _entrypoint = base.resolve(scriptName);
   _logResolution("# Resolved script to: $_entrypoint");
 
@@ -80,7 +83,7 @@ String _resolveUri(String base, String userString) {
   var resolved;
   if ('dart-ext' == uri.scheme) {
     resolved = baseUri.resolve(uri.path);
-    resolved = new Uri(scheme: "dart-ext", path: resolved.path);
+    resolved = new Uri.fromComponents(scheme: "dart-ext", path: resolved.path);
   } else {
     resolved = baseUri.resolve(userString);
   }

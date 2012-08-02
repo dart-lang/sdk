@@ -9,7 +9,9 @@
 
 testUri(String uri, bool isAbsolute) {
   Expect.equals(isAbsolute, new Uri.fromString(uri).isAbsolute());
+  Expect.equals(isAbsolute, new Uri(uri).isAbsolute());
   Expect.stringEquals(uri, new Uri.fromString(uri).toString());
+  Expect.stringEquals(uri, new Uri(uri).toString());
 }
 
 testEncodeDecode(String orig, String encoded) {
@@ -26,33 +28,8 @@ testEncodeDecodeComponent(String orig, String encoded) {
   Expect.stringEquals(orig, d);
 }
 
-main() {
-  testUri("http:", true);
-  testUri("file://", true);
-  testUri("file", false);
-  testUri("http://user@example.com:80/fisk?query=89&hest=silas", true);
-  testUri("http://user@example.com:80/fisk?query=89&hest=silas#fragment",
-          false);
-  Expect.stringEquals("http://user@example.com:80/a/b/c?query#fragment",
-                      const Uri("http", "user", "example.com", 80, "/a/b/c",
-                                "query", "fragment").toString());
-  Expect.stringEquals("null://null@null/a/b/c/?null#null",
-                      const Uri(null, null, null, 0, "/a/b/c/",
-                                null, null).toString());
-  Expect.stringEquals("file://", new Uri.fromString("file:").toString());
-  Expect.stringEquals("/a/g", removeDotSegments("/a/b/c/./../../g"));
-  Expect.stringEquals("mid/6", removeDotSegments("mid/content=5/../6"));
-  Expect.stringEquals("a/b/e", removeDotSegments("a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/./c/d/../../e"));
-  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/./c/d/../../e"));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/."));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/./."));
-  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/././."));
-
+testUriPerRFCs(URI base) {
   // From RFC 3986.
-  Uri base = new Uri.fromString("http://a/b/c/d;p?q");
   Expect.stringEquals("g:h", base.resolve("g:h").toString());
   Expect.stringEquals("http://a/b/c/g", base.resolve("g").toString());
   Expect.stringEquals("http://a/b/c/g", base.resolve("./g").toString());
@@ -105,6 +82,41 @@ main() {
   // Additional tests (not from RFC 3986).
   Expect.stringEquals("http://a/b/g;p/h;s",
                       base.resolve("../g;p/h;s").toString());
+}
+
+main() {
+  testUri("http:", true);
+  testUri("file://", true);
+  testUri("file", false);
+  testUri("http://user@example.com:80/fisk?query=89&hest=silas", true);
+  testUri("http://user@example.com:80/fisk?query=89&hest=silas#fragment",
+          false);
+  Expect.stringEquals("http://user@example.com:80/a/b/c?query#fragment",
+                      const Uri.fromComponents(
+                          "http", "user", "example.com", 80, "/a/b/c",
+                          "query", "fragment").toString());
+  Expect.stringEquals("null://null@null/a/b/c/?null#null",
+                      const Uri.fromComponents(
+                          null, null, null, 0, "/a/b/c/",
+                          null, null).toString());
+  Expect.stringEquals("file://", new Uri.fromString("file:").toString());
+  Expect.stringEquals("file://", new Uri("file:").toString());
+  Expect.stringEquals("/a/g", removeDotSegments("/a/b/c/./../../g"));
+  Expect.stringEquals("mid/6", removeDotSegments("mid/content=5/../6"));
+  Expect.stringEquals("a/b/e", removeDotSegments("a/b/c/d/../../e"));
+  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/c/d/../../e"));
+  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/c/d/../../e"));
+  Expect.stringEquals("a/b/e", removeDotSegments("../a/b/./c/d/../../e"));
+  Expect.stringEquals("a/b/e", removeDotSegments("./a/b/./c/d/../../e"));
+  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/."));
+  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/./."));
+  Expect.stringEquals("a/b/e/", removeDotSegments("./a/b/./c/d/../../e/././."));
+
+  final urisSample = "http://a/b/c/d;p?q";
+  Uri baseFromString = new Uri.fromString(urisSample);
+  testUriPerRFCs(baseFromString);
+  Uri base = new Uri(urisSample);
+  testUriPerRFCs(base);
 
   // URI encode tests
   // Note: dart2js won't handle '\ud800\udc00' and frog
