@@ -18,7 +18,7 @@ class DescriptorList : public ZoneAllocated {
     PcDescriptors::Kind kind;  // Descriptor kind (kDeopt, kOther).
     intptr_t node_id;          // AST node id.
     intptr_t token_index;      // Token position in source of PC.
-    intptr_t try_index;        // Try block index of PC.
+    intptr_t try_index;        // Try block index of PC or deopt array index.
   };
 
   explicit DescriptorList(intptr_t initial_capacity) : list_(initial_capacity) {
@@ -50,6 +50,10 @@ class DescriptorList : public ZoneAllocated {
                      intptr_t node_id,
                      intptr_t token_index,
                      intptr_t try_index);
+  void AddDeoptInfo(intptr_t pc_offset,
+                    intptr_t node_id,
+                    intptr_t token_index,
+                    intptr_t deopt_array_index);
 
   RawPcDescriptors* FinalizePcDescriptors(uword entry_point);
 

@@ -170,6 +170,7 @@ class Object {
     kStackmapClass,
     kLocalVarDescriptorsClass,
     kExceptionHandlersClass,
+    kDeoptInfoClass,
     kContextClass,
     kContextScopeClass,
     kICDataClass,
@@ -309,6 +310,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* exception_handlers_class() {
     return exception_handlers_class_;
   }
+  static RawClass* deopt_info_class() { return deopt_info_class_; }
   static RawClass* context_class() { return context_class_; }
   static RawClass* context_scope_class() { return context_scope_class_; }
   static RawClass* api_error_class() { return api_error_class_; }
@@ -440,6 +442,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* stackmap_class_;  // Class of Stackmap vm object.
   static RawClass* var_descriptors_class_;  // Class of LocalVarDescriptors.
   static RawClass* exception_handlers_class_;  // Class of ExceptionHandlers.
+  static RawClass* deopt_info_class_;  // Class of DeoptInfo.
   static RawClass* context_class_;  // Class of the Context vm object.
   static RawClass* context_scope_class_;  // Class of ContextScope vm object.
   static RawClass* icdata_class_;  // Class of ICData.
@@ -2205,11 +2208,12 @@ class PcDescriptors : public Object {
 
  public:
   enum Kind {
-    kDeopt = 0,  // Deoptimization cotinuation point.
-    kPatchCode,  // Buffer for patching code entry.
-    kIcCall,     // IC call.
-    kFuncCall,   // Call to known target, e.g. static call, closure call.
-    kReturn,     // Return from function.
+    kDeopt = 0,   // Deoptimization cotinuation point.
+    kDeoptIndex,  // Index into deopt info array.
+    kPatchCode,   // Buffer for patching code entry.
+    kIcCall,      // IC call.
+    kFuncCall,    // Call to known target, e.g. static call, closure call.
+    kReturn,      // Return from function.
     kOther
   };
 
@@ -2221,6 +2225,8 @@ class PcDescriptors : public Object {
   intptr_t NodeId(intptr_t index) const;
   intptr_t TokenIndex(intptr_t index) const;
   intptr_t TryIndex(intptr_t index) const;
+  // Index into the deopt-info array of Code object.
+  intptr_t DeoptIndex(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,
@@ -2394,6 +2400,63 @@ class ExceptionHandlers : public Object {
 };
 
 
+// Holds deopt information at one deoptimization point. The information
+// is a list of DeoptInstr objects, specifying transformation information
+// for each slot in unoptimized frame(s).
+class DeoptInfo : public Object {
+ private:
+  // Describes the layout of deopt info data. The index of a deopt-info entry
+  // is implicitly the target slot in which the value is written into.
+  enum {
+    kInstruction = 0,
+    kFromIndex,
+    kNumberOfEntries,
+  };
+
+ public:
+  intptr_t Length() const;
+
+  static RawDeoptInfo* New(intptr_t num_commands);
+
+  static const intptr_t kBytesPerElement = (kNumberOfEntries * kWordSize);
+  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+
+  static intptr_t InstanceSize() {
+    ASSERT(sizeof(RawDeoptInfo) == OFFSET_OF(RawDeoptInfo, data_));
+    return 0;
+  }
+
+  static intptr_t InstanceSize(intptr_t len) {
+    ASSERT(0 <= len && len <= kMaxElements);
+    return RoundedAllocationSize(sizeof(RawDeoptInfo) +
+                                 (len * kBytesPerElement));
+  }
+
+  // 'index' corresponds to target, to-index.
+  void SetAt(intptr_t index,
+             intptr_t instr_kind,
+             intptr_t from_index) const;
+
+  intptr_t Instruction(intptr_t index) const;
+  intptr_t FromIndex(intptr_t index) const;
+  intptr_t ToIndex(intptr_t index) const {
+    return index;
+  }
+
+ private:
+  intptr_t* EntryAddr(intptr_t index, intptr_t entry_offset) const {
+    ASSERT((index >=0) && (index < Length()));
+    intptr_t data_index = (index * kNumberOfEntries) + entry_offset;
+    return &raw_ptr()->data_[data_index];
+  }
+
+  void SetLength(intptr_t value) const;
+
+  HEAP_OBJECT_IMPLEMENTATION(DeoptInfo, Object);
+  friend class Class;
+};
+
+
 class Code : public Object {
  public:
   RawInstructions* instructions() const { return raw_ptr()->instructions_; }
@@ -2424,6 +2487,17 @@ class Code : public Object {
   void set_pc_descriptors(const PcDescriptors& descriptors) const {
     StorePointer(&raw_ptr()->pc_descriptors_, descriptors.raw());
   }
+
+  // Array of DeoptInfo objects.
+  RawArray* deopt_info_array() const {
+    return raw_ptr()->deopt_info_array_;
+  }
+  void set_deopt_info_array(const Array& array) const;
+
+  RawArray* object_table() const {
+    return raw_ptr()->object_table_;
+  }
+  void set_object_table(const Array& array) const;
 
   RawArray* stackmaps() const {
     return raw_ptr()->stackmaps_;
@@ -2517,7 +2591,7 @@ class Code : public Object {
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
-  bool ObjectExistInArea(intptr_t start_offest, intptr_t end_offset) const;
+  bool ObjectExistsInArea(intptr_t start_offest, intptr_t end_offset) const;
 
   // Each (*node_ids)[n] has a an extracted ic data array (*arrays)[n].
   // Returns the maximum id found.

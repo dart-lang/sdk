@@ -87,6 +87,7 @@ RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::deopt_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -145,6 +146,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kLocalVarDescriptorsClass;
   } else if (raw_class == exception_handlers_class()) {
     return kExceptionHandlersClass;
+  } else if (raw_class == deopt_info_class()) {
+    return kDeoptInfoClass;
   } else if (raw_class == context_class()) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
@@ -191,6 +194,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kStackmapClass: return stackmap_class();
     case kLocalVarDescriptorsClass: return var_descriptors_class();
     case kExceptionHandlersClass: return exception_handlers_class();
+    case kDeoptInfoClass: return deopt_info_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
     case kICDataClass: return icdata_class();
@@ -230,6 +234,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kStackmapClass: return "Stackmap";
     case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
     case kExceptionHandlersClass: return "ExceptionHandlers";
+    case kDeoptInfoClass: return "DeoptInfo";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
     case kICDataClass: return "ICData";
@@ -394,6 +399,9 @@ void Object::InitOnce() {
 
   cls = Class::New<ExceptionHandlers>();
   exception_handlers_class_ = cls.raw();
+
+  cls = Class::New<DeoptInfo>();
+  deopt_info_class_ = cls.raw();
 
   cls = Class::New<Context>();
   context_class_ = cls.raw();
@@ -6553,6 +6561,13 @@ void PcDescriptors::SetTokenIndex(intptr_t index, intptr_t value) const {
 
 
 intptr_t PcDescriptors::TryIndex(intptr_t index) const {
+  ASSERT(DescriptorKind(index) != kDeoptIndex);
+  return *(EntryAddr(index, kTryIndexEntry));
+}
+
+
+intptr_t PcDescriptors::DeoptIndex(intptr_t index) const {
+  ASSERT(DescriptorKind(index) == kDeoptIndex);
   return *(EntryAddr(index, kTryIndexEntry));
 }
 
@@ -6585,12 +6600,13 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt: return "deopt";
-    case PcDescriptors::kPatchCode: return "patch";
-    case PcDescriptors::kIcCall: return "ic-call";
-    case PcDescriptors::kFuncCall: return "fn-call";
-    case PcDescriptors::kReturn: return "return";
-    case PcDescriptors::kOther: return "other";
+    case PcDescriptors::kDeopt:      return "deopt   ";
+    case PcDescriptors::kDeoptIndex: return "deopt-ix";
+    case PcDescriptors::kPatchCode:  return "patch   ";
+    case PcDescriptors::kIcCall:     return "ic-call ";
+    case PcDescriptors::kFuncCall:   return "fn-call ";
+    case PcDescriptors::kReturn:     return "return  ";
+    case PcDescriptors::kOther:      return "other   ";
   }
   UNREACHABLE();
   return "";
@@ -6605,8 +6621,10 @@ const char* PcDescriptors::ToCString() const {
   // First compute the buffer size required.
   intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
+    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+        DeoptIndex(i) : TryIndex(i);
     len += OS::SNPrint(NULL, 0, kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
+        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
   }
   // Allocate the buffer.
   char* buffer = reinterpret_cast<char*>(
@@ -6614,8 +6632,10 @@ const char* PcDescriptors::ToCString() const {
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
+    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+        DeoptIndex(i) : TryIndex(i);
     index += OS::SNPrint((buffer + index), (len - index), kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
+        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
   }
   return buffer;
 }
@@ -6891,6 +6911,79 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
+intptr_t DeoptInfo::Length() const {
+  return Smi::Value(raw_ptr()->length_);
+}
+
+
+intptr_t DeoptInfo::FromIndex(intptr_t index) const {
+  return *(EntryAddr(index, kFromIndex));
+}
+
+
+intptr_t DeoptInfo::Instruction(intptr_t index) const {
+  return *(EntryAddr(index, kInstruction));
+}
+
+
+const char* DeoptInfo::ToCString() const {
+  if (Length() == 0) {
+    return "No DeoptInfo";
+  }
+  // First compute the buffer size required.
+  intptr_t len = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    len += OS::SNPrint(NULL, 0, "[%d(%d):%d]",
+        Instruction(i), FromIndex(i), i);
+  }
+  // Allocate the buffer.
+  char* buffer = reinterpret_cast<char*>(
+      Isolate::Current()->current_zone()->Allocate(len + 1));
+  // Layout the fields in the buffer.
+  intptr_t index = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    index += OS::SNPrint((buffer + index),
+                         (len - index),
+                         "[%d(%d):%d]",
+                         Instruction(i),
+                         FromIndex(i),
+                         i);
+  }
+  return buffer;
+}
+
+
+RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
+  ASSERT(Object::deopt_info_class() != Class::null());
+  DeoptInfo& result = DeoptInfo::Handle();
+  {
+    uword size = DeoptInfo::InstanceSize(num_commands);
+    RawObject* raw = Object::Allocate(DeoptInfo::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(num_commands);
+  }
+  return result.raw();
+}
+
+
+void DeoptInfo::SetLength(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  raw_ptr()->length_ = Smi::New(value);
+}
+
+
+void DeoptInfo::SetAt(intptr_t index,
+                      intptr_t instr_kind,
+                      intptr_t from_index) const {
+  *(EntryAddr(index, kInstruction)) = instr_kind;
+  *(EntryAddr(index, kFromIndex)) = from_index;
+}
+
+
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
   if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
@@ -6944,6 +7037,16 @@ Code::Comments::Comments(RawArray* comments)
 
 void Code::set_stackmaps(const Array& maps) const {
   StorePointer(&raw_ptr()->stackmaps_, maps.raw());
+}
+
+
+void Code::set_deopt_info_array(const Array& array) const {
+  StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+}
+
+
+void Code::set_object_table(const Array& array) const {
+  StorePointer(&raw_ptr()->object_table_, array.raw());
 }
 
 
@@ -7136,7 +7239,8 @@ uword Code::GetPatchCodePc() const {
 }
 
 
-bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
+bool Code::ObjectExistsInArea(intptr_t start_offset,
+                              intptr_t end_offset) const {
   for (intptr_t i = 0; i < this->pointer_offsets_length(); i++) {
     const intptr_t offset = this->GetPointerOffsetAt(i);
     if ((start_offset <= offset) && (offset < end_offset)) {

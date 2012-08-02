@@ -939,6 +939,22 @@ void RawExceptionHandlers::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawDeoptInfo* DeoptInfo::ReadFrom(SnapshotReader* reader,
+                                  intptr_t object_id,
+                                  intptr_t tags,
+                                  Snapshot::Kind kind) {
+  UNREACHABLE();
+  return DeoptInfo::null();
+}
+
+
+void RawDeoptInfo::WriteTo(SnapshotWriter* writer,
+                           intptr_t object_id,
+                           Snapshot::Kind kind) {
+  UNREACHABLE();
+}
+
+
 RawContext* Context::ReadFrom(SnapshotReader* reader,
                               intptr_t object_id,
                               intptr_t tags,

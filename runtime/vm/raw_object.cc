@@ -230,6 +230,13 @@ intptr_t RawObject::SizeFromClass() const {
         instance_size = ExceptionHandlers::InstanceSize(num_handlers);
         break;
       }
+      case kDeoptInfo: {
+        const RawDeoptInfo* raw_deopt_info =
+            reinterpret_cast<const RawDeoptInfo*>(this);
+        intptr_t num_entries = Smi::Value(raw_deopt_info->ptr()->length_);
+        instance_size = DeoptInfo::InstanceSize(num_entries);
+        break;
+      }
       case kJSRegExp: {
         const RawJSRegExp* raw_jsregexp =
             reinterpret_cast<const RawJSRegExp*>(this);
@@ -505,6 +512,15 @@ intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
   intptr_t length = Smi::Value(obj->length_);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
   return ExceptionHandlers::InstanceSize(length);
+}
+
+
+intptr_t RawDeoptInfo::VisitDeoptInfoPointers(
+    RawDeoptInfo* raw_obj, ObjectPointerVisitor* visitor) {
+  RawDeoptInfo* obj = raw_obj->ptr();
+  intptr_t length = Smi::Value(obj->length_);
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
+  return DeoptInfo::InstanceSize(length);
 }
 
 
