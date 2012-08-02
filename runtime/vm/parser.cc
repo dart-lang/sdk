@@ -8832,8 +8832,11 @@ void Parser::SkipUnaryExpr() {
 
 void Parser::SkipBinaryExpr() {
   SkipUnaryExpr();
-  while (Token::Precedence(Token::kOR) <= Token::Precedence(CurrentToken()) &&
-      Token::Precedence(CurrentToken()) <= Token::Precedence(Token::kMUL)) {
+  const int min_prec = Token::Precedence(Token::kOR);
+  const int max_prec = Token::Precedence(Token::kMUL);
+  while (((min_prec <= Token::Precedence(CurrentToken())) &&
+      (Token::Precedence(CurrentToken()) <= max_prec)) ||
+      IsLiteral("as")) {
     ConsumeToken();
     SkipUnaryExpr();
   }
