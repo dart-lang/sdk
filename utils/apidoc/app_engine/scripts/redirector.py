@@ -105,7 +105,7 @@ class ApiDocs(blobstore_handlers.BlobstoreDownloadHandler):
 
 def redir_to_latest(handler, *args, **kwargs):
   path = kwargs['path']
-  if re.search(r'^(core|coreimpl|crypto|io|isolate|json|uri|utf|web)', path):
+  if re.search(r'^(core|coreimpl|crypto|io|isolate|json|uri|html|math|utf|web)', path):
     return '/docs/continuous/dart_' + path
   else:
     return '/docs/continuous/' + path
@@ -113,9 +113,15 @@ def redir_to_latest(handler, *args, **kwargs):
 def redir_dom(handler, *args, **kwargs):
   return '/docs/continuous/dart_html' + kwargs['path']
 
+class CurrentVersionHandler(RequestHandler):
+  def get(self, version):
+    self.response.headers['Content-Type'] = 'text/plain'
+    self.response.out.write(ApiDocs.latest_doc_version)
+
 application = WSGIApplication(
   [
     Route('/dom<path:.*>', RedirectHandler, defaults={'_uri': redir_dom}),
+    Route('/currentversion/<version:.*>', CurrentVersionHandler),
     ('/docs.*', ApiDocs),
     Route('/<path:.*>', RedirectHandler, defaults={'_uri': redir_to_latest})
   ],
