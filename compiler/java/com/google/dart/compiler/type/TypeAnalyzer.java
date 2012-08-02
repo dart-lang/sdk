@@ -361,6 +361,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             checkAssignable(rhsNode, lhs, rhs);
           }
           checkAssignableElement(lhsNode);
+          // if cascade, then use type of "lhs" qualifier
+          if (lhsNode instanceof DartPropertyAccess) {
+            DartPropertyAccess lhsAccess = (DartPropertyAccess) lhsNode;
+            if (lhsAccess.isCascade()) {
+              return lhsAccess.getQualifier().getType();
+            }
+          }
+          // use type or "rhs"
           return rhs;
         }
 
@@ -1976,9 +1984,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
-      if (node.isCascade()) {
-        return node.getQualifier().accept(this);
-      }
       if (node.getType() != null) {
         return node.getType();
       }

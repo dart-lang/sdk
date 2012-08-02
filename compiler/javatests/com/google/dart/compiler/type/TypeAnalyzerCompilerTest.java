@@ -3225,7 +3225,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 5, 16, 6),
         errEx(ParserErrorCode.EXTERNAL_ONLY_METHOD, 6, 16, 6));
   }
-  
+
   /**
    * Methods with "external" cannot have body.
    */
@@ -3247,6 +3247,46 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 5, 30, 2),
         errEx(ParserErrorCode.EXTERNAL_METHOD_BODY, 6, 26, 2),
         errEx(ParserErrorCode.EXTERNAL_ABSTRACT, 7, 12, 8));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4315
+   */
+  public void test_cascade_propertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int f;",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a",
+        "    ..f = 1",
+        "    ..f = 2;",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4315
+   */
+  public void test_cascade_methodInvocation() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  int m() {}",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a",
+        "    ..m()",
+        "    ..m();",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
   }
 
   private static <T extends DartNode> T findNode(
