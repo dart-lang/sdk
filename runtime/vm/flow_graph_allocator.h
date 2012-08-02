@@ -76,6 +76,7 @@ class FlowGraphAllocator : public ValueObject {
   bool IsBlockEntry(intptr_t pos) const;
 
   LiveRange* GetLiveRange(intptr_t vreg);
+  LiveRange* MakeLiveRangeForTemporary();
 
   // Visit instructions in the postorder and build live ranges for
   // all SSA values.
@@ -105,7 +106,7 @@ class FlowGraphAllocator : public ValueObject {
   // Add live range to the list of unallocated live ranges to be processed
   // by the allocator.
   void AddToUnallocated(LiveRange* range);
-#ifdef DEBUG
+#if defined(DEBUG)
   bool UnallocatedIsSorted();
 #endif
 
@@ -140,7 +141,7 @@ class FlowGraphAllocator : public ValueObject {
   LiveRange* SplitBetween(LiveRange* range, intptr_t from, intptr_t to);
 
   // Find a spill slot that can be used by the given live range.
-  intptr_t AllocateSpillSlotFor(LiveRange* range);
+  void AllocateSpillSlotFor(LiveRange* range);
 
   // Allocate the given live range to a spill slot.
   void Spill(LiveRange* range);
@@ -189,6 +190,12 @@ class FlowGraphAllocator : public ValueObject {
   // Worklist for register allocator. Always maintained sorted according
   // to ShouldBeAllocatedBefore predicate.
   GrowableArray<LiveRange*> unallocated_;
+
+#if defined(DEBUG)
+  GrowableArray<LiveRange*> temporaries_;
+#endif
+
+  GrowableArray<LiveRange*> spilled_;
 
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
@@ -321,6 +328,7 @@ class LiveRange : public ZoneAllocated {
   explicit LiveRange(intptr_t vreg)
     : vreg_(vreg),
       assigned_location_(),
+      spill_slot_(),
       uses_(NULL),
       first_use_interval_(NULL),
       last_use_interval_(NULL),
@@ -346,6 +354,10 @@ class LiveRange : public ZoneAllocated {
     assigned_location_ = location;
   }
 
+  void set_spill_slot(Location spill_slot) {
+    spill_slot_ = spill_slot;
+  }
+
   void DefineAt(intptr_t pos);
 
   void AddUse(intptr_t pos, Location* location_slot);
@@ -359,6 +371,10 @@ class LiveRange : public ZoneAllocated {
 
   bool CanCover(intptr_t pos) const {
     return (Start() <= pos) && (pos < End());
+  }
+
+  Location spill_slot() const {
+    return spill_slot_;
   }
 
  private:
@@ -378,6 +394,7 @@ class LiveRange : public ZoneAllocated {
 
   const intptr_t vreg_;
   Location assigned_location_;
+  Location spill_slot_;
 
   UsePosition* uses_;
   UseInterval* first_use_interval_;
