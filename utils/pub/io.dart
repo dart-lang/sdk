@@ -255,11 +255,23 @@ Future<Directory> cleanDir(dir) {
  * completes to the symlink file (i.e. [to]).
  */
 Future<File> createSymlink(from, to) {
-  // TODO(rnystrom): What should this do on Windows?
   from = _getPath(from);
   to = _getPath(to);
 
-  return runProcess('ln', ['-s', from, to]).transform((result) {
+  var command = 'ln';
+  var args = ['-s', from, to];
+
+  if (Platform.operatingSystem == 'windows') {
+    // Call mklink on Windows to create an NTFS junction point. Only works on
+    // Vista or later. (Junction points are available earlier, but the "mklink"
+    // command is not.) I'm using a junction point (/j) here instead of a soft
+    // link (/d) because the latter requires some privilege shenanigans that
+    // I'm not sure how to specify from the command line.
+    command = 'cmd';
+    args = ['/c', 'mklink', '/j', to, from];
+  }
+
+  return runProcess(command, args).transform((result) {
     // TODO(rnystrom): Check exit code and output?
     return new File(to);
   });
