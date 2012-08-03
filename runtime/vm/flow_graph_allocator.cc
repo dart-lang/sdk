@@ -417,8 +417,6 @@ void FlowGraphAllocator::PrintLiveRanges() {
 
 
 void FlowGraphAllocator::BuildLiveRanges() {
-  NumberInstructions();
-
   const intptr_t block_count = postorder_.length();
   ASSERT(postorder_[block_count - 1]->IsGraphEntry());
   for (intptr_t i = 0; i < (block_count - 1); i++) {
@@ -900,8 +898,10 @@ void FlowGraphAllocator::NumberInstructions() {
   const intptr_t block_count = postorder_.length();
   for (intptr_t i = block_count - 1; i >= 0; i--) {
     BlockEntryInstr* block = postorder_[i];
+    BlockInfo* info = new BlockInfo(block);
 
     instructions_.Add(block);
+    block_info_.Add(info);
     block->set_start_pos(pos);
     block->set_lifetime_position(pos);
     pos += 2;
@@ -911,6 +911,7 @@ void FlowGraphAllocator::NumberInstructions() {
       // Do not assign numbers to parallel move instructions.
       if (!current->IsParallelMove()) {
         instructions_.Add(current);
+        block_info_.Add(info);
         current->set_lifetime_position(pos);
         pos += 2;
       }
@@ -947,8 +948,56 @@ void FlowGraphAllocator::NumberInstructions() {
 }
 
 
+// Discover structural (reducible) loops nesting structure.
+void FlowGraphAllocator::DiscoverLoops() {
+  // TODO(vegorov): consider using a generic algorithm to correctly discover
+  // both headers of reducible and irreducible loops.
+  BlockInfo* current_loop = NULL;
+
+  const intptr_t block_count = postorder_.length();
+  for (intptr_t i = 0; i < block_count; i++) {
+    BlockEntryInstr* block = postorder_[i];
+    GotoInstr* goto_instr = block->last_instruction()->AsGoto();
+    if (goto_instr != NULL) {
+      JoinEntryInstr* successor = goto_instr->successor();
+      if (successor->postorder_number() > i) {
+        // This is back-edge.
+        BlockInfo* successor_info = BlockInfoAt(successor->lifetime_position());
+        ASSERT(successor_info->entry() == successor);
+        if (!successor_info->is_loop_header() &&
+            ((current_loop == NULL) ||
+             (current_loop->entry()->block_id() <
+                  successor_info->entry()->block_id()))) {
+          ASSERT(successor_info != current_loop);
+
+          successor_info->mark_loop_header();
+          // For loop header loop information points to the outer loop.
+          successor_info->set_loop(current_loop);
+          current_loop = successor_info;
+        }
+      }
+    }
+
+    if (current_loop != NULL) {
+      BlockInfo* current_info = BlockInfoAt(block->lifetime_position());
+      if (current_info == current_loop) {
+        ASSERT(current_loop->is_loop_header());
+        current_loop = current_info->loop();
+      } else {
+        current_info->set_loop(current_loop);
+      }
+    }
+  }
+}
+
+
 Instruction* FlowGraphAllocator::InstructionAt(intptr_t pos) const {
   return instructions_[pos / 2];
+}
+
+
+BlockInfo* FlowGraphAllocator::BlockInfoAt(intptr_t pos) const {
+  return block_info_[pos / 2];
 }
 
 
@@ -1138,21 +1187,37 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
 LiveRange* FlowGraphAllocator::SplitBetween(LiveRange* range,
                                             intptr_t from,
                                             intptr_t to) {
-  // TODO(vegorov): select optimal split position based on loop structure.
   TRACE_ALLOC(("split %d [%d, %d) between [%d, %d)\n",
                range->vreg(), range->Start(), range->End(), from, to));
 
-  // Prefer spliting at instruction starts if possible.
-  if (from < ToInstructionStart(to)) {
-    to = ToInstructionStart(to);
+  intptr_t split_pos = kIllegalPosition;
+
+  BlockInfo* split_block = BlockInfoAt(to);
+  if (from < split_block->entry()->lifetime_position()) {
+    // Interval [from, to) spans multiple blocks.
+
+    // If last block is inside a loop prefer splitting at outermost loop's
+    // header.
+    BlockInfo* loop_header = split_block->loop();
+    while ((loop_header != NULL) &&
+           (from < loop_header->entry()->lifetime_position())) {
+      split_block = loop_header;
+      loop_header = loop_header->loop();
+    }
+
+    // Split at block's start.
+    split_pos = split_block->entry()->lifetime_position();
+  } else {
+    // Interval [from, to) is contained inside a single block.
+
+    // Split at position corresponding to the end of the previous
+    // instruction.
+    split_pos = ToInstructionStart(to) - 1;
   }
 
-  // Splitting at the end is not allowed as it produces an empty
-  // live range.
-  if (to == range->End()) to -= 1;
-  ASSERT(from <= to);
+  ASSERT((split_pos != kIllegalPosition) && (from < split_pos));
 
-  return range->SplitAt(to);
+  return range->SplitAt(split_pos);
 }
 
 
@@ -1333,6 +1398,11 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
     return;
   }
 
+  TRACE_ALLOC(("assigning blocked register %s to live range %d until %d\n",
+               Location::RegisterLocation(candidate).Name(),
+               unallocated->vreg(),
+               blocked_at));
+
   if (blocked_at < unallocated->End()) {
     LiveRange* tail = SplitBetween(unallocated,
                                    unallocated->Start(),
@@ -1414,17 +1484,16 @@ void FlowGraphAllocator::RemoveEvicted(Register reg, intptr_t first_evicted) {
 
 void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
                                                Register reg) {
-  TRACE_ALLOC(("assigning blocked register %s to live range %d\n",
-               Location::RegisterLocation(reg).Name(),
-               unallocated->vreg()));
-
   intptr_t first_evicted = -1;
   for (intptr_t i = cpu_regs_[reg].length() - 1; i >= 0; i--) {
     LiveRange* allocated = cpu_regs_[reg][i];
     if (allocated->vreg() < 0) continue;  // Can't be evicted.
     if (EvictIntersection(allocated, unallocated)) {
-      ASSERT(allocated->End() <= unallocated->Start());
-      ConvertAllUses(allocated);
+      // If allocated was not spilled convert all pending uses.
+      if (allocated->assigned_location().IsRegister()) {
+        ASSERT(allocated->End() <= unallocated->Start());
+        ConvertAllUses(allocated);
+      }
       cpu_regs_[reg][i] = NULL;
       first_evicted = i;
     }
@@ -1661,7 +1730,7 @@ void FlowGraphAllocator::ConnectSplitSiblings(LiveRange* parent,
   }
 
   Instruction* last = source_block->last_instruction();
-  if (last->SuccessorCount() == 1) {
+  if ((last->SuccessorCount() == 1) && !source_block->IsGraphEntry()) {
     ASSERT(last->IsGoto());
     last->AsGoto()->GetParallelMove()->AddMove(target, source);
   } else {
@@ -1728,6 +1797,10 @@ void FlowGraphAllocator::AllocateRegisters() {
   EliminateEnvironmentUses();
 
   AnalyzeLiveness();
+
+  NumberInstructions();
+
+  DiscoverLoops();
 
   BuildLiveRanges();
 

@@ -11,6 +11,7 @@
 namespace dart {
 
 class AllocationFinger;
+class BlockInfo;
 class FlowGraphBuilder;
 class LiveRange;
 class UseInterval;
@@ -73,7 +74,13 @@ class FlowGraphAllocator : public ValueObject {
   // that will be used for phi resolution.
   void NumberInstructions();
   Instruction* InstructionAt(intptr_t pos) const;
+  BlockInfo* BlockInfoAt(intptr_t pos) const;
   bool IsBlockEntry(intptr_t pos) const;
+
+  // Discover structural (reducible) loops nesting structure.
+  // It will be used later in SplitBetween heuristic that selects an
+  // optimal splitting position.
+  void DiscoverLoops();
 
   LiveRange* GetLiveRange(intptr_t vreg);
   LiveRange* MakeLiveRangeForTemporary();
@@ -150,7 +157,7 @@ class FlowGraphAllocator : public ValueObject {
   void SpillAfter(LiveRange* range, intptr_t from);
 
   // Spill the given live range from the given position until some
-  // position preceeding the to position.
+  // position preceding the to position.
   void SpillBetween(LiveRange* range, intptr_t from, intptr_t to);
 
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
@@ -164,7 +171,11 @@ class FlowGraphAllocator : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
+  // Mapping between lifetime positions and instructions.
   GrowableArray<Instruction*> instructions_;
+
+  // Mapping between lifetime positions and blocks containing them.
+  GrowableArray<BlockInfo*> block_info_;
 
   // Live-out sets for each block.  They contain indices of SSA values
   // that are live out from this block: that is values that were either
@@ -210,6 +221,39 @@ class FlowGraphAllocator : public ValueObject {
   bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
+};
+
+
+// Additional information about a block that is not contained in a
+// block entry.
+class BlockInfo : public ZoneAllocated {
+ public:
+  explicit BlockInfo(BlockEntryInstr* entry)
+    : entry_(entry), loop_(NULL), is_loop_header_(false) {
+  }
+
+  BlockEntryInstr* entry() const { return entry_; }
+
+  // Returns true is this node is a header of a structural loop.
+  bool is_loop_header() const { return is_loop_header_; }
+
+  // Innermost reducible loop containing this node. Loop headers point to
+  // outer loop not to themselves.
+  BlockInfo* loop() const { return loop_; }
+
+  void mark_loop_header() { is_loop_header_ = true; }
+  void set_loop(BlockInfo* loop) {
+    ASSERT(loop_ == NULL);
+    ASSERT((loop == NULL) || loop->is_loop_header());
+    loop_ = loop;
+  }
+
+ private:
+  BlockEntryInstr* entry_;
+  BlockInfo* loop_;
+  bool is_loop_header_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };
 
 
