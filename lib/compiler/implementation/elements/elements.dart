@@ -845,7 +845,7 @@ abstract class TypeDeclarationElement implements Element {
    */
   // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
   // [Compiler].
-  final Link<Type> typeVariables;
+  abstract Link<Type> get typeVariables();
 
   /**
    * Creates the type variables, their type and corresponding element, for the
