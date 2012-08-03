@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -162,27 +162,22 @@ class PurseWrapper {
 
 // AUTO STATUS UNCLEAR!
 
-class MintMakerWrapperIsolate extends Isolate {
-  MintMakerWrapperIsolate() : super() { }
-  void main() {
-    this.port.receive((var message, SendPort replyTo) {
-      Mint mint = new Mint();
-      replyTo.send([ mint.port ], null);
-    });
-  }
+mintMakerWrapper() {
+  port.receive((var message, SendPort replyTo) {
+    Mint mint = new Mint();
+    replyTo.send([ mint.port ], null);
+  });
 }
 
 class MintMakerWrapper {
   MintMakerWrapper() {
-    port_ = new MintMakerWrapperIsolate().spawn();
+    port_ = spawnFunction(mintMakerWrapper);
   }
 
   void makeMint(handleMint(MintWrapper mint)) {
-    port_.then((SendPort port) {
-      port.call(null).then((var message) {
-        SendPort mint = message[0];
-        handleMint(new MintWrapper(mint));
-      });
+    port_.call(null).then((var message) {
+      SendPort mint = message[0];
+      handleMint(new MintWrapper(mint));
     });
   }
 

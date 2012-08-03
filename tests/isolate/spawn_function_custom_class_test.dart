@@ -20,8 +20,8 @@ class MyClass {
 
 child() {
   port.receive((msg, reply) {
-      reply.send('re: ${new MyClass().myFunc(msg)}');
-    });
+    reply.send('re: ${new MyClass().myFunc(msg)}');
+  });
 }
 
 main() {

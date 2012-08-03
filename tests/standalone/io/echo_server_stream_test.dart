@@ -27,10 +27,8 @@ class EchoServerGame {
     for (int i = 0; i < MSGSIZE; i++) {
       _buffer[i] = FIRSTCHAR + i;
     }
-    new EchoServer().spawn().then((SendPort port) {
-      _sendPort = port;
-      start();
-    });
+    _sendPort = spawnFunction(startEchoServer);
+    start();
   }
 
   void sendData() {
@@ -132,6 +130,12 @@ class EchoServerGame {
   Socket _socket;
   List<int> _buffer;
   int _messages;
+}
+
+
+void startEchoServer() {
+  var server = new EchoServer();
+  port.receive(server.dispatch);
 }
 
 

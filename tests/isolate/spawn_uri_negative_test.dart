@@ -5,7 +5,7 @@
 // Negative test to make sure that we are reaching all assertions.
 // Note: the following comment is used by test.dart to additionally compile the
 // other isolate's code.
-// OtherScripts=v2_spawn_uri_child_isolate.dart
+// OtherScripts=spawn_uri_child_isolate.dart
 #library('spawn_tests');
 #import('../../lib/unittest/unittest.dart');
 #import('dart:isolate');
@@ -14,11 +14,12 @@ main() {
   test('isolate fromUri - negative test', () {
     ReceivePort port = new ReceivePort();
     port.receive(expectAsync2((msg, _) {
-      port.close();
       expect(msg, equals('re: hello')); // should be hi, not hello
+      port.close();
     }));
 
-    SendPort s = spawnUri('v2_spawn_uri_child_isolate.dart');
+    // TODO(eub): make this work for non-JS targets.
+    SendPort s = spawnUri('spawn_uri_child_isolate.js');
     s.send('hi', port.toSendPort());
   });
 }

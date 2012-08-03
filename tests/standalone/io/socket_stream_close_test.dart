@@ -26,10 +26,8 @@ class SocketClose {
         _closeEvents = 0,
         _errorEvents = 0,
         _iterations = 0 {
-    new SocketCloseServer().spawn().then((SendPort port) {
-      _sendPort = port;
-      start();
-    });
+    _sendPort = spawnFunction(startSocketCloseServer);
+    start();
   }
 
   void proceed() {
@@ -215,169 +213,172 @@ class ConnectionData {
 }
 
 
-class SocketCloseServer extends Isolate {
+void startSocketCloseServer() {
+  var server = new SocketCloseServer();
+  port.receive(server.dispatch);
+}
+
+
+class SocketCloseServer {
 
   static final HOST = "127.0.0.1";
 
   SocketCloseServer() : super() {}
 
-  void main() {
+  void connectionHandler(ConnectionData data) {
+    var connection = data.connection;
 
-    void connectionHandler(ConnectionData data) {
-      var connection = data.connection;
-
-      void readBytes(whenFiveBytes) {
-        var read = connection.inputStream.read();
-        data.readBytes += read.length;
-        if (data.readBytes == 5) {
-          whenFiveBytes();
-        }
+    void readBytes(whenFiveBytes) {
+      var read = connection.inputStream.read();
+      data.readBytes += read.length;
+      if (data.readBytes == 5) {
+        whenFiveBytes();
       }
+    }
 
-      void dataHandler() {
-        switch (_mode) {
-          case 0:
-            Expect.fail("No data expected");
-            break;
-          case 1:
-            readBytes(() {
-              _dataEvents++;
-            });
-            break;
-          case 2:
-            readBytes(() {
-              _dataEvents++;
+    void dataHandler() {
+      switch (_mode) {
+        case 0:
+          Expect.fail("No data expected");
+          break;
+        case 1:
+          readBytes(() {
+            _dataEvents++;
+          });
+          break;
+        case 2:
+          readBytes(() {
+            _dataEvents++;
+            connection.inputStream.close();
+          });
+          break;
+        case 3:
+          readBytes(() {
+            _dataEvents++;
+            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.onNoPendingWrites = () {
               connection.inputStream.close();
-            });
-            break;
-          case 3:
-            readBytes(() {
-              _dataEvents++;
-              connection.outputStream.write("Hello".charCodes());
-              connection.outputStream.onNoPendingWrites = () {
-                connection.inputStream.close();
-              };
-            });
-            break;
-          case 4:
-            readBytes(() {
-              _dataEvents++;
-              connection.outputStream.write("Hello".charCodes());
-              connection.inputStream.close();
-            });
-            break;
-          case 5:
-            readBytes(() {
-              _dataEvents++;
-              connection.outputStream.write("Hello".charCodes());
-            });
-            break;
-          case 6:
-          case 7:
-            readBytes(() {
-              _dataEvents++;
-              connection.outputStream.write("Hello".charCodes());
-              connection.outputStream.onNoPendingWrites = () {
-                connection.outputStream.close();
-              };
-            });
-            break;
-          case 8:
-            readBytes(() {
-              _dataEvents++;
-              connection.outputStream.write("Hello".charCodes());
+            };
+          });
+          break;
+        case 4:
+          readBytes(() {
+            _dataEvents++;
+            connection.outputStream.write("Hello".charCodes());
+            connection.inputStream.close();
+          });
+          break;
+        case 5:
+          readBytes(() {
+            _dataEvents++;
+            connection.outputStream.write("Hello".charCodes());
+          });
+          break;
+        case 6:
+        case 7:
+          readBytes(() {
+            _dataEvents++;
+            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.onNoPendingWrites = () {
               connection.outputStream.close();
-            });
-            break;
-          default:
-            Expect.fail("Unknown test mode");
-        }
-      }
-
-      void closeHandler() {
-        _closeEvents++;
-        connection.outputStream.close();
-      }
-
-      void errorHandler(Exception e) {
-        Expect.fail("Socket error $e");
-      }
-
-      _iterations++;
-
-      connection.inputStream.onData = dataHandler;
-      connection.inputStream.onClosed = closeHandler;
-      connection.onError = errorHandler;
-    }
-
-    void errorHandlerServer(Exception e) {
-      Expect.fail("Server socket error");
-    }
-
-    waitForResult(Timer timer) {
-      // Make sure all iterations have been run. In multiple of these
-      // scenarios it is possible to get the SERVERSHUTDOWN message
-      // before we have received the last close event on the
-      // server. In these cases we wait for the correct number of
-      // close events.
-      if (_iterations == ITERATIONS &&
-          (_closeEvents == ITERATIONS ||
-           (_mode == 2 || _mode == 3 || _mode == 4))) {
-        switch (_mode) {
-          case 0:
-            Expect.equals(0, _dataEvents);
-            Expect.equals(ITERATIONS, _closeEvents);
-            break;
-          case 1:
-            Expect.equals(ITERATIONS, _dataEvents);
-            Expect.equals(ITERATIONS, _closeEvents);
-            break;
-          case 2:
-          case 3:
-          case 4:
-            Expect.equals(ITERATIONS, _dataEvents);
-            Expect.equals(0, _closeEvents);
-            break;
-          case 5:
-          case 6:
-          case 7:
-          case 8:
-            Expect.equals(ITERATIONS, _dataEvents);
-            Expect.equals(ITERATIONS, _closeEvents);
-            break;
-          default:
-            Expect.fail("Unknown test mode");
-        }
-        Expect.equals(0, _errorEvents);
-        _server.close();
-        this.port.close();
-        _donePort.send(null);
-      } else {
-        new Timer(100, waitForResult);
+            };
+          });
+          break;
+        case 8:
+          readBytes(() {
+            _dataEvents++;
+            connection.outputStream.write("Hello".charCodes());
+            connection.outputStream.close();
+          });
+          break;
+        default:
+          Expect.fail("Unknown test mode");
       }
     }
 
-    this.port.receive((message, SendPort replyTo) {
-      _donePort = replyTo;
-      if (message != SERVERSHUTDOWN) {
-        _readBytes = 0;
-        _errorEvents = 0;
-        _dataEvents = 0;
-        _closeEvents = 0;
-        _iterations = 0;
-        _mode = message;
-        _server = new ServerSocket(HOST, 0, 10);
-        Expect.equals(true, _server !== null);
-        _server.onConnection = (connection) {
-          var data = new ConnectionData(connection);
-          connectionHandler(data);
-        };
-        _server.onError = errorHandlerServer;
-        replyTo.send(_server.port, null);
-      } else {
-        new Timer(0, waitForResult);
+    void closeHandler() {
+      _closeEvents++;
+      connection.outputStream.close();
+    }
+
+    void errorHandler(Exception e) {
+      Expect.fail("Socket error $e");
+    }
+
+    _iterations++;
+
+    connection.inputStream.onData = dataHandler;
+    connection.inputStream.onClosed = closeHandler;
+    connection.onError = errorHandler;
+  }
+
+  void errorHandlerServer(Exception e) {
+    Expect.fail("Server socket error");
+  }
+
+  waitForResult(Timer timer) {
+    // Make sure all iterations have been run. In multiple of these
+    // scenarios it is possible to get the SERVERSHUTDOWN message
+    // before we have received the last close event on the
+    // server. In these cases we wait for the correct number of
+    // close events.
+    if (_iterations == ITERATIONS &&
+        (_closeEvents == ITERATIONS ||
+         (_mode == 2 || _mode == 3 || _mode == 4))) {
+      switch (_mode) {
+        case 0:
+          Expect.equals(0, _dataEvents);
+          Expect.equals(ITERATIONS, _closeEvents);
+          break;
+        case 1:
+          Expect.equals(ITERATIONS, _dataEvents);
+          Expect.equals(ITERATIONS, _closeEvents);
+          break;
+        case 2:
+        case 3:
+        case 4:
+          Expect.equals(ITERATIONS, _dataEvents);
+          Expect.equals(0, _closeEvents);
+          break;
+        case 5:
+        case 6:
+        case 7:
+        case 8:
+          Expect.equals(ITERATIONS, _dataEvents);
+          Expect.equals(ITERATIONS, _closeEvents);
+          break;
+        default:
+          Expect.fail("Unknown test mode");
       }
-    });
+      Expect.equals(0, _errorEvents);
+      _server.close();
+      port.close();
+      _donePort.send(null);
+    } else {
+      new Timer(100, waitForResult);
+    }
+  }
+
+  void dispatch(message, replyTo) {
+    _donePort = replyTo;
+    if (message != SERVERSHUTDOWN) {
+      _readBytes = 0;
+      _errorEvents = 0;
+      _dataEvents = 0;
+      _closeEvents = 0;
+      _iterations = 0;
+      _mode = message;
+      _server = new ServerSocket(HOST, 0, 10);
+      Expect.equals(true, _server !== null);
+      _server.onConnection = (connection) {
+        var data = new ConnectionData(connection);
+        connectionHandler(data);
+      };
+      _server.onError = errorHandlerServer;
+      replyTo.send(_server.port, null);
+    } else {
+      new Timer(0, waitForResult);
+    }
   }
 
   ServerSocket _server;

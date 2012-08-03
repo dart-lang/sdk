@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -42,34 +42,29 @@ class MessageTest {
   }
 }
 
-class PingPongServer extends Isolate {
-  PingPongServer() : super.heavy();
-
-  void main() {
-    this.port.receive((var message, SendPort replyTo) {
-      if (message == -1) {
-        this.port.close();
-      } else {
-        // Bounce the received object back so that the sender
-        // can make sure that the object matches.
-        replyTo.send(message, null);
-      }
-    });
-  }
+void pingPong() {
+  port.receive((var message, SendPort replyTo) {
+    if (message == -1) {
+      port.close();
+    } else {
+      // Bounce the received object back so that the sender
+      // can make sure that the object matches.
+      replyTo.send(message, null);
+    }
+  });
 }
 
 main() {
   test("map is equal after it is sent back and forth", () {
-    new PingPongServer().spawn().then(expectAsync1((SendPort remote) {
-      Map m = new Map();
-      m[1] = "eins";
-      m[2] = "deux";
-      m[3] = "tre";
-      m[4] = "four";
-      remote.call(m).then(expectAsync1((var received) {
-        MessageTest.mapEqualsDeep(m, received);
-        remote.send(-1, null);
-      }));
+    SendPort remote = spawnFunction(pingPong);
+    Map m = new Map();
+    m[1] = "eins";
+    m[2] = "deux";
+    m[3] = "tre";
+    m[4] = "four";
+    remote.call(m).then(expectAsync1((var received) {
+      MessageTest.mapEqualsDeep(m, received);
+      remote.send(-1, null);
     }));
   });
 }

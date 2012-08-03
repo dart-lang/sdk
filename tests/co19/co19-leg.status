@@ -116,6 +116,26 @@ LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot c
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.throws() fails.
 
 
+# These test cases use the deprecated Isolate API and should be updated to
+# use spawnFunction: issue ...
+LibTest/isolate/Isolate/port_A01_t02: Fail, OK
+LibTest/isolate/Isolate/port_A01_t01: Fail, OK
+LibTest/isolate/Isolate/main_A01_t01: Fail, OK
+LibTest/isolate/Isolate/class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.light_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.heavy_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
+
+
 # The following tests use the deprecated Date interface.
 # Issue co19 - 125
 LibTest/core/Date/Date_A02_t01: Fail, Pass

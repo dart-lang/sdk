@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -112,22 +112,6 @@ class _SendPortImpl implements SendPort {
       native "SendPortImpl_sendInternal_";
 
   final int _id;
-}
-
-class _IsolateNatives {
-  static Future<SendPort> spawn(Isolate isolate, bool isLight) {
-    Completer<SendPort> completer = new Completer<SendPort>();
-    SendPort port = _start(isolate, isLight);
-    completer.complete(port);
-    return completer.future;
-  }
-
-  // Starts a new isolate calling the run method on a new instance of the
-  // remote class's type.
-  // Returns the send port which is passed to the newly created isolate.
-  // This method is being dispatched to from the public core library code.
-  static SendPort _start(Isolate isolate, bool light)
-      native "IsolateNatives_start";
 }
 
 _getPortInternal() native "isolate_getPortInternal";

@@ -14,9 +14,7 @@ class TestServerMain {
   TestServerMain()
       : _statusPort = new ReceivePort(),
         _serverPort = null {
-    new TestServer().spawn().then((SendPort port) {
-      _serverPort = port;
-    });
+    _serverPort = spawnFunction(startTestServer);
   }
 
   void setServerStartedHandler(void startedCallback(int port)) {
@@ -91,7 +89,14 @@ class TestServerStatus {
 }
 
 
-class TestServer extends Isolate {
+void startTestServer() {
+  var server = new TestServer();
+  server.init();
+  port.receive(server.dispatch);
+}
+
+
+class TestServer {
   // Return a 404.
   void _notFoundHandler(HttpRequest request, HttpResponse response) {
     response.statusCode = HttpStatus.NOT_FOUND;
@@ -173,7 +178,7 @@ class TestServer extends Isolate {
     response.outputStream.close();
   }
 
-  void main() {
+  void init() {
     // Setup request handlers.
     _requestHandlers = new Map();
     _requestHandlers["/host"] =
@@ -204,27 +209,27 @@ class TestServer extends Isolate {
         (HttpRequest request, HttpResponse response) {
           _cookie2Handler(request, response);
         };
+  }
 
-    this.port.receive((var message, SendPort replyTo) {
-      if (message.isStart) {
-        _server = new HttpServer();
-        try {
-          _server.listen("127.0.0.1", 0);
-          _server.defaultRequestHandler = (HttpRequest req, HttpResponse rsp) {
-            _requestReceivedHandler(req, rsp);
-          };
-          replyTo.send(new TestServerStatus.started(_server.port), null);
-        } catch (var e) {
-          replyTo.send(new TestServerStatus.error(), null);
-        }
-      } else if (message.isStop) {
-        _server.close();
-        this.port.close();
-        replyTo.send(new TestServerStatus.stopped(), null);
-      } else if (message.isChunkedEncoding) {
-        _chunkedEncoding = true;
+  void dispatch(message, replyTo) {
+    if (message.isStart) {
+      _server = new HttpServer();
+      try {
+        _server.listen("127.0.0.1", 0);
+        _server.defaultRequestHandler = (HttpRequest req, HttpResponse rsp) {
+          _requestReceivedHandler(req, rsp);
+        };
+        replyTo.send(new TestServerStatus.started(_server.port), null);
+      } catch (var e) {
+        replyTo.send(new TestServerStatus.error(), null);
       }
-    });
+    } else if (message.isStop) {
+      _server.close();
+      port.close();
+      replyTo.send(new TestServerStatus.stopped(), null);
+    } else if (message.isChunkedEncoding) {
+      _chunkedEncoding = true;
+    }
   }
 
   void _requestReceivedHandler(HttpRequest request, HttpResponse response) {

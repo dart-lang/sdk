@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -84,69 +84,58 @@ class MandelbrotState {
 class LineProcessorClient {
 
   LineProcessorClient(MandelbrotState this._state, int this._id) {
-    _out = new LineProcessor().spawn();
+    _port = spawnFunction(processLines);
   }
 
   void processLine(int y) {
-    _out.then((SendPort p) {
-      p.call(y).then((List<int> message) {
-        _state.notifyProcessedLine(this, y, message);
-      });
+    _port.call(y).then((List<int> message) {
+      _state.notifyProcessedLine(this, y, message);
     });
   }
 
   void shutdown() {
-    _out.then((SendPort p) {
-      p.send(TERMINATION_MESSAGE, null);
-    });
+    _port.send(TERMINATION_MESSAGE, null);
   }
 
   MandelbrotState _state;
   int _id;
-  Future<SendPort> _out;
-
+  SendPort _port;
 }
 
+List<int> processLine(int y) {
+  double inverseN = 2.0 / N;
+  double Civ = y * inverseN - 1.0;
+  List<int> result = new List<int>(N);
+  for (int x = 0; x < N; x++) {
+    double Crv = x * inverseN - 1.5;
 
-class LineProcessor extends Isolate {
+    double Zrv = Crv;
+    double Ziv = Civ;
 
-  LineProcessor() : super() { }
+    double Trv = Crv * Crv;
+    double Tiv = Civ * Civ;
 
-  void main() {
-    this.port.receive((message, SendPort replyTo) {
-      if (message == TERMINATION_MESSAGE) {
-        assert(replyTo == null);
-        this.port.close();
-      } else {
-        replyTo.send(_processLine(message), null);
-      }
-    });
+    int i = 49;
+    do {
+      Ziv = (Zrv * Ziv) + (Zrv * Ziv) + Civ;
+      Zrv = Trv - Tiv + Crv;
+
+      Trv = Zrv * Zrv;
+      Tiv = Ziv * Ziv;
+    } while (((Trv + Tiv) <= 4.0) && (--i > 0));
+
+    result[x] = i;
   }
+  return result;
+}
 
-  static List<int> _processLine(int y) {
-    double inverseN = 2.0 / N;
-    double Civ = y * inverseN - 1.0;
-    List<int> result = new List<int>(N);
-    for (int x = 0; x < N; x++) {
-      double Crv = x * inverseN - 1.5;
-
-      double Zrv = Crv;
-      double Ziv = Civ;
-
-      double Trv = Crv * Crv;
-      double Tiv = Civ * Civ;
-
-      int i = 49;
-      do {
-        Ziv = (Zrv * Ziv) + (Zrv * Ziv) + Civ;
-        Zrv = Trv - Tiv + Crv;
-
-        Trv = Zrv * Zrv;
-        Tiv = Ziv * Ziv;
-      } while (((Trv + Tiv) <= 4.0) && (--i > 0));
-
-      result[x] = i;
+void processLines() {
+  port.receive((message, SendPort replyTo) {
+    if (message == TERMINATION_MESSAGE) {
+      assert(replyTo == null);
+      port.close();
+    } else {
+      replyTo.send(processLine(message), null);
     }
-    return result;
-  }
+  });
 }

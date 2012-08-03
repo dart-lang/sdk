@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// negative test to ensure that APIv2_unresolvedPortsTest works.
+// negative test to ensure that API_unresolvedPortsTest works.
 #library('unresolved_ports');
 #import('dart:isolate');
 #import('../../lib/unittest/unittest.dart');

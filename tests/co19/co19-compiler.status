@@ -130,5 +130,26 @@ LibTest/core/Date/Date.withTimeZone_A01_t03: Fail, Pass
 LibTest/core/TimeZone/TimeZone.local_A01_t01: Fail, Pass
 LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 
+
+# These test cases use the deprecated Isolate API and should be updated to
+# use spawnFunction: issue ...
+LibTest/isolate/Isolate/port_A01_t02: Fail, OK
+LibTest/isolate/Isolate/port_A01_t01: Fail, OK
+LibTest/isolate/Isolate/main_A01_t01: Fail, OK
+LibTest/isolate/Isolate/class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.light_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.heavy_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
+
+
 [ $runtime == drt && ($compiler == none || $compiler == frog) ]
 *: Skip

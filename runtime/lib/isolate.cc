@@ -59,25 +59,6 @@ static void StoreError(Isolate* isolate, const Object& obj) {
 }
 
 
-static void ThrowErrorException(Exceptions::ExceptionType type,
-                                const char* error_msg,
-                                const char* library_url,
-                                const char* class_name) {
-  String& str = String::Handle();
-  String& name = String::Handle();
-  str ^= String::New(error_msg);
-  name ^= Symbols::New(library_url);
-  str ^= String::Concat(str, name);
-  name ^= String::New(":");
-  str ^= String::Concat(str, name);
-  name ^= Symbols::New(class_name);
-  str ^= String::Concat(str, name);
-  GrowableArray<const Object*> arguments(1);
-  arguments.Add(&str);
-  Exceptions::ThrowByType(type, arguments);
-}
-
-
 // TODO(turnidge): Move to DartLibraryCalls.
 RawObject* ReceivePortCreate(intptr_t port_id) {
   Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
@@ -108,83 +89,6 @@ RawObject* ReceivePortCreate(intptr_t port_id) {
 }
 
 
-static bool RunIsolate(uword parameter) {
-  Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
-  IsolateStartData* data =
-      reinterpret_cast<IsolateStartData*>(isolate->spawn_data());
-  isolate->set_spawn_data(NULL);
-  char* library_url = data->library_url_;
-  char* class_name = data->class_name_;
-  intptr_t port_id = data->port_id_;
-  delete data;
-
-  {
-    StartIsolateScope start_scope(isolate);
-    Zone zone(isolate);
-    HandleScope handle_scope(isolate);
-    ASSERT(ClassFinalizer::AllClassesFinalized());
-    // Lookup the target class by name, create an instance and call the run
-    // method.
-    const String& lib_name = String::Handle(Symbols::New(library_url));
-    free(library_url);
-    const Library& lib = Library::Handle(Library::LookupLibrary(lib_name));
-    ASSERT(!lib.IsNull());
-    const String& cls_name = String::Handle(Symbols::New(class_name));
-    free(class_name);
-    const Class& target_class = Class::Handle(lib.LookupClass(cls_name));
-    // TODO(iposva): Deserialize or call the constructor after allocating.
-    // For now, we only support a non-parameterized or raw target class.
-    const Instance& target = Instance::Handle(Instance::New(target_class));
-    Object& result = Object::Handle();
-
-    // Invoke the default constructor.
-    const String& period = String::Handle(String::New("."));
-    String& constructor_name = String::Handle(String::Concat(cls_name, period));
-    const Function& default_constructor =
-        Function::Handle(target_class.LookupConstructor(constructor_name));
-    if (!default_constructor.IsNull()) {
-      GrowableArray<const Object*> arguments(1);
-      arguments.Add(&target);
-      arguments.Add(&Smi::Handle(Smi::New(Function::kCtorPhaseAll)));
-      const Array& kNoArgumentNames = Array::Handle();
-      result = DartEntry::InvokeStatic(default_constructor,
-                                       arguments,
-                                       kNoArgumentNames);
-      if (result.IsError()) {
-        StoreError(isolate, result);
-        return false;
-      }
-      ASSERT(result.IsNull());
-    }
-
-    // Invoke the "_run" method.
-    const Function& target_function = Function::Handle(Resolver::ResolveDynamic(
-        target, String::Handle(Symbols::New("_run")), 2, 0));
-    // TODO(iposva): Proper error checking here.
-    ASSERT(!target_function.IsNull());
-    // TODO(iposva): Allocate the proper port number here.
-    const Object& local_port = Object::Handle(ReceivePortCreate(port_id));
-    if (local_port.IsError()) {
-      StoreError(isolate, local_port);
-      return false;
-    }
-    GrowableArray<const Object*> arguments(1);
-    arguments.Add(&local_port);
-    const Array& kNoArgumentNames = Array::Handle();
-    result = DartEntry::InvokeDynamic(target,
-                                      target_function,
-                                      arguments,
-                                      kNoArgumentNames);
-    if (result.IsError()) {
-      StoreError(isolate, result);
-      return false;
-    }
-    ASSERT(result.IsNull());
-  }
-  return true;
-}
-
-
 static void ShutdownIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   {
@@ -208,128 +112,12 @@ static void ShutdownIsolate(uword parameter) {
 }
 
 
-static bool CheckArguments(const char* library_url, const char* class_name) {
-  Isolate* isolate = Isolate::Current();
-  Zone zone(isolate);
-  HandleScope handle_scope(isolate);
-  String& name = String::Handle();
-  if (!ClassFinalizer::FinalizePendingClasses()) {
-    return false;
-  }
-  // Lookup the target class by name, create an instance and call the run
-  // method.
-  name ^= Symbols::New(library_url);
-  const Library& lib = Library::Handle(Library::LookupLibrary(name));
-  if (lib.IsNull()) {
-    const String& error_str = String::Handle(
-        String::New("Error starting Isolate, library not loaded : "));
-    const Error& error = Error::Handle(LanguageError::New(error_str));
-    Isolate::Current()->object_store()->set_sticky_error(error);
-    return false;
-  }
-  name ^= Symbols::New(class_name);
-  const Class& target_class = Class::Handle(lib.LookupClass(name));
-  if (target_class.IsNull()) {
-    const String& error_str = String::Handle(
-        String::New("Error starting Isolate, class not loaded : "));
-    const Error& error = Error::Handle(LanguageError::New(error_str));
-    Isolate::Current()->object_store()->set_sticky_error(error);
-    return false;
-  }
-  return true;  // No errors.
-}
-
-
 static char* GetRootScriptUri(Isolate* isolate) {
   const Library& library =
       Library::Handle(isolate->object_store()->root_library());
   ASSERT(!library.IsNull());
   const String& script_name = String::Handle(library.url());
   return isolate->current_zone()->MakeCopyOfString(script_name.ToCString());
-}
-
-
-static char* BuildMainName(const char* class_name) {
-  intptr_t len = OS::SNPrint(NULL, 0, "%s.main", class_name) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
-  OS::SNPrint(chars, len, "%s.main", class_name);
-  return chars;
-}
-
-
-DEFINE_NATIVE_ENTRY(IsolateNatives_start, 2) {
-  Isolate* preserved_isolate = Isolate::Current();
-  GET_NATIVE_ARGUMENT(Instance, runnable, arguments->At(0));
-  // arguments->At(1) unused.
-  const Class& runnable_class = Class::Handle(runnable.clazz());
-  const char* class_name = String::Handle(runnable_class.Name()).ToCString();
-  const Library& library = Library::Handle(runnable_class.library());
-  ASSERT(!library.IsNull());
-  const char* library_url = String::Handle(library.url()).ToCString();
-  intptr_t port_id = 0;
-  LongJump jump;
-  bool init_successful = true;
-  Isolate* spawned_isolate = NULL;
-  void* callback_data = preserved_isolate->init_callback_data();
-  char* error = NULL;
-  Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
-  const char* root_script_uri = GetRootScriptUri(preserved_isolate);
-  const char* main = BuildMainName(class_name);
-  if (callback == NULL) {
-    error = strdup("Null callback specified for isolate creation\n");
-  } else if (callback(root_script_uri, main, callback_data, &error)) {
-    spawned_isolate = Isolate::Current();
-    ASSERT(spawned_isolate != NULL);
-    // Check arguments to see if the specified library and classes are
-    // loaded, this check will throw an exception if they are not loaded.
-    if (init_successful && CheckArguments(library_url, class_name)) {
-      port_id = spawned_isolate->main_port();
-      spawned_isolate->set_spawn_data(
-          reinterpret_cast<uword>(
-              new IsolateStartData(strdup(library_url),
-                                   strdup(class_name),
-                                   port_id)));
-      Isolate::SetCurrent(NULL);
-      spawned_isolate->message_handler()->Run(
-          Dart::thread_pool(), RunIsolate, ShutdownIsolate,
-          reinterpret_cast<uword>(spawned_isolate));
-    } else {
-      // Error spawning the isolate, maybe due to initialization errors or
-      // errors while loading the application into spawned isolate, shut
-      // it down and report error.
-      // Make sure to grab the error message out of the isolate before it has
-      // been shutdown and to allocate it in the preserved isolates zone.
-      {
-        Zone zone(spawned_isolate);
-        HandleScope scope(spawned_isolate);
-        const Error& err_obj = Error::Handle(
-            spawned_isolate->object_store()->sticky_error());
-        error = strdup(err_obj.ToErrorCString());
-      }
-      Dart::ShutdownIsolate();
-      spawned_isolate = NULL;
-    }
-  }
-
-  // Switch back to the original isolate and return.
-  Isolate::SetCurrent(preserved_isolate);
-  if (spawned_isolate == NULL) {
-    // Unable to spawn isolate correctly, throw exception.
-    ThrowErrorException(Exceptions::kIllegalArgument,
-                        error,
-                        library_url,
-                        class_name);
-  }
-
-  // TODO(turnidge): Move this code up before we launch the new
-  // thread.  That way we won't have a thread hanging around that we
-  // can't talk to.
-  const Object& port = Object::Handle(DartLibraryCalls::NewSendPort(port_id));
-  if (port.IsError()) {
-    Exceptions::PropagateError(Error::Cast(port));
-  }
-  arguments->SetReturn(port);
 }
 
 
@@ -500,7 +288,12 @@ static bool CreateIsolate(SpawnState* state, char** error) {
   Isolate* parent_isolate = Isolate::Current();
 
   Dart_IsolateCreateCallback callback = Isolate::CreateCallback();
-  ASSERT(callback != NULL);
+  if (callback == NULL) {
+    *error = strdup("Null callback specified for isolate creation\n");
+    Isolate::SetCurrent(parent_isolate);
+    return false;
+  }
+
   void* init_data = parent_isolate->init_callback_data();
   bool retval = (callback)(state->script_url(),
                            state->function_name(),
@@ -542,7 +335,7 @@ static bool CreateIsolate(SpawnState* state, char** error) {
 }
 
 
-static bool RunIsolate2(uword parameter) {
+static bool RunIsolate(uword parameter) {
   Isolate* isolate = reinterpret_cast<Isolate*>(parameter);
   SpawnState* state = reinterpret_cast<SpawnState*>(isolate->spawn_data());
   isolate->set_spawn_data(NULL);
@@ -600,7 +393,7 @@ static void Spawn(NativeArguments* arguments, SpawnState* state) {
   // Start the new isolate.
   state->isolate()->set_spawn_data(reinterpret_cast<uword>(state));
   state->isolate()->message_handler()->Run(
-      Dart::thread_pool(), RunIsolate2, ShutdownIsolate,
+      Dart::thread_pool(), RunIsolate, ShutdownIsolate,
       reinterpret_cast<uword>(state->isolate()));
 
   arguments->SetReturn(port);

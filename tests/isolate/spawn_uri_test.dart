@@ -5,7 +5,7 @@
 // Example of spawning an isolate from a URI
 // Note: the following comment is used by test.dart to additionally compile the
 // other isolate's code.
-// OtherScripts=v2_spawn_uri_child_isolate.dart
+// OtherScripts=spawn_uri_child_isolate.dart
 #library('spawn_tests');
 #import('../../lib/unittest/unittest.dart');
 #import('dart:isolate');
@@ -19,7 +19,7 @@ main() {
     }));
 
     // TODO(eub): make this work for non-JS targets.
-    SendPort s = spawnUri('v2_spawn_uri_child_isolate.js');
+    SendPort s = spawnUri('spawn_uri_child_isolate.js');
     s.send('hi', port.toSendPort());
   });
 }

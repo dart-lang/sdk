@@ -17,23 +17,17 @@ UNIT_TEST_CASE(IsolateCurrent) {
   delete isolate;
 }
 
-
 // Only ia32 and x64 can run dart execution tests.
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-// Unit test case to verify error during isolate spawning (application classes
-// not loaded into the isolate).
+// Test to ensure that an exception is thrown if no isolate creation
+// callback has been set by the embedder when an isolate is spawned.
 TEST_CASE(IsolateSpawn) {
   const char* kScriptChars =
       "#import('dart:isolate');\n"
-      "class SpawnNewIsolate extends Isolate {\n"
-      "  SpawnNewIsolate() : super() { }\n"
-      "  void main() {\n"
-      "  }\n"
-      "}\n"
+      "void entry() {}\n"
       "int testMain() {\n"
       "  try {\n"
-      "    new SpawnNewIsolate().spawn().then(function(SendPort port) {\n"
-      "    });\n"
+      "    spawnFunction(entry);\n"
       "  } catch (var e) {\n"
       "    throw;\n"
       "  }\n"
@@ -41,7 +35,7 @@ TEST_CASE(IsolateSpawn) {
       "}\n";
   Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
   Dart_Handle result = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
-  EXPECT(Dart_IsError(result));
+  EXPECT_ERROR(result, "Null callback specified for isolate creation");
   EXPECT(Dart_ErrorHasException(result));
   Dart_Handle exception_result = Dart_ErrorGetException(result);
   EXPECT_VALID(exception_result);
