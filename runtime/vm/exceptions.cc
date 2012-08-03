@@ -27,21 +27,23 @@ const char* Exceptions::kCastExceptionDstName = "type cast";
 static bool FindExceptionHandler(uword* handler_pc,
                                  uword* handler_sp,
                                  uword* handler_fp,
-                                 GrowableArray<uword>* stack_frame_pcs,
                                  const GrowableObjectArray& func_list,
-                                 const GrowableObjectArray& code_list) {
+                                 const GrowableObjectArray& code_list,
+                                 const GrowableObjectArray& pc_offset_list) {
   StackFrameIterator frames(StackFrameIterator::kDontValidateFrames);
   StackFrame* frame = frames.NextFrame();
   ASSERT(frame != NULL);
   Function& func = Function::Handle();
   Code& code = Code::Handle();
+  Smi& offset = Smi::Handle();
   while (!frame->IsEntryFrame()) {
     if (frame->IsDartFrame()) {
-      stack_frame_pcs->Add(frame->pc());
       func = frame->LookupDartFunction();
       code = frame->LookupDartCode();
+      offset = Smi::New(frame->pc() - code.EntryPoint());
       func_list.Add(func);
       code_list.Add(code);
+      pc_offset_list.Add(offset);
       if (frame->FindExceptionHandler(handler_pc)) {
         *handler_sp = frame->sp();
         *handler_fp = frame->fp();
@@ -143,27 +145,28 @@ static void ThrowExceptionHelper(const Instance& incoming_exception,
   uword handler_pc = 0;
   uword handler_sp = 0;
   uword handler_fp = 0;
-  GrowableArray<uword> stack_frame_pcs;
   const GrowableObjectArray& func_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const GrowableObjectArray& code_list =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
+  const GrowableObjectArray& pc_offset_list =
+      GrowableObjectArray::Handle(GrowableObjectArray::New());
   bool handler_exists = FindExceptionHandler(&handler_pc,
                                              &handler_sp,
                                              &handler_fp,
-                                             &stack_frame_pcs,
                                              func_list,
-                                             code_list);
+                                             code_list,
+                                             pc_offset_list);
   // TODO(5411263): At some point we can optimize by figuring out if a
   // stack trace is needed based on whether the catch code specifies a
   // stack trace object or there is a rethrow in the catch clause.
   Stacktrace& stacktrace = Stacktrace::Handle();
-  if (!stack_frame_pcs.is_empty()) {
+  if (pc_offset_list.Length() != 0) {
     if (existing_stacktrace.IsNull()) {
-      stacktrace = Stacktrace::New(stack_frame_pcs, func_list, code_list);
+      stacktrace = Stacktrace::New(func_list, code_list, pc_offset_list);
     } else {
       stacktrace ^= existing_stacktrace.raw();
-      stacktrace.Append(stack_frame_pcs, func_list, code_list);
+      stacktrace.Append(func_list, code_list, pc_offset_list);
     }
   } else {
     stacktrace ^= existing_stacktrace.raw();

@@ -10825,25 +10825,9 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-void Stacktrace::SetupStacktrace(intptr_t index,
-                                 const GrowableArray<uword>& frame_pcs) const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Code& code = Code::Handle(isolate, Code::null());
-  Smi& pc_offset = Smi::Handle(isolate, Smi::New(0));
-  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
-  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
-  for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    code ^= code_array.At(i);
-    pc_offset = Smi::New(frame_pcs[i] - code.EntryPoint());
-    pc_offset_array.SetAt((index + i), pc_offset);
-  }
-}
-
-
-RawStacktrace* Stacktrace::New(const GrowableArray<uword>& stack_frame_pcs,
-                               const GrowableObjectArray& func_list,
+RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
                                const GrowableObjectArray& code_list,
+                               const GrowableObjectArray& pc_offset_list,
                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
          Class::null());
@@ -10855,27 +10839,25 @@ RawStacktrace* Stacktrace::New(const GrowableArray<uword>& stack_frame_pcs,
     NoGCScope no_gc;
     result ^= raw;
   }
-  intptr_t length = stack_frame_pcs.length();
   // Create arrays for the function, code and pc_offset triplet for each frame.
   const Array& function_array = Array::Handle(Array::MakeArray(func_list));
   const Array& code_array = Array::Handle(Array::MakeArray(code_list));
-  const Array& pc_offset_array = Array::Handle(Array::New(length));
+  const Array& pc_offset_array =
+      Array::Handle(Array::MakeArray(pc_offset_list));
   result.set_function_array(function_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
-  // Now populate the arrays with appropriate values from each frame.
-  result.SetupStacktrace(0, stack_frame_pcs);
   return result.raw();
 }
 
 
-void Stacktrace::Append(const GrowableArray<uword>& stack_frame_pcs,
-                        const GrowableObjectArray& func_list,
-                        const GrowableObjectArray& code_list) const {
+void Stacktrace::Append(const GrowableObjectArray& func_list,
+                        const GrowableObjectArray& code_list,
+                        const GrowableObjectArray& pc_offset_list) const {
   intptr_t old_length = Length();
-  intptr_t new_length = old_length + stack_frame_pcs.length();
-  ASSERT(stack_frame_pcs.length() == func_list.Length());
-  ASSERT(stack_frame_pcs.length() == code_list.Length());
+  intptr_t new_length = old_length + pc_offset_list.Length();
+  ASSERT(pc_offset_list.Length() == func_list.Length());
+  ASSERT(pc_offset_list.Length() == code_list.Length());
 
   // Grow the arrays for function, code and pc_offset triplet to accommodate
   // the new stack frames.
@@ -10896,9 +10878,9 @@ void Stacktrace::Append(const GrowableArray<uword>& stack_frame_pcs,
     function_array.SetAt(i, obj);
     obj = code_list.At(j);
     code_array.SetAt(i, obj);
+    obj = pc_offset_list.At(j);
+    pc_offset_array.SetAt(i, obj);
   }
-  // Now populate the arrays with appropriate values from each new frame.
-  SetupStacktrace(old_length, stack_frame_pcs);
 }
 
 

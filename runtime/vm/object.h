@@ -5241,16 +5241,16 @@ class Stacktrace : public Instance {
   RawFunction* FunctionAtFrame(intptr_t frame_index) const;
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
-  void Append(const GrowableArray<uword>& stack_frame_pcs,
-              const GrowableObjectArray& func_list,
-              const GrowableObjectArray& code_list) const;
+  void Append(const GrowableObjectArray& func_list,
+              const GrowableObjectArray& code_list,
+              const GrowableObjectArray& pc_offset_list) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
   }
-  static RawStacktrace* New(const GrowableArray<uword>& stack_frame_pcs,
-                            const GrowableObjectArray& func_list,
+  static RawStacktrace* New(const GrowableObjectArray& func_list,
                             const GrowableObjectArray& code_list,
+                            const GrowableObjectArray& pc_offset_list,
                             Heap::Space space = Heap::kNew);
 
   const char* ToCStringInternal(bool verbose) const;
@@ -5259,8 +5259,6 @@ class Stacktrace : public Instance {
   void set_function_array(const Array& function_array) const;
   void set_code_array(const Array& code_array) const;
   void set_pc_offset_array(const Array& pc_offset_array) const;
-  void SetupStacktrace(intptr_t index,
-                       const GrowableArray<uword>& stack_frame_pcs) const;
 
   HEAP_OBJECT_IMPLEMENTATION(Stacktrace, Instance);
   friend class Class;
