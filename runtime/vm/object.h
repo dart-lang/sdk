@@ -62,7 +62,8 @@ class Symbols;
         reinterpret_cast<object*>(VMHandles::AllocateHandle(isolate));         \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
-      FATAL("Handle check failed.");                                           \
+      FATAL2("Handle check failed: saw %s expected %s",                        \
+             obj->ToCString(), #object);                                       \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
@@ -86,7 +87,8 @@ class Symbols;
         VMHandles::AllocateZoneHandle(isolate));                               \
     initializeHandle(obj, raw_ptr);                                            \
     if (!obj->Is##object()) {                                                  \
-      FATAL("Handle check failed.");                                           \
+      FATAL2("Handle check failed: saw %s expected %s",                        \
+             obj->ToCString(), #object);                                       \
     }                                                                          \
     return *obj;                                                               \
   }                                                                            \
