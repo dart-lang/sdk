@@ -33,13 +33,17 @@ class RuntimeTypeInformation {
     ClassElement element = type.element;
     StringBuffer buffer = new StringBuffer();
     Link<Type> arguments = type.arguments;
-    int index = 0;
-    element.typeParameters.forEach((name, _) {
-      buffer.add("${name.slowToString()}: '${arguments.head}'");
-      if (++index < element.typeParameters.length) {
+    Link<Type> typeVariables = element.typeVariables;
+    while (!typeVariables.isEmpty()) {
+      TypeVariableType typeVariable = typeVariables.head;
+      // TODO(johnniwinther): Retrieve the type name properly and not through
+      // [toString]. Note: Two cases below [typeVariable] and [arguments.head].
+      buffer.add("${typeVariable}: '${arguments.head}'");
+      typeVariables = typeVariables.tail;
+      if (!typeVariables.isEmpty()) {
         buffer.add(', ');
       }
-    });
+    }
     return "{$buffer}";
   }
 

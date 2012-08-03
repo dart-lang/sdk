@@ -30,9 +30,11 @@ interface Type {
 }
 
 class TypeVariableType implements Type {
-  final SourceString name;
-  TypeVariableElement element;
-  TypeVariableType(this.name, [this.element]);
+  final TypeVariableElement element;
+
+  TypeVariableType(this.element);
+
+  SourceString get name() => element.name;
 
   toString() => name.slowToString();
 }

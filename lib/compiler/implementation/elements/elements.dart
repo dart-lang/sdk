@@ -431,7 +431,7 @@ class PrefixElement extends Element {
   Token position() => firstPosition;
 }
 
-class TypedefElement extends Element {
+class TypedefElement extends Element implements TypeDeclarationElement {
   Type cachedType;
   Typedef cachedNode;
 
@@ -444,6 +444,11 @@ class TypedefElement extends Element {
         this, compiler.resolveTypedef(this));
     return cachedType;
   }
+
+  Link<Type> get typeVariables() => const EmptyLink<Type>();
+
+  Scope buildScope() =>
+      new TypeDeclarationScope(enclosingElement.buildScope(), this);
 }
 
 class VariableElement extends Element {
@@ -826,16 +831,56 @@ class VoidElement extends Element {
   bool impliesType() => true;
 }
 
-class ClassElement extends ContainerElement {
+/**
+ * [TypeDeclarationElement] defines the common interface for class/interface
+ * declarations and typedefs.
+ */
+abstract class TypeDeclarationElement implements Element {
+  // TODO(johnniwinther): This class should eventually be a mixin.
+
+  /**
+   * The type variables declared on this declaration. The type variables are not
+   * available until the type of the element has been computed through
+   * [computeType].
+   */
+  // TODO(johnniwinther): Find a (better) way to decouple [typeVariables] from
+  // [Compiler].
+  final Link<Type> typeVariables;
+
+  /**
+   * Creates the type variables, their type and corresponding element, for the
+   * type variables declared in [parameter] on [element]. The bounds of the type
+   * variables are not set until [element] has been resolved.
+   */
+  static Link<Type> createTypeVariables(TypeDeclarationElement element,
+                                        NodeList parameters) {
+    if (parameters === null) return const EmptyLink<Type>();
+
+    // Create types and elements for type variable.
+    var arguments = new LinkBuilder<Type>();
+    for (Link<Node> link = parameters.nodes; !link.isEmpty(); link = link.tail) {
+      TypeVariable node = link.head;
+      SourceString variableName = node.name.source;
+      TypeVariableElement variableElement =
+          new TypeVariableElement(variableName, element, node);
+      TypeVariableType variableType = new TypeVariableType(variableElement);
+      variableElement.type = variableType;
+      arguments.addLast(variableType);
+    }
+    return arguments.toLink();
+  }
+}
+
+class ClassElement extends ContainerElement
+    implements TypeDeclarationElement {
   final int id;
-  Type type;
+  InterfaceType type;
   Type supertype;
   Type defaultClass;
   Link<Element> members = const EmptyLink<Element>();
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
-  LinkedHashMap<SourceString, TypeVariableElement> typeParameters;
   bool isResolved = false;
   bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -848,7 +893,6 @@ class ClassElement extends ContainerElement {
   ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
-      typeParameters = new LinkedHashMap<SourceString, TypeVariableElement>(),
       super(name, ElementKind.CLASS, enclosing);
 
   void addMember(Element element, DiagnosticListener listener) {
@@ -864,21 +908,21 @@ class ClassElement extends ContainerElement {
     }
   }
 
-  Type computeType(compiler) {
-    if (type === null) {
-      type = new InterfaceType(this);
+  InterfaceType computeType(compiler) {
+    if (type == null) {
+      ClassNode node = parseNode(compiler);
+      Link<Type> parameters =
+          TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
+      type = new InterfaceType(this, parameters);
     }
     return type;
   }
 
+  Link<Type> get typeVariables() => type.arguments;
+
   ClassElement ensureResolved(Compiler compiler) {
     compiler.resolveClass(this);
     return this;
-  }
-
-  Element lookupTypeParameter(SourceString parameterName) {
-    Element result = typeParameters[parameterName];
-    return result;
   }
 
   Element lookupLocalMember(SourceString memberName) {
@@ -1197,13 +1241,17 @@ class TargetElement extends Element {
 }
 
 class TypeVariableElement extends Element {
-  final Node node;
+  final Node cachedNode;
+  TypeVariableType type;
   Type bound;
-  Type type;
-  TypeVariableElement(name, Element enclosing, this.node, this.type,
-                      [this.bound])
+
+  TypeVariableElement(name, Element enclosing, this.cachedNode,
+                      [this.type, this.bound])
     : super(name, ElementKind.TYPE_VARIABLE, enclosing);
-  Type computeType(compiler) => type;
-  Node parseNode(compiler) => node;
-  toString() => "${enclosingElement.toString()}.${name.slowToString()}";
+
+  TypeVariableType computeType(compiler) => type;
+
+  Node parseNode(compiler) => cachedNode;
+
+  String toString() => "${enclosingElement.toString()}.${name.slowToString()}";
 }

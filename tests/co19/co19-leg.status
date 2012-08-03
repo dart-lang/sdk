@@ -405,7 +405,6 @@ Language/03_Overview/1_Scoping_A01_t21: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t23: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t24: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t35: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t36: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t39: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t40: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # @compile-error

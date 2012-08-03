@@ -122,6 +122,8 @@ class MessageKind {
       'target of continue is not a loop or switch case');
   static final TYPE_VARIABLE_AS_CONSTRUCTOR = const MessageKind(
       'cannot use type variable as constructor');
+  static final DUPLICATE_TYPE_VARIABLE_NAME = const MessageKind(
+      'type variable #{1} already declared');
   static final INVALID_BREAK = const MessageKind(
       'target of break is not a statement');
   static final INVALID_USE_OF_SUPER = const MessageKind(
