@@ -2219,14 +2219,14 @@ UNIT_TEST_CASE(LocalZoneMemory) {
     // Start a new scope and allocate some memory.
     Dart_EnterScope();
     for (int i = 0; i < 100; i++) {
-      Api::Allocate(isolate, 16);
+      Dart_ScopeAllocate(16);
     }
     EXPECT_EQ(1600, state->ZoneSizeInBytes());
     // Start another scope and allocate some more memory.
     {
       Dart_EnterScope();
       for (int i = 0; i < 100; i++) {
-        Api::Allocate(isolate, 16);
+        Dart_ScopeAllocate(16);
       }
       EXPECT_EQ(3200, state->ZoneSizeInBytes());
       {
@@ -2234,7 +2234,7 @@ UNIT_TEST_CASE(LocalZoneMemory) {
         {
           Dart_EnterScope();
           for (int i = 0; i < 200; i++) {
-            Api::Allocate(isolate, 16);
+            Dart_ScopeAllocate(16);
           }
           EXPECT_EQ(6400, state->ZoneSizeInBytes());
           Dart_ExitScope();

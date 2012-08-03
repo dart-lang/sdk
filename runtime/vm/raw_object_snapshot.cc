@@ -18,9 +18,9 @@ namespace dart {
   ((kind == Snapshot::kFull) ? reader->New##type(len) : type::New(len))
 
 
-static uword ZoneAllocator(intptr_t size) {
+static uword BigintAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
-  return zone->Allocate(size);
+  return zone->AllocUnsafe(size);
 }
 
 
@@ -1243,7 +1243,7 @@ RawBigint* Bigint::ReadFrom(SnapshotReader* reader,
 
   // Read in the HexCString representation of the bigint.
   intptr_t len = reader->ReadIntptrValue();
-  char* str = reinterpret_cast<char*>(ZoneAllocator(len + 1));
+  char* str = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   str[len] = '\0';
   reader->ReadBytes(reinterpret_cast<uint8_t*>(str), len);
 
@@ -1290,7 +1290,7 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
       length,
       is_negative,
       reinterpret_cast<void*>(data_start),
-      &ZoneAllocator);
+      &BigintAllocator);
   bool neg = false;
   if (*str == '-') {
     neg = true;
@@ -1378,7 +1378,8 @@ void String::ReadFromImpl(SnapshotReader* reader,
   if (RawObject::IsCanonical(tags)) {
     // Set up canonical string object.
     ASSERT(reader != NULL);
-    CharacterType* ptr = reinterpret_cast<CharacterType*>(ZoneAllocator(len));
+    CharacterType* ptr =
+        Isolate::Current()->current_zone()->Alloc<CharacterType>(len);
     for (intptr_t i = 0; i < len; i++) {
       ptr[i] = reader->Read<CharacterType>();
     }

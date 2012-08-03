@@ -2205,8 +2205,7 @@ const char* Class::ToCString() const {
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* class_name = String::Handle(Name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, format, library_name, class_name) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, library_name, class_name);
   return chars;
 }
@@ -2935,8 +2934,7 @@ const char* Type::ToCString() const {
       const char* class_name =
           String::Handle(Class::Handle(type_class()).Name()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
-      char* chars = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len));
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
     } else {
@@ -2946,8 +2944,7 @@ const char* Type::ToCString() const {
       const char* args_cstr =
           AbstractTypeArguments::Handle(arguments()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
-      char* chars = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len));
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name, args_cstr);
       return chars;
     }
@@ -3093,8 +3090,7 @@ const char* TypeParameter::ToCString() const {
   const char* format = "TypeParameter: name %s; index: %d";
   const char* name_cstr = String::Handle(Name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, name_cstr, index());
   return chars;
 }
@@ -3547,8 +3543,7 @@ const char* TypeArguments::ToCString() const {
     const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
     intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, prev_cstr, type_cstr);
     prev_cstr = chars;
   }
@@ -3627,8 +3622,7 @@ const char* InstantiatedTypeArguments::ToCString() const {
       AbstractTypeArguments::Handle(instantiator_type_arguments()).ToCString();
   intptr_t len =
       OS::SNPrint(NULL, 0, format, arg_cstr, instantiator_cstr) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, arg_cstr, instantiator_cstr);
   return chars;
 }
@@ -3940,8 +3934,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     reserve_len +=
         OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
-    *chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(reserve_len + 1));
+    *chars = Isolate::Current()->current_zone()->Alloc<char>(reserve_len + 1);
     written = OS::SNPrint(
         *chars, reserve_len, lib_class_format, library_name, class_name);
   } else {
@@ -4406,8 +4399,7 @@ const char* Function::ToCString() const {
   const char* function_name = String::Handle(name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
                              static_str, abstract_str, kind_str, const_str) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, function_name,
               static_str, abstract_str, kind_str, const_str);
   return chars;
@@ -4536,8 +4528,7 @@ const char* Field::ToCString() const {
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   intptr_t len =
       OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
 }
@@ -6292,8 +6283,7 @@ const char* Library::ToCString() const {
   const char* kFormat = "Library:'%s'";
   const String& name = String::Handle(url());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, name.ToCString());
   return chars;
 }
@@ -6387,8 +6377,7 @@ const char* LibraryPrefix::ToCString() const {
   const char* kFormat = "LibraryPrefix:'%s'";
   const String& prefix = String::Handle(name());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, prefix.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, prefix.ToCString());
   return chars;
 }
@@ -6637,8 +6626,7 @@ const char* PcDescriptors::ToCString() const {
         PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
   }
   // Allocate the buffer.
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6761,12 +6749,16 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
+    // Guard against integer overflow, though it is highly unlikely.
+    if (MaximumBitIndex() > kIntptrMax / 4) {
+      FATAL1("MaximumBitIndex() is unexpectedly large (%ld)",
+             MaximumBitIndex());
+    }
     intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
     intptr_t alloc_size =
         index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
-    char* chars = reinterpret_cast<char*>(
-        isolate->current_zone()->Allocate(alloc_size));
+    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
     index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
     for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
       index += OS::SNPrint((chars + index),
@@ -6906,8 +6898,7 @@ const char* ExceptionHandlers::ToCString() const {
                        TryIndex(i), HandlerPC(i));
   }
   // Allocate the buffer.
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6947,8 +6938,7 @@ const char* DeoptInfo::ToCString() const {
         Instruction(i), FromIndex(i), i);
   }
   // Allocate the buffer.
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -7110,8 +7100,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
-    char* buffer = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len + 1));
+    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, addr, size, name);
     (*perf_events_writer)(buffer, len);
   }
@@ -7134,8 +7123,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
       // <name> for rest of the code (first instruction is prolog sequence).
       const char* kFormat = "%s_%s";
       intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len + 1));
+      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
       OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
       DebugInfo::RegisterSection(pname, instrs.EntryPoint(), prolog_offset);
       DebugInfo::RegisterSection(name,
@@ -7231,8 +7219,7 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
 }
@@ -7433,8 +7420,7 @@ const char* ICData::ToCString() const {
   const char* kFormat = "ICData target:%s";
   const String& name = String::Handle(target_name());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, name.ToCString());
   return chars;
 }
@@ -7854,7 +7840,7 @@ const char* UnhandledException::ToErrorCString() const {
   int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
              - 4    // Two '%s'
              + 1);  // '\0'
-  char* chars = reinterpret_cast<char*>(isolate->current_zone()->Allocate(len));
+  char* chars = isolate->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, exc_str, stack_str);
   return chars;
 }
@@ -8138,8 +8124,7 @@ const char* Instance::ToCString() const {
     const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
   }
@@ -8263,8 +8248,7 @@ const char* Smi::ToCString() const {
   const char* kFormat = "%ld";
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, Value()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, Value());
   return chars;
 }
@@ -8378,8 +8362,7 @@ const char* Mint::ToCString() const {
   const char* kFormat = "%lld";
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, value()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, value());
   return chars;
 }
@@ -8499,8 +8482,7 @@ const char* Double::ToCString() const {
     return value() < 0 ? "-Infinity" : "Infinity";
   }
   const int kBufferSize = 128;
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(kBufferSize));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
   DoubleToCString(value(), buffer, kBufferSize);
   return buffer;
@@ -8590,14 +8572,14 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
 }
 
 
-static uword ZoneAllocator(intptr_t size) {
+static uword BigintAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
-  return zone->Allocate(size);
+  return zone->AllocUnsafe(size);
 }
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToDecimalCString(*this, &ZoneAllocator);
+  return BigintOperations::ToDecimalCString(*this, &BigintAllocator);
 }
 
 
@@ -9094,7 +9076,7 @@ RawString* String::NewFormatted(const char* format, ...) {
   va_end(args);
 
   Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  char* buffer = zone->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -9199,7 +9181,7 @@ RawString* String::SubString(const String& str,
 const char* String::ToCString() const {
   intptr_t len = Utf8::Length(*this);
   Zone* zone = Isolate::Current()->current_zone();
-  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  char* result = zone->Alloc<char>(len + 1);
   Utf8::Encode(*this, result, len);
   result[len] = 0;
   return result;
@@ -10798,8 +10780,7 @@ const char* Closure::ToCString() const {
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
   const char* format = "Closure: %s%s%s";
   intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
   return chars;
 }
@@ -10961,8 +10942,7 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
                                line, column,
                                code.EntryPoint());
     total_len += len;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len + 1));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
                 i,
                 class_name.ToCString(),
@@ -10975,8 +10955,7 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
   }
 
   // Now concatentate the frame descriptions into a single C string.
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(total_len + 1));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
     index += OS::SNPrint((chars + index),
@@ -11085,8 +11064,7 @@ const char* JSRegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   const char* format = "JSRegExp: pattern=%s flags=%s";
   intptr_t len = OS::SNPrint(NULL, 0, format, str.ToCString(), Flags());
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
 }

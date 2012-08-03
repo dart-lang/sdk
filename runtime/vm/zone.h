@@ -21,13 +21,27 @@ class BaseZone {
   BaseZone();
   ~BaseZone();  // Delete all memory associated with the zone.
 
-  // Allocate 'size' bytes of memory in the zone; expands the zone by
-  // allocating new segments of memory on demand using 'new'.
-  inline uword Allocate(intptr_t size);
+  // Allocate an array sized to hold 'len' elements of type
+  // 'ElementType'.  Checks for integer overflow when performing the
+  // size computation.
+  template <class ElementType>
+  inline ElementType* Alloc(intptr_t len);
 
-  // Allocate 'new_size' bytes of memory and copies 'old_size' bytes from
-  // 'data' into new allocated memory. Uses current zone.
-  uword Reallocate(uword data, intptr_t old_size, intptr_t new_size);
+  // Allocates an array sized to hold 'len' elements of type
+  // 'ElementType'.  The new array is initialized from the memory of
+  // 'old_array' up to 'old_len'.
+  template <class ElementType>
+  inline ElementType* Realloc(ElementType* old_array,
+                              intptr_t old_len,
+                              intptr_t new_len);
+
+  // Allocates 'size' bytes of memory in the zone; expands the zone by
+  // allocating new segments of memory on demand using 'new'.
+  //
+  // It is preferred to use Alloc<T>() instead, as that function can
+  // check for integer overflow.  If you use AllocUnsafe, you are
+  // responsible for avoiding integer overflow yourself.
+  inline uword AllocUnsafe(intptr_t size);
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
@@ -36,7 +50,7 @@ class BaseZone {
   // Make a copy of the string in the zone allocated area.
   char* MakeCopyOfString(const char* str);
 
-  // All pointers returned from Allocate() and New() have this alignment.
+  // All pointers returned from AllocateUnsafe() and New() have this alignment.
   static const intptr_t kAlignment = kWordSize;
 
   // Default initial chunk size.
@@ -104,15 +118,29 @@ class Zone : public StackResource {
   // Delete all memory associated with the zone.
   ~Zone();
 
-  // Allocate 'size' bytes of memory in the zone; expands the zone by
-  // allocating new segments of memory on demand using 'new'.
-  uword Allocate(intptr_t size) { return zone_.Allocate(size); }
+  // Allocates an array sized to hold 'len' elements of type
+  // 'ElementType'.  Checks for integer overflow when performing the
+  // size computation.
+  template <class ElementType>
+  ElementType* Alloc(intptr_t len) { return zone_.Alloc<ElementType>(len); }
 
-  // Allocate 'new_size' bytes of memory and copies 'old_size' bytes from
-  // 'data' into new allocated memory. Uses current zone.
-  uword Reallocate(uword data, intptr_t old_size, intptr_t new_size) {
-    return zone_.Reallocate(data, old_size, new_size);
+  // Allocates an array sized to hold 'len' elements of type
+  // 'ElementType'.  The new array is initialized from the memory of
+  // 'old_array' up to 'old_len'.
+  template <class ElementType>
+  ElementType* Realloc(ElementType* old_array,
+                       intptr_t old_len,
+                       intptr_t new_len) {
+    return zone_.Realloc<ElementType>(old_array, old_len, new_len);
   }
+
+  // Allocates 'size' bytes of memory in the zone; expands the zone by
+  // allocating new segments of memory on demand using 'new'.
+  //
+  // It is preferred to use Alloc<T>() instead, as that function can
+  // check for integer overflow.  If you use AllocUnsafe, you are
+  // responsible for avoiding integer overflow yourself.
+  uword AllocUnsafe(intptr_t size) { return zone_.AllocUnsafe(size); }
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.
@@ -147,11 +175,13 @@ class Zone : public StackResource {
   DISALLOW_IMPLICIT_CONSTRUCTORS(Zone);
 };
 
-
-inline uword BaseZone::Allocate(intptr_t size) {
+inline uword BaseZone::AllocUnsafe(intptr_t size) {
   ASSERT(size >= 0);
 
   // Round up the requested size to fit the alignment.
+  if (size > (kIntptrMax - kAlignment)) {
+    FATAL1("BaseZone::Alloc: 'size' is too large: size=%ld", size);
+  }
   size = Utils::RoundUp(size, kAlignment);
 
   // Check if the requested size is available without expanding.
@@ -167,6 +197,30 @@ inline uword BaseZone::Allocate(intptr_t size) {
   // Check that the result has the proper alignment and return it.
   ASSERT(Utils::IsAligned(result, kAlignment));
   return result;
+}
+
+template <class ElementType>
+inline ElementType* BaseZone::Alloc(intptr_t len) {
+  const intptr_t element_size = sizeof(ElementType);
+  if (len > (kIntptrMax / element_size)) {
+    FATAL2("BaseZone::Alloc: 'len' is too large: len=%ld, element_size=%ld",
+           len, element_size);
+  }
+  return reinterpret_cast<ElementType*>(AllocUnsafe(len * element_size));
+}
+
+template <class ElementType>
+inline ElementType* BaseZone::Realloc(ElementType* old_data,
+                                      intptr_t old_len,
+                                      intptr_t new_len) {
+  ElementType* new_data = Alloc<ElementType>(new_len);
+  if (old_data != 0) {
+    memmove(reinterpret_cast<void*>(new_data),
+            reinterpret_cast<void*>(old_data),
+            Utils::Minimum(old_len * sizeof(ElementType),
+                           new_len * sizeof(ElementType)));
+  }
+  return new_data;
 }
 
 }  // namespace dart

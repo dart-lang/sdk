@@ -131,8 +131,7 @@ void FlowGraphCompiler::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphCompiler Bailout: %s %s.";
   const char* function_name = parsed_function().function().ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, function_name, reason);
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));

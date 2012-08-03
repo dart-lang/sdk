@@ -33,15 +33,29 @@ class ApiZone {
   // Delete all memory associated with the zone.
   ~ApiZone() { }
 
-  // Allocate 'size' bytes of memory in the zone; expands the zone by
-  // allocating new segments of memory on demand using 'new'.
-  uword Allocate(intptr_t size) { return zone_.Allocate(size); }
+  // Allocates an array sized to hold 'len' elements of type
+  // 'ElementType'.  Checks for integer overflow when performing the
+  // size computation.
+  template <class ElementType>
+  ElementType* Alloc(intptr_t len) { return zone_.Alloc<ElementType>(len); }
 
-  // Allocate 'new_size' bytes of memory and copies 'old_size' bytes from
-  // 'data' into new allocated memory. Uses current zone.
-  uword Reallocate(uword data, intptr_t old_size, intptr_t new_size) {
-    return zone_.Reallocate(data, old_size, new_size);
+  // Allocates an array sized to hold 'len' elements of type
+  // 'ElementType'.  The new array is initialized from the memory of
+  // 'old_array' up to 'old_len'.
+  template <class ElementType>
+  ElementType* Realloc(ElementType* old_array,
+                       intptr_t old_len,
+                       intptr_t new_len) {
+    return zone_.Realloc<ElementType>(old_array, old_len, new_len);
   }
+
+  // Allocates 'size' bytes of memory in the zone; expands the zone by
+  // allocating new segments of memory on demand using 'new'.
+  //
+  // It is preferred to use Alloc<T>() instead, as that function can
+  // check for integer overflow.  If you use AllocUnsafe, you are
+  // responsible for avoiding integer overflow yourself.
+  uword AllocUnsafe(intptr_t size) { return zone_.AllocUnsafe(size); }
 
   // Compute the total size of this zone. This includes wasted space that is
   // due to internal fragmentation in the segments.

@@ -27,8 +27,8 @@ UNIT_TEST_CASE(AllocateZone) {
     // The loop is to make sure we overflow one segment and go on
     // to the next segment.
     for (int i = 0; i < 1000; i++) {
-      uword first = zone.Allocate(2 * kWordSize);
-      uword second = zone.Allocate(3 * kWordSize);
+      uword first = zone.AllocUnsafe(2 * kWordSize);
+      uword second = zone.AllocUnsafe(3 * kWordSize);
       EXPECT(first != second);
       allocated_size = ((2 + 3) * kWordSize);
     }
@@ -39,7 +39,7 @@ UNIT_TEST_CASE(AllocateZone) {
     const uword kSegmentSize = 64 * KB;
     ASSERT(kLargeSize > kSegmentSize);
     for (int i = 0; i < 10; i++) {
-      EXPECT(zone.Allocate(kLargeSize) != 0);
+      EXPECT(zone.AllocUnsafe(kLargeSize) != 0);
       allocated_size += kLargeSize;
     }
     EXPECT_LE(allocated_size, zone.SizeInBytes());
@@ -47,27 +47,70 @@ UNIT_TEST_CASE(AllocateZone) {
     // Test corner cases of kSegmentSize.
     uint8_t* buffer = NULL;
     buffer = reinterpret_cast<uint8_t*>(
-        zone.Allocate(kSegmentSize - kWordSize));
+        zone.AllocUnsafe(kSegmentSize - kWordSize));
     EXPECT(buffer != NULL);
     buffer[(kSegmentSize - kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize - kWordSize);
     EXPECT_LE(allocated_size, zone.SizeInBytes());
 
     buffer = reinterpret_cast<uint8_t*>(
-        zone.Allocate(kSegmentSize - (2 * kWordSize)));
+        zone.AllocUnsafe(kSegmentSize - (2 * kWordSize)));
     EXPECT(buffer != NULL);
     buffer[(kSegmentSize - (2 * kWordSize)) - 1] = 0;
     allocated_size += (kSegmentSize - (2 * kWordSize));
     EXPECT_LE(allocated_size, zone.SizeInBytes());
 
     buffer = reinterpret_cast<uint8_t*>(
-        zone.Allocate(kSegmentSize + kWordSize));
+        zone.AllocUnsafe(kSegmentSize + kWordSize));
     EXPECT(buffer != NULL);
     buffer[(kSegmentSize + kWordSize) - 1] = 0;
     allocated_size += (kSegmentSize + kWordSize);
     EXPECT_LE(allocated_size, zone.SizeInBytes());
   }
   EXPECT(isolate->current_zone() == NULL);
+  isolate->Shutdown();
+  delete isolate;
+}
+
+
+UNIT_TEST_CASE(AllocGeneric_Success) {
+#if defined(DEBUG)
+  FLAG_trace_zone_sizes = true;
+#endif
+  Isolate* isolate = Isolate::Init(NULL);
+  EXPECT(Isolate::Current() == isolate);
+  EXPECT(isolate->current_zone() == NULL);
+  {
+    Zone zone(isolate);
+    EXPECT(isolate->current_zone() != NULL);
+    intptr_t allocated_size = 0;
+
+    const intptr_t kNumElements = 1000;
+    zone.Alloc<uint32_t>(kNumElements);
+    allocated_size += sizeof(uint32_t) * kNumElements;
+    EXPECT_LE(allocated_size, zone.SizeInBytes());
+  }
+  EXPECT(isolate->current_zone() == NULL);
+  isolate->Shutdown();
+  delete isolate;
+}
+
+
+// This test is expected to crash.
+UNIT_TEST_CASE(AllocGeneric_Overflow) {
+#if defined(DEBUG)
+  FLAG_trace_zone_sizes = true;
+#endif
+  Isolate* isolate = Isolate::Init(NULL);
+  EXPECT(Isolate::Current() == isolate);
+  EXPECT(isolate->current_zone() == NULL);
+  {
+    Zone zone(isolate);
+    EXPECT(isolate->current_zone() != NULL);
+
+    const intptr_t kNumElements = (kIntptrMax / sizeof(uint32_t)) + 1;
+    zone.Alloc<uint32_t>(kNumElements);
+  }
   isolate->Shutdown();
   delete isolate;
 }

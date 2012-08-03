@@ -18,7 +18,10 @@ void* ZoneAllocated::operator new(uword size) {
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate != NULL);
   ASSERT(isolate->current_zone() != NULL);
-  return reinterpret_cast<void*>(isolate->current_zone()->Allocate(size));
+  if (size > static_cast<uword>(kIntptrMax)) {
+    FATAL1("ZoneAllocated object has unexpectedly large size %uld", size);
+  }
+  return reinterpret_cast<void*>(isolate->current_zone()->AllocUnsafe(size));
 }
 
 }  // namespace dart

@@ -13,9 +13,9 @@
 
 namespace dart {
 
-static uword NewContents(int capacity) {
+static uword NewContents(intptr_t capacity) {
   Zone* zone = Isolate::Current()->current_zone();
-  uword result = zone->Allocate(capacity);
+  uword result = zone->AllocUnsafe(capacity);
 #if defined(DEBUG)
   // Initialize the buffer with kBreakPointInstruction to force a break
   // point if we ever execute an uninitialized part of the code buffer.
@@ -48,7 +48,7 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
   buffer_->has_ensured_capacity_ = false;
   // Make sure the generated instruction doesn't take up more
   // space than the minimum gap.
-  int delta = gap_ - ComputeGap();
+  intptr_t delta = gap_ - ComputeGap();
   ASSERT(delta <= kMinimumGap);
 }
 #endif
@@ -56,7 +56,7 @@ AssemblerBuffer::EnsureCapacity::~EnsureCapacity() {
 
 AssemblerBuffer::AssemblerBuffer()
     : pointer_offsets_(new ZoneGrowableArray<int>(16)) {
-  static const int kInitialBufferCapacity = 4 * KB;
+  static const intptr_t kInitialBufferCapacity = 4 * KB;
   contents_ = NewContents(kInitialBufferCapacity);
   cursor_ = contents_;
   limit_ = ComputeLimit(contents_, kInitialBufferCapacity);
@@ -99,9 +99,13 @@ void AssemblerBuffer::FinalizeInstructions(const MemoryRegion& instructions) {
 
 
 void AssemblerBuffer::ExtendCapacity() {
-  int old_size = Size();
-  int old_capacity = Capacity();
-  int new_capacity = Utils::Minimum(old_capacity * 2, old_capacity + 1 * MB);
+  intptr_t old_size = Size();
+  intptr_t old_capacity = Capacity();
+  intptr_t new_capacity =
+      Utils::Minimum(old_capacity * 2, old_capacity + 1 * MB);
+  if (new_capacity < old_capacity) {
+    FATAL("Unexpected overflow in AssemblerBuffer::ExtendCapacity");
+  }
 
   // Allocate the new data area and copy contents of the old one to it.
   uword new_contents = NewContents(new_capacity);

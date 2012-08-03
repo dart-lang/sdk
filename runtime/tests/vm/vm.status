@@ -7,6 +7,7 @@ cc/RunLoop_ExceptionChild: Fail
 
 # These tests are expected to crash on all platforms.
 cc/ArrayNew_Overflow_Crash: Crash
+cc/AllocGeneric_Overflow: Crash
 cc/SNPrint_BadArgs: Crash
 
 [ $arch == x64 ]

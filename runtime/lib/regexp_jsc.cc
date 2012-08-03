@@ -16,9 +16,8 @@
 namespace dart {
 
 static uint16_t* GetTwoByteData(const String& str) {
-  intptr_t size = str.Length() * sizeof(uint16_t);
   Zone* zone = Isolate::Current()->current_zone();
-  uint16_t* two_byte_str = reinterpret_cast<uint16_t*>(zone->Allocate(size));
+  uint16_t* two_byte_str = zone->Alloc<uint16_t>(str.Length());
   for (intptr_t i = 0; i < str.Length(); i++) {
     two_byte_str[i] = str.CharAt(i);
   }
@@ -126,8 +125,7 @@ RawArray* Jscre::Execute(const JSRegExp& regex,
   const int kJscreMultiple = 3;
   int offsets_length = (num_bracket_expressions + 1) * kJscreMultiple;
   int* offsets = NULL;
-  int offsets_array_size = offsets_length * sizeof(offsets[0]);
-  offsets = reinterpret_cast<int*>(zone->Allocate(offsets_array_size));
+  offsets = zone->Alloc<int>(offsets_length);
   int retval = jscre::jsRegExpExecute(jscregexp,
                                       two_byte_str,
                                       str.Length(),
