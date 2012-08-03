@@ -196,6 +196,12 @@
 				</dict>
 				<dict>
 					<key>match</key>
+					<string>\b(abstract|class|extends|external|factory|implements|interface|get|native|operator|set|typedef)\b</string>
+					<key>name</key>
+					<string>keyword.declaration.dart</string>
+				</dict>
+				<dict>
+					<key>match</key>
 					<string>\b(is\!?)\b</string>
 					<key>name</key>
 					<string>keyword.operator.dart</string>
@@ -256,13 +262,13 @@
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(static|final|native|abstract|const|class|interface|get|set|operator|external)\b</string>
+					<string>\b(static|final|const)\b</string>
 					<key>name</key>
 					<string>storage.modifier.dart</string>
 				</dict>
 				<dict>
 					<key>match</key>
-					<string>\b(?:void|bool|num|int|double|Dynamic|var)\b</string>
+					<string>\b(?:void|bool|num|int|double|Dynamic|var|String)\b</string>
 					<key>name</key>
 					<string>storage.type.primitive.dart</string>
 				</dict>
