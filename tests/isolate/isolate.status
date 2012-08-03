@@ -27,7 +27,10 @@ compute_this_script_browser_test: Skip # browser specific test
 serialization_test: Skip  # tests frog-specific serialization code
 isolate_negative_test: Fail    # status change with --check-only
 isolate2_negative_test: Fail   # status change with --check-only
-*_negative_test: Fail, OK # fails only at runtime
+spawn_function_negative_test: Fail, OK # Fails at runtime.
+spawn_uri_negative_test: Fail, OK # Fails at runtime.
+spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
+unresolved_ports_negative_test: Fail, OK # Fails at runtime.
 
 # TODO(jmesserly): investigate why these are flaky on actual browsers
 [ $compiler == frog && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera) ]
