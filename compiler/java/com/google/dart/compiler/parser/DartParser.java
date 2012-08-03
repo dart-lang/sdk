@@ -2142,7 +2142,6 @@ public class DartParser extends CompletionHooksParserBase {
             right = done(new DartTypeExpression(parseTypeAnnotation()));
           }
         } else if (token == Token.AS) {
-          beginCastExpression();
           beginTypeExpression();
           right = done(new DartTypeExpression(parseTypeAnnotation()));
         } else {
