@@ -30,8 +30,11 @@ class TestCase {
   /** The body of the test case. */
   TestFunction test;
 
-  /** Total number of callbacks to wait for before the test completes. */
-  int callbacks;
+  /**
+   * Remaining number of callbacks functions that must reach a 'done' state
+   * to wait for before the test completes.
+   */
+  int callbackFunctionsOutstanding;
 
   /** Error or failure message. */
   String message = '';
@@ -55,7 +58,8 @@ class TestCase {
 
   bool _doneTeardown;
 
-  TestCase(this.id, this.description, this.test, this.callbacks)
+  TestCase(this.id, this.description, this.test,
+           this.callbackFunctionsOutstanding)
   : currentGroup = _currentGroup,
     _setUp = _testSetup,
     _tearDown = _testTeardown;
@@ -66,7 +70,6 @@ class TestCase {
     if (enabled) {
       result = stackTrace = null;
       message = '';
-
       _doneTeardown = false;
       if (_setUp != null) {
         _setUp();
