@@ -76,15 +76,17 @@ class World {
     return (fieldCount == 1 && nonFieldCount == 0) ? field : null;
   }
 
-  bool mayHaveUserDefinedNoSuchMethod(Type type) {
+  Set<ClassElement> findNoSuchMethodHolders(Type type) {
+    Set<ClassElement> result = new Set<ClassElement>();
     MemberSet memberSet = _memberSetFor(type, Compiler.NO_SUCH_METHOD);
-    // TODO(kasperl): Only return true if the set contains an instance
-    // method with the right signature. Remember to disregard the
-    // implementation in Object.
     for (Element element in memberSet.elements) {
-      if (element.getEnclosingClass() !== compiler.objectClass) return true;
+      ClassElement holder = element.getEnclosingClass();
+      if (holder !== compiler.objectClass &&
+          Selector.INVOCATION_2.applies(element, compiler)) {
+        result.add(holder);
+      }
     }
-    return false;
+    return result;
   }
 }
 
