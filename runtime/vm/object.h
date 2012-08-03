@@ -5239,12 +5239,16 @@ class Stacktrace : public Instance {
   RawFunction* FunctionAtFrame(intptr_t frame_index) const;
   RawCode* CodeAtFrame(intptr_t frame_index) const;
   RawSmi* PcOffsetAtFrame(intptr_t frame_index) const;
-  void Append(const GrowableArray<uword>& stack_frame_pcs) const;
+  void Append(const GrowableArray<uword>& stack_frame_pcs,
+              const GrowableObjectArray& func_list,
+              const GrowableObjectArray& code_list) const;
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawStacktrace));
   }
   static RawStacktrace* New(const GrowableArray<uword>& stack_frame_pcs,
+                            const GrowableObjectArray& func_list,
+                            const GrowableObjectArray& code_list,
                             Heap::Space space = Heap::kNew);
 
   const char* ToCStringInternal(bool verbose) const;
