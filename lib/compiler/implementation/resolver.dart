@@ -1657,6 +1657,58 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 }
 
+class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
+  Scope scope;
+  TypeDeclarationElement element;
+  TypeResolver typeResolver;
+
+  TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
+      : this.element = element,
+        scope = element.enclosingElement.buildScope(),
+        typeResolver = new TypeResolver(compiler),
+        super(compiler);
+
+  void resolveTypeVariableBounds(NodeList node) {
+    if (node === null) return;
+
+    var nameSet = new Set<SourceString>();
+    // Resolve the bounds of type variables.
+    Link<Type> typeLink = element.typeVariables;
+    Link<Node> nodeLink = node.nodes;
+    while (!nodeLink.isEmpty()) {
+      TypeVariableType typeVariable = typeLink.head;
+      SourceString typeName = typeVariable.name;
+      TypeVariable typeNode = nodeLink.head;
+      if (nameSet.contains(typeName)) {
+        error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME, [typeName]);
+      }
+      nameSet.add(typeName);
+
+      TypeVariableElement variableElement = typeVariable.element;
+      if (typeNode.bound !== null) {
+        Type boundType = typeResolver.resolveTypeAnnotation(
+            typeNode.bound, inScope: scope, onFailure: warning);
+        if (boundType !== null && boundType.element == variableElement) {
+          // TODO(johnniwinther): Check for more general cycles, like
+          // [: <A extends B, B extends C, C extends B> :].
+          warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
+                  [variableElement.name]);
+        } else if (boundType !== null) {
+          variableElement.bound = boundType;
+        } else {
+          // TODO(johnniwinther): Should be an erroneous type.
+          variableElement.bound = compiler.objectClass.computeType(compiler);
+        }
+      } else {
+        variableElement.bound = compiler.objectClass.computeType(compiler);
+      }
+      nodeLink = nodeLink.tail;
+      typeLink = typeLink.tail;
+    }
+    assert(typeLink.isEmpty());
+  }
+}
+
 class ClassResolverVisitor extends TypeDefinitionVisitor {
   ClassElement get element() => super.element;
 
@@ -1851,58 +1903,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
        type.element === compiler.stringClass ||
        type.element === compiler.nullClass ||
        type.element === compiler.functionClass);
-  }
-}
-
-class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
-  Scope scope;
-  TypeDeclarationElement element;
-  TypeResolver typeResolver;
-
-  TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
-      : this.element = element,
-        scope = element.enclosingElement.buildScope(),
-        typeResolver = new TypeResolver(compiler),
-        super(compiler);
-
-  void resolveTypeVariableBounds(NodeList node) {
-    if (node === null) return;
-
-    var nameSet = new Set<SourceString>();
-    // Resolve the bounds of type variables.
-    Link<Type> typeLink = element.typeVariables;
-    Link<Node> nodeLink = node.nodes;
-    while (!nodeLink.isEmpty()) {
-      TypeVariableType typeVariable = typeLink.head;
-      SourceString typeName = typeVariable.name;
-      TypeVariable typeNode = nodeLink.head;
-      if (nameSet.contains(typeName)) {
-        error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME, [typeName]);
-      }
-      nameSet.add(typeName);
-
-      TypeVariableElement variableElement = typeVariable.element;
-      if (typeNode.bound !== null) {
-        Type boundType = typeResolver.resolveTypeAnnotation(
-            typeNode.bound, inScope: scope, onFailure: warning);
-        if (boundType !== null && boundType.element == variableElement) {
-          // TODO(johnniwinther): Check for more general cycles, like
-          // [: <A extends B, B extends C, C extends B> :].
-          warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
-                  [variableElement.name]);
-        } else if (boundType !== null) {
-          variableElement.bound = boundType;
-        } else {
-          // TODO(johnniwinther): Should be an erroneous type.
-          variableElement.bound = compiler.objectClass.computeType(compiler);
-        }
-      } else {
-        variableElement.bound = compiler.objectClass.computeType(compiler);
-      }
-      nodeLink = nodeLink.tail;
-      typeLink = typeLink.tail;
-    }
-    assert(typeLink.isEmpty());
   }
 }
 
