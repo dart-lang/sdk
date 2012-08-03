@@ -3963,9 +3963,9 @@ TEST_CASE(ThrowException) {
   const char* kScriptChars =
       "class ThrowException {\n"
       "  ThrowException(int i) : fld1 = i {}\n"
-      "  int method1(int i) native \"ThrowException_native\";"
-      "  int method2() {\n"
-      "     try { method1(10); } catch(var a) { return 5; } return 10;\n"
+      "  int thrower(int i) native \"ThrowException_native\";"
+      "  int test() {\n"
+      "     try { thrower(10); } catch(var a) { return 5; } return 10;\n"
       "  }\n"
       "  int fld1;\n"
       "}\n"
@@ -3994,10 +3994,10 @@ TEST_CASE(ThrowException) {
   result = Dart_ThrowException(retobj);
   EXPECT(Dart_IsError(result));
 
-  // Now invoke method2 which invokes a natve method where it is
-  // ok to throw an exception, check the result which would indicate
-  // if an exception was thrown or not.
-  result = Dart_Invoke(retobj, Dart_NewString("method2"), 0, NULL);
+  // Now invoke 'test' which indirectly invokes a natve method where
+  // it is ok to throw an exception, check the result which would
+  // indicate if an exception was thrown or not.
+  result = Dart_Invoke(retobj, Dart_NewString("test"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
