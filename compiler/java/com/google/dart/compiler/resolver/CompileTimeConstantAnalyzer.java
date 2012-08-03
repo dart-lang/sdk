@@ -622,13 +622,19 @@ public class CompileTimeConstantAnalyzer {
       if (node.getParent() != null) {
         DartNode pp = node.getParent().getParent();
         boolean isFinalTopLevelField = node.getModifiers().isFinal() && pp instanceof DartUnit;
-        boolean isInstanceField = pp instanceof DartClass;
-        if (isFinalTopLevelField || isInstanceField) {
+        boolean isClassField = pp instanceof DartClass;
+        boolean isStatic = node.getModifiers().isStatic();
+        boolean isConst = node.getModifiers().isConstant();
+        if (isFinalTopLevelField || (isClassField && isStatic) || isConst) {
           Type type = checkConstantExpression(node.getValue());
           if (node.getElement().getType().equals(dynamicType)) {
             node.getElement().setConstantType(type);
           }
           return null;
+        }
+        if (isClassField && !isStatic) {
+          DartExpression value = node.getValue();
+          checkInstanceFieldInitializer(value);
         }
       }
       return super.visitField(node);
@@ -776,7 +782,32 @@ public class CompileTimeConstantAnalyzer {
     return null;
   }
 
-  public void exec (DartUnit unit) {
+  public void exec(DartUnit unit) {
     unit.accept(new FindCompileTimeConstantExpressionsVisitor());
+  }
+
+  private void checkInstanceFieldInitializer(DartExpression value) {
+    if (value != null) {
+      value.accept(new ASTVisitor<Void>() {
+        @Override
+        public Void visitThisExpression(DartThisExpression node) {
+          context.onError(new DartCompilationError(node,
+              ResolverErrorCode.CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER));
+          return null;
+        }
+        @Override
+        public Void visitIdentifier(DartIdentifier node) {
+          NodeElement element = node.getElement();
+          if (ElementKind.of(element) == ElementKind.FIELD) {
+            FieldElement fieldElement = (FieldElement) element;
+            if (!fieldElement.isStatic()) {
+              context.onError(new DartCompilationError(node,
+                  ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER));
+            }
+          }
+          return null;
+        }
+      });
+    }
   }
 }

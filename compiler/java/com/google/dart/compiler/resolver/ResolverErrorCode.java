@@ -48,6 +48,9 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER(
+      "Cannot use instance field in instance field initializer"),
+  CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER("Cannot use 'this' in instance field initializer"),
   CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
