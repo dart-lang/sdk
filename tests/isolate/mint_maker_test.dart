@@ -181,7 +181,7 @@ class MintMakerWrapper {
     });
   }
 
-  Future<SendPort> port_;
+  SendPort port_;
 }
 
 _checkBalance(PurseWrapper wrapper, expected) {
