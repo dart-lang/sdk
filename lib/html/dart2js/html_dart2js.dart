@@ -6049,6 +6049,12 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         new Completer<CSSStyleDeclaration>());
   }
 
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
+
+
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
@@ -6183,6 +6189,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   void webkitRequestPointerLock() native;
 
 }
+
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -15315,20 +15324,8 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   _Uint8ClampedArrayImpl subarray(int start, [int end]) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
-
-
-  // Hooks to support custom WebComponents.
-  var xtag;
-
-  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {
