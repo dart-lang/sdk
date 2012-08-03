@@ -685,9 +685,13 @@ _defer(void callback()) {
   port.toSendPort().send(null, null);
 }
 
+rerunTests() {
+  _uncaughtErrorMessage = null;
+  runTests();
+}
+
 /** Runs all queued tests, one at a time. */
 runTests() {
-  _uncaughtErrorMessage = null;
   _currentTest = 0;
   _currentGroup = '';
 
@@ -704,7 +708,6 @@ runTests() {
   _config.onStart();
 
   _defer(() {
-    expect(_currentTest, isZero);
     _testRunner();
   });
 }
@@ -730,11 +733,8 @@ guardAsync(tryBody, [finallyBody, testNum = -1]) {
 registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   if (_tests[testNum].result == null) {
-    if (e is ExpectException) {
-      _tests[testNum].fail(e.message, trace);
-    } else {
-      _tests[testNum].fail('Caught $e', trace);
-    }
+    String message = (e is ExpectException) ? e.message : 'Caught $e';
+    _tests[testNum].fail(message, trace);
   } else {
     _tests[testNum].error('Caught $e', trace);
   }
@@ -779,7 +779,6 @@ _completeTests() {
       case _ERROR: testsErrors_++; break;
     }
   }
-
   _config.onDone(testsPassed_, testsFailed_, testsErrors_, _tests,
       _uncaughtErrorMessage);
   _initialized = false;
@@ -803,6 +802,7 @@ ensureInitialized() {
 
   _tests = <TestCase>[];
   _testRunner = _nextBatch;
+  _uncaughtErrorMessage = null;
 
   if (_config == null) {
     _config = new Configuration();

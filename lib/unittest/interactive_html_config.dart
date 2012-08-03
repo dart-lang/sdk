@@ -427,7 +427,7 @@ void _prepareDom() {
     document.query('#start').on.click.add((e) {
       InputElement startButton = document.query('#start');
       startButton.disabled = true;
-      runTests();
+      rerunTests();
     });
   }
   if (document.query('#otherlogs') == null) {
