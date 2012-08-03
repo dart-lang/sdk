@@ -25,12 +25,8 @@ void RawObject::Validate(Isolate* isolate) const {
   }
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
-  uword reserved = 0;
-  reserved |= (1 << kReservedBit10K);
-  reserved |= (1 << kReservedBit100K);
-  reserved |= (1 << kReservedBit1M);
-  reserved |= (1 << kReservedBit10M);
-  if ((tags & reserved) != 0) {
+  intptr_t reserved = ReservedBits::decode(tags);
+  if (reserved != 0) {
     FATAL1("Invalid tags field encountered %#lx\n", tags);
   }
   intptr_t class_id = ClassIdTag::decode(tags);

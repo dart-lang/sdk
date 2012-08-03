@@ -184,10 +184,8 @@ class RawObject {
     kMarkBit = 1,
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
-    kReservedBit10K = 4,
-    kReservedBit100K = 5,
-    kReservedBit1M = 6,
-    kReservedBit10M = 7,
+    kReservedTagBit = 4,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagSize = 4,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
     kClassIdTagBit = kSizeTagBit + kSizeTagSize,
@@ -330,6 +328,10 @@ class RawObject {
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 
   class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
+
+  class ReservedBits : public BitField<intptr_t,
+                                       kReservedTagBit,
+                                       kReservedTagSize> {};  // NOLINT
 
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
