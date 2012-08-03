@@ -344,12 +344,15 @@ class ResolverTask extends CompilerTask {
       compiler, node.parameters, node.returnType, element));
   }
 
-  FunctionSignature resolveTypedef(TypedefElement element) {
+  void resolveTypedef(TypedefElement element) {
     return compiler.withCurrentElement(element, () {
-      Typedef node =
+      measure(() {
+        Typedef node =
           compiler.parser.measure(() => element.parseNode(compiler));
-      return measure(() => SignatureResolver.analyze(
-          compiler, node.formals, node.returnType, element));
+        TypedefResolverVisitor visitor =
+          new TypedefResolverVisitor(compiler, element);
+        visitor.visit(node);
+      });
     });
   }
 
@@ -769,7 +772,9 @@ class TypeResolver {
         type = element.computeType(compiler);
       } else if (element.isClass()) {
         ClassElement cls = element;
-        if (!cls.isResolved) compiler.resolveClass(cls);
+        // TODO(ahe): Should be [ensureResolved].
+        compiler.resolver.toResolve.add(cls);
+        cls.computeType(compiler);
         Link<Type> arguments =
             resolveTypeArguments(node, cls.typeVariables, scope,
                                  onFailure, whenResolved);
@@ -780,7 +785,18 @@ class TypeResolver {
           type = new InterfaceType(cls, arguments);
         }
       } else if (element.isTypedef()) {
-        type = element.computeType(compiler);
+        TypedefElement typdef = element;
+        // TODO(ahe): Should be [ensureResolved].
+        typdef.computeType(compiler);
+        Link<Type> arguments = resolveTypeArguments(
+            node, typdef.typeVariables,
+            scope, onFailure, whenResolved);
+        if (typdef.typeVariables.isEmpty() && arguments.isEmpty()) {
+          // Return the canonical type if it has no type parameters.
+          type = typdef.computeType(compiler);
+        } else {
+          type = new TypedefType(typdef, arguments);
+        }
       } else if (element.isTypeVariable()) {
         type = element.computeType(compiler);
       } else {
@@ -1709,13 +1725,34 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
   }
 }
 
+class TypedefResolverVisitor extends TypeDefinitionVisitor {
+  TypedefElement get element() => super.element;
+
+  TypedefResolverVisitor(Compiler compiler, TypedefElement typedefElement)
+      : super(compiler, typedefElement);
+
+  visitTypedef(Typedef node) {
+    TypedefType type = element.computeType(compiler);
+    scope = new TypeDeclarationScope(scope, element);
+    resolveTypeVariableBounds(node.typeParameters);
+
+    element.functionSignature = SignatureResolver.analyze(
+        compiler, node.formals, node.returnType, element);
+
+    element.alias = compiler.computeFunctionType(
+        element, element.functionSignature);
+
+    // TODO(johnniwinther): Check for cyclic references in the typedef alias.
+  }
+}
+
 class ClassResolverVisitor extends TypeDefinitionVisitor {
   ClassElement get element() => super.element;
 
   ClassResolverVisitor(Compiler compiler, ClassElement classElement)
     : super(compiler, classElement);
 
-  Type visitClassNode(ClassNode node) {
+  visitClassNode(ClassNode node) {
     compiler.ensure(element !== null);
     compiler.ensure(!element.isResolved);
 
