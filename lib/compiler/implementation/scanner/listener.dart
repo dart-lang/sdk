@@ -899,7 +899,7 @@ class NodeListener extends ElementListener {
                            Token endToken) {
     NodeList body = popNode();
     NodeList interfaces =
-        makeNodeList(interfacesCount, null, null, ",");
+        makeNodeList(interfacesCount, implementsKeyword, null, ",");
     TypeAnnotation supertype = popNode();
     NodeList typeParameters = popNode();
     Identifier name = popNode();
@@ -920,7 +920,8 @@ class NodeListener extends ElementListener {
                     Token extendsKeyword, Token endToken) {
     NodeList body = popNode();
     TypeAnnotation defaultClause = popNode();
-    NodeList supertypes = makeNodeList(supertypeCount, null, null, ',');
+    NodeList supertypes = makeNodeList(supertypeCount, extendsKeyword,
+                                       null, ',');
     NodeList typeParameters = popNode();
     Identifier name = popNode();
     pushNode(new ClassNode(name, typeParameters, null, supertypes,

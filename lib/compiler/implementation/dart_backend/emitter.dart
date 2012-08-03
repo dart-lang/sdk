@@ -43,7 +43,7 @@ class Emitter {
       sb.add(unparser.unparse(classNode.superclass));
     }
     if (!classNode.interfaces.isEmpty()) {
-      sb.add(classElement.isInterface() ? ' extends ' : ' implements ');
+      sb.add(' ');
       sb.add(unparser.unparse(classNode.interfaces));
     }
     if (classNode.defaultClause !== null) {

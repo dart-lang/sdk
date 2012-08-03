@@ -18,6 +18,14 @@ class Unparser implements Visitor {
     string.printOn(sb);
   }
 
+  void addToken(Token token) {
+    if (token === null) return;
+    add(token.value);
+    if (token.kind === KEYWORD_TOKEN || token.kind === IDENTIFIER_TOKEN) {
+      sb.add(' ');
+    }
+  }
+
   visit(Node node) {
     if (node !== null) node.accept(this);
   }
@@ -35,13 +43,11 @@ class Unparser implements Visitor {
   }
 
   visitClassNode(ClassNode node) {
-    node.beginToken.value.printOn(sb);
-    sb.add(' ');
+    addToken(node.beginToken);
     visit(node.name);
     sb.add(' ');
     if (node.extendsKeyword !== null) {
-      node.extendsKeyword.value.printOn(sb);
-      sb.add(' ');
+      addToken(node.extendsKeyword);
       visit(node.superclass);
       sb.add(' ');
     }
@@ -131,8 +137,7 @@ class Unparser implements Visitor {
     visit(node.condition);
     visit(node.thenPart);
     if (node.hasElsePart) {
-      add(node.elseToken.value);
-      sb.add(' ');
+      addToken(node.elseToken);
       visit(node.elsePart);
     }
   }
@@ -168,22 +173,17 @@ class Unparser implements Visitor {
   }
 
   visitNewExpression(NewExpression node) {
-    // TODO(ahe): handle 'const'.
-    add(node.newToken.value);
-    sb.add(' ');
+    addToken(node.newToken);
     visit(node.send);
   }
 
   visitLiteralList(LiteralList node) {
-    if (node.constKeyword !== null) {
-      add(node.constKeyword.value);
-    }
+    addToken(node.constKeyword);
     if (node.type !== null) {
       sb.add('<');
       visit(node.type);
       sb.add('>');
     }
-    sb.add(' ');
     visit(node.elements);
   }
 
@@ -203,7 +203,7 @@ class Unparser implements Visitor {
   }
 
   visitNodeList(NodeList node) {
-    if (node.beginToken !== null) add(node.beginToken.value);
+    if (node.beginToken !== null) addToken(node.beginToken);
     if (node.nodes !== null) {
       unparseNodeListFrom(node, node.nodes);
     }
@@ -346,19 +346,16 @@ class Unparser implements Visitor {
   }
 
   visitDoWhile(DoWhile node) {
-    add(node.doKeyword.value);
-    sb.add(' ');
+    addToken(node.doKeyword);
     visit(node.body);
     sb.add(' ');
-    add(node.whileKeyword.value);
-    sb.add(' ');
+    addToken(node.whileKeyword);
     visit(node.condition);
     sb.add(node.endToken.value);
   }
 
   visitWhile(While node) {
-    add(node.whileKeyword.value);
-    sb.add(' ');
+    addToken(node.whileKeyword);
     visit(node.condition);
     sb.add(' ');
     visit(node.body);
@@ -408,8 +405,7 @@ class Unparser implements Visitor {
     sb.add(' (');
     visit(node.declaredIdentifier);
     sb.add(' ');
-    add(node.inToken.value);
-    sb.add(' ');
+    addToken(node.inToken);
     visit(node.expression);
     sb.add(') ');
     visit(node.body);
@@ -448,8 +444,7 @@ class Unparser implements Visitor {
   }
 
   visitSwitchStatement(SwitchStatement node) {
-    add(node.switchKeyword.value);
-    sb.add(' ');
+    addToken(node.switchKeyword);
     visit(node.parenthesizedExpression);
     sb.add(' ');
     visit(node.cases);
@@ -478,14 +473,12 @@ class Unparser implements Visitor {
   }
 
   visitTryStatement(TryStatement node) {
-    add(node.tryKeyword.value);
-    sb.add(' ');
+    addToken(node.tryKeyword);
     visit(node.tryBlock);
     visit(node.catchBlocks);
     if (node.finallyKeyword !== null) {
       sb.add(' ');
-      add(node.finallyKeyword.value);
-      sb.add(' ');
+      addToken(node.finallyKeyword);
       visit(node.finallyBlock);
     }
   }
@@ -498,16 +491,14 @@ class Unparser implements Visitor {
   }
 
   visitCatchBlock(CatchBlock node) {
-    add(node.catchKeyword.value);
-    sb.add(' ');
+    addToken(node.catchKeyword);
     visit(node.formals);
     sb.add(' ');
     visit(node.block);
   }
 
   visitTypedef(Typedef node) {
-    add(node.typedefKeyword.value);
-    sb.add(' ');
+    addToken(node.typedefKeyword);
     if (node.returnType !== null) {
       visit(node.returnType);
       sb.add(' ');

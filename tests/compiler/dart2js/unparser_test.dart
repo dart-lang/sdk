@@ -104,7 +104,7 @@ testForLoop() {
 }
 
 testEmptyList() {
-  testUnparse('var x= [];');
+  testUnparse('var x=[];');
 }
 
 testClosure() {
