@@ -8,6 +8,7 @@
     'assert.h',
     'c99_support_win.h',
     'globals.h',
+    'hashmap.h',
     'inttypes_support_win.h',
     'json.h',
     'thread.h',

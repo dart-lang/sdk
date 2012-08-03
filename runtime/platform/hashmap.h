@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#ifndef BIN_HASHMAP_H_
-#define BIN_HASHMAP_H_
+#ifndef PLATFORM_HASHMAP_H_
+#define PLATFORM_HASHMAP_H_
 
 #include "platform/globals.h"
 
@@ -73,4 +73,4 @@ class HashMap {
   friend class IntSet;  // From hashmap_test.cc
 };
 
-#endif  // BIN_HASHMAP_H_
+#endif  // PLATFORM_HASHMAP_H_

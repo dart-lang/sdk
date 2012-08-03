@@ -42,8 +42,6 @@
     'fdutils.h',
     'fdutils_linux.cc',
     'fdutils_macos.cc',
-    'hashmap.cc',
-    'hashmap.h',
     'hashmap_test.cc',
     'isolate_data.h',
     'platform.cc',
