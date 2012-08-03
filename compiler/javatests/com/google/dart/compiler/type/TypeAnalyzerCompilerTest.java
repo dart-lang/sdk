@@ -2210,13 +2210,13 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
-  public void test_typesPropagation_field_inClass() throws Exception {
+  public void test_typesPropagation_field_inClass_final() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
         "class A {",
-        "  var v1 = 123;",
-        "  var v2 = Math.random();",
-        "  var v3 = 1 + 2.0;",
+        "  final v1 = 123;",
+        "  final v2 = Math.random();",
+        "  final v3 = 1 + 2.0;",
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "int");
@@ -2224,16 +2224,64 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v3", "double");
   }
 
-  public void test_typesPropagation_field_topLevel() throws Exception {
+  public void test_typesPropagation_field_inClass_const() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "var v1 = 123;",
-        "var v2 = Math.random();",
-        "var v3 = 1 + 2.0;",
+        "class A {",
+        "  const v1 = 123;",
+        "  final v2 = 1 + 2.0;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "double");
+  }
+  
+  /**
+   * If field is not final, we don't know if is will be assigned somewhere else, may be even not in
+   * there same unit, so we cannot be sure about its type.
+   */
+  public void test_typesPropagation_field_inClass_notFinal() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  var v1 = 123;",
+        "}",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+  }
+
+  public void test_typesPropagation_field_topLevel_final() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "final v1 = 123;",
+        "final v2 = Math.random();",
+        "final v3 = 1 + 2.0;",
         "");
     assertInferredElementTypeString(testUnit, "v1", "int");
     assertInferredElementTypeString(testUnit, "v2", "double");
     assertInferredElementTypeString(testUnit, "v3", "double");
+  }
+
+  public void test_typesPropagation_field_topLevel_const() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const v1 = 123;",
+        "const v2 = 1 + 2.0;",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "int");
+    assertInferredElementTypeString(testUnit, "v2", "double");
+  }
+  
+  /**
+   * If field is not final, we don't know if is will be assigned somewhere else, may be even not in
+   * there same unit, so we cannot be sure about its type.
+   */
+  public void test_typesPropagation_field_topLevel_notFinal() throws Exception {
+    analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "var v1 = 123;",
+        "");
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
   }
 
   public void test_typesPropagation_FunctionAliasType() throws Exception {

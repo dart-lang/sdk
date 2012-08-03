@@ -678,7 +678,7 @@ public class Resolver {
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
         Type expressionType = expression.getType();
-        if (expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
+        if (isFinal && expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
           Type fieldType = Types.makeInferred(expressionType);
           Elements.setType(element, fieldType);
         }

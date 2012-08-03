@@ -576,11 +576,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * assigned value type is compatible with this propagated type.
      */
     private void checkPropagatedTypeCompatible(DartExpression lhsNode, Type rhs) {
-      if (lhsNode.getElement() instanceof VariableElement) {
-        VariableElement variableElement = (VariableElement) lhsNode.getElement();
-        Type variableType = variableElement.getType();
+      Element element = lhsNode.getElement();
+      if (ElementKind.of(element) == ElementKind.VARIABLE
+          || ElementKind.of(element) == ElementKind.FIELD) {
+        Type variableType = element.getType();
         if (variableType.isInferred() && !types.isAssignable(variableType, rhs)) {
-          Elements.setType(variableElement, dynamicType);
+          Elements.setType(element, dynamicType);
         }
       }
     }
@@ -2521,8 +2522,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return typeOf(accessor);
       } else {
         Type result = checkInitializedDeclaration(node, node.getValue());
-        // if no type declared for variables, try to use type of value
-        {
+        // if no type declared for field, try to use type of value
+        // only final fields, because only in this case we can be sure that field is not assigned
+        // somewhere, may be even not in this unit
+        if (node.getModifiers().isFinal()) {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
