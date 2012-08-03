@@ -65,7 +65,7 @@ main() {
   });
 
   test('logger name cannot start with a "." ', () {
-    expectThrow(() => new Logger('.c'));
+    expect(() => new Logger('.c'), throws);
   });
 
   test('logger naming is hierarchical', () {
@@ -134,7 +134,7 @@ main() {
     });
 
     test('cannot set level if hierarchy is disabled', () {
-      expectThrow(() {a.level = Level.FINE;});
+      expect(() {a.level = Level.FINE;}, throws);
     });
 
     test('loggers effective level - no hierarchy', () {

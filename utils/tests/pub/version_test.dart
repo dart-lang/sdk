@@ -426,9 +426,9 @@ Matcher doesNotAllow(List<Version> versions) =>
     new VersionConstraintMatcher(versions, false);
 
 throwsIllegalArg(function) {
-  expectThrow(function, (e) => e is IllegalArgumentException);
+  expect(function, throwsA((e) => e is IllegalArgumentException));
 }
 
 throwsBadFormat(function) {
-  expectThrow(function, (e) => e is FormatException);
+  expect(function, throwsA((e) => e is FormatException));
 }
