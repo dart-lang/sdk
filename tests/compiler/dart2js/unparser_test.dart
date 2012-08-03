@@ -429,6 +429,7 @@ main() {
   testConflictLibraryClassRename();
   testNoConflictSendsRename();
   testConflictSendsRename();
-  testDefaultClassWithArgs();
+  // Disabled with revert of https://chromiumcodereview.appspot.com/10824062/
+  // testDefaultClassWithArgs();
   testClassExtendsWithArgs();
 }
