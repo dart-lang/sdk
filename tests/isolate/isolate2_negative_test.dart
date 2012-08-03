@@ -7,14 +7,11 @@
 
 #library('Isolate2NegativeTest');
 #import('dart:isolate');
-#import('../../lib/unittest/unittest.dart');
 
 void entry() {
   throw "foo";
 }
 
 main() {
-  test("catch exception from other isolate", () {
-    spawnFunction(entry);
-  });
+  SendPort port = spawnFunction(entry);
 }
