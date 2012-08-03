@@ -1006,35 +1006,6 @@ void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* StaticSetterComp::MakeLocationSummary() const {
-  const intptr_t kNumInputs = 1;
-  return LocationSummary::Make(kNumInputs,
-                               Location::RequiresRegister(),
-                               LocationSummary::kNoCall);
-}
-
-
-void StaticSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = locs()->in(0).reg();
-  Register result = locs()->out().reg();
-
-  // Preserve the argument as the result of the computation,
-  // then call the setter.
-
-  // Duplicate the argument.
-  // TODO(fschneider): Avoid preserving the value if the result is not used.
-  __ pushl(value);
-  __ pushl(value);
-  compiler->GenerateStaticCall(cid(),
-                               token_pos(),
-                               try_index(),
-                               setter_function(),
-                               1,
-                               Array::ZoneHandle());
-  __ popl(result);
-}
-
-
 LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
   // TODO(fschneider): For this instruction the input register may be
   // reused for the result (but is not required to) because the input

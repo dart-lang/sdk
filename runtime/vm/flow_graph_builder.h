@@ -222,6 +222,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
 
   void BuildThrowNode(ThrowNode* node);
 
+  void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
+
   ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
 
   Value* BuildNullValue();
@@ -273,6 +275,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
+  virtual void VisitStaticSetterNode(StaticSetterNode* node);
 
   Value* value() const { return value_; }
 

@@ -214,7 +214,7 @@ class FlowGraphAllocator : public ValueObject {
   // removed from the list and will not be affected.
   GrowableArray<LiveRange*> cpu_regs_[kNumberOfCpuRegisters];
 
-  // List of used spill slots. Contain positions after which spill slots
+  // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
 

@@ -6470,7 +6470,9 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
 AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
   AstNode* result = original->MakeAssignmentNode(rhs);
   if ((result != NULL) &&
-      (result->IsStoreIndexedNode() || result->IsInstanceSetterNode())) {
+      (result->IsStoreIndexedNode() ||
+       result->IsInstanceSetterNode() ||
+       result->IsStaticSetterNode())) {
     EnsureExpressionTemp();
   }
   return result;

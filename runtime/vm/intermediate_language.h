@@ -76,7 +76,6 @@ class LocalVariable;
   M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
-  M(StaticSetter, StaticSetterComp)                                            \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -1076,38 +1075,6 @@ class InstanceSetterComp : public Computation {
   ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
-};
-
-
-// Not simply a StaticCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
-class StaticSetterComp : public TemplateComputation<1> {
- public:
-  StaticSetterComp(intptr_t token_pos,
-                   intptr_t try_index,
-                   const Function& setter_function,
-                   Value* value)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        setter_function_(setter_function) {
-    inputs_[0] = value;
-  }
-
-  DECLARE_COMPUTATION(StaticSetter)
-
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
-  const Function& setter_function() const { return setter_function_; }
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
-  const Function& setter_function_;
-
-  DISALLOW_COPY_AND_ASSIGN(StaticSetterComp);
 };
 
 

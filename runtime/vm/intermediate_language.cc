@@ -806,11 +806,6 @@ RawAbstractType* InstanceSetterComp::StaticType() const {
 }
 
 
-RawAbstractType* StaticSetterComp::StaticType() const {
-  return value()->StaticType();
-}
-
-
 RawAbstractType* LoadInstanceFieldComp::StaticType() const {
   if (FLAG_enable_type_checks) {
     return field().type();

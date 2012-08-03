@@ -1789,7 +1789,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
+                                           bool result_is_needed) {
   const String& setter_name =
       String::Handle(Field::SetterName(node->field_name()));
   const Function& setter_function =
@@ -1798,11 +1799,39 @@ void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  StaticSetterComp* call = new StaticSetterComp(node->token_pos(),
-                                                owner()->try_index(),
-                                                setter_function,
-                                                for_value.value());
-  ReturnComputation(call);
+  Value* value = NULL;
+  if (result_is_needed) {
+    value = Bind(
+        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                        for_value.value()));
+  } else {
+    value = for_value.value();
+  }
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  arguments->Add(PushArgument(value));
+  StaticCallComp* call = new StaticCallComp(node->token_pos(),
+                                            owner()->try_index(),
+                                            setter_function,
+                                            Array::ZoneHandle(),  // No names.
+                                            arguments);
+  if (result_is_needed) {
+    Do(call);
+    ReturnComputation(
+         BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+  } else {
+    ReturnComputation(call);
+  }
+}
+
+
+void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+  BuildStaticSetter(node, false);  // Result not needed.
+}
+
+
+void ValueGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+  BuildStaticSetter(node, true);  // Result needed.
 }
 
 
