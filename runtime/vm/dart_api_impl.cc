@@ -2774,13 +2774,16 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_FunctionEnclosingClassOrLibrary(
-    Dart_Handle function) {
+DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Function& func = Api::UnwrapFunctionHandle(isolate, function);
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  if (func.IsNonImplicitClosureFunction()) {
+    RawFunction* parent_function = func.parent_function();
+    return Api::NewHandle(isolate, parent_function);
   }
   const Class& owner = Class::Handle(func.owner());
   ASSERT(!owner.IsNull());
