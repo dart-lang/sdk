@@ -471,7 +471,7 @@ class Compiler implements DiagnosticListener {
     closureClass = lookupSpecialClass(const SourceString('Closure'));
     dynamicClass = lookupSpecialClass(const SourceString('Dynamic'));
     nullClass = lookupSpecialClass(const SourceString('Null'));
-    types = new Types(this, dynamicClass);
+    types = new Types(dynamicClass);
     if (!coreLibValid) {
       cancel('core library does not contain required classes');
     }
@@ -931,9 +931,9 @@ class Compiler implements DiagnosticListener {
         () => resolver.resolveFunctionExpression(element, node));
   }
 
-  void resolveTypedef(TypedefElement element) {
-    withCurrentElement(element,
-                       () => resolver.resolveTypedef(element));
+  FunctionSignature resolveTypedef(TypedefElement element) {
+    return withCurrentElement(element,
+                              () => resolver.resolveTypedef(element));
   }
 
   FunctionType computeFunctionType(Element element,

@@ -432,34 +432,20 @@ class PrefixElement extends Element {
 }
 
 class TypedefElement extends Element implements TypeDeclarationElement {
+  Type cachedType;
   Typedef cachedNode;
-  TypedefType cachedType;
-  Type alias;
 
   TypedefElement(SourceString name, Element enclosing)
       : super(name, ElementKind.TYPEDEF, enclosing);
 
-  /**
-   * Function signature for a typedef of a function type. The signature is
-   * kept to provide full information about parameter names through the mirror
-   * system.
-   *
-   * The [functionSignature] is not available until the typedef element has been
-   * resolved.
-   */
-  FunctionSignature functionSignature;
-
-  TypedefType computeType(Compiler compiler) {
-    if (cachedType == null) {
-      Typedef node = parseNode(compiler);
-      Link<Type> parameters =
-          TypeDeclarationElement.createTypeVariables(this, node.typeParameters);
-      cachedType = new TypedefType(this, parameters);
-    }
+  Type computeType(Compiler compiler) {
+    if (cachedType !== null) return cachedType;
+    cachedType = compiler.computeFunctionType(
+        this, compiler.resolveTypedef(this));
     return cachedType;
   }
 
-  Link<Type> get typeVariables() => cachedType.typeArguments;
+  Link<Type> get typeVariables() => const EmptyLink<Type>();
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);

@@ -27,18 +27,6 @@ class TypeCheckerTask extends CompilerTask {
 interface Type {
   SourceString get name();
   Element get element();
-
-  /**
-   * Returns the unaliased type of this type.
-   *
-   * The unaliased type of a typedef'd type is the unaliased type to which its
-   * name is bound. The unaliased version of any other type is the type itself.
-   *
-   * For example, the unaliased type of [: typedef A Func<A,B>(B b) :] is the
-   * function type [: (B) -> A :] and the unaliased type of
-   * [: Func<int,String> :] is the function type [: (String) -> int :].
-   */
-  Type unalias(Compiler compiler);
 }
 
 class TypeVariableType implements Type {
@@ -48,9 +36,7 @@ class TypeVariableType implements Type {
 
   SourceString get name() => element.name;
 
-  Type unalias(Compiler compiler) => this;
-
-  String toString() => name.slowToString();
+  toString() => name.slowToString();
 }
 
 /**
@@ -73,8 +59,6 @@ class StatementType implements Type {
     return (this === other) ? this : MAYBE_RETURNING;
   }
 
-  Type unalias(Compiler compiler) => this;
-
   String toString() => stringName;
 }
 
@@ -83,9 +67,7 @@ class VoidType implements Type {
   SourceString get name() => element.name;
   final VoidElement element;
 
-  Type unalias(Compiler compiler) => this;
-
-  String toString() => name.slowToString();
+  toString() => name.slowToString();
 }
 
 class InterfaceType implements Type {
@@ -97,9 +79,7 @@ class InterfaceType implements Type {
 
   SourceString get name() => element.name;
 
-  Type unalias(Compiler compiler) => this;
-
-  String toString() {
+  toString() {
     StringBuffer sb = new StringBuffer();
     sb.add(name.slowToString());
     if (!arguments.isEmpty()) {
@@ -119,9 +99,7 @@ class FunctionType implements Type {
   const FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
                      Element this.element);
 
-  Type unalias(Compiler compiler) => this;
-
-  String toString() {
+  toString() {
     StringBuffer sb = new StringBuffer();
     bool first = true;
     sb.add('(');
@@ -139,60 +117,23 @@ class FunctionType implements Type {
   }
 }
 
-class TypedefType implements Type {
-  final TypedefElement element;
-  final Link<Type> typeArguments;
-
-  const TypedefType(this.element,
-      [this.typeArguments = const EmptyLink<Type>()]);
-
-  SourceString get name() => element.name;
-
-  Type unalias(Compiler compiler) {
-    // TODO(ahe): This should [ensureResolved].
-    compiler.resolveTypedef(element);
-    return element.alias.unalias(compiler);
-  }
-
-  String toString() {
-    StringBuffer sb = new StringBuffer();
-    sb.add(name.slowToString());
-    if (!typeArguments.isEmpty()) {
-      sb.add('<');
-      typeArguments.printOn(sb, ', ');
-      sb.add('>');
-    }
-    return sb.toString();
-  }
-}
-
 class Types {
-  final Compiler compiler;
   final VoidType voidType;
   final InterfaceType dynamicType;
 
-  Types(Compiler compiler, Element dynamicElement)
-    : this.with(compiler, dynamicElement,
-                new LibraryElement(new Script(null, null)));
+  Types(Element dynamicElement)
+    : this.with(dynamicElement, new LibraryElement(new Script(null, null)));
 
   // TODO(karlklose): should we have a class Void?
-  Types.with(Compiler this.compiler,
-             Element dynamicElement,
-             LibraryElement library)
+  Types.with(Element dynamicElement, LibraryElement library)
     : voidType = new VoidType(new VoidElement(library)),
       dynamicType = new InterfaceType(dynamicElement);
 
   /** Returns true if t is a subtype of s */
   bool isSubtype(Type t, Type s) {
-    if (t === s ||
-        t === dynamicType ||
-        s === dynamicType ||
-        s.element === compiler.objectClass) {
-      return true;
-    }
-    t = t.unalias(compiler);
-    s = s.unalias(compiler);
-
+    if (t === s || t === dynamicType || s === dynamicType ||
+        // TODO(karlklose): Test for s.element === compiler.objectClass.
+        s.name == const SourceString('Object')) return true;
     if (t is VoidType) {
       return false;
     } else if (t is InterfaceType) {
@@ -207,7 +148,6 @@ class Types {
       }
       return false;
     } else if (t is FunctionType) {
-      if (s.element === compiler.functionClass) return true;
       if (s is !FunctionType) return false;
       FunctionType tf = t;
       FunctionType sf = s;
