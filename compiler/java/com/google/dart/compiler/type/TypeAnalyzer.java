@@ -2129,6 +2129,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (switchMember instanceof DartCase) {
           DartCase caseMember = (DartCase) switchMember;
           DartExpression caseExpr = caseMember.getExpr();
+          // no expression, parser already reported about this
+          if (caseExpr == null) {
+            continue;
+          }
           Type caseType = nonVoidTypeOf(caseExpr);
           // should be "int" or "String"
           if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {

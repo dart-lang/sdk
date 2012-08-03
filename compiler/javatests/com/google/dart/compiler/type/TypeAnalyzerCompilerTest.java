@@ -3289,6 +3289,24 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(libraryResult.getErrors());
   }
 
+  /**
+   * Source is invalid, but should not cause {@link NullPointerException}.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4354
+   */
+  public void test_switchCase_withoutExpression() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  switch (0) {",
+        "    case }",
+        "  }",
+        "}",
+        "");
+    // has some errors, no exception
+    assertTrue(libraryResult.getErrors().size() != 0);
+  }
+
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,
       final Class<T> clazz,
