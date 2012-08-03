@@ -78,13 +78,23 @@ class ConflictingRenamer extends Renamer {
   String renameType(Type type) => renameElement(type.element);
 
   String renameIdentifier(Identifier node) {
-    if (context.isGenerativeConstructor()) {
-      // This is either a named constructor or simple one.
-      // TODO(smok): Check if resolver can help us identifying named
-      // constructors.
-      var enclosingClass = context.getEnclosingClass();
-      if (node.token.slowToString() == context.name.slowToString()
-          || enclosingClass.name.slowToString() == node.token.slowToString()) {
+    if (context.isGenerativeConstructor() || context.isFactoryConstructor()) {
+      // Two complicated cases for class/interface renaming:
+      // 1) class which implements constructors of other interfaces, but not
+      //    implements interfaces themselves:
+      //      0.dart: class C { I(); }
+      //      1.dart and 2.dart: interface I default C { I(); }
+      //    now we have to duplicate our I() constructor in C class with
+      //    proper names.
+      // 2) (even worse for us):
+      //      0.dart: class C { C(); }
+      //      1.dart: interface C default p0.C { C(); }
+      //    the second case is just a bug now.
+      final enclosingClass = context.getEnclosingClass();
+      if (node.token.slowToString() == enclosingClass.name.slowToString()) {
+        // TODO: distinguish the case of constructor vs. nested named closure
+        // (see function_syntax_test).
+        // TODO: fix the bugs above and turn if into the assert.
         return renameElement(enclosingClass);
       }
     }
