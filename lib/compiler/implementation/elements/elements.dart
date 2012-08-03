@@ -214,6 +214,17 @@ class Element implements Hashable {
     return null;
   }
 
+  /**
+   * Creates the scope for this element. The scope of the
+   * enclosing element will be the parent scope.
+   */
+  Scope buildScope() => buildEnclosingScope();
+
+  /**
+   * Creates the scope for the enclosing element.
+   */
+  Scope buildEnclosingScope() => enclosingElement.buildScope();
+
   String toString() {
     // TODO(johnniwinther): Test for nullness of name, or make non-nullness an
     // invariant for all element types?
@@ -394,6 +405,8 @@ class LibraryElement extends CompilationUnitElement {
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
+
+  Scope buildEnclosingScope() => new TopScope(this);
 }
 
 class PrefixElement extends Element {
@@ -505,8 +518,8 @@ class VariableListElement extends Element {
 
   /**
    * Function signature for a variable with a function type. The signature is
-   * kept to provide full information about parameter names through the the
-   * mirror system.
+   * kept to provide full information about parameter names through the mirror
+   * system.
    */
   FunctionSignature functionSignature;
 
@@ -613,6 +626,8 @@ class AbstractFieldElement extends Element {
   }
 }
 
+// TODO(johnniwinther): [FunctionSignature] should be merged with
+// [FunctionType].
 class FunctionSignature {
   Link<Element> requiredParameters;
   Link<Element> optionalParameters;
@@ -1001,6 +1016,9 @@ class ClassElement extends ContainerElement {
   bool isNative() => nativeName != null;
   SourceString nativeName;
   int hashCode() => id;
+
+  Scope buildScope() =>
+      new ClassScope(enclosingElement.buildScope(), this);
 }
 
 class Elements {
