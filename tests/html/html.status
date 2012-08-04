@@ -30,7 +30,7 @@ shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
 shadow_dom_layout_test: Skip
 unknownelement_test: Fail # Issue 4189
 
-[ $runtime == ie || $runtime == safari || $runtime == ff || ($runtime == chrome && ($system == linux || $system == mac)) || $runtime == opera ]
+[ $runtime == ie || $runtime == safari || $runtime == ff || ($runtime == chrome && ($system == linux || $system == macos)) || $runtime == opera ]
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 
 [ $runtime == dartium || $runtime == chrome || $runtime == ie || $runtime == safari || $runtime == ff || $runtime == opera ]
