@@ -19,10 +19,14 @@ import sys
 import time
 
 TOOLS_PATH = os.path.join(dirname(dirname(dirname(abspath(__file__)))))
-DART_INSTALL_LOCATION = abspath(os.path.join(dirname(abspath(__file__)),
-                                             '..', '..', '..'))
+TOP_LEVEL_DIR = abspath(os.path.join(dirname(abspath(__file__)), '..', '..',
+                                             '..'))
+DART_REPO_LOC = abspath(os.path.join(dirname(abspath(__file__)), '..', '..',
+                                             '..', '..', '..',
+                                             'dart_checkout_for_perf_testing',
+                                             'dart'))
 sys.path.append(TOOLS_PATH)
-sys.path.append(os.path.join(DART_INSTALL_LOCATION, 'internal', 'tests'))
+sys.path.append(os.path.join(TOP_LEVEL_DIR, 'internal', 'tests'))
 import post_results
 import utils
 
@@ -77,30 +81,76 @@ class TestRunner(object):
     self.run_cmd(cmd)
     return time.time() - start
 
+  def clear_out_unversioned_files(self):
+    """Remove all files that are unversioned by svn."""
+    if os.path.exists(DART_REPO_LOC):
+      os.chdir(DART_REPO_LOC)
+      results, _ = self.run_cmd(['svn', 'st'])
+      for line in results.split('\n'):
+        if line.startswith('?'):
+          to_remove = line.split()[1]
+          if os.path.isdir(to_remove):
+            shutil.rmtree(to_remove)#, ignore_errors=True)
+          else:
+            os.remove(to_remove)
+
   def sync_and_build(self, suites, revision_num=''):
     """Make sure we have the latest version of of the repo, and build it. We
-    begin and end standing in DART_INSTALL_LOCATION.
+    begin and end standing in DART_REPO_LOC.
 
     Args:
       suites: The set of suites that we wish to build.
 
     Returns:
       err_code = 1 if there was a problem building."""
-    os.chdir(DART_INSTALL_LOCATION)
-    
+    os.chdir(dirname(DART_REPO_LOC))
+    self.clear_out_unversioned_files()
     if revision_num == '':
       self.run_cmd(['gclient', 'sync'])
     else:
       self.run_cmd(['gclient', 'sync', '-r', revision_num, '-t'])
+    
+    shutil.copytree(os.path.join(TOP_LEVEL_DIR, 'internal'),
+                    os.path.join(DART_REPO_LOC, 'internal'))
+    shutil.copy(os.path.join(TOP_LEVEL_DIR, 'tools', 'get_archive.py'),
+                    os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'))
 
     if revision_num == '':
       revision_num = search_for_revision(['svn', 'info'])
       if revision_num == -1:
         revision_num = search_for_revision(['git', 'svn', 'info'])
-    _, stderr = self.run_cmd(['python', os.path.join(DART_INSTALL_LOCATION,
-        'tools', 'get_archive.py'), 'sdk', '-r', revision_num])
-    if 'InvalidUriError' in stderr:
-      return 1
+
+    get_archive_path = os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py')
+    if os.path.exists(get_archive_path):
+      cmd = ['python', get_archive_path, 'sdk']
+      if revision_num != -1:
+        cmd += ['-r', revision_num]
+      _, stderr = self.run_cmd(cmd)
+    if not os.path.exists(get_archive_path) or 'InvalidUriError' in stderr:
+      # Couldn't find the SDK on Google Storage. Build it locally.
+
+      # On Windows, the output directory is marked as "Read Only," which causes
+      # an error to be thrown when we use shutil.rmtree. This helper function
+      # changes the permissions so we can still delete the directory.
+      def on_rm_error(func, path, exc_info):
+        if os.path.exists(path):
+          os.chmod(path, stat.S_IWRITE)
+          os.unlink(path)
+      # TODO(efortuna): Currently always building ia32 architecture because we 
+      # don't have test statistics for what's passing on x64. Eliminate arch 
+      # specification when we have tests running on x64, too.
+      shutil.rmtree(os.path.join(os.getcwd(),
+                    utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32')),
+                    onerror=on_rm_error)
+      lines = self.run_cmd([os.path.join('.', 'tools', 'build.py'), '-m', 
+                            'release', '--arch=ia32', 'create_sdk'])
+
+      for line in lines:
+        if 'BUILD FAILED' in line:
+          # Someone checked in a broken build! Stop trying to make it work
+          # and wait to try again.
+          print 'Broken Build'
+          return 1
     return 0
 
   def ensure_output_directory(self, dir_name):
@@ -109,7 +159,7 @@ class TestRunner(object):
 
     Args:
       dir_name: the directory we will create if it does not exist."""
-    dir_path = os.path.join(DART_INSTALL_LOCATION, 'tools', 
+    dir_path = os.path.join(TOP_LEVEL_DIR, 'tools', 
                             'testing', 'perf_testing', dir_name)
     if not os.path.exists(dir_path):
       os.makedirs(dir_path)
@@ -117,7 +167,7 @@ class TestRunner(object):
 
   def has_new_code(self):
     """Tests if there are any newer versions of files on the server."""
-    os.chdir(DART_INSTALL_LOCATION)
+    os.chdir(DART_REPO_LOC)
     # Pass 'p' in if we have a new certificate for the svn server, we want to
     # (p)ermanently accept it.
     results, _ = self.run_cmd(['svn', 'st', '-u'], std_in='p\r\n')
@@ -145,6 +195,10 @@ class TestRunner(object):
     parser.add_option('--forever', '-f', dest='continuous', help='Run this scri'
                       'pt forever, always checking for the next svn checkin',
                       action='store_true', default=False)
+    parser.add_option('--incremental', '-i', dest='incremental',
+                      help='Start an an early revision and work your way '
+                      'forward through CLs sequentially', action='store_true',
+                      default=False)
     parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
                       help='Do not sync with the repository and do not '
                       'rebuild.', default=False)
@@ -174,7 +228,7 @@ class TestRunner(object):
     self.no_upload = args.no_upload
     self.no_test = args.no_test
     self.verbose = args.verbose
-    return args.continuous
+    return args.continuous, args.incremental
 
   def run_test_sequence(self, revision_num='', num_reruns=1):
     """Run the set of commands to (possibly) build, run, and post the results
@@ -183,12 +237,12 @@ class TestRunner(object):
     """
     suites = []
     success = True
+    if not self.no_build and self.sync_and_build(suites, revision_num) == 1:
+      return -1 # The build is broken.
+    
     for name in self.suite_names:
       for run in range(num_reruns):
         suites += [TestBuilder.make_test(name, self)]
-
-    if not self.no_build and self.sync_and_build(suites, revision_num) == 1:
-      return -1 # The build is broken.
 
     for test in suites:
       success = success and test.run()
@@ -261,18 +315,15 @@ class Test(object):
     for visitor in [self.tester, self.file_processor]:
       visitor.prepare()
     
-    os.chdir(DART_INSTALL_LOCATION)
+    os.chdir(TOP_LEVEL_DIR)
     self.test_runner.ensure_output_directory(self.result_folder_name)
     self.test_runner.ensure_output_directory(os.path.join(
         'old', self.result_folder_name))
+    os.chdir(DART_REPO_LOC)
     if not self.test_runner.no_test:
       self.tester.run_tests()
 
-    os.chdir(os.path.join('tools', 'testing', 'perf_testing'))
-
-    for afile in os.listdir(os.path.join('old', self.result_folder_name)):
-      if not afile.startswith('.'):
-        self.file_processor.process_file(afile, False)
+    os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools', 'testing', 'perf_testing'))
 
     files = os.listdir(self.result_folder_name)
     post_success = True
@@ -303,7 +354,7 @@ class Tester(object):
   def add_svn_revision_to_trace(self, outfile, browser = None):
     """Add the svn version number to the provided tracefile."""
     def get_dartium_revision():
-      version_file_name = os.path.join(DART_INSTALL_LOCATION, 'client', 'tests',
+      version_file_name = os.path.join(TOP_LEVEL_DIR, 'client', 'tests',
                                        'dartium', 'LAST_VERSION')
       version_file = open(version_file_name, 'r')
       version = version_file.read().split('.')[-2]
@@ -418,19 +469,20 @@ class RuntimePerformanceTest(Test):
 class BrowserTester(Tester):
   @staticmethod
   def get_browsers(add_dartium=True):
-    browsers = ['ff', 'chrome']
+    browsers = ['chrome']#['ff', 'chrome']
     if add_dartium:
-      browsers += ['dartium']
+      pass
+      #browsers += ['dartium']
     has_shell = False
     if platform.system() == 'Darwin':
-      browsers += ['safari']
+      pass
+      #browsers += ['safari']
     if platform.system() == 'Windows':
       browsers += ['ie']
       has_shell = True
     if 'dartium' in browsers:
       # Fetch it if necessary.
-      get_dartium = ['python',
-                     os.path.join(DART_INSTALL_LOCATION, 'tools',
+      get_dartium = ['python', os.path.join(DART_REPO_LOC, 'tools',
                      'get_archive.py'), 'dartium']
       # TODO(vsm): It's inconvenient that run_cmd isn't in scope here.
       # Perhaps there is a better place to put that or this.
@@ -467,6 +519,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
   class CommonBrowserTester(BrowserTester):
     def run_tests(self):
       """Run a performance test in the browser."""
+      os.chdir(DART_REPO_LOC)
       self.test.test_runner.run_cmd([
           'python', os.path.join('internal', 'browserBenchmarks',
           'make_web_benchmarks.py')])
@@ -475,7 +528,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
         for version in self.test.versions:
           if not self.test.is_valid_combination(browser, version):
             continue
-          self.test.trace_file = os.path.join(
+          self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'perf-%s-%s-%s' % (self.test.cur_time, browser, version))
           self.add_svn_revision_to_trace(self.test.trace_file, browser)
@@ -494,7 +547,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
       """Comb through the html to find the performance results.
       Returns: True if we successfully posted our data to storage and/or we can
           delete the trace file."""
-      os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
+      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
                             'testing', 'perf_testing'))
       parts = afile.split('-')
       browser = parts[2]
@@ -614,7 +667,9 @@ class DromaeoTester(Tester):
 
   @staticmethod
   def get_dromaeo_versions():
-    return ['js', 'frog_dom', 'frog_html', 'dart2js_dom', 'dart2js_html']
+    # TODO(vsm): why is the js version closing early?
+    return ['dart2js_dom', 'dart2js_html'] 
+    #return ['js', 'dart2js_dom', 'dart2js_html']
 
 
 class DromaeoTest(RuntimePerformanceTest):
@@ -655,13 +710,13 @@ class DromaeoTest(RuntimePerformanceTest):
       in the default location (inside depot_tools).
       """
       current_dir = os.getcwd()
-      os.chdir(DART_INSTALL_LOCATION)
       self.test.test_runner.run_cmd(['python', os.path.join(
           'tools', 'get_archive.py'), 'chromedriver'])
       path = os.environ['PATH'].split(os.pathsep)
-      orig_chromedriver_path = os.path.join('tools', 'testing',
+      orig_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools', 'testing',
                                             'orig-chromedriver')
-      dartium_chromedriver_path = os.path.join('tools', 'testing',
+      dartium_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools',
+                                               'testing',
                                                'dartium-chromedriver')
       extension = ''
       if platform.system() == 'Windows':
@@ -714,14 +769,14 @@ class DromaeoTest(RuntimePerformanceTest):
 
       versions = DromaeoTester.get_dromaeo_versions()
 
-      for browser in filter(lambda x: x != 'ie', BrowserTester.get_browsers()):
+      for browser in BrowserTester.get_browsers():
         self.move_chrome_driver_if_needed(browser)
         for version_name in versions:
           if not self.test.is_valid_combination(browser, version_name):
             continue
           version = DromaeoTest.DromaeoPerfTester.get_dromaeo_url_query(
               browser, version_name)
-          self.test.trace_file = os.path.join(
+          self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
               'tools', 'testing', 'perf_testing', self.test.result_folder_name,
               'dromaeo-%s-%s-%s' % (self.test.cur_time, browser, version_name))
           self.add_svn_revision_to_trace(self.test.trace_file, browser)
@@ -823,7 +878,7 @@ class DromaeoSizeTest(Test):
           ['python', os.path.join('generate_dart2js_tests.py')])
       os.chdir(current_path)
 
-      self.test.trace_file = os.path.join(
+      self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
           'tools', 'testing', 'perf_testing', self.test.result_folder_name,
           self.test.result_folder_name + self.test.cur_time)
       self.add_svn_revision_to_trace(self.test.trace_file)
@@ -884,7 +939,7 @@ class DromaeoSizeTest(Test):
       Args:
         afile: is the filename string we will be processing.
       Returns: True if we successfully posted our data to storage."""
-      os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
+      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
           'testing', 'perf_testing'))
       f = self.open_trace_file(afile, should_post_file)
       tabulate_data = False
@@ -934,19 +989,16 @@ class CompileTimeAndSizeTest(Test):
     """Reference to the test_runner object that notifies us when to begin
     testing."""
     super(CompileTimeAndSizeTest, self).__init__(
-        self.name(), ['commandline'], ['frog'], ['swarm', 'total'],
+        self.name(), ['commandline'], ['dart2js'], ['swarm'],
         test_runner, self.CompileTester(self),
         self.CompileProcessor(self))
     self.dart_compiler = os.path.join(
-        DART_INSTALL_LOCATION, utils.GetBuildRoot(utils.GuessOS(),
-        'release', 'ia32'), 'dart-sdk', 'bin', 'frogc')
+        DART_REPO_LOC, utils.GetBuildRoot(utils.GuessOS(),
+        'release', 'ia32'), 'dart-sdk', 'bin', 'dart2js')
     _suffix = ''
     if platform.system() == 'Windows':
       _suffix = '.exe'
-    self.dart_vm = os.path.join(
-        DART_INSTALL_LOCATION, utils.GetBuildRoot(utils.GuessOS(), 
-        'release', 'ia32'), 'dart-sdk', 'bin','dart' + _suffix)
-    self.failure_threshold = {'swarm' : 100, 'total' : 100}
+    self.failure_threshold = {'swarm' : 100}
 
   @staticmethod
   def name():
@@ -954,23 +1006,19 @@ class CompileTimeAndSizeTest(Test):
 
   class CompileTester(Tester):
     def run_tests(self):
-      os.chdir('frog')
-      self.test.trace_file = os.path.join(
-          '..', 'tools', 'testing', 'perf_testing', 
+      self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
+          'tools', 'testing', 'perf_testing', 
           self.test.result_folder_name,
           self.test.result_folder_name + self.test.cur_time)
 
       self.add_svn_revision_to_trace(self.test.trace_file)
 
+      self.test.test_runner.run_cmd(
+          ['./xcodebuild/ReleaseIA32/dart-sdk/dart2js', '-c', '-o',
+           'swarm-result', os.path.join('samples', 'swarm', 'swarm.dart')])
       swarm_size = 0
       try:
         swarm_size = os.path.getsize('swarm-result')
-      except OSError:
-        pass #If compilation failed, continue on running other tests.
-
-      total_size = 0
-      try:
-        total_size = os.path.getsize('total-result')
       except OSError:
         pass #If compilation failed, continue on running other tests.
 
@@ -978,22 +1026,14 @@ class CompileTimeAndSizeTest(Test):
           ['echo', '%d Generated checked swarm size' % swarm_size],
           self.test.trace_file, append=True)
 
-      self.test.test_runner.run_cmd(
-          ['echo', '%d Generated checked total size' % total_size],
-          self.test.trace_file, append=True)
-    
-      os.chdir('..')
-
-
   class CompileProcessor(Processor):
-
     def process_file(self, afile, should_post_file):
       """Pull all the relevant information out of a given tracefile.
 
       Args:
         afile: is the filename string we will be processing.
       Returns: True if we successfully posted our data to storage."""
-      os.chdir(os.path.join(DART_INSTALL_LOCATION, 'tools',
+      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
           'testing', 'perf_testing'))
       f = self.open_trace_file(afile, should_post_file)
       tabulate_data = False
@@ -1011,29 +1051,29 @@ class CompileTimeAndSizeTest(Test):
                 num = int(num)
               else:
                 num = float(num)
-              self.test.values_dict['commandline']['frog'][metric] += [num]
-              self.test.revision_dict['commandline']['frog'][metric] += \
+              self.test.values_dict['commandline']['dart2js'][metric] += [num]
+              self.test.revision_dict['commandline']['dart2js'][metric] += \
                   [revision_num]
               score_type = self.get_score_type(metric)
               if not self.test.test_runner.no_upload and should_post_file:
                 if num < self.test.failure_threshold[metric]:
                   num = 0
                 upload_success = upload_success and self.report_results(
-                    metric, num, 'commandline', 'frog', revision_num,
+                    metric, num, 'commandline', 'dart2js', revision_num,
                     score_type)
               else:
                 upload_success = False
       if revision_num != 0:
         for metric in self.test.values_list:
           try:
-            self.test.revision_dict['commandline']['frog'][metric].pop()
-            self.test.revision_dict['commandline']['frog'][metric] += \
+            self.test.revision_dict['commandline']['dart2js'][metric].pop()
+            self.test.revision_dict['commandline']['dart2js'][metric] += \
                 [revision_num]
             # Fill in 0 if compilation failed.
-            if self.test.values_dict['commandline']['frog'][metric][-1] < \
+            if self.test.values_dict['commandline']['dart2js'][metric][-1] < \
                 self.test.failure_threshold[metric]:
-              self.test.values_dict['commandline']['frog'][metric] += [0]
-              self.test.revision_dict['commandline']['frog'][metric] += \
+              self.test.values_dict['commandline']['dart2js'][metric] += [0]
+              self.test.revision_dict['commandline']['dart2js'][metric] += \
                   [revision_num]
           except IndexError:
             # We tried to pop from an empty list. This happens if the first
@@ -1082,7 +1122,7 @@ def update_set_of_done_cls(revision_num=None):
     results = set()
     pickle.dump(results, f)
     f.close()
-  f = open(filename, '+r')
+  f = open(filename, 'r+')
   result_set = pickle.load(f)
   if revision_num:
     f.seek(0)
@@ -1093,7 +1133,16 @@ def update_set_of_done_cls(revision_num=None):
 
 def main():
   runner = TestRunner()
-  continuous = runner.parse_args()
+  continuous, incremental = runner.parse_args()
+
+  if not os.path.exists(DART_REPO_LOC):
+    os.mkdir(dirname(DART_REPO_LOC))
+    os.chdir(dirname(DART_REPO_LOC))
+    p = subprocess.Popen('gclient config https://dart.googlecode.com/svn/' +
+                         'branches/bleeding_edge/deps/all.deps',
+                         stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                         shell=True)
+    p.communicate()
   if continuous:
     while True:
       results_set = update_set_of_done_cls()
@@ -1129,6 +1178,15 @@ def main():
           revision_num -= 1
         # No more extra back-runs to do (for now). Wait for new code.
         time.sleep(200)
+  elif incremental:
+    # This is a temporary measure to backfill old revisions.
+    # TODO(efortuna): Clean this up -- don't hard code numbers, make user
+    # specifiable.
+    revision_num = 9000
+    while revision_num < 10600:
+      run = runner.run_test_sequence(revision_num=str(revision_num),
+          num_reruns=10)
+      revision_num += 1
   else:
     runner.run_test_sequence()
 

@@ -108,15 +108,26 @@ class GoogleCodeInstaller(object):
         name = self.download_name_func({'os': self.get_os_str, 'version': ''})
         name = name[:name.rfind('.')]
         version_str = line[line.find(name) + len(name) : suffix_index]
+        orig_version_str = version_str
+	if version_str.count('.') == 0:
+          version_str = version_str.replace('_', '.')
+	  version_str = re.compile(r'[^\d.]+').sub('', version_str)
         if latest == '':
           latest = '0.' * version_str.count('.')
           latest += '0'
+	  orig_latest_str = latest
+	else:
+	  orig_latest_str = latest
+          latest = latest.replace('_', '.')
+	  latest = re.compile(r'[^\d.]+').sub('', latest)
         nums = version_str.split('.')
         latest_nums = latest.split('.')
         for (num, latest_num) in zip(nums, latest_nums):
           if int(num) > int(latest_num):
-            latest = version_str
+            latest = orig_version_str
             break
+          else:
+            latest = orig_latest_str
     if latest == '':
       raise Exception("Couldn't find the desired download on " + \
           ' %s.' % google_code_site)
