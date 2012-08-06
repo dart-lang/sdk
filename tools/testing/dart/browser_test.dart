@@ -63,7 +63,7 @@ String dartTestWrapper(Path dartHome, Path library) =>
 
 main() {
   config.useHtmlConfiguration();
-  group('', Test.main);
+  unittest.group('', Test.main);
 }
 """;
 
