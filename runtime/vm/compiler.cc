@@ -312,20 +312,20 @@ static RawError* CompileFunctionHelper(const Function& function,
                                 code.comments());
       OS::Print("}\n");
       OS::Print("Pointer offsets for function: {\n");
-      for (intptr_t i = 0; i < code.pointer_offsets_length(); i++) {
+      // Pointer offsets are stored in descending order.
+      for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
         const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
         Object& obj = Object::Handle();
         obj = *reinterpret_cast<RawObject**>(addr);
-        OS::Print(" %d : 0x%x '%s'\n",
+        OS::Print(" %" PRIdPTR " : 0x%" PRIxPTR " '%s'\n",
                   code.GetPointerOffsetAt(i), addr, obj.ToCString());
       }
       OS::Print("}\n");
       OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
-      OS::Print("(pc\t\tkind\tid\ttry-ix\ttoken-index)\n");
+      OS::Print("pc\t\tkind\tid\ttry-ix\ttoken-index\n");
       const PcDescriptors& descriptors =
           PcDescriptors::Handle(code.pc_descriptors());
-      OS::Print("%s", descriptors.ToCString());
-      OS::Print("}\n");
+      OS::Print("%s}\n", descriptors.ToCString());
       OS::Print("Variable Descriptors for function '%s' {\n",
                 function_fullname);
       const LocalVarDescriptors& var_descriptors =
@@ -337,35 +337,29 @@ static RawError* CompileFunctionHelper(const Function& function,
         var_name = var_descriptors.GetName(i);
         RawLocalVarDescriptors::VarInfo var_info;
         var_descriptors.GetInfo(i, &var_info);
-        if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
-          OS::Print("  context level %d scope %d (valid %d-%d)\n",
-                    var_info.index,
-                    var_info.scope_id,
-                    var_info.begin_pos,
-                    var_info.end_pos);
-        } else if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
-            OS::Print("  saved CTX reg offset %d\n", var_info.index);
-        } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-          OS::Print("  stack var '%s' offset %d (valid %d-%d) \n",
-                    var_name.ToCString(),
-                    var_info.index,
-                    var_info.begin_pos,
-                    var_info.end_pos);
-        } else if (var_info.kind == RawLocalVarDescriptors::kContextVar) {
-          OS::Print("  context var '%s' level %d offset %d (valid %d-%d)\n",
-                    var_name.ToCString(),
-                    var_info.scope_id,
-                    var_info.index,
-                    var_info.begin_pos,
-                    var_info.end_pos);
+        if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
+          OS::Print("  saved CTX reg offset %" PRIdPTR "\n", var_info.index);
+        } else {
+          if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
+            OS::Print("  context level %" PRIdPTR " scope %d",
+                      var_info.index, var_info.scope_id);
+          } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
+            OS::Print("  stack var '%s' offset %" PRIdPTR,
+                      var_name.ToCString(), var_info.index);
+          } else {
+            ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+            OS::Print("  context var '%s' level %d offset %" PRIdPTR,
+                      var_name.ToCString(), var_info.scope_id, var_info.index);
+          }
+          OS::Print(" (valid %" PRIdPTR "-%" PRIdPTR ")\n",
+                    var_info.begin_pos, var_info.end_pos);
         }
       }
       OS::Print("}\n");
       OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
       const ExceptionHandlers& handlers =
           ExceptionHandlers::Handle(code.exception_handlers());
-      OS::Print("%s", handlers.ToCString());
-      OS::Print("}\n");
+      OS::Print("%s}\n", handlers.ToCString());
     }
     isolate->set_long_jump_base(base);
     return Error::null();

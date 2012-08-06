@@ -5,7 +5,8 @@
 #ifndef PLATFORM_GLOBALS_H_
 #define PLATFORM_GLOBALS_H_
 
-// __STDC_FORMAT_MACROS has to be defined to enable platform independent printf.
+// __STDC_FORMAT_MACROS has to be defined before including <inttypes.h> to
+// enable platform independent printf format specifiers.
 #ifndef __STDC_FORMAT_MACROS
 #define __STDC_FORMAT_MACROS
 #endif
@@ -108,14 +109,23 @@
 #endif
 
 
-// Printf format for intptr_t on Windows.
-#if !defined(PRIxPTR) && defined(TARGET_OS_WINDOWS)
+// Printf format specifiers for intptr_t on Windows.
+#if defined(TARGET_OS_WINDOWS)
 #if defined(ARCH_IS_32_BIT)
-#define PRIxPTR "x"
+#define DART_PRINTF_PTR_PREFIX ""
 #else
-#define PRIxPTR "llx"
-#endif  // defined(ARCH_IS_32_BIT)
-#endif  // !defined(PRIxPTR) && defined(TARGET_OS_WINDOWS)
+#define DART_PRINTF_PTR_PREFIX "ll"
+#endif
+
+#if !defined(PRIdPTR)
+#define PRIdPTR DART_PRINTF_PTR_PREFIX "d"
+#endif
+
+#if !defined(PRIxPTR)
+#define PRIxPTR DART_PRINTF_PTR_PREFIX "x"
+#endif
+
+#endif  // defined(TARGET_OS_WINDOWS)
 
 
 // Suffixes for 64-bit integer literals.
