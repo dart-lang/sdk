@@ -1279,10 +1279,12 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
     ValueGraphVisitor for_value(owner(), temp_index());
     node->ElementAt(i)->Visit(&for_value);
     Append(for_value);
+    PushArgument(for_value.value());
     values->Add(for_value.value());
   }
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        node->type_arguments());
+  PushArgument(element_type);
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 values,

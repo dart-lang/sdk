@@ -188,29 +188,6 @@ intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
 }
 
 
-intptr_t CreateArrayComp::InputCount() const {
-  return ElementCount() + 1;
-}
-
-
-Value* CreateArrayComp::InputAt(intptr_t i) const {
-  if (i == 0) {
-    return element_type();
-  } else {
-    return ElementAt(i - 1);
-  }
-}
-
-
-void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    inputs_[0] = value;
-  } else {
-    (*elements_)[i - 1] = value;
-  }
-}
-
-
 intptr_t BranchInstr::InputCount() const {
   return 2;
 }

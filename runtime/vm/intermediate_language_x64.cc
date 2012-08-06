@@ -1037,40 +1037,26 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayComp::MakeLocationSummary() const {
-  // TODO(regis): The elements of the array could be considered as arguments to
-  // CreateArrayComp, thereby making CreateArrayComp a call.
-  // For VerifyCallComputation to work, CreateArrayComp would need an
-  // ArgumentCount getter and an ArgumentAt getter.
-  const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 1;
-  LocationSummary* locs =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  locs->set_in(0, Location::RegisterLocation(RBX));
-  locs->set_temp(0, Location::RegisterLocation(R10));
-  locs->set_out(Location::RegisterLocation(RAX));
-  return locs;
+  return MakeCallSummary();
 }
 
 
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register temp_reg = locs()->temp(0).reg();
-  Register result_reg = locs()->out().reg();
-
+  // TODO(fschneider): Support call-instructions that take inputs in registers.
   // Allocate the array.  R10 = length, RBX = element type.
-  ASSERT(temp_reg == R10);
-  ASSERT(locs()->in(0).reg() == RBX);
-  __ movq(temp_reg, Immediate(Smi::RawValue(ElementCount())));
+  __ popq(RBX);
+  __ movq(R10, Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::AllocateArrayLabel(),
                          PcDescriptors::kOther);
-  ASSERT(result_reg == RAX);
+  ASSERT(locs()->out().reg() == RAX);
 
   // Pop the element values from the stack into the array.
-  __ leaq(temp_reg, FieldAddress(result_reg, Array::data_offset()));
+  __ leaq(R10, FieldAddress(RAX, Array::data_offset()));
   for (int i = ElementCount() - 1; i >= 0; --i) {
     ASSERT(ElementAt(i)->IsUse());
-    __ popq(Address(temp_reg, i * kWordSize));
+    __ popq(Address(R10, i * kWordSize));
   }
 }
 
