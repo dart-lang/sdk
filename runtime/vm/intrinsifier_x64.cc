@@ -73,7 +73,6 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
   // RDI: allocation size.
   {
     Label size_tag_overflow, done;
@@ -93,7 +92,6 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   }
 
   // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
   // Store the type argument field.
   __ movq(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObjectNoBarrier(RAX,
