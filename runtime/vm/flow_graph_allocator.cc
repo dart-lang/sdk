@@ -702,7 +702,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       //      register   [-----)
       //
       MoveOperands* move =
-          AddMoveAt(pos - 1, *in_ref, Location::PrefersRegister());
+          AddMoveAt(pos - 1, *in_ref, Location::Any());
       BlockLocation(*in_ref, pos - 1, pos + 1);
       range->AddUseInterval(block->start_pos(), pos - 1);
       range->AddUse(pos - 1, move->src_slot());
@@ -822,7 +822,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     range->DefineAt(pos + 1);
     if (range->Start() == range->End()) return;
 
-    MoveOperands* move = AddMoveAt(pos + 1, Location::PrefersRegister(), *out);
+    MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
     range->AddUse(pos + 1, move->dest_slot());
   } else if (output_same_as_first_input) {
     // Output register will contain a value of the first input at instruction's
@@ -838,7 +838,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     locs->set_out(Location::RequiresRegister());
     MoveOperands* move = AddMoveAt(pos,
                                    Location::RequiresRegister(),
-                                   Location::PrefersRegister());
+                                   Location::Any());
 
     // Add uses to the live range of the input.
     Value* input = current->InputAt(0);
