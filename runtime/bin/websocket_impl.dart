@@ -503,7 +503,7 @@ class _WebSocketConnectionBase  {
       if (_currentMessageType == _WebSocketMessageType.TEXT) {
         _onMessage(_decoder.decoded);
       } else {
-        _onMessage(_outputStream.contents());
+        _onMessage(_outputStream.read());
       }
     }
     _decoder = null;

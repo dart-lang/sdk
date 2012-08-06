@@ -43,7 +43,13 @@ interface ListOutputStream extends OutputStream default _ListOutputStream {
   ListOutputStream();
 
   /**
-   * Get the contents written to the [ListOutputStream].
+   * Reads all available data from the stream. If no data is available `null`
+   * will be returned.
    */
-  List<int> contents();
+  List<int> read();
+
+  /**
+   * Sets the handler that gets called when data is available.
+   */
+  void set onData(void callback());
 }
