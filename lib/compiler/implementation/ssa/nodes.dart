@@ -963,6 +963,17 @@ class HInstruction implements Hashable {
       }
     }
 
+    // Run through all the phis in the same block as [other] and remove them
+    // from the users set.
+    if (usersInCurrentBlock > 0) {
+      for (HPhi phi = otherBlock.phis.first; phi !== null; phi = phi.next) {
+        if (users.contains(phi)) {
+          users.remove(phi);
+          if (--usersInCurrentBlock == 0) break;
+        }
+      }
+    }
+
     // Run through all the instructions before [other] and remove them
     // from the users set.
     if (usersInCurrentBlock > 0) {
