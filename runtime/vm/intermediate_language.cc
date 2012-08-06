@@ -561,21 +561,18 @@ void BlockEntryInstr::DiscoverBlocks(
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
   ASSERT(next() != NULL);
+  ASSERT(!next()->IsBlockEntry());
   Instruction* next_instr = next();
-  if (next_instr->IsBlockEntry()) {
-    set_last_instruction(this);
-  } else {
-    while ((next_instr != NULL) &&
-           !next_instr->IsBlockEntry() &&
-           !next_instr->IsBranch()) {
-      if (vars != NULL) {
-        next_instr->RecordAssignedVars(vars, fixed_parameter_count);
-      }
-      set_last_instruction(next_instr);
-      GotoInstr* goto_instr = next_instr->AsGoto();
-      next_instr =
-          (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
+  while ((next_instr != NULL) &&
+         !next_instr->IsBlockEntry() &&
+         !next_instr->IsBranch()) {
+    if (vars != NULL) {
+      next_instr->RecordAssignedVars(vars, fixed_parameter_count);
     }
+    set_last_instruction(next_instr);
+    GotoInstr* goto_instr = next_instr->AsGoto();
+    next_instr =
+        (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
   }
   if (next_instr != NULL) {
     next_instr->DiscoverBlocks(this, preorder, postorder,
