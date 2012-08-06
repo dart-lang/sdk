@@ -1117,6 +1117,7 @@ class RawOneByteString : public RawString {
   uint8_t data_[0];
 
   friend class SnapshotReader;
+  friend class ApiMessageReader;
 };
 
 

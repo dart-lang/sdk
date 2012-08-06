@@ -71,7 +71,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 
   // Access methods for symbols stored in the vm isolate.
 #define DEFINE_SYMBOL_ACCESSOR(symbol, literal)                                \
-  static RawString* symbol() { return Symbols::New(literal); }
+  static RawString* symbol() { return predefined_[k##symbol]; }
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 #undef DEFINE_SYMBOL_ACCESSOR
 
@@ -123,11 +123,19 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
                             intptr_t begin_index,
                             intptr_t len,
                             intptr_t hash);
+  static intptr_t LookupVMSymbol(RawObject* obj);
+  static RawObject* GetVMSymbol(intptr_t object_id);
+  static bool IsVMSymbolId(intptr_t object_id) {
+    return (object_id >= Object::kMaxId &&
+            object_id < (Object::kMaxId + kMaxPredefined));
+  }
 
   // List of symbols that are stored in the vm isolate for easy access.
   static RawString* predefined_[kMaxPredefined];
 
   friend class SnapshotReader;
+  friend class SnapshotWriter;
+  friend class ApiMessageReader;
 
   DISALLOW_COPY_AND_ASSIGN(Symbols);
 };

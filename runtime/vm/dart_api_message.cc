@@ -5,6 +5,7 @@
 #include "vm/dart_api_message.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -46,10 +47,11 @@ Dart_CObject* ApiMessageReader::ReadMessage() {
 
 
 intptr_t ApiMessageReader::LookupInternalClass(intptr_t class_header) {
-  SerializedHeaderType header_type = SerializedHeaderTag::decode(class_header);
-  ASSERT(header_type == kObjectId);
-  intptr_t header_value = SerializedHeaderData::decode(class_header);
-  return header_value;
+  if (IsVMIsolateObject(class_header)) {
+    return GetVMIsolateObjectId(class_header);
+  }
+  ASSERT(SerializedHeaderTag::decode(class_header) == kObjectId);
+  return SerializedHeaderData::decode(class_header);
 }
 
 
@@ -217,6 +219,22 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 }
 
 
+Dart_CObject* ApiMessageReader::ReadVMSymbol(intptr_t object_id) {
+  if (Symbols::IsVMSymbolId(object_id)) {
+    RawOneByteString* str =
+        reinterpret_cast<RawOneByteString*>(Symbols::GetVMSymbol(object_id));
+    intptr_t len = Smi::Value(str->ptr()->length_);
+    Dart_CObject* object = AllocateDartCObjectString(len);
+    char* p = object->value.as_string;
+    memmove(p, str->ptr()->data_, len);
+    p[len] = '\0';
+    return object;
+  }
+  // No other VM isolate objects are supported.
+  return AllocateDartCObjectNull();
+}
+
+
 Dart_CObject* ApiMessageReader::ReadObjectRef() {
   int64_t value = Read<int64_t>();
   if ((value & kSmiTagMask) == 0) {
@@ -228,13 +246,17 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     }
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
-  SerializedHeaderType header_type = SerializedHeaderTag::decode(value);
-  intptr_t header_value = SerializedHeaderData::decode(value);
-
-  if (header_type == kObjectId) {
-    return ReadIndexedObject(header_value);
+  if (IsVMIsolateObject(value)) {
+    intptr_t object_id = GetVMIsolateObjectId(value);
+    if (object_id == Object::kNullObject) {
+      return AllocateDartCObjectNull();
+    }
+    return ReadVMSymbol(object_id);
   }
-  ASSERT(header_type == kInlined);
+  if (SerializedHeaderTag::decode(value) == kObjectId) {
+    return ReadIndexedObject(SerializedHeaderData::decode(value));
+  }
+  ASSERT(SerializedHeaderTag::decode(value) == kInlined);
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
 
@@ -243,7 +265,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
     return AllocateDartCObjectUnsupported();
   }
   ASSERT((class_header & kSmiTagMask) != 0);
-  intptr_t object_id = header_value;
+  intptr_t object_id = SerializedHeaderData::decode(value);
   intptr_t class_id = LookupInternalClass(class_header);
   if (class_id == ObjectStore::kArrayClass ||
       class_id == ObjectStore::kImmutableArrayClass) {
@@ -366,9 +388,6 @@ Dart_CObject* ApiMessageReader::ReadInternalVMObject(intptr_t class_id,
 
 
 Dart_CObject* ApiMessageReader::ReadIndexedObject(intptr_t object_id) {
-  if (object_id == Object::kNullObject) {
-    return AllocateDartCObjectNull();
-  }
   if (object_id == ObjectStore::kTrueValue) {
     return AllocateDartCObjectBool(true);
   }
@@ -413,14 +432,18 @@ Dart_CObject* ApiMessageReader::ReadObjectImpl() {
     }
   }
   ASSERT((value <= kIntptrMax) && (value >= kIntptrMin));
-  SerializedHeaderType header_type = SerializedHeaderTag::decode(value);
-  intptr_t header_value = SerializedHeaderData::decode(value);
-
-  if (header_type == kObjectId) {
-    return ReadIndexedObject(header_value);
+  if (IsVMIsolateObject(value)) {
+    intptr_t object_id = GetVMIsolateObjectId(value);
+    if (object_id == Object::kNullObject) {
+      return AllocateDartCObjectNull();
+    }
+    return ReadVMSymbol(object_id);
   }
-  ASSERT(header_type == kInlined);
-  return ReadInlinedObject(header_value);
+  if (SerializedHeaderTag::decode(value) == kObjectId) {
+    return ReadIndexedObject(SerializedHeaderData::decode(value));
+  }
+  ASSERT(SerializedHeaderTag::decode(value) == kInlined);
+  return ReadInlinedObject(SerializedHeaderData::decode(value));
 }
 
 
@@ -447,16 +470,17 @@ Dart_CObject* ApiMessageReader::GetBackRef(intptr_t id) {
 
 void ApiMessageWriter::WriteMessage(intptr_t field_count, intptr_t *data) {
   // Write out the serialization header value for this object.
-  WriteSerializationMarker(kInlined, kMaxPredefinedObjectIds);
+  WriteInlinedObjectHeader(kMaxPredefinedObjectIds);
 
   // Write out the class and tags information.
-  WriteObjectHeader(ObjectStore::kArrayClass, 0);
+  WriteIndexedObject(ObjectStore::kArrayClass);
+  WriteIntptrValue(0);
 
   // Write out the length field.
   Write<RawObject*>(Smi::New(field_count));
 
   // Write out the type arguments.
-  WriteIndexedObject(Object::kNullObject);
+  WriteNullObject();
 
   // Write out the individual Smis.
   for (int i = 0; i < field_count; i++) {
@@ -535,12 +559,18 @@ void ApiMessageWriter::WriteSmi(int64_t value) {
 }
 
 
+void ApiMessageWriter::WriteNullObject() {
+  WriteVMIsolateObject(Object::kNullObject);
+}
+
+
 void ApiMessageWriter::WriteMint(Dart_CObject* object, int64_t value) {
   ASSERT(!Smi::IsValid64(value));
   // Write out the serialization header value for mint object.
   WriteInlinedHeader(object);
   // Write out the class and tags information.
-  WriteObjectHeader(ObjectStore::kMintClass, 0);
+  WriteIndexedObject(ObjectStore::kMintClass);
+  WriteIntptrValue(0);
   // Write the 64-bit value.
   Write<int64_t>(value);
 }
@@ -568,7 +598,7 @@ void ApiMessageWriter::WriteInt64(Dart_CObject* object) {
 
 void ApiMessageWriter::WriteInlinedHeader(Dart_CObject* object) {
   // Write out the serialization header value for this object.
-  WriteSerializationMarker(kInlined, kMaxPredefinedObjectIds + object_id_);
+  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id_);
   // Mark object with its object id.
   MarkCObject(object, object_id_);
   // Advance object id.
@@ -588,10 +618,12 @@ void ApiMessageWriter::WriteCObject(Dart_CObject* object) {
     // Write out the serialization header value for this object.
     WriteInlinedHeader(object);
     // Write out the class and tags information.
-    WriteObjectHeader(ObjectStore::kArrayClass, 0);
+    WriteIndexedObject(ObjectStore::kArrayClass);
+    WriteIntptrValue(0);
+
     WriteSmi(object->value.as_array.length);
     // Write out the type arguments.
-    WriteIndexedObject(Object::kNullObject);
+    WriteNullObject();
     // Write out array elements.
     for (int i = 0; i < object->value.as_array.length; i++) {
       WriteCObjectRef(object->value.as_array.values[i]);
@@ -633,12 +665,14 @@ void ApiMessageWriter::WriteForwardedCObject(Dart_CObject* object) {
 
   // Write out the serialization header value for this object.
   intptr_t object_id = GetMarkedCObjectMark(object);
-  WriteSerializationMarker(kInlined, kMaxPredefinedObjectIds + object_id);
+  WriteInlinedObjectHeader(kMaxPredefinedObjectIds + object_id);
   // Write out the class and tags information.
-  WriteObjectHeader(ObjectStore::kArrayClass, 0);
+  WriteIndexedObject(ObjectStore::kArrayClass);
+  WriteIntptrValue(0);
+
   WriteSmi(object->value.as_array.length);
   // Write out the type arguments.
-  WriteIndexedObject(Object::kNullObject);
+  WriteNullObject();
   // Write out array elements.
   for (int i = 0; i < object->value.as_array.length; i++) {
     WriteCObjectRef(object->value.as_array.values[i]);
@@ -650,7 +684,7 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
                                            Dart_CObject::Type type) {
   switch (type) {
     case Dart_CObject::kNull:
-      WriteIndexedObject(Object::kNullObject);
+      WriteNullObject();
       break;
     case Dart_CObject::kBool:
       if (object->value.as_bool) {
@@ -669,7 +703,8 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kBigintClass, 0);
+      WriteIndexedObject(ObjectStore::kBigintClass);
+      WriteIntptrValue(0);
       // Write hex string length and content
       char* hex_string = object->value.as_bigint;
       intptr_t len = strlen(hex_string);
@@ -683,7 +718,8 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kDoubleClass, 0);
+      WriteIndexedObject(ObjectStore::kDoubleClass);
+      WriteIntptrValue(0);
       // Write double value.
       Write<double>(object->value.as_double);
       break;
@@ -691,7 +727,8 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kOneByteStringClass, 0);
+      WriteIndexedObject(ObjectStore::kOneByteStringClass);
+      WriteIntptrValue(0);
       // Write string length, hash and content
       char* str = object->value.as_string;
       intptr_t len = strlen(str);
@@ -706,7 +743,8 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out the serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tags information.
-      WriteObjectHeader(ObjectStore::kUint8ArrayClass, 0);
+      WriteIndexedObject(ObjectStore::kUint8ArrayClass);
+      WriteIntptrValue(0);
       uint8_t* bytes = object->value.as_byte_array.values;
       intptr_t len = object->value.as_byte_array.length;
       WriteSmi(len);
@@ -724,7 +762,8 @@ void ApiMessageWriter::WriteCObjectInlined(Dart_CObject* object,
       // Write out serialization header value for this object.
       WriteInlinedHeader(object);
       // Write out the class and tag information.
-      WriteObjectHeader(ObjectStore::kExternalUint8ArrayClass, 0);
+      WriteIndexedObject(ObjectStore::kExternalUint8ArrayClass);
+      WriteIntptrValue(0);
       int length = object->value.as_external_byte_array.length;
       uint8_t* data = object->value.as_external_byte_array.data;
       void* peer = object->value.as_external_byte_array.peer;
