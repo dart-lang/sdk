@@ -993,7 +993,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (HasICData()) {
     ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
@@ -1018,7 +1018,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(cid(),
+  compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
                                 kThrowRuntimeEntry);
@@ -1032,7 +1032,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(cid(),
+  compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
                                 kReThrowRuntimeEntry);
@@ -1173,10 +1173,10 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 cid(),
+                                 deopt_id(),
                                  token_pos(),
                                  try_index());
-  compiler->GenerateInstanceCall(cid(),
+  compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  try_index(),
                                  function_name(),
@@ -1197,7 +1197,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateInlinedMathSqrt(&done);
     // Falls through to static call when operand type is not double or smi.
   }
-  compiler->GenerateStaticCall(cid(),
+  compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                try_index(),
                                function(),
@@ -1218,7 +1218,7 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateAssertAssignable(cid(),
+  compiler->GenerateAssertAssignable(deopt_id(),
                                      token_pos(),
                                      try_index(),
                                      dst_type(),

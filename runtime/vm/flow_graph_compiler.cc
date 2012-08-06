@@ -178,14 +178,14 @@ void FlowGraphCompiler::AddExceptionHandler(intptr_t try_index,
 
 // Uses current pc position and try-index.
 void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
-                                             intptr_t cid,
+                                             intptr_t deopt_id,
                                              intptr_t token_pos,
                                              intptr_t try_index) {
   ASSERT((kind != PcDescriptors::kDeopt) ||
          frame_register_allocator()->IsSpilled());
   pc_descriptors_list()->AddDescriptor(kind,
                                        assembler()->CodeSize(),
-                                       cid,
+                                       deopt_id,
                                        token_pos,
                                        try_index);
 }
@@ -299,7 +299,7 @@ bool FlowGraphCompiler::TryIntrinsify() {
 
 
 void FlowGraphCompiler::GenerateInstanceCall(
-    intptr_t cid,
+    intptr_t deopt_id,
     intptr_t token_pos,
     intptr_t try_index,
     const String& function_name,
@@ -311,7 +311,7 @@ void FlowGraphCompiler::GenerateInstanceCall(
   ICData& ic_data =
       ICData::ZoneHandle(ICData::New(parsed_function().function(),
                                      function_name,
-                                     cid,
+                                     deopt_id,
                                      checked_argument_count));
   const Array& arguments_descriptor =
       DartEntry::ArgumentsDescriptor(argument_count, argument_names);
@@ -334,13 +334,13 @@ void FlowGraphCompiler::GenerateInstanceCall(
                                                  argument_count);
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kIcCall,
                                        descr_offset,
-                                       cid,
+                                       deopt_id,
                                        token_pos,
                                        try_index);
 }
 
 
-void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
+void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t token_pos,
                                            intptr_t try_index,
                                            const Function& function,
@@ -355,7 +355,7 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t cid,
                                                argument_count);
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kFuncCall,
                                        descr_offset,
-                                       cid,
+                                       deopt_id,
                                        token_pos,
                                        try_index);
 }
@@ -419,13 +419,13 @@ void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
       String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
 
   AddCurrentDescriptor(PcDescriptors::kDeopt,
-                       comp->cid(),
+                       comp->deopt_id(),
                        comp->token_pos(),
                        comp->try_index());
 
   const intptr_t kNumArguments = 2;
   const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  GenerateInstanceCall(comp->cid(),
+  GenerateInstanceCall(comp->deopt_id(),
                        comp->token_pos(),
                        comp->try_index(),
                        function_name,
@@ -441,7 +441,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         const Array& arg_names,
                                         Label* deopt,
                                         Label* done,
-                                        intptr_t cid,
+                                        intptr_t deopt_id,
                                         intptr_t token_index,
                                         intptr_t try_index) {
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
@@ -456,7 +456,7 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
       assembler()->j(NOT_EQUAL, &next_test);
     }
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    GenerateStaticCall(cid,
+    GenerateStaticCall(deopt_id,
                        token_index,
                        try_index,
                        target,

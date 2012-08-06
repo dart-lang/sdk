@@ -970,7 +970,7 @@ class RawICData : public RawObject {
   RawObject** to() {
     return reinterpret_cast<RawObject**>(&ptr()->ic_data_);
   }
-  intptr_t id_;               // Parser node id corresponding to this IC.
+  intptr_t deopt_id_;         // Deoptimization id corresponding to this IC.
   intptr_t num_args_tested_;  // Number of arguments tested in IC.
 };
 

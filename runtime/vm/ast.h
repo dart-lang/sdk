@@ -92,11 +92,8 @@ NODE_LIST(DEFINE_VISITOR_FUNCTION)
 
 class AstNode : public ZoneAllocated {
  public:
-  static const int kNoId = -1;
-
   explicit AstNode(intptr_t token_pos)
       : token_pos_(token_pos),
-        id_(GetNextId()),
         ic_data_(ICData::ZoneHandle()),
         info_(NULL) {
     ASSERT(token_pos >= 0);
@@ -109,8 +106,6 @@ class AstNode : public ZoneAllocated {
   void set_ic_data(const ICData& value) {
     ic_data_ = value.raw();
   }
-
-  intptr_t id() const { return id_; }
 
   void set_info(CodeGenInfo* info) { info_ = info; }
   CodeGenInfo* info() const { return info_; }
@@ -157,17 +152,8 @@ NODE_LIST(AST_TYPE_CHECK)
  protected:
   friend class ParsedFunction;
 
-  static intptr_t GetNextId() {
-    Isolate* isolate = Isolate::Current();
-    intptr_t tmp = isolate->ast_node_id();
-    isolate->set_ast_node_id(tmp + 1);
-    return tmp;
-  }
-
  private:
   const intptr_t token_pos_;
-  // Unique id per function compiled, used to match AST node to a PC.
-  const intptr_t id_;
   // IC data collected for this node.
   ICData& ic_data_;
   // Used by optimizing compiler.
@@ -182,9 +168,7 @@ class SequenceNode : public AstNode {
     : AstNode(token_pos),
       scope_(scope),
       nodes_(4),
-      label_(NULL),
-      first_parameter_id_(AstNode::kNoId),
-      last_parameter_id_(AstNode::kNoId) {
+      label_(NULL) {
   }
 
   LocalScope* scope() const { return scope_; }
@@ -198,15 +182,6 @@ class SequenceNode : public AstNode {
   intptr_t length() const { return nodes_.length(); }
   AstNode* NodeAt(intptr_t index) const { return nodes_[index]; }
 
-  void set_first_parameter_id(intptr_t value) { first_parameter_id_ = value; }
-  void set_last_parameter_id(intptr_t value) { last_parameter_id_ = value; }
-  intptr_t ParameterIdAt(intptr_t param_pos) const {
-    ASSERT(first_parameter_id_ != AstNode::kNoId);
-    ASSERT(last_parameter_id_ != AstNode::kNoId);
-    ASSERT(param_pos <= (last_parameter_id_ - first_parameter_id_));
-    return first_parameter_id_ + param_pos;
-  }
-
   DECLARE_COMMON_NODE_FUNCTIONS(SequenceNode);
 
   // Collects all nodes accessible from this sequence node into array 'nodes'.
@@ -216,8 +191,6 @@ class SequenceNode : public AstNode {
   LocalScope* scope_;
   GrowableArray<AstNode*> nodes_;
   SourceLabel* label_;
-  intptr_t first_parameter_id_;
-  intptr_t last_parameter_id_;
 
   DISALLOW_COPY_AND_ASSIGN(SequenceNode);
 };

@@ -8,13 +8,13 @@ namespace dart {
 
 void DescriptorList::AddDescriptor(PcDescriptors::Kind kind,
                                    intptr_t pc_offset,
-                                   intptr_t node_id,
+                                   intptr_t deopt_id,
                                    intptr_t token_index,
                                    intptr_t try_index) {
   struct PcDesc data;
   data.pc_offset = pc_offset;
   data.kind = kind;
-  data.node_id = node_id;
+  data.deopt_id = deopt_id;
   data.token_index = token_index;
   data.try_index = try_index;
   list_.Add(data);
@@ -22,13 +22,13 @@ void DescriptorList::AddDescriptor(PcDescriptors::Kind kind,
 
 
 void DescriptorList::AddDeoptInfo(intptr_t pc_offset,
-                                  intptr_t node_id,
+                                  intptr_t deopt_id,
                                   intptr_t token_index,
                                   intptr_t deopt_array_index) {
   struct PcDesc data;
   data.pc_offset = pc_offset;
   data.kind = PcDescriptors::kDeoptIndex;
-  data.node_id = node_id;
+  data.deopt_id = deopt_id;
   data.token_index = token_index;
   // Try_index is reused for deopt_array_index.
   data.try_index = deopt_array_index;
@@ -44,8 +44,8 @@ RawPcDescriptors* DescriptorList::FinalizePcDescriptors(uword entry_point) {
     descriptors.AddDescriptor(i,
                               (entry_point + PcOffset(i)),
                               Kind(i),
-                              NodeId(i),
-                              TokenIndex(i),
+                              DeoptId(i),
+                              TokenPos(i),
                               TryIndex(i));
   }
   return descriptors.raw();

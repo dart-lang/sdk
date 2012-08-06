@@ -56,17 +56,17 @@ DEFINE_RUNTIME_ENTRY(CompileFunction, 1) {
 }
 
 
-// Returns an array indexed by computation id, containing the extracted ICData.
+// Returns an array indexed by deopt id, containing the extracted ICData.
 static RawArray* ExtractTypeFeedbackArray(const Code& code) {
   ASSERT(!code.IsNull() && !code.is_optimized());
-  GrowableArray<intptr_t> computation_ids;
+  GrowableArray<intptr_t> deopt_ids;
   const GrowableObjectArray& ic_data_objs =
       GrowableObjectArray::Handle(GrowableObjectArray::New());
   const intptr_t max_id =
-      code.ExtractIcDataArraysAtCalls(&computation_ids, ic_data_objs);
+      code.ExtractIcDataArraysAtCalls(&deopt_ids, ic_data_objs);
   const Array& result = Array::Handle(Array::New(max_id + 1));
-  for (intptr_t i = 0; i < computation_ids.length(); i++) {
-    intptr_t result_index = computation_ids[i];
+  for (intptr_t i = 0; i < deopt_ids.length(); i++) {
+    intptr_t result_index = deopt_ids[i];
     ASSERT(result.At(result_index) == Object::null());
     result.SetAt(result_index, Object::Handle(ic_data_objs.At(i)));
   }
@@ -129,8 +129,8 @@ static bool CompileParsedFunctionHelper(
   bool is_compiled = false;
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->ic_data_array() == Array::null());  // Must be reset to null.
-  const intptr_t prev_cid = isolate->computation_id();
-  isolate->set_computation_id(0);
+  const intptr_t prev_deopt_id = isolate->deopt_id();
+  isolate->set_deopt_id(0);
   LongJump* old_base = isolate->long_jump_base();
   LongJump bailout_jump;
   isolate->set_long_jump_base(&bailout_jump);
@@ -250,7 +250,7 @@ static bool CompileParsedFunctionHelper(
   // Reset global isolate state.
   isolate->set_ic_data_array(Array::null());
   isolate->set_long_jump_base(old_base);
-  isolate->set_computation_id(prev_cid);
+  isolate->set_deopt_id(prev_deopt_id);
   return is_compiled;
 }
 

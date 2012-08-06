@@ -157,8 +157,7 @@ Isolate::Isolate()
       debugger_(NULL),
       long_jump_base_(NULL),
       timer_list_(),
-      ast_node_id_(AstNode::kNoId),
-      computation_id_(AstNode::kNoId),
+      deopt_id_(0),
       ic_data_array_(Array::null()),
       mutex_(new Mutex()),
       stack_limit_(0),
@@ -305,17 +304,17 @@ uword Isolate::GetAndClearInterrupts() {
 }
 
 
-ICData* Isolate::GetICDataForCid(intptr_t cid) const {
+ICData* Isolate::GetICDataForDeoptId(intptr_t deopt_id) const {
   if (ic_data_array() == Array::null()) {
     return NULL;
   }
   const Array& array_handle = Array::Handle(ic_data_array());
-  if (cid >= array_handle.Length()) {
+  if (deopt_id >= array_handle.Length()) {
     // For computations being added in the optimizing compiler.
     return NULL;
   }
   ICData& ic_data_handle = ICData::ZoneHandle();
-  ic_data_handle ^= array_handle.At(cid);
+  ic_data_handle ^= array_handle.At(deopt_id);
   return &ic_data_handle;
 }
 

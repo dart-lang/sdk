@@ -117,16 +117,14 @@ class Value;
 
 class Computation : public ZoneAllocated {
  public:
-  static const intptr_t kNoCid = -1;
-
-  Computation() : cid_(kNoCid), ic_data_(NULL), locs_(NULL) {
+  Computation() : deopt_id_(Isolate::kNoDeoptId), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
-    cid_ = isolate->GetNextCid();
-    ic_data_ = isolate->GetICDataForCid(cid_);
+    deopt_id_ = isolate->GetNextDeoptId();
+    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
   }
 
-  // Unique computation/instruction id, used for deoptimization.
-  intptr_t cid() const { return cid_; }
+  // Unique id used for deoptimization.
+  intptr_t deopt_id() const { return deopt_id_; }
 
   ICData* ic_data() const { return ic_data_; }
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -204,7 +202,7 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
 
  private:
-  intptr_t cid_;
+  intptr_t deopt_id_;
   ICData* ic_data_;
   LocationSummary* locs_;
 
@@ -2441,7 +2439,7 @@ class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         value_(value) {
     ASSERT(value_ != NULL);
@@ -2451,7 +2449,7 @@ class ReturnInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return value_; }
 
@@ -2462,7 +2460,7 @@ class ReturnInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   Value* value_;
 
@@ -2474,7 +2472,7 @@ class ThrowInstr : public InstructionWithInputs {
  public:
   ThrowInstr(intptr_t token_pos, intptr_t try_index)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
@@ -2482,7 +2480,7 @@ class ThrowInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
@@ -2493,7 +2491,7 @@ class ThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
 
@@ -2506,7 +2504,7 @@ class ReThrowInstr : public InstructionWithInputs {
   ReThrowInstr(intptr_t token_pos,
                intptr_t try_index)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
@@ -2514,7 +2512,7 @@ class ReThrowInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
@@ -2525,7 +2523,7 @@ class ReThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
 
@@ -2587,7 +2585,7 @@ class BranchInstr : public InstructionWithInputs {
               Value* right,
               Token::Kind kind)
       : InstructionWithInputs(),
-        cid_(Computation::kNoCid),
+        deopt_id_(Isolate::kNoDeoptId),
         ic_data_(NULL),
         token_pos_(token_pos),
         try_index_(try_index),
@@ -2602,8 +2600,8 @@ class BranchInstr : public InstructionWithInputs {
            Token::IsRelationalOperator(kind) ||
            Token::IsTypeTestOperator(kind));
     Isolate* isolate = Isolate::Current();
-    cid_ = isolate->GetNextCid();
-    ic_data_ = isolate->GetICDataForCid(cid_);
+    deopt_id_ = isolate->GetNextDeoptId();
+    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
   }
 
   DECLARE_INSTRUCTION(Branch)
@@ -2620,7 +2618,7 @@ class BranchInstr : public InstructionWithInputs {
     kind_ = kind;
   }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2658,7 +2656,7 @@ class BranchInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  intptr_t cid_;  // Computation/instruction id.
+  intptr_t deopt_id_;
   ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;

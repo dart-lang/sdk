@@ -130,7 +130,7 @@ static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
 
 
 void Computation::PrintTo(BufferFormatter* f) const {
-  f->Print("%s:%d(", DebugName(), cid());
+  f->Print("%s:%d(", DebugName(), deopt_id());
   PrintOperandsTo(f);
   f->Print(")");
   if (HasICData()) {
@@ -468,18 +468,18 @@ void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), cid());
+  f->Print("    %s:%d ", DebugName(), deopt_id());
   value()->PrintTo(f);
 }
 
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), cid());
+  f->Print("    %s:%d ", DebugName(), deopt_id());
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), cid());
+  f->Print("    %s:%d ", DebugName(), deopt_id());
 }
 
 
@@ -494,7 +494,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), cid());
+  f->Print("    %s:%d ", DebugName(), deopt_id());
   f->Print("if ");
   left()->PrintTo(f);
   f-> Print(" %s ", Token::Str(kind()));
@@ -733,18 +733,18 @@ void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), cid());
+  f->Print("_ %s:%d ", DebugName(), deopt_id());
   value()->PrintTo(f);
 }
 
 
 void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), cid());
+  f->Print("_ %s:%d ", DebugName(), deopt_id());
 }
 
 
 void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), cid());
+  f->Print("_ %s:%d ", DebugName(), deopt_id());
 }
 
 

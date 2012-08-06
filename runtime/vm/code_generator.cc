@@ -148,7 +148,7 @@ static intptr_t GetCallerLocation() {
   ASSERT(!descriptors.IsNull());
   for (int i = 0; i < descriptors.Length(); i++) {
     if (static_cast<uword>(descriptors.PC(i)) == caller_frame->pc()) {
-      return descriptors.TokenIndex(i);
+      return descriptors.TokenPos(i);
     }
   }
   return -1;
@@ -434,7 +434,6 @@ static bool OptimizeTypeArguments(const Instance& instance,
 // This operation is currently very slow (lookup of code is not efficient yet).
 // 'instantiator' can be null, in which case inst_targ
 static void UpdateTypeTestCache(
-    intptr_t node_id,
     const Instance& instance,
     const AbstractType& type,
     const Instance& instantiator,
@@ -546,23 +545,21 @@ static void UpdateTypeTestCache(
 
 // Check that the given instance is an instance of the given type.
 // Tested instance may not be null, because the null test is inlined.
-// Arg0: node id of the instanceof node.
-// Arg1: instance being checked.
-// Arg2: type.
-// Arg3: instantiator (or null).
-// Arg4: type arguments of the instantiator of the type.
-// Arg5: SubtypeTestCache.
+// Arg0: instance being checked.
+// Arg1: type.
+// Arg2: instantiator (or null).
+// Arg3: type arguments of the instantiator of the type.
+// Arg4: SubtypeTestCache.
 // Return value: true or false, or may throw a type error in checked mode.
-DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
+DEFINE_RUNTIME_ENTRY(Instanceof, 5) {
   ASSERT(arguments.Count() == kInstanceofRuntimeEntry.argument_count());
-  intptr_t node_id = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& instance = Instance::CheckedHandle(arguments.At(1));
-  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(2));
-  const Instance& instantiator = Instance::CheckedHandle(arguments.At(3));
+  const Instance& instance = Instance::CheckedHandle(arguments.At(0));
+  const AbstractType& type = AbstractType::CheckedHandle(arguments.At(1));
+  const Instance& instantiator = Instance::CheckedHandle(arguments.At(2));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(4));
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(5));
+      SubtypeTestCache::CheckedHandle(arguments.At(4));
   ASSERT(type.IsFinalized());
   Error& malformed_error = Error::Handle();
   const Bool& result = Bool::Handle(
@@ -584,7 +581,7 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
         location, no_name, no_name, no_name, malformed_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(node_id, instance, type, instantiator,
+  UpdateTypeTestCache(instance, type, instantiator,
                       instantiator_type_arguments, result, cache);
   arguments.SetReturn(result);
 }
@@ -592,25 +589,23 @@ DEFINE_RUNTIME_ENTRY(Instanceof, 6) {
 
 // Check that the type of the given instance is a subtype of the given type and
 // can therefore be assigned.
-// Arg0: node-id of the assignment.
-// Arg1: instance being assigned.
-// Arg2: type being assigned to.
-// Arg3: instantiator (or null).
-// Arg4: type arguments of the instantiator of the type being assigned to.
-// Arg5: name of variable being assigned to.
-// Arg6: SubtypeTestCache.
+// Arg0: instance being assigned.
+// Arg1: type being assigned to.
+// Arg2: instantiator (or null).
+// Arg3: type arguments of the instantiator of the type being assigned to.
+// Arg4: name of variable being assigned to.
+// Arg5: SubtypeTestCache.
 // Return value: instance if a subtype, otherwise throw a TypeError.
-DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
+DEFINE_RUNTIME_ENTRY(TypeCheck, 6) {
   ASSERT(arguments.Count() == kTypeCheckRuntimeEntry.argument_count());
-  intptr_t node_id = Smi::CheckedHandle(arguments.At(0)).Value();
-  const Instance& src_instance = Instance::CheckedHandle(arguments.At(1));
-  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(2));
-  const Instance& dst_instantiator = Instance::CheckedHandle(arguments.At(3));
+  const Instance& src_instance = Instance::CheckedHandle(arguments.At(0));
+  const AbstractType& dst_type = AbstractType::CheckedHandle(arguments.At(1));
+  const Instance& dst_instantiator = Instance::CheckedHandle(arguments.At(2));
   const AbstractTypeArguments& instantiator_type_arguments =
-      AbstractTypeArguments::CheckedHandle(arguments.At(4));
-  const String& dst_name = String::CheckedHandle(arguments.At(5));
+      AbstractTypeArguments::CheckedHandle(arguments.At(3));
+  const String& dst_name = String::CheckedHandle(arguments.At(4));
   const SubtypeTestCache& cache =
-      SubtypeTestCache::CheckedHandle(arguments.At(6));
+      SubtypeTestCache::CheckedHandle(arguments.At(5));
   ASSERT(!dst_type.IsDynamicType());  // No need to check assignment.
   ASSERT(!dst_type.IsMalformed());  // Already checked in code generator.
   ASSERT(!src_instance.IsNull());  // Already checked in inlined code.
@@ -647,7 +642,7 @@ DEFINE_RUNTIME_ENTRY(TypeCheck, 7) {
                                         dst_name, malformed_error_message);
     UNREACHABLE();
   }
-  UpdateTypeTestCache(node_id, src_instance, dst_type,
+  UpdateTypeTestCache(src_instance, dst_type,
                       dst_instantiator, instantiator_type_arguments,
                       Bool::ZoneHandle(Bool::True()), cache);
   arguments.SetReturn(src_instance);
@@ -1401,10 +1396,10 @@ static intptr_t GetDeoptInfo(const Code& code, uword pc) {
   // Locate deopt id at deoptimization point inside optimized code.
   for (int i = 0; i < descriptors.Length(); i++) {
     if (static_cast<uword>(descriptors.PC(i)) == pc) {
-      return descriptors.NodeId(i);
+      return descriptors.DeoptId(i);
     }
   }
-  return Computation::kNoCid;
+  return Isolate::kNoDeoptId;
 }
 
 
@@ -1438,7 +1433,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   ASSERT(optimized_code.is_optimized());
 
   const intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
-  ASSERT(deopt_id != Computation::kNoCid);
+  ASSERT(deopt_id != Isolate::kNoDeoptId);
 
   // Add incoming arguments.
   const Function& function = Function::Handle(optimized_code.function());
@@ -1498,8 +1493,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   intptr_t* registers_copy = isolate->deopt_registers_copy();
 
   intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
-  ASSERT(deopt_id != Computation::kNoCid);
-  uword continue_at_pc = unoptimized_code.GetDeoptPcAtNodeId(deopt_id);
+  ASSERT(deopt_id != Isolate::kNoDeoptId);
+  uword continue_at_pc = unoptimized_code.GetDeoptPcAtDeoptId(deopt_id);
   if (FLAG_trace_deopt) {
     OS::Print("  -> continue at 0x%x\n", continue_at_pc);
     // TODO(srdjan): If we could allow GC, we could print the line where

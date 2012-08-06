@@ -494,9 +494,7 @@ class Parser : ValueObject {
                               AstNode* lhs,
                               AstNode* rhs);
   AstNode* PrepareCompoundAssignmentNodes(AstNode** expr);
-  LocalVariable* CreateTempConstVariable(intptr_t token_pos,
-                                         intptr_t token_id,
-                                         const char* s);
+  LocalVariable* CreateTempConstVariable(intptr_t token_pos, const char* s);
 
   static bool IsAssignableExpr(AstNode* expr);
 

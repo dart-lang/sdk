@@ -6539,23 +6539,23 @@ void PcDescriptors::SetKind(intptr_t index, PcDescriptors::Kind value) const {
 }
 
 
-intptr_t PcDescriptors::NodeId(intptr_t index) const {
-  return Smi::Value(*SmiAddr(index, kNodeIdEntry));
+intptr_t PcDescriptors::DeoptId(intptr_t index) const {
+  return Smi::Value(*SmiAddr(index, kDeoptIdEntry));
 }
 
 
-void PcDescriptors::SetNodeId(intptr_t index, intptr_t value) const {
-  *SmiAddr(index, kNodeIdEntry) = Smi::New(value);
+void PcDescriptors::SetDeoptId(intptr_t index, intptr_t value) const {
+  *SmiAddr(index, kDeoptIdEntry) = Smi::New(value);
 }
 
 
-intptr_t PcDescriptors::TokenIndex(intptr_t index) const {
-  return Smi::Value(*SmiAddr(index, kTokenIndexEntry));
+intptr_t PcDescriptors::TokenPos(intptr_t index) const {
+  return Smi::Value(*SmiAddr(index, kTokenPosEntry));
 }
 
 
-void PcDescriptors::SetTokenIndex(intptr_t index, intptr_t value) const {
-  *SmiAddr(index, kTokenIndexEntry) = Smi::New(value);
+void PcDescriptors::SetTokenPos(intptr_t index, intptr_t value) const {
+  *SmiAddr(index, kTokenPosEntry) = Smi::New(value);
 }
 
 
@@ -6624,7 +6624,7 @@ const char* PcDescriptors::ToCString() const {
     const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
     len += OS::SNPrint(NULL, 0, kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
+        PC(i), KindAsStr(i), DeoptId(i), TokenPos(i), multi_purpose_index);
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
@@ -6634,15 +6634,15 @@ const char* PcDescriptors::ToCString() const {
     const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
     index += OS::SNPrint((buffer + index), (len - index), kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
+        PC(i), KindAsStr(i), DeoptId(i), TokenPos(i), multi_purpose_index);
   }
   return buffer;
 }
 
 
 // Verify assumptions (in debug mode only).
-// - No two deopt descriptors have the same node id (deoptimization).
-// - No two ic-call descriptors have the same node id (type feedback).
+// - No two deopt descriptors have the same deoptimization id.
+// - No two ic-call descriptors have the same deoptimization id (type feedback).
 // - No two descriptors of same kind have the same PC.
 // A function without unique ids is marked as non-optimizable (e.g., because of
 // finally blocks).
@@ -6659,18 +6659,18 @@ void PcDescriptors::Verify(bool check_ids) const {
   for (intptr_t i = 0; i < Length(); i++) {
     uword pc = PC(i);
     PcDescriptors::Kind kind = DescriptorKind(i);
-    // 'node_id' is set for kDeopt and kIcCall and must be unique for one kind.
-    intptr_t node_id = AstNode::kNoId;
+    // 'deopt_id' is set for kDeopt and kIcCall and must be unique for one kind.
+    intptr_t deopt_id = Isolate::kNoDeoptId;
     if (check_ids) {
       if ((DescriptorKind(i) == PcDescriptors::kDeopt) ||
           (DescriptorKind(i) == PcDescriptors::kIcCall)) {
-        node_id = NodeId(i);
+        deopt_id = DeoptId(i);
       }
     }
     for (intptr_t k = i + 1; k < Length(); k++) {
       if (kind == DescriptorKind(k)) {
-        if (node_id != AstNode::kNoId) {
-          ASSERT(NodeId(k) != node_id);
+        if (deopt_id != Isolate::kNoDeoptId) {
+          ASSERT(DeoptId(k) != deopt_id);
         }
         ASSERT(pc != PC(k));
       }
@@ -7197,7 +7197,7 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.PC(i) == pc) {
-      token_pos = descriptors.TokenIndex(i);
+      token_pos = descriptors.TokenPos(i);
       break;
     }
   }
@@ -7205,10 +7205,10 @@ intptr_t Code::GetTokenIndexOfPC(uword pc) const {
 }
 
 
-uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
+uword Code::GetDeoptPcAtDeoptId(intptr_t deopt_id) const {
   const PcDescriptors& descriptors = PcDescriptors::Handle(pc_descriptors());
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
-    if ((descriptors.NodeId(i) == node_id) &&
+    if ((descriptors.DeoptId(i) == deopt_id) &&
         (descriptors.DescriptorKind(i) == PcDescriptors::kDeopt)) {
       return descriptors.PC(i);
     }
@@ -7260,11 +7260,11 @@ intptr_t Code::ExtractIcDataArraysAtCalls(
   intptr_t max_id = -1;
   for (intptr_t i = 0; i < descriptors.Length(); i++) {
     if (descriptors.DescriptorKind(i) == PcDescriptors::kIcCall) {
-      intptr_t node_id = descriptors.NodeId(i);
-      if (node_id > max_id) {
-        max_id = node_id;
+      intptr_t deopt_id = descriptors.DeoptId(i);
+      if (deopt_id > max_id) {
+        max_id = deopt_id;
       }
-      node_ids->Add(node_id);
+      node_ids->Add(deopt_id);
       ic_data_obj = CodePatcher::GetInstanceCallIcDataAt(descriptors.PC(i));
       ic_data_objs.Add(ic_data_obj);
     }
@@ -7437,8 +7437,8 @@ void ICData::set_target_name(const String& value) const {
 }
 
 
-void ICData::set_id(intptr_t value) const {
-  raw_ptr()->id_ = value;
+void ICData::set_deopt_id(intptr_t value) const {
+  raw_ptr()->deopt_id_ = value;
 }
 
 
@@ -7590,7 +7590,7 @@ RawICData* ICData::AsUnaryClassChecks() const {
   ICData& result = ICData::Handle(ICData::New(
       Function::Handle(function()),
       String::Handle(target_name()),
-      id(),
+      deopt_id(),
       kNumArgsTested));
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
     const intptr_t class_id = GetReceiverClassIdAt(i);
@@ -7615,7 +7615,7 @@ RawICData* ICData::AsUnaryClassChecks() const {
 
 RawICData* ICData::New(const Function& function,
                        const String& target_name,
-                       intptr_t id,
+                       intptr_t deopt_id,
                        intptr_t num_args_tested) {
   ASSERT(Object::icdata_class() != Class::null());
   ASSERT(num_args_tested > 0);
@@ -7630,7 +7630,7 @@ RawICData* ICData::New(const Function& function,
   }
   result.set_function(function);
   result.set_target_name(target_name);
-  result.set_id(id);
+  result.set_deopt_id(deopt_id);
   result.set_num_args_tested(num_args_tested);
   // Number of array elements in one test entry (num_args_tested + 1)
   intptr_t len = result.TestEntryLength();

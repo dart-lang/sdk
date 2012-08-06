@@ -113,17 +113,6 @@ void ParsedFunction::SetNodeSequence(SequenceNode* node_sequence) {
   ASSERT(node_sequence_ == NULL);
   ASSERT(node_sequence != NULL);
   node_sequence_ = node_sequence;
-  const int num_fixed_params = function().num_fixed_parameters();
-  const int num_opt_params = function().num_optional_parameters();
-  // Allocated ids for parameters.
-  intptr_t parameter_id = AstNode::kNoId;
-  for (intptr_t i = 0; i < num_fixed_params + num_opt_params; i++) {
-    parameter_id = AstNode::GetNextId();
-    if (i == 0) {
-      node_sequence_->set_first_parameter_id(parameter_id);
-    }
-  }
-  node_sequence_->set_last_parameter_id(parameter_id);
 }
 
 
@@ -662,9 +651,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::parser_timer);
   Isolate* isolate = Isolate::Current();
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
-  // Compilation can be nested, preserve the ast node id.
-  const intptr_t prev_ast_node_id = isolate->ast_node_id();
-  isolate->set_ast_node_id(0);
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
   const Class& cls = Class::Handle(isolate, func.owner());
@@ -728,7 +714,6 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   }
 
   parsed_function->set_default_parameter_values(default_parameter_values);
-  isolate->set_ast_node_id(prev_ast_node_id);
 }
 
 
@@ -1340,7 +1325,7 @@ AstNode* Parser::ParseSuperOperator() {
       // literal, evaluate and save in a temporary local.
       if (!IsSimpleLocalOrLiteralNode(index_expr)) {
         LocalVariable* temp =
-            CreateTempConstVariable(operator_pos, index_expr->id(), "lix");
+            CreateTempConstVariable(operator_pos, "lix");
         AstNode* save =
             new StoreLocalNode(operator_pos, *temp, index_expr);
         current_block_->statements->Add(save);
@@ -2037,7 +2022,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       AstNode* arg = ctor_args->NodeAt(i);
       if (!IsSimpleLocalOrLiteralNode(arg)) {
         LocalVariable* temp =
-            CreateTempConstVariable(arg->token_pos(), arg->id(), "sca");
+            CreateTempConstVariable(arg->token_pos(), "sca");
         AstNode* save_temp =
             new StoreLocalNode(arg->token_pos(), *temp, arg);
         ctor_args->SetNodeAt(i, save_temp);
@@ -6309,10 +6294,9 @@ void Parser::EnsureExpressionTemp() {
 
 
 LocalVariable* Parser::CreateTempConstVariable(intptr_t token_pos,
-                                               intptr_t token_id,
                                                const char* s) {
   char name[64];
-  OS::SNPrint(name, 64, ":%s%d", s, token_id);
+  OS::SNPrint(name, 64, ":%s%d", s, token_pos);
   LocalVariable* temp =
       new LocalVariable(token_pos,
                         String::ZoneHandle(Symbols::New(name)),
@@ -6412,12 +6396,11 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
   if (node->IsLoadIndexedNode()) {
     LoadIndexedNode* left_node = node->AsLoadIndexedNode();
     LoadIndexedNode* right_node = left_node;
-    intptr_t node_id = node->id();
     intptr_t token_pos = node->token_pos();
     node = NULL;  // Do not use it.
     if (!IsSimpleLocalOrLiteralNode(left_node->array())) {
       LocalVariable* temp =
-          CreateTempConstVariable(token_pos, node_id, "lia");
+          CreateTempConstVariable(token_pos, "lia");
       StoreLocalNode* save =
           new StoreLocalNode(token_pos, *temp, left_node->array());
       left_node =
@@ -6428,7 +6411,7 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
     }
     if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
-          CreateTempConstVariable(token_pos, node_id, "lix");
+          CreateTempConstVariable(token_pos, "lix");
       StoreLocalNode* save =
           new StoreLocalNode(token_pos, *temp, left_node->index_expr());
       left_node = new LoadIndexedNode(token_pos,
@@ -6444,12 +6427,11 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
   if (node->IsInstanceGetterNode()) {
     InstanceGetterNode* left_node = node->AsInstanceGetterNode();
     InstanceGetterNode* right_node = left_node;
-    intptr_t node_id = node->id();
     intptr_t token_pos = node->token_pos();
     node = NULL;  // Do not use it.
     if (!IsSimpleLocalOrLiteralNode(left_node->receiver())) {
       LocalVariable* temp =
-          CreateTempConstVariable(token_pos, node_id, "igr");
+          CreateTempConstVariable(token_pos, "igr");
       StoreLocalNode* save =
           new StoreLocalNode(token_pos, *temp, left_node->receiver());
       left_node = new InstanceGetterNode(token_pos,
@@ -6482,7 +6464,7 @@ AstNode* Parser::CreateAssignmentNode(AstNode* original, AstNode* rhs) {
 AstNode* Parser::ParseCascades(AstNode* expr) {
   intptr_t cascade_pos = TokenPos();
   LocalVariable* cascade_receiver_var =
-      CreateTempConstVariable(cascade_pos, expr->id(), "casc");
+      CreateTempConstVariable(cascade_pos, "casc");
   StoreLocalNode* save_cascade =
       new StoreLocalNode(cascade_pos, *cascade_receiver_var, expr);
   current_block_->statements->Add(save_cascade);
@@ -7897,7 +7879,7 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
     EnsureExpressionTemp();
   }
   LocalVariable* allocated =
-      CreateTempConstVariable(token_pos, token_pos, "alloc");
+      CreateTempConstVariable(token_pos, "alloc");
   return new ConstructorCallNode(token_pos,
                                  type_arguments,
                                  constructor,
