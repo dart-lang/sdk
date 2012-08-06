@@ -68,6 +68,11 @@ if __name__ == '__main__':
     # sources are. Otherwise, Xcode won't show sources correctly.
     args += ['--toplevel-dir', project_src]
 
+  if sys.platform == 'win32':
+    # Generate Visual Studio 2008 compatible files by default.
+    if not os.environ.get('GYP_MSVS_VERSION'):
+      args.extend(['-G', 'msvs_version=2008'])
+
   # Change into the dart directory as we want the project to be rooted here.
   # Also, GYP is very sensitive to exacly from where it is being run.
   os.chdir(dart_src)
