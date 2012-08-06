@@ -254,6 +254,18 @@ void testPostfix() {
   Expect.isTrue(sendSet.arguments.isEmpty());
 }
 
+void testOperatorParse() {
+  FunctionDeclaration node = parseStatement('operator negate() => null;');
+  FunctionExpression function = node.function;
+  Send name = function.name.asSend();
+  Expect.isNotNull(name);
+  Expect.stringEquals('operator', name.receiver.source.stringValue);
+  Expect.stringEquals('negate', name.selector.source.stringValue);
+  Expect.isTrue(function.parameters.isEmpty());
+  Expect.isNull(function.returnType);
+  Expect.isNull(function.getOrSet);
+}
+
 void main() {
   testGenericTypes();
   // TODO(ahe): Enable this test when we handle library prefixes.
@@ -267,4 +279,5 @@ void main() {
   testAssignment();
   testIndex();
   testPostfix();
+  testOperatorParse();
 }

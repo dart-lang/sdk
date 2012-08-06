@@ -123,6 +123,7 @@ class Unparser implements Visitor {
         sb.add('.');
       } else {
         visit(send.receiver);
+        if (send.selector.token.kind === KEYWORD_TOKEN) sb.add(' ');
       }
       visit(send.selector);
     } else {

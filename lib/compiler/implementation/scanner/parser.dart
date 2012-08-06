@@ -673,13 +673,19 @@ class Parser {
     listener.beginFunction(token);
     token = parseModifiers(token);
     if (getOrSet === token) token = token.next;
-    token = parseReturnTypeOpt(token);
-    if (getOrSet === token) token = token.next;
-    listener.beginFunctionName(token);
     if (optional('operator', token)) {
+      listener.handleNoType(token);
+      listener.beginFunctionName(token);
       token = parseOperatorName(token);
     } else {
-      token = parseIdentifier(token);
+      token = parseReturnTypeOpt(token);
+      if (getOrSet === token) token = token.next;
+      listener.beginFunctionName(token);
+      if (optional('operator', token)) {
+        token = parseOperatorName(token);
+      } else {
+        token = parseIdentifier(token);
+      }
     }
     token = parseQualifiedRestOpt(token);
     listener.endFunctionName(token);
