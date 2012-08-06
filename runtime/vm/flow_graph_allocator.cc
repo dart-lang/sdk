@@ -448,7 +448,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
     ConnectIncomingPhiMoves(block);
   }
 
-  const bool copied = builder_->parsed_function().copied_parameter_count() > 0;
+  const bool copied = builder_->copied_parameter_count() > 0;
 
   // Process incoming parameters.
   const intptr_t fixed_parameters_count =

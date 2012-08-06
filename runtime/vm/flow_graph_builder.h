@@ -50,7 +50,16 @@ class FlowGraphBuilder: public ValueObject {
     return current_ssa_temp_index_++;
   }
 
+  intptr_t copied_parameter_count() const { return copied_parameter_count_; }
+
  private:
+  intptr_t parameter_count() const {
+    return copied_parameter_count_ + non_copied_parameter_count_;
+  }
+  intptr_t variable_count() const {
+    return parameter_count() + stack_local_count_;
+  }
+
   void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
                          GrowableArray<intptr_t>* parent,
                          GrowableArray<BitVector*>* dominance_frontier);
@@ -60,20 +69,20 @@ class FlowGraphBuilder: public ValueObject {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
-  void Rename(intptr_t stack_local_count,
-              intptr_t fixed_parameter_count,
-              intptr_t copied_parameter_count);
+  void Rename();
   void RenameRecursive(BlockEntryInstr* block_entry,
-                       GrowableArray<Value*>* env,
-                       intptr_t var_count,
-                       intptr_t param_count);
+                       GrowableArray<Value*>* env);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                   const GrowableArray<BitVector*>& assigned_vars,
-                  const intptr_t var_count,
                   const GrowableArray<BitVector*>& dom_frontier);
 
   const ParsedFunction& parsed_function_;
+
+  const intptr_t copied_parameter_count_;
+  const intptr_t non_copied_parameter_count_;
+  const intptr_t stack_local_count_;  // Does not include any parameters.
+
   GrowableArray<BlockEntryInstr*> preorder_block_entries_;
   GrowableArray<BlockEntryInstr*> postorder_block_entries_;
   intptr_t context_level_;
