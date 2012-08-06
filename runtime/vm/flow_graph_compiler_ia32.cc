@@ -24,7 +24,8 @@ DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
 
 
-void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
+                                      intptr_t stub_ix) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -96,10 +97,12 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   }
   __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
-  compiler->AddCurrentDescriptor(PcDescriptors::kOther,
-                                 deopt_id_,
-                                 deopt_token_pos_,
-                                 try_index_);
+  const intptr_t deopt_info_index = stub_ix;
+  compiler->pc_descriptors_list()-> AddDeoptInfo(
+      compiler->assembler()->CodeSize(),
+      deopt_id_,
+      deopt_token_pos_,
+      deopt_info_index);
 #undef __
 }
 

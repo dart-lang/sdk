@@ -217,6 +217,7 @@ static bool CompileParsedFunctionHelper(
       const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
       code.set_is_optimized(optimized);
       graph_compiler.FinalizePcDescriptors(code);
+      graph_compiler.FinalizeDeoptInfo(code);
       graph_compiler.FinalizeStackmaps(code);
       graph_compiler.FinalizeVarDescriptors(code);
       graph_compiler.FinalizeExceptionHandlers(code);
@@ -322,10 +323,29 @@ static RawError* CompileFunctionHelper(const Function& function,
       }
       OS::Print("}\n");
       OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
-      OS::Print("pc\t\tkind\tid\ttry-ix\ttoken-index\n");
+      OS::Print("(pc\t\tkind\t\tid\ttok-ix\ttry/deopt-ix)\n");
       const PcDescriptors& descriptors =
           PcDescriptors::Handle(code.pc_descriptors());
-      OS::Print("%s}\n", descriptors.ToCString());
+      OS::Print("%s\n", descriptors.ToCString());
+      OS::Print("}\n");
+      const Array& deopt_info_array = Array::Handle(code.deopt_info_array());
+      if (deopt_info_array.Length() > 0) {
+        OS::Print("DeoptInfo: {\n");
+        for (intptr_t i = 0; i < deopt_info_array.Length(); i++) {
+          OS::Print("  %d: %s\n",
+              i, Object::Handle(deopt_info_array.At(i)).ToCString());
+        }
+        OS::Print("}\n");
+      }
+      const Array& object_table = Array::Handle(code.object_table());
+      if (object_table.Length() > 0) {
+        OS::Print("Object Table: {\n");
+        for (intptr_t i = 0; i < object_table.Length(); i++) {
+          OS::Print("  %d: %s\n", i,
+              Object::Handle(object_table.At(i)).ToCString());
+        }
+        OS::Print("}\n");
+      }
       OS::Print("Variable Descriptors for function '%s' {\n",
                 function_fullname);
       const LocalVarDescriptors& var_descriptors =
@@ -359,7 +379,8 @@ static RawError* CompileFunctionHelper(const Function& function,
       OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
       const ExceptionHandlers& handlers =
           ExceptionHandlers::Handle(code.exception_handlers());
-      OS::Print("%s}\n", handlers.ToCString());
+      OS::Print("%s\n", handlers.ToCString());
+      OS::Print("}\n");
     }
     isolate->set_long_jump_base(base);
     return Error::null();
@@ -489,6 +510,5 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
   UNREACHABLE();
   return Object::null();
 }
-
 
 }  // namespace dart

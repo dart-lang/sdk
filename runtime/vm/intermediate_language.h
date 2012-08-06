@@ -1185,7 +1185,8 @@ class CreateArrayComp : public Computation {
                   Value* element_type)
       : token_pos_(token_pos),
         try_index_(try_index),
-        elements_(elements) {
+        elements_(elements),
+        element_type_(element_type) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);

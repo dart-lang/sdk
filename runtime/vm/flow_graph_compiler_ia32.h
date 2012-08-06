@@ -43,6 +43,9 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list() const {
     return pc_descriptors_list_;
   }
+  const GrowableObjectArray& object_table() {
+    return object_table_;
+  }
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) {
     current_block_ = value;
@@ -184,6 +187,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
+  void FinalizeDeoptInfo(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
@@ -292,6 +296,7 @@ class FlowGraphCompiler : public ValueObject {
   StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
+  const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
   const bool is_ssa_;
   const bool is_dart_leaf_;

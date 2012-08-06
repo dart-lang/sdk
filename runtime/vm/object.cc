@@ -10,6 +10,7 @@
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
 #include "vm/datastream.h"
+#include "vm/deopt_instructions.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
@@ -6932,11 +6933,15 @@ const char* DeoptInfo::ToCString() const {
   if (Length() == 0) {
     return "No DeoptInfo";
   }
-  // First compute the buffer size required.
+  // Convert to DeoptInstr.
+  GrowableArray<DeoptInstr*> deopt_instrs(Length());
+  for (intptr_t i = 0; i < Length(); i++) {
+    deopt_instrs.Add(DeoptInstr::Create(Instruction(i), FromIndex(i)));
+  }
+  // Compute the buffer size required.
   intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
-    len += OS::SNPrint(NULL, 0, "[%d(%d):%d]",
-        Instruction(i), FromIndex(i), i);
+    len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
@@ -6944,11 +6949,9 @@ const char* DeoptInfo::ToCString() const {
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     index += OS::SNPrint((buffer + index),
-                         (len - index),
-                         "[%d(%d):%d]",
-                         Instruction(i),
-                         FromIndex(i),
-                         i);
+                       (len - index) + 1,
+                       "[%s]",
+                       deopt_instrs[i]->ToCString());
   }
   return buffer;
 }

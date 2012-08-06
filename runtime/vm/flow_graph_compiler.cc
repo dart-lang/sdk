@@ -8,6 +8,7 @@
 
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/deopt_instructions.h"
 #include "vm/il_printer.h"
 #include "vm/intrinsifier.h"
 #include "vm/locations.h"
@@ -28,6 +29,36 @@ DECLARE_FLAG(bool, report_usage_count);
 DECLARE_FLAG(bool, trace_functions);
 DECLARE_FLAG(int, optimization_counter_threshold);
 
+RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
+  if (deoptimization_env_ == NULL) return DeoptInfo::null();
+  const intptr_t fixed_parameter_count =
+      deoptimization_env_->fixed_parameter_count();
+  DeoptInfoBuilder builder(compiler->object_table(), fixed_parameter_count);
+
+  const Function& function = compiler->parsed_function().function();
+  intptr_t slot_ix = 0;
+  builder.AddReturnAddress(function, deopt_id_, slot_ix++);
+
+  // All locals between TOS and PC-marker.
+  const GrowableArray<Value*>& values = deoptimization_env_->values();
+  // const intptr_t local_slot_count = values.length() - fixed_parameter_count;
+  for (intptr_t i = values.length() - 1; i >= fixed_parameter_count; i--) {
+    builder.AddCopy(deoptimization_env_->LocationAt(i), *values[i], slot_ix++);
+  }
+
+  // PC marker, caller-fp, caller-pc.
+  builder.AddPcMarker(function, slot_ix++);
+  builder.AddCallerFp(slot_ix++);
+  builder.AddCallerPc(slot_ix++);
+  // Incoming arguments.
+  for (intptr_t i = fixed_parameter_count - 1; i >= 0; i--) {
+    builder.AddCopy(deoptimization_env_->LocationAt(i), *values[i], slot_ix++);
+  }
+
+  const DeoptInfo& deopt_info = DeoptInfo::Handle(builder.CreateDeoptInfo());
+  return deopt_info.raw();
+}
+
 
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
@@ -45,6 +76,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       stackmap_table_builder_(NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
+      object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),
       is_ssa_(is_ssa),
       is_dart_leaf_(is_leaf),
@@ -165,7 +197,7 @@ bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
 
 void FlowGraphCompiler::GenerateDeferredCode() {
   for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
-    deopt_stubs_[i]->GenerateCode(this);
+    deopt_stubs_[i]->GenerateCode(this, i);
   }
 }
 
@@ -229,6 +261,20 @@ void FlowGraphCompiler::FinalizePcDescriptors(const Code& code) {
       pc_descriptors_list_->FinalizePcDescriptors(code.EntryPoint()));
   descriptors.Verify(parsed_function_.function().is_optimizable());
   code.set_pc_descriptors(descriptors);
+}
+
+
+void FlowGraphCompiler::FinalizeDeoptInfo(const Code& code) {
+  const Array& array =
+      Array::Handle(Array::New(deopt_stubs_.length(), Heap::kOld));
+  DeoptInfo& info = DeoptInfo::Handle();
+  for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
+    info = deopt_stubs_[i]->CreateDeoptInfo(this);
+    array.SetAt(i, info);
+  }
+  code.set_deopt_info_array(array);
+  const Array& object_array = Array::Handle(Array::MakeArray(object_table_));
+  code.set_object_table(object_array);
 }
 
 
