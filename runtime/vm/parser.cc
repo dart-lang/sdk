@@ -709,7 +709,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     if (!parser.current_function().IsLocalFunction() ||
         ((instantiator != NULL) && instantiator->is_captured())) {
       parsed_function->set_instantiator(
-          new LoadLocalNode(node_sequence->token_pos(), *instantiator));
+          new LoadLocalNode(node_sequence->token_pos(), instantiator));
     }
   }
 
@@ -851,7 +851,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 
   // Receiver is local 0.
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  LoadLocalNode* load_receiver = new LoadLocalNode(TokenPos(), *receiver);
+  LoadLocalNode* load_receiver = new LoadLocalNode(TokenPos(), receiver);
   // TokenPos() returns the function's token position which points to the
   // name of the field;
   ASSERT(IsIdentifier());
@@ -899,9 +899,9 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   AddFormalParamsToScope(&params, current_block_->scope);
 
   LoadLocalNode* receiver =
-      new LoadLocalNode(TokenPos(), *current_block_->scope->VariableAt(0));
+      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(0));
   LoadLocalNode* value =
-      new LoadLocalNode(TokenPos(), *current_block_->scope->VariableAt(1));
+      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(1));
 
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(TokenPos(), receiver, field, value);
@@ -1326,10 +1326,9 @@ AstNode* Parser::ParseSuperOperator() {
       if (!IsSimpleLocalOrLiteralNode(index_expr)) {
         LocalVariable* temp =
             CreateTempConstVariable(operator_pos, "lix");
-        AstNode* save =
-            new StoreLocalNode(operator_pos, *temp, index_expr);
+        AstNode* save = new StoreLocalNode(operator_pos, temp, index_expr);
         current_block_->statements->Add(save);
-        index_expr = new LoadLocalNode(operator_pos, *temp);
+        index_expr = new LoadLocalNode(operator_pos, temp);
       }
     }
 
@@ -1512,7 +1511,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   ctor_name = String::Concat(ctor_name, ctor_suffix);
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
-  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Implicit construction phase parameter is second argument.
   AstNode* phase_parameter =
@@ -1563,7 +1562,7 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // 'this' parameter is the first argument to super class constructor.
-  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Second implicit parameter is the construction phase. We optimistically
   // assume that we can execute both the super initializer and the super
@@ -1624,7 +1623,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
              field_name.ToCString());
   }
   CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
-  AstNode* instance = new LoadLocalNode(field_pos, *receiver);
+  AstNode* instance = new LoadLocalNode(field_pos, receiver);
   return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
 }
 
@@ -1779,12 +1778,12 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // 'this' parameter is the first argument to constructor.
-  AstNode* implicit_argument = new LoadLocalNode(call_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(call_pos, receiver);
   arguments->Add(implicit_argument);
   // Construction phase parameter is second argument.
   LocalVariable* phase_param = LookupPhaseParameter();
   ASSERT(phase_param != NULL);
-  AstNode* phase_argument = new LoadLocalNode(call_pos, *phase_param);
+  AstNode* phase_argument = new LoadLocalNode(call_pos, phase_param);
   arguments->Add(phase_argument);
   ParseActualParameters(arguments, kAllowConst);
 
@@ -1839,7 +1838,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // to strore the initializer expressions in the respective instance fields.
   for (int i = 0; i < initializers.length(); i++) {
     const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), *receiver);
+    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
     AstNode* field_init =
         new StoreInstanceFieldNode(field->token_pos(),
                                    instance,
@@ -1927,7 +1926,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   OpenBlock();
   for (int i = 0; i < initializers.length(); i++) {
     const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), *receiver);
+    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
     AstNode* field_init =
         new StoreInstanceFieldNode(field->token_pos(),
                                    instance,
@@ -1950,7 +1949,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                    field_name.ToCString());
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
-        AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
+        AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
         LocalVariable* p =
             current_block_->scope->LookupVariable(*param.name, false);
         ASSERT(p != NULL);
@@ -1958,7 +1957,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         // list, nor can they be used in the constructor body.
         // Thus, make the parameter invisible.
         p->set_invisible(true);
-        AstNode* value = new LoadLocalNode(param.name_pos, *p);
+        AstNode* value = new LoadLocalNode(param.name_pos, p);
         AstNode* initializer = new StoreInstanceFieldNode(
             param.name_pos, instance, field, value);
         current_block_->statements->Add(initializer);
@@ -1973,7 +1972,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (init_statements->length() > 0) {
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), *phase_param);
+    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
     AstNode* phase_check = new BinaryOpNode(
         TokenPos(), Token::kBIT_AND, phase_value,
         new LiteralNode(TokenPos(),
@@ -2023,8 +2022,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       if (!IsSimpleLocalOrLiteralNode(arg)) {
         LocalVariable* temp =
             CreateTempConstVariable(arg->token_pos(), "sca");
-        AstNode* save_temp =
-            new StoreLocalNode(arg->token_pos(), *temp, arg);
+        AstNode* save_temp = new StoreLocalNode(arg->token_pos(), temp, arg);
         ctor_args->SetNodeAt(i, save_temp);
       }
     }
@@ -2042,7 +2040,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
     ArgumentListNode* super_call_args = new ArgumentListNode(TokenPos());
     // First argument is the receiver.
-    super_call_args->Add(new LoadLocalNode(TokenPos(), *receiver));
+    super_call_args->Add(new LoadLocalNode(TokenPos(), receiver));
     // Second argument is the construction phase argument.
     AstNode* phase_parameter =
         new LiteralNode(TokenPos(),
@@ -2058,10 +2056,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
         if (arg->IsLoadLocalNode()) {
           const LocalVariable& temp = arg->AsLoadLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), temp));
+          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
         } else if (arg->IsStoreLocalNode()) {
           const LocalVariable& temp = arg->AsStoreLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), temp));
+          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
         }
       }
     }
@@ -2091,7 +2089,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (ctor_block->length() > 0) {
     // Generate guard around the constructor body code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), *phase_param);
+    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
     AstNode* phase_check =
         new BinaryOpNode(TokenPos(), Token::kBIT_AND,
             phase_value,
@@ -4211,7 +4209,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   if (receiver == NULL) {
     ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
   }
-  return new LoadLocalNode(TokenPos(), *receiver);
+  return new LoadLocalNode(TokenPos(), receiver);
 }
 
 
@@ -4223,7 +4221,7 @@ AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
   LocalVariable* param = LookupTypeArgumentsParameter(current_block_->scope,
                                                       kTestOnly);
   ASSERT(param != NULL);
-  return new LoadLocalNode(TokenPos(), *param);
+  return new LoadLocalNode(TokenPos(), param);
 }
 
 
@@ -4252,14 +4250,14 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
     AstNode* expr = ParseExpr(is_const, kConsumeCascades);
-    initialization = new StoreLocalNode(assign_pos, *variable, expr);
+    initialization = new StoreLocalNode(assign_pos, variable, expr);
   } else if (is_final || is_const) {
     ErrorMsg(ident_pos,
     "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
     AstNode* null_expr = new LiteralNode(ident_pos, Instance::ZoneHandle());
-    initialization = new StoreLocalNode(ident_pos, *variable, null_expr);
+    initialization = new StoreLocalNode(ident_pos, variable, null_expr);
   }
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
@@ -4535,7 +4533,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     return closure;
   } else {
     AstNode* initialization =
-        new StoreLocalNode(ident_pos, *function_variable, closure);
+        new StoreLocalNode(ident_pos, function_variable, closure);
     return initialization;
   }
 }
@@ -4918,7 +4916,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       const intptr_t expr_pos = TokenPos();
       AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
-                                                    *switch_expr_value);
+                                                    switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
                                                     Token::kEQ,
                                                     expr,
@@ -5009,7 +5007,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
                         Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
-      new StoreLocalNode(expr_pos, *temp_variable, switch_expr);
+      new StoreLocalNode(expr_pos, temp_variable, switch_expr);
   current_block_->statements->Add(save_switch_expr);
 
   // Parse case clauses
@@ -5154,13 +5152,13 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   AstNode* get_iterator = new InstanceCallNode(
       collection_pos, collection_expr, iterator_method_name, no_args);
   AstNode* iterator_init =
-      new StoreLocalNode(collection_pos, *iterator_var, get_iterator);
+      new StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
 
   // Generate while loop condition.
   AstNode* iterator_has_next = new InstanceCallNode(
       collection_pos,
-      new LoadLocalNode(collection_pos, *iterator_var),
+      new LoadLocalNode(collection_pos, iterator_var),
       String::ZoneHandle(Symbols::HasNext()),
       no_args);
 
@@ -5173,7 +5171,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
 
   AstNode* iterator_next = new InstanceCallNode(
       collection_pos,
-      new LoadLocalNode(collection_pos, *iterator_var),
+      new LoadLocalNode(collection_pos, iterator_var),
       String::ZoneHandle(Symbols::Next()),
       no_args);
 
@@ -5183,7 +5181,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // The for loop declares a new variable. Add it to the loop body scope.
     current_block_->scope->AddVariable(loop_var);
     loop_var_assignment =
-        new StoreLocalNode(loop_var_pos, *loop_var, iterator_next);
+        new StoreLocalNode(loop_var_pos, loop_var, iterator_next);
   } else {
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
@@ -5594,8 +5592,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     ASSERT(catch_excp_var != NULL);
     current_block_->statements->Add(
         new StoreLocalNode(catch_pos,
-                           *var,
-                           new LoadLocalNode(catch_pos, *catch_excp_var)));
+                           var,
+                           new LoadLocalNode(catch_pos, catch_excp_var)));
     if (stack_trace_param.var != NULL) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
@@ -5604,8 +5602,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ASSERT(catch_trace_var != NULL);
       current_block_->statements->Add(
           new StoreLocalNode(catch_pos,
-                             *trace,
-                             new LoadLocalNode(catch_pos, *catch_trace_var)));
+                             trace,
+                             new LoadLocalNode(catch_pos, catch_trace_var)));
     }
 
     ParseStatementSequence();  // Parse the catch handler code.
@@ -5623,7 +5621,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         CaptureInstantiator();
       }
       TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
-      AstNode* exception_var = new LoadLocalNode(catch_pos, *catch_excp_var);
+      AstNode* exception_var = new LoadLocalNode(catch_pos, catch_excp_var);
       if (!exception_type->type().IsInstantiated()) {
         EnsureExpressionTemp();
       }
@@ -5659,7 +5657,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       finally_block = ParseFinallyBlock();
       InlinedFinallyNode* node = new InlinedFinallyNode(finally_pos,
                                                         finally_block,
-                                                        *context_var);
+                                                        context_var);
       AddFinallyBlockToNode(node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
@@ -5684,21 +5682,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     // the next catch handler can deal with it.
     catch_handler_list->Add(
         new ThrowNode(handler_pos,
-                      new LoadLocalNode(handler_pos, *catch_excp_var),
-                      new LoadLocalNode(handler_pos, *catch_trace_var)));
+                      new LoadLocalNode(handler_pos, catch_excp_var),
+                      new LoadLocalNode(handler_pos, catch_trace_var)));
   }
   CatchClauseNode* catch_block = new CatchClauseNode(handler_pos,
                                                      catch_handler_list,
-                                                     *context_var,
-                                                     *catch_excp_var,
-                                                     *catch_trace_var);
+                                                     context_var,
+                                                     catch_excp_var,
+                                                     catch_trace_var);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node =
       new TryCatchNode(try_pos, try_block, end_catch_label,
-                       *context_var, catch_block, finally_block);
+                       context_var, catch_block, finally_block);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
@@ -5885,8 +5883,8 @@ AstNode* Parser::ParseStatement() {
           String::ZoneHandle(Symbols::StacktraceVar()));
       ASSERT(trace_var != NULL);
       statement = new ThrowNode(statement_pos,
-                                new LoadLocalNode(statement_pos, *excp_var),
-                                new LoadLocalNode(statement_pos, *trace_var));
+                                new LoadLocalNode(statement_pos, excp_var),
+                                new LoadLocalNode(statement_pos, trace_var));
     }
   } else {
     statement = ParseExpr(kAllowConst, kConsumeCascades);
@@ -6278,12 +6276,13 @@ AstNode* Parser::ParseExprList() {
 }
 
 
-const LocalVariable& Parser::GetIncrementTempLocal() {
+const LocalVariable* Parser::GetIncrementTempLocal() {
   if (expression_temp_ == NULL) {
     expression_temp_ = ParsedFunction::CreateExpressionTempVar(
         current_function().token_pos());
+    ASSERT(expression_temp_ != NULL);
   }
-  return *expression_temp_;
+  return expression_temp_;
 }
 
 
@@ -6402,24 +6401,24 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "lia");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->array());
+          new StoreLocalNode(token_pos, temp, left_node->array());
       left_node =
           new LoadIndexedNode(token_pos, save, left_node->index_expr());
       right_node = new LoadIndexedNode(token_pos,
-                                       new LoadLocalNode(token_pos, *temp),
+                                       new LoadLocalNode(token_pos, temp),
                                        right_node->index_expr());
     }
     if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "lix");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->index_expr());
+          new StoreLocalNode(token_pos, temp, left_node->index_expr());
       left_node = new LoadIndexedNode(token_pos,
                                       left_node->array(),
                                       save);
       right_node = new LoadIndexedNode(token_pos,
                                        right_node->array(),
-                                       new LoadLocalNode(token_pos, *temp));
+                                       new LoadLocalNode(token_pos, temp));
     }
     *expr = right_node;
     return left_node;
@@ -6433,12 +6432,12 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "igr");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->receiver());
+          new StoreLocalNode(token_pos, temp, left_node->receiver());
       left_node = new InstanceGetterNode(token_pos,
                                          save,
                                          left_node->field_name());
       right_node = new InstanceGetterNode(token_pos,
-                                          new LoadLocalNode(token_pos, *temp),
+                                          new LoadLocalNode(token_pos, temp),
                                           right_node->field_name());
     }
     *expr = right_node;
@@ -6466,12 +6465,12 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   LocalVariable* cascade_receiver_var =
       CreateTempConstVariable(cascade_pos, "casc");
   StoreLocalNode* save_cascade =
-      new StoreLocalNode(cascade_pos, *cascade_receiver_var, expr);
+      new StoreLocalNode(cascade_pos, cascade_receiver_var, expr);
   current_block_->statements->Add(save_cascade);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
-        new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+        new LoadLocalNode(cascade_pos, cascade_receiver_var);
     if (Token::IsIdentifier(LookaheadToken(1))) {
       // Replace .. with . for ParseSelectors().
       token_kind_ = Token::kPERIOD;
@@ -6508,7 +6507,7 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
     current_block_->statements->Add(expr);
   }
   // Result of the cascade is the receiver.
-  return new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+  return new LoadLocalNode(cascade_pos, cascade_receiver_var);
 }
 
 
@@ -7066,7 +7065,7 @@ AstNode* Parser::ParsePostfixExpr() {
     ConsumeToken();
     // Not prefix.
     AstNode* left_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
-    const LocalVariable& temp = GetIncrementTempLocal();
+    const LocalVariable* temp = GetIncrementTempLocal();
     AstNode* save =
         new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
     Token::Kind binary_op =
@@ -7380,7 +7379,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
     if (node != NULL) {
-      *node = new LoadLocalNode(ident_pos, *local);
+      *node = new LoadLocalNode(ident_pos, local);
     }
     return true;
   }
@@ -7884,7 +7883,7 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
                                  type_arguments,
                                  constructor,
                                  arguments,
-                                 *allocated);
+                                 allocated);
 }
 
 
@@ -8584,7 +8583,7 @@ AstNode* Parser::ParsePrimary() {
     if (local == NULL) {
       ErrorMsg("receiver 'this' is not in scope");
     }
-    primary = new LoadLocalNode(TokenPos(), *local);
+    primary = new LoadLocalNode(TokenPos(), local);
     ConsumeToken();
   } else if (CurrentToken() == Token::kINTEGER) {
     const Integer& literal = Integer::ZoneHandle(CurrentIntegerLiteral());

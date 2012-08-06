@@ -1359,7 +1359,6 @@ class Function : public Object {
   bool HasInstantiatedSignature() const;
 
   RawClass* owner() const { return raw_ptr()->owner_; }
-  void set_owner(const Class& value) const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -1632,6 +1631,7 @@ class Function : public Object {
   void set_is_const(bool is_const) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
+  void set_owner(const Class& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   static RawFunction* New();
@@ -1676,9 +1676,6 @@ class Field : public Object {
   void set_value(const Instance& value) const;
 
   RawClass* owner() const { return raw_ptr()->owner_; }
-  void set_owner(const Class& value) const {
-    StorePointer(&raw_ptr()->owner_, value.raw());
-  }
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -1723,6 +1720,9 @@ class Field : public Object {
   }
   void set_is_const(bool value) const {
     raw_ptr()->is_const_ = value;
+  }
+  void set_owner(const Class& value) const {
+    StorePointer(&raw_ptr()->owner_, value.raw());
   }
   void set_token_pos(intptr_t token_pos) const {
     raw_ptr()->token_pos_ = token_pos;

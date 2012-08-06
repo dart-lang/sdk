@@ -300,7 +300,7 @@ AstNode* LoadLocalNode::MakeAssignmentNode(AstNode* rhs) {
   if (HasPseudo()) {
     return NULL;
   }
-  return new StoreLocalNode(token_pos(), local(), rhs);
+  return new StoreLocalNode(token_pos(), &local(), rhs);
 }
 
 

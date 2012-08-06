@@ -96,7 +96,7 @@ class AstNode : public ZoneAllocated {
       : token_pos_(token_pos),
         ic_data_(ICData::ZoneHandle()),
         info_(NULL) {
-    ASSERT(token_pos >= 0);
+    ASSERT(token_pos_ >= 0);
   }
 
   intptr_t token_pos() const { return token_pos_; }
@@ -442,7 +442,7 @@ class ReturnNode : public AstNode {
   ReturnNode(intptr_t token_pos,
              AstNode* value)
       : AstNode(token_pos), value_(value), inlined_finally_list_() {
-    ASSERT(value != NULL);
+    ASSERT(value_ != NULL);
   }
 
   AstNode* value() const { return value_; }
@@ -901,17 +901,15 @@ class JumpNode : public AstNode {
 
 class LoadLocalNode : public AstNode {
  public:
-  LoadLocalNode(intptr_t token_pos, const LocalVariable& local)
-      : AstNode(token_pos), local_(local), pseudo_(NULL) {
-    ASSERT(&local_ != NULL);
+  LoadLocalNode(intptr_t token_pos, const LocalVariable* local)
+      : AstNode(token_pos), local_(*local), pseudo_(NULL) {
+    ASSERT(local != NULL);
   }
   // The pseudo node does not produce input but must be visited before
   // completing local load.
-  LoadLocalNode(intptr_t token_pos,
-                const LocalVariable& local,
-                AstNode* pseudo)
-      : AstNode(token_pos), local_(local), pseudo_(pseudo) {
-    ASSERT(&local_ != NULL);
+  LoadLocalNode(intptr_t token_pos, const LocalVariable* local, AstNode* pseudo)
+      : AstNode(token_pos), local_(*local), pseudo_(pseudo) {
+    ASSERT(local != NULL);
   }
 
   const LocalVariable& local() const { return local_; }
@@ -938,11 +936,9 @@ class LoadLocalNode : public AstNode {
 
 class StoreLocalNode : public AstNode {
  public:
-  StoreLocalNode(intptr_t token_pos,
-                 const LocalVariable& local,
-                 AstNode* value)
-      : AstNode(token_pos), local_(local), value_(value) {
-    ASSERT(&local_ != NULL);
+  StoreLocalNode(intptr_t token_pos, const LocalVariable* local, AstNode* value)
+      : AstNode(token_pos),  local_(*local), value_(value) {
+    ASSERT(local != NULL);
     ASSERT(value_ != NULL);
   }
 
@@ -1082,8 +1078,8 @@ class LoadIndexedNode : public AstNode {
  public:
   LoadIndexedNode(intptr_t token_pos, AstNode* array, AstNode* index)
       : AstNode(token_pos), array_(array), index_expr_(index) {
-    ASSERT(array != NULL);
-    ASSERT(index != NULL);
+    ASSERT(array_ != NULL);
+    ASSERT(index_expr_ != NULL);
   }
 
   AstNode* array() const { return array_; }
@@ -1110,9 +1106,9 @@ class StoreIndexedNode : public AstNode {
   StoreIndexedNode(intptr_t token_pos,
                    AstNode* array, AstNode* index, AstNode* value)
     : AstNode(token_pos), array_(array), index_expr_(index), value_(value) {
-    ASSERT(array != NULL);
-    ASSERT(index != NULL);
-    ASSERT(value != NULL);
+    ASSERT(array_ != NULL);
+    ASSERT(index_expr_ != NULL);
+    ASSERT(value_ != NULL);
   }
 
   AstNode* array() const { return array_; }
@@ -1290,7 +1286,7 @@ class StaticSetterNode : public AstNode {
         value_(value) {
     ASSERT(cls_.IsZoneHandle());
     ASSERT(field_name_.IsZoneHandle());
-    ASSERT(value != NULL);
+    ASSERT(value_ != NULL);
   }
 
   const Class& cls() const { return cls_; }
@@ -1406,15 +1402,16 @@ class ConstructorCallNode : public AstNode {
                       const AbstractTypeArguments& type_arguments,
                       const Function& constructor,
                       ArgumentListNode* arguments,
-                      const LocalVariable& allocated_object_var)
+                      const LocalVariable* allocated_object_var)
       : AstNode(token_pos),
         type_arguments_(type_arguments),
         constructor_(constructor),
         arguments_(arguments),
-        allocated_object_var_(allocated_object_var) {
+        allocated_object_var_(*allocated_object_var) {
     ASSERT(type_arguments_.IsZoneHandle());
     ASSERT(constructor_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
+    ASSERT(allocated_object_var != NULL);
   }
 
   const AbstractTypeArguments& type_arguments() const {
@@ -1495,16 +1492,19 @@ class CatchClauseNode : public AstNode {
 
   CatchClauseNode(intptr_t token_pos,
                   SequenceNode* catch_block,
-                  const LocalVariable& context_var,
-                  const LocalVariable& exception_var,
-                  const LocalVariable& stacktrace_var)
+                  const LocalVariable* context_var,
+                  const LocalVariable* exception_var,
+                  const LocalVariable* stacktrace_var)
       : AstNode(token_pos),
         try_index_(kInvalidTryIndex),
         catch_block_(catch_block),
-        context_var_(context_var),
-        exception_var_(exception_var),
-        stacktrace_var_(stacktrace_var) {
-    ASSERT(catch_block != NULL);
+        context_var_(*context_var),
+        exception_var_(*exception_var),
+        stacktrace_var_(*stacktrace_var) {
+    ASSERT(catch_block_ != NULL);
+    ASSERT(context_var != NULL);
+    ASSERT(exception_var != NULL);
+    ASSERT(stacktrace_var != NULL);
   }
 
   int try_index() const {
@@ -1539,18 +1539,19 @@ class TryCatchNode : public AstNode {
   TryCatchNode(intptr_t token_pos,
                SequenceNode* try_block,
                SourceLabel* end_catch_label,
-               const LocalVariable& context_var,
+               const LocalVariable* context_var,
                CatchClauseNode* catch_block,
                SequenceNode* finally_block)
       : AstNode(token_pos),
         try_block_(try_block),
         end_catch_label_(end_catch_label),
-        context_var_(context_var),
+        context_var_(*context_var),
         catch_block_(catch_block),
         finally_block_(finally_block) {
-    ASSERT(try_block != NULL);
-    ASSERT(catch_block != NULL || finally_block != NULL);
-    ASSERT(end_catch_label != NULL);
+    ASSERT(try_block_ != NULL);
+    ASSERT(context_var != NULL);
+    ASSERT(catch_block_ != NULL || finally_block_ != NULL);
+    ASSERT(end_catch_label_ != NULL);
   }
 
   SequenceNode* try_block() const { return try_block_; }
@@ -1586,7 +1587,7 @@ class ThrowNode : public AstNode {
  public:
   ThrowNode(intptr_t token_pos, AstNode* exception, AstNode* stacktrace)
       : AstNode(token_pos), exception_(exception), stacktrace_(stacktrace) {
-    ASSERT(exception != NULL);
+    ASSERT(exception_ != NULL);
   }
 
   AstNode* exception() const { return exception_; }
@@ -1600,6 +1601,7 @@ class ThrowNode : public AstNode {
   }
 
   DECLARE_COMMON_NODE_FUNCTIONS(ThrowNode);
+
  private:
   AstNode* exception_;
   AstNode* stacktrace_;
@@ -1612,11 +1614,12 @@ class InlinedFinallyNode : public AstNode {
  public:
   InlinedFinallyNode(intptr_t token_pos,
                      AstNode* finally_block,
-                     const LocalVariable& context_var)
+                     const LocalVariable* context_var)
       : AstNode(token_pos),
         finally_block_(finally_block),
-        context_var_(context_var) {
-    ASSERT(finally_block != NULL);
+        context_var_(*context_var) {
+    ASSERT(finally_block_ != NULL);
+    ASSERT(context_var != NULL);
   }
 
   AstNode* finally_block() const { return finally_block_; }
@@ -1627,6 +1630,7 @@ class InlinedFinallyNode : public AstNode {
   }
 
   DECLARE_COMMON_NODE_FUNCTIONS(InlinedFinallyNode);
+
  private:
   AstNode* finally_block_;
   const LocalVariable& context_var_;

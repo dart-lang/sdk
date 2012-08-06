@@ -516,7 +516,7 @@ class Parser : ValueObject {
   void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
 
-  const LocalVariable& GetIncrementTempLocal();
+  const LocalVariable* GetIncrementTempLocal();
   void EnsureExpressionTemp();
   AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
   AstNode* InsertClosureCallNodes(AstNode* condition);
