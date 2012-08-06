@@ -1750,12 +1750,16 @@ void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, false);  // Value not used.
-  InstanceSetterComp* setter =
-      new InstanceSetterComp(node->token_pos(),
-                             owner()->try_index(),
-                             node->field_name(),
-                             arguments);
-  ReturnComputation(setter);
+  const String& name =
+      String::ZoneHandle(Field::SetterSymbol(node->field_name()));
+  InstanceCallComp* call = new InstanceCallComp(node->token_pos(),
+                                                owner()->try_index(),
+                                                name,
+                                                Token::kSET,
+                                                arguments,
+                                                Array::ZoneHandle(),
+                                                1);  // Checked argument count.
+  ReturnComputation(call);
 }
 
 
@@ -1763,10 +1767,15 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(2);
   BuildInstanceSetterArguments(node, arguments, true);  // Value used.
-  Do(new InstanceSetterComp(node->token_pos(),
-                            owner()->try_index(),
-                            node->field_name(),
-                            arguments));
+  const String& name =
+      String::ZoneHandle(Field::SetterSymbol(node->field_name()));
+  Do(new InstanceCallComp(node->token_pos(),
+                          owner()->try_index(),
+                          name,
+                          Token::kSET,
+                          arguments,
+                          Array::ZoneHandle(),
+                          1));  // Checked argument count.
   ReturnComputation(
        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }

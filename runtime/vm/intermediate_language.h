@@ -75,7 +75,6 @@ class LocalVariable;
   M(NativeCall, NativeCallComp)                                                \
   M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
-  M(InstanceSetter, InstanceSetterComp)                                        \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -532,6 +531,7 @@ class InstanceCallComp : public Computation {
     ASSERT(Token::IsBinaryToken(token_kind) ||
            Token::IsUnaryToken(token_kind) ||
            token_kind == Token::kGET ||
+           token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
   }
 
@@ -883,7 +883,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
-                         InstanceSetterComp* original)  // Maybe NULL.
+                         InstanceCallComp* original)  // Maybe NULL.
       : field_(field), original_(original) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
@@ -898,7 +898,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
-  const InstanceSetterComp* original() const { return original_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -906,7 +906,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
  private:
   const Field& field_;
-  const InstanceSetterComp* original_;  // For optimizations.
+  const InstanceCallComp* original_;  // For optimizations.
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -1038,43 +1038,6 @@ class StoreIndexedComp : public TemplateComputation<3> {
   ObjectKind receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
-};
-
-
-// TODO(fschneider): Make this an instance call.
-class InstanceSetterComp : public Computation {
- public:
-  InstanceSetterComp(intptr_t token_pos,
-                     intptr_t try_index,
-                     const String& field_name,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        field_name_(field_name),
-        arguments_(arguments) { }
-
-  DECLARE_CALL_COMPUTATION(InstanceSetter)
-
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
-  const String& field_name() const { return field_name_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
- private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
-  const String& field_name_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-
-  DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
 };
 
 

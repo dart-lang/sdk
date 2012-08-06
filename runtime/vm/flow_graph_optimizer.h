@@ -21,7 +21,6 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallComp* comp, BindInstr* instr);
   virtual void VisitInstanceCall(InstanceCallComp* comp, BindInstr* instr);
-  virtual void VisitInstanceSetter(InstanceSetterComp* comp, BindInstr* instr);
   virtual void VisitLoadIndexed(LoadIndexedComp* comp, BindInstr* instr);
   virtual void VisitStoreIndexed(StoreIndexedComp* comp, BindInstr* instr);
   virtual void VisitRelationalOp(RelationalOpComp* comp, BindInstr* instr);
@@ -41,7 +40,7 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   bool TryInlineInstanceGetter(BindInstr* instr,
                                InstanceCallComp* comp);
-  bool TryInlineInstanceSetter(BindInstr* instr, InstanceSetterComp* comp);
+  bool TryInlineInstanceSetter(BindInstr* instr, InstanceCallComp* comp);
 
   bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
 

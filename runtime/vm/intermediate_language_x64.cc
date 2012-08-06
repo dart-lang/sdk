@@ -963,63 +963,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* InstanceSetterComp::MakeLocationSummary() const {
-  return MakeCallSummary();
-}
-
-
-void InstanceSetterComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Label* deopt = NULL;
-  if (compiler->is_optimizing()) {
-    deopt = compiler->AddDeoptStub(cid(),
-                                   token_pos(),
-                                   try_index(),
-                                   kDeoptInstanceSetter);
-  }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    // No index-setter on Smi's.
-    ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmi);
-    // Load receiver into RAX.
-    const intptr_t kNumArguments = 2;
-    __ movq(RAX, Address(RSP, (kNumArguments - 1) * kWordSize));
-    __ testq(RAX, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);
-    __ LoadClassId(RDI, RAX);
-    compiler->EmitTestAndCall(*ic_data(),
-                              RDI,  // Class id register.
-                              kNumArguments,
-                              Array::Handle(),  // No named arguments.
-                              deopt,  // Deoptimize target.
-                              NULL,   // Fallthrough when done.
-                              cid(),
-                              token_pos(),
-                              try_index());
-
-  } else if (compiler->is_optimizing()) {
-    // Get some IC data then optimize again.
-    __ jmp(deopt);
-  } else {
-    // Unoptimized code.
-    const String& function_name =
-        String::ZoneHandle(Field::SetterSymbol(field_name()));
-
-    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                   cid(),
-                                   token_pos(),
-                                   try_index());
-    const intptr_t kArgumentCount = 2;
-    const intptr_t kCheckedArgumentCount = 1;
-    compiler->GenerateInstanceCall(cid(),
-                                   token_pos(),
-                                   try_index(),
-                                   function_name,
-                                   kArgumentCount,
-                                   Array::ZoneHandle(),
-                                   kCheckedArgumentCount);
-  }
-}
-
-
 LocationSummary* LoadInstanceFieldComp::MakeLocationSummary() const {
   // TODO(fschneider): For this instruction the input register may be
   // reused for the result (but is not required to) because the input

@@ -799,13 +799,6 @@ RawAbstractType* StoreIndexedComp::StaticType() const {
 }
 
 
-RawAbstractType* InstanceSetterComp::StaticType() const {
-  // This computation does not have a result value.
-  UNREACHABLE();
-  return AbstractType::null();
-}
-
-
 RawAbstractType* LoadInstanceFieldComp::StaticType() const {
   if (FLAG_enable_type_checks) {
     return field().type();

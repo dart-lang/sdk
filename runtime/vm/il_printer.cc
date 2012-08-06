@@ -202,15 +202,6 @@ void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
 }
 
 
-void InstanceSetterComp::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", field_name().ToCString());
-  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
-  }
-}
-
-
 void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
   left()->PrintTo(f);
