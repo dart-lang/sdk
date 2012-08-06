@@ -61,12 +61,13 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(R13, Immediate(heap->EndAddress()));
   __ cmpq(RCX, Address(R13, 0));
   __ j(ABOVE_EQUAL, &fall_through);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
 
@@ -76,7 +77,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
     __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
@@ -94,7 +95,7 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RAX: new object start as a tagged pointer.
   // RCX: new object end address.
   // Store the type argument field.
-  __ movl(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
+  __ movq(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObjectNoBarrier(RAX,
                               FieldAddress(RAX, Array::type_arguments_offset()),
                               RDI);
