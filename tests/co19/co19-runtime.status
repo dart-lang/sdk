@@ -331,7 +331,6 @@ LibTest/core/Futures/wait_A01_t02: Fail
 LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
-LibTest/isolate/SendPort/send_A02_t03: Skip # Issue 4201
 
 
 # These test cases use the deprecated Isolate API and should be updated to
