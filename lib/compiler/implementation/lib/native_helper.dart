@@ -10,6 +10,15 @@ String typeNameInChrome(obj) {
   return name;
 }
 
+String typeNameInSafari(obj) {
+  String name = constructorNameFallback(obj);
+  // Safari is very similar to Chrome.
+  if (name == 'Window') return 'DOMWindow';
+  if (name == 'CanvasPixelArray') return 'Uint8ClampedArray';
+  if (name == 'WebKitMutationObserver') return 'MutationObserver';
+  return name;
+}
+
 String typeNameInOpera(obj) {
   String name = constructorNameFallback(obj);
   if (name == 'Window') return 'DOMWindow';
@@ -84,6 +93,8 @@ Function getFunctionForTypeNameOf() {
     return typeNameInIE;
   } else if (userAgent.contains('Opera')) {
     return typeNameInOpera;
+  } else if (userAgent.contains('Safari')) {
+    return typeNameInSafari;
   } else {
     return constructorNameFallback;
   }

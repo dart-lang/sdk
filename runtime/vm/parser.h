@@ -308,13 +308,21 @@ class Parser : ValueObject {
   void CheckConstFieldsInitialized(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
-           GrowableArray<FieldInitExpression>* initializers);
+           GrowableArray<FieldInitExpression>* initializers,
+           GrowableArray<Field*>* initialized_fields);
+  void CheckDuplicateFieldInit(intptr_t init_pos,
+                               GrowableArray<Field*>* initialized_fields,
+                               Field* field);
   void GenerateSuperConstructorCall(const Class& cls,
                                     LocalVariable* receiver);
   AstNode* ParseSuperInitializer(const Class& cls, LocalVariable* receiver);
-  AstNode* ParseInitializer(const Class& cls, LocalVariable* receiver);
+  AstNode* ParseInitializer(const Class& cls,
+                            LocalVariable* receiver,
+                            GrowableArray<Field*>* initialized_fields);
   void ParseConstructorRedirection(const Class& cls, LocalVariable* receiver);
-  void ParseInitializers(const Class& cls, LocalVariable* receiver);
+  void ParseInitializers(const Class& cls,
+                         LocalVariable* receiver,
+                         GrowableArray<Field*>* initialized_fields);
   String& ParseNativeDeclaration();
   // TODO(srdjan): Return TypeArguments instead of Array?
   RawArray* ParseInterfaceList();
@@ -357,8 +365,11 @@ class Parser : ValueObject {
 
   LocalVariable* LookupPhaseParameter();
   LocalVariable* LookupReceiver(LocalScope* from_scope, bool test_only);
-  void CaptureReceiver();
+  LocalVariable* LookupTypeArgumentsParameter(LocalScope* from_scope,
+                                              bool test_only);
+  void CaptureInstantiator();
   AstNode* LoadReceiver(intptr_t token_pos);
+  AstNode* LoadTypeArgumentsParameter(intptr_t token_pos);
   AstNode* LoadFieldIfUnresolved(AstNode* node);
   AstNode* LoadClosure(PrimaryNode* primary);
   AstNode* CallGetter(intptr_t token_pos, AstNode* object, const String& name);
@@ -456,7 +467,8 @@ class Parser : ValueObject {
 
   LocalVariable* LookupLocalScope(const String& ident);
   void CheckInstanceFieldAccess(intptr_t field_pos, const String& field_name);
-  RawClass* TypeParametersScopeClass();
+  RawClass* TypeParametersScopeClass() const;
+  const Type* ReceiverType(intptr_t type_pos) const;
   bool IsInstantiatorRequired() const;
   bool IsDefinedInLexicalScope(const String& ident);
   bool ResolveIdentInLocalScope(intptr_t ident_pos,

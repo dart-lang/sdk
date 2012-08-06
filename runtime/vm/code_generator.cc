@@ -874,17 +874,6 @@ static RawFunction* InlineCacheMissHandler(
   const Function& target_function =
       Function::Handle(target_code.function());
   ASSERT(!target_function.IsNull());
-  if (receiver.IsNull()) {
-    // Null dispatch is slow (e.g., (null).toCString()). The only
-    // fast execution with null receiver is the "==" operator.
-    // Special handling so that we do not pollute the inline cache with null
-    // classes.
-    if (FLAG_trace_ic) {
-      OS::Print("InlineCacheMissHandler Null receiver target %s\n",
-          target_function.ToCString());
-    }
-    return target_function.raw();
-  }
   DartFrameIterator iterator;
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);

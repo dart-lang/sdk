@@ -186,21 +186,9 @@ uword BaseZone::AllocateLargeSegment(intptr_t size) {
 
 char* BaseZone::MakeCopyOfString(const char* str) {
   intptr_t len = strlen(str) + 1;  // '\0'-terminated.
-  char* copy = reinterpret_cast<char*>(Allocate(len));
+  char* copy = Alloc<char>(len);
   strncpy(copy, str, len);
   return copy;
-}
-
-
-uword BaseZone::Reallocate(uword data, intptr_t old_size, intptr_t new_size) {
-  ASSERT(new_size >= 0);
-  uword new_data = Allocate(new_size);
-  if (data != 0) {
-    memmove(reinterpret_cast<void*>(new_data),
-            reinterpret_cast<void*>(data),
-            Utils::Minimum(old_size, new_size));
-  }
-  return new_data;
 }
 
 
@@ -250,7 +238,7 @@ char* Zone::PrintToString(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = reinterpret_cast<char*>(Allocate(len + 1));
+  char* buffer = Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);

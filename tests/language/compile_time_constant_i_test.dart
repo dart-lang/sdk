@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  final x = 4;
+  final x;
   const A(this.x);
   const A.redirect(x) : this(x + 1);
   const A.optional([this.x = 5]);

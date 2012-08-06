@@ -20,8 +20,7 @@ DEFINE_NATIVE_ENTRY(StringBase_createFromCodePoints, 1) {
   // Unbox the array and determine the maximum element width.
   bool is_one_byte_string = true;
   bool is_two_byte_string = true;
-  uint32_t* temp = reinterpret_cast<uint32_t*>(
-      zone->Allocate(len * sizeof(uint32_t)));  // NOLINT
+  uint32_t* temp = zone->Alloc<uint32_t>(len);
   Smi& element = Smi::Handle();
   for (intptr_t i = 0; i < len; i++) {
     const Object& index_object = Object::Handle(a.At(i));

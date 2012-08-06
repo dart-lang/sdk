@@ -25,18 +25,21 @@ class Uri {
 
   Uri.fromString(String uri) : this._fromMatch(_splitRe.firstMatch(uri));
 
-  Uri._fromMatch(Match m) : this(_emptyIfNull(m[_COMPONENT_SCHEME]),
-                                 _emptyIfNull(m[_COMPONENT_USER_INFO]),
-                                 _emptyIfNull(m[_COMPONENT_DOMAIN]),
-                                 _parseIntOrZero(m[_COMPONENT_PORT]),
-                                 _emptyIfNull(m[_COMPONENT_PATH]),
-                                 _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
-                                 _emptyIfNull(m[_COMPONENT_FRAGMENT]));
+  Uri._fromMatch(Match m) :
+    this.fromComponents(_emptyIfNull(m[_COMPONENT_SCHEME]),
+                        _emptyIfNull(m[_COMPONENT_USER_INFO]),
+                        _emptyIfNull(m[_COMPONENT_DOMAIN]),
+                        _parseIntOrZero(m[_COMPONENT_PORT]),
+                        _emptyIfNull(m[_COMPONENT_PATH]),
+                        _emptyIfNull(m[_COMPONENT_QUERY_DATA]),
+                        _emptyIfNull(m[_COMPONENT_FRAGMENT]));
 
-  const Uri([String this.scheme = "", String this.userInfo ="",
-             String this.domain = "", int this.port = 0,
-             String this.path = "", String this.query = "",
-             String this.fragment = ""]);
+  const Uri.fromComponents([String this.scheme = "", String this.userInfo ="",
+                            String this.domain = "", int this.port = 0,
+                            String this.path = "", String this.query = "",
+                            String this.fragment = ""]);
+
+  Uri(String uri) : this.fromString(uri);
 
   static String _emptyIfNull(String val) => val != null ? val : '';
 
@@ -159,8 +162,9 @@ class Uri {
       }
       targetScheme = this.scheme;
     }
-    return new Uri(targetScheme, targetUserInfo, targetDomain, targetPort,
-                   targetPath, targetQuery, reference.fragment);
+    return new Uri.fromComponents(targetScheme, targetUserInfo, targetDomain,
+                                  targetPort, targetPath, targetQuery,
+                                  reference.fragment);
   }
 
   bool hasAuthority() {

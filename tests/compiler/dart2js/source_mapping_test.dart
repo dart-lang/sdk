@@ -11,7 +11,7 @@
 
 List compileAll(SourceFile sourceFile) {
   MockCompiler compiler = new MockCompiler();
-  Uri uri = new Uri(sourceFile.filename);
+  Uri uri = new Uri.fromComponents(sourceFile.filename);
   compiler.sourceFiles[uri.toString()] = sourceFile;
   compiler.runCompiler(uri);
   return compiler.backend.emitter.sourceMapBuilder.entries;

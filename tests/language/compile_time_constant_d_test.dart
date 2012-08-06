@@ -3,13 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class A {
-  final x = 3;
+  final x;
   final y;
   final z;
   final t;
 
-  const A(this.z, tt) : y = 499, t = tt;
-  const A.named(z, this.t) : y = 400 + z, this.z = z;
+  const A(this.z, tt) : y = 499, t = tt, x = 3;
+  const A.named(z, this.t) : y = 400 + z, this.z = z, x = 3;
   const A.named2(t, z, y, x) : x = t, y = z, z = y, t = x;
 
   toString() => "A $x $y $z $t";

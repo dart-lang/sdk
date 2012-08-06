@@ -281,9 +281,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(barInterface.isDeclaration, "Interface type is declaration");
   var barInterfaceTypeArguments = barInterface.typeArguments();
   Expect.isNotNull(barInterfaceTypeArguments, "Type arguments are missing");
-  // TODO(johnniwinther): Ensure type arguments on supertypes. Expected result
-  // should have been 1:
-  Expect.equals(0, barInterfaceTypeArguments.length,
+  Expect.equals(1, barInterfaceTypeArguments.length,
                 "Type arguments is empty");
 
   Expect.throws(() => bazClass.typeArguments(),

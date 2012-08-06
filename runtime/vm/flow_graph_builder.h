@@ -193,9 +193,10 @@ class EffectGraphVisitor : public AstNodeVisitor {
                                Value** array,
                                Value** index,
                                Value** value);
-  void BuildInstanceSetterValues(InstanceSetterNode* node,
-                                 Value** receiver,
-                                 Value** value);
+  void BuildInstanceSetterArguments(
+      InstanceSetterNode* node,
+      ZoneGrowableArray<PushArgumentInstr*>* arguments,
+      bool result_is_needed);
 
   virtual void BuildTypeTest(ComparisonNode* node);
   virtual void BuildTypeCast(ComparisonNode* node);
@@ -220,6 +221,8 @@ class EffectGraphVisitor : public AstNodeVisitor {
   void BuildLoadContext(const LocalVariable& variable);
 
   void BuildThrowNode(ThrowNode* node);
+
+  void BuildStaticSetter(StaticSetterNode* node, bool result_is_needed);
 
   ClosureCallComp* BuildClosureCall(ClosureCallNode* node);
 
@@ -272,6 +275,7 @@ class ValueGraphVisitor : public EffectGraphVisitor {
   virtual void VisitInstanceSetterNode(InstanceSetterNode* node);
   virtual void VisitThrowNode(ThrowNode* node);
   virtual void VisitClosureCallNode(ClosureCallNode* node);
+  virtual void VisitStaticSetterNode(StaticSetterNode* node);
 
   Value* value() const { return value_; }
 

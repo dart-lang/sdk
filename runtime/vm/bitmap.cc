@@ -21,8 +21,8 @@ void BitmapBuilder::Set(intptr_t bit_offset, bool value) {
   while (!InRange(bit_offset)) {
     intptr_t new_size = size_in_bytes_ + kIncrementSizeInBytes;
     ASSERT(new_size > 0);
-    uint8_t* new_bit_list = reinterpret_cast<uint8_t*>(
-        Isolate::Current()->current_zone()->Allocate(new_size));
+    uint8_t* new_bit_list =
+        Isolate::Current()->current_zone()->Alloc<uint8_t>(new_size);
     ASSERT(new_bit_list != NULL);
     ASSERT(bit_list_ != NULL);
     uint8_t* old_bit_list = bit_list_;

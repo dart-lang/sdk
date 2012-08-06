@@ -806,6 +806,8 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
     element_type = MaybeTypedArrayElementType(self._interface)
     if element_type:
       implements.append('List<%s>' % self._DartType(element_type))
+
+    if self._HasJavaScriptIndexingBehaviour():
       implements.append('JavaScriptIndexingBehavior')
 
     template_file = 'impl_%s.darttemplate' % self._html_interface_name
@@ -998,6 +1000,13 @@ class HtmlDart2JSClassGenerator(Dart2JSInterfaceGenerator):
   def _HasCustomImplementation(self, member_name):
     member_name = '%s.%s' % (self._html_interface_name, member_name)
     return member_name in _js_custom_members
+
+  def _HasJavaScriptIndexingBehaviour(self):
+    """Returns True if the native object has an indexer and length property."""
+    (element_type, requires_indexer) = ListImplementationInfo(
+        self._interface, self._database)
+    if element_type and requires_indexer: return True
+    return False
 
 # ------------------------------------------------------------------------------
 

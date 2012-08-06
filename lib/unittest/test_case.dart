@@ -16,16 +16,25 @@ class TestCase {
   final String description;
 
   /** The setup function to call before the test, if any. */
-  final _setup;
+  Function _setUp;
+
+  Function get setUp() => _setUp;
+  set setUp(Function value) => _setUp = value;
 
   /** The teardown function to call after the test, if any. */
-  final _teardown;
+  Function _tearDown;
+
+  Function get tearDown() => _tearDown;
+  set tearDown(Function value) => _tearDown = value;
 
   /** The body of the test case. */
   TestFunction test;
 
-  /** Total number of callbacks to wait for before the test completes. */
-  int callbacks;
+  /**
+   * Remaining number of callbacks functions that must reach a 'done' state
+   * to wait for before the test completes.
+   */
+  int callbackFunctionsOutstanding;
 
   /** Error or failure message. */
   String message = '';
@@ -47,10 +56,13 @@ class TestCase {
 
   bool enabled = true;
 
-  TestCase(this.id, this.description, this.test, this.callbacks)
+  bool _doneTeardown;
+
+  TestCase(this.id, this.description, this.test,
+           this.callbackFunctionsOutstanding)
   : currentGroup = _currentGroup,
-    _setup = _testSetup,
-    _teardown = _testTeardown;
+    _setUp = _testSetup,
+    _tearDown = _testTeardown;
 
   bool get isComplete() => !enabled || result != null;
 
@@ -58,37 +70,41 @@ class TestCase {
     if (enabled) {
       result = stackTrace = null;
       message = '';
-
-      if (_setup != null) {
-        _setup();
+      _doneTeardown = false;
+      if (_setUp != null) {
+        _setUp();
       }
-      try {
-        _config.onTestStart(this);
-        test();
-      } finally {
-        if (_teardown != null) {
-          _teardown();
-        }
-      }
+      _config.onTestStart(this);
+      test();
     }
+  }
+
+  void _complete() {
+    if (!_doneTeardown) {
+      if (_tearDown != null) {
+        _tearDown();
+      }
+      _doneTeardown = true;
+    }
+    _config.onTestResult(this);
   }
 
   void pass() {
     result = _PASS;
-    _config.onTestResult(this);
+    _complete();
   }
 
   void fail(String messageText, String stack) {
     result = _FAIL;
     message = messageText;
     stackTrace = stack;
-    _config.onTestResult(this);
+    _complete();
   }
 
   void error(String messageText, String stack) {
     result = _ERROR;
     message = messageText;
     stackTrace = stack;
-    _config.onTestResult(this);
+    _complete();
   }
 }

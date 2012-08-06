@@ -47,9 +47,7 @@ class BitVector: public ZoneAllocated {
   explicit BitVector(intptr_t length)
       : length_(length),
         data_length_(SizeFor(length)),
-        data_(reinterpret_cast<uword*>(
-            Isolate::Current()->current_zone()->Allocate(
-                data_length_ * sizeof(uword)))) {
+        data_(Isolate::Current()->current_zone()->Alloc<uword>(data_length_)) {
     ASSERT(length > 0);
     Clear();
   }

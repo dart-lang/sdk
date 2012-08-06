@@ -753,11 +753,11 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   List<TypeVariableMirror> typeVariables() {
     if (_typeVariables == null) {
       _typeVariables = <TypeVariableMirror>[];
-      _class.typeParameters.forEach((_,parameter) {
+      _class.ensureResolved(system.compiler);
+      for (TypeVariableType typeVariable in _class.typeVariables) {
         _typeVariables.add(
-            new Dart2JsTypeVariableMirror(system,
-                parameter.computeType(system.compiler)));
-      });
+            new Dart2JsTypeVariableMirror(system, typeVariable));
+      }
     }
     return _typeVariables;
   }

@@ -106,6 +106,7 @@ word OS::ActivationFrameAlignment() {
 
 
 word OS::PreferredCodeAlignment() {
+  ASSERT(16 <= OS::kMaxPreferredCodeAlignment);
   return 16;
 }
 

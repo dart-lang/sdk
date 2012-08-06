@@ -29,7 +29,8 @@ final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
   "core": const LibraryInfo(
       "lib/compiler/implementation/lib/core.dart"),
   "coreimpl": const LibraryInfo(
-      "lib/compiler/implementation/lib/coreimpl.dart"),
+      "lib/compiler/implementation/lib/coreimpl.dart",
+      "lib/compiler/implementation/lib/coreimpl.dartp"),
   "_js_helper": const LibraryInfo(
       "lib/compiler/implementation/lib/js_helper.dart", isInternal: true),
   "_interceptors": const LibraryInfo(

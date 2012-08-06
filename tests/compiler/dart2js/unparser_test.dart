@@ -49,7 +49,7 @@ testDart2Dart(String src, [void continuation(String s)]) {
  */
 testDart2DartWithLibrary(
     String srcMain, String srcLibrary, [void continuation(String s)]) {
-  fileUri(path) => new Uri(scheme: 'file', path: path);
+  fileUri(path) => new Uri.fromComponents(scheme: 'file', path: path);
 
   final scriptUri = fileUri('script.dart');
   final libUri = fileUri('mylib.dart');
@@ -104,7 +104,7 @@ testForLoop() {
 }
 
 testEmptyList() {
-  testUnparse('var x= [];');
+  testUnparse('var x=[];');
 }
 
 testClosure() {
@@ -429,6 +429,7 @@ main() {
   testConflictLibraryClassRename();
   testNoConflictSendsRename();
   testConflictSendsRename();
-  testDefaultClassWithArgs();
+  // Disabled with revert of https://chromiumcodereview.appspot.com/10824062/
+  // testDefaultClassWithArgs();
   testClassExtendsWithArgs();
 }

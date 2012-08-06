@@ -66,9 +66,18 @@ const char* Location::Name() const {
 
 void Location::PrintTo(BufferFormatter* f) const {
   if (kind() == kStackSlot) {
-    f->Print("[fp%+d]", stack_index());
+    f->Print("S%+d", stack_index());
   } else {
     f->Print("%s", Name());
+  }
+}
+
+
+void Location::Print() const {
+  if (kind() == kStackSlot) {
+    OS::Print("S%+d", stack_index());
+  } else {
+    OS::Print("%s", Name());
   }
 }
 

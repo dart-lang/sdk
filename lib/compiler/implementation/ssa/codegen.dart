@@ -2575,13 +2575,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Link<Type> arguments = interfaceType.arguments;
       buffer.add(' && ');
       checkObject(node.typeInfoCall, '===');
-      cls.typeParameters.forEach((name, _) {
+      for (TypeVariableType typeVariable in cls.typeVariables) {
         buffer.add(' && ');
         beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
         use(node.typeInfoCall, JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(".${name.slowToString()} === '${arguments.head}'");
+        // TODO(johnniwinther): Retrieve the type name properly and not through
+        // [toString]. Note: Two cases below [typeVariable] and
+        // [arguments.head].
+        buffer.add(
+            ".${typeVariable} === '${arguments.head}'");
         endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-      });
+      }
     }
     if (node.nullOk) {
       expectedPrecedence = oldPrecedence;

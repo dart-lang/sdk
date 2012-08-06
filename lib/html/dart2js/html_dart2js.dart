@@ -4410,7 +4410,7 @@ class _DOMSettableTokenListImpl extends _DOMTokenListImpl implements DOMSettable
   String value;
 }
 
-class _DOMStringListImpl implements DOMStringList native "*DOMStringList" {
+class _DOMStringListImpl implements DOMStringList, JavaScriptIndexingBehavior native "*DOMStringList" {
 
   final int length;
 
@@ -6049,6 +6049,12 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
         new Completer<CSSStyleDeclaration>());
   }
 
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  // TODO(vsm): Implement noSuchMethod or similar for dart2js.
+
+
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
@@ -6183,6 +6189,9 @@ class _ElementImpl extends _NodeImpl implements Element native "*Element" {
   void webkitRequestPointerLock() native;
 
 }
+
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -6745,7 +6754,7 @@ class _FileExceptionImpl implements FileException native "*FileException" {
   String toString() native;
 }
 
-class _FileListImpl implements FileList native "*FileList" {
+class _FileListImpl implements FileList, JavaScriptIndexingBehavior native "*FileList" {
 
   final int length;
 
@@ -7307,7 +7316,7 @@ class _HTMLAllCollectionImpl implements HTMLAllCollection native "*HTMLAllCollec
   _NodeListImpl tags(String name) native;
 }
 
-class _HTMLCollectionImpl implements HTMLCollection native "*HTMLCollection" {
+class _HTMLCollectionImpl implements HTMLCollection, JavaScriptIndexingBehavior native "*HTMLCollection" {
 
   final int length;
 
@@ -8743,7 +8752,7 @@ class _MediaKeyEventImpl extends _EventImpl implements MediaKeyEvent native "*Me
   final int systemCode;
 }
 
-class _MediaListImpl implements MediaList native "*MediaList" {
+class _MediaListImpl implements MediaList, JavaScriptIndexingBehavior native "*MediaList" {
 
   final int length;
 
@@ -9224,7 +9233,7 @@ class _MutationRecordImpl implements MutationRecord native "*MutationRecord" {
   final String type;
 }
 
-class _NamedNodeMapImpl implements NamedNodeMap native "*NamedNodeMap" {
+class _NamedNodeMapImpl implements NamedNodeMap, JavaScriptIndexingBehavior native "*NamedNodeMap" {
 
   final int length;
 
@@ -9734,7 +9743,7 @@ class _NodeListWrapper extends _ListWrapper<Node> implements NodeList {
     new _NodeListWrapper(_list.getRange(start, rangeLength));
 }
 
-class _NodeListImpl implements NodeList native "*NodeList" {
+class _NodeListImpl implements NodeList, JavaScriptIndexingBehavior native "*NodeList" {
   _NodeImpl _parent;
 
   // -- start List<Node> mixins.
@@ -14366,7 +14375,7 @@ class _StyleSheetImpl implements StyleSheet native "*StyleSheet" {
   final String type;
 }
 
-class _StyleSheetListImpl implements StyleSheetList native "*StyleSheetList" {
+class _StyleSheetListImpl implements StyleSheetList, JavaScriptIndexingBehavior native "*StyleSheetList" {
 
   final int length;
 
@@ -14848,7 +14857,7 @@ class _TouchEventImpl extends _UIEventImpl implements TouchEvent native "*TouchE
   void initTouchEvent(_TouchListImpl touches, _TouchListImpl targetTouches, _TouchListImpl changedTouches, String type, _WindowImpl view, int screenX, int screenY, int clientX, int clientY, bool ctrlKey, bool altKey, bool shiftKey, bool metaKey) native;
 }
 
-class _TouchListImpl implements TouchList native "*TouchList" {
+class _TouchListImpl implements TouchList, JavaScriptIndexingBehavior native "*TouchList" {
 
   final int length;
 
@@ -15315,26 +15324,8 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
 
   _Uint8ClampedArrayImpl subarray(int start, [int end]) native;
 }
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
 
 class _UnknownElementImpl extends _ElementImpl implements UnknownElement native "*HTMLUnknownElement" {
-
-
-  // Hooks to support custom WebComponents.
-  var xtag;
-
-  noSuchMethod(String name, List args) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodException(this, name, args);
-    } else {
-      return dynamicUnknownElementDispatcher(this, name, args);
-    }
-  }
 }
 
 class _ValidityStateImpl implements ValidityState native "*ValidityState" {

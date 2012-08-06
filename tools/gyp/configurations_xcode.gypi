@@ -3,6 +3,9 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables': {
+    'dart_debug_optimization_level%': '2',
+  },
   'target_defaults': {
     'configurations': {
       'Dart_Base': {
@@ -67,7 +70,7 @@
 
       'Dart_Debug': {
         'xcode_settings': {
-          'GCC_OPTIMIZATION_LEVEL': '2',
+          'GCC_OPTIMIZATION_LEVEL': '<(dart_debug_optimization_level)',
         },
       },
 

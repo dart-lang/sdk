@@ -106,8 +106,7 @@ void FUNCTION_NAME(StackFrame_validateFrame)(Dart_NativeArguments args) {
       ASSERT(!lib.IsNull());
       const char* lib_name = String::Handle(lib.url()).ToCString();
       intptr_t length = OS::SNPrint(NULL, 0, "%s_%s", lib_name, expected_name);
-      char* full_name = reinterpret_cast<char*>(
-          isolate->current_zone()->Allocate(length + 1));
+      char* full_name = isolate->current_zone()->Alloc<char>(length + 1);
       ASSERT(full_name != NULL);
       OS::SNPrint(full_name, (length + 1), "%s_%s", lib_name, expected_name);
       if (strcmp(full_name, name) != 0) {

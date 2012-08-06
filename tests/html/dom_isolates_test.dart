@@ -53,10 +53,10 @@ main() {
   });
 
   test('Null as target window', () {
-    expectThrow(() => spawnDomIsolate(null, 'isolateMain'));
+    expect(() => spawnDomIsolate(null, 'isolateMain'), throws);
   });
 
   test('Not window as target window', () {
-    expectThrow(() => spawnDomIsolate(document, 'isolateMain'));
+    expect(() => spawnDomIsolate(document, 'isolateMain'), throws);
   });
 }

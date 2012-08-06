@@ -308,16 +308,16 @@ class LiteralNode : public AstNode {
  public:
   LiteralNode(intptr_t token_pos, const Instance& literal)
       : AstNode(token_pos), literal_(literal) {
-    ASSERT(literal.IsZoneHandle());
-    ASSERT(literal.IsSmi() || literal.IsOld());
+    ASSERT(literal_.IsZoneHandle());
+    ASSERT(literal_.IsSmi() || literal_.IsOld());
 #if defined(DEBUG)
-    if (literal.IsString()) {
-      ASSERT(String::Cast(literal).IsSymbol());
+    if (literal_.IsString()) {
+      ASSERT(String::Cast(literal_).IsSymbol());
     }
 #endif  // defined(DEBUG)
-    ASSERT(literal.IsNull() ||
-           Class::Handle(literal.clazz()).is_finalized() ||
-           Class::Handle(literal.clazz()).is_prefinalized());
+    ASSERT(literal_.IsNull() ||
+           Class::Handle(literal_.clazz()).is_finalized() ||
+           Class::Handle(literal_.clazz()).is_prefinalized());
   }
 
   const Instance& literal() const { return literal_; }
@@ -343,9 +343,9 @@ class TypeNode : public AstNode {
  public:
   TypeNode(intptr_t token_pos, const AbstractType& type)
       : AstNode(token_pos), type_(type) {
-    ASSERT(type.IsZoneHandle());
-    ASSERT(!type.IsNull());
-    ASSERT(type.IsFinalized());
+    ASSERT(type_.IsZoneHandle());
+    ASSERT(!type_.IsNull());
+    ASSERT(type_.IsFinalized());
   }
 
   const AbstractType& type() const { return type_; }
@@ -404,12 +404,12 @@ class ClosureNode : public AstNode {
         function_(function),
         receiver_(receiver),
         scope_(scope) {
-    ASSERT(function.IsZoneHandle());
-    ASSERT((function.IsNonImplicitClosureFunction() &&
+    ASSERT(function_.IsZoneHandle());
+    ASSERT((function_.IsNonImplicitClosureFunction() &&
             (receiver_ == NULL) && (scope_ != NULL)) ||
-           (function.IsImplicitInstanceClosureFunction() &&
+           (function_.IsImplicitInstanceClosureFunction() &&
             (receiver_ != NULL) && (scope_ == NULL)) ||
-           (function.IsImplicitStaticClosureFunction() &&
+           (function_.IsImplicitStaticClosureFunction() &&
             (receiver_ == NULL) && (scope_ == NULL)));
   }
 
@@ -442,7 +442,7 @@ class PrimaryNode : public AstNode {
  public:
   PrimaryNode(intptr_t token_pos, const Object& primary)
       : AstNode(token_pos), primary_(primary) {
-    ASSERT(primary.IsZoneHandle());
+    ASSERT(primary_.IsZoneHandle());
   }
 
   const Object& primary() const { return primary_; }
@@ -929,13 +929,17 @@ class JumpNode : public AstNode {
 class LoadLocalNode : public AstNode {
  public:
   LoadLocalNode(intptr_t token_pos, const LocalVariable& local)
-      : AstNode(token_pos), local_(local), pseudo_(NULL) { }
+      : AstNode(token_pos), local_(local), pseudo_(NULL) {
+    ASSERT(&local_ != NULL);
+  }
   // The pseudo node does not produce input but must be visited before
   // completing local load.
   LoadLocalNode(intptr_t token_pos,
                 const LocalVariable& local,
                 AstNode* pseudo)
-      : AstNode(token_pos), local_(local), pseudo_(pseudo) {}
+      : AstNode(token_pos), local_(local), pseudo_(pseudo) {
+    ASSERT(&local_ != NULL);
+  }
 
   const LocalVariable& local() const { return local_; }
   AstNode* pseudo() const { return pseudo_; }  // Can be NULL.
@@ -965,6 +969,7 @@ class StoreLocalNode : public AstNode {
                  const LocalVariable& local,
                  AstNode* value)
       : AstNode(token_pos), local_(local), value_(value) {
+    ASSERT(&local_ != NULL);
     ASSERT(value_ != NULL);
   }
 
@@ -993,7 +998,7 @@ class LoadInstanceFieldNode : public AstNode {
                         const Field& field)
       : AstNode(token_pos), instance_(instance), field_(field) {
     ASSERT(instance_ != NULL);
-    ASSERT(field.IsZoneHandle());
+    ASSERT(field_.IsZoneHandle());
   }
 
   AstNode* instance() const { return instance_; }
@@ -1024,7 +1029,7 @@ class StoreInstanceFieldNode : public AstNode {
         field_(field),
         value_(value) {
     ASSERT(instance_ != NULL);
-    ASSERT(field.IsZoneHandle());
+    ASSERT(field_.IsZoneHandle());
     ASSERT(value_ != NULL);
   }
 
@@ -1052,7 +1057,7 @@ class LoadStaticFieldNode : public AstNode {
  public:
   LoadStaticFieldNode(intptr_t token_pos, const Field& field)
       : AstNode(token_pos), field_(field) {
-    ASSERT(field.IsZoneHandle());
+    ASSERT(field_.IsZoneHandle());
   }
 
   const Field& field() const { return field_; }
@@ -1079,7 +1084,7 @@ class StoreStaticFieldNode : public AstNode {
  public:
   StoreStaticFieldNode(intptr_t token_pos, const Field& field, AstNode* value)
       : AstNode(token_pos), field_(field), value_(value) {
-    ASSERT(field.IsZoneHandle());
+    ASSERT(field_.IsZoneHandle());
     ASSERT(value_ != NULL);
   }
 
@@ -1342,7 +1347,7 @@ class StaticCallNode : public AstNode {
       : AstNode(token_pos),
         function_(function),
         arguments_(arguments) {
-    ASSERT(function.IsZoneHandle());
+    ASSERT(function_.IsZoneHandle());
     ASSERT(arguments_ != NULL);
   }
 

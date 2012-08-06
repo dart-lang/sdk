@@ -55,38 +55,34 @@ interface TestSuite {
 bool Contains(element, collection) => collection.indexOf(element) >= 0;
 
 
-class CCTestListerIsolate extends Isolate {
-  CCTestListerIsolate() : super.heavy();
-
-  void main() {
-    port.receive((String runnerPath, SendPort replyTo) {
-      var p = Process.start(runnerPath, ["--list"]);
-      StringInputStream stdoutStream = new StringInputStream(p.stdout);
-      List<String> tests = new List<String>();
-      stdoutStream.onLine = () {
-        String line = stdoutStream.readLine();
-        while (line != null) {
-          tests.add(line);
-          line = stdoutStream.readLine();
-        }
-      };
-      p.onError = (error) {
+void ccTestLister() {
+  port.receive((String runnerPath, SendPort replyTo) {
+    var p = Process.start(runnerPath, ["--list"]);
+    StringInputStream stdoutStream = new StringInputStream(p.stdout);
+    List<String> tests = new List<String>();
+    stdoutStream.onLine = () {
+      String line = stdoutStream.readLine();
+      while (line != null) {
+        tests.add(line);
+        line = stdoutStream.readLine();
+      }
+    };
+    p.onError = (error) {
+      print("Failed to list tests: $runnerPath --list");
+      replyTo.send("");
+    };
+    p.onExit = (code) {
+      if (code < 0) {
         print("Failed to list tests: $runnerPath --list");
         replyTo.send("");
-      };
-      p.onExit = (code) {
-        if (code < 0) {
-          print("Failed to list tests: $runnerPath --list");
-          replyTo.send("");
-        }
-        for (String test in tests) {
-          replyTo.send(test);
-        }
-        replyTo.send("");
-      };
-      port.close();
-    });
-  }
+      }
+      for (String test in tests) {
+        replyTo.send(test);
+      }
+      replyTo.send("");
+    };
+    port.close();
+  });
 }
 
 
@@ -161,10 +157,9 @@ class CCTestSuite implements TestSuite {
       filesRead++;
       if (filesRead == statusFilePaths.length) {
         receiveTestName = new ReceivePort();
-        new CCTestListerIsolate().spawn().then((port) {
-            port.send(runnerPath, receiveTestName.toSendPort());
-            receiveTestName.receive(testNameHandler);
-        });
+        var port = spawnFunction(ccTestLister);
+        port.send(runnerPath, receiveTestName.toSendPort());
+        receiveTestName.receive(testNameHandler);
       }
     }
 

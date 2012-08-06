@@ -2219,14 +2219,14 @@ UNIT_TEST_CASE(LocalZoneMemory) {
     // Start a new scope and allocate some memory.
     Dart_EnterScope();
     for (int i = 0; i < 100; i++) {
-      Api::Allocate(isolate, 16);
+      Dart_ScopeAllocate(16);
     }
     EXPECT_EQ(1600, state->ZoneSizeInBytes());
     // Start another scope and allocate some more memory.
     {
       Dart_EnterScope();
       for (int i = 0; i < 100; i++) {
-        Api::Allocate(isolate, 16);
+        Dart_ScopeAllocate(16);
       }
       EXPECT_EQ(3200, state->ZoneSizeInBytes());
       {
@@ -2234,7 +2234,7 @@ UNIT_TEST_CASE(LocalZoneMemory) {
         {
           Dart_EnterScope();
           for (int i = 0; i < 200; i++) {
-            Api::Allocate(isolate, 16);
+            Dart_ScopeAllocate(16);
           }
           EXPECT_EQ(6400, state->ZoneSizeInBytes());
           Dart_ExitScope();
@@ -3745,6 +3745,7 @@ TEST_CASE(ClosureFunction) {
       "}\n";
   Dart_Handle result;
   Dart_Handle owner;
+  Dart_Handle defining_function;
   DARTSCOPE_NOCHECKS(Isolate::Current());
 
   // Create a test library and Load up a test script in it.
@@ -3764,9 +3765,10 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  owner = Dart_FunctionEnclosingClassOrLibrary(result);
+  owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
-  EXPECT(Dart_IdentityEquals(owner, lib));
+  defining_function = Dart_LookupFunction(lib, Dart_NewString("getClosure"));
+  EXPECT(Dart_IdentityEquals(owner, defining_function));
   int64_t fixed_param_count = -999;
   int64_t opt_param_count = -999;
   result = Dart_FunctionParameterCounts(result,
@@ -3789,9 +3791,11 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  owner = Dart_FunctionEnclosingClassOrLibrary(result);
+  owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
-  EXPECT(Dart_IdentityEquals(owner, cls));
+  defining_function = Dart_LookupFunction(cls,
+                                          Dart_NewString("getInstanceClosure"));
+  EXPECT(Dart_IdentityEquals(owner, defining_function));
   // -999: We want to distinguish between a non-answer and a wrong answer, and
   // -1 has been a previous wrong answer
   fixed_param_count = -999;
@@ -3815,9 +3819,11 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  owner = Dart_FunctionEnclosingClassOrLibrary(result);
+  owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
-  EXPECT(Dart_IdentityEquals(owner, cls));
+  defining_function =
+      Dart_LookupFunction(cls, Dart_NewString("getInstanceClosureWithArgs"));
+  EXPECT(Dart_IdentityEquals(owner, defining_function));
   // -999: We want to distinguish between a non-answer and a wrong answer, and
   // -1 has been a previous wrong answer
   fixed_param_count = -999;
@@ -3838,9 +3844,11 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  owner = Dart_FunctionEnclosingClassOrLibrary(result);
+  owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
-  EXPECT(Dart_IdentityEquals(owner, cls));
+  defining_function = Dart_LookupFunction(cls,
+                                          Dart_NewString("getStaticClosure"));
+  EXPECT(Dart_IdentityEquals(owner, defining_function));
   // -999: We want to distinguish between a non-answer and a wrong answer, and
   // -1 has been a previous wrong answer
   fixed_param_count = -999;
@@ -3865,9 +3873,11 @@ TEST_CASE(ClosureFunction) {
   result = Dart_ClosureFunction(retobj);
   EXPECT_VALID(result);
   EXPECT(Dart_IsFunction(result));
-  owner = Dart_FunctionEnclosingClassOrLibrary(result);
+  owner = Dart_FunctionOwner(result);
   EXPECT_VALID(owner);
-  EXPECT(Dart_IdentityEquals(owner, cls));
+  defining_function =
+      Dart_LookupFunction(cls, Dart_NewString("getStaticClosureWithArgs"));
+  EXPECT(Dart_IdentityEquals(owner, defining_function));
   // -999: We want to distinguish between a non-answer and a wrong answer, and
   // -1 has been a previous wrong answer
   fixed_param_count = -999;
@@ -3963,9 +3973,9 @@ TEST_CASE(ThrowException) {
   const char* kScriptChars =
       "class ThrowException {\n"
       "  ThrowException(int i) : fld1 = i {}\n"
-      "  int method1(int i) native \"ThrowException_native\";"
-      "  int method2() {\n"
-      "     try { method1(10); } catch(var a) { return 5; } return 10;\n"
+      "  int thrower(int i) native \"ThrowException_native\";"
+      "  int test() {\n"
+      "     try { thrower(10); } catch(var a) { return 5; } return 10;\n"
       "  }\n"
       "  int fld1;\n"
       "}\n"
@@ -3994,10 +4004,10 @@ TEST_CASE(ThrowException) {
   result = Dart_ThrowException(retobj);
   EXPECT(Dart_IsError(result));
 
-  // Now invoke method2 which invokes a natve method where it is
-  // ok to throw an exception, check the result which would indicate
-  // if an exception was thrown or not.
-  result = Dart_Invoke(retobj, Dart_NewString("method2"), 0, NULL);
+  // Now invoke 'test' which indirectly invokes a natve method where
+  // it is ok to throw an exception, check the result which would
+  // indicate if an exception was thrown or not.
+  result = Dart_Invoke(retobj, Dart_NewString("test"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   int64_t value = 0;
@@ -4194,8 +4204,8 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("a 0 0 static", buffer.buf());
-  EXPECT(Dart_IsLibrary(Dart_FunctionEnclosingClassOrLibrary(func)));
-  Dart_Handle owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  EXPECT(Dart_IsLibrary(Dart_FunctionOwner(func)));
+  Dart_Handle owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4205,7 +4215,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_b 0 0 static", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4215,7 +4225,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("c 0 0 static getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4225,7 +4235,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("d= 1 0 static setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4235,7 +4245,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_e 0 0 static getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4245,7 +4255,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_f= 1 0 static setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, lib));
 
@@ -4255,7 +4265,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("MyClass 0 0 constructor", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4265,7 +4275,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("MyClass.named 0 0 constructor", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4275,7 +4285,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_PrivateClass 0 0 constructor", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, private_cls));
 
@@ -4286,7 +4296,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_PrivateClass.named 0 0 constructor", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, private_cls));
 
@@ -4296,7 +4306,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("a 0 0", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4306,7 +4316,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_b 0 0", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4316,7 +4326,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("c 0 0 getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4326,7 +4336,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("d= 1 0 setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4336,7 +4346,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_e 0 0 getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4346,7 +4356,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_f= 1 0 setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4356,7 +4366,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("g 0 0 static", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4366,7 +4376,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_h 0 0 static", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4376,7 +4386,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("i 0 0 static getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4386,7 +4396,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("j= 1 0 static setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4396,7 +4406,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_k 0 0 static getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4406,7 +4416,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_l= 1 0 static setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4416,7 +4426,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("m 0 0 abstract", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4426,7 +4436,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_n 0 0 abstract", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4436,7 +4446,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("o 0 0 abstract getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4446,7 +4456,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("p= 1 0 abstract setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4456,7 +4466,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_q 0 0 abstract getter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4466,7 +4476,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("_r= 1 0 abstract setter", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4476,7 +4486,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("s 1 2", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4486,7 +4496,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("t 0 3", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -4496,7 +4506,7 @@ TEST_CASE(FunctionReflection) {
   EXPECT(Dart_IsFunction(func));
   BuildFunctionDescription(&buffer, func);
   EXPECT_STREQ("== 1 0", buffer.buf());
-  owner = Dart_FunctionEnclosingClassOrLibrary(func);
+  owner = Dart_FunctionOwner(func);
   EXPECT_VALID(owner);
   EXPECT(Dart_IdentityEquals(owner, cls));
 
@@ -5875,7 +5885,7 @@ void NewNativePort_send321(Dart_Port dest_port_id,
 UNIT_TEST_CASE(NewNativePort) {
   // Create a port with a bogus handler.
   Dart_Port error_port = Dart_NewNativePort("Foo", NULL, true);
-  EXPECT_EQ(kIllegalPort, error_port);
+  EXPECT_EQ(ILLEGAL_PORT, error_port);
 
   // Create the port w/o a current isolate, just to make sure that works.
   Dart_Port port_id1 =
@@ -5936,26 +5946,22 @@ static bool RunLoopTestCallback(const char* script_name,
   const char* kScriptChars =
       "#import('builtin');\n"
       "#import('dart:isolate');\n"
-      "class MyIsolate extends Isolate {\n"
-      "  MyIsolate() : super() { }\n"
-      "  void main() {\n"
-      "    port.receive((message, replyTo) {\n"
-      "      if (message) {\n"
-      "        throw new Exception('MakeChildExit');\n"
-      "      } else {\n"
-      "        replyTo.call('hello');\n"
-      "        port.close();\n"
-      "      }\n"
-      "    });\n"
-      "  }\n"
+      "void entry() {\n"
+      "  port.receive((message, replyTo) {\n"
+      "    if (message) {\n"
+      "      throw new Exception('MakeChildExit');\n"
+      "    } else {\n"
+      "      replyTo.call('hello');\n"
+      "      port.close();\n"
+      "    }\n"
+      "  });\n"
       "}\n"
       "\n"
       "void main(exc_child, exc_parent) {\n"
-      "  new MyIsolate().spawn().then((port) {\n"
-      "    port.call(exc_child).then((message) {\n"
-      "      if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
-      "      if (exc_parent) throw new Exception('MakeParentExit');\n"
-      "    });\n"
+      "  var port = spawnFunction(entry);\n"
+      "  port.call(exc_child).then((message) {\n"
+      "    if (message != 'hello') throw new Exception('ShouldNotHappen');\n"
+      "    if (exc_parent) throw new Exception('MakeParentExit');\n"
       "  });\n"
       "}\n";
 
@@ -6491,6 +6497,55 @@ TEST_CASE(NativeStaticFunctionClosure) {
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(0, value);
 }
+
+
+TEST_CASE(RangeLimits) {
+  uint8_t chars8[1] = {'a'};
+  uint16_t chars16[1] = {'a'};
+  uint32_t chars32[1] = {'a'};
+
+  EXPECT_ERROR(Dart_NewList(-1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewList(Array::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString8(chars8, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString8(chars8, OneByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString16(chars16, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString16(chars16, TwoByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString32(chars32, -1),
+               "expects argument 'length' to be in the range");
+  EXPECT_ERROR(Dart_NewString32(chars32, FourByteString::kMaxElements+1),
+               "expects argument 'length' to be in the range");
+}
+
+
+TEST_CASE(NewString_Null) {
+  Dart_Handle str = Dart_NewString8(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  intptr_t len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+
+  str = Dart_NewString16(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+
+  str = Dart_NewString32(NULL, 0);
+  EXPECT_VALID(str);
+  EXPECT(Dart_IsString(str));
+  len = -1;
+  EXPECT_VALID(Dart_StringLength(str, &len));
+  EXPECT_EQ(0, len);
+}
+
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 

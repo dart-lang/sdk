@@ -92,21 +92,20 @@ void Symbols::Add(const Array& symbol_table, const String& str) {
 RawString* Symbols::New(const char* str) {
   intptr_t width = 0;
   intptr_t len = Utf8::CodePointCount(str, &width);
-  intptr_t size = len * width;
   Zone* zone = Isolate::Current()->current_zone();
   if (len == 0) {
     return Symbols::New(reinterpret_cast<uint8_t*>(NULL), 0);
   } else if (width == 1) {
-    uint8_t* characters = reinterpret_cast<uint8_t*>(zone->Allocate(size));
+    uint8_t* characters = zone->Alloc<uint8_t>(len);
     Utf8::Decode(str, characters, len);
     return New(characters, len);
   } else if (width == 2) {
-    uint16_t* characters = reinterpret_cast<uint16_t*>(zone->Allocate(size));
+    uint16_t* characters = zone->Alloc<uint16_t>(len);
     Utf8::Decode(str, characters, len);
     return New(characters, len);
   }
   ASSERT(width == 4);
-  uint32_t* characters = reinterpret_cast<uint32_t*>(zone->Allocate(size));
+  uint32_t* characters = zone->Alloc<uint32_t>(len);
   Utf8::Decode(str, characters, len);
   return New(characters, len);
 }

@@ -55,10 +55,15 @@ class Configuration {
    * should instead override logMessage which is passed the test case.
    */
   void log(String message) {
-    if (currentTestCase.id == _tests[_currentTest].id) {
-      logMessage(currentTestCase, message);
+    if (currentTestCase == null || _currentTest >= _tests.length ||
+        currentTestCase.id != _tests[_currentTest].id) {
+      // Before or after tests run, or with a mismatch between what the
+      // config and the test harness think is the current test. In this
+      // case we pass null for the test case reference and let the config
+      // decide what to do with this.
+      logMessage(null, message);
     } else {
-      print('ID mismatch ${currentTestCase.id} vs ${_tests[_currentTest].id}');
+      logMessage(currentTestCase, message);
     }
   }
 

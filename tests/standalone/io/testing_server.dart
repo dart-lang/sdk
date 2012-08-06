@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class TestingServer extends Isolate {
+class TestingServer {
 
   static final HOST = "127.0.0.1";
   static final INIT = 0;
@@ -10,23 +10,21 @@ class TestingServer extends Isolate {
 
   abstract void onConnection(Socket connection);
 
-  void main() {
-    void errorHandlerServer(Exception e) {
-      Expect.fail("Server socket error $e");
-    }
+  void errorHandlerServer(Exception e) {
+    Expect.fail("Server socket error $e");
+  }
 
-    this.port.receive((message, SendPort replyTo) {
-      if (message == INIT) {
-        _server = new ServerSocket(HOST, 0, 10);
-        Expect.equals(true, _server !== null);
-        _server.onConnection = onConnection;
-        _server.onError = errorHandlerServer;
-        replyTo.send(_server.port, null);
-      } else if (message == SHUTDOWN) {
-        _server.close();
-        this.port.close();
-      }
-    });
+  void dispatch(message, SendPort replyTo) {
+    if (message == INIT) {
+      _server = new ServerSocket(HOST, 0, 10);
+      Expect.equals(true, _server !== null);
+      _server.onConnection = onConnection;
+      _server.onError = errorHandlerServer;
+      replyTo.send(_server.port, null);
+    } else if (message == SHUTDOWN) {
+      _server.close();
+      port.close();
+    }
   }
 
   ServerSocket _server;
@@ -34,13 +32,10 @@ class TestingServer extends Isolate {
 
 class TestingServerTest {
 
-  TestingServerTest.start(TestingServer server)
+  TestingServerTest.start(SendPort port)
       : _receivePort = new ReceivePort(),
-        _sendPort = null {
-    server.spawn().then((SendPort port) {
-      _sendPort = port;
-      start();
-    });
+        _sendPort = port {
+    start();
   }
 
   abstract void run();

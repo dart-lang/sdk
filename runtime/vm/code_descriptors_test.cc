@@ -24,13 +24,13 @@ static const intptr_t kPos = Scanner::kDummyTokenIndex;
 CODEGEN_TEST_GENERATE(StackmapCodegen, test) {
   Assembler assembler;
   const String& function_name = String::ZoneHandle(Symbols::New("test"));
-  const Function& function = Function::Handle(
-      Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, 0));
-  function.set_result_type(Type::Handle(Type::DynamicType()));
   Class& cls = Class::ZoneHandle();
   const Script& script = Script::Handle();
   cls = Class::New(function_name, script, Scanner::kDummyTokenIndex);
+  const Function& function = Function::Handle(
+      Function::New(function_name, RawFunction::kRegularFunction,
+                    true, false, false, false, cls, 0));
+  function.set_result_type(Type::Handle(Type::DynamicType()));
   const Array& functions = Array::Handle(Array::New(1));
   functions.SetAt(0, function);
   cls.SetFunctions(functions);

@@ -25,12 +25,8 @@ void RawObject::Validate(Isolate* isolate) const {
   }
   // Validate that the tags_ field is sensible.
   uword tags = ptr()->tags_;
-  uword reserved = 0;
-  reserved |= (1 << kReservedBit10K);
-  reserved |= (1 << kReservedBit100K);
-  reserved |= (1 << kReservedBit1M);
-  reserved |= (1 << kReservedBit10M);
-  if ((tags & reserved) != 0) {
+  intptr_t reserved = ReservedBits::decode(tags);
+  if (reserved != 0) {
     FATAL1("Invalid tags field encountered %#lx\n", tags);
   }
   intptr_t class_id = ClassIdTag::decode(tags);
@@ -228,6 +224,13 @@ intptr_t RawObject::SizeFromClass() const {
             reinterpret_cast<const RawExceptionHandlers*>(this);
         intptr_t num_handlers = Smi::Value(raw_handlers->ptr()->length_);
         instance_size = ExceptionHandlers::InstanceSize(num_handlers);
+        break;
+      }
+      case kDeoptInfo: {
+        const RawDeoptInfo* raw_deopt_info =
+            reinterpret_cast<const RawDeoptInfo*>(this);
+        intptr_t num_entries = Smi::Value(raw_deopt_info->ptr()->length_);
+        instance_size = DeoptInfo::InstanceSize(num_entries);
         break;
       }
       case kJSRegExp: {
@@ -505,6 +508,15 @@ intptr_t RawExceptionHandlers::VisitExceptionHandlersPointers(
   intptr_t length = Smi::Value(obj->length_);
   visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
   return ExceptionHandlers::InstanceSize(length);
+}
+
+
+intptr_t RawDeoptInfo::VisitDeoptInfoPointers(
+    RawDeoptInfo* raw_obj, ObjectPointerVisitor* visitor) {
+  RawDeoptInfo* obj = raw_obj->ptr();
+  intptr_t length = Smi::Value(obj->length_);
+  visitor->VisitPointer(reinterpret_cast<RawObject**>(&obj->length_));
+  return DeoptInfo::InstanceSize(length);
 }
 
 

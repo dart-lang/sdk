@@ -42,7 +42,7 @@ testLocals(List variables) {
     final name = variable[0];
     Identifier id = buildIdentifier(name);
     final VariableElement variableElement = visitor.visit(id);
-    MethodScope scope = visitor.context;
+    MethodScope scope = visitor.scope;
     Expect.equals(variableElement, scope.elements[buildSourceString(name)]);
   }
   return compiler;
@@ -216,7 +216,7 @@ testLocalsTwo() {
   Node tree = parseStatement("if (true) { var a = 1; var b = 2; }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.context;
+  BlockScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
 
@@ -230,7 +230,7 @@ testLocalsThree() {
   Node tree = parseStatement("{ var a = 1; if (true) { a; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.context;
+  BlockScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(3, map(visitor).length);
   List<Element> elements = map(visitor).getValues();
@@ -243,7 +243,7 @@ testLocalsFour() {
   Node tree = parseStatement("{ var a = 1; if (true) { var a = 1; } }");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.context;
+  BlockScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(2, map(visitor).length);
   List<Element> elements = map(visitor).getValues();
@@ -256,7 +256,7 @@ testLocalsFive() {
   If tree = parseStatement("if (true) { var a = 1; a; } else { var a = 2; a;}");
   Element element = visitor.visit(tree);
   Expect.equals(null, element);
-  BlockScope scope = visitor.context;
+  BlockScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(6, map(visitor).length);
 
@@ -302,7 +302,7 @@ testFor() {
   For tree = parseStatement("for (int i = 0; i < 10; i = i + 1) { i = 5; }");
   visitor.visit(tree);
 
-  BlockScope scope = visitor.context;
+  BlockScope scope = visitor.scope;
   Expect.equals(0, scope.elements.length);
   Expect.equals(10, map(visitor).length);
 

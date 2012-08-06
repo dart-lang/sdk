@@ -166,7 +166,7 @@ Configuration configure(Configuration config) {
   return _oldConfig;
 }
 
-void log(String message) => _config.log(message);
+void logMessage(String message) => _config.log(message);
 
 /**
  * Description text of the current test group. If multiple groups are nested,
@@ -195,21 +195,9 @@ Function _testTeardown;
 /** Current test being executed. */
 int _currentTest = 0;
 
-/** Total number of callbacks that have been executed in the current test. */
-int _callbacksCalled = 0;
+/** Whether the framework is in an initialized state. */
+bool _initialized = false;
 
-final _UNINITIALIZED = 0;
-final _READY         = 1;
-final _RUNNING_TEST  = 2;
-
-/**
- * Whether an undetected error occurred while running the last test. These
- * errors are commonly caused by DOM callbacks that were not guarded in a
- * try-catch block.
- */
-final _UNCAUGHT_ERROR = 3;
-
-int _state = _UNINITIALIZED;
 String _uncaughtErrorMessage = null;
 
 final _PASS  = 'pass';
@@ -322,7 +310,8 @@ final _sentinel = const _Sentinel();
 class _SpreadArgsHelper {
   Function _callback;
   int _expectedCalls;
-  int _calls = 0;
+  int _actualCalls = 0;
+  int _testNum;
   TestCase _testCase;
   Function _shouldCallBack;
   Function _isDone;
@@ -335,9 +324,10 @@ class _SpreadArgsHelper {
     _shouldCallBack = shouldCallBack;
     _isDone = isDone;
     _expectedCalls = expectedCalls;
+    _testNum = _currentTest;
     _testCase = _tests[_currentTest];
     if (expectedCalls > 0) {
-      _testCase.callbacks++;
+      _testCase.callbackFunctionsOutstanding++;
     }
   }
 
@@ -353,21 +343,24 @@ class _SpreadArgsHelper {
     _init(callback, _always, isDone, 1);
    }
 
+  _SpreadArgsHelper.optionalCalls(callback) {
+    _init(callback, _always, () => false, 0);
+   }
+
   _after() {
     if (_isDone()) {
-      _handleAllCallbacksDone();
+      _handleCallbackFunctionComplete();
     }
   }
 
-  _allCallsDone() => _calls == _expectedCalls;
+  _allCallsDone() => _actualCalls == _expectedCalls;
 
   _always() {
     // Always run except if the test is done.
     if (_testCase.isComplete) {
       _testCase.error(
-          'Callback called after already being marked as done ($_calls).',
+          'Callback called after already being marked as done ($_actualCalls).',
           '');
-      _state = _UNCAUGHT_ERROR;
       return false;
     } else {
       return true;
@@ -377,7 +370,7 @@ class _SpreadArgsHelper {
   invoke([arg0 = _sentinel, arg1 = _sentinel, arg2 = _sentinel,
           arg3 = _sentinel, arg4 = _sentinel]) {
     return guardAsync(() {
-      ++_calls;
+      ++_actualCalls;
       if (!_shouldCallBack()) {
         return;
       } else if (arg0 == _sentinel) {
@@ -395,53 +388,49 @@ class _SpreadArgsHelper {
            'unittest lib does not support callbacks with more than'
               ' 4 arguments.',
            '');
-        _state = _UNCAUGHT_ERROR;
       }
     },
-    _after);
+    _after, _testNum);
   }
 
   invoke0() {
     return guardAsync(
         () {
-          ++_calls;
+          ++_actualCalls;
           if (_shouldCallBack()) {
             return _callback();
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   invoke1(arg1) {
     return guardAsync(
         () {
-          ++_calls;
+          ++_actualCalls;
           if (_shouldCallBack()) {
             return _callback(arg1);
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   invoke2(arg1, arg2) {
     return guardAsync(
         () {
-          ++_calls;
+          ++_actualCalls;
           if (_shouldCallBack()) {
             return _callback(arg1, arg2);
           }
         },
-        _after);
+        _after, _testNum);
   }
 
   /** Returns false if we exceded the number of expected calls. */
   bool _checkCallCount() {
-    if (_calls > _expectedCalls) {
-      _testCase.error(
-          'Callback called more times than expected '
-             '($_calls > $_expectedCalls).',
-          '');
-      _state = _UNCAUGHT_ERROR;
+    if (_actualCalls > _expectedCalls) {
+      _testCase.error('Callback called more times than expected '
+             '($_actualCalls > $_expectedCalls).', '');
       return false;
     }
     return true;
@@ -527,6 +516,47 @@ Function expectAsyncUntil2(Function callback, Function isDone) {
 }
 
 /**
+ * Wraps the [callback] in a new function and returns that function. The new
+ * function will be able to handle exceptions by directing them to the correct
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take between 0 and 4 positional arguments (named arguments
+ * are not supported).
+ */
+Function _protectAsync(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke;
+}
+
+/**
+ * Wraps the [callback] in a new function and returns that function. The new
+ * function will be able to handle exceptions by directing them to the correct
+ * test. This is thus similar to expectAsync0. Use it to wrap any callbacks that
+ * might optionally be called but may never be called during the test.
+ * [callback] should take 0 positional arguments (named arguments are not
+ * supported).
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync0(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke0;
+}
+
+/**
+ * Like [protectAsync0] but [callback] should take 1 positional argument.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync1(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke1;
+}
+
+/**
+ * Like [protectAsync0] but [callback] should take 2 positional arguments.
+ */
+// TODO(sigmund): deprecate this API when issue 2706 is fixed.
+Function protectAsync2(Function callback) {
+  return new _SpreadArgsHelper.optionalCalls(callback).invoke2;
+}
+
+/**
  * Creates a new named group of tests. Calls to group() or test() within the
  * body of the function passed to this will inherit this group's description.
  */
@@ -582,8 +612,11 @@ void tearDown(Function teardownTest) {
   _testTeardown = teardownTest;
 }
 
-/** Called by subclasses to indicate that an asynchronous test completed. */
-void _handleAllCallbacksDone() {
+/**
+ * Called when one of the callback functions is done with all expected
+ * calls.
+ */
+void _handleCallbackFunctionComplete() {
   // TODO (gram): we defer this to give the nextBatch recursive
   // stack a chance to unwind. This is a temporary hack but
   // really a bunch of code here needs to be fixed. We have a
@@ -591,18 +624,16 @@ void _handleAllCallbacksDone() {
   // which is recursively invoked in the case of async tests that
   // run synchronously. Bad things can then happen.
   _defer(() {
-    _callbacksCalled++;
     if (_currentTest < _tests.length) {
       final testCase = _tests[_currentTest];
-      if (_callbacksCalled > testCase.callbacks) {
-        final expected = testCase.callbacks;
+      --testCase.callbackFunctionsOutstanding;
+      if (testCase.callbackFunctionsOutstanding < 0) {
+        // TODO(gram): Check: Can this even happen?
         testCase.error(
-            'More calls to _handleAllCallbacksDone() than expected. '
-            'Actual: ${_callbacksCalled}, expected: ${expected}.', '');
-        _state = _UNCAUGHT_ERROR;
-      } else if ((_callbacksCalled == testCase.callbacks) &&
-          (_state != _RUNNING_TEST)) {
-        if (testCase.result == null) {
+            'More calls to _handleCallbackFunctionComplete() than expected.',
+             '');
+      } else if (testCase.callbackFunctionsOutstanding == 0) {
+        if (!testCase.isComplete) {
           testCase.pass();
         }
         _nextTestCase();
@@ -622,7 +653,7 @@ void _nextTestCase() {
  * TODO(gram) remove this when WebKit tests are working with new framework
  */
 void callbackDone() {
-  _handleAllCallbacksDone();
+  _handleCallbackFunctionComplete();
 }
 
 /**
@@ -633,8 +664,7 @@ void reportTestError(String msg, String trace) {
  if (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
     testCase.error(msg, trace);
-    _state = _UNCAUGHT_ERROR;
-    if (testCase.callbacks > 0) {
+    if (testCase.callbackFunctionsOutstanding > 0) {
       _nextTestCase();
     }
   } else {
@@ -655,8 +685,15 @@ _defer(void callback()) {
   port.toSendPort().send(null, null);
 }
 
+rerunTests() {
+  _uncaughtErrorMessage = null;
+  runTests();
+}
+
 /** Runs all queued tests, one at a time. */
 runTests() {
+  _currentTest = 0;
+  _currentGroup = '';
 
   // If we are soloing a test, remove all the others.
   if (_soloTest != null) {
@@ -671,31 +708,21 @@ runTests() {
   _config.onStart();
 
   _defer(() {
-    assert (_currentTest == 0);
     _testRunner();
   });
-}
-
-/** Rerun the tests. */
-rerunTests() {
-  _currentTest = 0;
-  for (var i = 0; i < _tests.length; i++) {
-    _tests[i].callbacks = 0; // Note - won't work with old asyncTests.
-  }
-  runTests();
 }
 
 /**
  * Run [tryBody] guarded in a try-catch block. If an exception is thrown, update
  * the [_currentTest] status accordingly.
  */
-guardAsync(tryBody, [finallyBody]) {
+guardAsync(tryBody, [finallyBody, testNum = -1]) {
+  if (testNum < 0) testNum = _currentTest;
   try {
     return tryBody();
   } catch (var e, var trace) {
-    registerException(e, trace);
+    registerException(testNum, e, trace);
   } finally {
-    _state = _READY;
     if (finallyBody != null) finallyBody();
   }
 }
@@ -703,26 +730,17 @@ guardAsync(tryBody, [finallyBody]) {
 /**
  * Registers that an exception was caught for the current test.
  */
-registerException(e, [trace]) {
-  if (e is ExpectException) {
-    Expect.isTrue(_currentTest < _tests.length);
-    if (_state != _UNCAUGHT_ERROR) {
-      _tests[_currentTest].fail(e.message,
-          trace == null ? '' : trace.toString());
-    }
+registerException(testNum, e, [trace]) {
+  trace = trace == null ? '' : trace.toString();
+  if (_tests[testNum].result == null) {
+    String message = (e is ExpectException) ? e.message : 'Caught $e';
+    _tests[testNum].fail(message, trace);
   } else {
-    if (_state == _RUNNING_TEST) {
-      // If a random exception is thrown from within a test, we consider that
-      // a test failure too. A test case implicitly has an expectation that it
-      // will run to completion without an uncaught exception being thrown.
-      _tests[_currentTest].fail('Caught $e',
-          trace == null ? '' : trace.toString());
-    } else if (_state != _UNCAUGHT_ERROR) {
-      _tests[_currentTest].error('Caught $e',
-          trace == null ? '' : trace.toString());
-    }
+    _tests[testNum].error('Caught $e', trace);
   }
-  _nextTestCase();
+  if (testNum == _currentTest) {
+    _nextTestCase();
+  }
 }
 
 /**
@@ -734,19 +752,14 @@ _nextBatch() {
   while (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
     guardAsync(() {
-      _callbacksCalled = 0;
-      _state = _RUNNING_TEST;
       testCase.run();
-
-      if (_state != _UNCAUGHT_ERROR) {
-        if (testCase.callbacks == _callbacksCalled) {
-          testCase.pass();
-        }
+      if (!testCase.isComplete && testCase.callbackFunctionsOutstanding == 0) {
+        testCase.pass();
       }
-    });
+    }, testNum:_currentTest);
 
-    if (!testCase.isComplete && testCase.callbacks > 0) return;
-
+    if (!testCase.isComplete &&
+        testCase.callbackFunctionsOutstanding > 0) return;
     _currentTest++;
   }
 
@@ -755,8 +768,6 @@ _nextBatch() {
 
 /** Publish results on the page and notify controller. */
 _completeTests() {
-  _state = _UNINITIALIZED;
-
   int testsPassed_ = 0;
   int testsFailed_ = 0;
   int testsErrors_ = 0;
@@ -768,9 +779,9 @@ _completeTests() {
       case _ERROR: testsErrors_++; break;
     }
   }
-
   _config.onDone(testsPassed_, testsFailed_, testsErrors_, _tests,
       _uncaughtErrorMessage);
+  _initialized = false;
 }
 
 String _fullSpec(String spec) {
@@ -786,14 +797,12 @@ void _fail(String message) {
  * Lazily initializes the test library if not already initialized.
  */
 ensureInitialized() {
-  if (_state != _UNINITIALIZED) return;
+  if (_initialized) return;
+  _initialized = true;
 
   _tests = <TestCase>[];
-  _uncaughtErrorMessage = null;
-  _currentTest = 0;
-  _currentGroup = '';
-  _state = _READY;
   _testRunner = _nextBatch;
+  _uncaughtErrorMessage = null;
 
   if (_config == null) {
     _config = new Configuration();

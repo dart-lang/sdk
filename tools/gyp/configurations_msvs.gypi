@@ -3,12 +3,15 @@
 # BSD-style license that can be found in the LICENSE file.
 
 {
+  'variables': {
+    'dart_debug_optimization_level%': '2',
+  },
   'target_defaults': {
     'configurations': {
       'Dart_Debug': {
         'msvs_settings': {
           'VCCLCompilerTool': {
-            'Optimization': '2',
+            'Optimization': '<(dart_debug_optimization_level)',
             'BasicRuntimeChecks': '0',  # disable /RTC1 when compiling /O2
             'DebugInformationFormat': '3',
             'ExceptionHandling': '0',
@@ -45,5 +48,8 @@
         },
       },
     },
+    'defines': [
+      '_HAS_EXCEPTIONS=0',  # disable C++ exceptions use in C++ std. libs.
+    ],
   },
 }

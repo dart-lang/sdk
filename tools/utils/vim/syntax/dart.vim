@@ -35,7 +35,7 @@ syn keyword dartAssert         assert
 syn keyword dartClassDecl      extends implements interface
 " TODO(antonm): check if labels on break and continue are supported.
 syn keyword dartBranch         break continue nextgroup=dartUserLabelRef skipwhite
-syn keyword dartKeyword        get set operator call equals negate
+syn keyword dartKeyword        get set operator call equals negate external
 syn match   dartUserLabelRef   "\k\+" contained
 syn match   dartVarArg         "\.\.\."
 

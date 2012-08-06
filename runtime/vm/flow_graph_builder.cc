@@ -347,14 +347,17 @@ void EffectGraphVisitor::VisitReturnNode(ReturnNode* node) {
 
   Value* return_value = for_value.value();
   if (FLAG_enable_type_checks) {
-    const RawFunction::Kind kind = owner()->parsed_function().function().kind();
-    const bool is_implicit_getter =
-        (kind == RawFunction::kImplicitGetter) ||
-        (kind == RawFunction::kConstImplicitGetter);
-    const bool is_static = owner()->parsed_function().function().is_static();
+    const Function& function = owner()->parsed_function().function();
+    const bool is_implicit_dynamic_getter =
+        (!function.is_static() &&
+        ((function.kind() == RawFunction::kImplicitGetter) ||
+         (function.kind() == RawFunction::kConstImplicitGetter)));
     // Implicit getters do not need a type check at return, unless they compute
     // the initial value of a static field.
-    if (is_static || !is_implicit_getter) {
+    // The body of a constructor cannot modify the type of the
+    // constructed instance, which is passed in as an implicit parameter.
+    // However, factories may create an instance of the wrong type.
+    if (!is_implicit_dynamic_getter && !function.IsConstructor()) {
       const AbstractType& dst_type =
           AbstractType::ZoneHandle(
               owner()->parsed_function().function().result_type());
@@ -399,11 +402,21 @@ void ValueGraphVisitor::VisitLiteralNode(LiteralNode* node) {
 void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
-// Helper routine returning true if the static type of the given value is more
-// specific than the given dst_type.
-static bool IsStaticTypeMoreSpecific(Value* value,
-                                     const AbstractType& dst_type) {
-  ASSERT(!dst_type.IsMalformed());
+// Returns true if the type check can be skipped, for example, if the
+// destination type is Dynamic or if the static type of the value is a subtype
+// of the destination type.
+bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
+                                          Value* value,
+                                          const AbstractType& dst_type,
+                                          const String& dst_name) {
+  ASSERT(!dst_type.IsNull());
+  ASSERT(dst_type.IsFinalized());
+
+  // If the destination type is malformed, a dynamic type error must be thrown
+  // at run time.
+  if (dst_type.IsMalformed()) {
+    return false;
+  }
 
   // Any type is more specific than the Dynamic type and than the Object type.
   if (dst_type.IsDynamicType() || dst_type.IsObjectType()) {
@@ -422,94 +435,14 @@ static bool IsStaticTypeMoreSpecific(Value* value,
     return false;
   }
 
-  // If the value is the null constant, its type (NullType) is more specific
-  // than the destination type, even if the destination type is the void type,
-  // since a void function is allowed to return null.
-  if (value->IsConstant() && value->AsConstant()->value().IsNull()) {
-    return true;
-  }
-
-  // Functions that do not explicitly return a value, implicitly return null,
-  // except generative constructors, which return the object being constructed.
-  // It is therefore acceptable for void functions to return null.
-  // In case of a null constant, we have already returned true above, else we
-  // return false here.
-  if (dst_type.IsVoidType()) {
-    return false;
-  }
-
-  // Consider the static type of the value.
-  const AbstractType& static_type = AbstractType::Handle(value->StaticType());
-  ASSERT(!static_type.IsMalformed());
-
-  // If the static type of the value is void, we are type checking the result of
-  // a void function, which was checked to be null at the return statement
-  // inside the function.
-  if (static_type.IsVoidType()) {
-    return true;
-  }
-
-  // If the static type of the value is NullType, the type test is eliminated.
-  // There are only three instances that can be of Class Null:
-  // Object::null(), Object::sentinel(), and Object::transition_sentinel().
-  // The inline code and run time code performing the type check will never
-  // encounter the 2 sentinel values. The type check of a sentinel value
-  // will always be eliminated here, because these sentinel values can only
-  // be encountered as constants, never as actual value of a heap object
-  // being type checked.
-  if (static_type.IsNullType()) {
-    return true;
-  }
-
-  // The run time type of the value is guaranteed to be a subtype of the
-  // compile time static type of the value. However, establishing here that
-  // the static type is a subtype of the destination type does not guarantee
-  // that the run time type will also be a subtype of the destination type,
-  // because the subtype relation is not transitive.
-  // However, the 'more specific than' relation is transitive and is used
-  // here. In other words, if the static type of the value is more specific
-  // than the destination type, the run time type of the value, which is
-  // guaranteed to be a subtype of the static type, is also guaranteed to be
-  // a subtype of the destination type and the type check can therefore be
-  // eliminated.
-  return static_type.IsMoreSpecificThan(dst_type, NULL);
-}
-
-
-// Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the static type of the value is a subtype
-// of the destination type.
-bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
-                                          Value* value,
-                                          const AbstractType& dst_type,
-                                          const String& dst_name) {
-  ASSERT(!dst_type.IsNull());
-  ASSERT(dst_type.IsFinalized());
-
-  // If the destination type is malformed, a dynamic type error must be thrown
-  // at run time.
-  if (dst_type.IsMalformed()) {
-    return false;
-  }
-
-  const bool eliminated = IsStaticTypeMoreSpecific(value, dst_type);
-  if (FLAG_eliminate_type_checks && FLAG_trace_type_check_elimination) {
-    const Class& cls = Class::Handle(
-        owner()->parsed_function().function().owner());
-    const Script& script = Script::Handle(cls.script());
-    const char* static_type_name = "unknown";
-    if (value != NULL) {
-      const AbstractType& type = AbstractType::Handle(value->StaticType());
-      static_type_name = String::Handle(type.UserVisibleName()).ToCString();
-    }
-    Parser::PrintMessage(script, token_pos, "",
-                         "%s type check: static type '%s' is %s specific than "
-                         "type '%s' of '%s'.",
-                         eliminated ? "Eliminated" : "Generated",
-                         static_type_name,
-                         eliminated ? "more" : "not more",
-                         String::Handle(dst_type.UserVisibleName()).ToCString(),
-                         dst_name.ToCString());
+  const bool eliminated = value->StaticTypeIsMoreSpecificThan(dst_type);
+  if (FLAG_trace_type_check_elimination) {
+    FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
+                                     token_pos,
+                                     value,
+                                     dst_type,
+                                     dst_name,
+                                     eliminated);
   }
   return eliminated;
 }
@@ -1112,11 +1045,11 @@ void EffectGraphVisitor::VisitCaseNode(CaseNode* node) {
 //                         condition: <Expression>
 //                         body:      <Sequence> }
 // The fragment is composed as follows:
-// a) continue-join (optional)
-// b) loop-join
-// c) [ test ] -> (body-entry-target, loop-exit-target)
-// d) body-entry-target
-// e) [ body ] -> (loop-join)
+// a) loop-join
+// b) [ test ] -> (body-entry-target, loop-exit-target)
+// c) body-entry-target
+// d) [ body ] -> (continue-join)
+// e) continue-join -> (loop-join)
 // f) loop-exit-target
 // g) break-join (optional)
 void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
@@ -1136,8 +1069,8 @@ void EffectGraphVisitor::VisitWhileNode(WhileNode* node) {
   ASSERT(lbl != NULL);
   JoinEntryInstr* join = lbl->join_for_continue();
   if (join != NULL) {
-    Goto(join);
-    exit_ = join;
+    if (for_body.is_open()) for_body.Goto(join);
+    for_body.exit_ = join;
   }
   TieLoop(for_test, for_body);
   join = lbl->join_for_break();
@@ -1788,43 +1721,52 @@ void EffectGraphVisitor::VisitInstanceGetterNode(InstanceGetterNode* node) {
 }
 
 
-void EffectGraphVisitor::BuildInstanceSetterValues(
-    InstanceSetterNode* node, Value** receiver, Value** value) {
+void EffectGraphVisitor::BuildInstanceSetterArguments(
+    InstanceSetterNode* node,
+    ZoneGrowableArray<PushArgumentInstr*>* arguments,
+    bool result_is_needed) {
   ValueGraphVisitor for_receiver(owner(), temp_index());
   node->receiver()->Visit(&for_receiver);
   Append(for_receiver);
-  ValueGraphVisitor for_value(owner(), for_receiver.temp_index());
+  arguments->Add(PushArgument(for_receiver.value()));
+
+  ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  *receiver = for_receiver.value();
-  *value = for_value.value();
+
+  Value* value = NULL;
+  if (result_is_needed) {
+    value = Bind(
+        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                        for_value.value()));
+  } else {
+    value = for_value.value();
+  }
+  arguments->Add(PushArgument(value));
 }
 
 
 void EffectGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Value *receiver, *value;
-  BuildInstanceSetterValues(node, &receiver, &value);
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  BuildInstanceSetterArguments(node, arguments, false);  // Value not used.
   InstanceSetterComp* setter =
       new InstanceSetterComp(node->token_pos(),
                              owner()->try_index(),
                              node->field_name(),
-                             receiver,
-                             value);
+                             arguments);
   ReturnComputation(setter);
 }
 
 
 void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
-  Value *receiver, *value;
-  BuildInstanceSetterValues(node, &receiver, &value);
-  Value* saved_value = Bind(
-      BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                      value));
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
+  BuildInstanceSetterArguments(node, arguments, true);  // Value used.
   Do(new InstanceSetterComp(node->token_pos(),
                             owner()->try_index(),
                             node->field_name(),
-                            receiver,
-                            saved_value));
+                            arguments));
   ReturnComputation(
        BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
 }
@@ -1847,7 +1789,8 @@ void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
 }
 
 
-void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
+                                           bool result_is_needed) {
   const String& setter_name =
       String::Handle(Field::SetterName(node->field_name()));
   const Function& setter_function =
@@ -1856,11 +1799,39 @@ void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  StaticSetterComp* call = new StaticSetterComp(node->token_pos(),
-                                                owner()->try_index(),
-                                                setter_function,
-                                                for_value.value());
-  ReturnComputation(call);
+  Value* value = NULL;
+  if (result_is_needed) {
+    value = Bind(
+        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                        for_value.value()));
+  } else {
+    value = for_value.value();
+  }
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  arguments->Add(PushArgument(value));
+  StaticCallComp* call = new StaticCallComp(node->token_pos(),
+                                            owner()->try_index(),
+                                            setter_function,
+                                            Array::ZoneHandle(),  // No names.
+                                            arguments);
+  if (result_is_needed) {
+    Do(call);
+    ReturnComputation(
+         BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+  } else {
+    ReturnComputation(call);
+  }
+}
+
+
+void EffectGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+  BuildStaticSetter(node, false);  // Result not needed.
+}
+
+
+void ValueGraphVisitor::VisitStaticSetterNode(StaticSetterNode* node) {
+  BuildStaticSetter(node, true);  // Result needed.
 }
 
 
@@ -2252,19 +2223,16 @@ void EffectGraphVisitor::BuildThrowNode(ThrowNode* node) {
   ValueGraphVisitor for_exception(owner(), temp_index());
   node->exception()->Visit(&for_exception);
   Append(for_exception);
+  PushArgument(for_exception.value());
   Instruction* instr = NULL;
   if (node->stacktrace() == NULL) {
-    instr = new ThrowInstr(node->token_pos(),
-                           owner()->try_index(),
-                           for_exception.value());
+    instr = new ThrowInstr(node->token_pos(), owner()->try_index());
   } else {
     ValueGraphVisitor for_stack_trace(owner(), temp_index());
     node->stacktrace()->Visit(&for_stack_trace);
     Append(for_stack_trace);
-    instr = new ReThrowInstr(node->token_pos(),
-                             owner()->try_index(),
-                             for_exception.value(),
-                             for_stack_trace.value());
+    PushArgument(for_stack_trace.value());
+    instr = new ReThrowInstr(node->token_pos(), owner()->try_index());
   }
   AddInstruction(instr);
 }
@@ -2746,8 +2714,7 @@ void FlowGraphBuilder::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphBuilder Bailout: %s %s";
   const char* function_name = parsed_function_.function().ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name, reason) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, function_name, reason);
   const Error& error = Error::Handle(
       LanguageError::New(String::Handle(String::New(chars))));

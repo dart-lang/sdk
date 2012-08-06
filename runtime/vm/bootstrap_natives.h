@@ -25,7 +25,6 @@ namespace dart {
   V(Integer_moduloFromInteger, 2)                                              \
   V(Integer_greaterThanFromInteger, 2)                                         \
   V(Integer_equalToInteger, 2)                                                 \
-  V(IsolateNatives_start, 2)                                                   \
   V(ReceivePortImpl_factory, 1)                                                \
   V(ReceivePortImpl_closeInternal, 1)                                          \
   V(SendPortImpl_sendInternal_, 3)                                             \

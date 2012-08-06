@@ -72,5 +72,5 @@ dependencies:
 }
 
 throwsBadFormat(function) {
-  expectThrow(function, (e) => e is FormatException);
+  expect(function, throwsA((e) => e is FormatException));
 }

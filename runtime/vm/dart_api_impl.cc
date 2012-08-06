@@ -66,6 +66,17 @@ const char* CanonicalFunction(const char* func) {
                        CURRENT_FUNC, #parameter);
 
 
+#define CHECK_LENGTH(length, max_elements)                                     \
+  do {                                                                         \
+    intptr_t len = (length);                                                   \
+    intptr_t max = (max_elements);                                             \
+    if (len < 0 || len > max) {                                                \
+      return Api::NewError(                                                    \
+          "%s expects argument '%s' to be in the range [0..%ld].",             \
+          CURRENT_FUNC, #length, max);                                         \
+    }                                                                          \
+  } while (0)
+
 // Takes a vm internal name and makes it suitable for external user.
 //
 // Examples:
@@ -165,7 +176,7 @@ const char* CheckIsolateState(Isolate* isolate, bool generating_snapshot) {
   const Error& err = Error::Handle(isolate->object_store()->sticky_error());
   const char* errmsg = err.ToErrorCString();
   intptr_t errlen = strlen(errmsg) + 1;
-  char* msg = reinterpret_cast<char*>(Api::Allocate(isolate, errlen));
+  char* msg = Api::TopScope(isolate)->zone()->Alloc<char>(errlen);
   OS::SNPrint(msg, errlen, "%s", errmsg);
   return msg;
 }
@@ -178,12 +189,7 @@ void SetupErrorResult(Isolate* isolate, Dart_Handle* handle) {
 
 
 Dart_Handle Api::NewHandle(Isolate* isolate, RawObject* raw) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
-  ASSERT(scope != NULL);
-  LocalHandles* local_handles = scope->local_handles();
+  LocalHandles* local_handles = Api::TopScope(isolate)->local_handles();
   ASSERT(local_handles != NULL);
   LocalHandle* ref = local_handles->AllocateHandle();
   ref->set_raw(raw);
@@ -273,7 +279,7 @@ Dart_Handle Api::NewError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  char* buffer = zone.Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -311,26 +317,13 @@ Dart_Handle Api::False(Isolate* isolate) {
 }
 
 
-uword Api::Allocate(Isolate* isolate, intptr_t size) {
+ApiLocalScope* Api::TopScope(Isolate* isolate) {
   ASSERT(isolate != NULL);
   ApiState* state = isolate->api_state();
   ASSERT(state != NULL);
   ApiLocalScope* scope = state->top_scope();
   ASSERT(scope != NULL);
-  return scope->zone()->Allocate(size);
-}
-
-
-uword Api::Reallocate(Isolate* isolate,
-                      uword ptr,
-                      intptr_t old_size,
-                      intptr_t new_size) {
-  ASSERT(isolate != NULL);
-  ApiState* state = isolate->api_state();
-  ASSERT(state != NULL);
-  ApiLocalScope* scope = state->top_scope();
-  ASSERT(scope != NULL);
-  return scope->zone()->Reallocate(ptr, old_size, new_size);
+  return scope;
 }
 
 
@@ -377,7 +370,7 @@ DART_EXPORT const char* Dart_GetError(Dart_Handle handle) {
     const Error& error = Error::Cast(obj);
     const char* str = error.ToErrorCString();
     intptr_t len = strlen(str) + 1;
-    char* str_copy = reinterpret_cast<char*>(Api::Allocate(isolate, len));
+    char* str_copy = Api::TopScope(isolate)->zone()->Alloc<char>(len);
     strncpy(str_copy, str, len);
     // Strip a possible trailing '\n'.
     if ((len > 1) && (str_copy[len - 2] == '\n')) {
@@ -439,7 +432,7 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  char* buffer = zone.Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -461,7 +454,7 @@ DART_EXPORT Dart_Handle Dart_NewApiError(const char* format, ...) {
   intptr_t len = OS::VSNPrint(NULL, 0, format, args);
   va_end(args);
 
-  char* buffer = reinterpret_cast<char*>(zone.Allocate(len + 1));
+  char* buffer = zone.Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -880,11 +873,8 @@ DART_EXPORT void Dart_ExitIsolate() {
 static uint8_t* ApiReallocate(uint8_t* ptr,
                               intptr_t old_size,
                               intptr_t new_size) {
-  uword new_ptr = Api::Reallocate(Isolate::Current(),
-                                  reinterpret_cast<uword>(ptr),
-                                  old_size,
-                                  new_size);
-  return reinterpret_cast<uint8_t*>(new_ptr);
+  return Api::TopScope(Isolate::Current())->zone()->Realloc<uint8_t>(
+      ptr, old_size, new_size);
 }
 
 
@@ -952,7 +942,6 @@ DART_EXPORT void Dart_InterruptIsolate(Dart_Isolate isolate) {
 
 
 // --- Messages and Ports ---
-
 
 DART_EXPORT void Dart_SetMessageNotifyCallback(
     Dart_MessageNotifyCallback message_notify_callback) {
@@ -1082,7 +1071,7 @@ DART_EXPORT Dart_Port Dart_NewNativePort(const char* name,
   if (handler == NULL) {
     OS::PrintErr("%s expects argument 'handler' to be non-null.\n",
                  CURRENT_FUNC);
-    return kIllegalPort;
+    return ILLEGAL_PORT;
   }
   // Start the native port without a current isolate.
   IsolateSaver saver(Isolate::Current());
@@ -1185,7 +1174,7 @@ DART_EXPORT uint8_t* Dart_ScopeAllocate(intptr_t size) {
     if (scope == NULL) return NULL;
     zone = scope->zone();
   }
-  return reinterpret_cast<uint8_t*>(zone->Allocate(size));
+  return reinterpret_cast<uint8_t*>(zone->AllocUnsafe(size));
 }
 
 
@@ -1438,8 +1427,8 @@ DART_EXPORT Dart_Handle Dart_IntegerToUint64(Dart_Handle integer,
 }
 
 
-static uword ApiAllocate(intptr_t size) {
-  return Api::Allocate(Isolate::Current(), size);
+static uword BigintAllocate(intptr_t size) {
+  return Api::TopScope(Isolate::Current())->zone()->AllocUnsafe(size);
 }
 
 
@@ -1454,9 +1443,10 @@ DART_EXPORT Dart_Handle Dart_IntegerToHexCString(Dart_Handle integer,
   if (int_obj.IsSmi() || int_obj.IsMint()) {
     const Bigint& bigint = Bigint::Handle(isolate,
         BigintOperations::NewFromInt64(int_obj.AsInt64Value()));
-    *value = BigintOperations::ToHexCString(bigint, ApiAllocate);
+    *value = BigintOperations::ToHexCString(bigint, BigintAllocate);
   } else {
-    *value = BigintOperations::ToHexCString(Bigint::Cast(int_obj), ApiAllocate);
+    *value = BigintOperations::ToHexCString(Bigint::Cast(int_obj),
+                                            BigintAllocate);
   }
   return Api::Success(isolate);
 }
@@ -1580,6 +1570,10 @@ DART_EXPORT Dart_Handle Dart_NewString8(const uint8_t* codepoints,
                                         intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL && length != 0) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1588,6 +1582,10 @@ DART_EXPORT Dart_Handle Dart_NewString16(const uint16_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL && length != 0) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1596,6 +1594,10 @@ DART_EXPORT Dart_Handle Dart_NewString32(const uint32_t* codepoints,
                                          intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  if (codepoints == NULL && length != 0) {
+    RETURN_NULL_ERROR(codepoints);
+  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(isolate, String::New(codepoints, length));
 }
 
@@ -1635,10 +1637,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString8(const uint8_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1653,10 +1652,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString16(const uint16_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1671,10 +1667,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalString32(const uint32_t* codepoints,
   if (codepoints == NULL && length != 0) {
     RETURN_NULL_ERROR(codepoints);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, String::kMaxElements);
   return Api::NewHandle(
       isolate, String::NewExternal(codepoints, length, peer, callback));
 }
@@ -1749,8 +1742,7 @@ DART_EXPORT Dart_Handle Dart_StringToCString(Dart_Handle object,
     RETURN_TYPE_ERROR(isolate, object, String);
   }
   intptr_t string_length = Utf8::Length(str_obj);
-  char* res =
-      reinterpret_cast<char*>(Api::Allocate(isolate, string_length + 1));
+  char* res = Api::TopScope(isolate)->zone()->Alloc<char>(string_length + 1);
   if (res == NULL) {
     return Api::NewError("Unable to allocate memory");
   }
@@ -1779,7 +1771,7 @@ DART_EXPORT Dart_Handle Dart_StringToBytes(Dart_Handle object,
   }
   const char* cstring = str.ToCString();
   *length = Utf8::Length(str);
-  uint8_t* result = reinterpret_cast<uint8_t*>(Api::Allocate(isolate, *length));
+  uint8_t* result = Api::TopScope(isolate)->zone()->Alloc<uint8_t>(*length);
   if (result == NULL) {
     return Api::NewError("Unable to allocate memory");
   }
@@ -1824,6 +1816,7 @@ DART_EXPORT bool Dart_IsList(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewList(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  CHECK_LENGTH(length, Array::kMaxElements);
   return Api::NewHandle(isolate, Array::New(length));
 }
 
@@ -2164,6 +2157,7 @@ DART_EXPORT bool Dart_IsByteArray(Dart_Handle object) {
 DART_EXPORT Dart_Handle Dart_NewByteArray(intptr_t length) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
+  CHECK_LENGTH(length, Uint8Array::kMaxElements);
   return Api::NewHandle(isolate, Uint8Array::New(length));
 }
 
@@ -2177,10 +2171,7 @@ DART_EXPORT Dart_Handle Dart_NewExternalByteArray(uint8_t* data,
   if (data == NULL && length != 0) {
     RETURN_NULL_ERROR(data);
   }
-  if (length < 0) {
-    return Api::NewError("%s expects argument 'length' to be greater than 0.",
-                         CURRENT_FUNC);
-  }
+  CHECK_LENGTH(length, ExternalUint8Array::kMaxElements);
   return Api::NewHandle(
       isolate, ExternalUint8Array::New(data, length, peer, callback));
 }
@@ -2783,13 +2774,16 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
 }
 
 
-DART_EXPORT Dart_Handle Dart_FunctionEnclosingClassOrLibrary(
-    Dart_Handle function) {
+DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
   Isolate* isolate = Isolate::Current();
   DARTSCOPE(isolate);
   const Function& func = Api::UnwrapFunctionHandle(isolate, function);
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
+  }
+  if (func.IsNonImplicitClosureFunction()) {
+    RawFunction* parent_function = func.parent_function();
+    return Api::NewHandle(isolate, parent_function);
   }
   const Class& owner = Class::Handle(func.owner());
   ASSERT(!owner.IsNull());
@@ -4173,7 +4167,8 @@ DART_EXPORT void Dart_GetPprofSymbolInfo(void** buffer, int* buffer_size) {
     pprof_symbol_generator->WriteToMemory(debug_region);
     *buffer_size = debug_region->size();
     if (*buffer_size != 0) {
-      *buffer = reinterpret_cast<void*>(Api::Allocate(isolate, *buffer_size));
+      ApiZone* zone = Api::TopScope(isolate)->zone();
+      *buffer = reinterpret_cast<void*>(zone->AllocUnsafe(*buffer_size));
       memmove(*buffer, debug_region->data(), *buffer_size);
     } else {
       *buffer = NULL;

@@ -7173,6 +7173,18 @@ class _ElementImpl extends _NodeImpl implements Element {
         new Completer<CSSStyleDeclaration>());
   }
 
+  // Hooks to support custom WebComponents.
+  var xtag;
+
+  noSuchMethod(String name, List args) {
+    if (dynamicUnknownElementDispatcher == null) {
+      throw new NoSuchMethodException(this, name, args);
+    } else {
+      return dynamicUnknownElementDispatcher(this, name, args);
+    }
+  }
+
+
   _ElementEventsImpl get on() =>
     new _ElementEventsImpl(this);
 
@@ -7273,6 +7285,9 @@ class _ElementImpl extends _NodeImpl implements Element {
   void webkitRequestPointerLock() native "Element_webkitRequestPointerLock_Callback";
 
 }
+
+// Temporary dispatch hook to support WebComponents.
+Function dynamicUnknownElementDispatcher;
 
 final _START_TAG_REGEXP = const RegExp('<(\\w+)');
 class _ElementFactoryProvider {
@@ -11009,22 +11024,10 @@ class _HTMLUListElementImpl extends _HTMLElementImpl implements UListElement {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Temporary dispatch hook to support WebComponents.
-Function dynamicUnknownElementDispatcher;
+// WARNING: Do not edit - generated code.
 
 class _HTMLUnknownElementImpl extends _HTMLElementImpl implements UnknownElement {
 
-
-  // Hooks to support custom WebComponents.
-  var xtag;
-
-  noSuchMethod(String name, List args) {
-    if (dynamicUnknownElementDispatcher == null) {
-      throw new NoSuchMethodException(this, name, args);
-    } else {
-      return dynamicUnknownElementDispatcher(this, name, args);
-    }
-  }
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

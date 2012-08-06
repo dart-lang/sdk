@@ -5,6 +5,7 @@
 {
   'variables': {
     'arm_cross_libc%': '/opt/codesourcery/arm-2009q1/arm-none-linux-gnueabi/libc',
+    'dart_debug_optimization_level%': '2',
   },
   'target_defaults': {
     'configurations': {
@@ -60,7 +61,7 @@
       },
 
       'Dart_Debug': {
-        'cflags': [ '-O2' ],
+        'cflags': [ '-O<(dart_debug_optimization_level)' ],
       },
 
       'Dart_Release': {

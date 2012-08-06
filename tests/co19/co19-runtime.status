@@ -227,12 +227,6 @@ Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A06_t03: Fail
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail  # co19 issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail
 Language/07_Classes/3_Setters_A01_t02: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t01: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t02: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t03: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t04: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # co19 issue 124
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # co19 issue 124
 Language/07_Classes/5_Constructors/2_Factories_A05_t02: Fail
@@ -338,6 +332,26 @@ LibTest/isolate/ReceivePort/receive_A01_t02: Fail
 LibTest/isolate/isolate_api/spawnUri_A01_t03: Crash
 LibTest/isolate/isolate_api/spawnUri_A01_t04: Crash
 LibTest/isolate/SendPort/send_A02_t03: Skip # Issue 4201
+
+
+# These test cases use the deprecated Isolate API and should be updated to
+# use spawnFunction: issue ...
+LibTest/isolate/Isolate/port_A01_t02: Fail, OK
+LibTest/isolate/Isolate/port_A01_t01: Fail, OK
+LibTest/isolate/Isolate/main_A01_t01: Fail, OK
+LibTest/isolate/Isolate/class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.light_A01_t01: Fail, OK
+LibTest/isolate/Isolate/Isolate.heavy_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t04: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t05: Fail, OK
+LibTest/isolate/Isolate/spawn_A01_t06: Fail, OK
+Language/10_Expressions/11_Spawning_an_Isolate_A01_t01: Fail, OK
 
 
 # 'case' or '}' expected

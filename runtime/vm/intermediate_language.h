@@ -76,7 +76,6 @@ class LocalVariable;
   M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
   M(InstanceSetter, InstanceSetterComp)                                        \
-  M(StaticSetter, StaticSetterComp)                                            \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -97,6 +96,7 @@ class LocalVariable;
   M(CloneContext, CloneContextComp)                                            \
   M(CatchEntry, CatchEntryComp)                                                \
   M(BinaryOp, BinaryOpComp)                                                    \
+  M(DoubleBinaryOp, DoubleBinaryOpComp)                                        \
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
@@ -118,12 +118,12 @@ class Value;
 
 class Computation : public ZoneAllocated {
  public:
-  static const int kNoCid = -1;
+  static const intptr_t kNoCid = -1;
 
-  Computation() : cid_(-1), ic_data_(NULL), locs_(NULL) {
+  Computation() : cid_(kNoCid), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
-    cid_ = GetNextCid(isolate);
-    ic_data_ = GetICDataForCid(cid_, isolate);
+    cid_ = isolate->GetNextCid();
+    ic_data_ = isolate->GetICDataForCid(cid_);
   }
 
   // Unique computation/instruction id, used for deoptimization.
@@ -197,34 +197,14 @@ class Computation : public ZoneAllocated {
   virtual ComputationType computation_type() const = 0;
 
   // Declare predicate for each computation.
-#define DECLARE_PREDICATE(ShortName, ClassName)                             \
-  inline bool Is##ShortName() const;                                        \
+#define DECLARE_PREDICATE(ShortName, ClassName)                                \
+  inline bool Is##ShortName() const;                                           \
+  inline const ClassName* As##ShortName() const;                               \
   inline ClassName* As##ShortName();
-  FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
+FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
 
  private:
-  friend class Instruction;
-  static intptr_t GetNextCid(Isolate* isolate) {
-    intptr_t tmp = isolate->computation_id();
-    isolate->set_computation_id(tmp + 1);
-    return tmp;
-  }
-  static ICData* GetICDataForCid(intptr_t cid, Isolate* isolate) {
-    if (isolate->ic_data_array() == Array::null()) {
-      return NULL;
-    } else {
-      const Array& array_handle = Array::Handle(isolate->ic_data_array());
-      if (cid >= array_handle.Length()) {
-        // For computations being added in the optimizing compiler.
-        return NULL;
-      }
-      ICData& ic_data_handle = ICData::ZoneHandle();
-      ic_data_handle ^= array_handle.At(cid);
-      return &ic_data_handle;
-    }
-  }
-
   intptr_t cid_;
   ICData* ic_data_;
   LocationSummary* locs_;
@@ -299,6 +279,8 @@ class TemplateComputation : public Computation {
 class Value : public TemplateComputation<0> {
  public:
   Value() { }
+
+  bool StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -510,7 +492,7 @@ class ClosureCallComp : public Computation {
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -559,7 +541,7 @@ class InstanceCallComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const String& function_name() const { return function_name_; }
   Token::Kind token_kind() const { return token_kind_; }
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -750,7 +732,7 @@ class StaticCallComp : public Computation {
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -1059,70 +1041,40 @@ class StoreIndexedComp : public TemplateComputation<3> {
 };
 
 
-// Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
-class InstanceSetterComp : public TemplateComputation<2> {
+// TODO(fschneider): Make this an instance call.
+class InstanceSetterComp : public Computation {
  public:
   InstanceSetterComp(intptr_t token_pos,
                      intptr_t try_index,
                      const String& field_name,
-                     Value* receiver,
-                     Value* value)
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : token_pos_(token_pos),
         try_index_(try_index),
-        field_name_(field_name) {
-    inputs_[0] = receiver;
-    inputs_[1] = value;
-  }
+        field_name_(field_name),
+        arguments_(arguments) { }
 
-  DECLARE_COMPUTATION(InstanceSetter)
+  DECLARE_CALL_COMPUTATION(InstanceSetter)
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   const String& field_name() const { return field_name_; }
-  Value* receiver() const { return inputs_[0]; }
-  Value* value() const { return inputs_[1]; }
+
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
   const String& field_name_;
+  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
 
   DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
-};
-
-
-// Not simply a StaticCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
-class StaticSetterComp : public TemplateComputation<1> {
- public:
-  StaticSetterComp(intptr_t token_pos,
-                   intptr_t try_index,
-                   const Function& setter_function,
-                   Value* value)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        setter_function_(setter_function) {
-    inputs_[0] = value;
-  }
-
-  DECLARE_COMPUTATION(StaticSetter)
-
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
-  const Function& setter_function() const { return setter_function_; }
-  Value* value() const { return inputs_[0]; }
-
-  virtual bool CanDeoptimize() const { return false; }
-
- private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
-  const Function& setter_function_;
-
-  DISALLOW_COPY_AND_ASSIGN(StaticSetterComp);
 };
 
 
@@ -1322,7 +1274,7 @@ class CreateClosureComp : public Computation {
   intptr_t try_index() const { return try_index_; }
   const Function& function() const { return ast_node_.function(); }
 
-  intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
   PushArgumentInstr* ArgumentAt(intptr_t index) const {
     return (*arguments_)[index];
   }
@@ -1648,6 +1600,31 @@ class BinaryOpComp : public TemplateComputation<2> {
 };
 
 
+class DoubleBinaryOpComp : public Computation {
+ public:
+  DoubleBinaryOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
+      : op_kind_(op_kind), instance_call_(instance_call) { }
+
+  Token::Kind op_kind() const { return op_kind_; }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
+  DECLARE_CALL_COMPUTATION(DoubleBinaryOp)
+
+  virtual intptr_t ArgumentCount() const { return 2; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+ private:
+  const Token::Kind op_kind_;
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(DoubleBinaryOpComp);
+};
+
+
 // Handles both Smi operations: BIT_OR and NEGATE.
 class UnarySmiOpComp : public TemplateComputation<1> {
  public:
@@ -1760,6 +1737,10 @@ class ToDoubleComp : public TemplateComputation<1> {
 bool Computation::Is##ShortName() const {                                      \
   return computation_type() == k##ShortName;                                   \
 }                                                                              \
+const ClassName* Computation::As##ShortName() const {                          \
+  if (!Is##ShortName()) return NULL;                                           \
+  return static_cast<const ClassName*>(this);                                  \
+}                                                                              \
 ClassName* Computation::As##ShortName() {                                      \
   if (!Is##ShortName()) return NULL;                                           \
   return static_cast<ClassName*>(this);                                        \
@@ -1812,28 +1793,25 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void PrintToVisualizer(BufferFormatter* f) const;
 
 
+#define DECLARE_CALL_INSTRUCTION(type)                                         \
+  virtual void Accept(FlowGraphVisitor* visitor);                              \
+  virtual bool Is##type() const { return true; }                               \
+  virtual type##Instr* As##type() { return this; }                             \
+  virtual intptr_t InputCount() const { return 0; }                            \
+  virtual Value* InputAt(intptr_t i) const {                                   \
+    UNREACHABLE();                                                             \
+    return NULL;                                                               \
+  }                                                                            \
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }         \
+  virtual const char* DebugName() const { return #type; }                      \
+  virtual void PrintTo(BufferFormatter* f) const;                              \
+  virtual void PrintToVisualizer(BufferFormatter* f) const;
+
+
 class Instruction : public ZoneAllocated {
  public:
   Instruction()
-      : cid_(-1),
-        lifetime_position_(-1),
-        ic_data_(NULL),
-        previous_(NULL),
-        next_(NULL),
-        env_(NULL) {
-    Isolate* isolate = Isolate::Current();
-    cid_ = Computation::GetNextCid(isolate);
-    ic_data_ = Computation::GetICDataForCid(cid_, isolate);
-  }
-
-  // Unique computation/instruction id, used for deoptimization, e.g. for
-  // ReturnInstr, ThrowInstr and ReThrowInstr.
-  intptr_t cid() const { return cid_; }
-
-  const ICData* ic_data() const { return ic_data_; }
-  bool HasICData() const {
-    return (ic_data() != NULL) && !ic_data()->IsNull();
-  }
+      : lifetime_position_(-1), previous_(NULL), next_(NULL), env_(NULL) { }
 
   virtual bool IsBlockEntry() const { return false; }
   BlockEntryInstr* AsBlockEntry() {
@@ -1949,9 +1927,7 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
-  intptr_t cid_;  // Computation id.
   intptr_t lifetime_position_;  // Position used by register allocator.
-  ICData* ic_data_;
   Instruction* previous_;
   Instruction* next_;
   Environment* env_;
@@ -1962,8 +1938,6 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 class InstructionWithInputs : public Instruction {
  public:
   InstructionWithInputs() : locs_(NULL) { }
-
-  virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -2485,6 +2459,8 @@ class PushArgumentInstr : public InstructionWithInputs {
 
   DECLARE_INSTRUCTION(PushArgument)
 
+  virtual intptr_t ArgumentCount() const { return 0; }
+
   Value* value() const { return value_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
@@ -2503,14 +2479,20 @@ class PushArgumentInstr : public InstructionWithInputs {
 class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
-      : InstructionWithInputs(), token_pos_(token_pos), value_(value) {
+      : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
+        token_pos_(token_pos),
+        value_(value) {
     ASSERT(value_ != NULL);
   }
 
   DECLARE_INSTRUCTION(Return)
 
-  Value* value() const { return value_; }
+  virtual intptr_t ArgumentCount() const { return 0; }
+
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
+  Value* value() const { return value_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2519,6 +2501,7 @@ class ReturnInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   Value* value_;
 
@@ -2528,21 +2511,19 @@ class ReturnInstr : public InstructionWithInputs {
 
 class ThrowInstr : public InstructionWithInputs {
  public:
-  ThrowInstr(intptr_t token_pos,
-             intptr_t try_index,
-             Value* exception)
+  ThrowInstr(intptr_t token_pos, intptr_t try_index)
       : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
-        try_index_(try_index),
-        exception_(exception) {
-    ASSERT(exception_ != NULL);
-  }
+        try_index_(try_index) { }
 
-  DECLARE_INSTRUCTION(Throw)
+  DECLARE_CALL_INSTRUCTION(Throw)
 
+  virtual intptr_t ArgumentCount() const { return 1; }
+
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  Value* exception() const { return exception_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2551,9 +2532,9 @@ class ThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Value* exception_;
 
   DISALLOW_COPY_AND_ASSIGN(ThrowInstr);
 };
@@ -2562,24 +2543,19 @@ class ThrowInstr : public InstructionWithInputs {
 class ReThrowInstr : public InstructionWithInputs {
  public:
   ReThrowInstr(intptr_t token_pos,
-               intptr_t try_index,
-               Value* exception,
-               Value* stack_trace)
+               intptr_t try_index)
       : InstructionWithInputs(),
+        cid_(Isolate::Current()->GetNextCid()),
         token_pos_(token_pos),
-        try_index_(try_index),
-        exception_(exception),
-        stack_trace_(stack_trace) {
-    ASSERT(exception_ != NULL);
-    ASSERT(stack_trace_ != NULL);
-  }
+        try_index_(try_index) { }
 
-  DECLARE_INSTRUCTION(ReThrow)
+  DECLARE_CALL_INSTRUCTION(ReThrow)
 
+  virtual intptr_t ArgumentCount() const { return 2; }
+
+  intptr_t cid() const { return cid_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  Value* exception() const { return exception_; }
-  Value* stack_trace() const { return stack_trace_; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2588,10 +2564,9 @@ class ReThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
+  const intptr_t cid_;  // Computation/instruction id.
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Value* exception_;
-  Value* stack_trace_;
 
   DISALLOW_COPY_AND_ASSIGN(ReThrowInstr);
 };
@@ -2605,6 +2580,8 @@ class GotoInstr : public InstructionWithInputs {
   }
 
   DECLARE_INSTRUCTION(Goto)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   JoinEntryInstr* successor() const { return successor_; }
   void set_successor(JoinEntryInstr* successor) { successor_ = successor; }
@@ -2645,10 +2622,12 @@ class BranchInstr : public InstructionWithInputs {
  public:
   BranchInstr(intptr_t token_pos,
               intptr_t try_index,
-               Value* left,
-             Value* right,
+              Value* left,
+              Value* right,
               Token::Kind kind)
       : InstructionWithInputs(),
+        cid_(Computation::kNoCid),
+        ic_data_(NULL),
         token_pos_(token_pos),
         try_index_(try_index),
         left_(left),
@@ -2661,9 +2640,14 @@ class BranchInstr : public InstructionWithInputs {
     ASSERT(Token::IsEqualityOperator(kind) ||
            Token::IsRelationalOperator(kind) ||
            Token::IsTypeTestOperator(kind));
+    Isolate* isolate = Isolate::Current();
+    cid_ = isolate->GetNextCid();
+    ic_data_ = isolate->GetICDataForCid(cid_);
   }
 
   DECLARE_INSTRUCTION(Branch)
+
+  virtual intptr_t ArgumentCount() const { return 0; }
 
   Value* left() const { return left_; }
   Value* right() const { return right_; }
@@ -2674,6 +2658,14 @@ class BranchInstr : public InstructionWithInputs {
            Token::IsTypeTestOperator(kind));
     kind_ = kind;
   }
+
+  intptr_t cid() const { return cid_; }
+
+  const ICData* ic_data() const { return ic_data_; }
+  bool HasICData() const {
+    return (ic_data() != NULL) && !ic_data()->IsNull();
+  }
+
   intptr_t token_pos() const { return token_pos_;}
   intptr_t try_index() const { return try_index_; }
 
@@ -2705,6 +2697,8 @@ class BranchInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
+  intptr_t cid_;  // Computation/instruction id.
+  ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
   Value* left_;

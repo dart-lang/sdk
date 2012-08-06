@@ -11,6 +11,7 @@
 namespace dart {
 
 class AllocationFinger;
+class BlockInfo;
 class FlowGraphBuilder;
 class LiveRange;
 class UseInterval;
@@ -73,9 +74,16 @@ class FlowGraphAllocator : public ValueObject {
   // that will be used for phi resolution.
   void NumberInstructions();
   Instruction* InstructionAt(intptr_t pos) const;
+  BlockInfo* BlockInfoAt(intptr_t pos) const;
   bool IsBlockEntry(intptr_t pos) const;
 
+  // Discover structural (reducible) loops nesting structure.
+  // It will be used later in SplitBetween heuristic that selects an
+  // optimal splitting position.
+  void DiscoverLoops();
+
   LiveRange* GetLiveRange(intptr_t vreg);
+  LiveRange* MakeLiveRangeForTemporary();
 
   // Visit instructions in the postorder and build live ranges for
   // all SSA values.
@@ -105,7 +113,7 @@ class FlowGraphAllocator : public ValueObject {
   // Add live range to the list of unallocated live ranges to be processed
   // by the allocator.
   void AddToUnallocated(LiveRange* range);
-#ifdef DEBUG
+#if defined(DEBUG)
   bool UnallocatedIsSorted();
 #endif
 
@@ -140,7 +148,7 @@ class FlowGraphAllocator : public ValueObject {
   LiveRange* SplitBetween(LiveRange* range, intptr_t from, intptr_t to);
 
   // Find a spill slot that can be used by the given live range.
-  intptr_t AllocateSpillSlotFor(LiveRange* range);
+  void AllocateSpillSlotFor(LiveRange* range);
 
   // Allocate the given live range to a spill slot.
   void Spill(LiveRange* range);
@@ -149,7 +157,7 @@ class FlowGraphAllocator : public ValueObject {
   void SpillAfter(LiveRange* range, intptr_t from);
 
   // Spill the given live range from the given position until some
-  // position preceeding the to position.
+  // position preceding the to position.
   void SpillBetween(LiveRange* range, intptr_t from, intptr_t to);
 
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
@@ -163,7 +171,11 @@ class FlowGraphAllocator : public ValueObject {
   const GrowableArray<BlockEntryInstr*>& block_order_;
   const GrowableArray<BlockEntryInstr*>& postorder_;
 
+  // Mapping between lifetime positions and instructions.
   GrowableArray<Instruction*> instructions_;
+
+  // Mapping between lifetime positions and blocks containing them.
+  GrowableArray<BlockInfo*> block_info_;
 
   // Live-out sets for each block.  They contain indices of SSA values
   // that are live out from this block: that is values that were either
@@ -190,19 +202,58 @@ class FlowGraphAllocator : public ValueObject {
   // to ShouldBeAllocatedBefore predicate.
   GrowableArray<LiveRange*> unallocated_;
 
+#if defined(DEBUG)
+  GrowableArray<LiveRange*> temporaries_;
+#endif
+
+  GrowableArray<LiveRange*> spilled_;
+
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
   // Those live ranges that end before the start of the current live range are
   // removed from the list and will not be affected.
   GrowableArray<LiveRange*> cpu_regs_[kNumberOfCpuRegisters];
 
-  // List of used spill slots. Contain positions after which spill slots
+  // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
 
   bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphAllocator);
+};
+
+
+// Additional information about a block that is not contained in a
+// block entry.
+class BlockInfo : public ZoneAllocated {
+ public:
+  explicit BlockInfo(BlockEntryInstr* entry)
+    : entry_(entry), loop_(NULL), is_loop_header_(false) {
+  }
+
+  BlockEntryInstr* entry() const { return entry_; }
+
+  // Returns true is this node is a header of a structural loop.
+  bool is_loop_header() const { return is_loop_header_; }
+
+  // Innermost reducible loop containing this node. Loop headers point to
+  // outer loop not to themselves.
+  BlockInfo* loop() const { return loop_; }
+
+  void mark_loop_header() { is_loop_header_ = true; }
+  void set_loop(BlockInfo* loop) {
+    ASSERT(loop_ == NULL);
+    ASSERT((loop == NULL) || loop->is_loop_header());
+    loop_ = loop;
+  }
+
+ private:
+  BlockEntryInstr* entry_;
+  BlockInfo* loop_;
+  bool is_loop_header_;
+
+  DISALLOW_COPY_AND_ASSIGN(BlockInfo);
 };
 
 
@@ -321,6 +372,7 @@ class LiveRange : public ZoneAllocated {
   explicit LiveRange(intptr_t vreg)
     : vreg_(vreg),
       assigned_location_(),
+      spill_slot_(),
       uses_(NULL),
       first_use_interval_(NULL),
       last_use_interval_(NULL),
@@ -346,6 +398,10 @@ class LiveRange : public ZoneAllocated {
     assigned_location_ = location;
   }
 
+  void set_spill_slot(Location spill_slot) {
+    spill_slot_ = spill_slot;
+  }
+
   void DefineAt(intptr_t pos);
 
   void AddUse(intptr_t pos, Location* location_slot);
@@ -359,6 +415,10 @@ class LiveRange : public ZoneAllocated {
 
   bool CanCover(intptr_t pos) const {
     return (Start() <= pos) && (pos < End());
+  }
+
+  Location spill_slot() const {
+    return spill_slot_;
   }
 
  private:
@@ -378,6 +438,7 @@ class LiveRange : public ZoneAllocated {
 
   const intptr_t vreg_;
   Location assigned_location_;
+  Location spill_slot_;
 
   UsePosition* uses_;
   UseInterval* first_use_interval_;

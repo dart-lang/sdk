@@ -17,10 +17,8 @@ class SocketManyConnectionsTest {
         _sendPort = null,
         _connections = 0,
         _sockets = new List<Socket>(CONNECTIONS) {
-    new TestServer().spawn().then((SendPort port) {
-      _sendPort = port;
-      start();
-    });
+    _sendPort = spawnFunction(startTestServer);
+    start();
   }
 
   void run() {
@@ -63,6 +61,12 @@ class SocketManyConnectionsTest {
   SendPort _sendPort;
   List<Socket> _sockets;
   int _connections;
+}
+
+
+void startTestServer() {
+  var server = new TestServer();
+  port.receive(server.dispatch);
 }
 
 class TestServer extends TestingServer {

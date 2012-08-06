@@ -108,7 +108,7 @@ class AssemblerBuffer : public ValueObject {
   }
 
   // Get the size of the emitted code.
-  int Size() const { return cursor_ - contents_; }
+  intptr_t Size() const { return cursor_ - contents_; }
   uword contents() const { return contents_; }
 
   // Copy the assembled instructions into the specified memory block
@@ -131,9 +131,9 @@ class AssemblerBuffer : public ValueObject {
 
    private:
     AssemblerBuffer* buffer_;
-    int gap_;
+    intptr_t gap_;
 
-    int ComputeGap() { return buffer_->Capacity() - buffer_->Size(); }
+    intptr_t ComputeGap() { return buffer_->Capacity() - buffer_->Size(); }
   };
 
   bool has_ensured_capacity_;
@@ -153,13 +153,13 @@ class AssemblerBuffer : public ValueObject {
 #endif
 
   // Returns the position in the instruction stream.
-  int GetPosition() const { return cursor_ - contents_; }
+  intptr_t GetPosition() const { return cursor_ - contents_; }
 
  private:
   // The limit is set to kMinimumGap bytes before the end of the data area.
   // This leaves enough space for the longest possible instruction and allows
   // for a single, fast space check per instruction.
-  static const int kMinimumGap = 32;
+  static const intptr_t kMinimumGap = 32;
 
   uword contents_;
   uword cursor_;
@@ -172,7 +172,7 @@ class AssemblerBuffer : public ValueObject {
 
   uword cursor() const { return cursor_; }
   uword limit() const { return limit_; }
-  int Capacity() const {
+  intptr_t Capacity() const {
     ASSERT(limit_ >= contents_);
     return (limit_ - contents_) + kMinimumGap;
   }
@@ -182,7 +182,7 @@ class AssemblerBuffer : public ValueObject {
 
   // Compute the limit based on the data area and the capacity. See
   // description of kMinimumGap for the reasoning behind the value.
-  static uword ComputeLimit(uword data, int capacity) {
+  static uword ComputeLimit(uword data, intptr_t capacity) {
     return data + capacity - kMinimumGap;
   }
 

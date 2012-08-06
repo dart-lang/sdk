@@ -10,17 +10,12 @@
 
 final testData = const [1, '2', 'true'];
 
-// TODO(vsm): Convert all DOM isolate tests to the new syntax.
-class TestIsolate extends Isolate {
-  TestIsolate() : super();
+void testIsolateEntry() {
+  var fun1 = window.lookupPort('fun1');
+  var result = fun1.callSync(testData);
 
-  void main() {
-    var fun1 = window.lookupPort('fun1');
-    var result = fun1.callSync(testData);
-
-    var fun2 = window.lookupPort('fun2');
-    fun2.callSync(result);
-  }
+  var fun2 = window.lookupPort('fun2');
+  fun2.callSync(result);
 }
 
 main() {
@@ -64,6 +59,6 @@ main() {
     port2.receive(fun2);
     window.registerPort('fun2', port2.toSendPort());
 
-    new TestIsolate().spawn();
+    spawnFunction(testIsolateEntry);
   });
 }

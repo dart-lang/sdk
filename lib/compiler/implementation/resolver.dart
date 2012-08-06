@@ -231,7 +231,7 @@ class ResolverTask extends CompilerTask {
     measure(() {
       ClassNode tree = element.parseNode(compiler);
       ClassResolverVisitor visitor =
-        new ClassResolverVisitor(compiler, element.getLibrary(), element);
+        new ClassResolverVisitor(compiler, element);
       visitor.visit(tree);
       element.isBeingResolved = false;
       element.isResolved = true;
@@ -569,7 +569,8 @@ class CommonResolverVisitor<R> extends AbstractVisitor<R> {
   CommonResolverVisitor(Compiler this.compiler);
 
   R visitNode(Node node) {
-    cancel(node, 'internal error');
+    cancel(node,
+           'internal error: Unhandled node: ${node.getObjectDescription()}');
   }
 
   R visitEmptyStatement(Node node) => null;
@@ -653,6 +654,7 @@ class StatementScope {
   LabelElement lookupLabel(String label) {
     return labels.lookup(label);
   }
+
   TargetElement currentBreakTarget() =>
     breakTargetStack.isEmpty() ? null : breakTargetStack.head;
 
@@ -697,18 +699,23 @@ class StatementScope {
 
 class TypeResolver {
   final Compiler compiler;
+
   TypeResolver(this.compiler);
 
-  Element resolveTypeName(Scope context, Node typeNode) {
-    Identifier typeName = typeNode.asIdentifier();
-    Send send = typeNode.asSend();
+  Element resolveTypeName(Scope scope, TypeAnnotation node) {
+    Identifier typeName = node.typeName.asIdentifier();
+    Send send = node.typeName.asSend();
+    return resolveTypeNameInternal(scope, typeName, send);
+  }
+
+  Element resolveTypeNameInternal(Scope scope, Identifier typeName, Send send) {
     if (send !== null) {
       typeName = send.selector;
     }
     if (typeName.source.stringValue === 'void') {
       return compiler.types.voidType.element;
     } else if (send !== null) {
-      Element e = context.lookup(send.receiver.asIdentifier().source);
+      Element e = scope.lookup(send.receiver.asIdentifier().source);
       if (e !== null && e.kind === ElementKind.PREFIX) {
         // The receiver is a prefix. Lookup in the imported members.
         PrefixElement prefix = e;
@@ -720,12 +727,16 @@ class TypeResolver {
         return null;
       }
     } else {
-      return context.lookup(typeName.source);
+      return scope.lookup(typeName.source);
     }
   }
 
+  // TODO(johnniwinther): Change  [onFailure] and [whenResolved] to use boolean
+  // flags instead of closures.
+  // TODO(johnniwinther): Should never return [null] but instead an erroneous
+  // type.
   Type resolveTypeAnnotation(TypeAnnotation node,
-                             [Scope inContext, ClassElement inClass,
+                             [Scope inScope, ClassElement inClass,
                               onFailure(Node, MessageKind, [List arguments]),
                               whenResolved(Node, Type)]) {
     if (onFailure === null) {
@@ -735,35 +746,18 @@ class TypeResolver {
       whenResolved = (n, t) {};
     }
     if (inClass !== null) {
-      inContext = new ClassScope(inClass, inClass.getLibrary());
+      inScope = inClass.buildScope();
     }
-    if (inContext === null) {
+    if (inScope === null) {
       compiler.internalError('resolveTypeAnnotation: no scope specified');
     }
-    return resolveTypeAnnotationInContext(inContext, node, onFailure,
+    return resolveTypeAnnotationInContext(inScope, node, onFailure,
                                           whenResolved);
   }
 
-  Type resolveTypeVariableInContext(Scope context, TypeVariable node,
-                                    onFailure) {
-    Element element = resolveTypeName(context, node.name);
-    Type type;
-    if (element === null) {
-      onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.name]);
-    } else if (!element.impliesType()) {
-      onFailure(node, MessageKind.NOT_A_TYPE, [node.name]);
-    } else if (element.isTypeVariable()) {
-      type = element.computeType(compiler);
-    } else {
-      compiler.cancel("unexpected element kind ${element.kind}",
-                      node: node);
-    }
-    return type;
-  }
-
-  Type resolveTypeAnnotationInContext(Scope context, TypeAnnotation node,
+  Type resolveTypeAnnotationInContext(Scope scope, TypeAnnotation node,
                                       onFailure, whenResolved) {
-    Element element = resolveTypeName(context, node.typeName);
+    Element element = resolveTypeName(scope, node);
     Type type;
     if (element === null) {
       onFailure(node, MessageKind.CANNOT_RESOLVE_TYPE, [node.typeName]);
@@ -776,37 +770,14 @@ class TypeResolver {
       } else if (element.isClass()) {
         ClassElement cls = element;
         if (!cls.isResolved) compiler.resolveClass(cls);
-        LinkBuilder<Type> arguments = new LinkBuilder<Type>();
-        if (node.typeArguments !== null) {
-          int index = 0;
-          for (Link<Node> typeArguments = node.typeArguments.nodes;
-               !typeArguments.isEmpty();
-               typeArguments = typeArguments.tail) {
-            if (++index > cls.typeParameters.length) {
-              onFailure(typeArguments.head,
-                        MessageKind.ADDITIONAL_TYPE_ARGUMENT);
-            }
-            // TypeVariable may happen in default clause of an interface.
-            Type argType;
-            if (typeArguments.head is TypeVariable) {
-              argType = resolveTypeVariableInContext(
-                  new ClassScope(cls, cls.getLibrary()), typeArguments.head,
-                  onFailure);
-            } else {
-              argType = resolveTypeAnnotationInContext(context,
-                  typeArguments.head, onFailure, whenResolved);
-            }
-            arguments.addLast(argType);
-          }
-          if (index < cls.typeParameters.length) {
-            onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
-          }
-        }
-        if (cls.typeParameters.length == 0) {
-          // Return the canonical type if it has no type parameters.
+        Link<Type> arguments =
+            resolveTypeArguments(node, cls.typeVariables, scope,
+                                 onFailure, whenResolved);
+        if (cls.typeVariables.isEmpty() && arguments.isEmpty()) {
+          // Use the canonical type if it has no type parameters.
           type = cls.computeType(compiler);
         } else {
-          type = new InterfaceType(cls, arguments.toLink());
+          type = new InterfaceType(cls, arguments);
         }
       } else if (element.isTypedef()) {
         type = element.computeType(compiler);
@@ -820,6 +791,34 @@ class TypeResolver {
     whenResolved(node, type);
     return type;
   }
+
+  Link<Type> resolveTypeArguments(TypeAnnotation node,
+                                  Link<Type> typeVariables,
+                                  Scope scope, onFailure, whenResolved) {
+    if (node.typeArguments == null) {
+      return const EmptyLink<Type>();
+    }
+    var arguments = new LinkBuilder<Type>();
+    for (Link<Node> typeArguments = node.typeArguments.nodes;
+         !typeArguments.isEmpty();
+         typeArguments = typeArguments.tail) {
+      if (typeVariables.isEmpty()) {
+        onFailure(typeArguments.head, MessageKind.ADDITIONAL_TYPE_ARGUMENT);
+      }
+      Type argType = resolveTypeAnnotationInContext(scope,
+                                                    typeArguments.head,
+                                                    onFailure,
+                                                    whenResolved);
+      arguments.addLast(argType);
+      if (!typeVariables.isEmpty()) {
+        typeVariables = typeVariables.tail;
+      }
+    }
+    if (!typeVariables.isEmpty()) {
+      onFailure(node.typeArguments, MessageKind.MISSING_TYPE_ARGUMENT);
+    }
+    return arguments.toLink();
+  }
 }
 
 class ResolverVisitor extends CommonResolverVisitor<Element> {
@@ -827,7 +826,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   final TypeResolver typeResolver;
   bool inInstanceContext;
-  Scope context;
+  Scope scope;
   ClassElement currentClass;
   bool typeRequired = false;
   StatementScope statementScope;
@@ -841,20 +840,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.currentClass = element.isMember() ? element.enclosingElement : null,
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
+      scope = element.buildEnclosingScope(),
       super(compiler) {
-    LibraryElement library = element.getLibrary();
-    element = element.getEnclosingMember();
-    if (element !== null) {
-      context = new ClassScope(element.enclosingElement, library);
-    } else {
-      this.context = new TopScope(library);
-    }
   }
 
   Enqueuer get world() => compiler.enqueuer.resolution;
 
   Element lookup(Node node, SourceString name) {
-    Element result = context.lookup(name);
+    Element result = scope.lookup(name);
     if (!inInstanceContext && result != null && result.isInstanceMember()) {
       error(node, MessageKind.NO_INSTANCE_AVAILABLE, [node]);
     }
@@ -922,7 +915,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     compiler.ensure(element !== null);
     mapping[node] = element;
     if (doAddToScope) {
-      Element existing = context.add(element);
+      Element existing = scope.add(element);
       if (existing != element) {
         error(node, MessageKind.DUPLICATE_DEFINITION, [node]);
       }
@@ -963,8 +956,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   void setupFunction(FunctionExpression node, FunctionElement function) {
-    context = new MethodScope(context, function);
-    if (node.returnType !== null) resolveTypeAnnotation(node.returnType);
+    scope = new MethodScope(scope, function);
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
@@ -1000,10 +992,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     cancel(node, "shouldn't be called");
   }
 
-  visitIn(Node node, Scope scope) {
-    context = scope;
+  visitIn(Node node, Scope nestedScope) {
+    scope = nestedScope;
     Element element = visit(node);
-    context = context.parent;
+    scope = scope.parent;
     return element;
   }
 
@@ -1011,10 +1003,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
    * Introduces new default targets for break and continue
    * before visiting the body of the loop
    */
-  visitLoopBodyIn(Node loop, Node body, Scope scope) {
+  visitLoopBodyIn(Node loop, Node body, Scope bodyScope) {
     TargetElement element = getOrCreateTargetElement(loop);
     statementScope.enterLoop(element);
-    visitIn(body, scope);
+    visitIn(body, bodyScope);
     statementScope.exitLoop();
     if (!element.isTarget) {
       mapping.remove(loop);
@@ -1022,11 +1014,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitBlock(Block node) {
-    visitIn(node.statements, new BlockScope(context));
+    visitIn(node.statements, new BlockScope(scope));
   }
 
   visitDoWhile(DoWhile node) {
-    visitLoopBodyIn(node, node.body, new BlockScope(context));
+    visitLoopBodyIn(node, node.body, new BlockScope(scope));
     visit(node.condition);
   }
 
@@ -1037,11 +1029,11 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitFor(For node) {
-    Scope scope = new BlockScope(context);
-    visitIn(node.initializer, scope);
-    visitIn(node.condition, scope);
-    visitIn(node.update, scope);
-    visitLoopBodyIn(node, node.body, scope);
+    Scope blockScope = new BlockScope(scope);
+    visitIn(node.initializer, blockScope);
+    visitIn(node.condition, blockScope);
+    visitIn(node.update, blockScope);
+    visitLoopBodyIn(node, node.body, blockScope);
   }
 
   visitFunctionDeclaration(FunctionDeclaration node) {
@@ -1063,7 +1055,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     }
     FunctionElement enclosing = new FunctionElement.node(
         name, node, ElementKind.FUNCTION, new Modifiers.empty(),
-        context.element);
+        scope.element);
     setupFunction(node, enclosing);
     defineElement(node, enclosing, doAddToScope: node.name !== null);
 
@@ -1073,7 +1065,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     visit(node.body);
     statementScope = oldScope;
 
-    context = context.parent;
+    scope = scope.parent;
   }
 
   visitIf(If node) {
@@ -1343,7 +1335,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitWhile(While node) {
     visit(node.condition);
-    visitLoopBodyIn(node, node.body, new BlockScope(context));
+    visitLoopBodyIn(node, node.body, new BlockScope(scope));
   }
 
   visitParenthesizedExpression(ParenthesizedExpression node) {
@@ -1420,7 +1412,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   Type resolveTypeAnnotation(TypeAnnotation node) {
     Function report = typeRequired ? error : warning;
-    return typeResolver.resolveTypeAnnotation(node, inContext: context,
+    return typeResolver.resolveTypeAnnotation(node, inScope: scope,
                                               onFailure: report,
                                               whenResolved: useType);
   }
@@ -1505,10 +1497,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitForIn(ForIn node) {
     visit(node.expression);
-    Scope scope = new BlockScope(context);
+    Scope blockScope = new BlockScope(scope);
     Node declaration = node.declaredIdentifier;
-    visitIn(declaration, scope);
-    visitLoopBodyIn(node, node.body, scope);
+    visitIn(declaration, blockScope);
+    visitLoopBodyIn(node, node.body, blockScope);
 
     // TODO(lrn): Also allow a single identifier.
     if ((declaration is !Send || declaration.asSend().selector is !Identifier)
@@ -1628,7 +1620,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
 
   visitSwitchCase(SwitchCase node) {
     node.labelsAndCases.accept(this);
-    visitIn(node.statements, new BlockScope(context));
+    visitIn(node.statements, new BlockScope(scope));
   }
 
   visitCaseMatch(CaseMatch node) {
@@ -1647,7 +1639,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitCatchBlock(CatchBlock node) {
-    Scope scope = new BlockScope(context);
+    Scope blockScope = new BlockScope(scope);
     if (node.formals.isEmpty()) {
       error(node, MessageKind.EMPTY_CATCH_DECLARATION);
     } else if (!node.formals.nodes.tail.isEmpty()
@@ -1656,8 +1648,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
       }
     }
-    visitIn(node.formals, scope);
-    visitIn(node.block, scope);
+    visitIn(node.formals, blockScope);
+    visitIn(node.block, blockScope);
   }
 
   visitTypedef(Typedef node) {
@@ -1665,55 +1657,79 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 }
 
-class ClassResolverVisitor extends CommonResolverVisitor<Type> {
-  Scope context;
-  ClassElement classElement;
+class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
+  Scope scope;
+  TypeDeclarationElement element;
+  TypeResolver typeResolver;
 
-  ClassResolverVisitor(Compiler compiler, LibraryElement library,
-                       ClassElement this.classElement)
-    : context = new TopScope(library),
-      super(compiler);
+  TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
+      : this.element = element,
+        scope = element.enclosingElement.buildScope(),
+        typeResolver = new TypeResolver(compiler),
+        super(compiler);
 
-  Type visitClassNode(ClassNode node) {
-    compiler.ensure(classElement !== null);
-    compiler.ensure(!classElement.isResolved);
-    final Link<Node> parameters =
-        node.typeParameters !== null ? node.typeParameters.nodes
-                                     : const EmptyLink<TypeVariable>();
-    // Create types and elements for type variable.
-    for (Link<Node> link = parameters; !link.isEmpty(); link = link.tail) {
-      TypeVariable typeNode = link.head;
-      SourceString variableName = typeNode.name.source;
-      TypeVariableType variableType = new TypeVariableType(variableName);
-      TypeVariableElement variableElement =
-          new TypeVariableElement(variableName, classElement, node,
-                                  variableType);
-      variableType.element = variableElement;
-      classElement.typeParameters[variableName] = variableElement;
-      context = new TypeVariablesScope(context, classElement);
-    }
+  void resolveTypeVariableBounds(NodeList node) {
+    if (node === null) return;
+
+    var nameSet = new Set<SourceString>();
     // Resolve the bounds of type variables.
-    for (Link<Node> link = parameters; !link.isEmpty(); link = link.tail) {
-      TypeVariable typeNode = link.head;
-      SourceString variableName = typeNode.name.source;
-      TypeVariableElement variableElement =
-          classElement.typeParameters[variableName];
+    Link<Type> typeLink = element.typeVariables;
+    Link<Node> nodeLink = node.nodes;
+    while (!nodeLink.isEmpty()) {
+      TypeVariableType typeVariable = typeLink.head;
+      SourceString typeName = typeVariable.name;
+      TypeVariable typeNode = nodeLink.head;
+      if (nameSet.contains(typeName)) {
+        error(typeNode, MessageKind.DUPLICATE_TYPE_VARIABLE_NAME, [typeName]);
+      }
+      nameSet.add(typeName);
+
+      TypeVariableElement variableElement = typeVariable.element;
       if (typeNode.bound !== null) {
-        Type boundType = visit(typeNode.bound);
+        Type boundType = typeResolver.resolveTypeAnnotation(
+            typeNode.bound, inScope: scope, onFailure: warning);
         if (boundType !== null && boundType.element == variableElement) {
+          // TODO(johnniwinther): Check for more general cycles, like
+          // [: <A extends B, B extends C, C extends B> :].
           warning(node, MessageKind.CYCLIC_TYPE_VARIABLE,
                   [variableElement.name]);
         } else if (boundType !== null) {
           variableElement.bound = boundType;
         } else {
+          // TODO(johnniwinther): Should be an erroneous type.
           variableElement.bound = compiler.objectClass.computeType(compiler);
         }
+      } else {
+        variableElement.bound = compiler.objectClass.computeType(compiler);
       }
+      nodeLink = nodeLink.tail;
+      typeLink = typeLink.tail;
     }
+    assert(typeLink.isEmpty());
+  }
+}
+
+class ClassResolverVisitor extends TypeDefinitionVisitor {
+  ClassElement get element() => super.element;
+
+  ClassResolverVisitor(Compiler compiler, ClassElement classElement)
+    : super(compiler, classElement);
+
+  Type visitClassNode(ClassNode node) {
+    compiler.ensure(element !== null);
+    compiler.ensure(!element.isResolved);
+
+    InterfaceType type = element.computeType(compiler);
+    scope = new TypeDeclarationScope(scope, element);
+    // TODO(ahe): It is not safe to call resolveTypeVariableBounds yet.
+    // As a side-effect, this may get us back here trying to
+    // resolve this class again.
+    resolveTypeVariableBounds(node.typeParameters);
+
     // Find super type.
     Type supertype = visit(node.superclass);
     if (supertype !== null && supertype.element.isExtendable()) {
-      classElement.supertype = supertype;
+      element.supertype = supertype;
       if (isBlackListed(supertype)) {
         error(node.superclass, MessageKind.CANNOT_EXTEND, [supertype]);
       }
@@ -1721,25 +1737,26 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       error(node.superclass, MessageKind.TYPE_NAME_EXPECTED);
     }
     final objectElement = compiler.objectClass;
-    if (classElement !== objectElement && classElement.supertype === null) {
+    if (element !== objectElement && element.supertype === null) {
       if (objectElement === null) {
         compiler.internalError("Internal error: cannot resolve Object",
                                node: node);
       } else if (!objectElement.isResolved) {
         compiler.resolver.toResolve.add(objectElement);
       }
-      classElement.supertype = new InterfaceType(objectElement);
+      // TODO(ahe): This should be objectElement.computeType(...).
+      element.supertype = new InterfaceType(objectElement);
     }
     if (node.defaultClause !== null) {
-      classElement.defaultClass = visit(node.defaultClause);
+      element.defaultClass = visit(node.defaultClause);
     }
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
       Type interfaceType = visit(link.head);
       if (interfaceType !== null && interfaceType.element.isExtendable()) {
-        classElement.interfaces =
-            classElement.interfaces.prepend(interfaceType);
+        element.interfaces =
+            element.interfaces.prepend(interfaceType);
         if (isBlackListed(interfaceType)) {
           error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
         }
@@ -1747,9 +1764,9 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
         error(link.head, MessageKind.TYPE_NAME_EXPECTED);
       }
     }
-    calculateAllSupertypes(classElement, new Set<ClassElement>());
-    addDefaultConstructorIfNeeded(classElement);
-    return classElement.computeType(compiler);
+    calculateAllSupertypes(element, new Set<ClassElement>());
+    addDefaultConstructorIfNeeded(element);
+    return element.computeType(compiler);
   }
 
   Type visitTypeAnnotation(TypeAnnotation node) {
@@ -1757,7 +1774,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   }
 
   Type visitIdentifier(Identifier node) {
-    Element element = context.lookup(node.source);
+    Element element = scope.lookup(node.source);
     if (element === null) {
       error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
       return null;
@@ -1787,7 +1804,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
     }
-    Element element = context.lookup(prefix.source);
+    Element element = scope.lookup(prefix.source);
     if (element === null || element.kind !== ElementKind.PREFIX) {
       error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
       return null;
@@ -1873,7 +1890,7 @@ class ClassResolverVisitor extends CommonResolverVisitor<Type> {
   }
 
   isBlackListed(Type type) {
-    LibraryElement lib = classElement.getLibrary();
+    LibraryElement lib = element.getLibrary();
     return
       lib !== compiler.coreLibrary &&
       lib !== compiler.coreImplLibrary &&
@@ -1900,7 +1917,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
     : super(compiler)
   {
     variables = new VariableListElement.node(
-        definitions, ElementKind.VARIABLE_LIST, resolver.context.element);
+        definitions, ElementKind.VARIABLE_LIST, resolver.scope.element);
   }
 
   SourceString visitSendSet(SendSet node) {
@@ -1915,17 +1932,20 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
     for (Link<Node> link = node.nodes; !link.isEmpty(); link = link.tail) {
       SourceString name = visit(link.head);
       VariableElement element = new VariableElement(
-          name, variables, kind, resolver.context.element, node: link.head);
+          name, variables, kind, resolver.scope.element, node: link.head);
       resolver.defineElement(link.head, element);
     }
   }
 }
 
+/**
+ * [SignatureResolver] resolves function signatures.
+ */
 class SignatureResolver extends CommonResolverVisitor<Element> {
   final Element enclosingElement;
   Link<Element> optionalParameters = const EmptyLink<Element>();
   int optionalParameterCount = 0;
-  Node currentDefinitions;
+  VariableDefinitions currentDefinitions;
 
   SignatureResolver(Compiler compiler, this.enclosingElement) : super(compiler);
 
@@ -2053,6 +2073,9 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
     return elements;
   }
 
+  /**
+   * Resolves formal parameters and return type to a [FunctionSignature].
+   */
   static FunctionSignature analyze(Compiler compiler,
                                    NodeList formalParameters,
                                    Node returnNode,
@@ -2172,24 +2195,57 @@ class Scope {
   abstract Element lookup(SourceString name);
 }
 
-class TypeVariablesScope extends Scope {
-  TypeVariablesScope(parent, ClassElement element) : super(parent, element);
+/**
+ * [TypeDeclarationScope] defines the outer scope of a type declaration in
+ * which the declared type variables and the entities in the enclosing scope are
+ * available but where declared and inherited members are not available. This
+ * scope is only used for class/interface declarations during resolution of the
+ * class hierarchy. In all other cases [ClassScope] is used.
+ */
+class TypeDeclarationScope extends Scope {
+  TypeDeclarationElement get element() => super.element;
+
+  TypeDeclarationScope(parent, TypeDeclarationElement element)
+      : super(parent, element) {
+    assert(parent !== null);
+  }
+
   Element add(Element newElement) {
-    throw "Cannot add element to TypeVariableScope";
+    throw "Cannot add element to TypeDeclarationScope";
   }
+
+  /**
+   * Looks up [name] within the type variables declared in [element].
+   */
+  Element lookupTypeVariable(SourceString name) {
+    return null;
+  }
+
   Element lookup(SourceString name) {
-    ClassElement cls = element;
-    Element result = cls.lookupTypeParameter(name);
-    if (result !== null) return result;
-    if (parent !== null) return parent.lookup(name);
+    Link<Type> typeVariableLink = element.typeVariables;
+    while (!typeVariableLink.isEmpty()) {
+      TypeVariableType typeVariable = typeVariableLink.head;
+      if (typeVariable.name == name) {
+        return typeVariable.element;
+      }
+      typeVariableLink = typeVariableLink.tail;
+    }
+
+    return parent.lookup(name);
   }
+
+  String toString() =>
+      '$element${element.typeVariables} > $parent';
 }
 
 class MethodScope extends Scope {
   final Map<SourceString, Element> elements;
 
   MethodScope(Scope parent, Element element)
-    : super(parent, element), this.elements = new Map<SourceString, Element>();
+      : super(parent, element),
+        this.elements = new Map<SourceString, Element>() {
+    assert(parent !== null);
+  }
 
   Element lookup(SourceString name) {
     Element found = elements[name];
@@ -2204,23 +2260,30 @@ class MethodScope extends Scope {
     elements[newElement.name] = newElement;
     return newElement;
   }
+
+  String toString() => '$element${elements.getKeys()} > $parent';
 }
 
 class BlockScope extends MethodScope {
   BlockScope(Scope parent) : super(parent, parent.element);
+
+  String toString() => 'block${elements.getKeys()} > $parent';
 }
 
-class ClassScope extends Scope {
-  ClassScope(ClassElement element, LibraryElement library)
-    : super(new TopScope(library), element);
+/**
+ * [ClassScope] defines the inner scope of a class/interface declaration in
+ * which declared members, declared type variables, entities in the enclosing
+ * scope and inherited members are available, in the given order.
+ */
+class ClassScope extends TypeDeclarationScope {
+  ClassScope(Scope parentScope, ClassElement element)
+      : super(parentScope, element);
 
   Element lookup(SourceString name) {
     ClassElement cls = element;
     Element result = cls.lookupLocalMember(name);
     if (result !== null) return result;
-    result = cls.lookupTypeParameter(name);
-    if (result !== null) return result;
-    result = parent.lookup(name);
+    result = super.lookup(name);
     if (result != null) return result;
     return cls.lookupSuperMember(name);
   }
@@ -2228,6 +2291,8 @@ class ClassScope extends Scope {
   Element add(Element newElement) {
     throw "Cannot add an element in a class scope";
   }
+
+  String toString() => '$element > $parent';
 }
 
 class TopScope extends Scope {
@@ -2241,4 +2306,5 @@ class TopScope extends Scope {
   Element add(Element newElement) {
     throw "Cannot add an element in the top scope";
   }
+  String toString() => '$element';
 }

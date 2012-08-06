@@ -10,8 +10,10 @@
 
 namespace dart {
 
+DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
 DECLARE_FLAG(bool, trace_optimization);
+DECLARE_FLAG(bool, trace_type_check_elimination);
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
@@ -172,17 +174,23 @@ bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
   };
 
   ASSERT(comp->ArgumentCount() == 2);
-  Value* left = comp->ArgumentAt(0)->value();
-  Value* right = comp->ArgumentAt(1)->value();
-  BinaryOpComp* bin_op =
-      new BinaryOpComp(op_kind,
-                       operands_type,
-                       comp,
-                       left,
-                       right);
-  bin_op->set_ic_data(comp->ic_data());
-  instr->set_computation(bin_op);
-  RemovePushArguments(comp);
+  if (operands_type == BinaryOpComp::kDoubleOperands) {
+    DoubleBinaryOpComp* double_bin_op = new DoubleBinaryOpComp(op_kind, comp);
+    double_bin_op->set_ic_data(comp->ic_data());
+    instr->set_computation(double_bin_op);
+  } else {
+    Value* left = comp->ArgumentAt(0)->value();
+    Value* right = comp->ArgumentAt(1)->value();
+    BinaryOpComp* bin_op =
+        new BinaryOpComp(op_kind,
+                         operands_type,
+                         comp,
+                         left,
+                         right);
+    bin_op->set_ic_data(comp->ic_data());
+    instr->set_computation(bin_op);
+    RemovePushArguments(comp);
+  }
   return true;
 }
 
@@ -363,8 +371,6 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
 }
 
 
-
-
 void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
                                            BindInstr* instr) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
@@ -432,14 +438,17 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   ASSERT(!field.IsNull());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
-      comp->InputAt(0),
-      comp->InputAt(1),
+      comp->ArgumentAt(0)->value(),
+      comp->ArgumentAt(1)->value(),
       comp);
   store->set_ic_data(comp->ic_data());
   instr->set_computation(store);
+  // Remove original push arguments.
+  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
+    comp->ArgumentAt(i)->RemoveFromGraph();
+  }
   return true;
 }
-
 
 
 void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp,
@@ -516,8 +525,6 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
     comp->set_operands_class_id(kSmi);
   } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDouble);
-  } else {
-    return;
   }
 }
 
@@ -544,6 +551,29 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 }
 
 
+void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
+                                                    BindInstr* instr) {
+  if (FLAG_eliminate_type_checks &&
+      (comp->value() != NULL) &&
+      !comp->dst_type().IsMalformed() &&
+      comp->value()->StaticTypeIsMoreSpecificThan(comp->dst_type())) {
+    // TODO(regis): Eliminate type check by removing comp node from graph.
+    if (FLAG_trace_type_check_elimination) {
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       comp->dst_type(),
+                                       comp->dst_name(),
+                                       /*eliminated*/ true);
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitBind(BindInstr* instr) {
+  instr->computation()->Accept(this, instr);
+}
+
 
 void FlowGraphAnalyzer::Analyze() {
   is_leaf_ = true;
@@ -557,6 +587,11 @@ void FlowGraphAnalyzer::Analyze() {
       }
     }
   }
+}
+
+
+void FlowGraphTypePropagator::PropagateTypes() {
+  VisitBlocks();
 }
 
 }  // namespace dart

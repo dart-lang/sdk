@@ -6,6 +6,7 @@
 
 #include "vm/intermediate_language.h"
 #include "vm/os.h"
+#include "vm/parser.h"
 
 namespace dart {
 
@@ -82,6 +83,30 @@ void FlowGraphPrinter::PrintComputation(Computation* comp) {
 }
 
 
+void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
+                                      intptr_t token_pos,
+                                      Value* value,
+                                      const AbstractType& dst_type,
+                                      const String& dst_name,
+                                      bool eliminated) {
+    const Class& cls = Class::Handle(parsed_function.function().owner());
+    const Script& script = Script::Handle(cls.script());
+    const char* static_type_name = "unknown";
+    if (value != NULL) {
+      const AbstractType& type = AbstractType::Handle(value->StaticType());
+      static_type_name = String::Handle(type.UserVisibleName()).ToCString();
+    }
+    Parser::PrintMessage(script, token_pos, "",
+                         "%s type check: static type '%s' is %s specific than "
+                         "type '%s' of '%s'.",
+                         eliminated ? "Eliminated" : "Generated",
+                         static_type_name,
+                         eliminated ? "more" : "not more",
+                         String::Handle(dst_type.UserVisibleName()).ToCString(),
+                         dst_name.ToCString());
+}
+
+
 static void PrintICData(BufferFormatter* f, const ICData& ic_data) {
   f->Print(" IC[%d: ", ic_data.NumberOfChecks());
   Function& target = Function::Handle();
@@ -153,7 +178,7 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
 void ClosureCallComp::PrintOperandsTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
-    f->Print("cid%d", ArgumentAt(i)->cid());
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -162,7 +187,7 @@ void InstanceCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function_name().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     f->Print(", ");
-    f->Print("cid%d", ArgumentAt(i)->cid());
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -175,6 +200,16 @@ void PolymorphicInstanceCallComp::PrintTo(BufferFormatter* f) const {
     PrintICData(f, *ic_data());
   }
 }
+
+
+void InstanceSetterComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", field_name().ToCString());
+  for (intptr_t i = 0; i < ArgumentCount(); ++i) {
+    f->Print(", ");
+    ArgumentAt(i)->value()->PrintTo(f);
+  }
+}
+
 
 void StrictCompareComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(kind()));
@@ -194,8 +229,8 @@ void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
 void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    f->Print(", ");
-    f->Print("cid%d", ArgumentAt(i)->cid());
+    if (i > 0) f->Print(", ");
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -296,8 +331,8 @@ void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
 void CreateClosureComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", function().ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
-    f->Print(", ");
-    f->Print("cid%d", ArgumentAt(i)->cid());
+    if (i > 0) f->Print(", ");
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -347,6 +382,11 @@ void BinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
   left()->PrintTo(f);
   f->Print(", ");
   right()->PrintTo(f);
+}
+
+
+void DoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
+  f->Print("%s", Token::Str(op_kind()));
 }
 
 
@@ -431,28 +471,24 @@ void BindInstr::PrintTo(BufferFormatter* f) const {
 
 
 void PushArgumentInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s:%d ", DebugName(), cid());
+  f->Print("    %s ", DebugName());
   value()->PrintTo(f);
 }
 
 
 void ReturnInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("    %s:%d ", DebugName(), cid());
   value()->PrintTo(f);
 }
 
 
 void ThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
-  exception()->PrintTo(f);
+  f->Print("    %s:%d ", DebugName(), cid());
 }
 
 
 void ReThrowInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
-  exception()->PrintTo(f);
-  f->Print(", ");
-  stack_trace()->PrintTo(f);
+  f->Print("    %s:%d ", DebugName(), cid());
 }
 
 
@@ -467,7 +503,7 @@ void GotoInstr::PrintTo(BufferFormatter* f) const {
 
 
 void BranchInstr::PrintTo(BufferFormatter* f) const {
-  f->Print("    %s ", DebugName());
+  f->Print("    %s:%d ", DebugName(), cid());
   f->Print("if ");
   left()->PrintTo(f);
   f-> Print(" %s ", Token::Str(kind()));
@@ -700,28 +736,24 @@ void BindInstr::PrintToVisualizer(BufferFormatter* f) const {
 
 
 void PushArgumentInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s:%d ", DebugName(), cid());
+  f->Print("_ %s ", DebugName());
   value()->PrintTo(f);
 }
 
 
 void ReturnInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
+  f->Print("_ %s:%d ", DebugName(), cid());
   value()->PrintTo(f);
 }
 
 
 void ThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  exception()->PrintTo(f);
+  f->Print("_ %s:%d ", DebugName(), cid());
 }
 
 
 void ReThrowInstr::PrintToVisualizer(BufferFormatter* f) const {
-  f->Print("_ %s ", DebugName());
-  exception()->PrintTo(f);
-  f->Print(", ");
-  stack_trace()->PrintTo(f);
+  f->Print("_ %s:%d ", DebugName(), cid());
 }
 
 

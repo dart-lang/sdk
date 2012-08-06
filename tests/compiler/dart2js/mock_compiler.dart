@@ -74,7 +74,7 @@ class MockCompiler extends Compiler {
       : warnings = [], errors = [],
         sourceFiles = new Map<String, SourceFile>(),
         super() {
-    Uri uri = new Uri(scheme: "source");
+    Uri uri = new Uri.fromComponents(scheme: "source");
     var script = new Script(uri, new MockFile(coreSource));
     coreLibrary = new LibraryElement(script);
     parseScript(coreSource, coreLibrary);
@@ -124,11 +124,11 @@ class MockCompiler extends Compiler {
 
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
     ResolverVisitor visitor = new ResolverVisitor(this, element);
-    if (visitor.context is TopScope) {
-      visitor.context = new BlockScope(visitor.context);
+    if (visitor.scope is TopScope) {
+      visitor.scope = new BlockScope(visitor.scope);
     }
     visitor.visit(tree);
-    visitor.context = new TopScope(element.getLibrary());
+    visitor.scope = new TopScope(element.getLibrary());
     // Resolve the type annotations encountered in the code.
     while (!resolver.toResolve.isEmpty()) {
       resolver.toResolve.removeFirst().ensureResolved(this);
@@ -140,7 +140,7 @@ class MockCompiler extends Compiler {
     Element mockElement =
         new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
     ResolverVisitor visitor = new ResolverVisitor(this, mockElement);
-    visitor.context = new BlockScope(visitor.context);
+    visitor.scope = new BlockScope(visitor.scope);
     return visitor;
   }
 
@@ -199,7 +199,7 @@ void importLibrary(LibraryElement target, LibraryElement imported,
 }
 
 LibraryElement mockLibrary(Compiler compiler, String source) {
-  Uri uri = new Uri(scheme: "source");
+  Uri uri = new Uri.fromComponents(scheme: "source");
   var library = new LibraryElement(new Script(uri, new MockFile(source)));
   importLibrary(library, compiler.coreLibrary, compiler);
   return library;

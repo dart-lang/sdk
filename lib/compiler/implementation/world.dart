@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class World {
+  Compiler compiler;  // Set in populate().
   final Map<ClassElement, Set<ClassElement>> subtypes;
 
   World() : subtypes = new Map<ClassElement, Set<ClassElement>>();
@@ -28,6 +29,10 @@ class World {
         addSubtypes(cls);
       }
     });
+
+    // Mark the world as populated.
+    assert(compiler !== null);
+    this.compiler = compiler;
   }
 
   /**
@@ -35,6 +40,7 @@ class World {
    * selector named [member] on a receiver whose type is [type].
    */
   MemberSet _memberSetFor(Type type, SourceString member) {
+    assert(compiler !== null);
     ClassElement cls = type.element;
     MemberSet result = new MemberSet(member);
     Element element = cls.lookupMember(member);
@@ -68,6 +74,19 @@ class World {
       }
     });
     return (fieldCount == 1 && nonFieldCount == 0) ? field : null;
+  }
+
+  Set<ClassElement> findNoSuchMethodHolders(Type type) {
+    Set<ClassElement> result = new Set<ClassElement>();
+    MemberSet memberSet = _memberSetFor(type, Compiler.NO_SUCH_METHOD);
+    for (Element element in memberSet.elements) {
+      ClassElement holder = element.getEnclosingClass();
+      if (holder !== compiler.objectClass &&
+          Selector.INVOCATION_2.applies(element, compiler)) {
+        result.add(holder);
+      }
+    }
+    return result;
   }
 }
 

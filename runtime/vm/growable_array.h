@@ -28,7 +28,7 @@ class BaseGrowableArray : public B {
     ASSERT(zone_ != NULL);
     if (initial_capacity > 0) {
       capacity_ = Utils::RoundUpToPowerOfTwo(initial_capacity);
-      data_ = reinterpret_cast<T*>(zone_->Allocate(capacity_ * sizeof(T)));
+      data_ = zone_->Alloc<T>(capacity_);
     }
   }
 
@@ -116,10 +116,7 @@ template<typename T, typename B>
 void BaseGrowableArray<T, B>::Resize(int new_length) {
   if (new_length > capacity_) {
     int new_capacity = Utils::RoundUpToPowerOfTwo(new_length);
-    T* new_data = reinterpret_cast<T*>(
-        zone_->Reallocate(reinterpret_cast<uword>(data_),
-                          capacity_ * sizeof(T),
-                          new_capacity * sizeof(T)));
+    T* new_data = zone_->Realloc<T>(data_, capacity_, new_capacity);
     ASSERT(new_data != NULL);
     data_ = new_data;
     capacity_ = new_capacity;

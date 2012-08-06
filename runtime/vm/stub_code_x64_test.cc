@@ -24,10 +24,14 @@ DECLARE_LEAF_RUNTIME_ENTRY(RawObject*, TestLeafSmiAdd, RawObject*, RawObject*);
 
 
 static Function* CreateFunction(const char* name) {
+  const String& class_name = String::Handle(Symbols::New("ownerClass"));
+  const Script& script = Script::Handle();
+  const Class& owner_class =
+      Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
   const String& function_name = String::ZoneHandle(Symbols::New(name));
   Function& function = Function::ZoneHandle(
       Function::New(function_name, RawFunction::kRegularFunction,
-                    true, false, false, false, 0));
+                    true, false, false, false, owner_class, 0));
   return &function;
 }
 
@@ -74,7 +78,7 @@ TEST_CASE(CallRuntimeStubCode) {
 }
 
 
-// Test calls to stub code which calls into the runtime.
+// Test calls to stub code which calls into a leaf runtime entry.
 static void GenerateCallToCallLeafRuntimeStub(Assembler* assembler,
                                               int value1,
                                               int value2) {

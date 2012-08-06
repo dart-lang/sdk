@@ -12,7 +12,7 @@
 #include <unistd.h>
 #include <sys/socket.h>
 
-#include "bin/hashmap.h"
+#include "platform/hashmap.h"
 
 class InterruptMessage {
  public:

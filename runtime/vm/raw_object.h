@@ -37,6 +37,7 @@ namespace dart {
   V(Stackmap)                                                                  \
   V(LocalVarDescriptors)                                                       \
   V(ExceptionHandlers)                                                         \
+  V(DeoptInfo)                                                                 \
   V(Context)                                                                   \
   V(ContextScope)                                                              \
   V(ICData)                                                                    \
@@ -183,10 +184,8 @@ class RawObject {
     kMarkBit = 1,
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
-    kReservedBit10K = 4,
-    kReservedBit100K = 5,
-    kReservedBit1M = 6,
-    kReservedBit10M = 7,
+    kReservedTagBit = 4,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagSize = 4,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
     kClassIdTagBit = kSizeTagBit + kSizeTagSize,
@@ -329,6 +328,10 @@ class RawObject {
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 
   class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
+
+  class ReservedBits : public BitField<intptr_t,
+                                       kReservedTagBit,
+                                       kReservedTagSize> {};  // NOLINT
 
   RawObject* ptr() const {
     ASSERT(IsHeapObject());
@@ -784,6 +787,8 @@ class RawCode : public RawObject {
   RawFunction* function_;
   RawExceptionHandlers* exception_handlers_;
   RawPcDescriptors* pc_descriptors_;
+  RawArray* deopt_info_array_;
+  RawArray* object_table_;
   RawArray* stackmaps_;
   RawLocalVarDescriptors* var_descriptors_;
   RawArray* comments_;
@@ -890,6 +895,18 @@ class RawExceptionHandlers : public RawObject {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExceptionHandlers);
 
   RawSmi* length_;  // Number of exception handler entries.
+
+  // Variable length data follows here.
+  intptr_t data_[0];
+};
+
+
+// Contains an array of deoptimization commands, e.g., move a specific register
+// into a specific slot of unoptimized frame.
+class RawDeoptInfo : public RawObject {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(DeoptInfo);
+
+  RawSmi* length_;  // Number of deoptimization commands
 
   // Variable length data follows here.
   intptr_t data_[0];
@@ -1233,7 +1250,7 @@ class RawByteArray : public RawInstance {
 };
 
 
-class RawInt8Array: public RawByteArray {
+class RawInt8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int8Array);
 
   // Variable length data follows here.
@@ -1241,7 +1258,7 @@ class RawInt8Array: public RawByteArray {
 };
 
 
-class RawUint8Array: public RawByteArray {
+class RawUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint8Array);
 
   // Variable length data follows here.
@@ -1249,7 +1266,7 @@ class RawUint8Array: public RawByteArray {
 };
 
 
-class RawInt16Array: public RawByteArray {
+class RawInt16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int16Array);
 
   // Variable length data follows here.
@@ -1257,7 +1274,7 @@ class RawInt16Array: public RawByteArray {
 };
 
 
-class RawUint16Array: public RawByteArray {
+class RawUint16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint16Array);
 
   // Variable length data follows here.
@@ -1265,7 +1282,7 @@ class RawUint16Array: public RawByteArray {
 };
 
 
-class RawInt32Array: public RawByteArray {
+class RawInt32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int32Array);
 
   // Variable length data follows here.
@@ -1273,7 +1290,7 @@ class RawInt32Array: public RawByteArray {
 };
 
 
-class RawUint32Array: public RawByteArray {
+class RawUint32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint32Array);
 
   // Variable length data follows here.
@@ -1281,7 +1298,7 @@ class RawUint32Array: public RawByteArray {
 };
 
 
-class RawInt64Array: public RawByteArray {
+class RawInt64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Int64Array);
 
   // Variable length data follows here.
@@ -1289,7 +1306,7 @@ class RawInt64Array: public RawByteArray {
 };
 
 
-class RawUint64Array: public RawByteArray {
+class RawUint64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Uint64Array);
 
   // Variable length data follows here.
@@ -1297,7 +1314,7 @@ class RawUint64Array: public RawByteArray {
 };
 
 
-class RawFloat32Array: public RawByteArray {
+class RawFloat32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float32Array);
 
   // Variable length data follows here.
@@ -1305,7 +1322,7 @@ class RawFloat32Array: public RawByteArray {
 };
 
 
-class RawFloat64Array: public RawByteArray {
+class RawFloat64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(Float64Array);
 
   // Variable length data follows here.
@@ -1339,70 +1356,70 @@ class ExternalByteArrayData {
 };
 
 
-class RawExternalInt8Array: public RawByteArray {
+class RawExternalInt8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt8Array);
 
   ExternalByteArrayData<int8_t>* external_data_;
 };
 
 
-class RawExternalUint8Array: public RawByteArray {
+class RawExternalUint8Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint8Array);
 
   ExternalByteArrayData<uint8_t>* external_data_;
 };
 
 
-class RawExternalInt16Array: public RawByteArray {
+class RawExternalInt16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt16Array);
 
   ExternalByteArrayData<int16_t>* external_data_;
 };
 
 
-class RawExternalUint16Array: public RawByteArray {
+class RawExternalUint16Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint16Array);
 
   ExternalByteArrayData<uint16_t>* external_data_;
 };
 
 
-class RawExternalInt32Array: public RawByteArray {
+class RawExternalInt32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt32Array);
 
   ExternalByteArrayData<int32_t>* external_data_;
 };
 
 
-class RawExternalUint32Array: public RawByteArray {
+class RawExternalUint32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint32Array);
 
   ExternalByteArrayData<uint32_t>* external_data_;
 };
 
 
-class RawExternalInt64Array: public RawByteArray {
+class RawExternalInt64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalInt64Array);
 
   ExternalByteArrayData<int64_t>* external_data_;
 };
 
 
-class RawExternalUint64Array: public RawByteArray {
+class RawExternalUint64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalUint64Array);
 
   ExternalByteArrayData<uint64_t>* external_data_;
 };
 
 
-class RawExternalFloat32Array: public RawByteArray {
+class RawExternalFloat32Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat32Array);
 
   ExternalByteArrayData<float>* external_data_;
 };
 
 
-class RawExternalFloat64Array: public RawByteArray {
+class RawExternalFloat64Array : public RawByteArray {
   RAW_HEAP_OBJECT_IMPLEMENTATION(ExternalFloat64Array);
 
   ExternalByteArrayData<double>* external_data_;

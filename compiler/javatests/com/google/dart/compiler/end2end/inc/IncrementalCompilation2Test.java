@@ -9,6 +9,7 @@ import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
 import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import com.google.common.collect.Lists;
+import com.google.common.collect.Maps;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.DartCompilationError;
@@ -35,6 +36,7 @@ import java.io.Reader;
 import java.io.Writer;
 import java.net.URI;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentSkipListSet;
 
@@ -68,6 +70,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   private IncMockArtifactProvider provider;
   private MemoryLibrarySource appSource;
   private final List<DartCompilationError> errors = Lists.newArrayList();
+  private final Map<String, DartUnit> units = Maps.newHashMap();
 
   @Override
   protected void setUp() throws Exception {
@@ -98,6 +101,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     config = null;
     provider = null;
     appSource = null;
+    errors.clear();
+    units.clear();
   }
 
   /**
@@ -880,6 +885,52 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     compile();
     assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 5, 7, 3));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4238
+   */
+  public void test_typesPropagation_html_query() throws Exception {
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "#library('application');",
+            "#import('dart:html');",
+            "main() {",
+            "  var v1 = query('a');",
+            "  var v2 = query('A');",
+            "  var v3 = query('body:active');",
+            "  var v4 = query('button[foo=\"bar\"]');",
+            "  var v5 = query('div.class');",
+            "  var v6 = query('input#id');",
+            "  // invocation of method",
+            "  var m1 = document.query('div');",
+            "  // unsupported currently",
+            "  var b1 = query('noSuchTag');",
+            "  var b2 = query('DART_EDITOR_NO_SUCH_TYPE');",
+            "  var b3 = query('body div');",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors);
+    // validate types
+    DartUnit unit = units.get(APP);
+    assertNotNull(unit);
+    assertInferredElementTypeString(unit, "v1", "AnchorElement");
+    assertInferredElementTypeString(unit, "v2", "AnchorElement");
+    assertInferredElementTypeString(unit, "v3", "BodyElement");
+    assertInferredElementTypeString(unit, "v4", "ButtonElement");
+    assertInferredElementTypeString(unit, "v5", "DivElement");
+    assertInferredElementTypeString(unit, "v6", "InputElement");
+    // invocation of method
+    assertInferredElementTypeString(unit, "m1", "DivElement");
+    // bad cases, or unsupported now
+    assertInferredElementTypeString(unit, "b1", "Element");
+    assertInferredElementTypeString(unit, "b2", "Element");
+    assertInferredElementTypeString(unit, "b3", "Element");
+  }
 
   /**
    * Libraries "dart:io" and "dart:html" can not be used together in single application.
@@ -993,6 +1044,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         @Override
         public void unitCompiled(DartUnit unit) {
           compilingUris.remove(unit.getSourceInfo().getSource().getUri());
+          units.put(unit.getSourceName(), unit);
         }
       };
       DartCompiler.compileLib(lib, config, provider, listener);

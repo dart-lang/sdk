@@ -26,6 +26,7 @@ class ObjectPointerVisitor;
   V(ExprTemp, ":expr_temp")                                                    \
   V(Function, "function")                                                      \
   V(PhaseParameter, ":phase")                                                  \
+  V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionError")                                          \
   V(TypeError, "TypeError")                                                    \
   V(FallThroughError, "FallThroughError")                                      \

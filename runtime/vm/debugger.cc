@@ -145,8 +145,7 @@ const char* Debugger::QualifiedFunctionName(const Function& func) {
       func_class.IsTopLevel() ? "" : ".",
       func_name.ToCString());
   len++;  // String terminator.
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat,
               func_class.IsTopLevel() ? "" : class_name.ToCString(),
               func_class.IsTopLevel() ? "" : ".",
@@ -438,8 +437,7 @@ const char* ActivationFrame::ToCString() {
   intptr_t len =
       OS::SNPrint(NULL, 0, kFormat, func_name, url.ToCString(), line);
   len++;  // String terminator.
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, func_name, url.ToCString(), line);
   return chars;
 }

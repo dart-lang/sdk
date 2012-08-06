@@ -52,11 +52,11 @@ SendPort _spawnFunction(void topLevelFunction()) {
     throw new UnsupportedOperationException(
         "only top-level functions can be spawned.");
   }
-  return _IsolateNatives._spawn2(name, null, false);
+  return _IsolateNatives._spawn(name, null, false);
 }
 
 SendPort _spawnUri(String uri) {
-  return _IsolateNatives._spawn2(null, uri, false);
+  return _IsolateNatives._spawn(null, uri, false);
 }
 
 /** State associated with the current manager. See [globalState]. */
@@ -359,39 +359,6 @@ final String _SPAWNED_SIGNAL = "spawned";
 
 class _IsolateNatives {
 
-  /** JavaScript-specific implementation to spawn an isolate. */
-  static Future<SendPort> spawn(Isolate isolate, bool isLight) {
-    Completer<SendPort> completer = new Completer<SendPort>();
-    ReceivePort port = new ReceivePort();
-    port.receive((msg, SendPort replyPort) {
-      port.close();
-      assert(msg == _SPAWNED_SIGNAL);
-      completer.complete(replyPort);
-    });
-
-    // TODO(floitsch): throw exception if isolate's class doesn't have a
-    // default constructor.
-    if (_globalState.useWorkers && !isLight) {
-      _startWorker(isolate, port.toSendPort());
-    } else {
-      _startNonWorker(isolate, port.toSendPort());
-    }
-
-    return completer.future;
-  }
-
-  static SendPort _startWorker(Isolate runnable, SendPort replyPort) {
-    var factoryName = _getJSConstructorName(runnable);
-    if (_globalState.isWorker) {
-      _globalState.mainManager.postMessage(_serializeMessage({
-          'command': 'spawn-worker',
-          'factoryName': factoryName,
-          'replyPort': _serializeMessage(replyPort)}));
-    } else {
-      _spawnWorker(factoryName, _serializeMessage(replyPort));
-    }
-  }
-
   /**
    * The src url for the script tag that loaded this code. Used to create
    * JavaScript workers.
@@ -400,24 +367,6 @@ class _IsolateNatives {
 
   /** Starts a new worker with the given URL. */
   static _WorkerStub _newWorker(url) native "return new Worker(url);";
-
-  /**
-   * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
-   * name for the isolate entry point class.
-   */
-  static void _spawnWorker(factoryName, serializedReplyPort) {
-    final worker = _newWorker(_thisScript);
-    worker.onmessage = (e) { _processWorkerMessage(worker, e); };
-    var workerId = _globalState.nextManagerId++;
-    // We also store the id on the worker itself so that we can unregister it.
-    worker.id = workerId;
-    _globalState.managers[workerId] = worker;
-    worker.postMessage(_serializeMessage({
-      'command': 'start',
-      'id': workerId,
-      'replyTo': serializedReplyPort,
-      'factoryName': factoryName }));
-  }
 
   /**
    * Assume that [e] is a browser message event and extract its message data.
@@ -433,33 +382,17 @@ class _IsolateNatives {
   static void _processWorkerMessage(sender, e) {
     var msg = _deserializeMessage(_getEventData(e));
     switch (msg['command']) {
-      // TODO(sigmund): delete after we migrate to the new API
       case 'start':
-        _globalState.currentManagerId = msg['id'];
-        var runnerObject =
-            _allocate(_getJSConstructorFromName(msg['factoryName']));
-        var serializedReplyTo = msg['replyTo'];
-        _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
-          var replyTo = _deserializeMessage(serializedReplyTo);
-          _startIsolate(runnerObject, replyTo);
-        }, 'worker-start');
-        _globalState.topEventLoop.run();
-        break;
-      case 'start2':
         _globalState.currentManagerId = msg['id'];
         Function entryPoint = _getJSFunctionFromName(msg['functionName']);
         var replyTo = _deserializeMessage(msg['replyTo']);
         _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
-          _startIsolate2(entryPoint, replyTo);
+          _startIsolate(entryPoint, replyTo);
         }, 'worker-start');
         _globalState.topEventLoop.run();
         break;
-      // TODO(sigmund): delete after we migrate to the new API
       case 'spawn-worker':
-        _spawnWorker(msg['factoryName'], msg['replyPort']);
-        break;
-      case 'spawn-worker2':
-        _spawnWorker2(msg['functionName'], msg['uri'], msg['replyPort']);
+        _spawnWorker(msg['functionName'], msg['uri'], msg['replyPort']);
         break;
       case 'message':
         msg['port'].send(msg['msg'], msg['replyTo']);
@@ -503,7 +436,6 @@ class _IsolateNatives {
 
   static void _consoleLog(msg) native "\$globalThis.console.log(msg);";
 
-
   /**
    * Extract the constructor of runnable, so it can be allocated in another
    * isolate.
@@ -538,32 +470,9 @@ class _IsolateNatives {
   /** Create a new JavaScript object instance given its constructor. */
   static Dynamic _allocate(var ctor) native "return new ctor();";
 
-  /** Starts a non-worker isolate. */
-  static SendPort _startNonWorker(Isolate runnable, SendPort replyTo) {
-    // Spawn a new isolate and create the receive port in it.
-    final spawned = new _IsolateContext();
-
-    // Instead of just running the provided runnable, we create a
-    // new cloned instance of it with a fresh state in the spawned
-    // isolate. This way, we do not get cross-isolate references
-    // through the runnable.
-    final ctor = _getJSConstructor(runnable);
-    _globalState.topEventLoop.enqueue(spawned, function() {
-      _startIsolate(_allocate(ctor), replyTo);
-    }, 'nonworker start');
-  }
-
-  /** Given a ready-to-start runnable, start running it. */
-  static void _startIsolate(Isolate isolate, SendPort replyTo) {
-    _fillStatics(_globalState.currentContext);
-    ReceivePort port = new ReceivePort();
-    replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
-    isolate._run(port);
-  }
-
   // TODO(sigmund): clean up above, after we make the new API the default:
 
-  static _spawn2(String functionName, String uri, bool isLight) {
+  static _spawn(String functionName, String uri, bool isLight) {
     Completer<SendPort> completer = new Completer<SendPort>();
     ReceivePort port = new ReceivePort();
     port.receive((msg, SendPort replyPort) {
@@ -575,39 +484,39 @@ class _IsolateNatives {
     SendPort signalReply = port.toSendPort();
 
     if (_globalState.useWorkers && !isLight) {
-      _startWorker2(functionName, uri, signalReply);
+      _startWorker(functionName, uri, signalReply);
     } else {
-      _startNonWorker2(functionName, uri, signalReply);
+      _startNonWorker(functionName, uri, signalReply);
     }
     return new _BufferingSendPort(
         _globalState.currentContext.id, completer.future);
   }
 
-  static SendPort _startWorker2(
+  static SendPort _startWorker(
       String functionName, String uri, SendPort replyPort) {
     if (_globalState.isWorker) {
       _globalState.mainManager.postMessage(_serializeMessage({
-          'command': 'spawn-worker2',
+          'command': 'spawn-worker',
           'functionName': functionName,
           'uri': uri,
           'replyPort': replyPort}));
     } else {
-      _spawnWorker2(functionName, uri, replyPort);
+      _spawnWorker(functionName, uri, replyPort);
     }
   }
 
-  static SendPort _startNonWorker2(
+  static SendPort _startNonWorker(
       String functionName, String uri, SendPort replyPort) {
     // TODO(eub): support IE9 using an iframe -- Dart issue 1702.
     if (uri != null) throw new UnsupportedOperationException(
             "Currently spawnUri is not supported without web workers.");
     _globalState.topEventLoop.enqueue(new _IsolateContext(), function() {
       final func = _getJSFunctionFromName(functionName);
-      _startIsolate2(func, replyPort);
+      _startIsolate(func, replyPort);
     }, 'nonworker start');
   }
 
-  static void _startIsolate2(Function topLevel, SendPort replyTo) {
+  static void _startIsolate(Function topLevel, SendPort replyTo) {
     _fillStatics(_globalState.currentContext);
     _lazyPort = new ReceivePort();
     replyTo.send(_SPAWNED_SIGNAL, port.toSendPort());
@@ -618,7 +527,7 @@ class _IsolateNatives {
    * Spawns an isolate in a worker. [factoryName] is the Javascript constructor
    * name for the isolate entry point class.
    */
-  static void _spawnWorker2(functionName, uri, replyPort) {
+  static void _spawnWorker(functionName, uri, replyPort) {
     if (functionName == null) functionName = 'main';
     if (uri == null) uri = _thisScript;
     if (!(new Uri.fromString(uri).isAbsolute())) {
@@ -634,7 +543,7 @@ class _IsolateNatives {
     worker.id = workerId;
     _globalState.managers[workerId] = worker;
     worker.postMessage(_serializeMessage({
-      'command': 'start2',
+      'command': 'start',
       'id': workerId,
       // Note: we serialize replyPort twice because the child worker needs to
       // first deserialize the worker id, before it can correctly deserialize

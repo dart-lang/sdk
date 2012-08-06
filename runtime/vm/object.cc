@@ -87,6 +87,7 @@ RawClass* Object::var_descriptors_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::exception_handlers_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::deopt_info_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::context_scope_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::icdata_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -145,6 +146,8 @@ int Object::GetSingletonClassIndex(const RawClass* raw_class) {
     return kLocalVarDescriptorsClass;
   } else if (raw_class == exception_handlers_class()) {
     return kExceptionHandlersClass;
+  } else if (raw_class == deopt_info_class()) {
+    return kDeoptInfoClass;
   } else if (raw_class == context_class()) {
     return kContextClass;
   } else if (raw_class == context_scope_class()) {
@@ -191,6 +194,7 @@ RawClass* Object::GetSingletonClass(int index) {
     case kStackmapClass: return stackmap_class();
     case kLocalVarDescriptorsClass: return var_descriptors_class();
     case kExceptionHandlersClass: return exception_handlers_class();
+    case kDeoptInfoClass: return deopt_info_class();
     case kContextClass: return context_class();
     case kContextScopeClass: return context_scope_class();
     case kICDataClass: return icdata_class();
@@ -230,6 +234,7 @@ const char* Object::GetSingletonClassName(int index) {
     case kStackmapClass: return "Stackmap";
     case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
     case kExceptionHandlersClass: return "ExceptionHandlers";
+    case kDeoptInfoClass: return "DeoptInfo";
     case kContextClass: return "Context";
     case kContextScopeClass: return "ContextScope";
     case kICDataClass: return "ICData";
@@ -394,6 +399,9 @@ void Object::InitOnce() {
 
   cls = Class::New<ExceptionHandlers>();
   exception_handlers_class_ = cls.raw();
+
+  cls = Class::New<DeoptInfo>();
+  deopt_info_class_ = cls.raw();
 
   cls = Class::New<Context>();
   context_class_ = cls.raw();
@@ -1233,13 +1241,15 @@ bool Class::HasInstanceFields() const {
 
 void Class::SetFunctions(const Array& value) const {
   ASSERT(!value.IsNull());
-  // Bind all the functions in the array to this class.
+#if defined(DEBUG)
+  // Verify that all the functions in the array have this class as owner.
   Function& func = Function::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= value.At(i);
-    func.set_owner(*this);
+    ASSERT(func.owner() == raw());
   }
+#endif
   StorePointer(&raw_ptr()->functions_, value.raw());
 }
 
@@ -1489,12 +1499,15 @@ void Class::Finalize() const {
 
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
+#if defined(DEBUG)
+  // Verify that all the fields in the array have this class as owner.
   Field& field = Field::Handle();
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     field ^= value.At(i);
-    field.set_owner(*this);
+    ASSERT(field.owner() == raw());
   }
+#endif
   // The value of static fields is already initialized to null.
   StorePointer(&raw_ptr()->fields_, value.raw());
 }
@@ -1568,11 +1581,10 @@ RawClass* Class::NewSignatureClass(const String& name,
   // A signature class extends class Instance and is parameterized in the same
   // way as the owner class of its non-static signature function.
   // It is not type parameterized if its signature function is static.
-  if (!signature_function.is_static()) {
-    if ((owner_class.NumTypeParameters() > 0) &&
-        !signature_function.HasInstantiatedSignature()) {
-      type_parameters = owner_class.type_parameters();
-    }
+  if (!signature_function.is_static() &&
+      (owner_class.NumTypeParameters() > 0) &&
+      !signature_function.HasInstantiatedSignature()) {
+    type_parameters = owner_class.type_parameters();
   }
   const intptr_t token_pos = signature_function.token_pos();
   Class& result = Class::Handle(New<Closure>(name, script, token_pos));
@@ -2193,8 +2205,7 @@ const char* Class::ToCString() const {
   const char* library_name = lib.IsNull() ? "" : lib.ToCString();
   const char* class_name = String::Handle(Name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, format, library_name, class_name) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, library_name, class_name);
   return chars;
 }
@@ -2923,8 +2934,7 @@ const char* Type::ToCString() const {
       const char* class_name =
           String::Handle(Class::Handle(type_class()).Name()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name) + 1;
-      char* chars = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len));
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name);
       return chars;
     } else {
@@ -2934,8 +2944,7 @@ const char* Type::ToCString() const {
       const char* args_cstr =
           AbstractTypeArguments::Handle(arguments()).ToCString();
       intptr_t len = OS::SNPrint(NULL, 0, format, class_name, args_cstr) + 1;
-      char* chars = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len));
+      char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
       OS::SNPrint(chars, len, format, class_name, args_cstr);
       return chars;
     }
@@ -3081,8 +3090,7 @@ const char* TypeParameter::ToCString() const {
   const char* format = "TypeParameter: name %s; index: %d";
   const char* name_cstr = String::Handle(Name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, format, name_cstr, index()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, name_cstr, index());
   return chars;
 }
@@ -3458,12 +3466,10 @@ RawAbstractTypeArguments* TypeArguments::InstantiateFrom(
 
 
 RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
-  if ((len < 0) || (len > kMaxTypes)) {
-    // TODO(iposva): Should we throw an illegal parameter exception?
-    UNIMPLEMENTED();
-    return null();
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TypeArguments::New: invalid len %ld\n", len);
   }
-
   TypeArguments& result = TypeArguments::Handle();
   {
     RawObject* raw = Object::Allocate(TypeArguments::kInstanceKind,
@@ -3537,8 +3543,7 @@ const char* TypeArguments::ToCString() const {
     const AbstractType& type_at = AbstractType::Handle(TypeAt(i));
     const char* type_cstr = type_at.IsNull() ? "null" : type_at.ToCString();
     intptr_t len = OS::SNPrint(NULL, 0, format, prev_cstr, type_cstr) + 1;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, format, prev_cstr, type_cstr);
     prev_cstr = chars;
   }
@@ -3617,8 +3622,7 @@ const char* InstantiatedTypeArguments::ToCString() const {
       AbstractTypeArguments::Handle(instantiator_type_arguments()).ToCString();
   intptr_t len =
       OS::SNPrint(NULL, 0, format, arg_cstr, instantiator_cstr) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, arg_cstr, instantiator_cstr);
   return chars;
 }
@@ -3930,8 +3934,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     reserve_len +=
         OS::SNPrint(NULL, 0, lib_class_format, library_name, class_name);
     ASSERT(chars != NULL);
-    *chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(reserve_len + 1));
+    *chars = Isolate::Current()->current_zone()->Alloc<char>(reserve_len + 1);
     written = OS::SNPrint(
         *chars, reserve_len, lib_class_format, library_name, class_name);
   } else {
@@ -4125,8 +4128,10 @@ RawFunction* Function::New(const String& name,
                            bool is_const,
                            bool is_abstract,
                            bool is_external,
+                           const Class& owner,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
+  ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
   result.set_parameter_types(Array::Handle(Array::Empty()));
   result.set_parameter_names(Array::Handle(Array::Empty()));
@@ -4135,6 +4140,7 @@ RawFunction* Function::New(const String& name,
   result.set_is_static(is_static);
   result.set_is_const(is_const);
   result.set_is_external(is_external);
+  result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_end_token_pos(token_pos);
   result.set_num_fixed_parameters(0);
@@ -4162,9 +4168,9 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
+                    parent_class,
                     token_pos));
   result.set_parent_function(parent);
-  result.set_owner(parent_class);
   return result.raw();
 }
 
@@ -4393,8 +4399,7 @@ const char* Function::ToCString() const {
   const char* function_name = String::Handle(name()).ToCString();
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, function_name,
                              static_str, abstract_str, kind_str, const_str) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, function_name,
               static_str, abstract_str, kind_str, const_str);
   return chars;
@@ -4492,8 +4497,10 @@ RawField* Field::New(const String& name,
                      bool is_static,
                      bool is_final,
                      bool is_const,
+                     const Class& owner,
                      intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
+  ASSERT(!owner.IsNull());
   const Field& result = Field::Handle(Field::New());
   result.set_name(name);
   result.set_is_static(is_static);
@@ -4504,6 +4511,7 @@ RawField* Field::New(const String& name,
   }
   result.set_is_final(is_final);
   result.set_is_const(is_const);
+  result.set_owner(owner);
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
@@ -4520,8 +4528,7 @@ const char* Field::ToCString() const {
   const char* cls_name = String::Handle(cls.Name()).ToCString();
   intptr_t len =
       OS::SNPrint(NULL, 0, kFormat, cls_name, field_name, kF0, kF1, kF2) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, cls_name, field_name, kF0, kF1, kF2);
   return chars;
 }
@@ -4719,6 +4726,10 @@ intptr_t TokenStream::ComputeTokenPosition(intptr_t src_pos) const {
 
 RawTokenStream* TokenStream::New(intptr_t len) {
   ASSERT(Object::token_stream_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TokenStream::New: invalid len %ld\n", len);
+  }
   TokenStream& result = TokenStream::Handle();
   {
     RawObject* raw = Object::Allocate(TokenStream::kInstanceKind,
@@ -6272,8 +6283,7 @@ const char* Library::ToCString() const {
   const char* kFormat = "Library:'%s'";
   const String& name = String::Handle(url());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, name.ToCString());
   return chars;
 }
@@ -6367,8 +6377,7 @@ const char* LibraryPrefix::ToCString() const {
   const char* kFormat = "LibraryPrefix:'%s'";
   const String& prefix = String::Handle(name());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, prefix.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, prefix.ToCString());
   return chars;
 }
@@ -6473,6 +6482,10 @@ RawError* Library::CompileAll() {
 
 RawInstructions* Instructions::New(intptr_t size) {
   ASSERT(Object::instructions_class() != Class::null());
+  if (size < 0 || size > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Instructions::New: invalid size %ld\n", size);
+  }
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
@@ -6547,6 +6560,13 @@ void PcDescriptors::SetTokenIndex(intptr_t index, intptr_t value) const {
 
 
 intptr_t PcDescriptors::TryIndex(intptr_t index) const {
+  ASSERT(DescriptorKind(index) != kDeoptIndex);
+  return *(EntryAddr(index, kTryIndexEntry));
+}
+
+
+intptr_t PcDescriptors::DeoptIndex(intptr_t index) const {
+  ASSERT(DescriptorKind(index) == kDeoptIndex);
   return *(EntryAddr(index, kTryIndexEntry));
 }
 
@@ -6558,6 +6578,11 @@ void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
 
 RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   ASSERT(Object::pc_descriptors_class() != Class::null());
+  if (num_descriptors < 0 || num_descriptors > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in PcDescriptors::New: invalid num_descriptors %ld\n",
+           num_descriptors);
+  }
   PcDescriptors& result = PcDescriptors::Handle();
   {
     uword size = PcDescriptors::InstanceSize(num_descriptors);
@@ -6574,12 +6599,13 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
 
 const char* PcDescriptors::KindAsStr(intptr_t index) const {
   switch (DescriptorKind(index)) {
-    case PcDescriptors::kDeopt: return "deopt";
-    case PcDescriptors::kPatchCode: return "patch";
-    case PcDescriptors::kIcCall: return "ic-call";
-    case PcDescriptors::kFuncCall: return "fn-call";
-    case PcDescriptors::kReturn: return "return";
-    case PcDescriptors::kOther: return "other";
+    case PcDescriptors::kDeopt:      return "deopt   ";
+    case PcDescriptors::kDeoptIndex: return "deopt-ix";
+    case PcDescriptors::kPatchCode:  return "patch   ";
+    case PcDescriptors::kIcCall:     return "ic-call ";
+    case PcDescriptors::kFuncCall:   return "fn-call ";
+    case PcDescriptors::kReturn:     return "return  ";
+    case PcDescriptors::kOther:      return "other   ";
   }
   UNREACHABLE();
   return "";
@@ -6594,17 +6620,20 @@ const char* PcDescriptors::ToCString() const {
   // First compute the buffer size required.
   intptr_t len = 0;
   for (intptr_t i = 0; i < Length(); i++) {
+    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+        DeoptIndex(i) : TryIndex(i);
     len += OS::SNPrint(NULL, 0, kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
+        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
   }
   // Allocate the buffer.
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
+    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+        DeoptIndex(i) : TryIndex(i);
     index += OS::SNPrint((buffer + index), (len - index), kFormat,
-        PC(i), KindAsStr(i), NodeId(i), TryIndex(i), TokenIndex(i));
+        PC(i), KindAsStr(i), NodeId(i), TokenIndex(i), multi_purpose_index);
   }
   return buffer;
 }
@@ -6684,6 +6713,10 @@ RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
   intptr_t size = bmap->SizeInBytes();
+  if (size < 0 || size > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in PcDescriptors::New: invalid size %ld\n", size);
+  }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
@@ -6716,12 +6749,16 @@ const char* Stackmap::ToCString() const {
   if (IsNull()) {
     return "{null}";
   } else {
+    // Guard against integer overflow, though it is highly unlikely.
+    if (MaximumBitIndex() > kIntptrMax / 4) {
+      FATAL1("MaximumBitIndex() is unexpectedly large (%ld)",
+             MaximumBitIndex());
+    }
     intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
     intptr_t alloc_size =
         index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
-    char* chars = reinterpret_cast<char*>(
-        isolate->current_zone()->Allocate(alloc_size));
+    char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
     index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
     for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
       index += OS::SNPrint((chars + index),
@@ -6770,6 +6807,11 @@ const char* LocalVarDescriptors::ToCString() const {
 
 RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   ASSERT(Object::var_descriptors_class() != Class::null());
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in LocalVarDescriptors::New: "
+           "invalid num_variables %ld\n", num_variables);
+  }
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
@@ -6826,6 +6868,11 @@ void ExceptionHandlers::SetHandlerPC(intptr_t index,
 
 RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ASSERT(Object::exception_handlers_class() != Class::null());
+  if (num_handlers < 0 || num_handlers > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExceptionHandlers::New: invalid num_handlers %ld\n",
+           num_handlers);
+  }
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
@@ -6851,8 +6898,7 @@ const char* ExceptionHandlers::ToCString() const {
                        TryIndex(i), HandlerPC(i));
   }
   // Allocate the buffer.
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6866,8 +6912,84 @@ const char* ExceptionHandlers::ToCString() const {
 }
 
 
+intptr_t DeoptInfo::Length() const {
+  return Smi::Value(raw_ptr()->length_);
+}
+
+
+intptr_t DeoptInfo::FromIndex(intptr_t index) const {
+  return *(EntryAddr(index, kFromIndex));
+}
+
+
+intptr_t DeoptInfo::Instruction(intptr_t index) const {
+  return *(EntryAddr(index, kInstruction));
+}
+
+
+const char* DeoptInfo::ToCString() const {
+  if (Length() == 0) {
+    return "No DeoptInfo";
+  }
+  // First compute the buffer size required.
+  intptr_t len = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    len += OS::SNPrint(NULL, 0, "[%d(%d):%d]",
+        Instruction(i), FromIndex(i), i);
+  }
+  // Allocate the buffer.
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  // Layout the fields in the buffer.
+  intptr_t index = 0;
+  for (intptr_t i = 0; i < Length(); i++) {
+    index += OS::SNPrint((buffer + index),
+                         (len - index),
+                         "[%d(%d):%d]",
+                         Instruction(i),
+                         FromIndex(i),
+                         i);
+  }
+  return buffer;
+}
+
+
+RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
+  ASSERT(Object::deopt_info_class() != Class::null());
+  DeoptInfo& result = DeoptInfo::Handle();
+  {
+    uword size = DeoptInfo::InstanceSize(num_commands);
+    RawObject* raw = Object::Allocate(DeoptInfo::kInstanceKind,
+                                      size,
+                                      Heap::kOld);
+    NoGCScope no_gc;
+    result ^= raw;
+    result.SetLength(num_commands);
+  }
+  return result.raw();
+}
+
+
+void DeoptInfo::SetLength(intptr_t value) const {
+  // This is only safe because we create a new Smi, which does not cause
+  // heap allocation.
+  raw_ptr()->length_ = Smi::New(value);
+}
+
+
+void DeoptInfo::SetAt(intptr_t index,
+                      intptr_t instr_kind,
+                      intptr_t from_index) const {
+  *(EntryAddr(index, kInstruction)) = instr_kind;
+  *(EntryAddr(index, kFromIndex)) = from_index;
+}
+
+
 Code::Comments& Code::Comments::New(intptr_t count) {
   Comments* comments;
+  if (count < 0 || count > (kIntptrMax / kNumberOfEntries)) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Code::Comments::New: invalid count %ld\n", count);
+  }
   if (count == 0) {
     comments = new Comments(Array::Empty());
   } else {
@@ -6918,6 +7040,16 @@ void Code::set_stackmaps(const Array& maps) const {
 }
 
 
+void Code::set_deopt_info_array(const Array& array) const {
+  StorePointer(&raw_ptr()->deopt_info_array_, array.raw());
+}
+
+
+void Code::set_object_table(const Array& array) const {
+  StorePointer(&raw_ptr()->object_table_, array.raw());
+}
+
+
 const Code::Comments& Code::comments() const  {
   Comments* comments = new Code::Comments(raw_ptr()->comments_);
   return *comments;
@@ -6929,7 +7061,12 @@ void Code::set_comments(const Code::Comments& comments) const {
 }
 
 
-RawCode* Code::New(int pointer_offsets_length) {
+RawCode* Code::New(intptr_t pointer_offsets_length) {
+  if (pointer_offsets_length < 0 || pointer_offsets_length > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Code::New: invalid pointer_offsets_length %ld\n",
+           pointer_offsets_length);
+  }
   ASSERT(Object::code_class() != Class::null());
   Code& result = Code::Handle();
   {
@@ -6963,8 +7100,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
     uword addr = instrs.EntryPoint();
     uword size = instrs.size();
     intptr_t len = OS::SNPrint(NULL, 0, format, addr, size, name);
-    char* buffer = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len + 1));
+    char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(buffer, len + 1, format, addr, size, name);
     (*perf_events_writer)(buffer, len);
   }
@@ -6987,8 +7123,7 @@ RawCode* Code::FinalizeCode(const char* name, Assembler* assembler) {
       // <name> for rest of the code (first instruction is prolog sequence).
       const char* kFormat = "%s_%s";
       intptr_t len = OS::SNPrint(NULL, 0, kFormat, name, "entry");
-      char* pname = reinterpret_cast<char*>(
-          Isolate::Current()->current_zone()->Allocate(len + 1));
+      char* pname = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
       OS::SNPrint(pname, (len + 1), kFormat, name, "entry");
       DebugInfo::RegisterSection(pname, instrs.EntryPoint(), prolog_offset);
       DebugInfo::RegisterSection(name,
@@ -7084,8 +7219,7 @@ uword Code::GetDeoptPcAtNodeId(intptr_t node_id) const {
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
 }
@@ -7102,7 +7236,8 @@ uword Code::GetPatchCodePc() const {
 }
 
 
-bool Code::ObjectExistInArea(intptr_t start_offset, intptr_t end_offset) const {
+bool Code::ObjectExistsInArea(intptr_t start_offset,
+                              intptr_t end_offset) const {
   for (intptr_t i = 0; i < this->pointer_offsets_length(); i++) {
     const intptr_t offset = this->GetPointerOffsetAt(i);
     if ((start_offset <= offset) && (offset < end_offset)) {
@@ -7167,6 +7302,11 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
   ASSERT(Object::context_class() != Class::null());
 
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Context::New: invalid num_variables %ld\n",
+           num_variables);
+  }
   Context& result = Context::Handle();
   {
     RawObject* raw = Object::Allocate(Context::kInstanceKind,
@@ -7188,6 +7328,11 @@ const char* Context::ToCString() const {
 
 RawContextScope* ContextScope::New(intptr_t num_variables) {
   ASSERT(Object::context_scope_class() != Class::null());
+  if (num_variables < 0 || num_variables > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ContextScope::New: invalid num_variables %ld\n",
+           num_variables);
+  }
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
   {
@@ -7275,8 +7420,7 @@ const char* ICData::ToCString() const {
   const char* kFormat = "ICData target:%s";
   const String& name = String::Handle(target_name());
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, name.ToCString()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, name.ToCString());
   return chars;
 }
@@ -7696,7 +7840,7 @@ const char* UnhandledException::ToErrorCString() const {
   int len = (strlen(exc_str) + strlen(stack_str) + strlen(format)
              - 4    // Two '%s'
              + 1);  // '\0'
-  char* chars = reinterpret_cast<char*>(isolate->current_zone()->Allocate(len));
+  char* chars = isolate->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, exc_str, stack_str);
   return chars;
 }
@@ -7980,8 +8124,7 @@ const char* Instance::ToCString() const {
     const String& type_name = String::Handle(type.Name());
     // Calculate the size of the string.
     intptr_t len = OS::SNPrint(NULL, 0, kFormat, type_name.ToCString()) + 1;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
     OS::SNPrint(chars, len, kFormat, type_name.ToCString());
     return chars;
   }
@@ -8105,8 +8248,7 @@ const char* Smi::ToCString() const {
   const char* kFormat = "%ld";
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, Value()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, Value());
   return chars;
 }
@@ -8220,8 +8362,7 @@ const char* Mint::ToCString() const {
   const char* kFormat = "%lld";
   // Calculate the size of the string.
   intptr_t len = OS::SNPrint(NULL, 0, kFormat, value()) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, value());
   return chars;
 }
@@ -8341,8 +8482,7 @@ const char* Double::ToCString() const {
     return value() < 0 ? "-Infinity" : "Infinity";
   }
   const int kBufferSize = 128;
-  char* buffer = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(kBufferSize));
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(kBufferSize);
   buffer[kBufferSize - 1] = '\0';
   DoubleToCString(value(), buffer, kBufferSize);
   return buffer;
@@ -8413,7 +8553,10 @@ int Bigint::CompareWith(const Integer& other) const {
 
 
 RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
-  ASSERT(length >= 0);
+  if (length < 0 || length > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Bigint::Allocate: invalid length %ld\n", length);
+  }
   ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
   {
@@ -8429,14 +8572,14 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
 }
 
 
-static uword ZoneAllocator(intptr_t size) {
+static uword BigintAllocator(intptr_t size) {
   Zone* zone = Isolate::Current()->current_zone();
-  return zone->Allocate(size);
+  return zone->AllocUnsafe(size);
 }
 
 
 const char* Bigint::ToCString() const {
-  return BigintOperations::ToDecimalCString(*this, &ZoneAllocator);
+  return BigintOperations::ToDecimalCString(*this, &BigintAllocator);
 }
 
 
@@ -8933,7 +9076,7 @@ RawString* String::NewFormatted(const char* format, ...) {
   va_end(args);
 
   Zone* zone = Isolate::Current()->current_zone();
-  char* buffer = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  char* buffer = zone->Alloc<char>(len + 1);
   va_list args2;
   va_start(args2, format);
   OS::VSNPrint(buffer, (len + 1), format, args2);
@@ -9038,7 +9181,7 @@ RawString* String::SubString(const String& str,
 const char* String::ToCString() const {
   intptr_t len = Utf8::Length(*this);
   Zone* zone = Isolate::Current()->current_zone();
-  char* result = reinterpret_cast<char*>(zone->Allocate(len + 1));
+  char* result = zone->Alloc<char>(len + 1);
   Utf8::Encode(*this, result, len);
   result[len] = 0;
   return result;
@@ -9174,6 +9317,10 @@ RawOneByteString* OneByteString::New(intptr_t len,
   ASSERT(Isolate::Current() == Dart::vm_isolate() ||
          Isolate::Current()->object_store()->one_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in OneByteString::New: invalid len %ld\n", len);
+  }
   OneByteString& result = OneByteString::Handle();
   {
     RawObject* raw = Object::Allocate(OneByteString::kInstanceKind,
@@ -9312,6 +9459,10 @@ RawTwoByteString* TwoByteString::EscapeDoubleQuotes() const {
 RawTwoByteString* TwoByteString::New(intptr_t len,
                                      Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->two_byte_string_class());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in TwoByteString::New: invalid len %ld\n", len);
+  }
   TwoByteString& result = TwoByteString::Handle();
   {
     RawObject* raw = Object::Allocate(TwoByteString::kInstanceKind,
@@ -9441,6 +9592,10 @@ RawFourByteString* FourByteString::New(intptr_t len,
                                        Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->four_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in FourByteString::New: invalid len %ld\n", len);
+  }
   FourByteString& result = FourByteString::Handle();
   {
     RawObject* raw = Object::Allocate(FourByteString::kInstanceKind,
@@ -9548,6 +9703,10 @@ RawExternalOneByteString* ExternalOneByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_one_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalOneByteString::New: invalid len %ld\n", len);
+  }
   ExternalOneByteString& result = ExternalOneByteString::Handle();
   ExternalStringData<uint8_t>* external_data =
       new ExternalStringData<uint8_t>(data, peer, callback);
@@ -9595,6 +9754,10 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->external_two_byte_string_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalTwoByteString::New: invalid len %ld\n", len);
+  }
   ExternalTwoByteString& result = ExternalTwoByteString::Handle();
   ExternalStringData<uint16_t>* external_data =
       new ExternalStringData<uint16_t>(data, peer, callback);
@@ -9632,6 +9795,11 @@ RawExternalFourByteString* ExternalFourByteString::New(
     Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->
          external_four_byte_string_class() != Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ExternalFourByteString::New: invalid len %ld\n",
+           len);
+  }
   ExternalFourByteString& result = ExternalFourByteString::Handle();
   ExternalStringData<uint32_t>* external_data =
       new ExternalStringData<uint32_t>(data, peer, callback);
@@ -9735,11 +9903,9 @@ RawArray* Array::New(intptr_t len, Heap::Space space) {
 
 
 RawArray* Array::New(const Class& cls, intptr_t len, Heap::Space space) {
-  if ((len < 0) || (len > kMaxArrayElements)) {
-    // TODO(srdjan): Verify that illegal argument is the right thing to throw.
-    GrowableArray<const Object*> args;
-    args.Add(&Smi::Handle(Smi::New(len)));
-    Exceptions::ThrowByType(Exceptions::kIllegalArgument, args);
+  if (len < 0 || len > Array::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in Array::New: invalid len %ld\n", len);
   }
   Array& result = Array::Handle();
   {
@@ -10040,6 +10206,10 @@ RawT* ByteArray::NewExternalImpl(const Class& cls,
                                  void* peer,
                                  Dart_PeerFinalizer callback,
                                  Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewExternalImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   ExternalByteArrayData<ElementT>* external_data =
       new ExternalByteArrayData<ElementT>(data, peer, callback);
@@ -10078,6 +10248,10 @@ const char* ByteArray::ToCString() const {
 
 template<typename HandleT, typename RawT>
 RawT* ByteArray::NewImpl(const Class& cls, intptr_t len, Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   {
     RawObject* raw = Object::Allocate(cls.id(),
@@ -10099,6 +10273,10 @@ RawT* ByteArray::NewImpl(const Class& cls,
                          const ElementT* data,
                          intptr_t len,
                          Heap::Space space) {
+  if (len < 0 || len > HandleT::kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in ByteArray::NewImpl: invalid len %ld\n", len);
+  }
   HandleT& result = HandleT::Handle();
   {
     RawObject* raw = Object::Allocate(cls.id(),
@@ -10602,8 +10780,7 @@ const char* Closure::ToCString() const {
   const char* fun_desc = is_implicit_closure ? fun.ToCString() : "";
   const char* format = "Closure: %s%s%s";
   intptr_t len = OS::SNPrint(NULL, 0, format, fun_sig, from, fun_desc) + 1;
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, format, fun_sig, from, fun_desc);
   return chars;
 }
@@ -10648,29 +10825,9 @@ void Stacktrace::set_pc_offset_array(const Array& pc_offset_array) const {
 }
 
 
-void Stacktrace::SetupStacktrace(intptr_t index,
-                                 const GrowableArray<uword>& frame_pcs) const {
-  Isolate* isolate = Isolate::Current();
-  ASSERT(isolate != NULL);
-  Function& function = Function::Handle(isolate, Function::null());
-  Code& code = Code::Handle(isolate, Code::null());
-  Smi& pc_offset = Smi::Handle(isolate, Smi::New(0));
-  const Array& function_array = Array::Handle(raw_ptr()->function_array_);
-  const Array& code_array = Array::Handle(raw_ptr()->code_array_);
-  const Array& pc_offset_array = Array::Handle(raw_ptr()->pc_offset_array_);
-  for (intptr_t i = 0; i < frame_pcs.length(); i++) {
-    code = Code::LookupCode(frame_pcs[i]);
-    ASSERT(!code.IsNull());
-    function = code.function();
-    function_array.SetAt((index + i), function);
-    code_array.SetAt((index + i), code);
-    pc_offset = Smi::New(frame_pcs[i] - code.EntryPoint());
-    pc_offset_array.SetAt((index + i), pc_offset);
-  }
-}
-
-
-RawStacktrace* Stacktrace::New(const GrowableArray<uword>& stack_frame_pcs,
+RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
+                               const GrowableObjectArray& code_list,
+                               const GrowableObjectArray& pc_offset_list,
                                Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->stacktrace_class() !=
          Class::null());
@@ -10682,23 +10839,25 @@ RawStacktrace* Stacktrace::New(const GrowableArray<uword>& stack_frame_pcs,
     NoGCScope no_gc;
     result ^= raw;
   }
-  intptr_t length = stack_frame_pcs.length();
   // Create arrays for the function, code and pc_offset triplet for each frame.
-  const Array& function_array = Array::Handle(Array::New(length));
-  const Array& code_array = Array::Handle(Array::New(length));
-  const Array& pc_offset_array = Array::Handle(Array::New(length));
+  const Array& function_array = Array::Handle(Array::MakeArray(func_list));
+  const Array& code_array = Array::Handle(Array::MakeArray(code_list));
+  const Array& pc_offset_array =
+      Array::Handle(Array::MakeArray(pc_offset_list));
   result.set_function_array(function_array);
   result.set_code_array(code_array);
   result.set_pc_offset_array(pc_offset_array);
-  // Now populate the arrays with appropriate values from each frame.
-  result.SetupStacktrace(0, stack_frame_pcs);
   return result.raw();
 }
 
 
-void Stacktrace::Append(const GrowableArray<uword>& stack_frame_pcs) const {
+void Stacktrace::Append(const GrowableObjectArray& func_list,
+                        const GrowableObjectArray& code_list,
+                        const GrowableObjectArray& pc_offset_list) const {
   intptr_t old_length = Length();
-  intptr_t new_length = old_length + stack_frame_pcs.length();
+  intptr_t new_length = old_length + pc_offset_list.Length();
+  ASSERT(pc_offset_list.Length() == func_list.Length());
+  ASSERT(pc_offset_list.Length() == code_list.Length());
 
   // Grow the arrays for function, code and pc_offset triplet to accommodate
   // the new stack frames.
@@ -10711,8 +10870,17 @@ void Stacktrace::Append(const GrowableArray<uword>& stack_frame_pcs) const {
   set_function_array(function_array);
   set_code_array(code_array);
   set_pc_offset_array(pc_offset_array);
-  // Now populate the arrays with appropriate values from each new frame.
-  SetupStacktrace(old_length, stack_frame_pcs);
+  // Now append the new function and code list to the existing arrays.
+  intptr_t j = 0;
+  Object& obj = Object::Handle();
+  for (intptr_t i = old_length; i < new_length; i++, j++) {
+    obj = func_list.At(j);
+    function_array.SetAt(i, obj);
+    obj = code_list.At(j);
+    code_array.SetAt(i, obj);
+    obj = pc_offset_list.At(j);
+    pc_offset_array.SetAt(i, obj);
+  }
 }
 
 
@@ -10756,8 +10924,7 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
                                line, column,
                                code.EntryPoint());
     total_len += len;
-    char* chars = reinterpret_cast<char*>(
-        Isolate::Current()->current_zone()->Allocate(len + 1));
+    char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
                 i,
                 class_name.ToCString(),
@@ -10770,8 +10937,7 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
   }
 
   // Now concatentate the frame descriptions into a single C string.
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(total_len + 1));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(total_len + 1);
   intptr_t index = 0;
   for (intptr_t i = 0; i < frame_strings.length(); i++) {
     index += OS::SNPrint((chars + index),
@@ -10801,6 +10967,10 @@ void JSRegExp::set_num_bracket_expressions(intptr_t value) const {
 RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->jsregexp_class() !=
          Class::null());
+  if (len < 0 || len > kMaxElements) {
+    // This should be caught before we reach here.
+    FATAL1("Fatal error in JSRegexp::New: invalid len %ld\n", len);
+  }
   JSRegExp& result = JSRegExp::Handle();
   {
     RawObject* raw = Object::Allocate(JSRegExp::kInstanceKind,
@@ -10876,8 +11046,7 @@ const char* JSRegExp::ToCString() const {
   const String& str = String::Handle(pattern());
   const char* format = "JSRegExp: pattern=%s flags=%s";
   intptr_t len = OS::SNPrint(NULL, 0, format, str.ToCString(), Flags());
-  char* chars = reinterpret_cast<char*>(
-      Isolate::Current()->current_zone()->Allocate(len + 1));
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
 }

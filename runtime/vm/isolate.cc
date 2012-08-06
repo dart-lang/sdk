@@ -305,6 +305,21 @@ uword Isolate::GetAndClearInterrupts() {
 }
 
 
+ICData* Isolate::GetICDataForCid(intptr_t cid) const {
+  if (ic_data_array() == Array::null()) {
+    return NULL;
+  }
+  const Array& array_handle = Array::Handle(ic_data_array());
+  if (cid >= array_handle.Length()) {
+    // For computations being added in the optimizing compiler.
+    return NULL;
+  }
+  ICData& ic_data_handle = ICData::ZoneHandle();
+  ic_data_handle ^= array_handle.At(cid);
+  return &ic_data_handle;
+}
+
+
 static int MostUsedFunctionFirst(const Function* const* a,
                                  const Function* const* b) {
   if ((*a)->usage_counter() > (*b)->usage_counter()) {

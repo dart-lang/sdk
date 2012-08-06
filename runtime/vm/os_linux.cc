@@ -101,6 +101,7 @@ word OS::PreferredCodeAlignment() {
   // Flags::DebugIsInt("codealign", &alignment);
   ASSERT(Utils::IsPowerOfTwo(alignment));
   ASSERT(alignment >= kMinimumAlignment);
+  ASSERT(alignment <= OS::kMaxPreferredCodeAlignment);
   return alignment;
 }
 

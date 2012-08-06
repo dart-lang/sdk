@@ -5,6 +5,9 @@
 //
 // Dart test program testing type casts.
 
+// Test that the initializer expression gets properly skipped.
+bool b = "foo" as double;
+
 class TypeTest {
   static test() {
     int result = 0;
@@ -22,7 +25,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(12, error.line);
+      Expect.equals(15, error.line);
       Expect.equals(23, error.column);
     }
     return result;
@@ -64,7 +67,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(54, error.line);
+      Expect.equals(57, error.line);
       Expect.equals(25, error.column);
     }
     return result;
@@ -89,7 +92,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(76, error.line);
+      Expect.equals(79, error.line);
       Expect.equals(16, error.column);
     }
     return result;
@@ -112,7 +115,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(103, error.line);
+      Expect.equals(106, error.line);
       Expect.equals(13, error.column);
     }
     return result;
@@ -137,7 +140,7 @@ class TypeTest {
       }
       String subs = error.url.substring(pos + 1, error.url.length);
       Expect.equals("type_cast_vm_test.dart", subs);
-      Expect.equals(128, error.line);
+      Expect.equals(131, error.line);
       Expect.equals(17, error.column);
     }
     return result;

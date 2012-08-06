@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -63,73 +63,66 @@ class MessageTest {
   }
 }
 
-class PingPongServer extends Isolate {
-  PingPongServer() : super() {}
-
-  void main() {
-    int count = 0;
-    this.port.receive(
-        (var message, SendPort replyTo) {
-          if (message == -1) {
-            this.port.close();
-            replyTo.send(count, null);
-          } else {
-            // Check if the received object is correct.
-            if (count < MessageTest.elms.length) {
-              MessageTest.VerifyObject(count, message);
-            }
-            // Bounce the received object back so that the sender
-            // can make sure that the object matches.
-            replyTo.send(message, null);
-            count++;
-          }
-        });
-  }
+pingPong() {
+  int count = 0;
+  port.receive((var message, SendPort replyTo) {
+    if (message == -1) {
+      port.close();
+      replyTo.send(count, null);
+    } else {
+      // Check if the received object is correct.
+      if (count < MessageTest.elms.length) {
+        MessageTest.VerifyObject(count, message);
+      }
+      // Bounce the received object back so that the sender
+      // can make sure that the object matches.
+      replyTo.send(message, null);
+      count++;
+    }
+  });
 }
 
 main() {
   test("send objects and receive them back", () {
-    new PingPongServer().spawn().then(expectAsync1((SendPort remote) {
+    SendPort remote = spawnFunction(pingPong);
+    // Send objects and receive them back.
+    for (int i = 0; i < MessageTest.elms.length; i++) {
+      var sentObject = MessageTest.elms[i];
+      // TODO(asiva): remove this local var idx once thew new for-loop
+      // semantics for closures is implemented.
+      var idx = i;
+      remote.call(sentObject).then(expectAsync1((var receivedObject) {
+        MessageTest.VerifyObject(idx, receivedObject);
+      }));
+    }
 
-      // Send objects and receive them back.
-      for (int i = 0; i < MessageTest.elms.length; i++) {
-        var sentObject = MessageTest.elms[i];
-        // TODO(asiva): remove this local var idx once thew new for-loop
-        // semantics for closures is implemented.
-        var idx = i;
-        remote.call(sentObject).then(expectAsync1((var receivedObject) {
-          MessageTest.VerifyObject(idx, receivedObject);
-        }));
-      }
+    // Send recursive objects and receive them back.
+    List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
+    List local_list2 = [null, local_list1, local_list1 ];
+    List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
+    List sendObject = new List(5);
+    sendObject[0] = local_list1;
+    sendObject[1] = sendObject;
+    sendObject[2] = local_list2;
+    sendObject[3] = sendObject;
+    sendObject[4] = local_list3;
+    remote.call(sendObject).then((var replyObject) {
+      Expect.equals(true, sendObject is List);
+      Expect.equals(true, replyObject is List);
+      Expect.equals(sendObject.length, replyObject.length);
+      Expect.equals(true, replyObject[1] === replyObject);
+      Expect.equals(true, replyObject[3] === replyObject);
+      Expect.equals(true, replyObject[0] === replyObject[2][1]);
+      Expect.equals(true, replyObject[0] === replyObject[2][2]);
+      Expect.equals(true, replyObject[2] === replyObject[4][0]);
+      Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
+      // Bigint literals are not canonicalized so do a == check.
+      Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
+    });
 
-      // Send recursive objects and receive them back.
-      List local_list1 = ["Hello", "World", "Hello", 0xffffffffff];
-      List local_list2 = [null, local_list1, local_list1 ];
-      List local_list3 = [local_list2, 2.0, true, false, 0xffffffffff];
-      List sendObject = new List(5);
-      sendObject[0] = local_list1;
-      sendObject[1] = sendObject;
-      sendObject[2] = local_list2;
-      sendObject[3] = sendObject;
-      sendObject[4] = local_list3;
-      remote.call(sendObject).then((var replyObject) {
-        Expect.equals(true, sendObject is List);
-        Expect.equals(true, replyObject is List);
-        Expect.equals(sendObject.length, replyObject.length);
-        Expect.equals(true, replyObject[1] === replyObject);
-        Expect.equals(true, replyObject[3] === replyObject);
-        Expect.equals(true, replyObject[0] === replyObject[2][1]);
-        Expect.equals(true, replyObject[0] === replyObject[2][2]);
-        Expect.equals(true, replyObject[2] === replyObject[4][0]);
-        Expect.equals(true, replyObject[0][0] === replyObject[0][2]);
-        // Bigint literals are not canonicalized so do a == check.
-        Expect.equals(true, replyObject[0][3] == replyObject[4][4]);
-      });
-
-      // Shutdown the MessageServer.
-      remote.call(-1).then(expectAsync1((int message) {
-          Expect.equals(MessageTest.elms.length + 1, message);
-        }));
-    }));
+    // Shutdown the MessageServer.
+    remote.call(-1).then(expectAsync1((int message) {
+        Expect.equals(MessageTest.elms.length + 1, message);
+      }));
   });
 }

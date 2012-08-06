@@ -361,6 +361,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
             checkAssignable(rhsNode, lhs, rhs);
           }
           checkAssignableElement(lhsNode);
+          // if cascade, then use type of "lhs" qualifier
+          if (lhsNode instanceof DartPropertyAccess) {
+            DartPropertyAccess lhsAccess = (DartPropertyAccess) lhsNode;
+            if (lhsAccess.isCascade()) {
+              return lhsAccess.getQualifier().getType();
+            }
+          }
+          // use type or "rhs"
           return rhs;
         }
 
@@ -568,11 +576,12 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * assigned value type is compatible with this propagated type.
      */
     private void checkPropagatedTypeCompatible(DartExpression lhsNode, Type rhs) {
-      if (lhsNode.getElement() instanceof VariableElement) {
-        VariableElement variableElement = (VariableElement) lhsNode.getElement();
-        Type variableType = variableElement.getType();
+      Element element = lhsNode.getElement();
+      if (ElementKind.of(element) == ElementKind.VARIABLE
+          || ElementKind.of(element) == ElementKind.FIELD) {
+        Type variableType = element.getType();
         if (variableType.isInferred() && !types.isAssignable(variableType, rhs)) {
-          Elements.setType(variableElement, dynamicType);
+          Elements.setType(element, dynamicType);
         }
       }
     }
@@ -1248,16 +1257,18 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type receiver = nonVoidTypeOf(target);
       Member member = lookupMember(receiver, name, nameNode);
       if (member != null) {
-        Element methodElement = member.getElement();
-        checkIllegalPrivateAccess(node.getFunctionName(), methodElement, name);
-        node.setElement(methodElement);
+        element = member.getElement();
+        checkIllegalPrivateAccess(node.getFunctionName(), element, name);
+        node.setElement(element);
         if (nameNode != null) {
-          nameNode.setElement(methodElement);
+          nameNode.setElement(element);
         }
       }
       checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
-      return checkInvocation(node, nameNode, name, methodType);
+      Type returnType = checkInvocation(node, nameNode, name, methodType);
+      returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
+      return returnType;
     }
 
     private void checkIllegalPrivateAccess(DartNode diagnosticNode, Element element, String name) {
@@ -1974,9 +1985,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitPropertyAccess(DartPropertyAccess node) {
-      if (node.isCascade()) {
-        return node.getQualifier().accept(this);
-      }
       if (node.getType() != null) {
         return node.getType();
       }
@@ -2122,6 +2130,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (switchMember instanceof DartCase) {
           DartCase caseMember = (DartCase) switchMember;
           DartExpression caseExpr = caseMember.getExpr();
+          // no expression, parser already reported about this
+          if (caseExpr == null) {
+            continue;
+          }
           Type caseType = nonVoidTypeOf(caseExpr);
           // should be "int" or "String"
           if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {
@@ -2302,7 +2314,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
       }
       checkDeprecated(target, element);
-      return checkInvocation(node, target, name, type);
+      Type returnType = checkInvocation(node, target, name, type);
+      returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
+      return returnType;
     }
 
     /**
@@ -2508,8 +2522,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return typeOf(accessor);
       } else {
         Type result = checkInitializedDeclaration(node, node.getValue());
-        // if no type declared for variables, try to use type of value
-        {
+        // if no type declared for field, try to use type of value
+        // only final fields, because only in this case we can be sure that field is not assigned
+        // somewhere, may be even not in this unit
+        if (node.getModifiers().isFinal()) {
           DartExpression value = node.getValue();
           if (value != null) {
             Type valueType = value.getType();
@@ -2888,9 +2904,30 @@ public class TypeAnalyzer implements DartCompilationPhase {
           int numRequired = getNumRequiredParameters(parameters);
           int superNumRequired = getNumRequiredParameters(superParameters);
           if (numRequired != superNumRequired) {
+            StringBuilder builder = new StringBuilder();
+            builder.append(method.getName());
+            builder.append("(");
+            boolean inNamed = false;
+            int parameterCount = superParameters.size();
+            for (int i = 0; i < parameterCount; i++) {
+              if (i > 0) {
+                builder.append(", ");
+              }
+              VariableElement parameter = superParameters.get(i);
+              if (!inNamed && parameter.isNamed()) {
+                builder.append("[");
+                inNamed = true;
+              }
+              builder.append(parameter.getType().toString());
+            }
+            if (inNamed) {
+              builder.append("]");
+            }
+            builder.append(")");
             onError(errorTarget,
                     ResolverErrorCode.CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS,
-                    method.getName());
+                    builder.toString(),
+                    superMethod.getEnclosingElement().getName());
             return false;
           }
         }

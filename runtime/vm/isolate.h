@@ -23,6 +23,7 @@ class Debugger;
 class HandleScope;
 class HandleVisitor;
 class Heap;
+class ICData;
 class LongJump;
 class MessageHandler;
 class Mutex;
@@ -179,9 +180,11 @@ class Isolate : public BaseIsolate {
 
   intptr_t computation_id() const { return computation_id_; }
   void set_computation_id(int value) { computation_id_ = value; }
+  intptr_t GetNextCid() { return computation_id_++; }
 
   RawArray* ic_data_array() const { return ic_data_array_; }
   void set_ic_data_array(RawArray* value) { ic_data_array_ = value; }
+  ICData* GetICDataForCid(intptr_t cid) const;
 
   Debugger* debugger() const { return debugger_; }
 

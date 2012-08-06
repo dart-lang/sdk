@@ -46,6 +46,47 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   }
 
   /**
+   * This is allowed in "Spec 0.11".
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3847
+   */
+  public void test_instanceVariable_nonConstInitializer() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "class A {",
+        " var f = new Object();",
+        "}"));
+  }
+  
+  /**
+   * We can not reference "this" directly or indirectly as reference to other fields.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3847
+   */
+  public void test_instanceVariable_nonConstInitializer_cannotReferenceThis() {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class Val {",
+            "  Val(var o) {}",
+            "}",
+            "class A {",
+            " var f1 = new Val(1);",
+            " var f2 = this;",
+            " var f3 = new Val(f1);",
+            "}",
+            "class B extends A {",
+            " var f2 = new Val(f3);",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER, 8, 11, 4),
+        errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 9, 19, 2),
+        errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 12, 19, 2));
+  }
+
+  /**
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=1655
    */

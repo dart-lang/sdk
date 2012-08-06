@@ -68,7 +68,6 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.Modifiers;
-import com.google.dart.compiler.ast.NodeList;
 import com.google.dart.compiler.common.HasSourceInfo;
 import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.parser.Token;
@@ -649,6 +648,7 @@ public class Resolver {
       if (body == null
           && !Elements.isNonFactoryConstructor(member)
           && !member.getModifiers().isAbstract()
+          && !member.getModifiers().isExternal()
           && !isInterface) {
         onError(functionNode, ResolverErrorCode.METHOD_MUST_HAVE_BODY);
       }
@@ -678,7 +678,7 @@ public class Resolver {
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
         Type expressionType = expression.getType();
-        if (expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
+        if (isFinal && expressionType != null && TypeKind.of(element.getType()) == TypeKind.DYNAMIC) {
           Type fieldType = Types.makeInferred(expressionType);
           Elements.setType(element, fieldType);
         }

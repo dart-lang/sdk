@@ -49,8 +49,7 @@ static uint8_t* malloc_allocator(
 static uint8_t* zone_allocator(
     uint8_t* ptr, intptr_t old_size, intptr_t new_size) {
   Zone* zone = Isolate::Current()->current_zone();
-  return reinterpret_cast<uint8_t*>(
-      zone->Reallocate(reinterpret_cast<uword>(ptr), old_size, new_size));
+  return zone->Realloc<uint8_t>(ptr, old_size, new_size);
 }
 
 

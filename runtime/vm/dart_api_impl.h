@@ -10,6 +10,7 @@
 
 namespace dart {
 
+class ApiLocalScope;
 class ApiState;
 class FinalizablePersistentHandle;
 class LocalHandle;
@@ -143,14 +144,8 @@ class Api : AllStatic {
   // Gets a handle to False
   static Dart_Handle False(Isolate* isolate);
 
-  // Allocates space in the local zone.
-  static uword Allocate(Isolate* isolate, intptr_t size);
-
-  // Reallocates space in the local zone.
-  static uword Reallocate(Isolate* isolate,
-                          uword ptr,
-                          intptr_t old_size,
-                          intptr_t new_size);
+  // Retrieves the top ApiLocalScope.
+  static ApiLocalScope* TopScope(Isolate* isolate);
 
   // Performs one-time initialization needed by the API.
   static void InitOnce();

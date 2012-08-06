@@ -33,7 +33,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
   CANNOT_OVERRIDE_INSTANCE_MEMBER("static member cannot override instance member %s of %s"),
   CANNOT_OVERRIDE_METHOD_NUM_REQUIRED_PARAMS(
-      "cannot override method %s, wrong number of required parameters"),
+      "cannot override method %s from %s, wrong number of required parameters"),
   CANNOT_OVERRIDE_METHOD_NAMED_PARAMS(
       "cannot override method %s, named parameters don't match"),
   CANNOT_RESOLVE_CONSTRUCTOR("cannot resolve constructor %s"),
@@ -48,6 +48,9 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_RESOLVE_SUPER_CONSTRUCTOR("cannot resolve method '%s'"),
   CANNOT_RESOLVE_IMPLICIT_CALL_TO_SUPER_CONSTRUCTOR(
       "super type %s does not have a default constructor"),
+  CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER(
+      "Cannot use instance field in instance field initializer"),
+  CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER("Cannot use 'this' in instance field initializer"),
   CANNOT_USE_TYPE("Cannot reference the type '%s' in this context"),
   // TODO(zundel): error message needs JUnit test (reachable code?)
   CANNOT_USE_TYPE_VARIABLE("Cannot reference the type variable '%s' in this context"),
