@@ -60,7 +60,9 @@ class FlowGraphBuilder: public ValueObject {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
-  void Rename(intptr_t var_count);
+  void Rename(intptr_t stack_local_count,
+              intptr_t fixed_parameter_count,
+              intptr_t copied_parameter_count);
   void RenameRecursive(BlockEntryInstr* block_entry,
                        GrowableArray<Value*>* env,
                        intptr_t var_count,
