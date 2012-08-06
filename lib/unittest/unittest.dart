@@ -582,6 +582,8 @@ void group(String description, void body()) {
     _testSetup = null;
     _testTeardown = null;
     body();
+  } catch(var e, var trace) {
+    _reportTestError(e.toString(), trace == null ? '' : trace.toString());
   } finally {
     // Now that the group is over, restore the previous one.
     _currentGroup = parentGroup;
@@ -660,7 +662,7 @@ void callbackDone() {
  * Utility function that can be used to notify the test framework that an
  *  error was caught outside of this library.
  */
-void reportTestError(String msg, String trace) {
+void _reportTestError(String msg, String trace) {
  if (_currentTest < _tests.length) {
     final testCase = _tests[_currentTest];
     testCase.error(msg, trace);

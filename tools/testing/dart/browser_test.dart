@@ -63,13 +63,7 @@ String dartTestWrapper(Path dartHome, Path library) =>
 
 main() {
   config.useHtmlConfiguration();
-  try {
-    unittest.ensureInitialized();
-    Test.main();
-  } catch(var e, var trace) {
-    unittest.reportTestError(
-        e.toString(), trace == null ? '' : trace.toString());
-  }
+  group('', Test.main);
 }
 """;
 

@@ -35,11 +35,8 @@ class HtmlEnhancedConfiguration extends Configuration {
 
     cssElement.innerHTML = _htmlTestCSS;
 
-    _onErrorClosure = (e) {
-      // TODO(vsm): figure out how to expose the stack trace here
-      // Currently e.message works in dartium, but not in dartc.
-      reportTestError('(DOM callback has errors) Caught ${e}', '');
-    };
+    _onErrorClosure =
+        (e) => handleExternalError(e, '(DOM callback has errors)');
   }
 
   void onStart() {
