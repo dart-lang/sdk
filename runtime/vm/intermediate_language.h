@@ -2678,13 +2678,11 @@ class BranchInstr : public InstructionWithInputs {
 class Environment : public ZoneAllocated {
  public:
   // Construct an environment by copying from an array of values.
-  // TODO(vegorov): it's absolutely crucial that locations_ backing store
-  // is preallocated and never reallocated.  We use pointers into it
-  // during register allocation.
   explicit Environment(const GrowableArray<Value*>& values,
                        intptr_t fixed_parameter_count)
       : values_(values.length()),
-        locations_(values.length()),
+        location_count_(0),
+        locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
   }
@@ -2693,16 +2691,22 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  void AddLocation(Location value) {
-    locations_.Add(value);
+  void InitializeLocations() {
+    location_count_ = values_.length();
+    if (location_count_ > 0) {
+      locations_ =
+          Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
+    }
   }
 
   Location LocationAt(intptr_t ix) const {
+    ASSERT((ix >= 0) && (ix < location_count_));
     return locations_[ix];
   }
 
   Location* LocationSlotAt(intptr_t ix) const {
-    return & locations_[ix];
+    ASSERT((ix >= 0) && (ix < location_count_));
+    return &locations_[ix];
   }
 
   intptr_t fixed_parameter_count() const {
@@ -2713,7 +2717,8 @@ class Environment : public ZoneAllocated {
 
  private:
   GrowableArray<Value*> values_;
-  GrowableArray<Location> locations_;
+  intptr_t location_count_;
+  Location* locations_;
   const intptr_t fixed_parameter_count_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

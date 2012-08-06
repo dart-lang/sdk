@@ -662,19 +662,20 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     Environment* env = current->env();
     const GrowableArray<Value*>& values = env->values();
-
+    env->InitializeLocations();
     for (intptr_t j = 0; j < values.length(); j++) {
       Value* val = values[j];
+      Location* loc = env->LocationSlotAt(j);
       if (val->IsUse()) {
-        env->AddLocation(Location::Any());
+        *loc = Location::Any();
         const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
 
         LiveRange* range = GetLiveRange(vreg);
         range->AddUseInterval(block->start_pos(), pos + 1);
-        range->AddUse(pos + 1, env->LocationSlotAt(j));
+        range->AddUse(pos + 1, loc);
       } else {
         ASSERT(val->IsConstant());
-        env->AddLocation(Location::NoLocation());
+        *loc = Location::NoLocation();
       }
     }
   }

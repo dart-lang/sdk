@@ -775,7 +775,9 @@ void Environment::PrintTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
-    if ((i < locations_.length()) && !locations_[i].IsInvalid()) {
+    if ((locations_ != NULL) &&
+        (i < location_count_) &&
+        !locations_[i].IsInvalid()) {
       f->Print(" [");
       locations_[i].PrintTo(f);
       f->Print("]");
