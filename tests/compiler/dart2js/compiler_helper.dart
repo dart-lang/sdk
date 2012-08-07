@@ -24,7 +24,7 @@ String compile(String code, [String entry = 'main']) {
   return generated;
 }
 
-Compiler compilerFor(String code, Uri uri) {
+MockCompiler compilerFor(String code, Uri uri) {
   MockCompiler compiler = new MockCompiler();
   compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   return compiler;
