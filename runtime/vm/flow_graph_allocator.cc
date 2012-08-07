@@ -660,33 +660,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       (locs->out().policy() == Location::kSameAsFirstInput);
 
   // Add uses from the deoptimization environment.
-  if (current->env() != NULL) {
-    // Any value mentioned in the deoptimization environment should survive
-    // until the end of instruction but it does not need to be in the register.
-    // Expected shape of live range:
-    //
-    //                 i  i'
-    //      value    -----*
-    //
-
-    Environment* env = current->env();
-    const GrowableArray<Value*>& values = env->values();
-    env->InitializeLocations();
-    for (intptr_t j = 0; j < values.length(); j++) {
-      Value* val = values[j];
-      Location* loc = env->LocationSlotAt(j);
-      if (val->IsUse()) {
-        *loc = Location::Any();
-        const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
-
-        LiveRange* range = GetLiveRange(vreg);
-        range->AddUseInterval(block->start_pos(), pos + 1);
-        range->AddUse(pos + 1, loc);
-      } else {
-        ASSERT(val->IsConstant());
-        *loc = Location::NoLocation();
-      }
-    }
+  Environment* env = current->env();
+  if (env != NULL) {
+    env->InitializeLocations(this, block->start_pos(), pos + 1);
   }
 
   // Process inputs.

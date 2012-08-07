@@ -43,6 +43,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 
 
 class BitVector;
+class FlowGraphAllocator;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Function;
@@ -2690,13 +2691,12 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  void InitializeLocations() {
-    location_count_ = values_.length();
-    if (location_count_ > 0) {
-      locations_ =
-          Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
-    }
-  }
+  // Initialize locations for the environment values on behalf of the
+  // register allocator.  The initial live ranges of environment uses extend
+  // from the block start position to the environment position.
+  void InitializeLocations(FlowGraphAllocator* allocator,
+                           intptr_t block_start_pos,
+                           intptr_t environment_pos);
 
   Location LocationAt(intptr_t ix) const {
     ASSERT((ix >= 0) && (ix < location_count_));

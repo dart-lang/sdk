@@ -27,6 +27,9 @@ class FlowGraphAllocator : public ValueObject {
   // Build live-in and live-out sets for each block.
   void AnalyzeLiveness();
 
+  // Map a virtual register number to its live range.
+  LiveRange* GetLiveRange(intptr_t vreg);
+
  private:
   // Eliminate unnecessary environments from the IL.
   void EliminateEnvironmentUses();
@@ -82,7 +85,6 @@ class FlowGraphAllocator : public ValueObject {
   // optimal splitting position.
   void DiscoverLoops();
 
-  LiveRange* GetLiveRange(intptr_t vreg);
   LiveRange* MakeLiveRangeForTemporary();
 
   // Visit instructions in the postorder and build live ranges for
