@@ -400,7 +400,7 @@ class LocalsHandler {
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
-      HInstruction fieldGet = new HFieldGet(redirect, receiver);
+      HInstruction fieldGet = new HFieldGet.withElement(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -412,7 +412,7 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      HInstruction lookup = new HFieldGet(redirect, box);
+      HInstruction lookup = new HFieldGet.withElement(redirect, box);
       builder.add(lookup);
       return lookup;
     } else {
@@ -472,7 +472,7 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      builder.add(new HFieldSet(redirect, box, value));
+      builder.add(new HFieldSet.withElement(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
       HLocalValue local = getLocal(element);

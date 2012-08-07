@@ -425,21 +425,7 @@ function(collectedClasses) {
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }
-    } else if (member.kind === ElementKind.FIELD) {
-      SourceString name = member.name;
-      ClassElement cls = member.getEnclosingClass();
-      if (cls.lookupSuperMember(name) !== null) {
-        String fieldName = namer.instanceFieldName(cls, name);
-        CodeBuffer getterBuffer = new CodeBuffer();
-        getterBuffer.add('function() {\n  return this.$fieldName;\n }');
-        defineInstanceMember(namer.getterName(cls.getLibrary(), name),
-                             getterBuffer);
-        CodeBuffer setterBuffer = new CodeBuffer();
-        setterBuffer.add('function(x) {\n  this.$fieldName = x;\n }');
-        defineInstanceMember(namer.setterName(cls.getLibrary(), name),
-                             setterBuffer);
-      }
-    } else {
+    } else if (member.kind !== ElementKind.FIELD) {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
@@ -455,15 +441,24 @@ function(collectedClasses) {
     bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
       assert(!member.isNative());
+
+      LibraryElement library = member.getLibrary();
+      SourceString name = member.name;
+      bool isPrivate = name.isPrivate();
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [classElement] since
       // the fields of super classes could be overwritten with getters or
       // setters.
       bool needsDynamicGetter = false;
       bool needsDynamicSetter = false;
+      // We need to name shadowed fields differently, so they don't clash with
+      // the non-shadowed field.
+      bool isShadowed = false;
       if (enclosingClass === classElement) {
         needsDynamicGetter = instanceFieldNeedsGetter(member);
         needsDynamicSetter = instanceFieldNeedsSetter(member);
+      } else {
+        isShadowed = classElement.isShadowedByField(member);
       }
 
       if ((isInstantiated && !enclosingClass.isNative())
@@ -474,9 +469,9 @@ function(collectedClasses) {
         } else {
           buffer.add(", ");
         }
-        SourceString name = member.name;
-        String fieldName = namer.instanceFieldName(member.getEnclosingClass(),
-                                                   name);
+        String fieldName = isShadowed
+            ? namer.shadowedFieldName(member)
+            : namer.instanceFieldName(library, name);
         // Getters and setters with suffixes will be generated dynamically.
         buffer.add('"$fieldName');
         if (needsDynamicGetter || needsDynamicSetter) {
@@ -529,9 +524,9 @@ function(collectedClasses) {
       } else {
         code = 'true';
       }
-      CodeBuffer buffer = new CodeBuffer();
-      buffer.add(code);
-      defineInstanceMember(namer.operatorIs(other), buffer);
+      CodeBuffer typeTestBuffer = new CodeBuffer();
+      typeTestBuffer.add(code);
+      defineInstanceMember(namer.operatorIs(other), typeTestBuffer);
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
@@ -782,8 +777,7 @@ $classesCollector.$mangledName = {'':
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      String name = namer.instanceFieldName(member.getEnclosingClass(),
-                                            member.name);
+      String name = namer.instanceFieldName(member.getLibrary(), member.name);
       getter = "this.$name";
     }
     for (Selector selector in selectors) {

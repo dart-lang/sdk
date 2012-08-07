@@ -1811,7 +1811,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('$className.prototype.$methodName.call');
       visitArguments(node.inputs);
     } else if (superMethod.kind == ElementKind.FIELD) {
-      buffer.add('this.${compiler.namer.getName(superMethod)}');
+      ClassElement currentClass = work.element.enclosingElement;
+      if (currentClass.isShadowedByField(superMethod)) {
+        buffer.add('this.${compiler.namer.shadowedFieldName(superMethod)}');
+      } else {
+        LibraryElement library = superMethod.getLibrary();
+        SourceString name = superMethod.name;
+        buffer.add('this.${compiler.namer.instanceFieldName(library, name)}');
+      }
     } else {
       assert(superMethod.kind == ElementKind.GETTER ||
              superMethod.kind == ElementKind.SETTER);
@@ -1831,7 +1838,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldGet(HFieldGet node) {
-    String name = compiler.namer.getName(node.element);
+    String name =
+        compiler.namer.instanceFieldName(node.library, node.fieldName);
     beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
@@ -1864,7 +1872,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       backend.updateFieldConstructorSetters(node.element,
                                             node.value.guaranteedType);
     }
-    String name = compiler.namer.getName(node.element);
+    String name =
+        compiler.namer.instanceFieldName(node.library, node.fieldName);
     beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');

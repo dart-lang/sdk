@@ -1319,16 +1319,29 @@ class HInvokeInterceptor extends HInvokeStatic {
 
 abstract class HFieldAccess extends HInstruction {
   final Element element;
+  final SourceString fieldName;
+  final LibraryElement library;
 
-  HFieldAccess(this.element, List<HInstruction> inputs) : super(inputs);
+  HFieldAccess(this.fieldName, this.library, List<HInstruction> inputs)
+      : element = null, super(inputs);
+
+  HFieldAccess.withElement(Element element, List<HInstruction> inputs)
+      : this.element = element,
+        fieldName = element.name,
+        library = element.getLibrary(),
+        super(inputs);
 }
 
 class HFieldGet extends HFieldAccess {
   final bool isFinalOrConst;
 
-  HFieldGet(Element element, HInstruction receiver,
+  HFieldGet(SourceString name, LibraryElement library, HInstruction receiver,
             [this.isFinalOrConst = false])
-      : super(element, <HInstruction>[receiver]);
+      : super(name, library, <HInstruction>[receiver]);
+
+  HFieldGet.withElement(Element element, HInstruction receiver,
+                        [this.isFinalOrConst = false])
+      : super.withElement(element, <HInstruction>[receiver]);
 
   HInstruction get receiver() => inputs[0];
 
@@ -1343,12 +1356,20 @@ class HFieldGet extends HFieldAccess {
   int typeCode() => 27;
   bool typeEquals(other) => other is HFieldGet;
   bool dataEquals(HFieldGet other) => element == other.element;
-  String toString() => "FieldGet $element";
+  String toString() => "FieldGet ${element == null ? fieldName : element}";
 }
 
 class HFieldSet extends HFieldAccess {
-  HFieldSet(Element element, HInstruction receiver, HInstruction value)
-      : super(element, <HInstruction>[receiver, value]);
+  HFieldSet(SourceString name,
+            LibraryElement library,
+            HInstruction receiver,
+            HInstruction value)
+      : super(name, library, <HInstruction>[receiver, value]);
+
+  HFieldSet.withElement(Element element,
+                        HInstruction receiver,
+                        HInstruction value)
+      : super.withElement(element, <HInstruction>[receiver, value]);
 
   HInstruction get receiver() => inputs[0];
   HInstruction get value() => inputs[1];
@@ -1360,11 +1381,12 @@ class HFieldSet extends HFieldAccess {
   }
 
   final bool isStatement = true;
-  String toString() => "FieldSet $element";
+  String toString() => "FieldSet ${element == null ? fieldName : element}";
 }
 
 class HLocalGet extends HFieldGet {
-  HLocalGet(Element element, HLocalValue local) : super(element, local);
+  HLocalGet(Element element, HLocalValue local)
+      : super.withElement(element, local);
 
   accept(HVisitor visitor) => visitor.visitLocalGet(this);
 
@@ -1381,7 +1403,7 @@ class HLocalGet extends HFieldGet {
 
 class HLocalSet extends HFieldSet {
   HLocalSet(Element element, HLocalValue local, HInstruction value)
-      : super(element, local, value);
+      : super.withElement(element, local, value);
 
   accept(HVisitor visitor) => visitor.visitLocalSet(this);
 
