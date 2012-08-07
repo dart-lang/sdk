@@ -58,7 +58,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         " var f = new Object();",
         "}"));
   }
-  
+
   /**
    * We can not reference "this" directly or indirectly as reference to other fields.
    * <p>
@@ -84,6 +84,22 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER, 8, 11, 4),
         errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 9, 19, 2),
         errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 12, 19, 2));
+  }
+
+  /**
+   * We can reference top-level fields, because they are static.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4400
+   */
+  public void test_instanceVariable_nonConstInitializer_topLevelField() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class Object {}",
+        "final TOP = 1;",
+        "class A {",
+        " var f = TOP;",
+        "}",
+        ""));
   }
 
   /**

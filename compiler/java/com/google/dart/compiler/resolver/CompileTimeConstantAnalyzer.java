@@ -800,7 +800,9 @@ public class CompileTimeConstantAnalyzer {
           NodeElement element = node.getElement();
           if (ElementKind.of(element) == ElementKind.FIELD) {
             FieldElement fieldElement = (FieldElement) element;
-            if (!fieldElement.isStatic()) {
+            boolean isStatic = fieldElement.getModifiers().isStatic()
+                || Elements.isTopLevel(fieldElement);
+            if (!isStatic) {
               context.onError(new DartCompilationError(node,
                   ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER));
             }
