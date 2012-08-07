@@ -1023,14 +1023,19 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* CreateArrayComp::MakeLocationSummary() const {
-  return MakeCallSummary();
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(ECX));
+  locs->set_out(Location::RegisterLocation(EAX));
+  return locs;
 }
 
 
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  // TODO(fschneider): Support call-instructions that take inputs in registers.
   // Allocate the array.  EDX = length, ECX = element type.
-  __ popl(ECX);
+  ASSERT(locs()->in(0).reg() == ECX);
   __ movl(EDX,  Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_pos(),
                          try_index(),

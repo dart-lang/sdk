@@ -1290,7 +1290,6 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   }
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        node->type_arguments());
-  PushArgument(element_type);
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 values,
