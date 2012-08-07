@@ -24,15 +24,10 @@ String compile(String code, [String entry = 'main']) {
   return generated;
 }
 
-MockCompiler compilerFor(String code, Uri uri) {
-  MockCompiler compiler = new MockCompiler();
-  compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
-  return compiler;
-}
-
 String compileAll(String code) {
+  MockCompiler compiler = new MockCompiler();
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  Compiler compiler = compilerFor(code, uri);
+  compiler.sourceFiles[uri.toString()] = new SourceFile(uri.toString(), code);
   compiler.runCompiler(uri);
   return compiler.assembledCode;
 }
