@@ -86,14 +86,13 @@ void main() {
         "but:  exception 'X' does not match 'Y'.");
     });
 
-    test('throwsBadNumberFormatException', () {
-      shouldPass(() { throw new BadNumberFormatException(''); },
-          throwsBadNumberFormatException);
+    test('throwsFormatException', () {
+      shouldPass(() { throw new FormatException(''); },
+          throwsFormatException);
       shouldFail(() { throw new Exception(); },
-          throwsBadNumberFormatException,
-        "Expected: throws an exception which matches BadNumberFormatException "
-        "but:  exception <Exception> does not match "
-            "BadNumberFormatException.");
+          throwsFormatException,
+        "Expected: throws an exception which matches FormatException "
+        "but:  exception <Exception> does not match FormatException.");
     });
 
     test('throwsIllegalArgumentException', () {

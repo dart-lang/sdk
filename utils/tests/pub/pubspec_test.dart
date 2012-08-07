@@ -45,13 +45,13 @@ dependencies:
         var sources = new SourceRegistry();
         sources.register(new MockSource());
 
-        throwsBadFormat(() {
+        expect(() {
         new Pubspec.parse('''
 dependencies:
   foo:
     mock: bad
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("allows comment-only files", () {
@@ -69,8 +69,4 @@ dependencies:
       });
     });
   });
-}
-
-throwsBadFormat(function) {
-  expect(function, throwsA((e) => e is FormatException));
 }

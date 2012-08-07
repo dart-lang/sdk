@@ -379,9 +379,9 @@ abs(receiver) {
 toInt(receiver) {
   if (receiver is !num) return UNINTERCEPTED(receiver.toInt());
 
-  if (receiver.isNaN()) throw new BadNumberFormatException('NaN');
+  if (receiver.isNaN()) throw new FormatException('NaN');
 
-  if (receiver.isInfinite()) throw new BadNumberFormatException('Infinity');
+  if (receiver.isInfinite()) throw new FormatException('Infinity');
 
   var truncated = receiver.truncate();
   return JS('bool', @'# == -0.0', truncated) ? 0 : truncated;

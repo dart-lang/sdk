@@ -10,15 +10,6 @@
 #import('dart:crypto');
 #import('dart:isolate');
 
-/** Thrown by methods that parse text when the text isn't a valid. */
-class FormatException implements Exception {
-  final String message;
-
-  FormatException(this.message);
-
-  String toString() => message;
-}
-
 /** A pair of values. */
 class Pair<E, F> {
   E first;

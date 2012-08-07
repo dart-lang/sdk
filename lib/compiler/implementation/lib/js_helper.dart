@@ -672,7 +672,7 @@ class MathNatives {
     if (!JS('bool',
             @'/^\s*[+-]?(?:0[xX][abcdefABCDEF0-9]+|\d+)\s*$/.test(#)',
             str)) {
-      throw new BadNumberFormatException(str);
+      throw new FormatException(str);
     }
     var trimmed = str.trim();
     var base = 10;;
@@ -681,7 +681,7 @@ class MathNatives {
       base = 16;
     }
     var ret = JS('num', @'parseInt(#, #)', trimmed, base);
-    if (ret.isNaN()) throw new BadNumberFormatException(str);
+    if (ret.isNaN()) throw new FormatException(str);
     return ret;
   }
 
@@ -693,7 +693,7 @@ class MathNatives {
       ret = JS('num', @'parseInt(#)', str);
     }
     if (ret.isNaN() && str != 'NaN' && str != '-NaN') {
-      throw new BadNumberFormatException(str);
+      throw new FormatException(str);
     }
     return ret;
   }

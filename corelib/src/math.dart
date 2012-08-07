@@ -50,16 +50,14 @@ class Math {
   static final double SQRT2 = 1.4142135623730951;
 
   /**
-   * Parses a [String] representation of an [int], and returns
-   * an [int]. Throws a [BadNumberFormatException] if [str]
-   * cannot be parsed as an [int].
+   * Parses a [String] representation of an [int], and returns an [int]. Throws
+   * a [FormatException] if [str] cannot be parsed as an [int].
    */
   static int parseInt(String str) => MathNatives.parseInt(str);
 
   /**
-   * Parses a [String] representation of a [double], and returns
-   * a [double]. Throws a [BadNumberFormatException] if [str] cannot
-   * be parsed as a [double].
+   * Parses a [String] representation of a [double], and returns a [double].
+   * Throws a [FormatException] if [str] cannot be parsed as a [double].
    */
   static double parseDouble(String str) => MathNatives.parseDouble(str);
 

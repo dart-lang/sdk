@@ -2,6 +2,13 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Rename "BadNumberFormatException" to "FormatException"
+# TODO(rnystrom): File co19 bug and list here before submitting patch.
+LibTest/core/BadNumberFormatException/*: Fail
+LibTest/core/double/toInt_A01_t03: Fail
+LibTest/core/double/toInt_A01_t04: Fail
+LibTest/core/Math/parseInt_A02_t01: Fail
+
 
 [ $runtime == vm ]
 Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in compile-time constant expression)

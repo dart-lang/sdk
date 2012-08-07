@@ -723,7 +723,7 @@ guardAsync(tryBody, [finallyBody, testNum = -1]) {
   try {
     return tryBody();
   } catch (var e, var trace) {
-    registerException(testNum, e, trace);
+    _registerException(testNum, e, trace);
   } finally {
     if (finallyBody != null) finallyBody();
   }
@@ -732,7 +732,14 @@ guardAsync(tryBody, [finallyBody, testNum = -1]) {
 /**
  * Registers that an exception was caught for the current test.
  */
-registerException(testNum, e, [trace]) {
+registerException(e, [trace]) {
+  _registerException(_currentTest, e, trace);
+}
+
+/**
+ * Registers that an exception was caught for the current test.
+ */
+_registerException(testNum, e, [trace]) {
   trace = trace == null ? '' : trace.toString();
   if (_tests[testNum].result == null) {
     String message = (e is ExpectException) ? e.message : 'Caught $e';

@@ -58,7 +58,7 @@ main() {
   var globalOptions;
   try {
     globalOptions = pubArgParser.parse(new Options().arguments);
-  } catch (ArgFormatException e) {
+  } catch (FormatException e) {
     printUsage(description: e.message);
     return;
   }
@@ -169,7 +169,7 @@ class PubCommand {
 
     try {
      commandOptions = commandParser.parse(commandArgs);
-    } catch (ArgFormatException e) {
+    } catch (FormatException e) {
       this.printUsage(description: e.message);
       return;
     }

@@ -73,18 +73,18 @@ packages:
       });
 
       test("throws if the version is missing", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
     source: mock
     description: foo desc
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the version is invalid", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
@@ -92,22 +92,22 @@ packages:
     source: mock
     description: foo desc
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the source is missing", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
     version: 1.2.3
     description: foo desc
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the source is unknown", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
@@ -115,22 +115,22 @@ packages:
     source: notreal
     description: foo desc
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the description is missing", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
     version: 1.2.3
     source: mock
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the description is invalid", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
@@ -138,11 +138,11 @@ packages:
     source: mock
     description: foo desc is bad
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("throws if the source name doesn't match the given name", () {
-        throwsBadFormat(() {
+        expect(() {
           new LockFile.parse('''
 packages:
   foo:
@@ -150,7 +150,7 @@ packages:
     source: mock
     description: notfoo desc
 ''', sources);
-        });
+        }, throwsFormatException);
       });
 
       test("ignores extra stuff in file", () {
@@ -192,8 +192,4 @@ packages:
       });
     });
   });
-}
-
-throwsBadFormat(function) {
-  expect(function, throwsA((e) => e is FormatException));
 }

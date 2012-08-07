@@ -151,11 +151,11 @@ class MathTest {
     checkVeryClose(SQRT1_2, pow(0.5, 0.5));
   }
 
-  static bool parseIntThrowsBadNumberFormatException(str) {
+  static bool parseIntThrowsFormatException(str) {
     try {
       parseInt(str);
       return false;
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return true;
     }
   }
@@ -205,37 +205,37 @@ class MathTest {
     Expect.equals(9, parseInt("09"));
     Expect.equals(9, parseInt(" 09 "));
     Expect.equals(-9, parseInt("-09"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("1b"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" 1b "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" 1 b "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("1e2"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" 1e2 "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("00x12"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" 00x12 "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("-1b"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" -1b "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" -1 b "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("-1e2"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" -1e2 "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("-00x12"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(" -00x12 "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("  -00x12 "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("0x0x12"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("0.1"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("0x3.1"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("5."));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("+-5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("-+5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("--5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("++5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("+ 5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("- 5"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException(""));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("  "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("+0x1234567890"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("   +0x1234567890   "));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("+0x100"));
-    Expect.equals(true, parseIntThrowsBadNumberFormatException("   +0x100   "));
+    Expect.equals(true, parseIntThrowsFormatException("1b"));
+    Expect.equals(true, parseIntThrowsFormatException(" 1b "));
+    Expect.equals(true, parseIntThrowsFormatException(" 1 b "));
+    Expect.equals(true, parseIntThrowsFormatException("1e2"));
+    Expect.equals(true, parseIntThrowsFormatException(" 1e2 "));
+    Expect.equals(true, parseIntThrowsFormatException("00x12"));
+    Expect.equals(true, parseIntThrowsFormatException(" 00x12 "));
+    Expect.equals(true, parseIntThrowsFormatException("-1b"));
+    Expect.equals(true, parseIntThrowsFormatException(" -1b "));
+    Expect.equals(true, parseIntThrowsFormatException(" -1 b "));
+    Expect.equals(true, parseIntThrowsFormatException("-1e2"));
+    Expect.equals(true, parseIntThrowsFormatException(" -1e2 "));
+    Expect.equals(true, parseIntThrowsFormatException("-00x12"));
+    Expect.equals(true, parseIntThrowsFormatException(" -00x12 "));
+    Expect.equals(true, parseIntThrowsFormatException("  -00x12 "));
+    Expect.equals(true, parseIntThrowsFormatException("0x0x12"));
+    Expect.equals(true, parseIntThrowsFormatException("0.1"));
+    Expect.equals(true, parseIntThrowsFormatException("0x3.1"));
+    Expect.equals(true, parseIntThrowsFormatException("5."));
+    Expect.equals(true, parseIntThrowsFormatException("+-5"));
+    Expect.equals(true, parseIntThrowsFormatException("-+5"));
+    Expect.equals(true, parseIntThrowsFormatException("--5"));
+    Expect.equals(true, parseIntThrowsFormatException("++5"));
+    Expect.equals(true, parseIntThrowsFormatException("+ 5"));
+    Expect.equals(true, parseIntThrowsFormatException("- 5"));
+    Expect.equals(true, parseIntThrowsFormatException(""));
+    Expect.equals(true, parseIntThrowsFormatException("  "));
+    Expect.equals(true, parseIntThrowsFormatException("+0x1234567890"));
+    Expect.equals(true, parseIntThrowsFormatException("   +0x1234567890   "));
+    Expect.equals(true, parseIntThrowsFormatException("+0x100"));
+    Expect.equals(true, parseIntThrowsFormatException("   +0x100   "));
   }
 
   static testMain() {

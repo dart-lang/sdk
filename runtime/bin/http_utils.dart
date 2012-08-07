@@ -212,7 +212,7 @@ class _HttpUtils {
       try {
         int value = Math.parseInt(tmp);
         return value;
-      } catch (BadNumberFormatException e) {
+      } catch (FormatException e) {
         throw new HttpException("Invalid HTTP date $date");
       }
     }

@@ -53,7 +53,7 @@ class Exceptions : AllStatic {
     kNoSuchMethod,
     kClosureArgumentMismatch,
     kObjectNotClosure,
-    kBadNumberFormat,
+    kFormat,
     kStackOverflow,
     kOutOfMemory,
     kWrongArgumentCount,

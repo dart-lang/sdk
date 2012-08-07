@@ -247,20 +247,23 @@ void schedulePub([List<String> args, Pattern output, Pattern error,
     String pathInSandbox(path) => join(getFullPath(sandboxDir), path);
 
     return ensureDir(pathInSandbox(appPath)).chain((_) {
-      // Find a dart executable we can use to run pub. Uses the one that the
-      // test infrastructure uses. We are not using new Options.executable here
-      // because that gets confused if you invoked Dart through a shell script.
-      var scriptDir = new File(new Options().script).directorySync().path;
-      var platform = Platform.operatingSystem;
-      var dartBin = join(scriptDir, '../../../tools/testing/bin/$platform/dart');
+      // Find a Dart executable we can use to spawn. Use the same one that was
+      // used to run this script itself.
+      var dartBin = new Options().executable;
 
-      if (platform == 'windows') dartBin = '$dartBin.exe';
+      // If the executable looks like a path, get its full path. That way we
+      // can still find it when we spawn it with a different working directory.
+      if (dartBin.contains(Platform.pathSeparator)) {
+        dartBin = new File(dartBin).fullPathSync();
+      }
+
+      var scriptDir = new File(new Options().script).directorySync().path;
 
       // Find the main pub entrypoint.
       var pubPath = fs.joinPaths(scriptDir, '../../pub/pub.dart');
 
       var dartArgs =
-        ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
+          ['--enable-type-checks', '--enable-asserts', pubPath, '--trace'];
       dartArgs.addAll(args);
 
       var environment = new Map.from(Platform.environment);

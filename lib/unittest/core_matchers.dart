@@ -400,16 +400,16 @@ class _ReturnsNormally extends BaseMatcher {
       description.add(_name);
 }
 
-/** A matcher for BadNumberFormatExceptions. */
-final isBadNumberFormatException = const _BadNumberFormatException();
+/** A matcher for FormatExceptions. */
+final isFormatException = const _FormatException();
 
-/** A matcher for functions that throw BadNumberFormatException */
-final Matcher throwsBadNumberFormatException =
-    const _Throws(isBadNumberFormatException);
+/** A matcher for functions that throw FormatException */
+final Matcher throwsFormatException =
+    const _Throws(isFormatException);
 
-class _BadNumberFormatException extends _ExceptionMatcher {
-  const _BadNumberFormatException() : super("BadNumberFormatException");
-  bool matches(item, MatchState matchState) => item is BadNumberFormatException;
+class _FormatException extends _ExceptionMatcher {
+  const _FormatException() : super("FormatException");
+  bool matches(item, MatchState matchState) => item is FormatException;
 }
 
 /** A matcher for Exceptions. */

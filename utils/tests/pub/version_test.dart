@@ -121,13 +121,13 @@ main() {
       expect(new Version.parse('1.0.0-rc-1+build-1'), equals(
           new Version(1, 0, 0, pre: 'rc-1', build: 'build-1')));
 
-      throwsBadFormat(() => new Version.parse('1.0'));
-      throwsBadFormat(() => new Version.parse('1.2.3.4'));
-      throwsBadFormat(() => new Version.parse('1234'));
-      throwsBadFormat(() => new Version.parse('-2.3.4'));
-      throwsBadFormat(() => new Version.parse('1.3-pre'));
-      throwsBadFormat(() => new Version.parse('1.3+build'));
-      throwsBadFormat(() => new Version.parse('1.3+bu?!3ild'));
+      expect(() => new Version.parse('1.0'), throwsFormatException);
+      expect(() => new Version.parse('1.2.3.4'), throwsFormatException);
+      expect(() => new Version.parse('1234'), throwsFormatException);
+      expect(() => new Version.parse('-2.3.4'), throwsFormatException);
+      expect(() => new Version.parse('1.3-pre'), throwsFormatException);
+      expect(() => new Version.parse('1.3+build'), throwsFormatException);
+      expect(() => new Version.parse('1.3+bu?!3ild'), throwsFormatException);
     });
 
     test('toString()', () {
@@ -370,9 +370,10 @@ main() {
       });
 
       test('throws FormatException on a bad string', () {
-        throwsBadFormat(() => new VersionConstraint.parse(''));
-        throwsBadFormat(() => new VersionConstraint.parse('   '));
-        throwsBadFormat(() => new VersionConstraint.parse('not a version'));
+        expect(() => new VersionConstraint.parse(''), throwsFormatException);
+        expect(() => new VersionConstraint.parse('   '), throwsFormatException);
+        expect(() => new VersionConstraint.parse('not a version'),
+            throwsFormatException);
       });
     });
   });
@@ -427,8 +428,4 @@ Matcher doesNotAllow(List<Version> versions) =>
 
 throwsIllegalArg(function) {
   expect(function, throwsA((e) => e is IllegalArgumentException));
-}
-
-throwsBadFormat(function) {
-  expect(function, throwsA((e) => e is FormatException));
 }

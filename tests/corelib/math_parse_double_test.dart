@@ -3,11 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 
-bool parseDoubleThrowsBadNumberFormatException(str) {
+bool parseDoubleThrowsFormatException(str) {
   try {
     Math.parseDouble(str);
     return false;
-  } catch (BadNumberFormatException e) {
+  } catch (FormatException e) {
     return true;
   }
 }
@@ -87,35 +87,35 @@ void main() {
   Expect.equals(1234567.89e-2, Math.parseDouble(" +1234567.89e-2 "));
   Expect.equals(-1234567.89e-2, Math.parseDouble(" -1234567.89e-2 "));
   // TODO(floitsch): add tests for NaN and Infinity.
-  Expect.equals(false, parseDoubleThrowsBadNumberFormatException("1.5"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("1b"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 1b "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 1 b "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" e3 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" .e3 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("00x12"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 00x12 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("-1b"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -1b "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -1 b "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("-00x12"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -00x12 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("  -00x12 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("0x0x12"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("+ 1.5"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("- 1.5"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(""));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("   "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("5."));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 5. "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" +5. "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -5. "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("1234567.e2"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" 1234567.e2 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" +1234567.e2 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException(" -1234567.e2 "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("+0x1234567890"));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("   +0x1234567890   "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("   +0x100   "));
-  Expect.equals(true, parseDoubleThrowsBadNumberFormatException("+0x100"));
+  Expect.equals(false, parseDoubleThrowsFormatException("1.5"));
+  Expect.equals(true, parseDoubleThrowsFormatException("1b"));
+  Expect.equals(true, parseDoubleThrowsFormatException(" 1b "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" 1 b "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" e3 "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" .e3 "));
+  Expect.equals(true, parseDoubleThrowsFormatException("00x12"));
+  Expect.equals(true, parseDoubleThrowsFormatException(" 00x12 "));
+  Expect.equals(true, parseDoubleThrowsFormatException("-1b"));
+  Expect.equals(true, parseDoubleThrowsFormatException(" -1b "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" -1 b "));
+  Expect.equals(true, parseDoubleThrowsFormatException("-00x12"));
+  Expect.equals(true, parseDoubleThrowsFormatException(" -00x12 "));
+  Expect.equals(true, parseDoubleThrowsFormatException("  -00x12 "));
+  Expect.equals(true, parseDoubleThrowsFormatException("0x0x12"));
+  Expect.equals(true, parseDoubleThrowsFormatException("+ 1.5"));
+  Expect.equals(true, parseDoubleThrowsFormatException("- 1.5"));
+  Expect.equals(true, parseDoubleThrowsFormatException(""));
+  Expect.equals(true, parseDoubleThrowsFormatException("   "));
+  Expect.equals(true, parseDoubleThrowsFormatException("5."));
+  Expect.equals(true, parseDoubleThrowsFormatException(" 5. "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" +5. "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" -5. "));
+  Expect.equals(true, parseDoubleThrowsFormatException("1234567.e2"));
+  Expect.equals(true, parseDoubleThrowsFormatException(" 1234567.e2 "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" +1234567.e2 "));
+  Expect.equals(true, parseDoubleThrowsFormatException(" -1234567.e2 "));
+  Expect.equals(true, parseDoubleThrowsFormatException("+0x1234567890"));
+  Expect.equals(true, parseDoubleThrowsFormatException("   +0x1234567890   "));
+  Expect.equals(true, parseDoubleThrowsFormatException("   +0x100   "));
+  Expect.equals(true, parseDoubleThrowsFormatException("+0x100"));
 }

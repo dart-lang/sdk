@@ -157,7 +157,7 @@ class XMLElementWrappingImplementation extends ElementWrappingImplementation
   int get tabIndex() {
     try {
       return Math.parseInt(_attr('tabIndex'));
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return 0;
     }
   }
