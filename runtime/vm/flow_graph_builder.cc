@@ -2297,6 +2297,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   TargetEntryInstr* normal_entry = new TargetEntryInstr();
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
+  // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
+  // stack check on entry for leaf routines).
+  for_effect.Do(new CheckStackOverflowComp(function.token_pos(),
+                                           CatchClauseNode::kInvalidTryIndex));
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.

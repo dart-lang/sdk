@@ -646,6 +646,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::CopyParameters() {
+  __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   const bool is_native_instance_closure =
       function.is_native() && function.IsImplicitInstanceClosureFunction();
@@ -924,6 +925,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int parameter_count = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().copied_parameter_count();
   const int local_count = parsed_function().stack_local_count();
+  __ Comment("Enter frame");
   if (IsLeaf()) {
     AssemblerMacros::EnterDartLeafFrame(assembler(), (StackSize() * kWordSize));
   } else {
@@ -940,6 +942,7 @@ void FlowGraphCompiler::CompileGraph() {
     const bool check_arguments = function.IsClosureFunction();
 #endif
     if (check_arguments) {
+      __ Comment("Check argument count");
       // Check that num_fixed <= argc <= num_params.
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (R10).
@@ -970,6 +973,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   // Initialize (non-argument) stack allocated locals to null.
   if (stack_slot_count > 0) {
+    __ Comment("Initialize spill slots");
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movq(RAX, raw_null);
@@ -979,18 +983,6 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  if (!IsLeaf()) {
-    // Generate stack overflow check.
-    __ movq(RDI, Immediate(Isolate::Current()->stack_limit_address()));
-    __ cmpq(RSP, Address(RDI, 0));
-    Label no_stack_overflow;
-    __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        function.token_pos(),
-                        CatchClauseNode::kInvalidTryIndex,
-                        kStackOverflowRuntimeEntry);
-    __ Bind(&no_stack_overflow);
-  }
   if (FLAG_print_scopes) {
     // Print the function scope (again) after generating the prologue in order
     // to see annotations such as allocation indices of locals.
