@@ -3957,9 +3957,8 @@ TEST_CASE(InvokeClosure) {
 
 
 void ExceptionNative(Dart_NativeArguments args) {
-  Dart_Handle param = Dart_GetNativeArgument(args, 0);
-  Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-  Dart_ThrowException(param);
+  Dart_EnterScope();
+  Dart_ThrowException(Dart_NewString("Hello from ExceptionNative!"));
   UNREACHABLE();
 }
 
@@ -3971,18 +3970,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name, int argument_count) {
 
 TEST_CASE(ThrowException) {
   const char* kScriptChars =
-      "class ThrowException {\n"
-      "  ThrowException(int i) : fld1 = i {}\n"
-      "  int thrower(int i) native \"ThrowException_native\";"
-      "  int test() {\n"
-      "     try { thrower(10); } catch(var a) { return 5; } return 10;\n"
-      "  }\n"
-      "  int fld1;\n"
-      "}\n"
-      "ThrowException testMain() {\n"
-      "  ThrowException obj = new ThrowException(10);\n"
-      "  return obj;\n"
-      "}\n";
+      "int test() native \"ThrowException_native\";";
   Dart_Handle result;
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
@@ -3996,23 +3984,15 @@ TEST_CASE(ThrowException) {
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
 
-  // Invoke a function which returns an object of type ThrowException.
-  Dart_Handle retobj = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
-  EXPECT_VALID(retobj);
-
   // Throwing an exception here should result in an error.
-  result = Dart_ThrowException(retobj);
-  EXPECT(Dart_IsError(result));
+  result = Dart_ThrowException(Dart_NewString("This doesn't work"));
+  EXPECT_ERROR(result, "No Dart frames on stack, cannot throw exception");
+  EXPECT(!Dart_ErrorHasException(result));
 
-  // Now invoke 'test' which indirectly invokes a natve method where
-  // it is ok to throw an exception, check the result which would
-  // indicate if an exception was thrown or not.
-  result = Dart_Invoke(retobj, Dart_NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsInteger(result));
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_EQ(5, value);
+  // Invoke 'test' and check for an uncaught exception.
+  result = Dart_Invoke(lib, Dart_NewString("test"), 0, NULL);
+  EXPECT_ERROR(result, "Hello from ExceptionNative!");
+  EXPECT(Dart_ErrorHasException(result));
 
   Dart_ExitScope();  // Exit the Dart API scope.
   EXPECT_EQ(size, state->ZoneSizeInBytes());
