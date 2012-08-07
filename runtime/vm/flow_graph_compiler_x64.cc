@@ -598,6 +598,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     __ int3();
 
     __ Bind(&is_assignable);  // For a null object.
+    __ popq(RDX);  // Remove pushed instantiator type arguments.
+    __ popq(RCX);  // Remove pushed instantiator.
     return;
   }
 
@@ -627,7 +629,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   __ popq(RAX);
 
   __ Bind(&is_assignable);
-  __ popq(RDX);  // Remove pushed instantiator type arguments..
+  __ popq(RDX);  // Remove pushed instantiator type arguments.
   __ popq(RCX);  // Remove pushed instantiator.
 }
 

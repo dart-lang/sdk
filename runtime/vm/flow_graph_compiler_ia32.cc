@@ -617,6 +617,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     __ int3();
 
     __ Bind(&is_assignable);  // For a null object.
+    __ popl(EDX);  // Remove pushed instantiator type arguments.
+    __ popl(ECX);  // Remove pushed instantiator.
     return;
   }
 
@@ -646,7 +648,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   __ popl(EAX);
 
   __ Bind(&is_assignable);
-  __ popl(EDX);  // Remove pushed instantiator type arguments..
+  __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.
 }
 
