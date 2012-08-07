@@ -358,7 +358,7 @@ class IDLParser(object):
       return [Id, MAYBE(OR(['=', ExtAttrValue], ExtAttrArgList))]
 
     def ExtAttrValue():
-      return OR(ExtAttrFunctionValue, re.compile(r'[\w&0-9:\-\|]+'))
+      return OR(ExtAttrFunctionValue, re.compile(r'[\w&0-9:\-\| ]+'))
 
     def ExtAttrFunctionValue():
       return [Id, ExtAttrArgList]
