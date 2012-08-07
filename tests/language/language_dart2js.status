@@ -99,6 +99,7 @@ pseudo_kw_test: Fail # Unexpected token '('
 super_implicit_closure_test: Fail # internal error: super property read not implemented
 super_operator_test: Fail # internal error: super property store not implemented
 switch_label_test: Fail # error: target of continue is not a loop or switch case
+setter_no_getter_call_test/01: Crash  # Issue 4361
 
 
 # External tests.
