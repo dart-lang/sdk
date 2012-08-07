@@ -2,6 +2,14 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
+# Rename "BadNumberFormatException" to "FormatException"
+# TODO(rnystrom): These can be enabled when
+# http://code.google.com/p/co19/issues/detail?id=167 is fixed.
+LibTest/core/BadNumberFormatException/*: Fail
+LibTest/core/double/toInt_A01_t03: Fail
+LibTest/core/double/toInt_A01_t04: Fail
+LibTest/core/Math/parseInt_A02_t01: Fail
+
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
