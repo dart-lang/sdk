@@ -1767,6 +1767,12 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         left,
                                         right);
 
+  // Binary operation of two Smi's produces a Smi not a double.
+  __ movq(temp, left);
+  __ orq(temp, right);
+  __ testq(temp, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+
   compiler->LoadDoubleOrSmiToXmm(XMM0, left, temp, deopt);
   compiler->LoadDoubleOrSmiToXmm(XMM1, right, temp, deopt);
 
