@@ -5,7 +5,7 @@
 /** The request ids for entry-related messages to send to the C extension. */
 #library("entry_request");
 
-#import("read_request", prefix: "read");
+#import("read_request.dart", prefix: "read");
 
 final int _first = read.LAST;
 

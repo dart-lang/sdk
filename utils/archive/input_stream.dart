@@ -62,6 +62,23 @@ class ArchiveInputStream {
   bool get closed() => _id.value == null;
 
   /**
+   * Reads the entire contents of the archive at once.
+   *
+   * Note that this is mutually exclusive with reading individual entries using
+   * [onEntry].
+   */
+  Future<List<CompleteArchiveEntry>> readAll() {
+    var completer = new Completer<List<Future<CompleteArchiveEntry>>>();
+    var result = <Future<CompleteArchiveEntry>>[];
+
+    this.onEntry = (entry) => result.add(entry.readAll());
+    this.onError = (e, stack) => completer.completeException(e, stack);
+    this.onClosed = () => completer.complete(result);
+
+    return completer.future.chain(Futures.wait);
+  }
+
+  /**
    * Sets a callback to call when a new entry is read from the archive.
    *
    * The [ArchiveEntry] that's read from an archive initially only contains

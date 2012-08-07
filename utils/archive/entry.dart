@@ -201,6 +201,26 @@ class ArchiveEntry {
   }
 
   /**
+   * Consumes the entire contents of this entry at once and returns it wrapped
+   * in a [CompleteArchiveEntry]. All metadata fields in the returned entry are
+   * copies of the fields in this entry.
+   *
+   * This may not be called if [openInputStream] is called, and vice versa.
+   */
+  Future<CompleteArchiveEntry> readAll() {
+    var stream = openInputStream();
+    var buffer = <int>[];
+    var completer = new Completer<List<int>>();
+
+    stream.onData = () => buffer.addAll(stream.read());
+    stream.onError = completer.completeException;
+    stream.onClosed = () => completer.complete(buffer);
+
+    return Futures.wait([call(CLONE, _id), completer.future])
+      .transform((list) => new CompleteArchiveEntry._(list[0], list[1]));
+  }
+
+  /**
    * Set a property value with index [value] on the local representation of the
    * archive entry and on the native representation.
    */
@@ -301,4 +321,19 @@ class ArchiveEntry {
       return _consumeInput();
     });
   }
+}
+
+/**
+ * An [ArchiveEntry] that contains the complete decompressed contents of the
+ * file.
+ */
+class CompleteArchiveEntry extends ArchiveEntry {
+  /** The contents of the entry as bytes. */
+  final List<int> contentBytes;
+
+  /** The contents of the entry as a string. */
+  String get contents() => new String.fromCharCodes(contentBytes);
+
+  CompleteArchiveEntry._(List properties, this.contentBytes)
+    : super.internal(properties, null);
 }

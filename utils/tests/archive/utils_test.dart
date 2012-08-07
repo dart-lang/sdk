@@ -8,6 +8,9 @@
 #import('../../archive/utils.dart');
 
 main() {
+  // TODO(nweiz): re-enable this once issue 4378 is fixed.
+  return;
+
   group('attachFinalizer', () {
     test('calls the finalizer eventually once the object is collected', () {
       var finalized = null;

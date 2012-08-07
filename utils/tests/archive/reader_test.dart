@@ -49,6 +49,23 @@ main() {
     expect(future, completes);
   });
 
+  test('reading a .tar.gz file with readAll', () {
+    var reader = new ArchiveReader();
+    reader.format.tar = true;
+    reader.filter.gzip = true;
+
+    var future = reader.openFilename("$dataPath/test-archive.tar.gz")
+      .chain((input) => input.readAll())
+      .transform((entries) {
+      entries = entries.map((entry) => [entry.pathname, entry.contents.trim()]);
+      expect(entries[0], orderedEquals(["filename1", "contents 1"]));
+      expect(entries[1], orderedEquals(["filename2", "contents 2"]));
+      expect(entries[2], orderedEquals(["filename3", "contents 3"]));
+    });
+
+    expect(future, completes);
+  });
+
   test('reading an in-memory .tar.gz', () {
     var asyncDone = expectAsync0(() {});
 
