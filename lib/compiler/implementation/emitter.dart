@@ -534,9 +534,7 @@ function(collectedClasses) {
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
       // full JS script.
-      if (!nativeEmitter.handleNoSuchMethod) {
-        emitNoSuchMethodHandlers(defineInstanceMember);
-      }
+      emitNoSuchMethodHandlers(defineInstanceMember);
     }
   }
 
@@ -615,23 +613,6 @@ function(collectedClasses) {
       // implementation they are increasing within a source file.
       return class1.id - class2.id;
     });
-
-    // If we need noSuchMethod support, we run through all needed
-    // classes to figure out if we need the support on any native
-    // class. If so, we let the native emitter deal with it.
-    if (compiler.enabledNoSuchMethod) {
-      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
-      for (ClassElement element in sortedClasses) {
-        if (!element.isNative()) continue;
-        Element member = element.lookupLocalMember(noSuchMethodName);
-        if (member === null) continue;
-        if (Selector.INVOCATION_2.applies(member, compiler)) {
-          nativeEmitter.handleNoSuchMethod = true;
-          break;
-        }
-      }
-    }
-
     for (ClassElement element in sortedClasses) {
       generateClass(element, buffer);
     }
@@ -882,6 +863,8 @@ $classesCollector.$mangledName = {'':
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
+    String runtimeObjectPrototype =
+        '${namer.isolateAccess(compiler.objectClass)}.prototype';
     String noSuchMethodName =
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
 
@@ -913,9 +896,16 @@ $classesCollector.$mangledName = {'':
         if (i != 0) args.add(', ');
         args.add('\$$i');
       }
+      // We need to check if the object has a noSuchMethod. If not, it
+      // means the object is a native object, and we can just call our
+      // generic noSuchMethod. Note that when calling this method, the
+      // 'this' object is not a Dart object.
       CodeBuffer buffer = new CodeBuffer();
       buffer.add('function($args) {\n');
-      buffer.add('  return this.$noSuchMethodName("$methodName", [$args]);\n');
+      buffer.add('  return this.$noSuchMethodName\n');
+      buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
+      buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
+      buffer.add("this, '$methodName', [$args])\n");
       buffer.add(' }');
       return buffer;
     }
@@ -1017,10 +1007,10 @@ $classesCollector.$mangledName = {'':
           String methodName = null;
           if (selector.kind === SelectorKind.GETTER) {
             jsName = namer.getterName(lib, name);
-            methodName = 'get:$nameString';
+            methodName = 'get $nameString';
           } else if (selector.kind === SelectorKind.SETTER) {
             jsName = namer.setterName(lib, name);
-            methodName = 'set:$nameString';
+            methodName = 'set $nameString';
           } else if (selector.kind === SelectorKind.INVOCATION) {
             jsName = namer.instanceMethodInvocationName(lib, name, selector);
             methodName = nameString;
