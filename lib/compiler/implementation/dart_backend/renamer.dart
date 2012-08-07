@@ -64,7 +64,7 @@ class SendRenamer extends ResolvedVisitor<String> {
  */
 class ConflictingRenamer extends Renamer {
   final Compiler compiler;
-  final Map<Element, String> renamed;
+  final Map<LibraryElement, Map<String, String>> renamed;
   final Set<String> usedTopLevelIdentifiers;
   final Map<LibraryElement, String> imports;
   TreeElements contextElements;
@@ -74,7 +74,7 @@ class ConflictingRenamer extends Renamer {
       compiler.enqueuer.resolution.resolvedElements;
 
   ConflictingRenamer(this.compiler) :
-      renamed = new Map<Element, String>(),
+      renamed = new Map<LibraryElement, Map<String, String>>(),
       usedTopLevelIdentifiers = new Set<String>(),
       imports = new Map<LibraryElement, String>();
 
@@ -128,10 +128,13 @@ class ConflictingRenamer extends Renamer {
   }
 
   String renameElement(Element element) {
+    // This comes from currently buggy TypeAnnotation renamer.
+    // It should be solved in there and it will be solved with
+    // new fancy renamer. TODO: remove this cruft.
+    if (element === compiler.types.voidType.element) return null;
+
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
-    if (renamed[element] !== null) return renamed[element];
-
     generateUniqueName(name) {
       while (usedTopLevelIdentifiers.contains(name)) {
         name = "p_$name";
@@ -141,6 +144,7 @@ class ConflictingRenamer extends Renamer {
     }
 
     String originalName = element.name.slowToString();
+
     // TODO(antonm): we should rename lib private names as well.
     if (!element.isTopLevel()) return originalName;
     final library = element.getLibrary();
@@ -150,6 +154,8 @@ class ConflictingRenamer extends Renamer {
           imports.putIfAbsent(library, () => generateUniqueName('p'));
       return '$prefix.$originalName';
     }
-    return renamed[element] = generateUniqueName(originalName);
+
+    return renamed.putIfAbsent(library, () => <String>{})
+        .putIfAbsent(originalName, () => generateUniqueName(originalName));
   }
 }
