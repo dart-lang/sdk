@@ -3299,8 +3299,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (element === builder.compiler.boolClass) return HType.BOOLEAN;
     if (element === builder.compiler.doubleClass) return HType.DOUBLE;
     if (element === builder.compiler.intClass) return HType.INTEGER;
-    // TODO(ahe): How to map listClass to HType?
-    if (element === builder.compiler.listClass) return HType.UNKNOWN;
+    if (element === builder.compiler.listClass) return HType.READABLE_ARRAY;
     if (element === builder.compiler.nullClass) return HType.NULL;
     if (element === builder.compiler.stringClass) return HType.STRING;
     return HType.UNKNOWN;
