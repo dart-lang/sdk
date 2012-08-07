@@ -1503,6 +1503,9 @@ class Function : public Object {
   bool is_optimizable() const { return raw()->IsOptimizable(); }
   void set_is_optimizable(bool value) const;
 
+  bool has_finally() const { return raw()->HasFinally(); }
+  void set_has_finally(bool value) const;
+
   bool is_native() const { return raw()->IsNative(); }
   void set_is_native(bool value) const;
 

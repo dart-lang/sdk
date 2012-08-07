@@ -3792,6 +3792,11 @@ void Function::set_is_optimizable(bool value) const {
 }
 
 
+void Function::set_has_finally(bool value) const {
+  raw()->SetHasFinally(value);
+}
+
+
 void Function::set_is_native(bool value) const {
   raw()->SetIsNative(value);
 }
@@ -4149,6 +4154,7 @@ RawFunction* Function::New(const String& name,
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
+  result.set_has_finally(false);
   result.set_is_native(false);
   result.set_is_abstract(is_abstract);
   return result.raw();

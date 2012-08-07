@@ -108,6 +108,11 @@ bool FlowGraphCompiler::IsLeaf() const {
 }
 
 
+bool FlowGraphCompiler::HasFinally() const {
+  return parsed_function().function().has_finally();
+}
+
+
 void FlowGraphCompiler::InitCompiler() {
   pc_descriptors_list_ = new DescriptorList(64);
   exception_handlers_list_ = new ExceptionHandlerList();

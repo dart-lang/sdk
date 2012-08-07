@@ -560,15 +560,17 @@ class RawFunction : public RawObject {
     kStaticBit = 1,
     kConstBit = 2,
     kOptimizableBit = 3,
-    kNativeBit = 4,
-    kAbstractBit = 5,
-    kExternalBit = 5,
-    kKindTagBit = 6,
+    kHasFinallyBit = 4,
+    kNativeBit = 5,
+    kAbstractBit = 6,
+    kExternalBit = 6,
+    kKindTagBit = 7,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
   class ConstBit : public BitField<bool, kConstBit, 1> {};
   class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
   class NativeBit : public BitField<bool, kNativeBit, 1> {};
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
@@ -594,6 +596,13 @@ class RawFunction : public RawObject {
   void SetIsOptimizable(bool value) {
     uword bits = ptr()->kind_tag_;
     ptr()->kind_tag_ = OptimizableBit::update(value, bits);
+  }
+  bool HasFinally() const {
+    return HasFinallyBit::decode(ptr()->kind_tag_);
+  }
+  void SetHasFinally(bool value) {
+    uword bits = ptr()->kind_tag_;
+    ptr()->kind_tag_ = HasFinallyBit::update(value, bits);
   }
   bool IsNative() const {
     return NativeBit::decode(ptr()->kind_tag_);

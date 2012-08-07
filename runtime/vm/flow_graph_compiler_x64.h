@@ -200,6 +200,9 @@ class FlowGraphCompiler : public ValueObject {
     return &frame_register_allocator_;
   }
 
+  // Returns true if the compiled function has a finally clause.
+  bool HasFinally() const;
+
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 
  private:

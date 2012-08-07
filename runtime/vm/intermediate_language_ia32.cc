@@ -95,6 +95,22 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ popl(temp);  // Remove argument.
     __ popl(result);  // Restore result.
   }
+#if defined(DEBUG)
+  // TODO(srdjan): Fix for functions with finally clause.
+  // A finally clause may leave a previously pushed return value if it
+  // has its own return instruction. Method that have finally are currently
+  // not optimized.
+  if (!compiler->HasFinally()) {
+    Label done;
+    __ movl(EDI, EBP);
+    __ subl(EDI, ESP);
+    // + 1 for Pc marker.
+    __ cmpl(EDI, Immediate((compiler->StackSize() + 1) * kWordSize));
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ int3();
+    __ Bind(&done);
+  }
+#endif
   __ LeaveFrame();
   __ ret();
 
