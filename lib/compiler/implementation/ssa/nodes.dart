@@ -1921,7 +1921,7 @@ class HLocalValue extends HInstruction {
 class HParameterValue extends HLocalValue {
   HParameterValue(Element element) : super(element);
 
-  toString() => 'parameter ${sourceElement.name}';
+  toString() => 'parameter ${sourceElement.name.slowToString()}';
   accept(HVisitor visitor) => visitor.visitParameterValue(this);
 }
 

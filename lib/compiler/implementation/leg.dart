@@ -20,6 +20,7 @@
 #import('util/util.dart');
 #import('../compiler.dart', prefix: 'api');
 #import('patch_parser.dart');
+#import('types/types.dart', prefix: 'ti');
 
 #source('code_buffer.dart');
 #source('compile_time_constants.dart');

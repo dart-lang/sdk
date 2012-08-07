@@ -39,7 +39,13 @@
 #source('mock.dart');
 #source('clock.dart');
 
-void print(var obj) => Primitives.printString(obj.toString());
+void print(var obj) {
+  if (obj is String) {
+    Primitives.printString(obj);
+  } else {
+    Primitives.printString(obj.toString());
+  }
+}
 
 class Object {
   String toString() => Primitives.objectToString(this);

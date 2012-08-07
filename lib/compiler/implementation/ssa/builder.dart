@@ -217,6 +217,8 @@ class LocalsHandler {
       : directLocals = new Map<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
+  get typesTask() => builder.compiler.typesTask;
+
   /**
    * Creates a new [LocalsHandler] based on [other]. We only need to
    * copy the [directLocals], since the other fields can be shared
@@ -315,6 +317,8 @@ class LocalsHandler {
       builder.add(parameter);
       builder.parameters[element] = parameter;
       directLocals[element] = parameter;
+      parameter.guaranteedType =
+        builder.mapInferredType(typesTask.getGuaranteedTypeOfElement(element));
     });
 
     enterScope(node);
@@ -3289,6 +3293,17 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     compiler.internalError('SsaBuilder.visitTypeVariable');
+  }
+
+  HType mapInferredType(Element element) {
+    if (element === builder.compiler.boolClass) return HType.BOOLEAN;
+    if (element === builder.compiler.doubleClass) return HType.DOUBLE;
+    if (element === builder.compiler.intClass) return HType.INTEGER;
+    // TODO(ahe): How to map listClass to HType?
+    if (element === builder.compiler.listClass) return HType.UNKNOWN;
+    if (element === builder.compiler.nullClass) return HType.NULL;
+    if (element === builder.compiler.stringClass) return HType.STRING;
+    return HType.UNKNOWN;
   }
 
   /** HACK HACK HACK */
