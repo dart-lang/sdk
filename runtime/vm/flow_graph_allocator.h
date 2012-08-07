@@ -265,30 +265,36 @@ class BlockInfo : public ZoneAllocated {
 class UsePosition : public ZoneAllocated {
  public:
   UsePosition(intptr_t pos, UsePosition* next, Location* location_slot)
-      : pos_(pos), location_slot_(location_slot), next_(next) { }
+      : pos_(pos), location_slot_(location_slot), hint_(NULL), next_(next) { }
 
   Location* location_slot() const { return location_slot_; }
   void set_location_slot(Location* location_slot) {
     location_slot_ = location_slot;
   }
 
+  Location hint() const {
+    ASSERT(HasHint());
+    return *hint_;
+  }
+
+  void set_hint(Location* hint) {
+    hint_ = hint;
+  }
+
+  bool HasHint() const {
+    return (hint_ != NULL) && !hint_->IsUnallocated();
+  }
+
+
   void set_next(UsePosition* next) { next_ = next; }
   UsePosition* next() const { return next_; }
 
   intptr_t pos() const { return pos_; }
 
-  bool HasHint() const {
-    return (location_slot() != NULL) && (location_slot()->IsRegister());
-  }
-
-  Location hint() const {
-    ASSERT(HasHint());
-    return *location_slot();
-  }
-
  private:
   const intptr_t pos_;
   Location* location_slot_;
+  Location* hint_;
   UsePosition* next_;
 
   DISALLOW_COPY_AND_ASSIGN(UsePosition);
@@ -406,6 +412,8 @@ class LiveRange : public ZoneAllocated {
   void DefineAt(intptr_t pos);
 
   void AddUse(intptr_t pos, Location* location_slot);
+  void AddHintedUse(intptr_t pos, Location* location_slot, Location* hint);
+
   void AddUseInterval(intptr_t start, intptr_t end);
 
   void Print();

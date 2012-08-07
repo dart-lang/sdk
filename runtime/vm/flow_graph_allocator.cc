@@ -280,6 +280,15 @@ void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 }
 
 
+void LiveRange::AddHintedUse(intptr_t pos,
+                             Location* location_slot,
+                             Location* hint) {
+  ASSERT(hint != NULL);
+  AddUse(pos, location_slot);
+  uses_->set_hint(hint);
+}
+
+
 void LiveRange::AddUseInterval(intptr_t start, intptr_t end) {
   ASSERT(start < end);
 
@@ -560,7 +569,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
           val->AsUse()->definition()->ssa_temp_index());
 
       range->AddUseInterval(block->start_pos(), pos);
-      range->AddUse(pos, move->src_slot());
+      range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
 
       move->set_src(Location::PrefersRegister());
     } else {
@@ -705,7 +714,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
           AddMoveAt(pos - 1, *in_ref, Location::Any());
       BlockLocation(*in_ref, pos - 1, pos + 1);
       range->AddUseInterval(block->start_pos(), pos - 1);
-      range->AddUse(pos - 1, move->src_slot());
+      range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
     } else {
       // Normal unallocated input. Expected shape of
       // live ranges:
@@ -823,7 +832,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     if (range->Start() == range->End()) return;
 
     MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
-    range->AddUse(pos + 1, move->dest_slot());
+    range->AddHintedUse(pos + 1, move->dest_slot(), out);
   } else if (output_same_as_first_input) {
     // Output register will contain a value of the first input at instruction's
     // start. Expected shape of live ranges:
@@ -1342,9 +1351,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   // If hint is available try hint first.
   // TODO(vegorov): ensure that phis are hinted on the back edge.
   Location hint = unallocated->finger()->FirstHint();
-  if (!hint.IsInvalid()) {
-    ASSERT(hint.IsRegister());
-
+  if (hint.IsRegister()) {
     if (!blocked_cpu_regs_[hint.reg()]) {
       free_until = FirstIntersectionWithAllocated(hint.reg(), unallocated);
       candidate = hint.reg();
@@ -1354,9 +1361,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     TRACE_ALLOC(hint.Print());
     TRACE_ALLOC(OS::Print(" for %d: free until %d\n",
                           unallocated->vreg(), free_until));
-  }
-
-  if (free_until != kMaxPosition) {
+  } else if (free_until != kMaxPosition) {
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
       if (!blocked_cpu_regs_[reg] && cpu_regs_[reg].length() == 0) {
         candidate = static_cast<Register>(reg);
