@@ -164,7 +164,8 @@ class CallMatcher {
     if (!nameFilter.matches(method, matchState)) {
       return false;
     }
-    if (arguments.length < argMatchers.length) {
+    var numArgs = (arguments == null) ? 0 : arguments.length;
+    if (numArgs < argMatchers.length) {
       throw new Exception("Less arguments than matchers for $method.");
     }
     for (var i = 0; i < argMatchers.length; i++) {
@@ -674,7 +675,11 @@ class LogEntryList {
                             logFilter,
                             int distance,
                             bool includeKeys) {
-    LogEntryList rtn = new LogEntryList();
+    String filterName = 'Calls to '
+        '${_qualifiedName(mockNameFilter, logFilter.toString())} '
+        '${isPreceding?"preceding":"following"} ${keys.filter}';
+
+    LogEntryList rtn = new LogEntryList(filterName);
 
     // Deal with the trivial case.
     if (logs.length == 0 || keys.logs.length == 0) {
@@ -997,12 +1002,11 @@ class _ResultSetMatcher extends BaseMatcher {
     if (frequency != _Frequency.SOME) {
       LogEntry entry = matchState.state['entry'];
       if (entry.action == Action.RETURN || entry.action == Action.PROXY) {
-        mismatchDescription.add('returned ');
+        mismatchDescription.add('returned');
       } else {
-        mismatchDescription.add('threw ');
+        mismatchDescription.add('threw');
       }
-      mismatchDescription.add(entry.value);
-      mismatchDescription.add(' that ');
+      mismatchDescription.add(' value that ');
       value.describeMismatch(entry.value, mismatchDescription,
         matchState.state['state'], verbose);
       mismatchDescription.add(' at least once');
