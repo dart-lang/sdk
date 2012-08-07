@@ -3937,7 +3937,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     ASSERT(chars != NULL);
     *chars = Isolate::Current()->current_zone()->Alloc<char>(reserve_len + 1);
     written = OS::SNPrint(
-        *chars, reserve_len, lib_class_format, library_name, class_name);
+        *chars, reserve_len + 1, lib_class_format, library_name, class_name);
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
@@ -6939,19 +6939,19 @@ const char* DeoptInfo::ToCString() const {
     deopt_instrs.Add(DeoptInstr::Create(Instruction(i), FromIndex(i)));
   }
   // Compute the buffer size required.
-  intptr_t len = 0;
+  intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
     len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
   }
   // Allocate the buffer.
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     index += OS::SNPrint((buffer + index),
-                       (len - index) + 1,
-                       "[%s]",
-                       deopt_instrs[i]->ToCString());
+                         (len - index),
+                         "[%s]",
+                         deopt_instrs[i]->ToCString());
   }
   return buffer;
 }
@@ -7222,7 +7222,7 @@ uword Code::GetDeoptPcAtDeoptId(intptr_t deopt_id) const {
 
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
