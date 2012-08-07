@@ -121,6 +121,13 @@ Dart_CObject* getNullableStringArgument(Dart_Port p, Dart_CObject* request,
  */
 char* getNullableString(Dart_CObject* object);
 
+/**
+ * Gets the module, name, and value, for a libarchive `set_option` function
+ * call. Returns whether or not the arguments were parsed correctly.
+ */
+bool getOptionArguments(Dart_Port p, Dart_CObject* request, char** module,
+    char** name, char** value);
+
 /** Declares a null [Dart_CObject] named [name]. */
 #define DART_NULL(name) \
   Dart_CObject name;    \

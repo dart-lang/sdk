@@ -47,18 +47,6 @@ class ArchiveOptions {
     return _options[name];
   }
 
-  /**
-   * Serializes the options to the format understood by libarchive.
-   *
-   * Meant for internal use.
-   */
-  String serialize() {
-    return Strings.join(_options.getValues().map((option) {
-      if (option.value is Boolean) {
-        return '${option.value ? '!' : ''}${option.name}';
-      } else {
-        return '${option.name}=${option.value}';
-      }
-    }), ',');
-  }
+  /** Gets all options. */
+  List<ArchiveOption> get all() => _options.getValues();
 }

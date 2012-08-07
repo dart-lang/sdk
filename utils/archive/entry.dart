@@ -68,7 +68,6 @@ class ArchiveEntry {
 
   /** The path to this entry on disk, */
   String get sourcepath() => _properties[3];
-  set sourcepath(String value) => _set(SET_SOURCEPATH, 3, value);
 
   /** If this entry is a symlink, this is the destination. Otherwise, null. */
   String get symlink() => _properties[4];
@@ -126,7 +125,6 @@ class ArchiveEntry {
    * change, and vice versa.
    */
   String get fflags_text() => _properties[13];
-  set fflags_text(String value) => _set(SET_FFLAGS_TEXT, 13, value);
 
   /** The filetype bitmask for this entry. */
   int get filetype_mask() => _properties[14];

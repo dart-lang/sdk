@@ -93,27 +93,36 @@ void archiveReadSupportFormatZip(Dart_Port p, struct archive* a) {
   checkResult(p, a, archive_read_support_format_zip(a));
 }
 
-void archiveReadSetFilterOptions(Dart_Port p, struct archive* a,
-                                 Dart_CObject* request) {
-  Dart_CObject* options = getTypedArgument(p, request, 0, kString);
-  if (options == NULL) return;
-  int result = archive_read_set_filter_options(a, options->value.as_string);
+void archiveReadSetFilterOption(Dart_Port p, struct archive* a,
+                                Dart_CObject* request) {
+  char* module;
+  char* name;
+  char* value;
+
+  getOptionArguments(p, request, &module, &name, &value);
+  int result = archive_read_set_filter_option(a, module, name, value);
   checkResult(p, a, result);
 }
 
 void archiveReadSetFormatOptions(Dart_Port p, struct archive* a,
                                  Dart_CObject* request) {
-  Dart_CObject* options = getTypedArgument(p, request, 0, kString);
-  if (options == NULL) return;
-  int result = archive_read_set_format_options(a, options->value.as_string);
+  char* module;
+  char* name;
+  char* value;
+
+  getOptionArguments(p, request, &module, &name, &value);
+  int result = archive_read_set_format_option(a, module, name, value);
   checkResult(p, a, result);
 }
 
 void archiveReadSetOptions(Dart_Port p, struct archive* a,
                            Dart_CObject* request) {
-  Dart_CObject* options = getTypedArgument(p, request, 0, kString);
-  if (options == NULL) return;
-  int result = archive_read_set_options(a, options->value.as_string);
+  char* module;
+  char* name;
+  char* value;
+
+  getOptionArguments(p, request, &module, &name, &value);
+  int result = archive_read_set_option(a, module, name, value);
   checkResult(p, a, result);
 }
 

@@ -5,6 +5,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "dart_archive.h"
 #include "entry.h"
@@ -31,9 +32,9 @@ enum RequestType {
   kArchiveReadSupportFormatRaw,
   kArchiveReadSupportFormatTar,
   kArchiveReadSupportFormatZip,
-  kArchiveReadSetFilterOptions,
-  kArchiveReadSetFormatOptions,
-  kArchiveReadSetOptions,
+  kArchiveReadSetFilterOption,
+  kArchiveReadSetFormatOption,
+  kArchiveReadSetOption,
   kArchiveReadOpenFilename,
   kArchiveReadOpenMemory,
   kArchiveReadNextHeader,
@@ -46,7 +47,6 @@ enum RequestType {
   kArchiveEntryNew,
   kArchiveEntrySetHardlink,
   kArchiveEntrySetPathname,
-  kArchiveEntrySetSourcepath,
   kArchiveEntrySetSymlink,
   kArchiveEntrySetGid,
   kArchiveEntrySetUid,
@@ -169,14 +169,14 @@ static void archiveDispatch(Dart_Port dest_port_id,
   case kArchiveReadSupportFormatZip:
     archiveReadSupportFormatZip(reply_port_id, (struct archive*) ptr);
     break;
-  case kArchiveReadSetFilterOptions:
-    archiveReadSetFilterOptions(reply_port_id, (struct archive*) ptr, message);
+  case kArchiveReadSetFilterOption:
+    archiveReadSetFilterOption(reply_port_id, (struct archive*) ptr, message);
     break;
-  case kArchiveReadSetFormatOptions:
-    archiveReadSetFormatOptions(reply_port_id, (struct archive*) ptr, message);
+  case kArchiveReadSetFormatOption:
+    archiveReadSetFormatOption(reply_port_id, (struct archive*) ptr, message);
     break;
-  case kArchiveReadSetOptions:
-    archiveReadSetOptions(reply_port_id, (struct archive*) ptr, message);
+  case kArchiveReadSetOption:
+    archiveReadSetOption(reply_port_id, (struct archive*) ptr, message);
     break;
   case kArchiveReadOpenFilename:
     archiveReadOpenFilename(reply_port_id, (struct archive*) ptr, message);
@@ -216,10 +216,6 @@ static void archiveDispatch(Dart_Port dest_port_id,
     archiveEntrySetPathname(
         reply_port_id, (struct archive_entry*) ptr, message);
     break;
-  case kArchiveEntrySetSourcepath:
-    archiveEntrySetSourcepath(
-        reply_port_id, (struct archive_entry*) ptr, message);
-    break;
   case kArchiveEntrySetSymlink:
     archiveEntrySetSymlink(reply_port_id, (struct archive_entry*) ptr, message);
     break;
@@ -244,10 +240,6 @@ static void archiveDispatch(Dart_Port dest_port_id,
     break;
   case kArchiveEntrySetFflagsClear:
     archiveEntrySetFflagsClear(
-        reply_port_id, (struct archive_entry*) ptr, message);
-    break;
-  case kArchiveEntrySetFflagsText:
-    archiveEntrySetFflagsText(
         reply_port_id, (struct archive_entry*) ptr, message);
     break;
   case kArchiveEntrySetFiletype:

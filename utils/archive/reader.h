@@ -55,14 +55,14 @@ void archiveReadSupportFormatTar(Dart_Port p, struct archive* a);
 
 void archiveReadSupportFormatZip(Dart_Port p, struct archive* a);
 
-void archiveReadSetFilterOptions(Dart_Port p, struct archive* a,
-                                 Dart_CObject* request);
+void archiveReadSetFilterOption(Dart_Port p, struct archive* a,
+                                Dart_CObject* request);
 
-void archiveReadSetFormatOptions(Dart_Port p, struct archive* a,
-                                 Dart_CObject* request);
+void archiveReadSetFormatOption(Dart_Port p, struct archive* a,
+                                Dart_CObject* request);
 
-void archiveReadSetOptions(Dart_Port p, struct archive* a,
-                           Dart_CObject* request);
+void archiveReadSetOption(Dart_Port p, struct archive* a,
+                          Dart_CObject* request);
 
 void archiveReadOpenFilename(Dart_Port p, struct archive* a,
                              Dart_CObject* request);
