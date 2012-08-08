@@ -169,7 +169,8 @@ class ConflictingRenamer extends Renamer {
               () => '_${privateNameCounter++}${originalName}');
 
   String renameElement(Element element) {
-    assert(element.isTopLevel());
+    // TODO: investigate what went wrong here.
+    if (!element.isTopLevel()) return null;
 
     // This comes from currently buggy TypeAnnotation renamer.
     // It should be solved in there and it will be solved with
