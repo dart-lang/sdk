@@ -10,6 +10,6 @@
 main() {
   test('Set locale', (){
     var de = new Intl('de_DE');
-    expect(de.locale, equals('de_DE'));
+    expect(de.locale, equals('de'));
   });
 }
