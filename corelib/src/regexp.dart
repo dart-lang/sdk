@@ -10,23 +10,19 @@
  * The following example finds all matches of a [RegExp] in a [String]
  * and iterates through the returned iterable of [Match] objects.
  *
- * [:
- *    RegExp exp = const RegExp(@"(\w+)");
- *    String str = "Parse my string";
- *    Iterable<Match> matches = exp.allMatches(str);
- *    for (Match m in matches) {
- *      String match = m.group(0);
- *      print(match);
- *    };
- * :]
+ *     RegExp exp = const RegExp(@"(\w+)");
+ *     String str = "Parse my string";
+ *     Iterable<Match> matches = exp.allMatches(str);
+ *     for (Match m in matches) {
+ *       String match = m.group(0);
+ *       print(match);
+ *     };
  *
  * The output of the example is:
  *
- * [:
- *    Parse
- *    my
- *    string
- * :]
+ *     Parse
+ *     my
+ *     string
  */
 interface Match {
   /**
@@ -83,11 +79,9 @@ interface Match {
  * The following example finds all matches of a regular expression in
  * a string.
  *
- * [:
- *    RegExp exp = const RegExp(@"(\w+)");
- *    String str = "Parse my string";
- *    Iterable<Match> matches = exp.allMatches(str);
- * :]
+ *     RegExp exp = const RegExp(@"(\w+)");
+ *     String str = "Parse my string";
+ *     Iterable<Match> matches = exp.allMatches(str);
  */
 interface RegExp extends Pattern default JSSyntaxRegExp {
 
@@ -99,7 +93,7 @@ interface RegExp extends Pattern default JSSyntaxRegExp {
 
   /**
    * Searches for the first match of the regular expression
-   * in the string [str]. Returns [:null:] if there is no match.
+   * in the string [str]. Returns `null` if there is no match.
    */
   Match firstMatch(String str);
 
