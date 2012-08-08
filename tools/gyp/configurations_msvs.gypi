@@ -17,6 +17,7 @@
             'ExceptionHandling': '0',
             'RuntimeTypeInfo': 'false',
             'OmitFramePointers': 'false',
+            'RuntimeLibrary': '3', # MultiThreadedDebugDLL
           },
           'VCLinkerTool': {
             'LinkIncremental': '2',
@@ -24,6 +25,7 @@
             'StackReserveSize': '2097152',
           },
         },
+        'defines': [ '_DEBUG' ],
       },
 
       'Dart_Release': {
@@ -37,6 +39,7 @@
             'RuntimeTypeInfo': 'false',
             'OmitFramePointers': 'false',
             'StringPooling': 'true',
+            'RuntimeLibrary': '2', # MultiThreadedDll
           },
           'VCLinkerTool': {
             'LinkIncremental': '1',
