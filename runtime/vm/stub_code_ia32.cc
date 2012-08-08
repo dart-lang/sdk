@@ -709,7 +709,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      __ orl(ECX, Immediate(RawObject::ClassIdTag::encode(kArray)));
+      __ orl(ECX, Immediate(RawObject::ClassIdTag::encode(kArrayCid)));
       __ movl(FieldAddress(EAX, Array::tags_offset()), ECX);
     }
 
@@ -1249,7 +1249,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.id() != kIllegalObjectKind);
+    ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movl(Address(EAX, Instance::tags_offset()), Immediate(tags));
 
@@ -1642,7 +1642,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpl(EAX, EDI);  // Class id match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addl(EBX, Immediate(kWordSize * 2));  // Next element (class + target).
-    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
+    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   } else if (num_args == 2) {
     // EDI: class to check.
@@ -1669,7 +1669,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ Bind(&no_match);
     // Each test entry has (1 + num_args) array elements.
     __ addl(EBX, Immediate(kWordSize * (1 + num_args)));  // Next element.
-    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
+    __ cmpl(EDI, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   }
 
@@ -1726,7 +1726,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // Test if Smi -> load Smi class for comparison.
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movl(EAX, Immediate(Smi::RawValue(kSmi)));
+  __ movl(EAX, Immediate(Smi::RawValue(kSmiCid)));
   __ ret();
 
   __ Bind(&not_smi);

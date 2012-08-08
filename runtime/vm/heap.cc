@@ -169,7 +169,7 @@ RawInstructions* Heap::FindObjectInCodeSpace(FindObjectVisitor* visitor) {
   // The code heap can only have RawInstructions objects.
   RawObject* raw_obj = code_space_->FindObject(visitor);
   ASSERT((raw_obj == Object::null()) ||
-         (raw_obj->GetClassId() == kInstructions));
+         (raw_obj->GetClassId() == kInstructionsCid));
   return reinterpret_cast<RawInstructions*>(raw_obj);
 }
 

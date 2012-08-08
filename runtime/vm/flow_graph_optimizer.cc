@@ -35,8 +35,8 @@ static bool ICDataHasReceiverClassId(const ICData& ic_data, intptr_t class_id) {
 static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
                                               intptr_t receiver_class_id,
                                               intptr_t argument_class_id) {
-  ASSERT(receiver_class_id != kIllegalObjectKind);
-  ASSERT(argument_class_id != kIllegalObjectKind);
+  ASSERT(receiver_class_id != kIllegalCid);
+  ASSERT(argument_class_id != kIllegalCid);
   if (ic_data.num_args_tested() != 2) return false;
 
   Function& target = Function::Handle();
@@ -85,13 +85,13 @@ static bool ICDataHasOnlyReceiverArgumentClassIds(
 
 
 static bool HasOneSmi(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kSmi);
+  return ICDataHasReceiverClassId(ic_data, kSmiCid);
 }
 
 
 static bool HasOnlyTwoSmi(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kSmi, kSmi);
+      ICDataHasReceiverArgumentClassIds(ic_data, kSmiCid, kSmiCid);
 }
 
 
@@ -99,20 +99,20 @@ static bool HasOnlyTwoSmi(const ICData& ic_data) {
 // of Mint and Smi for the receiver and argument classes.
 static bool HasTwoMintOrSmi(const ICData& ic_data) {
   GrowableArray<intptr_t> class_ids;
-  class_ids.Add(kSmi);
-  class_ids.Add(kMint);
+  class_ids.Add(kSmiCid);
+  class_ids.Add(kMintCid);
   return ICDataHasOnlyReceiverArgumentClassIds(ic_data, &class_ids, &class_ids);
 }
 
 
 static bool HasOneDouble(const ICData& ic_data) {
-  return ICDataHasReceiverClassId(ic_data, kDouble);
+  return ICDataHasReceiverClassId(ic_data, kDoubleCid);
 }
 
 
 static bool HasOnlyTwoDouble(const ICData& ic_data) {
   return (ic_data.NumberOfChecks() == 1) &&
-      ICDataHasReceiverArgumentClassIds(ic_data, kDouble, kDouble);
+      ICDataHasReceiverArgumentClassIds(ic_data, kDoubleCid, kDoubleCid);
 }
 
 
@@ -351,20 +351,20 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  ObjectKind from_kind;
+  intptr_t from_class_id;
   if (recognized_kind == MethodRecognizer::kDoubleToDouble) {
-    from_kind = kDouble;
+    from_class_id = kDoubleCid;
   } else if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
-    from_kind = kSmi;
+    from_class_id = kSmiCid;
   } else {
     return false;
   }
 
-  if (class_ids[0] != from_kind) {
+  if (class_ids[0] != from_class_id) {
     return false;
   }
   ToDoubleComp* coerce = new ToDoubleComp(
-      comp->ArgumentAt(0)->value(), from_kind, comp);
+      comp->ArgumentAt(0)->value(), from_class_id, comp);
   instr->set_computation(coerce);
   RemovePushArguments(comp);
   return true;
@@ -465,13 +465,13 @@ enum IndexedAccessType {
 
 
 static intptr_t ReceiverClassId(Computation* comp) {
-  if (!comp->HasICData()) return kIllegalObjectKind;
+  if (!comp->HasICData()) return kIllegalCid;
 
   const ICData& ic_data = *comp->ic_data();
 
-  if (ic_data.NumberOfChecks() == 0) return kIllegalObjectKind;
+  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
   // TODO(vegorov): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return kIllegalObjectKind;
+  if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
   ASSERT(HasOneTarget(ic_data));
 
   Function& target = Function::Handle();
@@ -485,10 +485,10 @@ void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp,
                                           BindInstr* instr) {
   const intptr_t class_id = ReceiverClassId(comp);
   switch (class_id) {
-    case kArray:
-    case kImmutableArray:
-    case kGrowableObjectArray:
-      comp->set_receiver_type(static_cast<ObjectKind>(class_id));
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kGrowableObjectArrayCid:
+      comp->set_receiver_type(class_id);
   }
 }
 
@@ -499,9 +499,9 @@ void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
 
   const intptr_t class_id = ReceiverClassId(comp);
   switch (class_id) {
-    case kArray:
-    case kGrowableObjectArray:
-      comp->set_receiver_type(static_cast<ObjectKind>(class_id));
+    case kArrayCid:
+    case kGrowableObjectArrayCid:
+      comp->set_receiver_type(class_id);
   }
 }
 
@@ -517,9 +517,9 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
   ASSERT(HasOneTarget(ic_data));
 
   if (HasOnlyTwoSmi(ic_data)) {
-    comp->set_operands_class_id(kSmi);
+    comp->set_operands_class_id(kSmiCid);
   } else if (HasOnlyTwoDouble(ic_data)) {
-    comp->set_operands_class_id(kDouble);
+    comp->set_operands_class_id(kDoubleCid);
   }
 }
 
@@ -532,10 +532,10 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
     Function& target = Function::Handle();
     comp->ic_data()->GetCheckAt(0, &class_ids, &target);
     // TODO(srdjan): allow for mixed mode comparison.
-    if ((class_ids[0] == kSmi) && (class_ids[1] == kSmi)) {
-      comp->set_receiver_class_id(kSmi);
-    } else if ((class_ids[0] == kDouble) && (class_ids[1] == kDouble)) {
-      comp->set_receiver_class_id(kDouble);
+    if ((class_ids[0] == kSmiCid) && (class_ids[1] == kSmiCid)) {
+      comp->set_receiver_class_id(kSmiCid);
+    } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
+      comp->set_receiver_class_id(kDoubleCid);
     }
   }
 }

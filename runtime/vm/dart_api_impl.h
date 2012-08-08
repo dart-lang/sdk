@@ -127,7 +127,7 @@ class Api : AllStatic {
   static intptr_t ClassId(Dart_Handle handle) {
     RawObject* raw = *(reinterpret_cast<RawObject**>(handle));
     if (!raw->IsHeapObject()) {
-      return kSmi;
+      return kSmiCid;
     }
     return raw->GetClassId();
   }

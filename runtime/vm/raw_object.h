@@ -86,9 +86,9 @@ namespace dart {
       V(ExternalUint64Array)                                                   \
       V(ExternalFloat32Array)                                                  \
       V(ExternalFloat64Array)                                                  \
-    V(Closure)                                                                 \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
+    V(Closure)                                                                 \
 
 #define CLASS_LIST(V)                                                          \
   V(Object)                                                                    \
@@ -103,22 +103,27 @@ CLASS_LIST(DEFINE_FORWARD_DECLARATION)
 #undef DEFINE_FORWARD_DECLARATION
 
 
-enum ObjectKind {
-  kIllegalObjectKind = 0,
+enum ClassId {
+  // Illegal class id.
+  kIllegalCid = 0,
+
+  // List of Ids for predefined classes.
 #define DEFINE_OBJECT_KIND(clazz)                                              \
-  k##clazz,
+  k##clazz##Cid,
 CLASS_LIST(DEFINE_OBJECT_KIND)
 #undef DEFINE_OBJECT_KIND
-  // The following entry does not describe a real object, but instead it
-  // identifies free list elements in the heap.
+
+  // The following entries do not describe a predefined class, but instead
+  // are class indexes for pre-allocated instance (Null, Dynamic and Void).
+  kNullCid,
+  kDynamicCid,
+  kVoidCid,
+
+  // The following entry does not describe a real class, but instead it is an
+  // id which is used to identify free list elements in the heap.
   kFreeListElement,
-  // The following entries do not describe a real object, but instead are used
-  // to allocate class indexes for pre-allocated instance classes such as the
-  // Null, Void, Dynamic and other similar classes.
-  kNullClassId,
-  kDynamicClassId,
-  kVoidClassId,
-  kNumPredefinedKinds = 100
+
+  kNumPredefinedCids,
 };
 
 enum ObjectAlignment {
@@ -306,7 +311,7 @@ class RawObject {
     return CanonicalObjectTag::decode(value);
   }
 
-  // ObjectKind predicates.
+  // Class Id predicates.
   static bool IsErrorClassId(intptr_t index);
   static bool IsNumberClassId(intptr_t index);
   static bool IsIntegerClassId(intptr_t index);
@@ -345,8 +350,6 @@ class RawObject {
     uword tags = ptr()->tags_;
     return ClassIdTag::decode(tags);
   }
-
-  ObjectKind GetObjectKind() const;
 
   friend class Api;
   friend class Array;
@@ -399,7 +402,6 @@ class RawClass : public RawObject {
 
   cpp_vtable handle_vtable_;
   intptr_t instance_size_;  // Size if fixed length or 0 if variable length.
-  ObjectKind instance_kind_;
   intptr_t id_;  // Class Id, also index in the class table.
   intptr_t type_arguments_instance_field_offset_;  // May be kNoTypeArguments.
   intptr_t next_field_offset_;  // Offset of the next instance field.
@@ -1492,124 +1494,124 @@ class RawJSRegExp : public RawInstance {
   uint8_t data_[0];
 };
 
-// ObjectKind predicates.
+// Class Id predicates.
 
 inline bool RawObject::IsErrorClassId(intptr_t index) {
   // Make sure this function is updated when new Error types are added.
-  ASSERT(kApiError == kError + 1 &&
-         kLanguageError == kError + 2 &&
-         kUnhandledException == kError + 3 &&
-         kUnwindError == kError + 4 &&
-         kInstance == kError + 5);
-  return (index >= kError && index < kInstance);
+  ASSERT(kApiErrorCid == kErrorCid + 1 &&
+         kLanguageErrorCid == kErrorCid + 2 &&
+         kUnhandledExceptionCid == kErrorCid + 3 &&
+         kUnwindErrorCid == kErrorCid + 4 &&
+         kInstanceCid == kErrorCid + 5);
+  return (index >= kErrorCid && index < kInstanceCid);
 }
 
 inline bool RawObject::IsNumberClassId(intptr_t index) {
   // Make sure this function is updated when new Number types are added.
-  ASSERT(kInteger == kNumber + 1 &&
-         kSmi == kNumber + 2 &&
-         kMint == kNumber + 3 &&
-         kBigint == kNumber + 4 &&
-         kDouble == kNumber + 5 &&
-         kString == kNumber + 6);
-  return (index >= kNumber && index < kString);
+  ASSERT(kIntegerCid == kNumberCid + 1 &&
+         kSmiCid == kNumberCid + 2 &&
+         kMintCid == kNumberCid + 3 &&
+         kBigintCid == kNumberCid + 4 &&
+         kDoubleCid == kNumberCid + 5 &&
+         kStringCid == kNumberCid + 6);
+  return (index >= kNumberCid && index < kStringCid);
 }
 
 inline bool RawObject::IsIntegerClassId(intptr_t index) {
   // Make sure this function is updated when new Integer types are added.
-  ASSERT(kSmi == kInteger + 1 &&
-         kMint == kInteger + 2 &&
-         kBigint == kInteger + 3 &&
-         kDouble == kInteger + 4);
-  return (index >= kInteger && index < kDouble);
+  ASSERT(kSmiCid == kIntegerCid + 1 &&
+         kMintCid == kIntegerCid + 2 &&
+         kBigintCid == kIntegerCid + 3 &&
+         kDoubleCid == kIntegerCid + 4);
+  return (index >= kIntegerCid && index < kDoubleCid);
 }
 
 inline bool RawObject::IsStringClassId(intptr_t index) {
-  // Make sure this function is updated when new String types are added.
-  ASSERT(kOneByteString == kString + 1 &&
-         kTwoByteString == kString + 2 &&
-         kFourByteString == kString + 3 &&
-         kExternalOneByteString == kString + 4 &&
-         kExternalTwoByteString == kString + 5 &&
-         kExternalFourByteString == kString + 6 &&
-         kBool == kString + 7);
-  return (index >= kString && index < kBool);
+  // Make sure this function is updated when new StringCid types are added.
+  ASSERT(kOneByteStringCid == kStringCid + 1 &&
+         kTwoByteStringCid == kStringCid + 2 &&
+         kFourByteStringCid == kStringCid + 3 &&
+         kExternalOneByteStringCid == kStringCid + 4 &&
+         kExternalTwoByteStringCid == kStringCid + 5 &&
+         kExternalFourByteStringCid == kStringCid + 6 &&
+         kBoolCid == kStringCid + 7);
+  return (index >= kStringCid && index < kBoolCid);
 }
 
 inline bool RawObject::IsOneByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new String types are added.
-  ASSERT(kOneByteString == kString + 1 &&
-         kTwoByteString == kString + 2 &&
-         kFourByteString == kString + 3 &&
-         kExternalOneByteString == kString + 4 &&
-         kExternalTwoByteString == kString + 5 &&
-         kExternalFourByteString == kString + 6 &&
-         kBool == kString + 7);
-  return (index == kOneByteString ||
-          index == kExternalOneByteString);
+  // Make sure this function is updated when new StringCid types are added.
+  ASSERT(kOneByteStringCid == kStringCid + 1 &&
+         kTwoByteStringCid == kStringCid + 2 &&
+         kFourByteStringCid == kStringCid + 3 &&
+         kExternalOneByteStringCid == kStringCid + 4 &&
+         kExternalTwoByteStringCid == kStringCid + 5 &&
+         kExternalFourByteStringCid == kStringCid + 6 &&
+         kBoolCid == kStringCid + 7);
+  return (index == kOneByteStringCid || index == kExternalOneByteStringCid);
 }
 
 inline bool RawObject::IsTwoByteStringClassId(intptr_t index) {
-  // Make sure this function is updated when new String types are added.
-  ASSERT(kOneByteString == kString + 1 &&
-         kTwoByteString == kString + 2 &&
-         kFourByteString == kString + 3 &&
-         kExternalOneByteString == kString + 4 &&
-         kExternalTwoByteString == kString + 5 &&
-         kExternalFourByteString == kString + 6 &&
-         kBool == kString + 7);
-  return (index == kOneByteString ||
-          index == kTwoByteString ||
-          index == kExternalOneByteString ||
-          index == kExternalTwoByteString);
+  // Make sure this function is updated when new StringCid types are added.
+  ASSERT(kOneByteStringCid == kStringCid + 1 &&
+         kTwoByteStringCid == kStringCid + 2 &&
+         kFourByteStringCid == kStringCid + 3 &&
+         kExternalOneByteStringCid == kStringCid + 4 &&
+         kExternalTwoByteStringCid == kStringCid + 5 &&
+         kExternalFourByteStringCid == kStringCid + 6 &&
+         kBoolCid == kStringCid + 7);
+  return (index == kOneByteStringCid ||
+          index == kTwoByteStringCid ||
+          index == kExternalOneByteStringCid ||
+          index == kExternalTwoByteStringCid);
 }
 
 inline bool RawObject::IsExternalStringClassId(intptr_t index) {
-  // Make sure this function is updated when new String types are added.
-  ASSERT(kOneByteString == kString + 1 &&
-         kTwoByteString == kString + 2 &&
-         kFourByteString == kString + 3 &&
-         kExternalOneByteString == kString + 4 &&
-         kExternalTwoByteString == kString + 5 &&
-         kExternalFourByteString == kString + 6 &&
-         kBool == kString + 7);
-  return (index == kExternalOneByteString ||
-          index == kExternalTwoByteString ||
-          index == kExternalFourByteString);
+  // Make sure this function is updated when new StringCid types are added.
+  ASSERT(kOneByteStringCid == kStringCid + 1 &&
+         kTwoByteStringCid == kStringCid + 2 &&
+         kFourByteStringCid == kStringCid + 3 &&
+         kExternalOneByteStringCid == kStringCid + 4 &&
+         kExternalTwoByteStringCid == kStringCid + 5 &&
+         kExternalFourByteStringCid == kStringCid + 6 &&
+         kBoolCid == kStringCid + 7);
+  return (index == kExternalOneByteStringCid ||
+          index == kExternalTwoByteStringCid ||
+          index == kExternalFourByteStringCid);
 }
 
 inline bool RawObject::IsBuiltinListClassId(intptr_t index) {
   // Make sure this function is updated when new builtin List types are added.
-  ASSERT(kImmutableArray == kArray + 1 &&
-         kGrowableObjectArray == kArray + 2 &&
-         kByteArray == kArray + 3);
-  return (index >= kArray && index < kByteArray) || IsByteArrayClassId(index);
+  ASSERT(kImmutableArrayCid == kArrayCid + 1 &&
+         kGrowableObjectArrayCid == kArrayCid + 2 &&
+         kByteArrayCid == kArrayCid + 3);
+  return (index >= kArrayCid && index < kByteArrayCid) ||
+      IsByteArrayClassId(index);
 }
 
 inline bool RawObject::IsByteArrayClassId(intptr_t index) {
   // Make sure this function is updated when new ByteArray types are added.
-  ASSERT(kInt8Array == kByteArray + 1 &&
-         kUint8Array == kByteArray + 2 &&
-         kInt16Array == kByteArray + 3 &&
-         kUint16Array == kByteArray + 4 &&
-         kInt32Array == kByteArray + 5 &&
-         kUint32Array == kByteArray + 6 &&
-         kInt64Array == kByteArray + 7 &&
-         kUint64Array == kByteArray + 8 &&
-         kFloat32Array == kByteArray + 9 &&
-         kFloat64Array == kByteArray + 10 &&
-         kExternalInt8Array == kByteArray + 11 &&
-         kExternalUint8Array == kByteArray + 12 &&
-         kExternalInt16Array == kByteArray + 13 &&
-         kExternalUint16Array == kByteArray + 14 &&
-         kExternalInt32Array == kByteArray + 15 &&
-         kExternalUint32Array == kByteArray + 16 &&
-         kExternalInt64Array == kByteArray + 17 &&
-         kExternalUint64Array == kByteArray + 18 &&
-         kExternalFloat32Array == kByteArray + 19 &&
-         kExternalFloat64Array == kByteArray + 20 &&
-         kClosure == kByteArray + 21);
-  return (index >= kByteArray && index <= kClosure);
+  ASSERT(kInt8ArrayCid == kByteArrayCid + 1 &&
+         kUint8ArrayCid == kByteArrayCid + 2 &&
+         kInt16ArrayCid == kByteArrayCid + 3 &&
+         kUint16ArrayCid == kByteArrayCid + 4 &&
+         kInt32ArrayCid == kByteArrayCid + 5 &&
+         kUint32ArrayCid == kByteArrayCid + 6 &&
+         kInt64ArrayCid == kByteArrayCid + 7 &&
+         kUint64ArrayCid == kByteArrayCid + 8 &&
+         kFloat32ArrayCid == kByteArrayCid + 9 &&
+         kFloat64ArrayCid == kByteArrayCid + 10 &&
+         kExternalInt8ArrayCid == kByteArrayCid + 11 &&
+         kExternalUint8ArrayCid == kByteArrayCid + 12 &&
+         kExternalInt16ArrayCid == kByteArrayCid + 13 &&
+         kExternalUint16ArrayCid == kByteArrayCid + 14 &&
+         kExternalInt32ArrayCid == kByteArrayCid + 15 &&
+         kExternalUint32ArrayCid == kByteArrayCid + 16 &&
+         kExternalInt64ArrayCid == kByteArrayCid + 17 &&
+         kExternalUint64ArrayCid == kByteArrayCid + 18 &&
+         kExternalFloat32ArrayCid == kByteArrayCid + 19 &&
+         kExternalFloat64ArrayCid == kByteArrayCid + 20 &&
+         kStacktraceCid == kByteArrayCid + 21);
+  return (index >= kByteArrayCid && index <= kExternalFloat64ArrayCid);
 }
 
 }  // namespace dart

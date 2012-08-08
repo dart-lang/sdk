@@ -247,6 +247,7 @@
     'scopes_test.cc',
     'snapshot.cc',
     'snapshot.h',
+    'snapshot_ids.h',
     'snapshot_test.cc',
     'stack_frame.cc',
     'stack_frame_arm.cc',

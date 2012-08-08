@@ -697,7 +697,7 @@ void StubCode::GenerateAllocateArrayStub(Assembler* assembler) {
       __ Bind(&done);
 
       // Get the class index and insert it into the tags.
-      __ orq(RBX, Immediate(RawObject::ClassIdTag::encode(kArray)));
+      __ orq(RBX, Immediate(RawObject::ClassIdTag::encode(kArrayCid)));
       __ movq(FieldAddress(RAX, Array::tags_offset()), RBX);
     }
 
@@ -1230,7 +1230,7 @@ void StubCode::GenerateAllocationStubForClass(Assembler* assembler,
     // Set the tags.
     uword tags = 0;
     tags = RawObject::SizeTag::update(instance_size, tags);
-    ASSERT(cls.id() != kIllegalObjectKind);
+    ASSERT(cls.id() != kIllegalCid);
     tags = RawObject::ClassIdTag::update(cls.id(), tags);
     __ movq(Address(RAX, Instance::tags_offset()), Immediate(tags));
 
@@ -1620,7 +1620,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ cmpq(RAX, R13);  // Match?
     __ j(EQUAL, &found, Assembler::kNearJump);
     __ addq(R12, Immediate(kWordSize * 2));  // Next element (class + target).
-    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
+    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   } else if (num_args == 2) {
     Label no_match;
@@ -1642,7 +1642,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
     __ j(EQUAL, &found);
     __ Bind(&no_match);
     __ addq(R12, Immediate(kWordSize * (1 + num_args)));  // Next element.
-    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalObjectKind)));  // Done?
+    __ cmpq(R13, Immediate(Smi::RawValue(kIllegalCid)));  // Done?
     __ j(NOT_EQUAL, &loop, Assembler::kNearJump);
   }
 
@@ -1697,7 +1697,7 @@ void StubCode::GenerateNArgsCheckInlineCacheStub(Assembler* assembler,
   // Test if Smi -> load Smi class for comparison.
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, &not_smi, Assembler::kNearJump);
-  __ movq(RAX, Immediate(Smi::RawValue(kSmi)));
+  __ movq(RAX, Immediate(Smi::RawValue(kSmiCid)));
   __ ret();
 
   __ Bind(&not_smi);

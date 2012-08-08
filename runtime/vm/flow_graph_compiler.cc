@@ -418,14 +418,14 @@ void FlowGraphCompiler::GenerateNumberTypeCheck(Register kClassIdReg,
                                                 Label* is_not_instance_lbl) {
   GrowableArray<intptr_t> args;
   if (type.IsNumberInterface()) {
-    args.Add(kDouble);
-    args.Add(kMint);
-    args.Add(kBigint);
+    args.Add(kDoubleCid);
+    args.Add(kMintCid);
+    args.Add(kBigintCid);
   } else if (type.IsIntInterface()) {
-    args.Add(kMint);
-    args.Add(kBigint);
+    args.Add(kMintCid);
+    args.Add(kBigintCid);
   } else if (type.IsDoubleInterface()) {
-    args.Add(kDouble);
+    args.Add(kDoubleCid);
   }
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
 }
@@ -435,12 +435,12 @@ void FlowGraphCompiler::GenerateStringTypeCheck(Register kClassIdReg,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl) {
   GrowableArray<intptr_t> args;
-  args.Add(kOneByteString);
-  args.Add(kTwoByteString);
-  args.Add(kFourByteString);
-  args.Add(kExternalOneByteString);
-  args.Add(kExternalTwoByteString);
-  args.Add(kExternalFourByteString);
+  args.Add(kOneByteStringCid);
+  args.Add(kTwoByteStringCid);
+  args.Add(kFourByteStringCid);
+  args.Add(kExternalOneByteStringCid);
+  args.Add(kExternalTwoByteStringCid);
+  args.Add(kExternalFourByteStringCid);
   CheckClassIds(kClassIdReg, args, is_instance_lbl, is_not_instance_lbl);
 }
 
@@ -449,9 +449,9 @@ void FlowGraphCompiler::GenerateListTypeCheck(Register kClassIdReg,
                                               Label* is_instance_lbl) {
   Label unknown;
   GrowableArray<intptr_t> args;
-  args.Add(kArray);
-  args.Add(kGrowableObjectArray);
-  args.Add(kImmutableArray);
+  args.Add(kArrayCid);
+  args.Add(kGrowableObjectArrayCid);
+  args.Add(kImmutableArrayCid);
   CheckClassIds(kClassIdReg, args, is_instance_lbl, &unknown);
   assembler()->Bind(&unknown);
 }

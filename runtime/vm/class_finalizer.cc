@@ -340,41 +340,41 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       (cls.library() != Library::CoreImplLibrary())) {
     // Prevent extending core implementation classes.
     switch (super_class.id()) {
-      case kInteger:
-      case kSmi:
-      case kMint:
-      case kBigint:
-      case kDouble:
-      case kOneByteString:
-      case kTwoByteString:
-      case kFourByteString:
-      case kExternalOneByteString:
-      case kExternalTwoByteString:
-      case kExternalFourByteString:
-      case kBool:
-      case kArray:
-      case kImmutableArray:
-      case kGrowableObjectArray:
-      case kInt8Array:
-      case kExternalInt8Array:
-      case kUint8Array:
-      case kExternalUint8Array:
-      case kInt16Array:
-      case kExternalInt16Array:
-      case kUint16Array:
-      case kExternalUint16Array:
-      case kInt32Array:
-      case kExternalInt32Array:
-      case kUint32Array:
-      case kExternalUint32Array:
-      case kInt64Array:
-      case kExternalInt64Array:
-      case kUint64Array:
-      case kExternalUint64Array:
-      case kFloat32Array:
-      case kExternalFloat32Array:
-      case kFloat64Array:
-      case kExternalFloat64Array: {
+      case kIntegerCid:
+      case kSmiCid:
+      case kMintCid:
+      case kBigintCid:
+      case kDoubleCid:
+      case kOneByteStringCid:
+      case kTwoByteStringCid:
+      case kFourByteStringCid:
+      case kExternalOneByteStringCid:
+      case kExternalTwoByteStringCid:
+      case kExternalFourByteStringCid:
+      case kBoolCid:
+      case kArrayCid:
+      case kImmutableArrayCid:
+      case kGrowableObjectArrayCid:
+      case kInt8ArrayCid:
+      case kExternalInt8ArrayCid:
+      case kUint8ArrayCid:
+      case kExternalUint8ArrayCid:
+      case kInt16ArrayCid:
+      case kExternalInt16ArrayCid:
+      case kUint16ArrayCid:
+      case kExternalUint16ArrayCid:
+      case kInt32ArrayCid:
+      case kExternalInt32ArrayCid:
+      case kUint32ArrayCid:
+      case kExternalUint32ArrayCid:
+      case kInt64ArrayCid:
+      case kExternalInt64ArrayCid:
+      case kUint64ArrayCid:
+      case kExternalUint64ArrayCid:
+      case kFloat32ArrayCid:
+      case kExternalFloat32ArrayCid:
+      case kFloat64ArrayCid:
+      case kExternalFloat64ArrayCid: {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, cls.token_pos(),
                     "'%s' is not allowed to extend '%s'",

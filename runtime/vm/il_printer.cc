@@ -388,8 +388,8 @@ void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
-  ASSERT(from() == kDouble || from() == kSmi);
-  f->Print("%s ", from() == kDouble ? "double2double" : "smi2double");
+  ASSERT(from() == kDoubleCid || from() == kSmiCid);
+  f->Print("%s ", from() == kDoubleCid ? "double2double" : "smi2double");
   value()->PrintTo(f);
 }
 

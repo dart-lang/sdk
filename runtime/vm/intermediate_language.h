@@ -629,7 +629,7 @@ class EqualityCompareComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObject) {
+        receiver_class_id_(kObjectCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -663,7 +663,7 @@ class RelationalOpComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        operands_class_id_(kObject) {
+        operands_class_id_(kObjectCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -950,7 +950,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
                   Value* index)
       : token_pos_(token_pos),
         try_index_(try_index),
-        receiver_type_(kIllegalObjectKind) {
+        receiver_type_(kIllegalCid) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -964,11 +964,11 @@ class LoadIndexedComp : public TemplateComputation<2> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
-  void set_receiver_type(ObjectKind receiver_type) {
+  void set_receiver_type(intptr_t receiver_type) {
     receiver_type_ = receiver_type;
   }
 
-  ObjectKind receiver_type() const {
+  intptr_t receiver_type() const {
     return receiver_type_;
   }
 
@@ -977,7 +977,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  ObjectKind receiver_type_;
+  intptr_t receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
@@ -994,7 +994,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
                    Value* value)
       : token_pos_(token_pos),
         try_index_(try_index),
-        receiver_type_(kIllegalObjectKind) {
+        receiver_type_(kIllegalCid) {
     inputs_[0] = array;
     inputs_[1] = index;
     inputs_[2] = value;
@@ -1008,11 +1008,11 @@ class StoreIndexedComp : public TemplateComputation<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  void set_receiver_type(ObjectKind receiver_type) {
+  void set_receiver_type(intptr_t receiver_type) {
     receiver_type_ = receiver_type;
   }
 
-  ObjectKind receiver_type() const {
+  intptr_t receiver_type() const {
     return receiver_type_;
   }
 
@@ -1021,7 +1021,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  ObjectKind receiver_type_;
+  intptr_t receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -1650,7 +1650,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 class ToDoubleComp : public TemplateComputation<1> {
  public:
   ToDoubleComp(Value* value,
-               ObjectKind from,
+               intptr_t from,
                InstanceCallComp* instance_call)
       : from_(from), instance_call_(instance_call) {
     ASSERT(value != NULL);
@@ -1658,7 +1658,7 @@ class ToDoubleComp : public TemplateComputation<1> {
   }
 
   Value* value() const { return inputs_[0]; }
-  ObjectKind from() const { return from_; }
+  intptr_t from() const { return from_; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
@@ -1669,7 +1669,7 @@ class ToDoubleComp : public TemplateComputation<1> {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const ObjectKind from_;
+  const intptr_t from_;
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);

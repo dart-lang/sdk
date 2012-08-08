@@ -242,8 +242,9 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (receiver_class_id() != kObject) {
-    ASSERT((receiver_class_id() == kSmi) || (receiver_class_id() == kDouble));
+  if (receiver_class_id() != kObjectCid) {
+    ASSERT((receiver_class_id() == kSmiCid) ||
+           (receiver_class_id() == kDoubleCid));
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -325,10 +326,10 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   Register right = locs.in(1).reg();
   __ testl(left, Immediate(kSmiTagMask));
   Register temp = locs.temp(0).reg();
-  if (ic_data.GetReceiverClassIdAt(0) == kSmi) {
+  if (ic_data.GetReceiverClassIdAt(0) == kSmiCid) {
     Label done, load_class_id;
     __ j(NOT_ZERO, &load_class_id, Assembler::kNearJump);
-    __ movl(temp, Immediate(kSmi));
+    __ movl(temp, Immediate(kSmiCid));
     __ jmp(&done, Assembler::kNearJump);
     __ Bind(&load_class_id);
     __ LoadClassId(temp, left);
@@ -340,7 +341,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   Condition cond = TokenKindToSmiCondition(kind);
   Label done;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
-    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmi) || (i == 0));
+    ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
     Label next_test;
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
     __ j(NOT_EQUAL, &next_test);
@@ -526,12 +527,12 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_class_id() == kSmi) {
+  if (receiver_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
                         deopt_id(), token_pos(), try_index());
     return;
   }
-  if (receiver_class_id() == kDouble) {
+  if (receiver_class_id() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
                            deopt_id(), token_pos(), try_index());
     return;
@@ -550,7 +551,7 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* RelationalOpComp::MakeLocationSummary() const {
-  if ((operands_class_id() == kSmi) || (operands_class_id() == kDouble)) {
+  if ((operands_class_id() == kSmiCid) || (operands_class_id() == kDoubleCid)) {
     const intptr_t kNumInputs = 2;
     const intptr_t kNumTemps = 1;
     LocationSummary* summary =
@@ -561,18 +562,18 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
-  ASSERT(operands_class_id() == kObject);
+  ASSERT(operands_class_id() == kObjectCid);
   return MakeCallSummary();
 }
 
 
 void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (operands_class_id() == kSmi) {
+  if (operands_class_id() == kSmiCid) {
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,
                         deopt_id(), token_pos(), try_index());
     return;
   }
-  if (operands_class_id() == kDouble) {
+  if (operands_class_id() == kDoubleCid) {
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,
                            deopt_id(), token_pos(), try_index());
     return;
@@ -585,7 +586,7 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     // Load receiver into EAX, class into EDI.
     Label done;
     const intptr_t kNumArguments = 2;
-    __ movl(EDI, Immediate(kSmi));
+    __ movl(EDI, Immediate(kSmiCid));
     __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
     __ testl(EAX, Immediate(kSmiTagMask));
     __ j(ZERO, &done);
@@ -665,9 +666,9 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if ((receiver_type() == kGrowableObjectArray) ||
-      (receiver_type() == kArray) ||
-      (receiver_type() == kImmutableArray)) {
+  if ((receiver_type() == kGrowableObjectArrayCid) ||
+      (receiver_type() == kArrayCid) ||
+      (receiver_type() == kImmutableArrayCid)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -677,7 +678,7 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
     locs->set_out(Location::RequiresRegister());
     return locs;
   } else {
-    ASSERT(receiver_type() == kIllegalObjectKind);
+    ASSERT(receiver_type() == kIllegalCid);
     return MakeCallSummary();
   }
 }
@@ -694,7 +695,7 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
   const ICData& ic_data = *comp->ic_data();
   ASSERT(ic_data.num_args_tested() == 1);
   // No indexed access on Smi.
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
   // Load receiver into EAX.
   const intptr_t kNumArguments = 2;
   __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
@@ -714,7 +715,7 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
 
 
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_type() == kIllegalObjectKind) {
+  if (receiver_type() == kIllegalCid) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       EmitLoadIndexedPolymorphic(compiler, this);
     } else {
@@ -729,7 +730,8 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   Register temp = locs()->temp(0).reg();
 
-  const DeoptReasonId deopt_reason = (receiver_type() == kGrowableObjectArray) ?
+  const DeoptReasonId deopt_reason =
+      (receiver_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
 
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
@@ -748,8 +750,8 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(NOT_ZERO, deopt);
 
   switch (receiver_type()) {
-    case kArray:
-    case kImmutableArray:
+    case kArrayCid:
+    case kImmutableArrayCid:
       __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
       __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 2.
@@ -757,7 +759,7 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       __ movl(result, FieldAddress(receiver, index, TIMES_2, sizeof(RawArray)));
       break;
 
-    case kGrowableObjectArray: {
+    case kGrowableObjectArrayCid: {
       Register temp = locs()->temp(0).reg();
 
       __ cmpl(index,
@@ -779,8 +781,8 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 3;
-  if ((receiver_type() == kGrowableObjectArray) ||
-      (receiver_type() == kArray)) {
+  if ((receiver_type() == kGrowableObjectArrayCid) ||
+      (receiver_type() == kArrayCid)) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -791,7 +793,7 @@ LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
     locs->set_out(Location::NoLocation());
     return locs;
   } else {
-    ASSERT(receiver_type() == kIllegalObjectKind);
+    ASSERT(receiver_type() == kIllegalCid);
     return MakeCallSummary();
   }
 }
@@ -830,7 +832,7 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
   const ICData& ic_data = *comp->ic_data();
   ASSERT(ic_data.num_args_tested() == 1);
   // No indexed access on Smi.
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
   // Load receiver into EAX.
   const intptr_t kNumArguments = 3;
   __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
@@ -850,7 +852,7 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
 
 
 void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_type() == kIllegalObjectKind) {
+  if (receiver_type() == kIllegalCid) {
     if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
       EmitStoreIndexedPolymorphic(compiler, this);
     } else {
@@ -881,8 +883,8 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ j(NOT_ZERO, deopt);
 
   switch (receiver_type()) {
-    case kArray:
-    case kImmutableArray:
+    case kArrayCid:
+    case kImmutableArrayCid:
       __ cmpl(index, FieldAddress(receiver, Array::length_offset()));
       __ j(ABOVE_EQUAL, deopt);
       // Note that index is Smi, i.e, times 2.
@@ -892,7 +894,7 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
           value);
       break;
 
-    case kGrowableObjectArray: {
+    case kGrowableObjectArrayCid: {
       __ cmpl(index,
               FieldAddress(receiver, GrowableObjectArray::length_offset()));
       __ j(ABOVE_EQUAL, deopt);
@@ -1118,7 +1120,7 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
     // because a null instantiator will have the wrong class (Null instead of
     // TypeArguments).
     Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArguments, temp);
+    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
     __ cmpl(FieldAddress(instantiator_reg, TypeArguments::length_offset()),
             Immediate(Smi::RawValue(len)));
@@ -1181,7 +1183,7 @@ void ExtractConstructorTypeArgumentsComp::EmitNativeCode(
     // No need to check instantiator_reg for null here, because a null
     // instantiator will have the wrong class (Null instead of TypeArguments).
     Label type_arguments_uninstantiated;
-    __ CompareClassId(instantiator_reg, kTypeArguments, temp_reg);
+    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
     __ j(NOT_EQUAL, &type_arguments_uninstantiated, Assembler::kNearJump);
     Immediate arguments_length =
         Immediate(Smi::RawValue(type_arguments().Length()));
@@ -1250,7 +1252,7 @@ void ExtractConstructorInstantiatorComp::EmitNativeCode(
     // matching length and, if so, use it as the instantiated type_arguments.
     // No need to check the instantiator (RAX) for null here, because a null
     // instantiator will have the wrong class (Null instead of TypeArguments).
-    __ CompareClassId(instantiator_reg, kTypeArguments, temp_reg);
+    __ CompareClassId(instantiator_reg, kTypeArgumentsCid, temp_reg);
     __ j(NOT_EQUAL, &done, Assembler::kNearJump);
     Immediate arguments_length =
         Immediate(Smi::RawValue(type_arguments().Length()));
@@ -1545,7 +1547,7 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
       {
         __ Bind(&call_method);
         Function& target = Function::ZoneHandle(
-            comp->ic_data()->GetTargetForReceiverClassId(kSmi));
+            comp->ic_data()->GetTargetForReceiverClassId(kSmiCid));
         ASSERT(!target.IsNull());
         const intptr_t kArgumentCount = 2;
         __ pushl(temp);
@@ -1608,7 +1610,7 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ j(NOT_ZERO, &non_smi);
   __ testl(right, Immediate(kSmiTagMask));  // Is argument Smi?
   __ j(ZERO, &smi_smi);
-  __ CompareClassId(right, kMint, temp);  // Is argument Mint?
+  __ CompareClassId(right, kMintCid, temp);  // Is argument Mint?
   __ j(NOT_EQUAL, deopt);  // Argument neither Smi nor Mint.
   __ cmpl(left, Immediate(0));
   __ j(LESS, &smi_static_call);  // Negative Smi receiver, Mint argument.
@@ -1621,7 +1623,7 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ jmp(&done);
 
   __ Bind(&non_smi);  // Receiver is non-Smi.
-  __ CompareClassId(left, kMint, temp);  // Is receiver Mint?
+  __ CompareClassId(left, kMintCid, temp);  // Is receiver Mint?
   __ j(NOT_EQUAL, deopt);  // Receiver neither Smi nor Mint.
   __ testl(right, Immediate(kSmiTagMask));  // Is argument Smi?
   __ j(NOT_ZERO, &mint_static_call);  // Mint receiver, non-Smi argument.
@@ -1639,7 +1641,7 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ Bind(&smi_static_call);
   {
     Function& target = Function::ZoneHandle(
-        comp->ic_data()->GetTargetForReceiverClassId(kSmi));
+        comp->ic_data()->GetTargetForReceiverClassId(kSmiCid));
     if (target.IsNull()) {
       __ jmp(deopt);
     } else {
@@ -1659,7 +1661,7 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   __ Bind(&mint_static_call);
   {
     Function& target = Function::ZoneHandle(
-        comp->ic_data()->GetTargetForReceiverClassId(kMint));
+        comp->ic_data()->GetTargetForReceiverClassId(kMintCid));
     if (target.IsNull()) {
       __ jmp(deopt);
     } else {
@@ -1775,7 +1777,7 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->try_index(),
                                         kDeoptUnaryOp,
                                         value);
-  if (test_class_id == kSmi) {
+  if (test_class_id == kSmiCid) {
     __ testl(value, Immediate(kSmiTagMask));
     __ j(NOT_ZERO, deopt);
     switch (op_kind()) {
@@ -1827,11 +1829,11 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         instance_call()->try_index(),
                                         kDeoptUnaryOp,
                                         value);
-  if (test_class_id == kDouble) {
+  if (test_class_id == kDoubleCid) {
     Register temp = locs()->temp(0).reg();
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);  // Smi.
-    __ CompareClassId(value, kDouble, temp);
+    __ CompareClassId(value, kDoubleCid, temp);
     __ j(NOT_EQUAL, deopt);
     // Allocate result object.
     const Class& double_class = compiler->double_class();
@@ -1858,7 +1860,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 LocationSummary* ToDoubleComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  if (from() == kDouble) {
+  if (from() == kDoubleCid) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -1868,17 +1870,17 @@ LocationSummary* ToDoubleComp::MakeLocationSummary() const {
     locs->set_temp(0, Location::RequiresRegister());
     return locs;
   } else {
-    ASSERT(from() == kSmi);
+    ASSERT(from() == kSmiCid);
     return MakeCallSummary();  // Calls a stub to allocate result.
   }
 }
 
 
 void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = (from() == kDouble) ? locs()->in(0).reg() : EBX;
+  Register value = (from() == kDoubleCid) ? locs()->in(0).reg() : EBX;
   Register result = locs()->out().reg();
 
-  const DeoptReasonId deopt_reason = (from() == kDouble) ?
+  const DeoptReasonId deopt_reason = (from() == kDoubleCid) ?
       kDeoptDoubleToDouble : kDeoptIntegerToDouble;
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->token_pos(),
@@ -1886,17 +1888,17 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                         deopt_reason,
                                         value);
 
-  if (from() == kDouble) {
+  if (from() == kDoubleCid) {
     Register temp = locs()->temp(0).reg();
     __ testl(value, Immediate(kSmiTagMask));
     __ j(ZERO, deopt);  // Deoptimize if Smi.
-    __ CompareClassId(value, kDouble, temp);
+    __ CompareClassId(value, kDoubleCid, temp);
     __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
     ASSERT(value == result);
     return;
   }
 
-  ASSERT(from() == kSmi);
+  ASSERT(from() == kSmiCid);
 
   const Class& double_class = compiler->double_class();
   const Code& stub =
@@ -1937,7 +1939,7 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   ASSERT(ic_data()->num_args_tested() == 1);
   Label handle_smi;
   Label* is_smi_label =
-      ic_data()->GetReceiverClassIdAt(0) == kSmi ?  &handle_smi : deopt;
+      ic_data()->GetReceiverClassIdAt(0) == kSmiCid ?  &handle_smi : deopt;
 
   // Load receiver into EAX.
   __ movl(EAX,
@@ -1957,7 +1959,7 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                             instance_call()->try_index());
   if (is_smi_label == &handle_smi) {
     __ Bind(&handle_smi);
-    ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmi);
+    ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmiCid);
     const Function& target = Function::ZoneHandle(ic_data()->GetTargetAt(0));
     compiler->GenerateStaticCall(instance_call()->deopt_id(),
                                  instance_call()->token_pos(),
@@ -1992,8 +1994,8 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
     return locs;
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    if (ICDataWithBothClassIds(*ic_data(), kSmi) ||
-        ICDataWithBothClassIds(*ic_data(), kDouble)) {
+    if (ICDataWithBothClassIds(*ic_data(), kSmiCid) ||
+        ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
       const intptr_t kNumInputs = 2;
       const intptr_t kNumTemps = 1;
       LocationSummary* summary =
@@ -2031,12 +2033,12 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   // Relational or equality.
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    if (ICDataWithBothClassIds(*ic_data(), kSmi)) {
+    if (ICDataWithBothClassIds(*ic_data(), kSmiCid)) {
       EmitSmiComparisonOp(compiler, *locs(), kind(), this,
                           deopt_id(), token_pos(), try_index());
       return;
     }
-    if (ICDataWithBothClassIds(*ic_data(), kDouble)) {
+    if (ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
       EmitDoubleComparisonOp(compiler, *locs(), kind(), this,
                              deopt_id(), token_pos(), try_index());
       return;

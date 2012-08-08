@@ -14,7 +14,7 @@ namespace dart {
 DEFINE_FLAG(bool, print_class_table, false, "Print initial class table.");
 
 ClassTable::ClassTable()
-    : top_(kNumPredefinedKinds), capacity_(0), table_(NULL) {
+    : top_(kNumPredefinedCids), capacity_(0), table_(NULL) {
   if (Dart::vm_isolate() == NULL) {
     capacity_ = initial_capacity_;
     table_ = reinterpret_cast<RawClass**>(
@@ -25,13 +25,13 @@ ClassTable::ClassTable()
     capacity_ = vm_class_table->capacity_;
     table_ = reinterpret_cast<RawClass**>(
         calloc(capacity_, sizeof(RawClass*)));  // NOLINT
-    for (intptr_t i = kObject; i < kInstance; i++) {
+    for (intptr_t i = kObjectCid; i < kInstanceCid; i++) {
       table_[i] = vm_class_table->At(i);
     }
     table_[kFreeListElement] = vm_class_table->At(kFreeListElement);
-    table_[kNullClassId] = vm_class_table->At(kNullClassId);
-    table_[kDynamicClassId] = vm_class_table->At(kDynamicClassId);
-    table_[kVoidClassId] = vm_class_table->At(kVoidClassId);
+    table_[kNullCid] = vm_class_table->At(kNullCid);
+    table_[kDynamicCid] = vm_class_table->At(kDynamicCid);
+    table_[kVoidCid] = vm_class_table->At(kVoidCid);
   }
 }
 
@@ -43,9 +43,9 @@ ClassTable::~ClassTable() {
 
 void ClassTable::Register(const Class& cls) {
   intptr_t index = cls.id();
-  if (index != kIllegalObjectKind) {
+  if (index != kIllegalCid) {
     ASSERT(index > 0);
-    ASSERT(index < kNumPredefinedKinds);
+    ASSERT(index < kNumPredefinedCids);
     ASSERT(table_[index] == 0);
     ASSERT(index < capacity_);
     table_[index] = cls.raw();

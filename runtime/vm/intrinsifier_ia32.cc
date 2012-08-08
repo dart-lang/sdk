@@ -201,7 +201,7 @@ bool Intrinsifier::Array_setIndexed(Assembler* assembler) {
     __ j(EQUAL, &checked_ok, Assembler::kNearJump);
     // Check if it's Dynamic.
     // For now handle only TypeArguments and bail out if InstantiatedTypeArgs.
-    __ CompareClassId(EBX, kTypeArguments, EAX);
+    __ CompareClassId(EBX, kTypeArgumentsCid, EAX);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     // Get type at index 0.
     __ movl(EAX, FieldAddress(EBX, TypeArguments::type_at_offset(0)));
@@ -839,14 +839,14 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
-  __ CompareClassId(EAX, kDouble, EDI);
+  __ CompareClassId(EAX, kDoubleCid, EDI);
   __ j(EQUAL, &fall_through);
   __ LoadObject(EAX, bool_false);  // Smi == Mint -> false.
   __ ret();
 
   __ Bind(&receiver_not_smi);
   // EAX:: receiver.
-  __ CompareClassId(EAX, kMint, EDI);
+  __ CompareClassId(EAX, kMintCid, EDI);
   __ j(NOT_EQUAL, &fall_through);
   // Receiver is Mint, return false if right is Smi.
   __ movl(EAX, Address(ESP, + 1 * kWordSize));  // Right argument.
@@ -912,7 +912,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
   __ movl(EAX, Address(ESP, + 1 * kWordSize));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
-  __ CompareClassId(EAX, kDouble, EBX);
+  __ CompareClassId(EAX, kDoubleCid, EBX);
   __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
   // Fall through if double.
 }
@@ -1326,7 +1326,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
   __ cmpl(EBX, FieldAddress(EAX, String::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(EAX, kOneByteString, EDI);
+  __ CompareClassId(EAX, kOneByteStringCid, EDI);
   __ j(NOT_EQUAL, &fall_through);
   __ SmiUntag(EBX);
   __ movzxb(EAX, FieldAddress(EAX, EBX, TIMES_1, OneByteString::data_offset()));

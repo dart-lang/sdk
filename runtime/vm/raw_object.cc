@@ -49,191 +49,191 @@ intptr_t RawObject::SizeFromClass() const {
 
   RawClass* raw_class = isolate->class_table()->At(GetClassId());
   intptr_t instance_size = raw_class->ptr()->instance_size_;
-  ObjectKind instance_kind = raw_class->ptr()->instance_kind_;
+  intptr_t class_id = raw_class->ptr()->id_;
 
   if (instance_size == 0) {
-    switch (instance_kind) {
-      case kTokenStream: {
+    switch (class_id) {
+      case kTokenStreamCid: {
         const RawTokenStream* raw_tokens =
             reinterpret_cast<const RawTokenStream*>(this);
         intptr_t tokens_length = Smi::Value(raw_tokens->ptr()->length_);
         instance_size = TokenStream::InstanceSize(tokens_length);
         break;
       }
-      case kCode: {
+      case kCodeCid: {
         const RawCode* raw_code = reinterpret_cast<const RawCode*>(this);
         intptr_t pointer_offsets_length =
             raw_code->ptr()->pointer_offsets_length_;
         instance_size = Code::InstanceSize(pointer_offsets_length);
         break;
       }
-      case kInstructions: {
+      case kInstructionsCid: {
         const RawInstructions* raw_instructions =
             reinterpret_cast<const RawInstructions*>(this);
         intptr_t instructions_size = raw_instructions->ptr()->size_;
         instance_size = Instructions::InstanceSize(instructions_size);
         break;
       }
-      case kContext: {
+      case kContextCid: {
         const RawContext* raw_context =
             reinterpret_cast<const RawContext*>(this);
         intptr_t num_variables = raw_context->ptr()->num_variables_;
         instance_size = Context::InstanceSize(num_variables);
         break;
       }
-      case kContextScope: {
+      case kContextScopeCid: {
         const RawContextScope* raw_context_scope =
             reinterpret_cast<const RawContextScope*>(this);
         intptr_t num_variables = raw_context_scope->ptr()->num_variables_;
         instance_size = ContextScope::InstanceSize(num_variables);
         break;
       }
-      case kBigint: {
+      case kBigintCid: {
         const RawBigint* raw_bgi = reinterpret_cast<const RawBigint*>(this);
         intptr_t length = raw_bgi->ptr()->allocated_length_;
         instance_size = Bigint::InstanceSize(length);
         break;
       }
-      case kOneByteString: {
+      case kOneByteStringCid: {
         const RawOneByteString* raw_string =
             reinterpret_cast<const RawOneByteString*>(this);
         intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
         instance_size = OneByteString::InstanceSize(string_length);
         break;
       }
-      case kTwoByteString: {
+      case kTwoByteStringCid: {
         const RawTwoByteString* raw_string =
             reinterpret_cast<const RawTwoByteString*>(this);
         intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
         instance_size = TwoByteString::InstanceSize(string_length);
         break;
       }
-      case kFourByteString: {
+      case kFourByteStringCid: {
         const RawFourByteString* raw_string =
             reinterpret_cast<const RawFourByteString*>(this);
         intptr_t string_length = Smi::Value(raw_string->ptr()->length_);
         instance_size = FourByteString::InstanceSize(string_length);
         break;
       }
-      case kArray:
-      case kImmutableArray: {
+      case kArrayCid:
+      case kImmutableArrayCid: {
         const RawArray* raw_array = reinterpret_cast<const RawArray*>(this);
         intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
         instance_size = Array::InstanceSize(array_length);
         break;
       }
-      case kInt8Array: {
+      case kInt8ArrayCid: {
         const RawInt8Array* raw_byte_array =
             reinterpret_cast<const RawInt8Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Int8Array::InstanceSize(byte_array_length);
         break;
       }
-      case kUint8Array: {
+      case kUint8ArrayCid: {
         const RawUint8Array* raw_byte_array =
             reinterpret_cast<const RawUint8Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Uint8Array::InstanceSize(byte_array_length);
         break;
       }
-      case kInt16Array: {
+      case kInt16ArrayCid: {
         const RawInt16Array* raw_byte_array =
             reinterpret_cast<const RawInt16Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Int16Array::InstanceSize(byte_array_length);
         break;
       }
-      case kUint16Array: {
+      case kUint16ArrayCid: {
         const RawUint16Array* raw_byte_array =
             reinterpret_cast<const RawUint16Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Uint16Array::InstanceSize(byte_array_length);
         break;
       }
-      case kInt32Array: {
+      case kInt32ArrayCid: {
         const RawInt32Array* raw_byte_array =
             reinterpret_cast<const RawInt32Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Int32Array::InstanceSize(byte_array_length);
         break;
       }
-      case kUint32Array: {
+      case kUint32ArrayCid: {
         const RawUint32Array* raw_byte_array =
             reinterpret_cast<const RawUint32Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Uint32Array::InstanceSize(byte_array_length);
         break;
       }
-      case kInt64Array: {
+      case kInt64ArrayCid: {
         const RawInt64Array* raw_byte_array =
             reinterpret_cast<const RawInt64Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Int64Array::InstanceSize(byte_array_length);
         break;
       }
-      case kUint64Array: {
+      case kUint64ArrayCid: {
         const RawUint64Array* raw_byte_array =
             reinterpret_cast<const RawUint64Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Uint64Array::InstanceSize(byte_array_length);
         break;
       }
-      case kFloat32Array: {
+      case kFloat32ArrayCid: {
         const RawFloat32Array* raw_byte_array =
             reinterpret_cast<const RawFloat32Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Float32Array::InstanceSize(byte_array_length);
         break;
       }
-      case kFloat64Array: {
+      case kFloat64ArrayCid: {
         const RawFloat64Array* raw_byte_array =
             reinterpret_cast<const RawFloat64Array*>(this);
         intptr_t byte_array_length = Smi::Value(raw_byte_array->ptr()->length_);
         instance_size = Float64Array::InstanceSize(byte_array_length);
         break;
       }
-      case kTypeArguments: {
+      case kTypeArgumentsCid: {
         const RawTypeArguments* raw_array =
             reinterpret_cast<const RawTypeArguments*>(this);
         intptr_t array_length = Smi::Value(raw_array->ptr()->length_);
         instance_size = TypeArguments::InstanceSize(array_length);
         break;
       }
-      case kPcDescriptors: {
+      case kPcDescriptorsCid: {
         const RawPcDescriptors* raw_descriptors =
             reinterpret_cast<const RawPcDescriptors*>(this);
         intptr_t num_descriptors = Smi::Value(raw_descriptors->ptr()->length_);
         instance_size = PcDescriptors::InstanceSize(num_descriptors);
         break;
       }
-      case kStackmap: {
+      case kStackmapCid: {
         const RawStackmap* map = reinterpret_cast<const RawStackmap*>(this);
         intptr_t size_in_bytes = Smi::Value(map->ptr()->bitmap_size_in_bytes_);
         instance_size = Stackmap::InstanceSize(size_in_bytes);
         break;
       }
-      case kLocalVarDescriptors: {
+      case kLocalVarDescriptorsCid: {
         const RawLocalVarDescriptors* raw_descriptors =
             reinterpret_cast<const RawLocalVarDescriptors*>(this);
         intptr_t num_descriptors = raw_descriptors->ptr()->length_;
         instance_size = LocalVarDescriptors::InstanceSize(num_descriptors);
         break;
       }
-      case kExceptionHandlers: {
+      case kExceptionHandlersCid: {
         const RawExceptionHandlers* raw_handlers =
             reinterpret_cast<const RawExceptionHandlers*>(this);
         intptr_t num_handlers = Smi::Value(raw_handlers->ptr()->length_);
         instance_size = ExceptionHandlers::InstanceSize(num_handlers);
         break;
       }
-      case kDeoptInfo: {
+      case kDeoptInfoCid: {
         const RawDeoptInfo* raw_deopt_info =
             reinterpret_cast<const RawDeoptInfo*>(this);
         intptr_t num_entries = Smi::Value(raw_deopt_info->ptr()->length_);
         instance_size = DeoptInfo::InstanceSize(num_entries);
         break;
       }
-      case kJSRegExp: {
+      case kJSRegExpCid: {
         const RawJSRegExp* raw_jsregexp =
             reinterpret_cast<const RawJSRegExp*>(this);
         intptr_t data_length = Smi::Value(raw_jsregexp->ptr()->data_length_);
@@ -260,19 +260,6 @@ intptr_t RawObject::SizeFromClass() const {
 }
 
 
-ObjectKind RawObject::GetObjectKind() const {
-  intptr_t class_id = GetClassId();
-  ObjectKind kind;
-  if (class_id < kNumPredefinedKinds) {
-    kind = static_cast<ObjectKind>(class_id);
-  } else {
-    RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
-    kind = raw_class->ptr()->instance_kind_;
-  }
-  return kind;
-}
-
-
 intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
   intptr_t size = 0;
   NoHandleScope no_handles(visitor->isolate());
@@ -282,35 +269,38 @@ intptr_t RawObject::VisitPointers(ObjectPointerVisitor* visitor) {
 
   // Read the necessary data out of the class before visting the class itself.
   intptr_t class_id = GetClassId();
-  ObjectKind kind;
 
-  if (class_id < kNumPredefinedKinds) {
-    kind = static_cast<ObjectKind>(class_id);
+  if (class_id < kNumPredefinedCids) {
+    switch (class_id) {
+#define RAW_VISITPOINTERS(clazz)                                               \
+      case clazz::kClassId: {                                                  \
+        Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(this);             \
+        size = Raw##clazz::Visit##clazz##Pointers(raw_obj, visitor);           \
+        break;                                                                 \
+      }
+      CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
+#undef RAW_VISITPOINTERS
+      case kFreeListElement: {
+        ASSERT(FreeBit::decode(ptr()->tags_));
+        uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
+        FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
+        size = element->Size();
+        break;
+      }
+      default:
+        OS::Print("Class Id: %d\n", class_id);
+        UNREACHABLE();
+        break;
+    }
   } else {
     RawClass* raw_class = Isolate::Current()->class_table()->At(class_id);
-    kind = raw_class->ptr()->instance_kind_;
-  }
-
-  switch (kind) {
-#define RAW_VISITPOINTERS(clazz) \
-    case clazz::kInstanceKind: { \
-      Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(this); \
-      size = Raw##clazz::Visit##clazz##Pointers(raw_obj, visitor); \
-      break; \
+    if (Class::IsSignatureClass(raw_class)) {
+      RawClosure* raw_obj = reinterpret_cast<RawClosure*>(this);
+      size = RawClosure::VisitClosurePointers(raw_obj, visitor);
+    } else {
+      RawInstance* raw_obj = reinterpret_cast<RawInstance*>(this);
+      size = RawInstance::VisitInstancePointers(raw_obj, visitor);
     }
-    CLASS_LIST_NO_OBJECT(RAW_VISITPOINTERS)
-#undef RAW_VISITPOINTERS
-    case kFreeListElement: {
-      ASSERT(FreeBit::decode(ptr()->tags_));
-      uword addr = RawObject::ToAddr(const_cast<RawObject*>(this));
-      FreeListElement* element = reinterpret_cast<FreeListElement*>(addr);
-      size = element->Size();
-      break;
-    }
-    default:
-      OS::Print("Kind: %d\n", kind);
-      UNREACHABLE();
-      break;
   }
 
   ASSERT(size != 0);
@@ -461,7 +451,7 @@ intptr_t RawInstructions::VisitInstructionsPointers(
 
 bool RawInstructions::ContainsPC(RawObject* raw_obj, uword pc) {
   uword tags = raw_obj->ptr()->tags_;
-  if (RawObject::ClassIdTag::decode(tags) == kInstructions) {
+  if (RawObject::ClassIdTag::decode(tags) == kInstructionsCid) {
     RawInstructions* raw_instr = reinterpret_cast<RawInstructions*>(raw_obj);
     uword start_pc =
         reinterpret_cast<uword>(raw_instr->ptr()) + Instructions::HeaderSize();
@@ -593,8 +583,7 @@ intptr_t RawInstance::VisitInstancePointers(RawInstance* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   // Make sure that we got here with the tagged pointer as this.
   ASSERT(raw_obj->IsHeapObject());
-  RawClass* cls = Isolate::Current()->class_table()->At(
-    raw_obj->GetClassId());
+  RawClass* cls = Isolate::Current()->class_table()->At(raw_obj->GetClassId());
   intptr_t instance_size = cls->ptr()->instance_size_;
   intptr_t num_native_fields = cls->ptr()->num_native_fields_;
 

@@ -269,22 +269,22 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
 
 
 DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
-  return Api::ClassId(object) == kApiError;
+  return Api::ClassId(object) == kApiErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
-  return Api::ClassId(object) == kUnhandledException;
+  return Api::ClassId(object) == kUnhandledExceptionCid;
 }
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
-  return Api::ClassId(object) == kLanguageError;
+  return Api::ClassId(object) == kLanguageErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
-  return Api::ClassId(object) == kUnwindError;
+  return Api::ClassId(object) == kUnwindErrorCid;
 }
 
 
@@ -1115,7 +1115,7 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  return Api::ClassId(object) == kNullClassId;
+  return Api::ClassId(object) == kNullCid;
 }
 
 
@@ -1226,7 +1226,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   intptr_t class_id = Api::ClassId(integer);
-  if (class_id == kSmi || class_id == kMint) {
+  if (class_id == kSmiCid || class_id == kMintCid) {
     *fits = true;
     return Api::Success(isolate);
   }
@@ -1396,7 +1396,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
-  return Api::ClassId(object) == kBool;
+  return Api::ClassId(object) == kBoolCid;
 }
 
 
@@ -1424,7 +1424,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
-  return Api::ClassId(object) == kDouble;
+  return Api::ClassId(object) == kDoubleCid;
 }
 
 
@@ -2660,7 +2660,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
 
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
-  return Api::ClassId(handle) == kFunction;
+  return Api::ClassId(handle) == kFunctionCid;
 }
 
 
@@ -2892,7 +2892,7 @@ DART_EXPORT Dart_Handle Dart_LookupVariable(Dart_Handle target,
 
 
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
-  return Api::ClassId(handle) == kField;
+  return Api::ClassId(handle) == kFieldCid;
 }
 
 
@@ -3842,7 +3842,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
-  return Api::ClassId(object) == kLibrary;
+  return Api::ClassId(object) == kLibraryCid;
 }
 
 

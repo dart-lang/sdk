@@ -8,12 +8,13 @@
 #include "vm/object.h"
 #include "vm/object_store.h"
 #include "vm/raw_object.h"
+#include "vm/snapshot_ids.h"
 #include "vm/unicode.h"
 #include "vm/visitor.h"
 
 namespace dart {
 
-RawString* Symbols::predefined_[Symbols::kMaxPredefined];
+RawString* Symbols::predefined_[Symbols::kMaxId];
 
 // Turn off population of symbols in the VM symbol table, so that we
 // don't find these symbols while doing a Symbols::New(...).
@@ -37,12 +38,12 @@ void Symbols::InitOnce(Isolate* isolate) {
   // Turn off population of symbols in the VM symbol table, so that we
   // don't find these symbols while doing a Symbols::New(...).
   // Create all predefined symbols.
-  ASSERT((sizeof(names) / sizeof(const char*)) == kMaxPredefined);
+  ASSERT((sizeof(names) / sizeof(const char*)) == Symbols::kMaxId);
   const Array& symbol_table =
       Array::Handle(isolate->object_store()->symbol_table());
   OneByteString& str = OneByteString::Handle();
 
-  for (intptr_t i = 1; i < kMaxPredefined; i++) {
+  for (intptr_t i = 1; i < Symbols::kMaxId; i++) {
     str = OneByteString::New(names[i], Heap::kOld);
     Add(symbol_table, str);
     predefined_[i] = str.raw();
@@ -295,19 +296,19 @@ intptr_t Symbols::FindIndex(const Array& symbol_table,
 
 
 intptr_t Symbols::LookupVMSymbol(RawObject* obj) {
-  for (intptr_t i = 1;  i < kMaxPredefined; i++) {
+  for (intptr_t i = 1;  i < Symbols::kMaxId; i++) {
     if (predefined_[i] == obj) {
-      return (i + Object::kMaxId);
+      return (i + kMaxPredefinedObjectIds);
     }
   }
-  return Object::kInvalidIndex;
+  return kInvalidIndex;
 }
 
 
 RawObject* Symbols::GetVMSymbol(intptr_t object_id) {
   ASSERT(IsVMSymbolId(object_id));
-  intptr_t i = (object_id - Object::kMaxId);
-  return (i > 0 && i < kMaxPredefined) ? predefined_[i] : Object::null();
+  intptr_t i = (object_id - kMaxPredefinedObjectIds);
+  return (i > 0 && i < Symbols::kMaxId) ? predefined_[i] : Object::null();
 }
 
 }  // namespace dart

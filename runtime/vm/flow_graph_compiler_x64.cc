@@ -264,7 +264,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   if (type.IsBoolInterface()) {
-    __ cmpl(kClassIdReg, Immediate(kBool));
+    __ cmpl(kClassIdReg, Immediate(kBoolCid));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return false;
@@ -351,7 +351,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
     Label fall_through;
-    __ CompareClassId(RDX, kTypeArguments);
+    __ CompareClassId(RDX, kTypeArgumentsCid);
     __ j(NOT_EQUAL, &fall_through);
     __ movq(RDI,
         FieldAddress(RDX, TypeArguments::type_at_offset(type_param.index())));
@@ -890,7 +890,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
   __ movq(RAX, Address(RSP, 0));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_to_double);
-  __ CompareClassId(RAX, kDouble);
+  __ CompareClassId(RAX, kDoubleCid);
   __ j(NOT_EQUAL, &call_method);
   __ movsd(XMM1, FieldAddress(RAX, Double::value_offset()));
   __ Bind(&double_op);
@@ -1067,7 +1067,7 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
                                              Register temp_reg,
                                              Label* deopt) {
   Label ok;
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
   __ testq(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
@@ -1097,7 +1097,7 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
   Label is_smi, done;
   __ testq(reg, Immediate(kSmiTagMask));
   __ j(ZERO, &is_smi);
-  __ CompareClassId(reg, kDouble);
+  __ CompareClassId(reg, kDoubleCid);
   __ j(NOT_EQUAL, not_double_or_smi);
   __ movsd(result, FieldAddress(reg, Double::value_offset()));
   __ jmp(&done);

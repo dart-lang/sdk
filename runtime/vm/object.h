@@ -106,7 +106,7 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
-  static const ObjectKind kInstanceKind = k##object;                           \
+  static const ClassId kClassId = k##object##Cid;                              \
  protected:  /* NOLINT */                                                      \
   object() : super() {}                                                        \
  private:  /* NOLINT */                                                        \
@@ -145,46 +145,6 @@ class Symbols;
 
 class Object {
  public:
-  // Index for Singleton internal VM classes,
-  // this index is used in snapshots to refer to these classes directly.
-  enum {
-    kNullObject = 0,
-    kSentinelObject,
-    kClassClass,
-    kNullClass,
-    kDynamicClass,
-    kVoidClass,
-    kUnresolvedClassClass,
-    kTypeClass,
-    kTypeParameterClass,
-    kTypeArgumentsClass,
-    kInstantiatedTypeArgumentsClass,
-    kFunctionClass,
-    kFieldClass,
-    kLiteralTokenClass,
-    kTokenStreamClass,
-    kScriptClass,
-    kLibraryClass,
-    kLibraryPrefixClass,
-    kCodeClass,
-    kInstructionsClass,
-    kPcDescriptorsClass,
-    kStackmapClass,
-    kLocalVarDescriptorsClass,
-    kExceptionHandlersClass,
-    kDeoptInfoClass,
-    kContextClass,
-    kContextScopeClass,
-    kICDataClass,
-    kSubtypeTestCacheClass,
-    kApiErrorClass,
-    kLanguageErrorClass,
-    kUnhandledExceptionClass,
-    kUnwindErrorClass,
-    kMaxId,
-    kInvalidIndex = -1,
-  };
-
   virtual ~Object() { }
 
   RawObject* raw() const { return raw_; }
@@ -324,9 +284,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
-  static int GetSingletonClassIndex(const RawClass* raw_class);
-  static RawClass* GetSingletonClass(int index);
-  static const char* GetSingletonClassName(int index);
+  static const char* GetSingletonClassName(intptr_t class_id);
 
   static RawClass* CreateAndRegisterInterface(const char* cname,
                                               const Script& script,
@@ -349,7 +307,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return RoundedAllocationSize(sizeof(RawObject));
   }
 
-  static const ObjectKind kInstanceKind = kObject;
+  static const ClassId kClassId = kObjectCid;
 
   // Different kinds of type tests.
   enum TypeTestKind {
@@ -413,7 +371,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static cpp_vtable handle_vtable_;
-  static cpp_vtable builtin_vtables_[kNumPredefinedKinds];
+  static cpp_vtable builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -493,11 +451,6 @@ class Class : public Object {
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
   void set_handle_vtable(cpp_vtable value) const {
     raw_ptr()->handle_vtable_ = value;
-  }
-
-  ObjectKind instance_kind() const { return raw_ptr()->instance_kind_; }
-  void set_instance_kind(ObjectKind value) const {
-    raw_ptr()->instance_kind_ = value;
   }
 
   intptr_t id() const { return raw_ptr()->id_; }
@@ -623,6 +576,9 @@ class Class : public Object {
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
     return signature_function() != Object::null();
+  }
+  static bool IsSignatureClass(RawClass* cls) {
+    return cls->ptr()->signature_function_ != Object::null();
   }
 
   // Check if this class represents a canonical signature class, i.e. not an
@@ -758,7 +714,7 @@ class Class : public Object {
   // Return a class object corresponding to the specified kind. If
   // a canonicalized version of it exists then that object is returned
   // otherwise a new object is allocated and returned.
-  static RawClass* GetClass(ObjectKind kind);
+  static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
  private:
   void set_name(const String& value) const;
@@ -5386,7 +5342,7 @@ void Object::SetRaw(RawObject* value) {
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
 #endif
   intptr_t cid = raw_->GetClassId();
-  if (cid < kNumPredefinedKinds) {
+  if (cid < kNumPredefinedCids) {
 #if defined(DEBUG)
     ASSERT(builtin_vtables_[cid] ==
            isolate->class_table()->At(cid)->ptr()->handle_vtable_);
