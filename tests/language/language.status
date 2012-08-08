@@ -249,7 +249,6 @@ fauxverride_test/none: Fail
 gc_test: Fail
 parameter_initializer6_negative_test: Fail
 prefix_core_test: Fail
-private_member3_negative_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
@@ -302,10 +301,6 @@ prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 prefix21_test: Fail
-private3_test: Fail
-private_member1_negative_test: Fail
-private_member_test: Fail
-private_test: Fail
 rethrow_test: Fail
 savannah_test: Fail
 static_final_field_negative_test: Fail
