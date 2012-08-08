@@ -587,4 +587,19 @@ main() {
     expect(result.logs, orderedEquals([e0, e1, e2, e3, e4, e5, e6,
                                        e7, e8, e9, e10]));
   });
+
+  test('Mocking: stepwiseValidate', () {
+    LogEntryList logList = new LogEntryList('test');
+    for (var i = 0; i < 10; i++) {
+      LogEntry e = new LogEntry(null, 'foo', [i], Action.IGNORE);
+      logList.add(e);
+    }
+    int total = 0;
+    logList.stepwiseValidate((log, pos) {
+        total += log[pos].args[0] * log[pos + 1].args[0];
+        expect(log[pos + 1].args[0] - log[pos].args[0], equals(1));
+        return 2;
+    });
+    expect(total, equals((0 * 1) + (2 * 3) + (4 * 5) + (6 * 7) + (8 * 9))); 
+  });
 }

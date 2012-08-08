@@ -204,6 +204,7 @@ CallMatcher callsTo([method,
 class Behavior {
   CallMatcher matcher; // The method call matcher.
   List<Responder> actions; // The values to return/throw or proxies to call.
+  bool logging = true;
 
   Behavior (this.matcher) {
     actions = new List<Responder>();
@@ -342,6 +343,15 @@ String _qualifiedName(owner, String method) {
 }
 
 /**
+* [StepValidator]s are used by [stepwiseValidate] in [LogEntryList], which
+* iterates through the list and call the [StepValidator] function with the
+* log [List] and position. The [StepValidator] should return the number of
+* positions to advance upon success, or zero upon failure. When zero is
+* returned an error is reported.
+*/
+typedef int StepValidator(List<LogEntry> logs, int pos);
+
+/**
  * We do verification on a list of [LogEntry]s. To allow chaining
  * of calls to verify, we encapsulate such a list in the [LogEntryList]
  * class.
@@ -427,6 +437,42 @@ class LogEntryList {
   }
 
   /**
+   * Iterate through the list and call the [validator] function with the
+   * log [List] and position. The [validator] should return the number of
+   * positions to advance upon success, or zero upon failure. When zero is
+   * returned an error is reported. [reason] can be used to provide a
+   * more descriptive failure message. If a failure occurred false will be
+   * returned (unless the failure handler itself threw an exception);
+   * otherwise true is returned.
+   * The use case here is to perform more complex validations; for example
+   * we may want to assert that the return value from some function is
+   * later used as a parameter to a following function. If we filter the logs
+   * to include just these two functions we can write a simple validator to
+   * do this check.
+   */
+  bool stepwiseValidate(StepValidator validator, [String reason = '']) {
+    if (_mockFailureHandler == null) {
+      _mockFailureHandler =
+          new _MockFailureHandler(getOrCreateExpectFailureHandler());
+    }
+    var i = 0;
+    while (i < logs.length) {
+      var n = validator(logs, i);
+      if (n == 0) {
+        if (reason.length > 0) {
+          reason = ': $reason';
+        }
+        _mockFailureHandler.fail("Stepwise validation failed at $filter "
+                                 "position $i$reason");
+        return false;
+      } else {
+        i += n;
+      }
+    }
+    return true;
+  }
+
+  /**
    * Turn the logs into human-readable text. If [baseTime] is specified
    * then each entry is prefixed with the offset from that time in
    * milliseconds; otherwise the time of day is used.
@@ -446,15 +492,18 @@ class LogEntryList {
    *  or a predicate function that takes a [LogEntry] argument and returns
    *  a bool. If [logFilter] is null, it will match any [LogEntry].
    *  If no entry is found, then [failureReturnValue] is returned.
+   *  After each check the position is updated by [skip], so using
+   *  [skip] of -1 allows backward searches.
    */
-  int findLogEntry(logFilter, [int start = 0, int failureReturnValue = -1]) {
+  int findLogEntry(logFilter, [int start = 0, int failureReturnValue = -1,
+      skip = 1]) {
     logFilter = _makePredicate(logFilter);
     int pos = start;
-    while (pos < logs.length) {
+    while (pos >= 0 && pos < logs.length) {
       if (logFilter(logs[pos])) {
         return pos;
       }
-      ++pos;
+      pos += skip;
     }
     return failureReturnValue;
   }
@@ -1070,9 +1119,11 @@ LogEntryList sharedLog = null;
  *
  *     class MockT extends Mock implements T {};
  *
- * Then specify the behavior of the Mock for different methods using
- * [when] (to select the method and parameters) and [thenReturn],
- * [alwaysReturn], [thenThrow], [alwaysThrow], [thenCall] or [alwaysCall].
+ * Then specify the [Behavior] of the Mock for different methods using
+ * [when] (to select the method and parameters) and then the [Action]s
+ * for the [Behavior] by calling [thenReturn], [alwaysReturn], [thenThrow],
+ * [alwaysThrow], [thenCall] or [alwaysCall].
+ *
  * [thenReturn], [thenThrow] and [thenCall] are one-shot so you would
  * typically call these more than once to specify a sequence of actions;
  * this can be done with chained calls, e.g.:
@@ -1082,6 +1133,10 @@ LogEntryList sharedLog = null;
  *
  * [thenCall] and [alwaysCall] allow you to proxy mocked methods, chaining
  * to some other implementation. This provides a way to implement 'spies'.
+ *
+ * You can disable logging for a particular [Behavior] easily:
+ *
+ *     m.when(callsTo('bar')).logging = false;
  *
  * You can then use the mock object. Once you are done, to verify the
  * behavior, use [getLogs] to extract a relevant subset of method call
@@ -1247,12 +1302,12 @@ class Mock {
         Action action = response.action;
         var value = response.value;
         if (action == Action.RETURN) {
-          if (_logging) {
+          if (_logging && b.logging) {
             log.add(new LogEntry(name, method, args, action, value));
           }
           return value;
         } else if (action == Action.THROW) {
-          if (_logging) {
+          if (_logging && b.logging) {
             log.add(new LogEntry(name, method, args, action, value));
           }
           throw value;
@@ -1301,7 +1356,7 @@ class Mock {
               throw new Exception(
                   "Cannot proxy calls with more than 10 parameters.");
           }
-          if (_logging) {
+          if (_logging && b.logging) {
             log.add(new LogEntry(name, method, args, action, rtn));
           }
           return rtn;
