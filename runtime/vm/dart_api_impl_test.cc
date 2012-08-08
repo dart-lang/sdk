@@ -46,7 +46,7 @@ TEST_CASE(ErrorHandleBasics) {
   EXPECT_STREQ(
       "Unhandled exception:\n"
       "Exception: bad news\n"
-      " 0. Function: '::testMain' url: 'dart:test-lib' line:2 col:3",
+      "#0      testMain (dart:test-lib:2:3)",
       Dart_GetError(exception));
 
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
@@ -257,7 +257,7 @@ TEST_CASE(InstanceGetClass) {
   EXPECT_VALID(cls_name);
   const char* cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
-  EXPECT_STREQ("Bool", cls_name_cstr);
+  EXPECT_STREQ("bool", cls_name_cstr);
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");

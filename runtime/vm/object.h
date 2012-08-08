@@ -1335,6 +1335,8 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* UserVisibleName() const;
+  RawString* QualifiedUserVisibleName() const;
 
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // internal signature of the given function.
@@ -1668,6 +1670,8 @@ class Function : public Object {
 class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* UserVisibleName() const;
+
   bool is_static() const { return raw_ptr()->is_static_; }
   bool is_final() const { return raw_ptr()->is_final_; }
   bool is_const() const { return raw_ptr()->is_const_; }

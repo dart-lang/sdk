@@ -4366,7 +4366,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     if (!is_literal) {
       ErrorMsg("function name expected");
     }
-    function_name = &String::ZoneHandle(Symbols::Function());
+    function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
   }
   ASSERT(ident_pos >= 0);
 

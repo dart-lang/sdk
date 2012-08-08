@@ -101,6 +101,90 @@ RawClass* Object::unhandled_exception_class_ =
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
+
+// Takes a vm internal name and makes it suitable for external user.
+//
+// Examples:
+//
+// Internal getter and setter prefixes are changed:
+//
+//   get:foo -> foo
+//   set:foo -> foo=
+//
+// Private name mangling is removed, possibly twice:
+//
+//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
+//   _ReceivePortImpl@6be832b._internal@6be832b -> +ReceivePortImpl._internal
+//
+// The trailing . on the default constructor name is dropped:
+//
+//   List. -> List
+//
+// And so forth:
+//
+//   get:foo@6be832b -> foo
+//   _MyClass@6b3832b. -> _MyClass
+//   _MyClass@6b3832b.named -> _MyClass.named
+//
+static RawString* IdentifierPrettyName(const String& name) {
+  intptr_t len = name.Length();
+  intptr_t start = 0;
+  intptr_t at_pos = len;   // Position of '@' in the name.
+  intptr_t dot_pos = len;  // Position of '.' in the name.
+  bool is_setter = false;
+
+  for (int i = 0; i < name.Length(); i++) {
+    if (name.CharAt(i) == ':') {
+      ASSERT(start == 0);
+      if (name.CharAt(0) == 's') {
+        is_setter = true;
+      }
+      start = i + 1;
+    } else if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    } else if (name.CharAt(i) == '.') {
+      dot_pos = i;
+      break;
+    }
+  }
+  intptr_t limit = (at_pos < dot_pos ? at_pos : dot_pos);
+  if (start == 0 && limit == len) {
+    // This name is fine as it is.
+    return name.raw();
+  }
+
+  const String& result =
+      String::Handle(String::SubString(name, start, (limit - start)));
+
+  // Look for a second '@' now to correctly handle names like
+  // "_ReceivePortImpl@6be832b._internal@6be832b".
+  at_pos = len;
+  for (int i = dot_pos; i < name.Length(); i++) {
+    if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    }
+  }
+
+  intptr_t suffix_len = at_pos - dot_pos;
+  if (suffix_len > 1) {
+    // This is a named constructor.  Add the name back to the string.
+    const String& suffix =
+        String::Handle(String::SubString(name, dot_pos, suffix_len));
+    return String::Concat(result, suffix);
+  }
+
+  if (is_setter) {
+    // Setters need to end with '='.
+    const String& suffix = String::Handle(Symbols::Equals());
+    return String::Concat(result, suffix);
+  }
+
+  return result.raw();
+}
+
+
 int Object::GetSingletonClassIndex(const RawClass* raw_class) {
   ASSERT(raw_class->IsHeapObject());
   if (raw_class == class_class()) {
@@ -1131,7 +1215,8 @@ RawString* Class::UserVisibleName() const {
     case kExternalFloat64Array:
       return Symbols::New("Float64List");
     default:
-      return Name();
+      const String& name = String::Handle(Name());
+      return IdentifierPrettyName(name);
   }
   UNREACHABLE();
 }
@@ -4372,6 +4457,38 @@ bool Function::HasOptimizedCode() const {
 }
 
 
+RawString* Function::UserVisibleName() const {
+  const String& str = String::Handle(name());
+  return IdentifierPrettyName(str);
+}
+
+
+RawString* Function::QualifiedUserVisibleName() const {
+  String& tmp = String::Handle();
+  String& suffix = String::Handle();
+  const Class& cls = Class::Handle(owner());
+
+  if (IsClosureFunction()) {
+    if (IsLocalFunction()) {
+      const Function& parent = Function::Handle(parent_function());
+      tmp = parent.QualifiedUserVisibleName();
+    } else {
+      return UserVisibleName();
+    }
+  } else {
+    if (cls.IsTopLevel()) {
+      return UserVisibleName();
+    } else {
+      tmp = cls.UserVisibleName();
+    }
+  }
+  suffix = Symbols::Dot();
+  tmp = String::Concat(tmp, suffix);
+  suffix = UserVisibleName();
+  return String::Concat(tmp, suffix);
+}
+
+
 const char* Function::ToCString() const {
   const char* static_str = is_static() ? " static" : "";
   const char* abstract_str = is_abstract() ? " abstract" : "";
@@ -4522,6 +4639,12 @@ RawField* Field::New(const String& name,
   result.set_token_pos(token_pos);
   result.set_has_initializer(false);
   return result.raw();
+}
+
+
+RawString* Field::UserVisibleName() const {
+  const String& str = String::Handle(name());
+  return IdentifierPrettyName(str);
 }
 
 
@@ -10894,31 +11017,27 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 }
 
 
-const char* Stacktrace::ToCStringInternal(bool verbose) const {
+const char* Stacktrace::ToCString() const {
   Function& function = Function::Handle();
   Code& code = Code::Handle();
-  Class& function_class = Class::Handle();
+  Class& owner = Class::Handle();
   Script& script = Script::Handle();
   String& function_name = String::Handle();
-  String& class_name = String::Handle();
   String& url = String::Handle();
 
   // Iterate through the stack frames and create C string description
   // for each frame.
   intptr_t total_len = 0;
-  const char* kFormat = verbose ?
-      " %d. Function: '%s%s%s' url: '%s' line:%d col:%d code-entry: 0x%x\n" :
-      " %d. Function: '%s%s%s' url: '%s' line:%d col:%d\n";
+  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
   GrowableArray<char*> frame_strings;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
-    function_class = function.owner();
-    script = function_class.script();
-    function_name = function.name();
-    class_name = function_class.Name();
+    owner = function.owner();
+    script = owner.script();
+    function_name = function.QualifiedUserVisibleName();
     url = script.url();
     intptr_t line = -1;
     intptr_t column = -1;
@@ -10927,22 +11046,16 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
     }
     intptr_t len = OS::SNPrint(NULL, 0, kFormat,
                                i,
-                               class_name.ToCString(),
-                               function_class.IsTopLevel() ? "" : ".",
                                function_name.ToCString(),
                                url.ToCString(),
-                               line, column,
-                               code.EntryPoint());
+                               line, column);
     total_len += len;
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
                 i,
-                class_name.ToCString(),
-                function_class.IsTopLevel() ? "" : ".",
                 function_name.ToCString(),
                 url.ToCString(),
-                line, column,
-                code.EntryPoint());
+                line, column);
     frame_strings.Add(chars);
   }
 
@@ -10956,11 +11069,6 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
                          frame_strings[i]);
   }
   return chars;
-}
-
-
-const char* Stacktrace::ToCString() const {
-  return ToCStringInternal(false);
 }
 
 

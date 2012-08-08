@@ -15,6 +15,7 @@ class ObjectPointerVisitor;
 
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(Dot, ".")                                                                  \
+  V(Equals, "=")                                                               \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
@@ -24,7 +25,7 @@ class ObjectPointerVisitor;
   V(Next, "next")                                                              \
   V(Value, "value")                                                            \
   V(ExprTemp, ":expr_temp")                                                    \
-  V(Function, "function")                                                      \
+  V(AnonymousClosure, "<anonymous closure>")                                   \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionError")                                          \
