@@ -689,6 +689,7 @@ _defer(void callback()) {
 
 rerunTests() {
   _uncaughtErrorMessage = null;
+  _initialized = true; // We don't want to reset the test array.
   runTests();
 }
 

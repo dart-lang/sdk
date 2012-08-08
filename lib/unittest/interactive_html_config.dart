@@ -297,7 +297,7 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
       });
     }
     var list = groupDiv.query('.tests');
-    var testItem = list.query('#$_testIdPrefix-$id');
+    var testItem = list.query('#$_testIdPrefix$id');
     if (testItem == null) {
       // Create the li element for the test.
       testItem = new Element.html("""
