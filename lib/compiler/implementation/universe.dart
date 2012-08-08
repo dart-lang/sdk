@@ -283,7 +283,7 @@ class Selector implements Hashable {
     return orderedNamedArguments;
   }
 
-  toString() => 'Selector($kind, $argumentCount)';
+  toString() => '$kind $argumentCount';
 }
 
 class TypedSelector extends Selector {
@@ -353,6 +353,4 @@ class TypedSelector extends Selector {
     if (other.receiverType !== receiverType) return false;
     return super == other;
   }
-
-  toString() => 'TypedSelector($kind, $receiverType, $argumentCount)';
 }

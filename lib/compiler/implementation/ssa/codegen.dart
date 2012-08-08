@@ -1731,19 +1731,17 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           currentLibrary, node.name, node.selector));
       visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader !== null;
-
-      // Register this invocation to collect the types used at all call sites.
-      Selector selector = getOptimizedSelectorFor(node, node.selector);
-      backend.registerDynamicInvocation(node, selector);
-
       if (node.element !== null) {
         // If we know we're calling a specific method, register that
         // method only.
-        if (inLoop) backend.builder.functionsCalledInLoop.add(node.element);
+        if (inLoop) {
+          backend.builder.functionsCalledInLoop.add(node.element);
+        }
         world.registerDynamicInvocationOf(node.element);
       } else {
-        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
+        Selector selector = getOptimizedSelectorFor(node, node.selector);
         world.registerDynamicInvocation(node.name, selector);
+        if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
