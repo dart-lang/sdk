@@ -88,6 +88,12 @@ class Enqueuer {
     queue.add(new WorkItem(element, elements));
   }
 
+  void eagerRecompile(Element element) {
+    universe.generatedCode.remove(element);
+    universe.generatedBailoutCode.remove(element);
+    addToWorkList(element);
+  }
+
   bool canBeRecompiled(Element element) {
     // Only member functions can be recompiled. An exception to this is members
     // of closures. They are processed as part of the enclosing function and not
