@@ -80,12 +80,34 @@ FlowGraphAllocator::FlowGraphAllocator(
 }
 
 
+// Remove environments from the instructions which can't deoptimize.
+// Replace dead phis uses with null values in environments.
 void FlowGraphAllocator::EliminateEnvironmentUses() {
+  ConstantVal* null_value = new ConstantVal(Object::ZoneHandle());
+
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* block = block_order_[i];
+
+    if (block->IsJoinEntry()) block->AsJoinEntry()->RemoveDeadPhis();
+
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->CanDeoptimize()) current->set_env(NULL);
+      if (current->CanDeoptimize()) {
+        ASSERT(current->env() != NULL);
+        GrowableArray<Value*>* values = current->env()->values_ptr();
+
+        for (intptr_t i = 0; i < values->length(); i++) {
+          UseVal* use = (*values)[i]->AsUse();
+          if (use == NULL) continue;
+
+          PhiInstr* phi = use->definition()->AsPhi();
+          if (phi == NULL) continue;
+
+          if (!phi->is_alive()) (*values)[i] = null_value;
+        }
+      } else {
+        current->set_env(NULL);
+      }
     }
   }
 }
@@ -139,6 +161,7 @@ void FlowGraphAllocator::ComputeInitialSets() {
         for (intptr_t j = 0; j < join->phis()->length(); j++) {
           PhiInstr* phi = (*join->phis())[j];
           if (phi == NULL) continue;
+
           kill->Add(phi->ssa_temp_index());
           live_in->Remove(phi->ssa_temp_index());
 

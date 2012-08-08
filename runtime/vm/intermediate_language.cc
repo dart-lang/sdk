@@ -411,6 +411,22 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
 }
 
 
+void JoinEntryInstr::RemoveDeadPhis() {
+  if (phis_ == NULL) return;
+
+  for (intptr_t i = 0; i < phis_->length(); i++) {
+    PhiInstr* phi = (*phis_)[i];
+    if ((phi != NULL) && !phi->is_alive()) {
+      (*phis_)[i] = NULL;
+      phi_count_--;
+    }
+  }
+
+  // Check if we removed all phis.
+  if (phi_count_ == 0) phis_ = NULL;
+}
+
+
 intptr_t Instruction::SuccessorCount() const {
   return 0;
 }

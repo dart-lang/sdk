@@ -69,13 +69,16 @@ class FlowGraphBuilder: public ValueObject {
                     GrowableArray<intptr_t>* parent,
                     GrowableArray<intptr_t>* label);
 
-  void Rename();
+  void Rename(GrowableArray<PhiInstr*>* live_phis);
   void RenameRecursive(BlockEntryInstr* block_entry,
-                       GrowableArray<Value*>* env);
+                       GrowableArray<Value*>* env,
+                       GrowableArray<PhiInstr*>* live_phis);
 
   void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
                   const GrowableArray<BitVector*>& assigned_vars,
                   const GrowableArray<BitVector*>& dom_frontier);
+
+  void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
 
   const ParsedFunction& parsed_function_;
 

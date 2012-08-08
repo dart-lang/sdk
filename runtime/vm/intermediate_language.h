@@ -2217,6 +2217,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
+  void RemoveDeadPhis();
 
   intptr_t phi_count() const { return phi_count_; }
 
@@ -2363,7 +2364,8 @@ class BindInstr : public Definition {
 
 class PhiInstr : public Definition {
  public:
-  explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
+  explicit PhiInstr(intptr_t num_inputs)
+    : inputs_(num_inputs), is_alive_(false) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -2382,10 +2384,15 @@ class PhiInstr : public Definition {
 
   virtual bool CanDeoptimize() const { return false; }
 
+  // Phi is alive if it reaches a non-environment use.
+  bool is_alive() const { return is_alive_; }
+  void mark_alive() { is_alive_ = true; }
+
   DECLARE_INSTRUCTION(Phi)
 
  private:
   GrowableArray<Value*> inputs_;
+  bool is_alive_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2697,6 +2704,10 @@ class Environment : public ZoneAllocated {
   void InitializeLocations(FlowGraphAllocator* allocator,
                            intptr_t block_start_pos,
                            intptr_t environment_pos);
+
+  GrowableArray<Value*>* values_ptr() {
+    return &values_;
+  }
 
   Location LocationAt(intptr_t ix) const {
     ASSERT((ix >= 0) && (ix < location_count_));
