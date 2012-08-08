@@ -1215,8 +1215,12 @@ RawString* Class::UserVisibleName() const {
     case kExternalFloat64Array:
       return Symbols::New("Float64List");
     default:
-      const String& name = String::Handle(Name());
-      return IdentifierPrettyName(name);
+      if (!IsSignatureClass()) {
+        const String& name = String::Handle(Name());
+        return IdentifierPrettyName(name);
+      } else {
+        return Name();
+      }
   }
   UNREACHABLE();
 }
