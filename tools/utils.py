@@ -149,6 +149,21 @@ def GetSVNRevision():
   p = subprocess.Popen(['svn', 'info'], stdout = subprocess.PIPE,
       stderr = subprocess.STDOUT, shell=IsWindows())
   output, not_used = p.communicate()
+  revision = ParseSvnInfoOutput(output)
+  if revision:
+    return revision
+
+  # maybe the builder is using git-svn, try that
+  p = subprocess.Popen(['git', 'svn', 'info'], stdout = subprocess.PIPE,
+      stderr = subprocess.STDOUT, shell=IsWindows())
+  output, not_used = p.communicate()
+  revision = ParseSvnInfoOutput(output)
+  if revision:
+    return revision
+
+  return None
+
+def ParseSvnInfoOutput(output):
   for line in output.split('\n'):
     if 'Revision' in line:
       return (line.strip().split())[1]
