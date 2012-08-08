@@ -1845,9 +1845,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     buffer.add('.');
     buffer.add(name);
     beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-    Type type = node.receiver.propagatedType.computeType(compiler);
-    if (type != null) {
-      world.registerFieldGetter(node.element.name, type);
+    if (node.element == null) {
+      // If we don't have an element we register a dynamic field getter.
+      // This might lead to unnecessary getters, but these cases should be
+      // rare.
+      world.registerDynamicGetter(node.fieldName, Selector.GETTER);
+    } else {
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        world.registerFieldGetter(node.element.name, type);
+      }
     }
   }
 
@@ -1865,7 +1872,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitFieldSet(HFieldSet node) {
-    if (work.element.isGenerativeConstructorBody() &&
+    if (node.element != null &&
+        work.element.isGenerativeConstructorBody() &&
         node.element.enclosingElement.isClass() &&
         node.value.hasGuaranteedType() &&
         node.block.dominates(currentGraph.exit)) {
@@ -1878,24 +1886,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
     buffer.add('.');
     buffer.add(name);
-    Type type = node.receiver.propagatedType.computeType(compiler);
-    if (type != null) {
-      if (!work.element.isGenerativeConstructorBody()) {
-        world.registerFieldSetter(node.element.name, type);
-      }
-      // Determine the types seen so far for the field. If only number
-      // types have been seen and the value of the field set is a
-      // simple number computation only depending on that field, we
-      // can safely keep the number type for the field.
-      HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
-      HType initializersType = backend.typeFromInitializersSoFar(node.element);
-      HType fieldType = fieldSettersType.union(initializersType);
-      if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
-          isSimpleFieldNumberComputation(node.value, node)) {
-        backend.updateFieldSetters(node.element, HType.NUMBER);
-      } else {
-        backend.updateFieldSetters(node.element,
-                                   node.value.propagatedType);
+    if (node.element == null) {
+      // If we don't have an element we register a dynamic field setter.
+      // This might lead to unnecessary setters, but these cases should be
+      // rare.
+      world.registerDynamicSetter(node.fieldName, Selector.SETTER);
+    } else {
+      Type type = node.receiver.propagatedType.computeType(compiler);
+      if (type != null) {
+        if (!work.element.isGenerativeConstructorBody()) {
+          world.registerFieldSetter(node.element.name, type);
+        }
+        // Determine the types seen so far for the field. If only number
+        // types have been seen and the value of the field set is a
+        // simple number computation only depending on that field, we
+        // can safely keep the number type for the field.
+        HType fieldSettersType = backend.fieldSettersTypeSoFar(node.element);
+        HType initializersType =
+            backend.typeFromInitializersSoFar(node.element);
+        HType fieldType = fieldSettersType.union(initializersType);
+        if (HType.NUMBER.union(fieldType) == HType.NUMBER &&
+            isSimpleFieldNumberComputation(node.value, node)) {
+          backend.updateFieldSetters(node.element, HType.NUMBER);
+        } else {
+          backend.updateFieldSetters(node.element,
+                                     node.value.propagatedType);
+        }
       }
     }
     buffer.add(' = ');
