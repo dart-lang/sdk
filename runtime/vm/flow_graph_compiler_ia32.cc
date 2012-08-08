@@ -95,13 +95,12 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
         Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
     __ movl(Address(EBP, -kWordSize), EAX);
   }
-  __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
   compiler->pc_descriptors_list()-> AddDeoptInfo(
       compiler->assembler()->CodeSize(),
       deopt_id_,
-      deopt_token_pos_,
+      reason_,
       deopt_info_index);
 #undef __
 }

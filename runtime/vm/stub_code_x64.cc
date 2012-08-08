@@ -579,7 +579,6 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 //   | optimized frame  |
 //   |  ...             |
 //
-// RAX: Deoptimization reason id.
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ EnterFrame(0);
   // Push registers in their enumeration order: lowest register number at
@@ -590,8 +589,7 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ movq(RCX, RSP);  // Saved saved registers block.
   __ ReserveAlignedFrameSpace(0);
   __ SmiUntag(RAX);
-  __ movq(RDI, RAX);  // Set up argument 1 deopt_reason.
-  __ movq(RSI, RCX);  // Set up argument 2 saved_registers_address.
+  __ movq(RDI, RCX);  // Set up argument 1 saved_registers_address.
 
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (RAX) is stack-size (FP - SP) in bytes, incl. the return address.

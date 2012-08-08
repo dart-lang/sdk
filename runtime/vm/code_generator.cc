@@ -1389,17 +1389,24 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-static intptr_t GetDeoptInfo(const Code& code, uword pc) {
+static void GetDeoptInfo(const Code& code,
+                         uword pc,
+                         intptr_t* deopt_id,
+                         intptr_t* deopt_reason) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
   // Locate deopt id at deoptimization point inside optimized code.
   for (int i = 0; i < descriptors.Length(); i++) {
-    if (static_cast<uword>(descriptors.PC(i)) == pc) {
-      return descriptors.DeoptId(i);
+    if ((static_cast<uword>(descriptors.PC(i)) == pc) &&
+        (descriptors.DescriptorKind(i) == PcDescriptors::kDeoptIndex)) {
+      *deopt_id = descriptors.DeoptId(i);
+      *deopt_reason = descriptors.DeoptReason(i);
+      return;
     }
   }
-  return Isolate::kNoDeoptId;
+  *deopt_id = Isolate::kNoDeoptId;
+  *deopt_reason = kDeoptUnknown;
 }
 
 
@@ -1408,7 +1415,6 @@ static intptr_t GetDeoptInfo(const Code& code, uword pc) {
 // Return the new stack size (including PC marker and deopt return address,
 // excluding FP).
 DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          intptr_t deopt_reason,
                           intptr_t* saved_registers_address) {
   Isolate* isolate = Isolate::Current();
   Zone zone(isolate);
@@ -1432,7 +1438,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
 
-  const intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
+  intptr_t deopt_id, deopt_reason;
+  GetDeoptInfo(optimized_code, caller_frame->pc(), &deopt_id, &deopt_reason);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
 
   // Add incoming arguments.
@@ -1492,7 +1499,8 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   intptr_t* frame_copy = isolate->deopt_frame_copy();
   intptr_t* registers_copy = isolate->deopt_registers_copy();
 
-  intptr_t deopt_id = GetDeoptInfo(optimized_code, caller_frame->pc());
+  intptr_t deopt_id, deopt_reason;
+  GetDeoptInfo(optimized_code, caller_frame->pc(), &deopt_id, &deopt_reason);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
   uword continue_at_pc = unoptimized_code.GetDeoptPcAtDeoptId(deopt_id);
   if (FLAG_trace_deopt) {

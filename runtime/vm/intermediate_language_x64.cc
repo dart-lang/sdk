@@ -326,10 +326,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
   ASSERT(ic_data.num_args_tested() == 1);
-  Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        token_pos,
-                                        try_index,
-                                        kDeoptEquality);
+  Label* deopt = compiler->AddDeoptStub(deopt_id, try_index, kDeoptEquality);
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   __ testq(left, Immediate(kSmiTagMask));
@@ -460,7 +457,6 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Register right = locs.in(1).reg();
   Register temp = locs.temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        token_pos,
                                         try_index,
                                         kDeoptSmiCompareSmi,
                                         left,
@@ -515,7 +511,6 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
   // TODO(srdjan): temp is only needed if a conversion Smi->Double occurs.
   Register temp = locs.temp(0).reg();
   Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        token_pos,
                                         try_index,
                                         kDeoptDoubleComparison,
                                         left,
@@ -588,7 +583,6 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                          token_pos(),
                                           try_index(),
                                           kDeoptRelationalOp);
     // Load receiver into RAX, class into RDI.
@@ -698,7 +692,6 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
 static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
                                         LoadIndexedComp* comp) {
   Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->token_pos(),
                                         comp->try_index(),
                                         kDeoptLoadIndexedPolymorphic);
   ASSERT(comp->ic_data()->NumberOfChecks() > 0);
@@ -745,7 +738,6 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
 
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        token_pos(),
                                         try_index(),
                                         deopt_reason,
                                         receiver,
@@ -837,7 +829,6 @@ static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
 static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
                                         StoreIndexedComp* comp) {
   Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->token_pos(),
                                         comp->try_index(),
                                         kDeoptStoreIndexedPolymorphic);
   ASSERT(comp->ic_data()->NumberOfChecks() > 0);
@@ -879,7 +870,6 @@ void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register value = locs()->in(2).reg();
 
   Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        token_pos(),
                                         try_index(),
                                         kDeoptStoreIndexed,
                                         receiver,
@@ -945,7 +935,6 @@ void LoadInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
                                           instance_reg);
@@ -1078,7 +1067,6 @@ void LoadVMFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
                                           instance_reg);
@@ -1452,7 +1440,6 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   Register temp = comp->locs()->temp(0).reg();
   ASSERT(left == result);
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                        comp->instance_call()->token_pos(),
                                         comp->instance_call()->try_index(),
                                         kDeoptSmiBinaryOp,
                                         temp,
@@ -1609,7 +1596,6 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   ASSERT(left == result);
   ASSERT(comp->op_kind() == Token::kBIT_AND);
   Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                        comp->instance_call()->token_pos(),
                                         comp->instance_call()->try_index(),
                                         kDeoptMintBinaryOp,
                                         left,
@@ -1730,7 +1716,6 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   __ popq(left);
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->token_pos(),
                                         instance_call()->try_index(),
                                         kDeoptDoubleBinaryOp,
                                         left,
@@ -1782,7 +1767,6 @@ void UnarySmiOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   ASSERT(value == result);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->token_pos(),
                                         instance_call()->try_index(),
                                         kDeoptUnaryOp,
                                         value);
@@ -1834,7 +1818,6 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register result = locs()->out().reg();
   ASSERT(value == result);
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->token_pos(),
                                         instance_call()->try_index(),
                                         kDeoptUnaryOp,
                                         value);
@@ -1890,7 +1873,6 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   const DeoptReasonId deopt_reason = (from() == kDoubleCid) ?
       kDeoptDoubleToDouble : kDeoptIntegerToDouble;
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->token_pos(),
                                         instance_call()->try_index(),
                                         deopt_reason,
                                         value);
@@ -1934,7 +1916,6 @@ LocationSummary* PolymorphicInstanceCallComp::MakeLocationSummary() const {
 
 void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
-                                        instance_call()->token_pos(),
                                         instance_call()->try_index(),
                                         kDeoptPolymorphicInstanceCallTestFail);
   if (!HasICData() || (ic_data()->NumberOfChecks() == 0)) {

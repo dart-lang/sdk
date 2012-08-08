@@ -178,7 +178,6 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t token_pos,
                             intptr_t try_index);
   Label* AddDeoptStub(intptr_t deopt_id,
-                      intptr_t deopt_token_pos,
                       intptr_t try_index_,
                       DeoptReasonId reason,
                       Register reg1 = kNoRegister,

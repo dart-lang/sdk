@@ -2168,13 +2168,15 @@ class PcDescriptors : public Object {
   // Describes the layout of PC descriptor data.
   enum {
     kPcEntry = 0,      // PC value of the descriptor, unique.
-    kKindEntry,
-    kDeoptIdEntry,     // Deopt id.
-    kTokenPosEntry,    // Token position in source of PC.
-    kTryIndexEntry,    // Try block index of PC.
+    kKindEntry = 1,
+    kDeoptIdEntry = 2,      // Deopt id.
+    kTokenPosEntry = 3,     // Token position in source.
+    kDeoptReasonEntry = 3,  // DeoptReasonId.
+    kTryIndexEntry = 4,     // Try block index.
+    kDeoptIndexEntry = 4,   // Deoptimization array index.
     // We would potentially be adding other objects here like
     // pointer maps for optimized functions, local variables information  etc.
-    kNumberOfEntries
+    kNumberOfEntries = 5,
   };
 
  public:
@@ -2196,15 +2198,17 @@ class PcDescriptors : public Object {
   intptr_t DeoptId(intptr_t index) const;
   intptr_t TokenPos(intptr_t index) const;
   intptr_t TryIndex(intptr_t index) const;
+  // Different encoding for kDeoptIndex.
   // Index into the deopt-info array of Code object.
   intptr_t DeoptIndex(intptr_t index) const;
+  intptr_t DeoptReason(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,
                      PcDescriptors::Kind kind,
                      intptr_t deopt_id,
-                     intptr_t token_pos,
-                     intptr_t try_index) const {
+                     intptr_t token_pos,  // Or deopt reason.
+                     intptr_t try_index) const {  // Or deopt index.
     SetPC(index, pc);
     SetKind(index, kind);
     SetDeoptId(index, deopt_id);

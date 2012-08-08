@@ -818,7 +818,6 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
                                           instance_reg,

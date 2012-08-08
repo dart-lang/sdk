@@ -229,14 +229,13 @@ void FlowGraphCompiler::AddCurrentDescriptor(PcDescriptors::Kind kind,
 
 
 Label* FlowGraphCompiler::AddDeoptStub(intptr_t deopt_id,
-                                       intptr_t deopt_token_pos,
                                        intptr_t try_index,
                                        DeoptReasonId reason,
                                        Register reg1,
                                        Register reg2,
                                        Register reg3) {
   DeoptimizationStub* stub =
-      new DeoptimizationStub(deopt_id, deopt_token_pos, try_index, reason);
+      new DeoptimizationStub(deopt_id, try_index, reason);
   if (pending_deoptimization_env_ == NULL) {
     ASSERT(!is_ssa_);
     frame_register_allocator()->SpillInDeoptStub(stub);

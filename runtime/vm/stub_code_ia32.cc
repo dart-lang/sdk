@@ -586,7 +586,6 @@ DECLARE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp);
 //   | optimized frame  |
 //   |  ...             |
 //
-// EAX: Deoptimization reason id.
 void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ EnterFrame(0);
   // Push registers in their enumeration order: lowest register number at
@@ -595,10 +594,9 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
     __ pushl(static_cast<Register>(i));
   }
   __ movl(ECX, ESP);  // Saved saved registers block.
-  __ ReserveAlignedFrameSpace(2 * kWordSize);
+  __ ReserveAlignedFrameSpace(1 * kWordSize);
   __ SmiUntag(EAX);
-  __ movl(Address(ESP, 0), EAX);  // Deopt reason (untagged).
-  __ movl(Address(ESP, kWordSize), ECX);  // Start of register block.
+  __ movl(Address(ESP, 0), ECX);  // Start of register block.
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
   __ LeaveFrame();
