@@ -45,21 +45,10 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
     const String& function_name,
     int num_arguments,
     int num_named_arguments) {
-  Class& cls = Class::Handle(receiver_class.raw());
-  if (FLAG_trace_resolving) {
-    OS::Print("ResolveDynamic '%s' for class %s\n",
-        function_name.ToCString(), String::Handle(cls.Name()).ToCString());
-  }
 
-  // Now look for an instance function whose name matches function_name
-  // in the class.
   Function& function =
-      Function::Handle(cls.LookupDynamicFunction(function_name));
-  while (function.IsNull()) {
-    cls = cls.SuperClass();
-    if (cls.IsNull()) break;
-    function = cls.LookupDynamicFunction(function_name);
-  }
+      Function::Handle(ResolveDynamicAnyArgs(receiver_class, function_name));
+
   if (function.IsNull() ||
       !function.AreValidArgumentCounts(num_arguments,
                                        num_named_arguments,
@@ -79,6 +68,28 @@ RawFunction* Resolver::ResolveDynamicForReceiverClass(
                 error_message.ToCString());
     }
     return Function::null();
+  }
+  return function.raw();
+}
+
+
+RawFunction* Resolver::ResolveDynamicAnyArgs(
+    const Class& receiver_class,
+    const String& function_name) {
+  Class& cls = Class::Handle(receiver_class.raw());
+  if (FLAG_trace_resolving) {
+    OS::Print("ResolveDynamic '%s' for class %s\n",
+              function_name.ToCString(),
+              String::Handle(cls.Name()).ToCString());
+  }
+  // Now look for an instance function whose name matches function_name
+  // in the class.
+  Function& function =
+      Function::Handle(cls.LookupDynamicFunction(function_name));
+  while (function.IsNull()) {
+    cls = cls.SuperClass();
+    if (cls.IsNull()) break;
+    function = cls.LookupDynamicFunction(function_name);
   }
   return function.raw();
 }

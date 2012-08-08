@@ -1791,11 +1791,23 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   const String& getter_name =
       String::Handle(Field::GetterName(node->field_name()));
-  const Function& getter_function =
-      Function::ZoneHandle(node->cls().LookupStaticFunction(getter_name));
-  ASSERT(!getter_function.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
+  Function& getter_function = Function::ZoneHandle();
+  if (node->is_super_getter()) {
+    // Statically resolved instance getter, i.e. "super getter".
+    getter_function =
+    Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+    ASSERT(!getter_function.IsNull());
+    ASSERT(node->receiver() != NULL);
+    ValueGraphVisitor receiver_value(owner(), temp_index());
+    node->receiver()->Visit(&receiver_value);
+    Append(receiver_value);
+    arguments->Add(PushArgument(receiver_value.value()));
+  } else {
+    getter_function = node->cls().LookupStaticFunction(getter_name);
+    ASSERT(!getter_function.IsNull());
+  }
   StaticCallComp* call = new StaticCallComp(node->token_pos(),
                                             owner()->try_index(),
                                             getter_function,
@@ -1809,9 +1821,25 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                            bool result_is_needed) {
   const String& setter_name =
       String::Handle(Field::SetterName(node->field_name()));
+  // A super setter is an instance setter whose setter function is
+  // resolved at compile time (in the caller instance getter's super class).
+  // Unlike a static getter, a super getter has a receiver parameter.
+  const bool is_super_setter = (node->receiver() != NULL);
   const Function& setter_function =
-      Function::ZoneHandle(node->cls().LookupStaticFunction(setter_name));
+      Function::ZoneHandle(is_super_setter
+          ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
+          : node->cls().LookupStaticFunction(setter_name));
   ASSERT(!setter_function.IsNull());
+
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  if (is_super_setter) {
+    // Add receiver of instance getter.
+    ValueGraphVisitor for_receiver(owner(), temp_index());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    arguments->Add(PushArgument(for_receiver.value()));
+  }
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
@@ -1823,9 +1851,8 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   } else {
     value = for_value.value();
   }
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(PushArgument(value));
+
   StaticCallComp* call = new StaticCallComp(node->token_pos(),
                                             owner()->try_index(),
                                             setter_function,

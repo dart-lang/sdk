@@ -1192,22 +1192,6 @@ void Parser::CheckFunctionIsCallable(intptr_t token_pos,
 }
 
 
-static RawFunction* ResolveDynamicFunction(const Class& cls,
-                                           const String& name) {
-  Function& func = Function::Handle(cls.LookupDynamicFunction(name));
-  if (func.IsNull()) {
-    Class& super_cls = Class::Handle(cls.SuperClass());
-    while (!super_cls.IsNull()) {
-      func = super_cls.LookupDynamicFunction(name);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-      super_cls = super_cls.SuperClass();
-    }
-  }
-  return func.raw();
-}
-
 // Resolve and return the dynamic function of the given name in the superclass.
 // If it is not found, return noSuchMethod and set is_no_such_method to true.
 RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
@@ -1220,10 +1204,11 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
   }
 
   Function& super_func =
-      Function::Handle(ResolveDynamicFunction(super_class, name));
+      Function::Handle(Resolver::ResolveDynamicAnyArgs(super_class, name));
   if (super_func.IsNull()) {
     const String& no_such_method_name = String::Handle(Symbols::NoSuchMethod());
-    super_func = ResolveDynamicFunction(super_class, no_such_method_name);
+    super_func =
+        Resolver::ResolveDynamicAnyArgs(super_class, no_such_method_name);
     ASSERT(!super_func.IsNull());
     *is_no_such_method = true;
   } else {
@@ -1436,7 +1421,7 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
 AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
   TRACE_PARSER("ParseSuperFieldAccess");
   const intptr_t field_pos = TokenPos();
-  const Class& super_class = Class::Handle(current_class().SuperClass());
+  const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
   if (super_class.IsNull()) {
     ErrorMsg("class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
@@ -1446,14 +1431,14 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
   const String& getter_name =
       String::ZoneHandle(Field::GetterName(field_name));
   const Function& super_getter = Function::ZoneHandle(
-      ResolveDynamicFunction(super_class, getter_name));
+      Resolver::ResolveDynamicAnyArgs(super_class, getter_name));
   if (super_getter.IsNull()) {
     // Check if this is an access to an implicit closure using 'super'.
     // If a function exists of the specified field_name then try
     // accessing it as a getter, at runtime we will handle this by
     // creating an implicit closure of the function and returning it.
     const Function& super_function = Function::ZoneHandle(
-        ResolveDynamicFunction(super_class, field_name));
+        Resolver::ResolveDynamicAnyArgs(super_class, field_name));
     if (super_function.IsNull()) {
       ErrorMsg(field_pos, "field or getter '%s' not found in superclass",
                field_name.ToCString());
@@ -1462,37 +1447,9 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                                      field_pos,
                                      implicit_argument);
   }
-  // All dynamic getters take one argument and no named arguments.
-  ASSERT(super_getter.AreValidArgumentCounts(1, 0, NULL));
-  ArgumentListNode* getter_arguments = new ArgumentListNode(field_pos);
-  getter_arguments->Add(implicit_argument);
-  AstNode* super_field =
-      new StaticCallNode(field_pos, super_getter, getter_arguments);
 
-  if (Token::IsAssignmentOperator(CurrentToken())) {
-    const String& setter_name =
-        String::ZoneHandle(Field::SetterName(field_name));
-    const Function& super_setter = Function::ZoneHandle(
-        ResolveDynamicFunction(super_class, setter_name));
-    if (super_setter.IsNull()) {
-      ErrorMsg(field_pos,
-               "field '%s' not assignable in superclass",
-               field_name.ToCString());
-    }
-    // All dynamic setters take two arguments and no named arguments.
-    ASSERT(super_setter.AreValidArgumentCounts(2, 0, NULL));
-
-    Token::Kind assignment_op = CurrentToken();
-    ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
-    value = ExpandAssignableOp(field_pos, assignment_op, super_field, value);
-
-    ArgumentListNode* setter_arguments = new ArgumentListNode(field_pos);
-    setter_arguments->Add(implicit_argument);
-    setter_arguments->Add(value);
-    super_field = new StaticCallNode(field_pos, super_setter, setter_arguments);
-  }
-  return super_field;
+  return new StaticGetterNode(
+                 field_pos, implicit_argument, true, super_class, field_name);
 }
 
 
@@ -6759,6 +6716,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         EnsureExpressionTemp();
         closure = new StaticGetterNode(call_pos,
                                        NULL,
+                                       false,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
         return new ClosureCallNode(call_pos, closure, arguments);
@@ -6868,6 +6826,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       // exist, and error will be reported by the code generator.
       access = new StaticGetterNode(call_pos,
                                     NULL,
+                                    false,
                                     Class::ZoneHandle(cls.raw()),
                                     String::ZoneHandle(field_name.raw()));
     } else {
@@ -6907,6 +6866,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         access = new StaticGetterNode(call_pos,
                                       NULL,
+                                      false,
                                       Class::ZoneHandle(cls.raw()),
                                       field_name);
       }
@@ -7307,6 +7267,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       // The implicit static getter will throw the exception if necessary.
       return new StaticGetterNode(TokenPos(),
                                   NULL,
+                                  false,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7358,6 +7319,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     } else {
       return new StaticGetterNode(TokenPos(),
                                   NULL,
+                                  false,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7481,7 +7443,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        // The static getter may be changed later into an instance setter.
+        // The static getter may later be changed into a dynamically
+        // resolved instance setter if no static setter can
+        // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
         ASSERT(!current_function().IsInFactoryScope());
@@ -7491,6 +7455,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         }
         *node = new StaticGetterNode(ident_pos,
                                      receiver,
+                                     false,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7518,6 +7483,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // when we try to invoke the getter.
         *node = new StaticGetterNode(ident_pos,
                                      NULL,
+                                     false,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7590,6 +7556,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
                                 NULL,
+                                false,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
   }
