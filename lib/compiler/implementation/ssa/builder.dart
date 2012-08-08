@@ -176,7 +176,7 @@ class SsaBuilderTask extends CompilerTask {
 
       // If there is an estimate of the parameter types assume these types when
       // compiling.
-      List<HType> parameterTypes;
+      List<HType> parameterTypes =
           backend.optimisticParameterTypesWithRecompilationOnTypeChange(
               element);
       if (parameterTypes != null) {
