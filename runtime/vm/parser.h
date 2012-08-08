@@ -181,6 +181,11 @@ class Parser : ValueObject {
         (script_.kind() == RawScript::kLibraryTag);
   }
 
+  // Parsing library patch script.
+  bool is_patch_source() const {
+    return script_.kind() == RawScript::kPatchTag;
+  }
+
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
   inline Token::Kind CurrentToken();
   Token::Kind LookaheadToken(int num_tokens);

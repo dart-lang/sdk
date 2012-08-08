@@ -3620,7 +3620,14 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   bool is_external = false;
-  if (CurrentToken() == Token::kEXTERNAL) {
+  bool is_patch = false;
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch") &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
+    ConsumeToken();
+    is_patch = true;
+  } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
   }
@@ -3637,8 +3644,11 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   const intptr_t name_pos = TokenPos();
   const String& func_name = *ExpectIdentifier("function name expected");
 
-  if (library_.LookupObject(func_name) != Object::null()) {
+  bool found = library_.LookupObject(func_name) != Object::null();
+  if (found && !is_patch) {
     ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
+  } else if (!found && is_patch) {
+    ErrorMsg(name_pos, "missing '%s' cannot be patched", func_name.ToCString());
   }
   String& accessor_name = String::Handle(Field::GetterName(func_name));
   if (library_.LookupObject(accessor_name) != Object::null()) {
@@ -3688,14 +3698,29 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
-  library_.AddObject(func, func_name);
+  if (!is_patch) {
+    library_.AddObject(func, func_name);
+  } else {
+    library_.ReplaceObject(func, func_name);
+  }
 }
 
 
 void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   TRACE_PARSER("ParseTopLevelAccessor");
   const bool is_static = true;
+  bool is_external = false;
+  bool is_patch = false;
   AbstractType& result_type = AbstractType::Handle();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      (CurrentLiteral()->Equals("patch"))) {
+    ConsumeToken();
+    is_patch = true;
+  } else if (CurrentToken() == Token::kEXTERNAL) {
+    ConsumeToken();
+    is_external = true;
+  }
   bool is_getter = (CurrentToken() == Token::kGET);
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
@@ -3744,13 +3769,20 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
     ErrorMsg(name_pos, "'%s' is already defined in this library",
              field_name->ToCString());
   }
-  if (library_.LookupObject(accessor_name) != Object::null()) {
+  bool found = library_.LookupObject(accessor_name) != Object::null();
+  if (found && !is_patch) {
     ErrorMsg(name_pos, "%s for '%s' is already defined",
+             is_getter ? "getter" : "setter",
+             field_name->ToCString());
+  } else if (!found && is_patch) {
+    ErrorMsg(name_pos, "missing %s for '%s' cannot be patched",
              is_getter ? "getter" : "setter",
              field_name->ToCString());
   }
 
-  if (CurrentToken() == Token::kLBRACE) {
+  if (is_external) {
+    ExpectSemicolon();
+  } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
@@ -3768,13 +3800,17 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
                     is_static,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
-                    /* is_external = */ false,
+                    is_external,
                     current_class(),
                     accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
-  library_.AddObject(func, accessor_name);
+  if (!is_patch) {
+    library_.AddObject(func, accessor_name);
+  } else {
+    library_.ReplaceObject(func, accessor_name);
+  }
 }
 
 
@@ -4692,10 +4728,18 @@ bool Parser::IsVariableDeclaration() {
 bool Parser::IsFunctionDeclaration() {
   const intptr_t saved_pos = TokenPos();
   bool is_external = false;
-  if (is_top_level_ && (CurrentToken() == Token::kEXTERNAL)) {
-    // Skip over 'external' for top-level function declarations.
-    is_external = true;
-    ConsumeToken();
+  if (is_top_level_) {
+    if (is_patch_source() &&
+        (CurrentToken() == Token::kIDENT) &&
+        CurrentLiteral()->Equals("patch") &&
+        (LookaheadToken(1) != Token::kLPAREN)) {
+      // Skip over 'patch' for top-level function declarations in patch sources.
+      ConsumeToken();
+    } else if (CurrentToken() == Token::kEXTERNAL) {
+      // Skip over 'external' for top-level function declarations.
+      is_external = true;
+      ConsumeToken();
+    }
   }
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     // Possibly a function without explicit return type.
@@ -4727,10 +4771,18 @@ bool Parser::IsFunctionDeclaration() {
 
 
 bool Parser::IsTopLevelAccessor() {
+  const intptr_t saved_pos = TokenPos();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      (CurrentLiteral()->Equals("patch"))) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kEXTERNAL) {
+    ConsumeToken();
+  }
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
+    SetPosition(saved_pos);
     return true;
   }
-  const intptr_t saved_pos = TokenPos();
   if (TryParseReturnType()) {
     if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
       if (Token::IsIdentifier(LookaheadToken(1))) {  // Accessor name.

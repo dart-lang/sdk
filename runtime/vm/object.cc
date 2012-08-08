@@ -4230,6 +4230,7 @@ RawFunction* Function::New(const String& name,
   result.set_kind(kind);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
+  result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
@@ -4241,7 +4242,6 @@ RawFunction* Function::New(const String& name,
   result.set_is_optimizable(true);
   result.set_has_finally(false);
   result.set_is_native(false);
-  result.set_is_abstract(is_abstract);
   return result.raw();
 }
 
@@ -5578,6 +5578,61 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
+RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
+  Isolate* isolate = Isolate::Current();
+  const Array& dict = Array::Handle(isolate, dictionary());
+  intptr_t dict_size = dict.Length() - 1;
+  *index = name.Hash() % dict_size;
+
+  Object& entry = Object::Handle(isolate);
+  Class& cls = Class::Handle(isolate);
+  Function& func = Function::Handle(isolate);
+  Field& field = Field::Handle(isolate);
+  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate);
+  String& entry_name = String::Handle(isolate);
+  entry = dict.At(*index);
+  // Search the entry in the hash set.
+  while (!entry.IsNull()) {
+    // TODO(hausner): find a better way to handle this polymorphism.
+    // Either introduce a common base class for Class, Function, Field
+    // and LibraryPrefix or make the name() function virtual in Object.
+    if (entry.IsClass()) {
+      cls ^= entry.raw();
+      entry_name = cls.Name();
+    } else if (entry.IsFunction()) {
+      func ^= entry.raw();
+      entry_name = func.name();
+    } else if (entry.IsField()) {
+      field ^= entry.raw();
+      entry_name = field.name();
+    } else if (entry.IsLibraryPrefix()) {
+      library_prefix ^= entry.raw();
+      entry_name = library_prefix.name();
+    } else {
+      UNREACHABLE();
+    }
+    if (entry_name.Equals(name)) {
+      return entry.raw();
+    }
+    *index = (*index + 1) % dict_size;
+    entry = dict.At(*index);
+  }
+  return Object::null();
+}
+
+
+void Library::ReplaceObject(const Object& obj, const String& name) const {
+  ASSERT(obj.IsClass() || obj.IsFunction() || obj.IsField());
+  ASSERT(LookupLocalObject(name) != Object::null());
+
+  intptr_t index;
+  LookupEntry(name, &index);
+  // The value is guaranteed to be found.
+  const Array& dict = Array::Handle(dictionary());
+  dict.SetAt(index, obj);
+}
+
+
 void Library::AddClass(const Class& cls) const {
   AddObject(cls, String::Handle(cls.Name()));
   // Link class to this library.
@@ -5707,46 +5762,8 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
 
 
 RawObject* Library::LookupLocalObject(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& dict = Array::Handle(isolate, dictionary());
-  intptr_t dict_size = dict.Length() - 1;
-  intptr_t index = name.Hash() % dict_size;
-
-  Object& entry = Object::Handle(isolate, Object::null());
-  Class& cls = Class::Handle(isolate, Class::null());
-  Function& func = Function::Handle(isolate, Function::null());
-  Field& field = Field::Handle(isolate, Field::null());
-  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate,
-                                                        LibraryPrefix::null());
-  String& entry_name = String::Handle(isolate, String::null());
-  entry = dict.At(index);
-  // Search the entry in the hash set.
-  while (!entry.IsNull()) {
-    // TODO(hausner): find a better way to handle this polymorphism.
-    // Either introduce a common base class for Class, Function, Field
-    // and LibraryPrefix or make the name() function virtual in Object.
-    if (entry.IsClass()) {
-      cls ^= entry.raw();
-      entry_name = cls.Name();
-    } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      entry_name = func.name();
-    } else if (entry.IsField()) {
-      field ^= entry.raw();
-      entry_name = field.name();
-    } else if (entry.IsLibraryPrefix()) {
-      library_prefix ^= entry.raw();
-      entry_name = library_prefix.name();
-    } else {
-      UNREACHABLE();
-    }
-    if (entry_name.Equals(name)) {
-      return entry.raw();
-    }
-    index = (index + 1) % dict_size;
-    entry = dict.At(index);
-  }
-  return Class::null();
+  intptr_t index;
+  return LookupEntry(name, &index);
 }
 
 
@@ -6322,6 +6339,13 @@ RawString* Library::CheckForDuplicateDefinition() {
     }
   }
   return String::null();
+}
+
+
+RawError* Library::Patch(const String& url, const String& source) const {
+  const Script& script = Script::Handle(
+      Script::New(url, source, RawScript::kPatchTag));
+  return Compiler::Compile(*this, script);
 }
 
 

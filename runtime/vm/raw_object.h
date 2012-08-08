@@ -558,13 +558,13 @@ class RawFunction : public RawObject {
 
   enum KindTagBits {
     kStaticBit = 1,
-    kConstBit = 2,
-    kOptimizableBit = 3,
-    kHasFinallyBit = 4,
-    kNativeBit = 5,
-    kAbstractBit = 6,
-    kExternalBit = 6,
-    kKindTagBit = 7,
+    kConstBit,
+    kOptimizableBit,
+    kHasFinallyBit,
+    kNativeBit,
+    kAbstractBit,
+    kExternalBit,
+    kKindTagBit,
     kKindTagSize = 4,
   };
   class StaticBit : public BitField<bool, kStaticBit, 1> {};
@@ -719,7 +719,8 @@ class RawScript : public RawObject {
   enum Kind {
     kScriptTag = 0,
     kLibraryTag,
-    kSourceTag
+    kSourceTag,
+    kPatchTag,
   };
 
  private:

@@ -1967,6 +1967,7 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
+  void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -2001,6 +2002,8 @@ class Library : public Object {
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     raw_ptr()->native_entry_resolver_ = value;
   }
+
+  RawError* Patch(const String& url, const String& source) const;
 
   RawString* PrivateName(const String& name) const;
 
@@ -2065,6 +2068,7 @@ class Library : public Object {
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
   void AddImportedInto(const Library& library) const;
+  RawObject* LookupEntry(const String& name, intptr_t *index) const;
   RawObject* LookupObjectFiltered(const String& name,
                                   const Library& filter_lib) const;
   RawLibrary* LookupObjectInImporter(const String& name) const;
