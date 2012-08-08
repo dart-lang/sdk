@@ -7,15 +7,20 @@
 #import('../leg.dart');
 #import('../tree/tree.dart');
 #import('../elements/elements.dart');
+#import('../util/util.dart');
 
 /**
  * The types task infers guaranteed types globally.
  */
 class TypesTask extends CompilerTask {
   final String name = 'Type inference';
-  final bool enabled = false;
+  final Set<Element> untypedElements;
+  final Map<Element, Link<Element>> typedSends;
 
-  TypesTask(Compiler compiler) : super(compiler);
+  TypesTask(Compiler compiler)
+    : untypedElements = new Set<Element>(),
+      typedSends = new Map<Element, Link<Element>>(),
+      super(compiler);
 
   /**
    * Called once for each method during the resolution phase of the
@@ -40,11 +45,19 @@ class TypesTask extends CompilerTask {
    * Return the (inferred) guaranteed type of [element].
    */
   Element getGuaranteedTypeOfElement(Element element) {
-    if (!enabled) return null;
     return measure(() {
-      // TODO(ahe): Do something real here.
-      if (element.enclosingElement.name.slowToString() == 'print') {
-        return compiler.stringClass;
+      if (!element.isParameter()) return null;
+      Element holder = element.enclosingElement;
+      Link<Element> types = typedSends[holder];
+      if (types === null) return null;
+      if (!holder.isFunction()) return null;
+      if (untypedElements.contains(holder)) return null;
+      FunctionElement function = holder;
+      FunctionSignature signature = function.computeSignature(compiler);
+      for (Element parameter in signature.requiredParameters) {
+        if (types.isEmpty()) return null;
+        if (element === parameter) return types.head;
+        types = types.tail;
       }
       return null;
     });
@@ -55,7 +68,6 @@ class TypesTask extends CompilerTask {
    * [node] must be an AST node of [owner].
    */
   Element getGuaranteedTypeOfNode(Node node, Element owner) {
-    if (!enabled) return null;
     return measure(() {
       // TODO(ahe): Do something real here.
       return null;
@@ -134,27 +146,45 @@ class ConcreteTypeInferencer extends AbstractVisitor {
     recordConcreteType(node, nullClass);
   }
 
-  isConcreteSend(Send node) {
-    if (node.argumentsNode === null) return true;
-    if (node.arguments.isEmpty()) return true;
+  Link<Element> computeConcreteSendArguments(Send node) {
+    if (node.argumentsNode === null) return null;
+    if (node.arguments.isEmpty()) return const EmptyLink<Element>();
     if (node.receiver !== null && concreteTypes[node.receiver] === null) {
-      return false;
+      return null;
     }
+    LinkBuilder<Element> types = new LinkBuilder<Element>();
     for (Node argument in node.arguments) {
-      if (concreteTypes[argument] === null) return false;
+      Element type = concreteTypes[argument];
+      if (type === null) return null;
+      types.addLast(type);
     }
-    return true;
+    return types.toLink();
   }
 
   visitSend(Send node) {
-    if (node.argumentsNode === null) return;
-    if (node.arguments.isEmpty()) return;
-    if (node.selector.toString() != 'print') return;
     node.visitChildren(this);
-    if (isConcreteSend(node)) {
-      interest(node, 'all arguments are concrete');
+    Element element = elements[node.selector];
+    if (element === null) return;
+    if (element.isInstanceMember()) return;
+    if (!element.isFunction()) return;
+    if (node.argumentsNode === null) {
+      // interest(node, 'closurized method');
+      task.untypedElements.add(element);
+      return;
+    }
+    Link<Element> types = computeConcreteSendArguments(node);
+    if (types !== null) {
+      Link<Element> existing = task.typedSends[element];
+      if (existing === null) {
+        task.typedSends[element] = types;
+      } else {
+        // interest(node, 'multiple invocations');
+        // TODO(ahe): Compare [existing] to [types].
+        task.untypedElements.add(element);
+      }
     } else {
-      interest(node, 'not all arguments are concrete');
+      // interest(node, 'dynamically typed invocation');
+      task.untypedElements.add(element);
     }
   }
 
@@ -165,7 +195,6 @@ class ConcreteTypeInferencer extends AbstractVisitor {
   }
 
   interest(Node node, String note) {
-    if (!task.enabled) return;
     var message = MessageKind.GENERIC.message([note]);
     task.compiler.reportWarning(node, message);
   }
