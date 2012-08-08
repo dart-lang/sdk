@@ -9,21 +9,23 @@
  * source. All input streams are non-blocking. They each have a number
  * of read calls which will always return without any IO related
  * blocking. If the requested data is not available a read call will
- * return `null`. All input streams have one or more handlers which
+ * return [:null:]. All input streams have one or more handlers which
  * will trigger when data is available.
  *
  * The following example shows a data handler in an ordinary input
  * stream which will be called when some data is available and a call
- * to read will not return `null`.
+ * to read will not return [:null:].
  *
- *     InputStream input = ...
- *     input.onData = () {
- *       var data = input.read();
- *       ...
- *     };
+ * [:
+ *    InputStream input = ...
+ *    input.onData = () {
+ *      var data = input.read();
+ *      ...
+ *    };
+ * :]
  *
  * If for some reason the data from an input stream cannot be handled
- * by the application immediately setting the data handler to `null`
+ * by the application immediately setting the data handler to [:null:]
  * will avoid further callbacks until it is set to a function
  * again. While the data handler is not active system flow control
  * will be used to avoid buffering more data than needed.
@@ -57,9 +59,9 @@ interface InputStream {
    * Pipe the content of this input stream directly to the output
    * stream [output]. The default behavior is to close the output when
    * all the data from the input stream have been written. Specifying
-   * `false` for the optional argument [close] keeps the output
+   * [:false:] for the optional argument [close] keeps the output
    * stream open after writing all data from the input stream. The
-   * default value for [close] is `true`.
+   * default value for [close] is [:true:].
    */
   void pipe(OutputStream output, [bool close]);
 
@@ -117,7 +119,7 @@ class Encoding {
 interface StringInputStream default _StringInputStream {
   /**
    * Decodes a binary input stream into characters using the specified
-   * encoding. The default encoding is UTF-8 - `Encoding.UTF_8`.
+   * encoding. The default encoding is UTF-8 - [:Encoding.UTF_8:].
    */
   StringInputStream(InputStream input, [Encoding encoding]);
 

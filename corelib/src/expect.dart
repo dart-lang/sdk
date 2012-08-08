@@ -3,16 +3,16 @@
 // BSD-style license that can be found in the LICENSE file.
 
 /**
- * Expect is used for tests that do not want to make use of the
+ * Expect is used for tests that do not want to make use of the 
  * Dart unit test library - for example, the core language tests.
- * Third parties are discouraged from using this, and should use
- * the expect() function in the unit test library instead for
+ * Third parties are discouraged from using this, and should use 
+ * the expect() function in the unit test library instead for 
  * test assertions.
  */
 class Expect {
 
   /**
-   * Checks whether the expected and actual values are equal (using `==`).
+   * Checks whether the expected and actual values are equal (using [:==:]).
    */
   static void equals(var expected, var actual, [String reason = null]) {
     if (expected == actual) return;
@@ -58,7 +58,7 @@ class Expect {
 
   /**
    * Checks whether the expected and actual values are identical
-   * (using `===`).
+   * (using [:===:]).
    */
   static void identical(var expected, var actual, [String reason = null]) {
     if (expected === actual) return;
@@ -100,10 +100,10 @@ class Expect {
   }
 
   /**
-   * Checks that all elements in [expected] and [actual] are equal `==`.
-   * This is different than the typical check for identity equality `===`
+   * Checks that all elements in [expected] and [actual] are equal [:==:].
+   * This is different than the typical check for identity equality [:===:]
    * used by the standard list implementation.  It should also produce nicer
-   * error messages than just calling `Expect.equals(expected, actual)`.
+   * error messages than just calling [:Expect.equals(expected, actual):].
    */
   static void listEquals(List expected, List actual, [String reason = null]) {
     String msg = _getMessage(reason);
@@ -126,7 +126,7 @@ class Expect {
   /**
    * Checks that all [expected] and [actual] have the same set of keys (using
    * the semantics of [Map.containsKey] to determine what "same" means. For
-   * each key, checks that the values in both maps are equal using `==`.
+   * each key, checks that the values in both maps are equal using [:==:].
    */
   static void mapEquals(Map expected, Map actual, [String reason = null]) {
     String msg = _getMessage(reason);
@@ -258,7 +258,10 @@ class Expect {
    * that the correct exception is being thrown.  For example, to check
    * the type of the exception you could write this:
    *
-   *     Expect.throws(myThrowingFunction, (e) => e is MyException);
+   * [:
+   *   Expect.throws(myThrowingFunction,
+   *                 (e) { return e is MyException})
+   * :]
    */
   static void throws(void f(),
                      [_CheckExceptionFn check = null,
