@@ -252,15 +252,12 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
   if (receiver_class_id() != kObject) {
     ASSERT((receiver_class_id() == kSmi) || (receiver_class_id() == kDouble));
-    // No temporary register needed for double comparison.
-    const intptr_t kNumTemps = (receiver_class_id() == kSmi) ? 1 : 0;
+    const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
     locs->set_in(0, Location::RequiresRegister());
     locs->set_in(1, Location::RequiresRegister());
-    if (receiver_class_id() == kSmi) {
-      locs->set_temp(0, Location::RequiresRegister());
-    }
+    locs->set_temp(0, Location::RequiresRegister());
     locs->set_out(Location::RequiresRegister());
     return locs;
   }
@@ -281,59 +278,6 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   locs->set_in(1, Location::RegisterLocation(RDX));
   locs->set_out(Location::RegisterLocation(RAX));
   return locs;
-}
-
-
-// Optional integer arguments can often be null. Null is not collected
-// by IC data. TODO(srdjan): Shall we collect null classes in ICData as well?
-static void EmitSmiEqualityCompare(FlowGraphCompiler* compiler,
-                                   EqualityCompareComp* comp) {
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  Register temp = comp->locs()->temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->token_pos(),
-                                        comp->try_index(),
-                                        kDeoptSmiCompareSmi,
-                                        left,
-                                        right);
-  __ movq(temp, left);
-  __ orq(temp, right);
-  __ testq(temp, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
-  __ cmpq(left, right);
-  Register result = comp->locs()->out().reg();
-  Label load_true, done;
-  __ j(TokenKindToSmiCondition(comp->kind()), &load_true, Assembler::kNearJump);
-  __ LoadObject(result, compiler->bool_false());
-  __ jmp(&done, Assembler::kNearJump);
-  __ Bind(&load_true);
-  __ LoadObject(result, compiler->bool_true());
-  __ Bind(&done);
-}
-
-
-// TODO(srdjan): Add support for mixed Smi/Double equality
-// (see LoadDoubleOrSmiToXmm).
-static void EmitDoubleEqualityCompare(FlowGraphCompiler* compiler,
-                                      EqualityCompareComp* comp) {
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
-  Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->token_pos(),
-                                        comp->try_index(),
-                                        kDeoptDoubleCompareDouble,
-                                        left,
-                                        right);
-  __ CompareClassId(left, kDouble);
-  __ j(NOT_EQUAL, deopt);
-  __ CompareClassId(right, kDouble);
-  __ j(NOT_EQUAL, deopt);
-  __ movsd(XMM0, FieldAddress(left, Double::value_offset()));
-  __ movsd(XMM1, FieldAddress(right, Double::value_offset()));
-  compiler->EmitDoubleCompareBool(TokenKindToSmiCondition(comp->kind()),
-                                  XMM0, XMM1,
-                                  comp->locs()->out().reg());
 }
 
 
@@ -504,45 +448,6 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
-void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_class_id() == kSmi) {
-    EmitSmiEqualityCompare(compiler, this);
-    return;
-  }
-  if (receiver_class_id() == kDouble) {
-    EmitDoubleEqualityCompare(compiler, this);
-    return;
-  }
-  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-    EmitGenericEqualityCompare(compiler, *locs(), kind(), NULL, *ic_data(),
-                               deopt_id(), token_pos(), try_index());
-  } else {
-    Register left = locs()->in(0).reg();
-    Register right = locs()->in(1).reg();
-    __ pushq(left);
-    __ pushq(right);
-    EmitEqualityAsInstanceCall(compiler, this);
-  }
-}
-
-
-LocationSummary* RelationalOpComp::MakeLocationSummary() const {
-  if (operands_class_id() == kSmi || operands_class_id() == kDouble) {
-    const intptr_t kNumInputs = 2;
-    const intptr_t kNumTemps = 1;
-    LocationSummary* summary =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    summary->set_in(0, Location::RequiresRegister());
-    summary->set_in(1, Location::RequiresRegister());
-    summary->set_out(Location::RequiresRegister());
-    summary->set_temp(0, Location::RequiresRegister());
-    return summary;
-  }
-  ASSERT(operands_class_id() == kObject);
-  return MakeCallSummary();
-}
-
-
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -625,6 +530,47 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
     compiler->EmitDoubleCompareBool(
         true_condition, XMM0, XMM1, locs.out().reg());
   }
+}
+
+
+void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  if (receiver_class_id() == kSmi) {
+    EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
+                        deopt_id(), token_pos(), try_index());
+    return;
+  }
+  if (receiver_class_id() == kDouble) {
+    EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
+                           deopt_id(), token_pos(), try_index());
+    return;
+  }
+  if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
+    EmitGenericEqualityCompare(compiler, *locs(), kind(), NULL, *ic_data(),
+                               deopt_id(), token_pos(), try_index());
+  } else {
+    Register left = locs()->in(0).reg();
+    Register right = locs()->in(1).reg();
+    __ pushq(left);
+    __ pushq(right);
+    EmitEqualityAsInstanceCall(compiler, this);
+  }
+}
+
+
+LocationSummary* RelationalOpComp::MakeLocationSummary() const {
+  if (operands_class_id() == kSmi || operands_class_id() == kDouble) {
+    const intptr_t kNumInputs = 2;
+    const intptr_t kNumTemps = 1;
+    LocationSummary* summary =
+        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+    summary->set_in(0, Location::RequiresRegister());
+    summary->set_in(1, Location::RequiresRegister());
+    summary->set_out(Location::RequiresRegister());
+    summary->set_temp(0, Location::RequiresRegister());
+    return summary;
+  }
+  ASSERT(operands_class_id() == kObject);
+  return MakeCallSummary();
 }
 
 
