@@ -19,11 +19,12 @@ class SendVisitor extends ResolvedVisitor {
   visitGetterSend(Send node) {
     final element = elements[node];
     // element === null means dynamic property access.
-    // We don't want to rename non top-level element access.
-    if (element === null || !element.isTopLevel()) {
+    if (element === null || element.isInstanceMember()) {
       tryRenamePrivateSelector(node);
       return;
     }
+    // We don't want to rename non top-level element access.
+    if (!element.isTopLevel()) return;
     // Unqualified <class> in static invocation, why it's not a type annotation?
     // Another option would be to process in visitStaticSend, NB:
     // those elements are not top-level.
@@ -49,11 +50,7 @@ class SendVisitor extends ResolvedVisitor {
   }
 
   tryRenamePrivateSelector(Send node) {
-    Identifier selector = node.selector.asIdentifier();
-    assert(selector !== null);
-    if (selector.source.isPrivate()) {
-      collector.makePrivateIdentifier(selector);
-    }
+    collector.tryMakePrivateIdentifier(node.selector.asIdentifier());
   }
 }
 
@@ -66,7 +63,7 @@ class PlaceholderCollector extends AbstractVisitor {
   PlaceholderCollector(this.compiler) :
       placeholders = new Map<Node, Placeholder>();
 
-  void collectFunctionDeclarationPlaceholder(
+  void collectFunctionDeclarationPlaceholders(
       FunctionElement element, Node node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
       // Two complicated cases for class/interface renaming:
@@ -87,8 +84,51 @@ class PlaceholderCollector extends AbstractVisitor {
       if (nameNode.token.slowToString() == enclosingClass.name.slowToString()) {
         makeTypePlaceholder(nameNode, enclosingClass.type);
       }
+      // Process Ctor(this._field) correctly.
+      for (Node parameter in node.parameters) {
+        VariableDefinitions definitions = parameter.asVariableDefinitions();
+        if (definitions !== null) {
+          for (Node definition in definitions.definitions) {
+            Send send = definition.asSend();
+            if (send !== null) {
+              assert(send.receiver.isThis());
+              tryMakePrivateIdentifier(send.selector.asIdentifier());
+            } else {
+              assert(definition is Identifier);
+            }
+          }
+        } else {
+          assert(parameter is NodeList);
+          // We don't have to rename privates in optionals.
+        }
+      }
     } else if (element.isTopLevel()) {
+      // Note: this code should only rename private identifiers for class'
+      // fields/getters/setters/methods.  Top-level identifiers are renamed
+      // just to escape conflicts and that should be enough as we shouldn't
+      // be able to resolve private identifiers for other libraries.
       makeElementPlaceholder(node.name, element);
+    } else {
+      if (node.name !== null) {
+        Identifier identifier = node.name.asIdentifier();
+        // operator <blah> names shouldn't be renamed.
+        if (identifier !== null) tryMakePrivateIdentifier(identifier);
+      }
+    }
+  }
+
+  void collectFieldDeclarationPlaceholders(Element element, Node node) {
+    if (element.isInstanceMember()) {
+      for (Node definition in node.definitions) {
+        if (definition is Identifier) {
+          tryMakePrivateIdentifier(definition.asIdentifier());
+        } else if (definition is SendSet) {
+          tryMakePrivateIdentifier(
+              definition.asSendSet().selector.asIdentifier());
+        } else {
+          assert(false); // Unreachable.
+        }
+      }
     }
   }
   
@@ -96,17 +136,20 @@ class PlaceholderCollector extends AbstractVisitor {
     // Skip AbstractFieldElement, it has no node.
     // Instead getters and setters should be processed explicitly.
     if (element is AbstractFieldElement) return;
-    if (element.isField()) {
+    treeElements = elements;
+    Node elementNode;
+    if (element is FunctionElement) {
       currentElement = element;
+      elementNode = currentElement.parseNode(compiler);
+      collectFunctionDeclarationPlaceholders(element, elementNode);
+    } else if (element.isField()) {
       // TODO(smok): In the future make sure we don't process same
       // variable list element twice, better merge this with emitter logic.
-      element = element.variables;
-    }
-    currentElement = element;
-    treeElements = elements;
-    Node elementNode = element.parseNode(compiler);
-    if (element is FunctionElement) {
-      collectFunctionDeclarationPlaceholder(element, elementNode);
+      currentElement = element.variables;
+      elementNode = currentElement.parseNode(compiler);
+      collectFieldDeclarationPlaceholders(element, elementNode);
+    } else {
+      assert(false); // Unreachable.
     }
     elementNode.accept(this);
   }
@@ -119,6 +162,10 @@ class PlaceholderCollector extends AbstractVisitor {
       result = compiler.resolveTypeAnnotation(currentElement, typeAnnotation);
     }
     return result;
+  }
+
+  tryMakePrivateIdentifier(Identifier identifier) {
+    if (identifier.source.isPrivate()) makePrivateIdentifier(identifier);
   }
 
   void makeTypePlaceholder(Node node, Type type) {
@@ -152,15 +199,17 @@ class PlaceholderCollector extends AbstractVisitor {
     internalError('Should never meet ClassNode', node);
   }
 
-  void visitIdentifier(Identifier node) {
-    if (node.source.isPrivate()) {
-      makePrivateIdentifier(node);
-    }
-  }
-
   visitSend(Send send) {
     new SendVisitor(this, treeElements).visitSend(send);
-    super.visitSend(send);
+    send.visitChildren(this);
+  }
+
+  visitSendSet(SendSet send) {
+    final element = treeElements[send];
+    if (element !== null && element.isInstanceMember()) {
+      tryMakePrivateIdentifier(send.selector.asIdentifier());
+    }
+    send.visitChildren(this);
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
@@ -177,6 +226,6 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     makeTypePlaceholder(target, type);
-    visit(node.typeArguments);
+    node.visitChildren(this);
   }
 }

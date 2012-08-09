@@ -245,7 +245,6 @@ constructor5_test: Fail
 constructor6_test: Fail
 fauxverride_test/none: Fail
 gc_test: Fail
-parameter_initializer6_negative_test: Fail
 prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
