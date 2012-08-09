@@ -43,7 +43,7 @@ class FreeListElement {
     FakeInstance() { }
     static cpp_vtable vtable() { return 0; }
     static intptr_t InstanceSize() { return 0; }
-    static const ObjectKind kInstanceKind = kFreeListElement;
+    static const ClassId kClassId = kFreeListElement;
     static bool IsInstance() { return true; }
 
    private:

@@ -425,21 +425,7 @@ function(collectedClasses) {
       if (!parameters.optionalParameters.isEmpty()) {
         addParameterStubs(member, defineInstanceMember);
       }
-    } else if (member.kind === ElementKind.FIELD) {
-      SourceString name = member.name;
-      ClassElement cls = member.getEnclosingClass();
-      if (cls.lookupSuperMember(name) !== null) {
-        String fieldName = namer.instanceFieldName(cls, name);
-        CodeBuffer getterBuffer = new CodeBuffer();
-        getterBuffer.add('function() {\n  return this.$fieldName;\n }');
-        defineInstanceMember(namer.getterName(cls.getLibrary(), name),
-                             getterBuffer);
-        CodeBuffer setterBuffer = new CodeBuffer();
-        setterBuffer.add('function(x) {\n  this.$fieldName = x;\n }');
-        defineInstanceMember(namer.setterName(cls.getLibrary(), name),
-                             setterBuffer);
-      }
-    } else {
+    } else if (member.kind !== ElementKind.FIELD) {
       compiler.internalError('unexpected kind: "${member.kind}"',
                              element: member);
     }
@@ -455,15 +441,24 @@ function(collectedClasses) {
     bool isFirstField = true;
     void addField(ClassElement enclosingClass, Element member) {
       assert(!member.isNative());
+
+      LibraryElement library = member.getLibrary();
+      SourceString name = member.name;
+      bool isPrivate = name.isPrivate();
       // See if we can dynamically create getters and setters.
       // We can only generate getters and setters for [classElement] since
       // the fields of super classes could be overwritten with getters or
       // setters.
       bool needsDynamicGetter = false;
       bool needsDynamicSetter = false;
+      // We need to name shadowed fields differently, so they don't clash with
+      // the non-shadowed field.
+      bool isShadowed = false;
       if (enclosingClass === classElement) {
         needsDynamicGetter = instanceFieldNeedsGetter(member);
         needsDynamicSetter = instanceFieldNeedsSetter(member);
+      } else {
+        isShadowed = classElement.isShadowedByField(member);
       }
 
       if ((isInstantiated && !enclosingClass.isNative())
@@ -474,9 +469,9 @@ function(collectedClasses) {
         } else {
           buffer.add(", ");
         }
-        SourceString name = member.name;
-        String fieldName = namer.instanceFieldName(member.getEnclosingClass(),
-                                                   name);
+        String fieldName = isShadowed
+            ? namer.shadowedFieldName(member)
+            : namer.instanceFieldName(library, name);
         // Getters and setters with suffixes will be generated dynamically.
         buffer.add('"$fieldName');
         if (needsDynamicGetter || needsDynamicSetter) {
@@ -529,9 +524,9 @@ function(collectedClasses) {
       } else {
         code = 'true';
       }
-      CodeBuffer buffer = new CodeBuffer();
-      buffer.add(code);
-      defineInstanceMember(namer.operatorIs(other), buffer);
+      CodeBuffer typeTestBuffer = new CodeBuffer();
+      typeTestBuffer.add(code);
+      defineInstanceMember(namer.operatorIs(other), typeTestBuffer);
     });
 
     if (classElement === compiler.objectClass && compiler.enabledNoSuchMethod) {
@@ -539,7 +534,9 @@ function(collectedClasses) {
       // so that the code in the dynamicFunction helper can find
       // them. Note that this helper is invoked before analyzing the
       // full JS script.
-      emitNoSuchMethodHandlers(defineInstanceMember);
+      if (!nativeEmitter.handleNoSuchMethod) {
+        emitNoSuchMethodHandlers(defineInstanceMember);
+      }
     }
   }
 
@@ -618,6 +615,23 @@ function(collectedClasses) {
       // implementation they are increasing within a source file.
       return class1.id - class2.id;
     });
+
+    // If we need noSuchMethod support, we run through all needed
+    // classes to figure out if we need the support on any native
+    // class. If so, we let the native emitter deal with it.
+    if (compiler.enabledNoSuchMethod) {
+      SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      for (ClassElement element in sortedClasses) {
+        if (!element.isNative()) continue;
+        Element member = element.lookupLocalMember(noSuchMethodName);
+        if (member === null) continue;
+        if (Selector.INVOCATION_2.applies(member, compiler)) {
+          nativeEmitter.handleNoSuchMethod = true;
+          break;
+        }
+      }
+    }
+
     for (ClassElement element in sortedClasses) {
       generateClass(element, buffer);
     }
@@ -782,8 +796,7 @@ $classesCollector.$mangledName = {'':
     if (member.kind == ElementKind.GETTER) {
       getter = "this.${namer.getterName(member.getLibrary(), member.name)}()";
     } else {
-      String name = namer.instanceFieldName(member.getEnclosingClass(),
-                                            member.name);
+      String name = namer.instanceFieldName(member.getLibrary(), member.name);
       getter = "this.$name";
     }
     for (Selector selector in selectors) {
@@ -869,8 +882,6 @@ $classesCollector.$mangledName = {'':
     // Do not generate no such method handlers if there is no class.
     if (compiler.codegenWorld.instantiatedClasses.isEmpty()) return;
 
-    String runtimeObjectPrototype =
-        '${namer.isolateAccess(compiler.objectClass)}.prototype';
     String noSuchMethodName =
         namer.instanceMethodName(null, Compiler.NO_SUCH_METHOD, 2);
 
@@ -902,16 +913,9 @@ $classesCollector.$mangledName = {'':
         if (i != 0) args.add(', ');
         args.add('\$$i');
       }
-      // We need to check if the object has a noSuchMethod. If not, it
-      // means the object is a native object, and we can just call our
-      // generic noSuchMethod. Note that when calling this method, the
-      // 'this' object is not a Dart object.
       CodeBuffer buffer = new CodeBuffer();
       buffer.add('function($args) {\n');
-      buffer.add('  return this.$noSuchMethodName\n');
-      buffer.add("      ? this.$noSuchMethodName('$methodName', [$args])\n");
-      buffer.add("      : $runtimeObjectPrototype.$noSuchMethodName.call(");
-      buffer.add("this, '$methodName', [$args])\n");
+      buffer.add('  return this.$noSuchMethodName("$methodName", [$args]);\n');
       buffer.add(' }');
       return buffer;
     }
@@ -1013,10 +1017,10 @@ $classesCollector.$mangledName = {'':
           String methodName = null;
           if (selector.kind === SelectorKind.GETTER) {
             jsName = namer.getterName(lib, name);
-            methodName = 'get $nameString';
+            methodName = 'get:$nameString';
           } else if (selector.kind === SelectorKind.SETTER) {
             jsName = namer.setterName(lib, name);
-            methodName = 'set $nameString';
+            methodName = 'set:$nameString';
           } else if (selector.kind === SelectorKind.INVOCATION) {
             jsName = namer.instanceMethodInvocationName(lib, name, selector);
             methodName = nameString;

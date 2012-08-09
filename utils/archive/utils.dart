@@ -66,8 +66,11 @@ Uint8List bytesForC(List<int> input) {
  * otherwise, [object] will never be collected and [callback] will never be
  * called.
  */
-void attachFinalizer(object, void callback(peer), [peer])
-    native "Archive_AttachFinalizer";
+void attachFinalizer(object, void callback(peer), [peer]) {}
+
+// TODO(nweiz): re-enable this once issue 4378 is fixed.
+// void attachFinalizer(object, void callback(peer), [peer])
+//     native "Archive_AttachFinalizer";
 
 /**
  * A reference to a single value.

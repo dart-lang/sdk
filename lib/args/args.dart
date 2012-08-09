@@ -41,8 +41,8 @@
  * must be a [bool].
  *
  * To validate non-flag options, you may provide an allowed set of values. When
- * you do, it will throw an [ArgFormatException] when you parse the arguments
- * if the value for an option is not in the allowed set:
+ * you do, it will throw a [FormatException] when you parse the arguments if
+ * the value for an option is not in the allowed set:
  *
  *     parser.addOption('mode', allowed: ['debug', 'release']);
  *
@@ -300,11 +300,11 @@ class ArgParser {
   }
 
   /**
-   * Called during parsing to validate the arguments. Throws an
-   * [ArgFormatException] if [condition] is `false`.
+   * Called during parsing to validate the arguments. Throws a
+   * [FormatException] if [condition] is `false`.
    */
   _validate(bool condition, String message) {
-    if (!condition) throw new ArgFormatException(message);
+    if (!condition) throw new FormatException(message);
   }
 
   /** Validates and stores [value] as the value for [option]. */
@@ -485,14 +485,6 @@ class ArgResults {
 
     return _options[name];
   }
-}
-
-/**
- * Exception thrown by [ArgParser.parse()] when the argument list isn't valid.
- */
-class ArgFormatException implements Exception {
-  final String message;
-  const ArgFormatException(this.message);
 }
 
 class _Option {

@@ -110,10 +110,22 @@ class StackOverflowException implements Exception {
 }
 
 
-class BadNumberFormatException implements Exception {
-  const BadNumberFormatException(String this._s);
-  String toString() => "BadNumberFormatException: '$_s'";
-  final String _s;
+/**
+ * Exception thrown when a string or some other data does not have an expected
+ * format and cannot be parsed or processed.
+ */
+class FormatException implements Exception {
+  /**
+   * A message describing the format error.
+   */
+  final String message;
+
+  /**
+   * Creates a new FormatException with an optional error [message].
+   */
+  const FormatException([this.message = ""]);
+
+  String toString() => "FormatException: $message";
 }
 
 

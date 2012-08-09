@@ -49,7 +49,7 @@ static const char* kSetterPrefix = "set:";
 static const intptr_t kSetterPrefixLength = strlen(kSetterPrefix);
 
 cpp_vtable Object::handle_vtable_ = 0;
-cpp_vtable Object::builtin_vtables_[kNumPredefinedKinds] = { 0 };
+cpp_vtable Object::builtin_vtables_[kNumPredefinedCids] = { 0 };
 cpp_vtable Smi::handle_vtable_ = 0;
 
 // These are initialized to a value that will force a illegal memory access if
@@ -101,149 +101,124 @@ RawClass* Object::unhandled_exception_class_ =
 RawClass* Object::unwind_error_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 #undef RAW_NULL
 
-int Object::GetSingletonClassIndex(const RawClass* raw_class) {
-  ASSERT(raw_class->IsHeapObject());
-  if (raw_class == class_class()) {
-    return kClassClass;
-  } else if (raw_class == null_class()) {
-    return kNullClass;
-  } else if (raw_class == dynamic_class()) {
-    return kDynamicClass;
-  } else if (raw_class == void_class()) {
-    return kVoidClass;
-  } else if (raw_class == unresolved_class_class()) {
-    return kUnresolvedClassClass;
-  } else if (raw_class == type_class()) {
-    return kTypeClass;
-  } else if (raw_class == type_parameter_class()) {
-    return kTypeParameterClass;
-  } else if (raw_class == type_arguments_class()) {
-    return kTypeArgumentsClass;
-  } else if (raw_class == instantiated_type_arguments_class()) {
-    return kInstantiatedTypeArgumentsClass;
-  } else if (raw_class == function_class()) {
-    return kFunctionClass;
-  } else if (raw_class == field_class()) {
-    return kFieldClass;
-  } else if (raw_class == literal_token_class()) {
-    return kLiteralTokenClass;
-  } else if (raw_class == token_stream_class()) {
-    return kTokenStreamClass;
-  } else if (raw_class == script_class()) {
-    return kScriptClass;
-  } else if (raw_class == library_class()) {
-    return kLibraryClass;
-  } else if (raw_class == library_prefix_class()) {
-    return kLibraryPrefixClass;
-  } else if (raw_class == code_class()) {
-    return kCodeClass;
-  } else if (raw_class == instructions_class()) {
-    return kInstructionsClass;
-  } else if (raw_class == pc_descriptors_class()) {
-    return kPcDescriptorsClass;
-  } else if (raw_class == stackmap_class()) {
-    return kStackmapClass;
-  } else if (raw_class == var_descriptors_class()) {
-    return kLocalVarDescriptorsClass;
-  } else if (raw_class == exception_handlers_class()) {
-    return kExceptionHandlersClass;
-  } else if (raw_class == deopt_info_class()) {
-    return kDeoptInfoClass;
-  } else if (raw_class == context_class()) {
-    return kContextClass;
-  } else if (raw_class == context_scope_class()) {
-    return kContextScopeClass;
-  } else if (raw_class == icdata_class()) {
-    return kICDataClass;
-  } else if (raw_class == subtypetestcache_class()) {
-    return kSubtypeTestCacheClass;
-  } else if (raw_class == api_error_class()) {
-    return kApiErrorClass;
-  } else if (raw_class == language_error_class()) {
-    return kLanguageErrorClass;
-  } else if (raw_class == unhandled_exception_class()) {
-    return kUnhandledExceptionClass;
-  } else if (raw_class == unwind_error_class()) {
-    return kUnwindErrorClass;
+
+// Takes a vm internal name and makes it suitable for external user.
+//
+// Examples:
+//
+// Internal getter and setter prefixes are changed:
+//
+//   get:foo -> foo
+//   set:foo -> foo=
+//
+// Private name mangling is removed, possibly twice:
+//
+//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
+//   _ReceivePortImpl@6be832b._internal@6be832b -> +ReceivePortImpl._internal
+//
+// The trailing . on the default constructor name is dropped:
+//
+//   List. -> List
+//
+// And so forth:
+//
+//   get:foo@6be832b -> foo
+//   _MyClass@6b3832b. -> _MyClass
+//   _MyClass@6b3832b.named -> _MyClass.named
+//
+static RawString* IdentifierPrettyName(const String& name) {
+  intptr_t len = name.Length();
+  intptr_t start = 0;
+  intptr_t at_pos = len;   // Position of '@' in the name.
+  intptr_t dot_pos = len;  // Position of '.' in the name.
+  bool is_setter = false;
+
+  for (int i = 0; i < name.Length(); i++) {
+    if (name.CharAt(i) == ':') {
+      ASSERT(start == 0);
+      if (name.CharAt(0) == 's') {
+        is_setter = true;
+      }
+      start = i + 1;
+    } else if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    } else if (name.CharAt(i) == '.') {
+      dot_pos = i;
+      break;
+    }
   }
-  return kInvalidIndex;
+  intptr_t limit = (at_pos < dot_pos ? at_pos : dot_pos);
+  if (start == 0 && limit == len) {
+    // This name is fine as it is.
+    return name.raw();
+  }
+
+  const String& result =
+      String::Handle(String::SubString(name, start, (limit - start)));
+
+  // Look for a second '@' now to correctly handle names like
+  // "_ReceivePortImpl@6be832b._internal@6be832b".
+  at_pos = len;
+  for (int i = dot_pos; i < name.Length(); i++) {
+    if (name.CharAt(i) == '@') {
+      ASSERT(at_pos == len);
+      at_pos = i;
+    }
+  }
+
+  intptr_t suffix_len = at_pos - dot_pos;
+  if (suffix_len > 1) {
+    // This is a named constructor.  Add the name back to the string.
+    const String& suffix =
+        String::Handle(String::SubString(name, dot_pos, suffix_len));
+    return String::Concat(result, suffix);
+  }
+
+  if (is_setter) {
+    // Setters need to end with '='.
+    const String& suffix = String::Handle(Symbols::Equals());
+    return String::Concat(result, suffix);
+  }
+
+  return result.raw();
 }
 
 
-RawClass* Object::GetSingletonClass(int index) {
-  switch (index) {
-    case kClassClass: return class_class();
-    case kNullClass: return null_class();
-    case kDynamicClass: return dynamic_class();
-    case kVoidClass: return void_class();
-    case kUnresolvedClassClass: return unresolved_class_class();
-    case kTypeClass: return type_class();
-    case kTypeParameterClass: return type_parameter_class();
-    case kTypeArgumentsClass: return type_arguments_class();
-    case kInstantiatedTypeArgumentsClass:
-        return instantiated_type_arguments_class();
-    case kFunctionClass: return function_class();
-    case kFieldClass: return field_class();
-    case kLiteralTokenClass: return literal_token_class();
-    case kTokenStreamClass: return token_stream_class();
-    case kScriptClass: return script_class();
-    case kLibraryClass: return library_class();
-    case kLibraryPrefixClass: return library_prefix_class();
-    case kCodeClass: return code_class();
-    case kInstructionsClass: return instructions_class();
-    case kPcDescriptorsClass: return pc_descriptors_class();
-    case kStackmapClass: return stackmap_class();
-    case kLocalVarDescriptorsClass: return var_descriptors_class();
-    case kExceptionHandlersClass: return exception_handlers_class();
-    case kDeoptInfoClass: return deopt_info_class();
-    case kContextClass: return context_class();
-    case kContextScopeClass: return context_scope_class();
-    case kICDataClass: return icdata_class();
-    case kSubtypeTestCacheClass: return subtypetestcache_class();
-    case kApiErrorClass: return api_error_class();
-    case kLanguageErrorClass: return language_error_class();
-    case kUnhandledExceptionClass: return unhandled_exception_class();
-    case kUnwindErrorClass: return unwind_error_class();
-    default: break;
-  }
-  UNREACHABLE();
-  return reinterpret_cast<RawClass*>(kHeapObjectTag);  // return RAW_NULL.
-}
-
-
-const char* Object::GetSingletonClassName(int index) {
-  switch (index) {
-    case kClassClass: return "Class";
-    case kNullClass: return "Null";
-    case kDynamicClass: return "Dynamic";
-    case kVoidClass: return "void";
-    case kUnresolvedClassClass: return "UnresolvedClass";
-    case kTypeClass: return "Type";
-    case kTypeParameterClass: return "TypeParameter";
-    case kTypeArgumentsClass: return "TypeArguments";
-    case kInstantiatedTypeArgumentsClass: return "InstantiatedTypeArguments";
-    case kFunctionClass: return "Function";
-    case kFieldClass: return "Field";
-    case kLiteralTokenClass: return "LiteralToken";
-    case kTokenStreamClass: return "TokenStream";
-    case kScriptClass: return "Script";
-    case kLibraryClass: return "Library";
-    case kLibraryPrefixClass: return "LibraryPrefix";
-    case kCodeClass: return "Code";
-    case kInstructionsClass: return "Instructions";
-    case kPcDescriptorsClass: return "PcDescriptors";
-    case kStackmapClass: return "Stackmap";
-    case kLocalVarDescriptorsClass: return "LocalVarDescriptors";
-    case kExceptionHandlersClass: return "ExceptionHandlers";
-    case kDeoptInfoClass: return "DeoptInfo";
-    case kContextClass: return "Context";
-    case kContextScopeClass: return "ContextScope";
-    case kICDataClass: return "ICData";
-    case kSubtypeTestCacheClass: return "SubtypeTestCache";
-    case kApiErrorClass: return "ApiError";
-    case kLanguageErrorClass: return "LanguageError";
-    case kUnhandledExceptionClass: return "UnhandledException";
-    case kUnwindErrorClass: return "UnwindError";
+// TODO(asiva): Get rid of this function once we have predefined names for
+// the shared classes and set that up in the name field.
+const char* Object::GetSingletonClassName(intptr_t class_id) {
+  switch (class_id) {
+    case kClassCid: return "Class";
+    case kNullCid: return "Null";
+    case kDynamicCid: return "Dynamic";
+    case kVoidCid: return "void";
+    case kUnresolvedClassCid: return "UnresolvedClass";
+    case kTypeCid: return "Type";
+    case kTypeParameterCid: return "TypeParameter";
+    case kTypeArgumentsCid: return "TypeArguments";
+    case kInstantiatedTypeArgumentsCid: return "InstantiatedTypeArguments";
+    case kFunctionCid: return "Function";
+    case kFieldCid: return "Field";
+    case kLiteralTokenCid: return "LiteralToken";
+    case kTokenStreamCid: return "TokenStream";
+    case kScriptCid: return "Script";
+    case kLibraryCid: return "Library";
+    case kLibraryPrefixCid: return "LibraryPrefix";
+    case kCodeCid: return "Code";
+    case kInstructionsCid: return "Instructions";
+    case kPcDescriptorsCid: return "PcDescriptors";
+    case kStackmapCid: return "Stackmap";
+    case kLocalVarDescriptorsCid: return "LocalVarDescriptors";
+    case kExceptionHandlersCid: return "ExceptionHandlers";
+    case kContextCid: return "Context";
+    case kContextScopeCid: return "ContextScope";
+    case kICDataCid: return "ICData";
+    case kSubtypeTestCacheCid: return "SubtypeTestCache";
+    case kApiErrorCid: return "ApiError";
+    case kLanguageErrorCid: return "LanguageError";
+    case kUnhandledExceptionCid: return "UnhandledException";
+    case kUnwindErrorCid: return "UnwindError";
     default: break;
   }
   UNREACHABLE();
@@ -271,7 +246,7 @@ void Object::InitOnce() {
     uword address = heap->Allocate(Instance::InstanceSize(), Heap::kOld);
     null_ = reinterpret_cast<RawInstance*>(address + kHeapObjectTag);
     // The call below is using 'null_' to initialize itself.
-    InitializeObject(address, kNullClassId, Instance::InstanceSize());
+    InitializeObject(address, kNullCid, Instance::InstanceSize());
   }
 
   // Initialize object_store empty array to null_ in order to be able to check
@@ -285,7 +260,7 @@ void Object::InitOnce() {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(size, Heap::kOld);
     class_class_ = reinterpret_cast<RawClass*>(address + kHeapObjectTag);
-    InitializeObject(address, Class::kInstanceKind, size);
+    InitializeObject(address, Class::kClassId, size);
 
     Class fake;
     // Initialization from Class::New<Class>.
@@ -295,8 +270,7 @@ void Object::InitOnce() {
     cls.set_handle_vtable(fake.vtable());
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::InstanceSize());
-    cls.set_instance_kind(Class::kInstanceKind);
-    cls.set_id(Class::kInstanceKind);
+    cls.set_id(Class::kClassId);
     cls.raw_ptr()->is_const_ = false;
     cls.raw_ptr()->is_interface_ = false;
     cls.set_is_finalized();
@@ -308,7 +282,7 @@ void Object::InitOnce() {
   }
 
   // Allocate and initialize the null class.
-  cls = Class::New<Instance>(kNullClassId);
+  cls = Class::New<Instance>(kNullCid);
   cls.set_is_finalized();
   null_class_ = cls.raw();
 
@@ -320,24 +294,24 @@ void Object::InitOnce() {
   {
     Instance& sentinel = Instance::Handle();
     sentinel ^=
-        Object::Allocate(kNullClassId, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
     sentinel_ = sentinel.raw();
 
     Instance& transition_sentinel = Instance::Handle();
     transition_sentinel ^=
-        Object::Allocate(kNullClassId, Instance::InstanceSize(), Heap::kOld);
+        Object::Allocate(kNullCid, Instance::InstanceSize(), Heap::kOld);
     transition_sentinel_ = transition_sentinel.raw();
   }
 
   // The interface "Dynamic" is not a VM internal class. It is the type class of
   // the "unknown type". For efficiency, we allocate it in the VM isolate.
   // Therefore, it cannot have a heap allocated name (the name is hard coded,
-  // see GetSingletonClassIndex) and its array fields cannot be set to the empty
+  // see GetSingletonClassName) and its array fields cannot be set to the empty
   // array, but remain null.
   //
   // TODO(turnidge): Once the empty array is allocated in the vm
   // isolate, use it here.
-  cls = Class::New<Instance>(kDynamicClassId);
+  cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_finalized();
   cls.set_is_interface();
   dynamic_class_ = cls.raw();
@@ -346,7 +320,7 @@ void Object::InitOnce() {
   cls = Class::New<UnresolvedClass>();
   unresolved_class_class_ = cls.raw();
 
-  cls = Class::New<Instance>(kVoidClassId);
+  cls = Class::New<Instance>(kVoidCid);
   cls.set_is_finalized();
   void_class_ = cls.raw();
 
@@ -437,9 +411,6 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::New<OneByteString>();
   isolate->object_store()->set_one_byte_string_class(cls);
-
-  // TODO(asiva): Assign the names of shared classes instead of relying on the
-  // lookup switch in Object::GetSingletonClassName.
 }
 
 
@@ -990,7 +961,7 @@ void Object::Print() const {
 }
 
 
-void Object::InitializeObject(uword address, intptr_t index, intptr_t size) {
+void Object::InitializeObject(uword address, intptr_t class_id, intptr_t size) {
   // TODO(iposva): Get a proper halt instruction from the assembler which
   // would be needed here for code objects.
   uword initial_value = reinterpret_cast<uword>(null_);
@@ -1001,8 +972,8 @@ void Object::InitializeObject(uword address, intptr_t index, intptr_t size) {
     cur += kWordSize;
   }
   uword tags = 0;
-  ASSERT(index != kIllegalObjectKind);
-  tags = RawObject::ClassIdTag::update(index, tags);
+  ASSERT(class_id != kIllegalCid);
+  tags = RawObject::ClassIdTag::update(class_id, tags);
   tags = RawObject::SizeTag::update(size, tags);
   reinterpret_cast<RawObject*>(address)->tags_ = tags;
 }
@@ -1070,8 +1041,7 @@ RawString* Class::Name() const {
     return raw_ptr()->name_;
   }
   ASSERT(class_class() != Class::null());  // class_class_ should be set up.
-  intptr_t index = GetSingletonClassIndex(raw());
-  return Symbols::New(GetSingletonClassName(index));
+  return Symbols::New(GetSingletonClassName(raw_ptr()->id_));
 }
 
 
@@ -1080,58 +1050,63 @@ RawString* Class::UserVisibleName() const {
     return Name();
   }
   switch (id()) {
-    case kInteger:
-    case kSmi:
-    case kMint:
-    case kBigint:
+    case kIntegerCid:
+    case kSmiCid:
+    case kMintCid:
+    case kBigintCid:
       return Symbols::New("int");
-    case kDouble:
+    case kDoubleCid:
       return Symbols::New("double");
-    case kOneByteString:
-    case kTwoByteString:
-    case kFourByteString:
-    case kExternalOneByteString:
-    case kExternalTwoByteString:
-    case kExternalFourByteString:
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kFourByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+    case kExternalFourByteStringCid:
       return Symbols::New("String");
-    case kBool:
+    case kBoolCid:
       return Symbols::New("bool");
-    case kArray:
-    case kImmutableArray:
-    case kGrowableObjectArray:
+    case kArrayCid:
+    case kImmutableArrayCid:
+    case kGrowableObjectArrayCid:
       return Symbols::New("List");
-    case kInt8Array:
-    case kExternalInt8Array:
+    case kInt8ArrayCid:
+    case kExternalInt8ArrayCid:
       return Symbols::New("Int8List");
-    case kUint8Array:
-    case kExternalUint8Array:
+    case kUint8ArrayCid:
+    case kExternalUint8ArrayCid:
       return Symbols::New("Uint8List");
-    case kInt16Array:
-    case kExternalInt16Array:
+    case kInt16ArrayCid:
+    case kExternalInt16ArrayCid:
       return Symbols::New("Int16List");
-    case kUint16Array:
-    case kExternalUint16Array:
+    case kUint16ArrayCid:
+    case kExternalUint16ArrayCid:
       return Symbols::New("Uint16List");
-    case kInt32Array:
-    case kExternalInt32Array:
+    case kInt32ArrayCid:
+    case kExternalInt32ArrayCid:
       return Symbols::New("Int32List");
-    case kUint32Array:
-    case kExternalUint32Array:
+    case kUint32ArrayCid:
+    case kExternalUint32ArrayCid:
       return Symbols::New("Uint32List");
-    case kInt64Array:
-    case kExternalInt64Array:
+    case kInt64ArrayCid:
+    case kExternalInt64ArrayCid:
       return Symbols::New("Int64List");
-    case kUint64Array:
-    case kExternalUint64Array:
+    case kUint64ArrayCid:
+    case kExternalUint64ArrayCid:
       return Symbols::New("Uint64List");
-    case kFloat32Array:
-    case kExternalFloat32Array:
+    case kFloat32ArrayCid:
+    case kExternalFloat32ArrayCid:
       return Symbols::New("Float32List");
-    case kFloat64Array:
-    case kExternalFloat64Array:
+    case kFloat64ArrayCid:
+    case kExternalFloat64ArrayCid:
       return Symbols::New("Float64List");
     default:
-      return Name();
+      if (!IsSignatureClass()) {
+        const String& name = String::Handle(Name());
+        return IdentifierPrettyName(name);
+      } else {
+        return Name();
+      }
   }
   UNREACHABLE();
 }
@@ -1182,7 +1157,7 @@ RawClass* Class::New() {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    RawObject* raw = Object::Allocate(Class::kInstanceKind,
+    RawObject* raw = Object::Allocate(Class::kClassId,
                                       Class::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -1192,9 +1167,9 @@ RawClass* Class::New() {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeObject::InstanceSize());
   result.set_next_field_offset(FakeObject::InstanceSize());
-  result.set_instance_kind(FakeObject::kInstanceKind);
-  result.set_id((FakeObject::kInstanceKind != kInstance) ?
-                FakeObject::kInstanceKind : kIllegalObjectKind);
+  result.set_id((FakeObject::kClassId != kInstanceCid &&
+                 FakeObject::kClassId != kClosureCid) ?
+                FakeObject::kClassId : kIllegalCid);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
   // VM backed classes are almost ready: run checks and resolve class
@@ -1519,7 +1494,7 @@ RawClass* Class::New(intptr_t index) {
   ASSERT(Object::class_class() != Class::null());
   Class& result = Class::Handle();
   {
-    RawObject* raw = Object::Allocate(Class::kInstanceKind,
+    RawObject* raw = Object::Allocate(Class::kClassId,
                                       Class::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -1530,7 +1505,6 @@ RawClass* Class::New(intptr_t index) {
   result.set_handle_vtable(fake.vtable());
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_next_field_offset(FakeInstance::InstanceSize());
-  result.set_instance_kind(FakeInstance::kInstanceKind);
   result.set_id(index);
   result.raw_ptr()->is_const_ = false;
   result.raw_ptr()->is_interface_ = false;
@@ -1547,7 +1521,7 @@ template <class FakeInstance>
 RawClass* Class::New(const String& name,
                      const Script& script,
                      intptr_t token_pos) {
-  Class& result = Class::Handle(New<FakeInstance>(kIllegalObjectKind));
+  Class& result = Class::Handle(New<FakeInstance>(kIllegalCid));
   result.set_name(name);
   result.set_script(script);
   result.set_token_pos(token_pos);
@@ -1628,128 +1602,18 @@ RawClass* Class::NewSignatureClass(const String& name,
 }
 
 
-RawClass* Class::GetClass(ObjectKind kind) {
-  ObjectStore* object_store = Isolate::Current()->object_store();
-  switch (kind) {
-    case kInteger:
-      ASSERT(object_store->integer_implementation_class() != Class::null());
-      return object_store->integer_implementation_class();
-    case kSmi:
-      ASSERT(object_store->smi_class() != Class::null());
-      return object_store->smi_class();
-    case kMint:
-      ASSERT(object_store->mint_class() != Class::null());
-      return object_store->mint_class();
-    case kBigint:
-      ASSERT(object_store->bigint_class() != Class::null());
-      return object_store->bigint_class();
-    case kDouble:
-      ASSERT(object_store->double_class() != Class::null());
-      return object_store->double_class();
-    case kOneByteString:
-      ASSERT(object_store->one_byte_string_class() != Class::null());
-      return object_store->one_byte_string_class();
-    case kTwoByteString:
-      ASSERT(object_store->two_byte_string_class() != Class::null());
-      return object_store->two_byte_string_class();
-    case kFourByteString:
-      ASSERT(object_store->four_byte_string_class() != Class::null());
-      return object_store->four_byte_string_class();
-    case kExternalOneByteString:
-      ASSERT(object_store->external_one_byte_string_class() != Class::null());
-      return object_store->external_one_byte_string_class();
-    case kExternalTwoByteString:
-      ASSERT(object_store->external_two_byte_string_class() != Class::null());
-      return object_store->external_two_byte_string_class();
-    case kExternalFourByteString:
-      ASSERT(object_store->external_four_byte_string_class() != Class::null());
-      return object_store->external_four_byte_string_class();
-    case kBool:
-      ASSERT(object_store->bool_class() != Class::null());
-      return object_store->bool_class();
-    case kArray:
-      ASSERT(object_store->array_class() != Class::null());
-      return object_store->array_class();
-    case kImmutableArray:
-      ASSERT(object_store->immutable_array_class() != Class::null());
-      return object_store->immutable_array_class();
-    case kGrowableObjectArray:
-      ASSERT(object_store->growable_object_array_class() != Class::null());
-      return object_store->growable_object_array_class();
-    case kInt8Array:
-      ASSERT(object_store->int8_array_class() != Class::null());
-      return object_store->int8_array_class();
-    case kUint8Array:
-      ASSERT(object_store->uint8_array_class() != Class::null());
-      return object_store->uint8_array_class();
-    case kInt16Array:
-      ASSERT(object_store->int16_array_class() != Class::null());
-      return object_store->int16_array_class();
-    case kUint16Array:
-      ASSERT(object_store->uint16_array_class() != Class::null());
-      return object_store->uint16_array_class();
-    case kInt32Array:
-      ASSERT(object_store->int32_array_class() != Class::null());
-      return object_store->int32_array_class();
-    case kUint32Array:
-      ASSERT(object_store->uint32_array_class() != Class::null());
-      return object_store->uint32_array_class();
-    case kInt64Array:
-      ASSERT(object_store->int64_array_class() != Class::null());
-      return object_store->int64_array_class();
-    case kUint64Array:
-      ASSERT(object_store->uint64_array_class() != Class::null());
-      return object_store->uint64_array_class();
-    case kFloat32Array:
-      ASSERT(object_store->float32_array_class() != Class::null());
-      return object_store->float32_array_class();
-    case kFloat64Array:
-      ASSERT(object_store->float64_array_class() != Class::null());
-      return object_store->float64_array_class();
-    case kExternalInt8Array:
-      ASSERT(object_store->external_int8_array_class() != Class::null());
-      return object_store->external_int8_array_class();
-    case kExternalUint8Array:
-      ASSERT(object_store->external_uint8_array_class() != Class::null());
-      return object_store->external_uint8_array_class();
-    case kExternalInt16Array:
-      ASSERT(object_store->external_int16_array_class() != Class::null());
-      return object_store->external_int16_array_class();
-    case kExternalUint16Array:
-      ASSERT(object_store->external_uint16_array_class() != Class::null());
-      return object_store->external_uint16_array_class();
-    case kExternalInt32Array:
-      ASSERT(object_store->external_int32_array_class() != Class::null());
-      return object_store->external_int32_array_class();
-    case kExternalUint32Array:
-      ASSERT(object_store->external_uint32_array_class() != Class::null());
-      return object_store->external_uint32_array_class();
-    case kExternalInt64Array:
-      ASSERT(object_store->external_int64_array_class() != Class::null());
-      return object_store->external_int64_array_class();
-    case kExternalUint64Array:
-      ASSERT(object_store->external_uint64_array_class() != Class::null());
-      return object_store->external_uint64_array_class();
-    case kExternalFloat32Array:
-      ASSERT(object_store->external_float32_array_class() != Class::null());
-      return object_store->external_float32_array_class();
-    case kExternalFloat64Array:
-      ASSERT(object_store->external_float64_array_class() != Class::null());
-      return object_store->external_float64_array_class();
-    case kStacktrace:
-      ASSERT(object_store->stacktrace_class() != Class::null());
-      return object_store->stacktrace_class();
-    case kJSRegExp:
-      ASSERT(object_store->jsregexp_class() != Class::null());
-      return object_store->jsregexp_class();
-    case kClosure:
-      return Class::New<Closure>();
-    case kInstance:
-      return Class::New<Instance>();
-    default:
-      OS::Print("Class::GetClass kind unknown: %d\n", kind);
-      UNREACHABLE();
+RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
+  if (class_id >= kIntegerCid && class_id <= kJSRegExpCid) {
+    return Isolate::Current()->class_table()->At(class_id);
   }
+  if (class_id >= kNumPredefinedCids) {
+    if (is_signature_class) {
+      return Class::New<Closure>();
+    }
+    return Class::New<Instance>();
+  }
+  OS::Print("Class::GetClass id unknown: %d\n", class_id);
+  UNREACHABLE();
   return Class::null();
 }
 
@@ -2242,7 +2106,7 @@ RawUnresolvedClass* UnresolvedClass::New(const LibraryPrefix& library_prefix,
 
 RawUnresolvedClass* UnresolvedClass::New() {
   ASSERT(Object::unresolved_class_class() != Class::null());
-  RawObject* raw = Object::Allocate(UnresolvedClass::kInstanceKind,
+  RawObject* raw = Object::Allocate(UnresolvedClass::kClassId,
                                     UnresolvedClass::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawUnresolvedClass*>(raw);
@@ -2891,7 +2755,7 @@ void Type::set_arguments(const AbstractTypeArguments& value) const {
 
 RawType* Type::New(Heap::Space space) {
   ASSERT(Object::type_class() != Class::null());
-  RawObject* raw = Object::Allocate(Type::kInstanceKind,
+  RawObject* raw = Object::Allocate(Type::kClassId,
                                     Type::InstanceSize(),
                                     space);
   return reinterpret_cast<RawType*>(raw);
@@ -3050,7 +2914,7 @@ RawAbstractType* TypeParameter::InstantiateFrom(
 
 RawTypeParameter* TypeParameter::New() {
   ASSERT(Object::type_parameter_class() != Class::null());
-  RawObject* raw = Object::Allocate(TypeParameter::kInstanceKind,
+  RawObject* raw = Object::Allocate(TypeParameter::kClassId,
                                     TypeParameter::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawTypeParameter*>(raw);
@@ -3473,7 +3337,7 @@ RawTypeArguments* TypeArguments::New(intptr_t len, Heap::Space space) {
   }
   TypeArguments& result = TypeArguments::Handle();
   {
-    RawObject* raw = Object::Allocate(TypeArguments::kInstanceKind,
+    RawObject* raw = Object::Allocate(TypeArguments::kClassId,
                                       TypeArguments::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -3593,7 +3457,7 @@ void InstantiatedTypeArguments::set_instantiator_type_arguments(
 
 RawInstantiatedTypeArguments* InstantiatedTypeArguments::New() {
   ASSERT(Object::instantiated_type_arguments_class() != Class::null());
-  RawObject* raw = Object::Allocate(InstantiatedTypeArguments::kInstanceKind,
+  RawObject* raw = Object::Allocate(InstantiatedTypeArguments::kClassId,
                                     InstantiatedTypeArguments::InstanceSize(),
                                     Heap::kNew);
   return reinterpret_cast<RawInstantiatedTypeArguments*>(raw);
@@ -3792,6 +3656,11 @@ void Function::set_is_optimizable(bool value) const {
 }
 
 
+void Function::set_has_finally(bool value) const {
+  raw()->SetHasFinally(value);
+}
+
+
 void Function::set_is_native(bool value) const {
   raw()->SetIsNative(value);
 }
@@ -3937,7 +3806,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
     ASSERT(chars != NULL);
     *chars = Isolate::Current()->current_zone()->Alloc<char>(reserve_len + 1);
     written = OS::SNPrint(
-        *chars, reserve_len, lib_class_format, library_name, class_name);
+        *chars, reserve_len + 1, lib_class_format, library_name, class_name);
   } else {
     written = ConstructFunctionFullyQualifiedCString(parent,
                                                      chars,
@@ -4116,7 +3985,7 @@ bool Function::IsImplicitClosureFunction() const {
 
 RawFunction* Function::New() {
   ASSERT(Object::function_class() != Class::null());
-  RawObject* raw = Object::Allocate(Function::kInstanceKind,
+  RawObject* raw = Object::Allocate(Function::kClassId,
                                     Function::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawFunction*>(raw);
@@ -4140,6 +4009,7 @@ RawFunction* Function::New(const String& name,
   result.set_kind(kind);
   result.set_is_static(is_static);
   result.set_is_const(is_const);
+  result.set_is_abstract(is_abstract);
   result.set_is_external(is_external);
   result.set_owner(owner);
   result.set_token_pos(token_pos);
@@ -4149,8 +4019,8 @@ RawFunction* Function::New(const String& name,
   result.set_usage_counter(0);
   result.set_deoptimization_counter(0);
   result.set_is_optimizable(true);
+  result.set_has_finally(false);
   result.set_is_native(false);
-  result.set_is_abstract(is_abstract);
   return result.raw();
 }
 
@@ -4366,6 +4236,38 @@ bool Function::HasOptimizedCode() const {
 }
 
 
+RawString* Function::UserVisibleName() const {
+  const String& str = String::Handle(name());
+  return IdentifierPrettyName(str);
+}
+
+
+RawString* Function::QualifiedUserVisibleName() const {
+  String& tmp = String::Handle();
+  String& suffix = String::Handle();
+  const Class& cls = Class::Handle(owner());
+
+  if (IsClosureFunction()) {
+    if (IsLocalFunction()) {
+      const Function& parent = Function::Handle(parent_function());
+      tmp = parent.QualifiedUserVisibleName();
+    } else {
+      return UserVisibleName();
+    }
+  } else {
+    if (cls.IsTopLevel()) {
+      return UserVisibleName();
+    } else {
+      tmp = cls.UserVisibleName();
+    }
+  }
+  suffix = Symbols::Dot();
+  tmp = String::Concat(tmp, suffix);
+  suffix = UserVisibleName();
+  return String::Concat(tmp, suffix);
+}
+
+
 const char* Function::ToCString() const {
   const char* static_str = is_static() ? " static" : "";
   const char* abstract_str = is_abstract() ? " abstract" : "";
@@ -4487,7 +4389,7 @@ void Field::set_type(const AbstractType& value) const {
 
 RawField* Field::New() {
   ASSERT(Object::field_class() != Class::null());
-  RawObject* raw = Object::Allocate(Field::kInstanceKind,
+  RawObject* raw = Object::Allocate(Field::kClassId,
                                     Field::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawField*>(raw);
@@ -4519,6 +4421,12 @@ RawField* Field::New(const String& name,
 }
 
 
+RawString* Field::UserVisibleName() const {
+  const String& str = String::Handle(name());
+  return IdentifierPrettyName(str);
+}
+
+
 const char* Field::ToCString() const {
   const char* kF0 = is_static() ? " static" : "";
   const char* kF1 = is_final() ? " final" : "";
@@ -4547,7 +4455,7 @@ void LiteralToken::set_value(const Object& value) const {
 
 RawLiteralToken* LiteralToken::New() {
   ASSERT(Object::literal_token_class() != Class::null());
-  RawObject* raw = Object::Allocate(LiteralToken::kInstanceKind,
+  RawObject* raw = Object::Allocate(LiteralToken::kClassId,
                                     LiteralToken::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLiteralToken*>(raw);
@@ -4733,7 +4641,7 @@ RawTokenStream* TokenStream::New(intptr_t len) {
   }
   TokenStream& result = TokenStream::Handle();
   {
-    RawObject* raw = Object::Allocate(TokenStream::kInstanceKind,
+    RawObject* raw = Object::Allocate(TokenStream::kClassId,
                                       TokenStream::InstanceSize(len),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -5230,7 +5138,7 @@ RawString* Script::GetSnippet(intptr_t from_line,
 
 RawScript* Script::New() {
   ASSERT(Object::script_class() != Class::null());
-  RawObject* raw = Object::Allocate(Script::kInstanceKind,
+  RawObject* raw = Object::Allocate(Script::kClassId,
                                     Script::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawScript*>(raw);
@@ -5449,6 +5357,61 @@ void Library::AddObject(const Object& obj, const String& name) const {
 }
 
 
+RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
+  Isolate* isolate = Isolate::Current();
+  const Array& dict = Array::Handle(isolate, dictionary());
+  intptr_t dict_size = dict.Length() - 1;
+  *index = name.Hash() % dict_size;
+
+  Object& entry = Object::Handle(isolate);
+  Class& cls = Class::Handle(isolate);
+  Function& func = Function::Handle(isolate);
+  Field& field = Field::Handle(isolate);
+  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate);
+  String& entry_name = String::Handle(isolate);
+  entry = dict.At(*index);
+  // Search the entry in the hash set.
+  while (!entry.IsNull()) {
+    // TODO(hausner): find a better way to handle this polymorphism.
+    // Either introduce a common base class for Class, Function, Field
+    // and LibraryPrefix or make the name() function virtual in Object.
+    if (entry.IsClass()) {
+      cls ^= entry.raw();
+      entry_name = cls.Name();
+    } else if (entry.IsFunction()) {
+      func ^= entry.raw();
+      entry_name = func.name();
+    } else if (entry.IsField()) {
+      field ^= entry.raw();
+      entry_name = field.name();
+    } else if (entry.IsLibraryPrefix()) {
+      library_prefix ^= entry.raw();
+      entry_name = library_prefix.name();
+    } else {
+      UNREACHABLE();
+    }
+    if (entry_name.Equals(name)) {
+      return entry.raw();
+    }
+    *index = (*index + 1) % dict_size;
+    entry = dict.At(*index);
+  }
+  return Object::null();
+}
+
+
+void Library::ReplaceObject(const Object& obj, const String& name) const {
+  ASSERT(obj.IsClass() || obj.IsFunction() || obj.IsField());
+  ASSERT(LookupLocalObject(name) != Object::null());
+
+  intptr_t index;
+  LookupEntry(name, &index);
+  // The value is guaranteed to be found.
+  const Array& dict = Array::Handle(dictionary());
+  dict.SetAt(index, obj);
+}
+
+
 void Library::AddClass(const Class& cls) const {
   AddObject(cls, String::Handle(cls.Name()));
   // Link class to this library.
@@ -5578,46 +5541,8 @@ RawFunction* Library::LookupFunctionInScript(const Script& script,
 
 
 RawObject* Library::LookupLocalObject(const String& name) const {
-  Isolate* isolate = Isolate::Current();
-  const Array& dict = Array::Handle(isolate, dictionary());
-  intptr_t dict_size = dict.Length() - 1;
-  intptr_t index = name.Hash() % dict_size;
-
-  Object& entry = Object::Handle(isolate, Object::null());
-  Class& cls = Class::Handle(isolate, Class::null());
-  Function& func = Function::Handle(isolate, Function::null());
-  Field& field = Field::Handle(isolate, Field::null());
-  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate,
-                                                        LibraryPrefix::null());
-  String& entry_name = String::Handle(isolate, String::null());
-  entry = dict.At(index);
-  // Search the entry in the hash set.
-  while (!entry.IsNull()) {
-    // TODO(hausner): find a better way to handle this polymorphism.
-    // Either introduce a common base class for Class, Function, Field
-    // and LibraryPrefix or make the name() function virtual in Object.
-    if (entry.IsClass()) {
-      cls ^= entry.raw();
-      entry_name = cls.Name();
-    } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      entry_name = func.name();
-    } else if (entry.IsField()) {
-      field ^= entry.raw();
-      entry_name = field.name();
-    } else if (entry.IsLibraryPrefix()) {
-      library_prefix ^= entry.raw();
-      entry_name = library_prefix.name();
-    } else {
-      UNREACHABLE();
-    }
-    if (entry_name.Equals(name)) {
-      return entry.raw();
-    }
-    index = (index + 1) % dict_size;
-    entry = dict.At(index);
-  }
-  return Class::null();
+  intptr_t index;
+  return LookupEntry(name, &index);
 }
 
 
@@ -6038,7 +5963,7 @@ void Library::InitImportedIntoList() const {
 
 RawLibrary* Library::New() {
   ASSERT(Object::library_class() != Class::null());
-  RawObject* raw = Object::Allocate(Library::kInstanceKind,
+  RawObject* raw = Object::Allocate(Library::kClassId,
                                     Library::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLibrary*>(raw);
@@ -6193,6 +6118,13 @@ RawString* Library::CheckForDuplicateDefinition() {
     }
   }
   return String::null();
+}
+
+
+RawError* Library::Patch(const String& url, const String& source) const {
+  const Script& script = Script::Handle(
+      Script::New(url, source, RawScript::kPatchTag));
+  return Compiler::Compile(*this, script);
 }
 
 
@@ -6358,7 +6290,7 @@ RawClass* LibraryPrefix::LookupLocalClass(const String& class_name) const {
 
 RawLibraryPrefix* LibraryPrefix::New() {
   ASSERT(Object::library_prefix_class() != Class::null());
-  RawObject* raw = Object::Allocate(LibraryPrefix::kInstanceKind,
+  RawObject* raw = Object::Allocate(LibraryPrefix::kClassId,
                                     LibraryPrefix::InstanceSize(),
                                     Heap::kOld);
   return reinterpret_cast<RawLibraryPrefix*>(raw);
@@ -6490,7 +6422,7 @@ RawInstructions* Instructions::New(intptr_t size) {
   Instructions& result = Instructions::Handle();
   {
     uword aligned_size = Instructions::InstanceSize(size);
-    RawObject* raw = Object::Allocate(Instructions::kInstanceKind,
+    RawObject* raw = Object::Allocate(Instructions::kClassId,
                                       aligned_size,
                                       Heap::kCode);
     NoGCScope no_gc;
@@ -6541,22 +6473,23 @@ void PcDescriptors::SetKind(intptr_t index, PcDescriptors::Kind value) const {
 
 
 intptr_t PcDescriptors::DeoptId(intptr_t index) const {
-  return Smi::Value(*SmiAddr(index, kDeoptIdEntry));
+  return *(EntryAddr(index, kDeoptIdEntry));
 }
 
 
 void PcDescriptors::SetDeoptId(intptr_t index, intptr_t value) const {
-  *SmiAddr(index, kDeoptIdEntry) = Smi::New(value);
+  *(EntryAddr(index, kDeoptIdEntry)) = value;
 }
 
 
 intptr_t PcDescriptors::TokenPos(intptr_t index) const {
-  return Smi::Value(*SmiAddr(index, kTokenPosEntry));
+  ASSERT(DescriptorKind(index) != kDeoptIndex);
+  return *(EntryAddr(index, kTokenPosEntry));
 }
 
 
 void PcDescriptors::SetTokenPos(intptr_t index, intptr_t value) const {
-  *SmiAddr(index, kTokenPosEntry) = Smi::New(value);
+  *(EntryAddr(index, kTokenPosEntry)) = value;
 }
 
 
@@ -6566,14 +6499,20 @@ intptr_t PcDescriptors::TryIndex(intptr_t index) const {
 }
 
 
-intptr_t PcDescriptors::DeoptIndex(intptr_t index) const {
-  ASSERT(DescriptorKind(index) == kDeoptIndex);
-  return *(EntryAddr(index, kTryIndexEntry));
+void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
+  *(EntryAddr(index, kTryIndexEntry)) = value;
 }
 
 
-void PcDescriptors::SetTryIndex(intptr_t index, intptr_t value) const {
-  *(EntryAddr(index, kTryIndexEntry)) = value;
+intptr_t PcDescriptors::DeoptIndex(intptr_t index) const {
+  ASSERT(DescriptorKind(index) == kDeoptIndex);
+  return *(EntryAddr(index, kDeoptIndexEntry));
+}
+
+
+intptr_t PcDescriptors::DeoptReason(intptr_t index) const {
+  ASSERT(DescriptorKind(index) == kDeoptIndex);
+  return *(EntryAddr(index, kDeoptReasonEntry));
 }
 
 
@@ -6587,7 +6526,7 @@ RawPcDescriptors* PcDescriptors::New(intptr_t num_descriptors) {
   PcDescriptors& result = PcDescriptors::Handle();
   {
     uword size = PcDescriptors::InstanceSize(num_descriptors);
-    RawObject* raw = Object::Allocate(PcDescriptors::kInstanceKind,
+    RawObject* raw = Object::Allocate(PcDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -6622,20 +6561,32 @@ const char* PcDescriptors::ToCString() const {
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
-    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+    intptr_t token_pos_or_deopt_reason = DescriptorKind(i) == kDeoptIndex ?
+        DeoptReason(i) : TokenPos(i);
+    intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
     len += OS::SNPrint(NULL, 0, kFormat,
-        PC(i), KindAsStr(i), DeoptId(i), TokenPos(i), multi_purpose_index);
+        PC(i),
+        KindAsStr(i),
+        DeoptId(i),
+        token_pos_or_deopt_reason,
+        multi_purpose_index);
   }
   // Allocate the buffer.
   char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
-    const intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
+    intptr_t token_pos_or_deopt_reason = DescriptorKind(i) == kDeoptIndex ?
+        DeoptReason(i) : TokenPos(i);
+    intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
     index += OS::SNPrint((buffer + index), (len - index), kFormat,
-        PC(i), KindAsStr(i), DeoptId(i), TokenPos(i), multi_purpose_index);
+        PC(i),
+        KindAsStr(i),
+        DeoptId(i),
+        token_pos_or_deopt_reason,
+        multi_purpose_index);
   }
   return buffer;
 }
@@ -6722,7 +6673,7 @@ RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
-    RawObject* raw = Object::Allocate(Stackmap::kInstanceKind,
+    RawObject* raw = Object::Allocate(Stackmap::kClassId,
                                       Stackmap::InstanceSize(size),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -6817,7 +6768,7 @@ RawLocalVarDescriptors* LocalVarDescriptors::New(intptr_t num_variables) {
   LocalVarDescriptors& result = LocalVarDescriptors::Handle();
   {
     uword size = LocalVarDescriptors::InstanceSize(num_variables);
-    RawObject* raw = Object::Allocate(LocalVarDescriptors::kInstanceKind,
+    RawObject* raw = Object::Allocate(LocalVarDescriptors::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -6878,7 +6829,7 @@ RawExceptionHandlers* ExceptionHandlers::New(intptr_t num_handlers) {
   ExceptionHandlers& result = ExceptionHandlers::Handle();
   {
     uword size = ExceptionHandlers::InstanceSize(num_handlers);
-    RawObject* raw = Object::Allocate(ExceptionHandlers::kInstanceKind,
+    RawObject* raw = Object::Allocate(ExceptionHandlers::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -6939,19 +6890,19 @@ const char* DeoptInfo::ToCString() const {
     deopt_instrs.Add(DeoptInstr::Create(Instruction(i), FromIndex(i)));
   }
   // Compute the buffer size required.
-  intptr_t len = 0;
+  intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
     len += OS::SNPrint(NULL, 0, "[%s]", deopt_instrs[i]->ToCString());
   }
   // Allocate the buffer.
-  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
+  char* buffer = Isolate::Current()->current_zone()->Alloc<char>(len);
   // Layout the fields in the buffer.
   intptr_t index = 0;
   for (intptr_t i = 0; i < Length(); i++) {
     index += OS::SNPrint((buffer + index),
-                       (len - index) + 1,
-                       "[%s]",
-                       deopt_instrs[i]->ToCString());
+                         (len - index),
+                         "[%s]",
+                         deopt_instrs[i]->ToCString());
   }
   return buffer;
 }
@@ -6962,7 +6913,7 @@ RawDeoptInfo* DeoptInfo::New(intptr_t num_commands) {
   DeoptInfo& result = DeoptInfo::Handle();
   {
     uword size = DeoptInfo::InstanceSize(num_commands);
-    RawObject* raw = Object::Allocate(DeoptInfo::kInstanceKind,
+    RawObject* raw = Object::Allocate(DeoptInfo::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -7075,7 +7026,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
   Code& result = Code::Handle();
   {
     uword size = Code::InstanceSize(pointer_offsets_length);
-    RawObject* raw = Object::Allocate(Code::kInstanceKind, size, Heap::kOld);
+    RawObject* raw = Object::Allocate(Code::kClassId, size, Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
@@ -7222,7 +7173,7 @@ uword Code::GetDeoptPcAtDeoptId(intptr_t deopt_id) const {
 
 const char* Code::ToCString() const {
   const char* kFormat = "Code entry:0x%d";
-  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint());
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, EntryPoint()) + 1;
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
   OS::SNPrint(chars, len, kFormat, EntryPoint());
   return chars;
@@ -7313,7 +7264,7 @@ RawContext* Context::New(intptr_t num_variables, Heap::Space space) {
   }
   Context& result = Context::Handle();
   {
-    RawObject* raw = Object::Allocate(Context::kInstanceKind,
+    RawObject* raw = Object::Allocate(Context::kClassId,
                                       Context::InstanceSize(num_variables),
                                       space);
     NoGCScope no_gc;
@@ -7340,7 +7291,7 @@ RawContextScope* ContextScope::New(intptr_t num_variables) {
   intptr_t size = ContextScope::InstanceSize(num_variables);
   ContextScope& result = ContextScope::Handle();
   {
-    RawObject* raw = Object::Allocate(ContextScope::kInstanceKind,
+    RawObject* raw = Object::Allocate(ContextScope::kClassId,
                                       size,
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -7467,7 +7418,7 @@ intptr_t ICData::NumberOfChecks() const {
 
 
 void ICData::WriteSentinel() const {
-  const Smi& sentinel_value = Smi::Handle(Smi::New(kIllegalObjectKind));
+  const Smi& sentinel_value = Smi::Handle(Smi::New(kIllegalCid));
   const Array& data = Array::Handle(ic_data());
   for (intptr_t i = 1; i <= TestEntryLength(); i++) {
     data.SetAt(data.Length() - i, sentinel_value);
@@ -7487,8 +7438,8 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
   WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
   for (intptr_t i = 0; i < class_ids.length(); i++) {
-    // kIllegalObjectKind is used as terminating value, do not add it.
-    ASSERT(class_ids[i] != kIllegalObjectKind);
+    // kIllegalCid is used as terminating value, do not add it.
+    ASSERT(class_ids[i] != kIllegalCid);
     data.SetAt(data_pos++, Smi::Handle(Smi::New(class_ids[i])));
   }
   ASSERT(!target.IsNull());
@@ -7499,7 +7450,7 @@ void ICData::AddCheck(const GrowableArray<intptr_t>& class_ids,
 void ICData::AddReceiverCheck(intptr_t receiver_class_id,
                               const Function& target) const {
   ASSERT(num_args_tested() == 1);  // Otherwise use 'AddCheck'.
-  ASSERT(receiver_class_id != kIllegalObjectKind);
+  ASSERT(receiver_class_id != kIllegalCid);
   ASSERT(!target.IsNull());
 
   const intptr_t old_num = NumberOfChecks();
@@ -7509,10 +7460,10 @@ void ICData::AddReceiverCheck(intptr_t receiver_class_id,
   set_ic_data(data);
   WriteSentinel();
   intptr_t data_pos = old_num * TestEntryLength();
-  if ((receiver_class_id == kSmi) && (data_pos > 0)) {
-    // Instert kSmi in position 0.
+  if ((receiver_class_id == kSmiCid) && (data_pos > 0)) {
+    // Instert kSmiCid in position 0.
     const intptr_t zero_class_id = GetReceiverClassIdAt(0);
-    ASSERT(zero_class_id != kSmi);  // Simple duplicate entry check.
+    ASSERT(zero_class_id != kSmiCid);  // Simple duplicate entry check.
     const Function& zero_target = Function::Handle(GetTargetAt(0));
     data.SetAt(0, Smi::Handle(Smi::New(receiver_class_id)));
     data.SetAt(1, target);
@@ -7625,7 +7576,7 @@ RawICData* ICData::New(const Function& function,
   ICData& result = ICData::Handle();
   {
     // IC data objects are long living objects, allocate them in old generation.
-    RawObject* raw = Object::Allocate(ICData::kInstanceKind,
+    RawObject* raw = Object::Allocate(ICData::kClassId,
                                       ICData::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -7651,7 +7602,7 @@ RawSubtypeTestCache* SubtypeTestCache::New() {
   {
     // SubtypeTestCache objects are long living objects, allocate them in the
     // old generation.
-    RawObject* raw = Object::Allocate(SubtypeTestCache::kInstanceKind,
+    RawObject* raw = Object::Allocate(SubtypeTestCache::kClassId,
                                       SubtypeTestCache::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -7734,7 +7685,7 @@ RawApiError* ApiError::New(const String& message, Heap::Space space) {
   ASSERT(Object::api_error_class() != Class::null());
   ApiError& result = ApiError::Handle();
   {
-    RawObject* raw = Object::Allocate(ApiError::kInstanceKind,
+    RawObject* raw = Object::Allocate(ApiError::kClassId,
                                       ApiError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7765,7 +7716,7 @@ RawLanguageError* LanguageError::New(const String& message, Heap::Space space) {
   ASSERT(Object::language_error_class() != Class::null());
   LanguageError& result = LanguageError::Handle();
   {
-    RawObject* raw = Object::Allocate(LanguageError::kInstanceKind,
+    RawObject* raw = Object::Allocate(LanguageError::kClassId,
                                       LanguageError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7798,7 +7749,7 @@ RawUnhandledException* UnhandledException::New(const Instance& exception,
   ASSERT(Object::unhandled_exception_class() != Class::null());
   UnhandledException& result = UnhandledException::Handle();
   {
-    RawObject* raw = Object::Allocate(UnhandledException::kInstanceKind,
+    RawObject* raw = Object::Allocate(UnhandledException::kClassId,
                                       UnhandledException::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -7859,7 +7810,7 @@ RawUnwindError* UnwindError::New(const String& message, Heap::Space space) {
   ASSERT(Object::unwind_error_class() != Class::null());
   UnwindError& result = UnwindError::Handle();
   {
-    RawObject* raw = Object::Allocate(UnwindError::kInstanceKind,
+    RawObject* raw = Object::Allocate(UnwindError::kClassId,
                                       UnwindError::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -8274,7 +8225,7 @@ RawMint* Mint::New(int64_t val, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->mint_class() != Class::null());
   Mint& result = Mint::Handle();
   {
-    RawObject* raw = Object::Allocate(Mint::kInstanceKind,
+    RawObject* raw = Object::Allocate(Mint::kClassId,
                                       Mint::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -8401,7 +8352,7 @@ RawDouble* Double::New(double d, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->double_class() != Class::null());
   Double& result = Double::Handle();
   {
-    RawObject* raw = Object::Allocate(Double::kInstanceKind,
+    RawObject* raw = Object::Allocate(Double::kClassId,
                                       Double::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -8564,7 +8515,7 @@ RawBigint* Bigint::Allocate(intptr_t length, Heap::Space space) {
   ASSERT(Isolate::Current()->object_store()->bigint_class() != Class::null());
   Bigint& result = Bigint::Handle();
   {
-    RawObject* raw = Object::Allocate(Bigint::kInstanceKind,
+    RawObject* raw = Object::Allocate(Bigint::kClassId,
                                       Bigint::InstanceSize(length),
                                       space);
     NoGCScope no_gc;
@@ -9327,7 +9278,7 @@ RawOneByteString* OneByteString::New(intptr_t len,
   }
   OneByteString& result = OneByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(OneByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(OneByteString::kClassId,
                                       OneByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9469,7 +9420,7 @@ RawTwoByteString* TwoByteString::New(intptr_t len,
   }
   TwoByteString& result = TwoByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(TwoByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(TwoByteString::kClassId,
                                       TwoByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9602,7 +9553,7 @@ RawFourByteString* FourByteString::New(intptr_t len,
   }
   FourByteString& result = FourByteString::Handle();
   {
-    RawObject* raw = Object::Allocate(FourByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(FourByteString::kClassId,
                                       FourByteString::InstanceSize(len),
                                       space);
     NoGCScope no_gc;
@@ -9715,7 +9666,7 @@ RawExternalOneByteString* ExternalOneByteString::New(
   ExternalStringData<uint8_t>* external_data =
       new ExternalStringData<uint8_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(ExternalOneByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(ExternalOneByteString::kClassId,
                                       ExternalOneByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9766,7 +9717,7 @@ RawExternalTwoByteString* ExternalTwoByteString::New(
   ExternalStringData<uint16_t>* external_data =
       new ExternalStringData<uint16_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(ExternalTwoByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(ExternalTwoByteString::kClassId,
                                       ExternalTwoByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9808,7 +9759,7 @@ RawExternalFourByteString* ExternalFourByteString::New(
   ExternalStringData<uint32_t>* external_data =
       new ExternalStringData<uint32_t>(data, peer, callback);
   {
-    RawObject* raw = Object::Allocate(ExternalFourByteString::kInstanceKind,
+    RawObject* raw = Object::Allocate(ExternalFourByteString::kClassId,
                                       ExternalFourByteString::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -9849,7 +9800,7 @@ RawBool* Bool::New(bool value) {
   {
     // Since the two boolean instances are singletons we allocate them straight
     // in the old generation.
-    RawObject* raw = Object::Allocate(Bool::kInstanceKind,
+    RawObject* raw = Object::Allocate(Bool::kClassId,
                                       Bool::InstanceSize(),
                                       Heap::kOld);
     NoGCScope no_gc;
@@ -9978,7 +9929,7 @@ RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
 
   // Update the size in the header field and length of the array object.
   uword tags = array.raw_ptr()->tags_;
-  ASSERT(kArray == RawObject::ClassIdTag::decode(tags));
+  ASSERT(kArrayCid == RawObject::ClassIdTag::decode(tags));
   tags = RawObject::SizeTag::update(used_size, tags);
   array.raw_ptr()->tags_ = tags;
   array.SetLength(used_len);
@@ -10135,7 +10086,7 @@ RawGrowableObjectArray* GrowableObjectArray::New(const Array& array,
          != Class::null());
   GrowableObjectArray& result = GrowableObjectArray::Handle();
   {
-    RawObject* raw = Object::Allocate(GrowableObjectArray::kInstanceKind,
+    RawObject* raw = Object::Allocate(GrowableObjectArray::kClassId,
                                       GrowableObjectArray::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -10837,7 +10788,7 @@ RawStacktrace* Stacktrace::New(const GrowableObjectArray& func_list,
          Class::null());
   Stacktrace& result = Stacktrace::Handle();
   {
-    RawObject* raw = Object::Allocate(Stacktrace::kInstanceKind,
+    RawObject* raw = Object::Allocate(Stacktrace::kClassId,
                                       Stacktrace::InstanceSize(),
                                       space);
     NoGCScope no_gc;
@@ -10888,31 +10839,27 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 }
 
 
-const char* Stacktrace::ToCStringInternal(bool verbose) const {
+const char* Stacktrace::ToCString() const {
   Function& function = Function::Handle();
   Code& code = Code::Handle();
-  Class& function_class = Class::Handle();
+  Class& owner = Class::Handle();
   Script& script = Script::Handle();
   String& function_name = String::Handle();
-  String& class_name = String::Handle();
   String& url = String::Handle();
 
   // Iterate through the stack frames and create C string description
   // for each frame.
   intptr_t total_len = 0;
-  const char* kFormat = verbose ?
-      " %d. Function: '%s%s%s' url: '%s' line:%d col:%d code-entry: 0x%x\n" :
-      " %d. Function: '%s%s%s' url: '%s' line:%d col:%d\n";
+  const char* kFormat = "#%-6d %s (%s:%d:%d)\n";
   GrowableArray<char*> frame_strings;
   for (intptr_t i = 0; i < Length(); i++) {
     function = FunctionAtFrame(i);
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
-    function_class = function.owner();
-    script = function_class.script();
-    function_name = function.name();
-    class_name = function_class.Name();
+    owner = function.owner();
+    script = owner.script();
+    function_name = function.QualifiedUserVisibleName();
     url = script.url();
     intptr_t line = -1;
     intptr_t column = -1;
@@ -10921,22 +10868,16 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
     }
     intptr_t len = OS::SNPrint(NULL, 0, kFormat,
                                i,
-                               class_name.ToCString(),
-                               function_class.IsTopLevel() ? "" : ".",
                                function_name.ToCString(),
                                url.ToCString(),
-                               line, column,
-                               code.EntryPoint());
+                               line, column);
     total_len += len;
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, (len + 1), kFormat,
                 i,
-                class_name.ToCString(),
-                function_class.IsTopLevel() ? "" : ".",
                 function_name.ToCString(),
                 url.ToCString(),
-                line, column,
-                code.EntryPoint());
+                line, column);
     frame_strings.Add(chars);
   }
 
@@ -10950,11 +10891,6 @@ const char* Stacktrace::ToCStringInternal(bool verbose) const {
                          frame_strings[i]);
   }
   return chars;
-}
-
-
-const char* Stacktrace::ToCString() const {
-  return ToCStringInternal(false);
 }
 
 
@@ -10977,7 +10913,7 @@ RawJSRegExp* JSRegExp::New(intptr_t len, Heap::Space space) {
   }
   JSRegExp& result = JSRegExp::Handle();
   {
-    RawObject* raw = Object::Allocate(JSRegExp::kInstanceKind,
+    RawObject* raw = Object::Allocate(JSRegExp::kClassId,
                                       JSRegExp::InstanceSize(len),
                                       space);
     NoGCScope no_gc;

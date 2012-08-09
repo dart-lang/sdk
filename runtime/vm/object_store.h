@@ -19,65 +19,6 @@ class ObjectPointerVisitor;
 // by snapshots eventually.
 class ObjectStore {
  public:
-  // Index for objects/types/classes stored in the object store,
-  // this index is used in snapshots to refer to classes or objects directly.
-  enum {
-    kTrueValue = Object::kMaxId,
-    kFalseValue,
-    kObjectType,
-    kNullType,
-    kDynamicType,
-    kVoidType,
-    kFunctionInterface,
-    kNumberInterface,
-    kDoubleInterface,
-    kIntInterface,
-    kBoolInterface,
-    kStringInterface,
-    kListInterface,
-    kByteArrayInterface,
-    kObjectClass,
-    kIntegerImplementationClass,
-    kSmiClass,
-    kMintClass,
-    kBigintClass,
-    kDoubleClass,
-    kOneByteStringClass,
-    kTwoByteStringClass,
-    kFourByteStringClass,
-    kExternalOneByteStringClass,
-    kExternalTwoByteStringClass,
-    kExternalFourByteStringClass,
-    kBoolClass,
-    kArrayClass,
-    kImmutableArrayClass,
-    kGrowableObjectArrayClass,
-    kInt8ArrayClass,
-    kUint8ArrayClass,
-    kInt16ArrayClass,
-    kUint16ArrayClass,
-    kInt32ArrayClass,
-    kUint32ArrayClass,
-    kInt64ArrayClass,
-    kUint64ArrayClass,
-    kFloat32ArrayClass,
-    kFloat64ArrayClass,
-    kExternalInt8ArrayClass,
-    kExternalUint8ArrayClass,
-    kExternalInt16ArrayClass,
-    kExternalUint16ArrayClass,
-    kExternalInt32ArrayClass,
-    kExternalUint32ArrayClass,
-    kExternalInt64ArrayClass,
-    kExternalUint64ArrayClass,
-    kExternalFloat32ArrayClass,
-    kExternalFloat64ArrayClass,
-    kStacktraceClass,
-    kJSRegExpClass,
-    kMaxId,
-    kInvalidIndex = -1,
-  };
-
   ~ObjectStore();
 
   RawClass* object_class() const {
@@ -507,8 +448,6 @@ class ObjectStore {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  RawClass* GetClass(int index);
-  int GetClassIndex(const RawClass* raw_class);
   RawType* GetType(int index);
   int GetTypeIndex(const RawType* raw_type);
 

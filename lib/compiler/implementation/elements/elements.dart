@@ -930,11 +930,12 @@ class ClassElement extends ContainerElement
   }
 
   Element lookupSuperMember(SourceString memberName) {
+    bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
+      // Private members from a different library are not visible.
+      if (isPrivate && getLibrary() !== s.getLibrary()) continue;
       Element e = s.lookupLocalMember(memberName);
       if (e === null) continue;
-      // Private members from a different library are not visible.
-      if (memberName.isPrivate() && getLibrary() !== e.getLibrary()) continue;
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;
@@ -951,6 +952,34 @@ class ClassElement extends ContainerElement
   Element lookupMember(SourceString memberName) {
     Element localMember = localMembers[memberName];
     return localMember === null ? lookupSuperMember(memberName) : localMember;
+  }
+
+  /**
+   * Returns true if the [fieldMember] is shadowed by another field. The given
+   * [fieldMember] must be a member of this class.
+   *
+   * This method also works if the [fieldMember] is private.
+   */
+  bool isShadowedByField(Element fieldMember) {
+    assert(fieldMember.isField());
+    // Note that we cannot use [lookupMember] or [lookupSuperMember] since it
+    // will not do the right thing for private elements.
+    ClassElement lookupClass = this;
+    LibraryElement memberLibrary = fieldMember.getLibrary();
+    if (fieldMember.name.isPrivate()) {
+      // We find a super class in the same library as the field. This way the
+      // lookupMember will work.
+      while (lookupClass.getLibrary() != memberLibrary) {
+        lookupClass = lookupClass.superclass;
+      }
+    }
+    SourceString fieldName = fieldMember.name;
+    while (true) {
+      Element foundMember = lookupClass.lookupMember(fieldName);
+      if (foundMember == fieldMember) return false;
+      if (foundMember.isField()) return true;
+      lookupClass = (foundMember.enclosingElement as ClassElement).superclass;
+    }
   }
 
   Element lookupConstructor(SourceString className,

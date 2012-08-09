@@ -61,22 +61,22 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   // RAX: potential new object start.
   // RCX: potential next object start.
   // RDI: allocation size.
-  __ movq(R13, Immediate(heap->TopAddress()));
+  __ movq(R13, Immediate(heap->EndAddress()));
   __ cmpq(RCX, Address(R13, 0));
   __ j(ABOVE_EQUAL, &fall_through);
 
   // Successfully allocated the object(s), now update top to point to
   // next object start and initialize the object.
+  __ movq(R13, Immediate(heap->TopAddress()));
   __ movq(Address(R13, 0), RCX);
   __ addq(RAX, Immediate(kHeapObjectTag));
 
   // Initialize the tags.
   // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
   // RDI: allocation size.
   {
     Label size_tag_overflow, done;
-    __ cmpl(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
+    __ cmpq(RDI, Immediate(RawObject::SizeTag::kMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
     __ shlq(RDI, Immediate(RawObject::kSizeTagBit - kObjectAlignmentLog2));
     __ jmp(&done, Assembler::kNearJump);
@@ -92,9 +92,8 @@ bool Intrinsifier::ObjectArray_Allocate(Assembler* assembler) {
   }
 
   // RAX: new object start as a tagged pointer.
-  // RCX: new object end address.
   // Store the type argument field.
-  __ movl(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
+  __ movq(RDI, Address(RSP, kTypeArgumentsOffset));  // type argument.
   __ StoreIntoObjectNoBarrier(RAX,
                               FieldAddress(RAX, Array::type_arguments_offset()),
                               RDI);
@@ -788,14 +787,14 @@ bool Intrinsifier::Integer_equalToInteger(Assembler* assembler) {
   // Note that an instance of Mint or Bigint never contains a value that can be
   // represented by Smi.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
-  __ CompareClassId(RAX, kDouble);
+  __ CompareClassId(RAX, kDoubleCid);
   __ j(EQUAL, &fall_through);
   __ LoadObject(RAX, bool_false);
   __ ret();
 
   __ Bind(&receiver_not_smi);
   // RAX:: receiver.
-  __ CompareClassId(RAX, kMint);
+  __ CompareClassId(RAX, kMintCid);
   __ j(NOT_EQUAL, &fall_through);
   // Receiver is Mint, return false if right is Smi.
   __ movq(RAX, Address(RSP, + 1 * kWordSize));  // Right argument.
@@ -860,7 +859,7 @@ static void TestLastArgumentIsDouble(Assembler* assembler,
   __ movq(RAX, Address(RSP, + 1 * kWordSize));
   __ testq(RAX, Immediate(kSmiTagMask));
   __ j(ZERO, is_smi, Assembler::kNearJump);  // Jump if Smi.
-  __ CompareClassId(RAX, kDouble);
+  __ CompareClassId(RAX, kDoubleCid);
   __ j(NOT_EQUAL, not_double_smi, Assembler::kNearJump);
   // Fall through if double.
 }
@@ -1282,7 +1281,7 @@ bool Intrinsifier::String_charCodeAt(Assembler* assembler) {
   __ cmpq(RCX, FieldAddress(RAX, String::length_offset()));
   // Runtime throws exception.
   __ j(ABOVE_EQUAL, &fall_through, Assembler::kNearJump);
-  __ CompareClassId(RAX, kOneByteString);
+  __ CompareClassId(RAX, kOneByteStringCid);
   __ j(NOT_EQUAL, &fall_through);
   __ SmiUntag(RCX);
   __ movzxb(RAX, FieldAddress(RAX, RCX, TIMES_1, OneByteString::data_offset()));

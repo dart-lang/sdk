@@ -9,7 +9,7 @@ class ArithmeticTest {
     try {
       Math.parseInt(s);
       return false;
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return true;
     }
   }
@@ -18,18 +18,18 @@ class ArithmeticTest {
     try {
       Math.parseDouble(s);
       return false;
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return true;
     }
   }
 
-  static bool toIntThrowsBadNumberFormatException(String str) {
+  static bool toIntThrowsFormatException(String str) {
     // No exception allowed for parse double.
     double d = Math.parseDouble(str);
     try {
       var a = d.toInt();
       return false;
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return true;
     }
   }
@@ -145,7 +145,7 @@ class ArithmeticTest {
     Expect.isFalse(negateDouble(-0.0).isNegative());
     Expect.isTrue(negateDouble(3.5e3).isNegative());
     Expect.isFalse(negateDouble(-3.5e3).isNegative());
-    
+
 
     // Constants.
     final nan = 0.0/0.0;
@@ -385,10 +385,10 @@ class ArithmeticTest {
     Expect.equals("Infinity", Math.parseDouble("Infinity").toString());
     Expect.equals("-Infinity", Math.parseDouble("-Infinity").toString());
 
-    Expect.equals(false, toIntThrowsBadNumberFormatException("1.2"));
-    Expect.equals(true, toIntThrowsBadNumberFormatException("Infinity"));
-    Expect.equals(true, toIntThrowsBadNumberFormatException("-Infinity"));
-    Expect.equals(true, toIntThrowsBadNumberFormatException("NaN"));
+    Expect.equals(false, toIntThrowsFormatException("1.2"));
+    Expect.equals(true, toIntThrowsFormatException("Infinity"));
+    Expect.equals(true, toIntThrowsFormatException("-Infinity"));
+    Expect.equals(true, toIntThrowsFormatException("NaN"));
 
     // Min/max
     Expect.equals(1, Math.min(1, 12));

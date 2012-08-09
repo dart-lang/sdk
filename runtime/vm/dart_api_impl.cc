@@ -77,80 +77,6 @@ const char* CanonicalFunction(const char* func) {
     }                                                                          \
   } while (0)
 
-// Takes a vm internal name and makes it suitable for external user.
-//
-// Examples:
-//
-// Internal getter and setter prefices are removed:
-//
-//   get:foo -> foo
-//   set:foo -> foo
-//
-// Private name mangling is removed, possibly twice:
-//
-//   _ReceivePortImpl@6be832b -> _ReceivePortImpl
-//   _ReceivePortImpl@6be832b._internal@6be832b -> +ReceivePortImpl._internal
-//
-// The trailing . on the default constructor name is dropped:
-//
-//   List. -> List
-//
-// And so forth:
-//
-//   get:foo@6be832b -> foo
-//   _MyClass@6b3832b. -> _MyClass
-//   _MyClass@6b3832b.named -> _MyClass.named
-//
-static RawString* IdentifierPrettyName(Isolate* isolate, const String& name) {
-  intptr_t len = name.Length();
-  intptr_t start = 0;
-  intptr_t at_pos = len;   // Position of '@' in the name.
-  intptr_t dot_pos = len;  // Position of '.' in the name.
-
-  for (int i = 0; i < name.Length(); i++) {
-    if (name.CharAt(i) == ':') {
-      ASSERT(start == 0);
-      start = i + 1;
-    } else if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == len);
-      at_pos = i;
-    } else if (name.CharAt(i) == '.') {
-      dot_pos = i;
-      break;
-    }
-  }
-  intptr_t limit = (at_pos < dot_pos ? at_pos : dot_pos);
-  if (start == 0 && limit == len) {
-    // This name is fine as it is.
-    return name.raw();
-  }
-
-  String& result = String::Handle(isolate);
-  result = String::SubString(name, start, (limit - start));
-
-  // Look for a second '@' now to correctly handle names like
-  // "_ReceivePortImpl@6be832b._internal@6be832b".
-  at_pos = len;
-  for (int i = dot_pos; i < name.Length(); i++) {
-    if (name.CharAt(i) == '@') {
-      ASSERT(at_pos == len);
-      at_pos = i;
-    }
-  }
-
-  intptr_t suffix_len = at_pos - dot_pos;
-  if (suffix_len <= 1) {
-    // The constructor name is of length 0 or 1.  That means that
-    // either this isn't a constructor or that this is an unnamed
-    // constructor.  In either case, we're done.
-    return result.raw();
-  }
-
-  const String& suffix =
-      String::Handle(isolate, String::SubString(name, dot_pos, suffix_len));
-  return String::Concat(result, suffix);
-}
-
 
 // Return error if isolate is in an inconsistent state.
 // Return NULL when no error condition exists.
@@ -343,22 +269,22 @@ DART_EXPORT bool Dart_IsError(Dart_Handle handle) {
 
 
 DART_EXPORT bool Dart_IsApiError(Dart_Handle object) {
-  return Api::ClassId(object) == kApiError;
+  return Api::ClassId(object) == kApiErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsUnhandledExceptionError(Dart_Handle object) {
-  return Api::ClassId(object) == kUnhandledException;
+  return Api::ClassId(object) == kUnhandledExceptionCid;
 }
 
 
 DART_EXPORT bool Dart_IsCompilationError(Dart_Handle object) {
-  return Api::ClassId(object) == kLanguageError;
+  return Api::ClassId(object) == kLanguageErrorCid;
 }
 
 
 DART_EXPORT bool Dart_IsFatalError(Dart_Handle object) {
-  return Api::ClassId(object) == kUnwindError;
+  return Api::ClassId(object) == kUnwindErrorCid;
 }
 
 
@@ -1189,7 +1115,7 @@ DART_EXPORT Dart_Handle Dart_Null() {
 
 
 DART_EXPORT bool Dart_IsNull(Dart_Handle object) {
-  return Api::ClassId(object) == kNullClassId;
+  return Api::ClassId(object) == kNullCid;
 }
 
 
@@ -1300,7 +1226,7 @@ DART_EXPORT Dart_Handle Dart_IntegerFitsIntoInt64(Dart_Handle integer,
   Isolate* isolate = Isolate::Current();
   CHECK_ISOLATE(isolate);
   intptr_t class_id = Api::ClassId(integer);
-  if (class_id == kSmi || class_id == kMint) {
+  if (class_id == kSmiCid || class_id == kMintCid) {
     *fits = true;
     return Api::Success(isolate);
   }
@@ -1470,7 +1396,7 @@ DART_EXPORT Dart_Handle Dart_False() {
 
 
 DART_EXPORT bool Dart_IsBoolean(Dart_Handle object) {
-  return Api::ClassId(object) == kBool;
+  return Api::ClassId(object) == kBoolCid;
 }
 
 
@@ -1498,7 +1424,7 @@ DART_EXPORT Dart_Handle Dart_BooleanValue(Dart_Handle boolean_obj,
 
 
 DART_EXPORT bool Dart_IsDouble(Dart_Handle object) {
-  return Api::ClassId(object) == kDouble;
+  return Api::ClassId(object) == kDoubleCid;
 }
 
 
@@ -2483,8 +2409,7 @@ DART_EXPORT Dart_Handle Dart_ClassName(Dart_Handle clazz) {
   if (cls.IsNull()) {
     RETURN_TYPE_ERROR(isolate, clazz, Class);
   }
-  const String& cls_name = String::Handle(isolate, cls.Name());
-  return Api::NewHandle(isolate, IdentifierPrettyName(isolate, cls_name));
+  return Api::NewHandle(isolate, cls.UserVisibleName());
 }
 
 
@@ -2591,12 +2516,6 @@ static bool HasExternalSetterSuffix(const String& name) {
 }
 
 
-static RawString* AddExternalSetterSuffix(const String& name) {
-  const String& equals = String::Handle(Symbols::New("="));
-  return String::Concat(name, equals);
-}
-
-
 static RawString* RemoveExternalSetterSuffix(const String& name) {
   ASSERT(HasExternalSetterSuffix(name));
   return String::SubString(name, 0, name.Length() - 1);
@@ -2632,13 +2551,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
           continue;
         }
 
-        name = func.name();
-        bool is_setter = Field::IsSetterName(name);
-        name = IdentifierPrettyName(isolate, name);
-
-        if (is_setter) {
-          name = AddExternalSetterSuffix(name);
-        }
+        name = func.UserVisibleName();
         names.Add(name);
       }
     }
@@ -2650,12 +2563,7 @@ DART_EXPORT Dart_Handle Dart_GetFunctionNames(Dart_Handle target) {
       obj = it.GetNext();
       if (obj.IsFunction()) {
         func ^= obj.raw();
-        name = func.name();
-        bool is_setter = Field::IsSetterName(name);
-        name = IdentifierPrettyName(isolate, name);
-        if (is_setter) {
-          name = AddExternalSetterSuffix(name);
-        }
+        name = func.UserVisibleName();
         names.Add(name);
       }
     }
@@ -2752,7 +2660,7 @@ DART_EXPORT Dart_Handle Dart_LookupFunction(Dart_Handle target,
 
 
 DART_EXPORT bool Dart_IsFunction(Dart_Handle handle) {
-  return Api::ClassId(handle) == kFunction;
+  return Api::ClassId(handle) == kFunctionCid;
 }
 
 
@@ -2763,14 +2671,7 @@ DART_EXPORT Dart_Handle Dart_FunctionName(Dart_Handle function) {
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-  String& func_name = String::Handle(isolate);
-  func_name = func.name();
-  bool is_setter = Field::IsSetterName(func_name);
-  func_name = IdentifierPrettyName(isolate, func_name);
-  if (is_setter) {
-    func_name = AddExternalSetterSuffix(func_name);
-  }
-  return Api::NewHandle(isolate, func_name.raw());
+  return Api::NewHandle(isolate, func.UserVisibleName());
 }
 
 
@@ -2939,8 +2840,7 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
     if (!field_array.IsNull()) {
       for (intptr_t i = 0; i < field_array.Length(); ++i) {
         field ^= field_array.At(i);
-        name = field.name();
-        name = IdentifierPrettyName(isolate, name);
+        name = field.UserVisibleName();
         names.Add(name);
       }
     }
@@ -2952,8 +2852,7 @@ DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target) {
       obj = it.GetNext();
       if (obj.IsField()) {
         field ^= obj.raw();
-        name = field.name();
-        name = IdentifierPrettyName(isolate, name);
+        name = field.UserVisibleName();
         names.Add(name);
       }
     }
@@ -2993,7 +2892,7 @@ DART_EXPORT Dart_Handle Dart_LookupVariable(Dart_Handle target,
 
 
 DART_EXPORT bool Dart_IsVariable(Dart_Handle handle) {
-  return Api::ClassId(handle) == kField;
+  return Api::ClassId(handle) == kFieldCid;
 }
 
 
@@ -3004,8 +2903,7 @@ DART_EXPORT Dart_Handle Dart_VariableName(Dart_Handle variable) {
   if (var.IsNull()) {
     RETURN_TYPE_ERROR(isolate, variable, Field);
   }
-  const String& var_name = String::Handle(var.name());
-  return Api::NewHandle(isolate, IdentifierPrettyName(isolate, var_name));
+  return Api::NewHandle(isolate, var.UserVisibleName());
 }
 
 
@@ -3944,7 +3842,7 @@ DART_EXPORT Dart_Handle Dart_CompileAll() {
 
 
 DART_EXPORT bool Dart_IsLibrary(Dart_Handle object) {
-  return Api::ClassId(object) == kLibrary;
+  return Api::ClassId(object) == kLibraryCid;
 }
 
 
@@ -4018,8 +3916,7 @@ DART_EXPORT Dart_Handle Dart_LibraryGetClassNames(Dart_Handle library) {
     // TODO(turnidge): Add this to the unit test.
     const Function& signature_func = Function::Handle(cls.signature_function());
     if (signature_func.IsNull()) {
-      name = cls.Name();
-      name = IdentifierPrettyName(isolate, name);
+      name = cls.UserVisibleName();
       names.Add(name);
     }
   }

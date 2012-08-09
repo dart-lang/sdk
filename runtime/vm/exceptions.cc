@@ -404,9 +404,9 @@ RawObject* Exceptions::Create(
       library = Library::CoreLibrary();
       class_name = Symbols::New("ObjectNotClosureException");
       break;
-    case kBadNumberFormat:
+    case kFormat:
       library = Library::CoreLibrary();
-      class_name = Symbols::New("BadNumberFormatException");
+      class_name = Symbols::New("FormatException");
       break;
     case kStackOverflow:
       library = Library::CoreLibrary();

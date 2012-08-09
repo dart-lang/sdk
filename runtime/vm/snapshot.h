@@ -216,7 +216,7 @@ class SnapshotReader : public BaseReader {
   RawTypeArguments* NewTypeArguments(intptr_t len);
   RawTokenStream* NewTokenStream(intptr_t len);
   RawContext* NewContext(intptr_t num_variables);
-  RawClass* NewClass(int value);
+  RawClass* NewClass(intptr_t class_id, bool is_signature_class);
   RawMint* NewMint(int64_t value);
   RawBigint* NewBigint(const char* hex_string);
   RawDouble* NewDouble(double value);

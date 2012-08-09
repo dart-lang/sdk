@@ -68,7 +68,6 @@ class ArchiveEntry {
 
   /** The path to this entry on disk, */
   String get sourcepath() => _properties[3];
-  set sourcepath(String value) => _set(SET_SOURCEPATH, 3, value);
 
   /** If this entry is a symlink, this is the destination. Otherwise, null. */
   String get symlink() => _properties[4];
@@ -126,7 +125,6 @@ class ArchiveEntry {
    * change, and vice versa.
    */
   String get fflags_text() => _properties[13];
-  set fflags_text(String value) => _set(SET_FFLAGS_TEXT, 13, value);
 
   /** The filetype bitmask for this entry. */
   int get filetype_mask() => _properties[14];
@@ -198,6 +196,26 @@ class ArchiveEntry {
   Future<ArchiveEntry> clone() {
     return call(CLONE, _id).
       transform((array) => new archive.ArchiveEntry.internal(array, null));
+  }
+
+  /**
+   * Consumes the entire contents of this entry at once and returns it wrapped
+   * in a [CompleteArchiveEntry]. All metadata fields in the returned entry are
+   * copies of the fields in this entry.
+   *
+   * This may not be called if [openInputStream] is called, and vice versa.
+   */
+  Future<CompleteArchiveEntry> readAll() {
+    var stream = openInputStream();
+    var buffer = <int>[];
+    var completer = new Completer<List<int>>();
+
+    stream.onData = () => buffer.addAll(stream.read());
+    stream.onError = completer.completeException;
+    stream.onClosed = () => completer.complete(buffer);
+
+    return Futures.wait([call(CLONE, _id), completer.future])
+      .transform((list) => new CompleteArchiveEntry._(list[0], list[1]));
   }
 
   /**
@@ -301,4 +319,19 @@ class ArchiveEntry {
       return _consumeInput();
     });
   }
+}
+
+/**
+ * An [ArchiveEntry] that contains the complete decompressed contents of the
+ * file.
+ */
+class CompleteArchiveEntry extends ArchiveEntry {
+  /** The contents of the entry as bytes. */
+  final List<int> contentBytes;
+
+  /** The contents of the entry as a string. */
+  String get contents() => new String.fromCharCodes(contentBytes);
+
+  CompleteArchiveEntry._(List properties, this.contentBytes)
+    : super.internal(properties, null);
 }

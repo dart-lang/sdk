@@ -592,7 +592,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
           break;
       }
     }
-    return new HFieldGet(field, node.inputs[0], isFinalOrConst: isFinalOrConst);
+    return new HFieldGet.withElement(
+        field, node.inputs[0], isFinalOrConst: isFinalOrConst);
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
@@ -603,7 +604,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (type === null) return node;
     Element field = compiler.world.locateSingleField(type, node.name);
     if (field === null) return node;
-    return new HFieldSet(field, node.inputs[0], node.inputs[1]);
+    return new HFieldSet.withElement(field, node.inputs[0], node.inputs[1]);
   }
 
   HInstruction visitStringConcat(HStringConcat node) {
@@ -1208,13 +1209,15 @@ class BaseRecompilationVisitor extends HBaseVisitor {
   void visitFieldGet(HFieldGet node) {
     if (!node.element.isInstanceMember()) return;
     Element field = node.element;
-    HType type = backend.optimisticFieldTypeAfterConstruction(field);
-    if (!type.isUnknown()) {
-      // Allow handling even if we haven't seen any types for this
-      // field yet. There might still be only one setter in an
-      // initializer list or constructor body and recompilation
-      // can therefore pay off.
-      handleFieldGet(node, type);
+    if (field != null) {
+      HType type = backend.optimisticFieldTypeAfterConstruction(field);
+      if (!type.isUnknown()) {
+        // Allow handling even if we haven't seen any types for this
+        // field yet. There might still be only one setter in an
+        // initializer list or constructor body and recompilation
+        // can therefore pay off.
+        handleFieldGet(node, type);
+      }
     }
   }
 

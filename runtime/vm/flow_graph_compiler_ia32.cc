@@ -95,13 +95,12 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
         Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
     __ movl(Address(EBP, -kWordSize), EAX);
   }
-  __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
   compiler->pc_descriptors_list()-> AddDeoptInfo(
       compiler->assembler()->CodeSize(),
       deopt_id_,
-      deopt_token_pos_,
+      reason_,
       deopt_info_index);
 #undef __
 }
@@ -283,7 +282,7 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
   // Bool interface can be implemented only by core class Bool.
   // (see ClassFinalizer::ResolveInterfaces for list of restricted interfaces).
   if (type.IsBoolInterface()) {
-    __ cmpl(kClassIdReg, Immediate(kBool));
+    __ cmpl(kClassIdReg, Immediate(kBoolCid));
     __ j(EQUAL, is_instance_lbl);
     __ jmp(is_not_instance_lbl);
     return false;
@@ -370,7 +369,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
     // Can handle only type arguments that are instances of TypeArguments.
     // (runtime checks canonicalize type arguments).
     Label fall_through;
-    __ CompareClassId(EDX, kTypeArguments, EDI);
+    __ CompareClassId(EDX, kTypeArgumentsCid, EDI);
     __ j(NOT_EQUAL, &fall_through, Assembler::kNearJump);
     __ movl(EDI,
         FieldAddress(EDX, TypeArguments::type_at_offset(type_param.index())));
@@ -617,6 +616,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     __ int3();
 
     __ Bind(&is_assignable);  // For a null object.
+    __ popl(EDX);  // Remove pushed instantiator type arguments.
+    __ popl(ECX);  // Remove pushed instantiator.
     return;
   }
 
@@ -646,7 +647,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   __ popl(EAX);
 
   __ Bind(&is_assignable);
-  __ popl(EDX);  // Remove pushed instantiator type arguments..
+  __ popl(EDX);  // Remove pushed instantiator type arguments.
   __ popl(ECX);  // Remove pushed instantiator.
 }
 
@@ -665,6 +666,7 @@ void FlowGraphCompiler::EmitInstructionPrologue(Instruction* instr) {
 
 
 void FlowGraphCompiler::CopyParameters() {
+  __ Comment("Copy parameters");
   const Function& function = parsed_function().function();
   const bool is_native_instance_closure =
       function.is_native() && function.IsImplicitInstanceClosureFunction();
@@ -904,7 +906,7 @@ void FlowGraphCompiler::GenerateInlinedMathSqrt(Label* done) {
   __ movl(EAX, Address(ESP, 0));
   __ testl(EAX, Immediate(kSmiTagMask));
   __ j(ZERO, &smi_to_double);
-  __ CompareClassId(EAX, kDouble, EBX);
+  __ CompareClassId(EAX, kDoubleCid, EBX);
   __ j(NOT_EQUAL, &call_method);
   __ movsd(XMM1, FieldAddress(EAX, Double::value_offset()));
   __ Bind(&double_op);
@@ -940,6 +942,7 @@ void FlowGraphCompiler::CompileGraph() {
   const int parameter_count = function.num_fixed_parameters();
   const int num_copied_params = parsed_function().copied_parameter_count();
   const int local_count = parsed_function().stack_local_count();
+  __ Comment("Enter frame");
   if (IsLeaf()) {
     AssemblerMacros::EnterDartLeafFrame(assembler(), (StackSize() * kWordSize));
   } else {
@@ -956,6 +959,7 @@ void FlowGraphCompiler::CompileGraph() {
     const bool check_arguments = function.IsClosureFunction();
 #endif
     if (check_arguments) {
+      __ Comment("Check argument count");
       // Check that num_fixed <= argc <= num_params.
       Label argc_in_range;
       // Total number of args is the first Smi in args descriptor array (EDX).
@@ -986,6 +990,7 @@ void FlowGraphCompiler::CompileGraph() {
 
   // Initialize (non-argument) stack allocated locals to null.
   if (stack_slot_count > 0) {
+    __ Comment("Initialize spill slots");
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movl(EAX, raw_null);
@@ -995,18 +1000,6 @@ void FlowGraphCompiler::CompileGraph() {
     }
   }
 
-  if (!IsLeaf()) {
-    // Generate stack overflow check.
-    __ cmpl(ESP,
-            Address::Absolute(Isolate::Current()->stack_limit_address()));
-    Label no_stack_overflow;
-    __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
-    GenerateCallRuntime(Isolate::kNoDeoptId,
-                        function.token_pos(),
-                        CatchClauseNode::kInvalidTryIndex,
-                        kStackOverflowRuntimeEntry);
-    __ Bind(&no_stack_overflow);
-  }
   if (FLAG_print_scopes) {
     // Print the function scope (again) after generating the prologue in order
     // to see annotations such as allocation indices of locals.
@@ -1089,7 +1082,7 @@ void FlowGraphCompiler::EmitClassChecksNoSmi(const ICData& ic_data,
                                              Register temp_reg,
                                              Label* deopt) {
   Label ok;
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmi);
+  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
   __ testl(instance_reg, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
   Label is_ok;
@@ -1119,7 +1112,7 @@ void FlowGraphCompiler::LoadDoubleOrSmiToXmm(XmmRegister result,
   Label is_smi, done;
   __ testl(reg, Immediate(kSmiTagMask));
   __ j(ZERO, &is_smi);
-  __ CompareClassId(reg, kDouble, temp);
+  __ CompareClassId(reg, kDoubleCid, temp);
   __ j(NOT_EQUAL, not_double_or_smi);
   __ movsd(result, FieldAddress(reg, Double::value_offset()));
   __ jmp(&done);

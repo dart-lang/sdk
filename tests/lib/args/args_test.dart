@@ -92,7 +92,7 @@ main() {
         var parser = new ArgParser();
         parser.addFlag('verbose');
 
-        throwsBadFormat(parser, ['--verbose=true']);
+        throwsFormat(parser, ['--verbose=true']);
       });
     });
 
@@ -127,7 +127,7 @@ main() {
         var parser = new ArgParser();
         parser.addFlag('strum', negatable: false);
 
-        throwsBadFormat(parser, ['--no-strum']);
+        throwsFormat(parser, ['--no-strum']);
       });
     });
 
@@ -248,14 +248,14 @@ main() {
 
       test('throw if unknown', () {
         var parser = new ArgParser();
-        throwsBadFormat(parser, ['-f']);
+        throwsFormat(parser, ['-f']);
       });
 
       test('throw if the value is missing', () {
         var parser = new ArgParser();
         parser.addOption('file', abbr: 'f');
 
-        throwsBadFormat(parser, ['-f']);
+        throwsFormat(parser, ['-f']);
       });
 
       test('throw if the value looks like an option', () {
@@ -263,16 +263,16 @@ main() {
         parser.addOption('file', abbr: 'f');
         parser.addOption('other');
 
-        throwsBadFormat(parser, ['-f', '--other']);
-        throwsBadFormat(parser, ['-f', '--unknown']);
-        throwsBadFormat(parser, ['-f', '-abbr']);
+        throwsFormat(parser, ['-f', '--other']);
+        throwsFormat(parser, ['-f', '--unknown']);
+        throwsFormat(parser, ['-f', '-abbr']);
       });
 
       test('throw if the value is not allowed', () {
         var parser = new ArgParser();
         parser.addOption('mode', abbr: 'm', allowed: ['debug', 'release']);
 
-        throwsBadFormat(parser, ['-mprofile']);
+        throwsFormat(parser, ['-mprofile']);
       });
 
       test('throw if any but the first is not a flag', () {
@@ -281,7 +281,7 @@ main() {
         parser.addOption('banana', abbr: 'b'); // Takes an argument.
         parser.addFlag('cherry', abbr: 'c');
 
-        throwsBadFormat(parser, ['-abc']);
+        throwsFormat(parser, ['-abc']);
       });
 
       test('throw if it has a value but the option is a flag', () {
@@ -290,7 +290,7 @@ main() {
         parser.addFlag('banana', abbr: 'b');
 
         // The '?!' means this can only be understood as '--apple b?!c'.
-        throwsBadFormat(parser, ['-ab?!c']);
+        throwsFormat(parser, ['-ab?!c']);
       });
     });
 
@@ -325,14 +325,14 @@ main() {
 
       test('throw if unknown', () {
         var parser = new ArgParser();
-        throwsBadFormat(parser, ['--unknown']);
-        throwsBadFormat(parser, ['--nobody']); // Starts with "no".
+        throwsFormat(parser, ['--unknown']);
+        throwsFormat(parser, ['--nobody']); // Starts with "no".
       });
 
       test('throw if the arg does not include a value', () {
         var parser = new ArgParser();
         parser.addOption('mode');
-        throwsBadFormat(parser, ['--mode']);
+        throwsFormat(parser, ['--mode']);
       });
 
       test('throw if the value looks like an option', () {
@@ -340,9 +340,9 @@ main() {
         parser.addOption('mode');
         parser.addOption('other');
 
-        throwsBadFormat(parser, ['--mode', '--other']);
-        throwsBadFormat(parser, ['--mode', '--unknown']);
-        throwsBadFormat(parser, ['--mode', '-abbr']);
+        throwsFormat(parser, ['--mode', '--other']);
+        throwsFormat(parser, ['--mode', '--unknown']);
+        throwsFormat(parser, ['--mode', '-abbr']);
       });
 
       test('do not throw if the value is in the allowed set', () {
@@ -355,7 +355,7 @@ main() {
       test('throw if the value is not in the allowed set', () {
         var parser = new ArgParser();
         parser.addOption('mode', allowed: ['debug', 'release']);
-        throwsBadFormat(parser, ['--mode=profile']);
+        throwsFormat(parser, ['--mode=profile']);
       });
     });
 
@@ -560,9 +560,8 @@ throwsIllegalArg(function) {
   expect(function, throwsA(new isInstanceOf<IllegalArgumentException>()));
 }
 
-throwsBadFormat(ArgParser parser, List<String> args) {
-  expect(() => parser.parse(args),
-      throwsA(new isInstanceOf<ArgFormatException>()));
+throwsFormat(ArgParser parser, List<String> args) {
+  expect(() => parser.parse(args), throwsFormatException);
 }
 
 validateUsage(ArgParser parser, String expected) {

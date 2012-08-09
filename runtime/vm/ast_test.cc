@@ -16,7 +16,7 @@ TEST_CASE(Ast) {
   LocalVariable* v = new LocalVariable(Scanner::kDummyTokenIndex,
                                        String::ZoneHandle(String::New("v")),
                                        Type::ZoneHandle(Type::DynamicType()));
-  AstNode* ll = new LoadLocalNode(Scanner::kDummyTokenIndex, *v);
+  AstNode* ll = new LoadLocalNode(Scanner::kDummyTokenIndex, v);
   EXPECT(ll->IsLoadLocalNode());
   EXPECT(!ll->IsLiteralNode());
   LoadLocalNode* lln = ll->AsLoadLocalNode();

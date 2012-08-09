@@ -181,6 +181,11 @@ class Parser : ValueObject {
         (script_.kind() == RawScript::kLibraryTag);
   }
 
+  // Parsing library patch script.
+  bool is_patch_source() const {
+    return script_.kind() == RawScript::kPatchTag;
+  }
+
   intptr_t TokenPos() const { return tokens_iterator_.CurrentPosition(); }
   inline Token::Kind CurrentToken();
   Token::Kind LookaheadToken(int num_tokens);
@@ -516,7 +521,7 @@ class Parser : ValueObject {
   void CheckFunctionIsCallable(intptr_t token_pos, const Function& function);
   void CheckOperatorArity(const MemberDesc& member, Token::Kind operator_token);
 
-  const LocalVariable& GetIncrementTempLocal();
+  const LocalVariable* GetIncrementTempLocal();
   void EnsureExpressionTemp();
   AstNode* CreateAssignmentNode(AstNode* original, AstNode* rhs);
   AstNode* InsertClosureCallNodes(AstNode* condition);

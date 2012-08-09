@@ -167,7 +167,7 @@ class _HttpHeaders implements HttpHeaders {
         } else {
           try {
             _port = Math.parseInt(value.substring(pos + 1));
-          } catch (BadNumberFormatException e) {
+          } catch (FormatException e) {
             _port = null;
           }
         }

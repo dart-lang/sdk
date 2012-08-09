@@ -279,6 +279,7 @@ class Compiler implements DiagnosticListener {
   TreeValidatorTask validator;
   ResolverTask resolver;
   TypeCheckerTask checker;
+  ti.TypesTask typesTask;
   Backend backend;
   ConstantHandler constantHandler;
   EnqueueTask enqueuer;
@@ -319,12 +320,13 @@ class Compiler implements DiagnosticListener {
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
     checker = new TypeCheckerTask(this);
+    typesTask = new ti.TypesTask(this);
     backend = emitJavascript ?
         new JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, validateUnparse);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
-             constantHandler, enqueuer];
+             typesTask, constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 
@@ -745,6 +747,9 @@ class Compiler implements DiagnosticListener {
 
     if (compilationFailed) return;
 
+    log('Inferring types...');
+    typesTask.onResolutionComplete();
+
     log('Compiling...');
     phase = PHASE_COMPILING;
     processQueue(enqueuer.codegen, main);
@@ -854,6 +859,7 @@ class Compiler implements DiagnosticListener {
     validator.validate(tree);
     elements = resolver.resolve(element);
     checker.check(tree, elements);
+    typesTask.analyze(tree, elements);
     return elements;
   }
 

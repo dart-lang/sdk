@@ -156,14 +156,6 @@ void archiveEntrySetPathname(Dart_Port p, struct archive_entry* e,
   postSuccess(p, NULL);
 }
 
-void archiveEntrySetSourcepath(Dart_Port p, struct archive_entry* e,
-    Dart_CObject* request) {
-  Dart_CObject* value = getNullableStringArgument(p, request, 0);
-  if (value == NULL) return;
-  archive_entry_set_sourcepath(e, getNullableString(value));
-  postSuccess(p, NULL);
-}
-
 void archiveEntrySetSymlink(Dart_Port p, struct archive_entry* e,
     Dart_CObject* request) {
   Dart_CObject* value = getNullableStringArgument(p, request, 0);
@@ -192,7 +184,7 @@ void archiveEntrySetPerm(Dart_Port p, struct archive_entry* e,
     Dart_CObject* request) {
   Dart_CObject* value = getIntArgument(p, request, 0);
   if (value == NULL) return;
-  archive_entry_set_perm_mask(e, getInteger(value));
+  archive_entry_set_perm(e, getInteger(value));
   postSuccess(p, NULL);
 }
 
@@ -225,14 +217,6 @@ void archiveEntrySetFflagsClear(Dart_Port p, struct archive_entry* e,
   Dart_CObject* value = getIntArgument(p, request, 0);
   if (value == NULL) return;
   archive_entry_set_fflags(e, 0, getInteger(value));
-  postSuccess(p, NULL);
-}
-
-void archiveEntrySetFflagsText(Dart_Port p, struct archive_entry* e,
-    Dart_CObject* request) {
-  Dart_CObject* value = getNullableStringArgument(p, request, 0);
-  if (value == NULL) return;
-  archive_entry_set_fflags_text(e, getNullableString(value));
   postSuccess(p, NULL);
 }
 

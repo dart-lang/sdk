@@ -10,12 +10,33 @@ class SendRenamer extends ResolvedVisitor<String> {
   String visitSuperSend(Send node) => null;
   String visitOperatorSend(Send node) => null;
   String visitClosureSend(Send node) => null;
-  String visitDynamicSend(Send node) => null;
   String visitForeignSend(Send node) => null;
+
+  String tryRenamePrivateId(Send node) {
+    Identifier selector = node.selector.asIdentifier();
+    assert(selector !== null);
+    String originalName = selector.source.slowToString();
+    if (originalName.startsWith('_')) {
+      String newName = renamer.renamePrivateId(
+          renamer.context.getLibrary(), originalName);
+      if (node.receiver !== null) {
+        // TODO: ugly, should be fixed with new renamer infrastructure.
+        String receiver = new Unparser(renamer).unparse(node.receiver);
+        newName = '$receiver.$newName';
+      }
+      return newName;
+    }
+
+    return null;
+  }
+
+  String visitDynamicSend(Send node) => tryRenamePrivateId(node);
 
   String visitGetterSend(Send node) {
     final element = elements[node];
-    if (element === null || !element.isTopLevel()) return null;
+    if (element === null || !element.isTopLevel()) {
+      return tryRenamePrivateId(node);
+    }
     return renamer.renameElement(element);
   }
 
@@ -64,9 +85,10 @@ class SendRenamer extends ResolvedVisitor<String> {
  */
 class ConflictingRenamer extends Renamer {
   final Compiler compiler;
-  final Map<Element, String> renamed;
+  final Map<LibraryElement, Map<String, String>> renamed;
   final Set<String> usedTopLevelIdentifiers;
   final Map<LibraryElement, String> imports;
+  int privateNameCounter = 0;
   TreeElements contextElements;
   Element context;
 
@@ -74,7 +96,7 @@ class ConflictingRenamer extends Renamer {
       compiler.enqueuer.resolution.resolvedElements;
 
   ConflictingRenamer(this.compiler) :
-      renamed = new Map<Element, String>(),
+      renamed = new Map<LibraryElement, Map<String, String>>(),
       usedTopLevelIdentifiers = new Set<String>(),
       imports = new Map<LibraryElement, String>();
 
@@ -121,35 +143,58 @@ class ConflictingRenamer extends Renamer {
         return renameElement(enclosingClass);
       }
     }
-    if (context.isFunction() && context.cachedNode.name == node) {
+    if (context.isFunction() && context.isTopLevel() &&
+        context.cachedNode.name == node) {
       return renameElement(context);
+    }
+    // TODO: as the rest of renameIdentifier should go closer to
+    // Emitter.outputElement.
+    // Note: this code should only rename private identifiers for class'
+    // fields/getters/setters/methods.  Top-level identifiers are renamed
+    // just to escape conflicts and that should be enough as we shouldn't
+    // be able to resolve private identifiers for other libraries.
+    final originalName = node.source.slowToString();
+    if (originalName.startsWith('_')) {
+      return '${renamePrivateId(context.getLibrary(), originalName)}';
     }
     return null;
   }
 
+  String getName(LibraryElement library, String originalName, renamer) =>
+      renamed.putIfAbsent(library, () => <String>{})
+          .putIfAbsent(originalName, renamer);
+
+  String renamePrivateId(LibraryElement library, String originalName) =>
+      getName(library, originalName,
+              () => '_${privateNameCounter++}${originalName}');
+
   String renameElement(Element element) {
+    // TODO: investigate what went wrong here.
+    if (!element.isTopLevel()) return null;
+
+    // This comes from currently buggy TypeAnnotation renamer.
+    // It should be solved in there and it will be solved with
+    // new fancy renamer. TODO: remove this cruft.
+    if (element === compiler.types.voidType.element) return null;
+
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
-    if (renamed[element] !== null) return renamed[element];
-
     generateUniqueName(name) {
-      while (usedTopLevelIdentifiers.contains(name)) {
-        name = "p_$name";
-      }
+      while (usedTopLevelIdentifiers.contains(name)) name = 'p_$name';
       usedTopLevelIdentifiers.add(name);
       return name;
     }
 
     String originalName = element.name.slowToString();
-    // TODO(antonm): we should rename lib private names as well.
-    if (!element.isTopLevel()) return originalName;
-    final library = element.getLibrary();
+    LibraryElement library = element.getLibrary();
     if (library === compiler.coreLibrary) return originalName;
     if (isDartCoreLib(compiler, library)) {
       final prefix =
           imports.putIfAbsent(library, () => generateUniqueName('p'));
       return '$prefix.$originalName';
     }
-    return renamed[element] = generateUniqueName(originalName);
+
+    return getName(library, originalName,
+                   () => generateUniqueName(originalName));
   }
 }

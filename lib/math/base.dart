@@ -45,16 +45,14 @@ final double SQRT1_2 = 0.7071067811865476;
 final double SQRT2 = 1.4142135623730951;
 
 /**
- * Parses a [String] representation of an [int], and returns
- * an [int]. Throws a [BadNumberFormatException] if [str]
- * cannot be parsed as an [int].
+ * Parses a [String] representation of an [int], and returns an [int]. Throws a
+ * [FormatException] if [str] cannot be parsed as an [int].
  */
 int parseInt(String str) => MathNatives.parseInt(str);
 
 /**
- * Parses a [String] representation of a [double], and returns
- * a [double]. Throws a [BadNumberFormatException] if [str] cannot
- * be parsed as a [double].
+ * Parses a [String] representation of a [double], and returns a [double].
+ * Throws a [FormatException] if [str] cannot be parsed as a [double].
  */
 double parseDouble(String str) => MathNatives.parseDouble(str);
 

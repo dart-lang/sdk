@@ -32,6 +32,11 @@ class NativeEmitter {
   // Caches the methods that redirect to a JS method.
   Map<FunctionElement, String> redirectingMethods;
 
+  // Do we need the native emitter to take care of handling
+  // noSuchMethod for us? This flag is set to true in the emitter if
+  // it finds any native class that needs noSuchMethod handling.
+  bool handleNoSuchMethod = false;
+
   NativeEmitter(this.emitter)
       : classesWithDynamicDispatch = new Set<ClassElement>(),
         nativeClasses = new Set<ClassElement>(),
@@ -324,7 +329,6 @@ function(cls, fields, methods) {
     }
 
     // Write out a thunk that builds the metadata.
-
     if (!tagDefns.isEmpty()) {
       nativeBuffer.add('(function(){\n');
 
@@ -372,36 +376,60 @@ function(cls, fields, methods) {
     return isSupertypeOfNativeClass(element);
   }
 
-  void emitIsChecks(CodeBuffer checkBuffer) {
+  void emitIsChecks(Map<String, String> objectProperties) {
     for (Element type in compiler.codegenWorld.isChecks) {
       if (!requiresNativeIsCheck(type)) continue;
       String name = compiler.namer.operatorIs(type);
-      checkBuffer.add("$defPropName(Object.prototype, '$name', ");
-      checkBuffer.add('function() { return false; });\n');
+      objectProperties[name] = 'function() { return false; }';
     }
   }
 
   void assembleCode(CodeBuffer targetBuffer) {
     if (nativeClasses.isEmpty()) return;
     emitDynamicDispatchMetadata();
+    targetBuffer.add('$defineNativeClassName = '
+                     '$defineNativeClassFunction;\n\n');
 
     // Because of native classes, we have to generate some is checks
     // by calling a method, instead of accessing a property. So we
     // attach to the JS Object prototype these methods that return
     // false, and will be overridden by subclasses when they have to
     // return true.
-    CodeBuffer objectProperties = new CodeBuffer();
+    Map<String, String> objectProperties = new Map<String, String>();
     emitIsChecks(objectProperties);
 
     // In order to have the toString method on every native class,
     // we must patch the JS Object prototype with a helper method.
     String toStringName = compiler.namer.instanceMethodName(
         null, const SourceString('toString'), 0);
-    objectProperties.add("$defPropName(Object.prototype, '$toStringName', ");
-    objectProperties.add(
-        'function() { return $toStringHelperName(this); });\n');
+    objectProperties[toStringName] =
+        'function() { return $toStringHelperName(this); }';
 
-    targetBuffer.add('$defineNativeClassName = $defineNativeClassFunction;\n');
-    targetBuffer.add('$objectProperties$nativeBuffer\n');
+    // If the native emitter has been asked to take care of the
+    // noSuchMethod handlers, we do that now.
+    if (handleNoSuchMethod) {
+      emitter.emitNoSuchMethodHandlers((String name, CodeBuffer buffer) {
+        objectProperties[name] = buffer.toString();
+      });
+    }
+
+    // If we have any properties to add to Object.prototype, we run
+    // through them and add them using defineProperty.
+    if (!objectProperties.isEmpty()) {
+      targetBuffer.add("(function(table) {\n"
+                       "  for (var key in table) {\n"
+                       "    $defPropName(Object.prototype, key, table[key]);\n"
+                       "  }\n"
+                       "})({\n");
+      bool first = true;
+      objectProperties.forEach((String name, String function) {
+        if (!first) targetBuffer.add(",\n");
+        targetBuffer.add(" $name: $function");
+        first = false;
+      });
+      targetBuffer.add("\n});\n\n");
+    }
+    targetBuffer.add('$nativeBuffer');
+    targetBuffer.add('\n');
   }
 }

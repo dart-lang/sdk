@@ -56,6 +56,7 @@ bool checkError(Dart_Port p, struct archive* a, int result) {
   // TODO(nweiz): What should we do about non-fatal warnings?
   if (result == ARCHIVE_WARN) return false;
   postError(p, a);
+  return true;
 }
 
 bool checkPointerError(Dart_Port p, void* pointer, char* name) {
@@ -120,6 +121,7 @@ int64_t getInteger(Dart_CObject* object) {
   assert(object->type == kInt64 || object->type == kInt32);
   if (object->type == kInt64) return object->value.as_int64;
   if (object->type == kInt32) return (int64_t) object->value.as_int32;
+  return 0; // Should never reach this point.
 }
 
 Dart_CObject* getNullableStringArgument(Dart_Port p, Dart_CObject* request,
@@ -138,3 +140,25 @@ char* getNullableString(Dart_CObject* object) {
   if (object->type == kString) return object->value.as_string;
   return NULL;
 }
+
+bool getOptionArguments(Dart_Port p, Dart_CObject* request, char** module,
+    char** name, char** value) {
+  *module = NULL;
+  *name = NULL;
+  *value = NULL;
+
+  Dart_CObject* wrappedModule = getNullableStringArgument(p, request, 0);
+  if (wrappedModule == NULL) return false;
+  *module = getNullableString(wrappedModule);
+
+  Dart_CObject* wrappedName = getTypedArgument(p, request, 0, kString);
+  if (wrappedName == NULL) return false;
+  *name = wrappedName->value.as_string;
+
+  Dart_CObject* wrappedValue = getNullableStringArgument(p, request, 0);
+  if (wrappedValue == NULL) return false;
+  *value = getNullableString(wrappedValue);
+
+  return true;
+}
+

@@ -2619,24 +2619,24 @@ TEST_CASE(ICData) {
   EXPECT_EQ(target_name.raw(), o1.target_name());
 
   const Function& target1 = Function::Handle(GetDummyTarget("Thun"));
-  o1.AddReceiverCheck(kSmi, target1);
+  o1.AddReceiverCheck(kSmiCid, target1);
   EXPECT_EQ(1, o1.NumberOfChecks());
   intptr_t test_class_id = -1;
   Function& test_target = Function::Handle();
   o1.GetOneClassCheckAt(0, &test_class_id, &test_target);
-  EXPECT_EQ(kSmi, test_class_id);
+  EXPECT_EQ(kSmiCid, test_class_id);
   EXPECT_EQ(target1.raw(), test_target.raw());
   GrowableArray<intptr_t> test_class_ids;
   o1.GetCheckAt(0, &test_class_ids, &test_target);
   EXPECT_EQ(1, test_class_ids.length());
-  EXPECT_EQ(kSmi, test_class_ids[0]);
+  EXPECT_EQ(kSmiCid, test_class_ids[0]);
   EXPECT_EQ(target1.raw(), test_target.raw());
 
   const Function& target2 = Function::Handle(GetDummyTarget("Thun"));
-  o1.AddReceiverCheck(kDouble, target2);
+  o1.AddReceiverCheck(kDoubleCid, target2);
   EXPECT_EQ(2, o1.NumberOfChecks());
   o1.GetOneClassCheckAt(1, &test_class_id, &test_target);
-  EXPECT_EQ(kDouble, test_class_id);
+  EXPECT_EQ(kDoubleCid, test_class_id);
   EXPECT_EQ(target2.raw(), test_target.raw());
 
   ICData& o2 = ICData::Handle();
@@ -2646,14 +2646,14 @@ TEST_CASE(ICData) {
   EXPECT_EQ(function.raw(), o2.function());
   EXPECT_EQ(0, o2.NumberOfChecks());
   GrowableArray<intptr_t> classes;
-  classes.Add(kSmi);
-  classes.Add(kSmi);
+  classes.Add(kSmiCid);
+  classes.Add(kSmiCid);
   o2.AddCheck(classes, target1);
   EXPECT_EQ(1, o2.NumberOfChecks());
   o2.GetCheckAt(0, &test_class_ids, &test_target);
   EXPECT_EQ(2, test_class_ids.length());
-  EXPECT_EQ(kSmi, test_class_ids[0]);
-  EXPECT_EQ(kSmi, test_class_ids[1]);
+  EXPECT_EQ(kSmiCid, test_class_ids[0]);
+  EXPECT_EQ(kSmiCid, test_class_ids[1]);
   EXPECT_EQ(target1.raw(), test_target.raw());
 }
 
@@ -2807,6 +2807,66 @@ TEST_CASE(ArrayNew_Overflow_Crash) {
   Array::Handle(Array::New(Array::kMaxElements + 1));
 }
 
+
+TEST_CASE(StackTraceFormat) {
+  const char* kScriptChars =
+      "void baz() {\n"
+      "  throw 'MyException';\n"
+      "}\n"
+      "\n"
+      "class _OtherClass {\n"
+      "  _OtherClass._named() {\n"
+      "    baz();\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "set globalVar(var value) {\n"
+      "  new _OtherClass._named();\n"
+      "}\n"
+      "\n"
+      "void _bar() {\n"
+      "  globalVar = null;\n"
+      "}\n"
+      "\n"
+      "class MyClass {\n"
+      "  MyClass() {\n"
+      "    (() => foo())();\n"
+      "  }\n"
+      "\n"
+      "  static get field() {\n"
+      "    _bar();\n"
+      "  }\n"
+      "\n"
+      "  static foo() {\n"
+      "    fooHelper() {\n"
+      "      field;\n"
+      "    }\n"
+      "    fooHelper();\n"
+      "  }\n"
+      "}\n"
+      "\n"
+      "main() {\n"
+      "  (() => new MyClass())();\n"
+      "}\n";
+  Dart_Handle lib = TestCase::LoadTestScript(kScriptChars, NULL);
+  EXPECT_VALID(lib);
+  Dart_Handle result = Dart_Invoke(lib, Dart_NewString("main"), 0, NULL);
+  EXPECT_ERROR(
+      result,
+      "Unhandled exception:\n"
+      "MyException\n"
+      "#0      baz (dart:test-lib:2:3)\n"
+      "#1      _OtherClass._OtherClass._named (dart:test-lib:7:8)\n"
+      "#2      globalVar= (dart:test-lib:12:3)\n"
+      "#3      _bar (dart:test-lib:16:3)\n"
+      "#4      MyClass.field (dart:test-lib:25:9)\n"
+      "#5      MyClass.foo.fooHelper (dart:test-lib:30:7)\n"
+      "#6      MyClass.foo (dart:test-lib:32:14)\n"
+      "#7      MyClass.MyClass.<anonymous closure> (dart:test-lib:21:15)\n"
+      "#8      MyClass.MyClass (dart:test-lib:21:18)\n"
+      "#9      main.<anonymous closure> (dart:test-lib:37:10)\n"
+      "#10     main (dart:test-lib:37:24)");
+}
 
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 

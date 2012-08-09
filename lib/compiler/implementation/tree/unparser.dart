@@ -106,20 +106,12 @@ class Unparser implements Visitor {
     // names are modelled with Send and it emits operator[] as only
     // operator, without [] which are expected to be emitted with
     // arguments.
-    emitName(Identifier name) {
-      final newName = renamer.renameIdentifier(name);
-      if (newName === null) {
-        visit(name);
-      } else {
-        sb.add(newName);
-      }
-    }
     if (node.name is Send) {
       Send send = node.name;
       assert(send is !SendSet);
       if (!send.isOperator) {
         // Looks like a factory method.
-        emitName(send.receiver);
+        visit(send.receiver);
         sb.add('.');
       } else {
         visit(send.receiver);
@@ -127,7 +119,7 @@ class Unparser implements Visitor {
       }
       visit(send.selector);
     } else {
-      if (node.name !== null) emitName(node.name);
+      visit(node.name);
     }
     visit(node.parameters);
     visit(node.initializers);
@@ -135,7 +127,12 @@ class Unparser implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    add(node.token.value);
+    String newName = renamer.renameIdentifier(node);
+    if (newName === null) {
+      add(node.token.value);
+    } else {
+      sb.add(newName);
+    }
   }
 
   visitIf(If node) {

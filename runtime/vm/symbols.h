@@ -6,6 +6,7 @@
 #define VM_SYMBOLS_H_
 
 #include "vm/object.h"
+#include "vm/snapshot_ids.h"
 
 namespace dart {
 
@@ -15,6 +16,7 @@ class ObjectPointerVisitor;
 
 #define PREDEFINED_SYMBOLS_LIST(V)                                             \
   V(Dot, ".")                                                                  \
+  V(Equals, "=")                                                               \
   V(IndexToken, "[]")                                                          \
   V(AssignIndexToken, "[]=")                                                   \
   V(TopLevel, "::")                                                            \
@@ -24,7 +26,7 @@ class ObjectPointerVisitor;
   V(Next, "next")                                                              \
   V(Value, "value")                                                            \
   V(ExprTemp, ":expr_temp")                                                    \
-  V(Function, "function")                                                      \
+  V(AnonymousClosure, "<anonymous closure>")                                   \
   V(PhaseParameter, ":phase")                                                  \
   V(TypeArgumentsParameter, ":type_arguments")                                 \
   V(AssertionError, "AssertionError")                                          \
@@ -62,11 +64,11 @@ class Symbols : public AllStatic {
     kIllegal = 0,
 
 #define DEFINE_SYMBOL_INDEX(symbol, literal)                                   \
-  k##symbol,
+    k##symbol,
 PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
 #undef DEFINE_SYMBOL_INDEX
 
-    kMaxPredefined,
+    kMaxId,
   };
 
   // Access methods for symbols stored in the vm isolate.
@@ -96,7 +98,7 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
 
  private:
   enum {
-    kInitialVMIsolateSymtabSize = ((kMaxPredefined + 15) & -16),
+    kInitialVMIsolateSymtabSize = ((Symbols::kMaxId + 15) & -16),
     kInitialSymtabSize = 256
   };
 
@@ -126,12 +128,12 @@ PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_ACCESSOR)
   static intptr_t LookupVMSymbol(RawObject* obj);
   static RawObject* GetVMSymbol(intptr_t object_id);
   static bool IsVMSymbolId(intptr_t object_id) {
-    return (object_id >= Object::kMaxId &&
-            object_id < (Object::kMaxId + kMaxPredefined));
+    return (object_id >= kMaxPredefinedObjectIds &&
+            object_id < (kMaxPredefinedObjectIds + Symbols::kMaxId));
   }
 
   // List of symbols that are stored in the vm isolate for easy access.
-  static RawString* predefined_[kMaxPredefined];
+  static RawString* predefined_[Symbols::kMaxId];
 
   friend class SnapshotReader;
   friend class SnapshotWriter;

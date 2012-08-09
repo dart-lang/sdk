@@ -217,6 +217,8 @@ class LocalsHandler {
       : directLocals = new Map<Element, HInstruction>(),
         redirectionMapping = new Map<Element, Element>();
 
+  get typesTask() => builder.compiler.typesTask;
+
   /**
    * Creates a new [LocalsHandler] based on [other]. We only need to
    * copy the [directLocals], since the other fields can be shared
@@ -315,6 +317,8 @@ class LocalsHandler {
       builder.add(parameter);
       builder.parameters[element] = parameter;
       directLocals[element] = parameter;
+      parameter.guaranteedType =
+        builder.mapInferredType(typesTask.getGuaranteedTypeOfElement(element));
     });
 
     enterScope(node);
@@ -396,7 +400,7 @@ class LocalsHandler {
     } else if (isStoredInClosureField(element)) {
       Element redirect = redirectionMapping[element];
       HInstruction receiver = readLocal(closureData.closureElement);
-      HInstruction fieldGet = new HFieldGet(redirect, receiver);
+      HInstruction fieldGet = new HFieldGet.withElement(redirect, receiver);
       builder.add(fieldGet);
       return fieldGet;
     } else if (isBoxed(element)) {
@@ -408,7 +412,7 @@ class LocalsHandler {
       // the box.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      HInstruction lookup = new HFieldGet(redirect, box);
+      HInstruction lookup = new HFieldGet.withElement(redirect, box);
       builder.add(lookup);
       return lookup;
     } else {
@@ -468,7 +472,7 @@ class LocalsHandler {
       // be accessed directly.
       assert(redirect.enclosingElement.kind == ElementKind.VARIABLE);
       HInstruction box = readLocal(redirect.enclosingElement);
-      builder.add(new HFieldSet(redirect, box, value));
+      builder.add(new HFieldSet.withElement(redirect, box, value));
     } else {
       assert(isUsedInTry(element));
       HLocalValue local = getLocal(element);
@@ -3289,6 +3293,16 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   visitTypeVariable(TypeVariable node) {
     compiler.internalError('SsaBuilder.visitTypeVariable');
+  }
+
+  HType mapInferredType(Element element) {
+    if (element === builder.compiler.boolClass) return HType.BOOLEAN;
+    if (element === builder.compiler.doubleClass) return HType.DOUBLE;
+    if (element === builder.compiler.intClass) return HType.INTEGER;
+    if (element === builder.compiler.listClass) return HType.READABLE_ARRAY;
+    if (element === builder.compiler.nullClass) return HType.NULL;
+    if (element === builder.compiler.stringClass) return HType.STRING;
+    return HType.UNKNOWN;
   }
 
   /** HACK HACK HACK */

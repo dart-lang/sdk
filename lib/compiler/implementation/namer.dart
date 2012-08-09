@@ -122,14 +122,18 @@ class Namer {
     return '${privateName(lib, name)}\$${selector.argumentCount}$buffer';
   }
 
-  String instanceFieldName(ClassElement cls, SourceString name) {
-    String proposedName = privateName(cls.getLibrary(), name);
-    if (cls.lookupSuperMember(name) !== null) {
-      String libName = getName(cls.getLibrary());
-      String clsName = getName(cls);
-      proposedName = '$libName\$$clsName\$$proposedName';
-    }
+  String instanceFieldName(LibraryElement libraryElement, SourceString name) {
+    String proposedName = privateName(libraryElement, name);
     return safeName(proposedName);
+  }
+
+  String shadowedFieldName(Element fieldElement) {
+    ClassElement cls = fieldElement.getEnclosingClass();
+    LibraryElement libraryElement = fieldElement.getLibrary();
+    String libName = getName(libraryElement);
+    String clsName = getName(cls);
+    String instanceName = instanceFieldName(libraryElement, fieldElement.name);
+    return safeName('$libName\$$clsName\$$instanceName');
   }
 
   String setterName(LibraryElement lib, SourceString name) {
@@ -226,7 +230,8 @@ class Namer {
       } else if (element.kind == ElementKind.SETTER) {
         return setterName(element.getLibrary(), element.name);
       } else {
-        return instanceFieldName(element.getEnclosingClass(), element.name);
+        compiler.internalError('getName for bad kind: ${element.kind}',
+                               node: element.parseNode(compiler));
       }
     } else {
       // Dealing with a top-level or static element.

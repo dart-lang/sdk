@@ -6,6 +6,7 @@
 
 #include "vm/bit_vector.h"
 #include "vm/dart_entry.h"
+#include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
@@ -188,135 +189,6 @@ intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
 }
 
 
-intptr_t BranchInstr::InputCount() const {
-  return 2;
-}
-
-
-Value* BranchInstr::InputAt(intptr_t i) const {
-  if (i == 0) return left();
-  if (i == 1) return right();
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void BranchInstr::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    left_ = value;
-  } else if (i == 1) {
-    right_ = value;
-  } else {
-    UNREACHABLE();
-  }
-}
-
-
-intptr_t ParallelMoveInstr::InputCount() const {
-  UNREACHABLE();
-  return 0;
-}
-
-
-Value* ParallelMoveInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void ParallelMoveInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
-intptr_t GotoInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* GotoInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void GotoInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
-intptr_t PushArgumentInstr::InputCount() const {
-  return 1;
-}
-
-
-Value* PushArgumentInstr::InputAt(intptr_t i) const {
-  if (i == 0) return value();
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void PushArgumentInstr::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    value_ = value;
-    return;
-  }
-  UNREACHABLE();
-}
-
-
-intptr_t ReturnInstr::InputCount() const {
-  return 1;
-}
-
-
-Value* ReturnInstr::InputAt(intptr_t i) const {
-  if (i == 0) return value();
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void ReturnInstr::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    value_ = value;
-    return;
-  }
-  UNREACHABLE();
-}
-
-
-intptr_t BindInstr::InputCount() const {
-  return computation()->InputCount();
-}
-
-
-Value* BindInstr::InputAt(intptr_t i) const {
-  return computation()->InputAt(i);
-}
-
-
-void BindInstr::SetInputAt(intptr_t i, Value* value) {
-  computation()->SetInputAt(i, value);
-}
-
-
-intptr_t PhiInstr::InputCount() const {
-  return inputs_.length();
-}
-
-
-Value* PhiInstr::InputAt(intptr_t i) const {
-  return inputs_[i];
-}
-
-
-void PhiInstr::SetInputAt(intptr_t i, Value* value) {
-  inputs_[i] = value;
-}
-
-
 RawAbstractType* PhiInstr::StaticType() const {
   // TODO(regis): Return the least upper bound of the input static types.
   // It is much simpler to compute the least specific of the input static types,
@@ -342,22 +214,6 @@ RawAbstractType* PhiInstr::StaticType() const {
 }
 
 
-intptr_t ParameterInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* ParameterInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void ParameterInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
 RawAbstractType* ParameterInstr::StaticType() const {
   // TODO(regis): Can type feedback provide information about the static type
   // of a passed-in parameter?
@@ -366,54 +222,6 @@ RawAbstractType* ParameterInstr::StaticType() const {
   // check the passed-in parameter, since the type check would then always be
   // wrongly eliminated.
   return Type::DynamicType();
-}
-
-
-intptr_t GraphEntryInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* GraphEntryInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void GraphEntryInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
-intptr_t TargetEntryInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* TargetEntryInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void TargetEntryInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
-}
-
-
-intptr_t JoinEntryInstr::InputCount() const {
-  return 0;
-}
-
-
-Value* JoinEntryInstr::InputAt(intptr_t i) const {
-  UNREACHABLE();
-  return NULL;
-}
-
-
-void JoinEntryInstr::SetInputAt(intptr_t i, Value* value) {
-  UNREACHABLE();
 }
 
 
@@ -600,6 +408,22 @@ void JoinEntryInstr::InsertPhi(intptr_t var_index, intptr_t var_count) {
   ASSERT((*phis_)[var_index] == NULL);
   (*phis_)[var_index] = new PhiInstr(PredecessorCount());
   phi_count_++;
+}
+
+
+void JoinEntryInstr::RemoveDeadPhis() {
+  if (phis_ == NULL) return;
+
+  for (intptr_t i = 0; i < phis_->length(); i++) {
+    PhiInstr* phi = (*phis_)[i];
+    if ((phi != NULL) && !phi->is_alive()) {
+      (*phis_)[i] = NULL;
+      phi_count_--;
+    }
+  }
+
+  // Check if we removed all phis.
+  if (phi_count_ == 0) phis_ = NULL;
 }
 
 
@@ -994,7 +818,6 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (HasICData()) {
     ASSERT(original() != NULL);
     Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
-                                          original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
                                           instance_reg,
@@ -1355,6 +1178,38 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_ssa()) {
     ASSERT(locs()->in(0).IsRegister());
     __ PushRegister(locs()->in(0).reg());
+  }
+}
+
+
+void Environment::InitializeLocations(FlowGraphAllocator* allocator,
+                                      intptr_t block_start_pos,
+                                      intptr_t environment_pos) {
+  // Any value mentioned in the deoptimization environment should survive
+  // until the end of instruction but it does not need to be in the register.
+  // Expected shape of live range:
+  //
+  //                 i  i'
+  //      value    -----*
+  //
+  ASSERT(locations_ == NULL);
+  location_count_ = values_.length();
+  if (location_count_ > 0) {
+    locations_ =
+        Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
+    for (intptr_t i = 0; i < location_count_; ++i) {
+      Value* value = values_[i];
+      if (value->IsUse()) {
+        locations_[i] = Location::Any();
+        const intptr_t vreg = value->AsUse()->definition()->ssa_temp_index();
+        LiveRange* range = allocator->GetLiveRange(vreg);
+        range->AddUseInterval(block_start_pos, environment_pos);
+        range->AddUse(environment_pos, &locations_[i]);
+      } else {
+        ASSERT(value->IsConstant());
+        locations_[i] = Location::NoLocation();
+      }
+    }
   }
 }
 

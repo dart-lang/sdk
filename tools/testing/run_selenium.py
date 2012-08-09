@@ -58,11 +58,7 @@ def perf_test_done(source):
 def dromaeo_test_done(source):
   """Tests to see if our performance test is done by printing a score."""
   #TODO(efortuna): Access these elements in a nicer way using DOM parser.
-  string = '<span class="left">'
-  index = source.find(string)
-  end_index = source.find('</span>', index+1)
-  source = source[index + len(string):end_index]
-  return '0:00' in source
+  return '<body class="alldone">' in source
 
 # TODO(vsm): Ideally, this wouldn't live in this file.
 CONFIGURATIONS = {

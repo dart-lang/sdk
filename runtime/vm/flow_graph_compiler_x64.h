@@ -178,7 +178,6 @@ class FlowGraphCompiler : public ValueObject {
                             intptr_t token_pos,
                             intptr_t try_index);
   Label* AddDeoptStub(intptr_t deopt_id,
-                      intptr_t deopt_token_pos,
                       intptr_t try_index_,
                       DeoptReasonId reason,
                       Register reg1 = kNoRegister,
@@ -199,6 +198,9 @@ class FlowGraphCompiler : public ValueObject {
   FrameRegisterAllocator* frame_register_allocator() {
     return &frame_register_allocator_;
   }
+
+  // Returns true if the compiled function has a finally clause.
+  bool HasFinally() const;
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
 

@@ -11,34 +11,97 @@
 #include "vm/heap.h"
 #include "vm/object.h"
 #include "vm/object_store.h"
+#include "vm/snapshot_ids.h"
 #include "vm/symbols.h"
 
 namespace dart {
 
-enum {
-  kInstanceId = ObjectStore::kMaxId,
-  kMaxPredefinedObjectIds,
-};
 static const int kNumInitialReferencesInFullSnapshot = 160 * KB;
 static const int kNumInitialReferences = 4;
 
 
-static bool IsSingletonClassId(intptr_t index) {
+static bool IsSingletonClassId(intptr_t class_id) {
   // Check if this is a singleton object class which is shared by all isolates.
-  return (index >= Object::kClassClass && index < Object::kMaxId);
+  return ((class_id >= kClassCid && class_id <= kUnwindErrorCid) ||
+          (class_id >= kNullCid && class_id <= kVoidCid));
 }
 
 
-static bool IsObjectStoreClassId(intptr_t index) {
+static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
-  return (index >= ObjectStore::kObjectClass && index < ObjectStore::kMaxId);
+  return (class_id == kObjectCid ||
+          (class_id >= kInstanceCid && class_id <= kJSRegExpCid));
 }
 
 
 static bool IsObjectStoreTypeId(intptr_t index) {
   // Check if this is a type which is stored in the object store.
-  return (index >= ObjectStore::kObjectType &&
-          index <= ObjectStore::kListInterface);
+  return (index >= kObjectType && index <= kByteArrayInterface);
+}
+
+
+static intptr_t ClassIdFromObjectId(intptr_t object_id) {
+  ASSERT(object_id > kClassIdsOffset);
+  intptr_t class_id = (object_id - kClassIdsOffset);
+  return class_id;
+}
+
+
+static intptr_t ObjectIdFromClassId(intptr_t class_id) {
+  ASSERT(class_id > kIllegalCid && class_id < kNumPredefinedCids);
+  return (class_id + kClassIdsOffset);
+}
+
+
+static RawType* GetType(ObjectStore* object_store, int index) {
+  switch (index) {
+    case kObjectType: return object_store->object_type();
+    case kNullType: return object_store->null_type();
+    case kDynamicType: return object_store->dynamic_type();
+    case kVoidType: return object_store->void_type();
+    case kFunctionInterface: return object_store->function_interface();
+    case kNumberInterface: return object_store->number_interface();
+    case kDoubleInterface: return object_store->double_interface();
+    case kIntInterface: return object_store->int_interface();
+    case kBoolInterface: return object_store->bool_interface();
+    case kStringInterface: return object_store->string_interface();
+    case kListInterface: return object_store->list_interface();
+    case kByteArrayInterface: return object_store->byte_array_interface();
+    default: break;
+  }
+  UNREACHABLE();
+  return Type::null();
+}
+
+
+static int GetTypeIndex(ObjectStore* object_store, const RawType* raw_type) {
+  ASSERT(raw_type->IsHeapObject());
+  if (raw_type == object_store->object_type()) {
+    return kObjectType;
+  } else if (raw_type == object_store->null_type()) {
+    return kNullType;
+  } else if (raw_type == object_store->dynamic_type()) {
+    return kDynamicType;
+  } else if (raw_type == object_store->void_type()) {
+    return kVoidType;
+  } else if (raw_type == object_store->function_interface()) {
+    return kFunctionInterface;
+  } else if (raw_type == object_store->number_interface()) {
+    return kNumberInterface;
+  } else if (raw_type == object_store->double_interface()) {
+    return kDoubleInterface;
+  } else if (raw_type == object_store->int_interface()) {
+    return kIntInterface;
+  } else if (raw_type == object_store->bool_interface()) {
+    return kBoolInterface;
+  } else if (raw_type == object_store->string_interface()) {
+    return kStringInterface;
+  } else if (raw_type == object_store->list_interface()) {
+    return kListInterface;
+  } else if (raw_type == object_store->byte_array_interface()) {
+    return kByteArrayInterface;
+  }
+  return kInvalidIndex;
 }
 
 
@@ -167,7 +230,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
   // Since we are only reading an object reference, If it is an instance kind
   // then we only need to figure out the class of the object and allocate an
   // instance of it. The individual fields will be read later.
-  if (SerializedHeaderData::decode(class_header) == kInstanceId) {
+  if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     Instance& result = Instance::ZoneHandle(isolate(), Instance::null());
     AddBackRef(object_id, &result, kIsNotDeserialized);
 
@@ -181,16 +244,15 @@ RawObject* SnapshotReader::ReadObjectRef() {
       result ^= Object::Allocate(cls_.id(), instance_size, Heap::kNew);
     }
     return result.raw();
-  } else {
-    ASSERT((class_header & kSmiTagMask) != 0);
-    cls_ = LookupInternalClass(class_header);
-    ASSERT(!cls_.IsNull());
   }
+  ASSERT((class_header & kSmiTagMask) != 0);
+  cls_ = LookupInternalClass(class_header);
+  ASSERT(!cls_.IsNull());
 
   // Similarly Array and ImmutableArray objects are also similarly only
   // allocated here, the individual array elements are read later.
-  ObjectKind obj_kind = cls_.instance_kind();
-  if (obj_kind == Array::kInstanceKind) {
+  intptr_t class_id = cls_.id();
+  if (class_id == kArrayCid) {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     Array& array = Array::ZoneHandle(
@@ -200,7 +262,7 @@ RawObject* SnapshotReader::ReadObjectRef() {
 
     return array.raw();
   }
-  if (obj_kind == ImmutableArray::kInstanceKind) {
+  if (class_id == kImmutableArrayCid) {
     // Read the length and allocate an object based on the len.
     intptr_t len = ReadSmiValue();
     ImmutableArray& array = ImmutableArray::ZoneHandle(
@@ -214,9 +276,9 @@ RawObject* SnapshotReader::ReadObjectRef() {
 
   // For all other internal VM classes we read the object inline.
   intptr_t tags = ReadIntptrValue();
-  switch (obj_kind) {
+  switch (class_id) {
 #define SNAPSHOT_READ(clazz)                                                   \
-    case clazz::kInstanceKind: {                                               \
+    case clazz::kClassId: {                                                    \
       obj_ = clazz::ReadFrom(this, object_id, tags, kind_);                    \
       break;                                                                   \
     }
@@ -348,28 +410,26 @@ RawContext* SnapshotReader::NewContext(intptr_t num_variables) {
 }
 
 
-RawClass* SnapshotReader::NewClass(int value) {
+RawClass* SnapshotReader::NewClass(intptr_t class_id, bool is_signature_class) {
   ASSERT(kind_ == Snapshot::kFull);
   ASSERT(isolate()->no_gc_scope_depth() != 0);
-  ObjectKind object_kind = static_cast<ObjectKind>(value);
-  if ((object_kind == kInstance || object_kind == kClosure)) {
-    cls_ = Object::class_class();
-    RawClass* obj = reinterpret_cast<RawClass*>(
-        AllocateUninitialized(cls_, Class::InstanceSize()));
-    if (object_kind == kInstance) {
-      Instance fake;
-      obj->ptr()->handle_vtable_ = fake.vtable();
-    } else {
-      Closure fake;
-      obj->ptr()->handle_vtable_ = fake.vtable();
-    }
-    cls_ = obj;
-    cls_.set_instance_kind(object_kind);
-    cls_.set_id(kIllegalObjectKind);
-    isolate()->class_table()->Register(cls_);
-    return cls_.raw();
+  if (class_id < kNumPredefinedCids) {
+    return Class::GetClass(class_id, is_signature_class);
   }
-  return Class::GetClass(object_kind);
+  cls_ = Object::class_class();
+  RawClass* obj = reinterpret_cast<RawClass*>(
+      AllocateUninitialized(cls_, Class::InstanceSize()));
+  if (is_signature_class) {
+    Closure fake;
+    obj->ptr()->handle_vtable_ = fake.vtable();
+  } else {
+    Instance fake;
+    obj->ptr()->handle_vtable_ = fake.vtable();
+  }
+  cls_ = obj;
+  cls_.set_id(kIllegalCid);
+  isolate()->class_table()->Register(cls_);
+  return cls_.raw();
 }
 
 
@@ -474,12 +534,12 @@ RawClass* SnapshotReader::LookupInternalClass(intptr_t class_header) {
   if (IsVMIsolateObject(class_header)) {
     intptr_t class_id = GetVMIsolateObjectId(class_header);
     if (IsSingletonClassId(class_id)) {
-      return Object::GetSingletonClass(class_id);  // return singleton.
+      return isolate()->class_table()->At(class_id);  // get singleton class.
     }
   } else if (SerializedHeaderTag::decode(class_header) == kObjectId) {
-    intptr_t header_value = SerializedHeaderData::decode(class_header);
-    if (IsObjectStoreClassId(header_value)) {
-      return object_store()->GetClass(header_value);
+    intptr_t class_id = SerializedHeaderData::decode(class_header);
+    if (IsObjectStoreClassId(class_id)) {
+      return isolate()->class_table()->At(class_id);  // get singleton class.
     }
   }
   return Class::null();
@@ -504,7 +564,7 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
   RawObject* raw_obj = reinterpret_cast<RawObject*>(address + kHeapObjectTag);
   uword tags = 0;
   intptr_t index = cls.id();
-  ASSERT(index != kIllegalObjectKind);
+  ASSERT(index != kIllegalCid);
   tags = RawObject::ClassIdTag::update(index, tags);
   tags = RawObject::SizeTag::update(size, tags);
   raw_obj->ptr()->tags_ = tags;
@@ -514,36 +574,41 @@ RawObject* SnapshotReader::AllocateUninitialized(const Class& cls,
 
 RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   intptr_t object_id = GetVMIsolateObjectId(header_value);
-  if (object_id == Object::kNullObject) {
+  if (object_id == kNullObject) {
     // This is a singleton null object, return it.
     return Object::null();
   }
-  if (object_id == Object::kSentinelObject) {
+  if (object_id == kSentinelObject) {
     return Object::sentinel();
   }
-  if (IsSingletonClassId(object_id)) {
-    return Object::GetSingletonClass(object_id);  // return singleton object.
+  intptr_t class_id = ClassIdFromObjectId(object_id);
+  if (IsSingletonClassId(class_id)) {
+    return isolate()->class_table()->At(class_id);  // get singleton class.
   } else {
     ASSERT(Symbols::IsVMSymbolId(object_id));
     return Symbols::GetVMSymbol(object_id);  // return VM symbol.
   }
   UNREACHABLE();
+  return Object::null();
 }
 
 
 RawObject* SnapshotReader::ReadIndexedObject(intptr_t object_id) {
-  if (IsObjectStoreClassId(object_id)) {
-    return object_store()->GetClass(object_id);
-  } else if (object_id == ObjectStore::kTrueValue) {
+  if (object_id == kTrueValue) {
     return object_store()->true_value();
-  } else if (object_id == ObjectStore::kFalseValue) {
+  }
+  if (object_id == kFalseValue) {
     return object_store()->false_value();
-  } else if (kind_ != Snapshot::kFull) {
+  }
+  intptr_t class_id = ClassIdFromObjectId(object_id);
+  if (IsObjectStoreClassId(class_id)) {
+    return isolate()->class_table()->At(class_id);  // get singleton class.
+  }
+  if (kind_ != Snapshot::kFull) {
     if (IsObjectStoreTypeId(object_id)) {
-      return object_store()->GetType(object_id);  // return type object.
+      return GetType(object_store(), object_id);  // return type obj.
     }
   }
-
   Object* object = GetBackRef(object_id);
   return object->raw();
 }
@@ -553,7 +618,7 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
   // Read the class header information and lookup the class.
   intptr_t class_header = ReadIntptrValue();
   intptr_t tags = ReadIntptrValue();
-  if (SerializedHeaderData::decode(class_header) == kInstanceId) {
+  if (SerializedHeaderData::decode(class_header) == kInstanceObjectId) {
     // Object is regular dart instance.
     Instance* result = reinterpret_cast<Instance*>(GetBackRef(object_id));
     intptr_t instance_size = 0;
@@ -587,14 +652,13 @@ RawObject* SnapshotReader::ReadInlinedObject(intptr_t object_id) {
       *result = result->Canonicalize();
     }
     return result->raw();
-  } else {
-    ASSERT((class_header & kSmiTagMask) != 0);
-    cls_ = LookupInternalClass(class_header);
-    ASSERT(!cls_.IsNull());
   }
-  switch (cls_.instance_kind()) {
+  ASSERT((class_header & kSmiTagMask) != 0);
+  cls_ = LookupInternalClass(class_header);
+  ASSERT(!cls_.IsNull());
+  switch (cls_.id()) {
 #define SNAPSHOT_READ(clazz)                                                   \
-    case clazz::kInstanceKind: {                                               \
+    case clazz::kClassId: {                                                    \
       obj_ = clazz::ReadFrom(this, object_id, tags, kind_);                    \
       break;                                                                   \
     }
@@ -635,28 +699,33 @@ void SnapshotWriter::WriteObject(RawObject* rawobj) {
 void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton null object.
   if (rawobj == Object::null()) {
-    WriteVMIsolateObject(Object::kNullObject);
+    WriteVMIsolateObject(kNullObject);
     return;
   }
 
   // Check if it is a singleton sentinel object.
   if (rawobj == Object::sentinel()) {
-    WriteVMIsolateObject(Object::kSentinelObject);
+    WriteVMIsolateObject(kSentinelObject);
     return;
   }
 
-  // Check if it is a singleton class object.
-  RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
-  intptr_t index = Object::GetSingletonClassIndex(raw_class);
-  if (index != Object::kInvalidIndex) {
-    WriteVMIsolateObject(index);
-    return;
+  // Check if it is a singleton class object which is shared by
+  // all isolates.
+  intptr_t id = rawobj->GetClassId();
+  if (id == kClassCid) {
+    RawClass* raw_class = reinterpret_cast<RawClass*>(rawobj);
+    intptr_t class_id = raw_class->ptr()->id_;
+    if (IsSingletonClassId(class_id)) {
+      intptr_t object_id = ObjectIdFromClassId(class_id);
+      WriteVMIsolateObject(object_id);
+      return;
+    }
   }
 
-  // Check it is a predefined symbol.
-  index = Symbols::LookupVMSymbol(rawobj);
-  if (index != Object::kInvalidIndex) {
-    WriteVMIsolateObject(index);
+  // Check it is a predefined symbol in the VM isolate.
+  id = Symbols::LookupVMSymbol(rawobj);
+  if (id != kInvalidIndex) {
+    WriteVMIsolateObject(id);
     return;
   }
 
@@ -669,20 +738,13 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   if (CheckAndWritePredefinedObject(raw)) {
     return;
   }
-  // Check if object has already been serialized, in that
-  // case just write the object id out.
-  uword tags = raw->ptr()->tags_;
-  if (SerializedHeaderTag::decode(tags) == kObjectId) {
-    intptr_t id = SerializedHeaderData::decode(tags);
-    WriteIndexedObject(id);
-    return;
-  }
 
   NoGCScope no_gc;
-  RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
-
-  ObjectKind obj_kind = cls->ptr()->instance_kind_;
-  if (obj_kind == Instance::kInstanceKind) {
+  RawClass* cls = class_table_->At(raw->GetClassId());
+  intptr_t class_id = cls->ptr()->id_;
+  ASSERT(class_id == raw->GetClassId());
+  if (class_id >= kNumPredefinedCids) {
+    ASSERT(!Class::IsSignatureClass(cls));
     // Object is being referenced, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
@@ -693,14 +755,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     WriteInlinedObjectHeader(object_id);
 
     // Indicate this is an instance object.
-    WriteIntptrValue(SerializedHeaderData::encode(kInstanceId));
+    WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
 
     // Write out the class information for this object.
     WriteObjectImpl(cls);
 
     return;
   }
-  if (obj_kind == Array::kInstanceKind) {
+  if (class_id == kArrayCid) {
     // Object is being referenced, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
@@ -713,14 +775,14 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     WriteInlinedObjectHeader(object_id);
 
     // Write out the class information.
-    WriteIndexedObject(ObjectStore::kArrayClass);
+    WriteIndexedObject(kArrayCid);
 
     // Write out the length field.
     Write<RawObject*>(rawarray->ptr()->length_);
 
     return;
   }
-  if (obj_kind == ImmutableArray::kInstanceKind) {
+  if (class_id == kImmutableArrayCid) {
     // Object is being referenced, add it to the forward ref list and mark
     // it so that future references to this object in the snapshot will use
     // this object id. Mark it as not having been serialized yet so that we
@@ -733,7 +795,7 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
     WriteInlinedObjectHeader(object_id);
 
     // Write out the class information.
-    WriteIndexedObject(ObjectStore::kImmutableArrayClass);
+    WriteIndexedObject(kImmutableArrayCid);
 
     // Write out the length field.
     Write<RawObject*>(rawarray->ptr()->length_);
@@ -745,9 +807,9 @@ void SnapshotWriter::WriteObjectRef(RawObject* raw) {
   // this object id. Mark it as not having been serialized yet so that we
   // will serialize the object when we go through the forward list.
   intptr_t object_id = MarkObject(raw, kIsSerialized);
-  switch (obj_kind) {
+  switch (class_id) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
-    case clazz::kInstanceKind: {                                               \
+    case clazz::kClassId: {                                                    \
       Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
       raw_obj->WriteTo(this, object_id, kind_);                                \
       return;                                                                  \
@@ -850,28 +912,28 @@ bool SnapshotWriter::CheckAndWritePredefinedObject(RawObject* rawobj) {
 
   // Check if it is a singleton boolean true value.
   if (rawobj == object_store()->true_value()) {
-    WriteIndexedObject(ObjectStore::kTrueValue);
+    WriteIndexedObject(kTrueValue);
     return true;
   }
 
   // Check if it is a singleton boolean false value.
   if (rawobj == object_store()->false_value()) {
-    WriteIndexedObject(ObjectStore::kFalseValue);
+    WriteIndexedObject(kFalseValue);
     return true;
   }
 
   // Check if it is a code object in that case just write a Null object
   // as we do not want code objects in the snapshot.
-  if (rawobj->GetClassId() == kCode) {
-    WriteVMIsolateObject(Object::kNullObject);
+  if (rawobj->GetClassId() == kCodeCid) {
+    WriteVMIsolateObject(kNullObject);
     return true;
   }
 
   // Check if classes are not being serialized and it is preinitialized type.
   if (kind_ != Snapshot::kFull) {
     RawType* raw_type = reinterpret_cast<RawType*>(rawobj);
-    intptr_t index = object_store()->GetTypeIndex(raw_type);
-    if (index != ObjectStore::kInvalidIndex) {
+    intptr_t index = GetTypeIndex(object_store(), raw_type);
+    if (index != kInvalidIndex) {
       WriteIndexedObject(index);
       return true;
     }
@@ -908,9 +970,10 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
   intptr_t object_id = SerializedHeaderData::decode(tags);
   tags = forward_list_[object_id - kMaxPredefinedObjectIds]->tags();
   RawClass* cls = class_table_->At(RawObject::ClassIdTag::decode(tags));
-  ObjectKind kind = cls->ptr()->instance_kind_;
+  intptr_t class_id = cls->ptr()->id_;
 
-  if (kind == Instance::kInstanceKind) {
+  if (class_id >= kNumPredefinedCids) {
+    ASSERT(!Class::IsSignatureClass(cls));
     // Object is regular dart instance.
     // TODO(5411462): figure out what we need to do if an object with native
     // fields is serialized (throw exception or serialize a null object).
@@ -922,7 +985,7 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     WriteInlinedObjectHeader(object_id);
 
     // Indicate this is an instance object.
-    WriteIntptrValue(SerializedHeaderData::encode(kInstanceId));
+    WriteIntptrValue(SerializedHeaderData::encode(kInstanceObjectId));
 
     // Write out the tags.
     WriteIntptrValue(tags);
@@ -939,9 +1002,9 @@ void SnapshotWriter::WriteInlinedObject(RawObject* raw) {
     }
     return;
   }
-  switch (kind) {
+  switch (class_id) {
 #define SNAPSHOT_WRITE(clazz)                                                  \
-    case clazz::kInstanceKind: {                                               \
+    case clazz::kClassId: {                                                    \
       Raw##clazz* raw_obj = reinterpret_cast<Raw##clazz*>(raw);                \
       raw_obj->WriteTo(this, object_id, kind_);                                \
       return;                                                                  \
@@ -976,16 +1039,18 @@ void SnapshotWriter::WriteForwardedObjects() {
 
 void SnapshotWriter::WriteClassId(RawClass* cls) {
   ASSERT(kind_ != Snapshot::kFull);
-  int id = object_store()->GetClassIndex(cls);
-  if (IsSingletonClassId(id)) {
-    WriteVMIsolateObject(id);
-  } else if (IsObjectStoreClassId(id)) {
-    WriteIndexedObject(id);
+  int class_id = cls->ptr()->id_;
+  if (IsSingletonClassId(class_id)) {
+    intptr_t object_id = ObjectIdFromClassId(class_id);
+    WriteVMIsolateObject(object_id);
+  } else if (IsObjectStoreClassId(class_id)) {
+    intptr_t object_id = ObjectIdFromClassId(class_id);
+    WriteIndexedObject(object_id);
   } else {
     // TODO(5411462): Should restrict this to only core-lib classes in this
     // case.
     // Write out the class and tags information.
-    WriteVMIsolateObject(Object::kClassClass);
+    WriteVMIsolateObject(kClassCid);
     WriteIntptrValue(GetObjectTags(cls));
 
     // Write out the library url and class name.

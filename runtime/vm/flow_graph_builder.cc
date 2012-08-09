@@ -1290,7 +1290,6 @@ void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   }
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        node->type_arguments());
-  PushArgument(element_type);
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
                                                 values,
@@ -1792,11 +1791,23 @@ void ValueGraphVisitor::VisitInstanceSetterNode(InstanceSetterNode* node) {
 void EffectGraphVisitor::VisitStaticGetterNode(StaticGetterNode* node) {
   const String& getter_name =
       String::Handle(Field::GetterName(node->field_name()));
-  const Function& getter_function =
-      Function::ZoneHandle(node->cls().LookupStaticFunction(getter_name));
-  ASSERT(!getter_function.IsNull());
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>();
+  Function& getter_function = Function::ZoneHandle();
+  if (node->is_super_getter()) {
+    // Statically resolved instance getter, i.e. "super getter".
+    getter_function =
+    Resolver::ResolveDynamicAnyArgs(node->cls(), getter_name);
+    ASSERT(!getter_function.IsNull());
+    ASSERT(node->receiver() != NULL);
+    ValueGraphVisitor receiver_value(owner(), temp_index());
+    node->receiver()->Visit(&receiver_value);
+    Append(receiver_value);
+    arguments->Add(PushArgument(receiver_value.value()));
+  } else {
+    getter_function = node->cls().LookupStaticFunction(getter_name);
+    ASSERT(!getter_function.IsNull());
+  }
   StaticCallComp* call = new StaticCallComp(node->token_pos(),
                                             owner()->try_index(),
                                             getter_function,
@@ -1810,9 +1821,25 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
                                            bool result_is_needed) {
   const String& setter_name =
       String::Handle(Field::SetterName(node->field_name()));
+  // A super setter is an instance setter whose setter function is
+  // resolved at compile time (in the caller instance getter's super class).
+  // Unlike a static getter, a super getter has a receiver parameter.
+  const bool is_super_setter = (node->receiver() != NULL);
   const Function& setter_function =
-      Function::ZoneHandle(node->cls().LookupStaticFunction(setter_name));
+      Function::ZoneHandle(is_super_setter
+          ? Resolver::ResolveDynamicAnyArgs(node->cls(), setter_name)
+          : node->cls().LookupStaticFunction(setter_name));
   ASSERT(!setter_function.IsNull());
+
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(1);
+  if (is_super_setter) {
+    // Add receiver of instance getter.
+    ValueGraphVisitor for_receiver(owner(), temp_index());
+    node->receiver()->Visit(&for_receiver);
+    Append(for_receiver);
+    arguments->Add(PushArgument(for_receiver.value()));
+  }
   ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
@@ -1824,9 +1851,8 @@ void EffectGraphVisitor::BuildStaticSetter(StaticSetterNode* node,
   } else {
     value = for_value.value();
   }
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(PushArgument(value));
+
   StaticCallComp* call = new StaticCallComp(node->token_pos(),
                                             owner()->try_index(),
                                             setter_function,
@@ -2298,6 +2324,10 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
   TargetEntryInstr* normal_entry = new TargetEntryInstr();
   graph_entry_ = new GraphEntryInstr(normal_entry);
   EffectGraphVisitor for_effect(this, 0);
+  // TODO(kmillikin): We can eliminate stack checks in some cases (e.g., the
+  // stack check on entry for leaf routines).
+  for_effect.Do(new CheckStackOverflowComp(function.token_pos(),
+                                           CatchClauseNode::kInvalidTryIndex));
   parsed_function().node_sequence()->Visit(&for_effect);
   AppendFragment(normal_entry, for_effect);
   // Check that the graph is properly terminated.
@@ -2339,7 +2369,15 @@ void FlowGraphBuilder::BuildGraph(bool for_optimized, bool use_ssa) {
     InsertPhis(preorder_block_entries_,
                assigned_vars,
                dominance_frontier);
-    Rename();
+
+    GrowableArray<PhiInstr*> live_phis;
+
+    // Rename uses to reference inserted phis where appropriate.
+    // Collect phis that reach a non-environment use.
+    Rename(&live_phis);
+
+    // Propagate alive mark transitively from alive phis.
+    MarkLivePhis(&live_phis);
   }
   if (FLAG_print_flow_graph || (Dart::flow_graph_writer() != NULL)) {
     intptr_t length = postorder_block_entries_.length();
@@ -2540,7 +2578,7 @@ void FlowGraphBuilder::InsertPhis(
 }
 
 
-void FlowGraphBuilder::Rename() {
+void FlowGraphBuilder::Rename(GrowableArray<PhiInstr*>* live_phis) {
   // TODO(fschneider): Support catch-entry.
   if (graph_entry_->SuccessorCount() > 1) {
     Bailout("Catch-entry support in SSA.");
@@ -2566,7 +2604,7 @@ void FlowGraphBuilder::Rename() {
   ASSERT(normal_entry != NULL);  // Must have entry.
   GrowableArray<Value*> env(variable_count());
   env.AddArray(start_env);
-  RenameRecursive(normal_entry, &env);
+  RenameRecursive(normal_entry, &env, live_phis);
 }
 
 
@@ -2579,7 +2617,8 @@ static Value* CopyValue(Value* value) {
 
 
 void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
-                                       GrowableArray<Value*>* env) {
+                                       GrowableArray<Value*>* env,
+                                       GrowableArray<PhiInstr*>* live_phis) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
     JoinEntryInstr* join = block_entry->AsJoinEntry();
@@ -2606,26 +2645,21 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // Update expression stack environment for each use.
     // For each use of a LoadLocal or StoreLocal: Replace it with the value
     // from the environment.
-    for (intptr_t i = 0; i < current->InputCount(); ++i) {
+    for (intptr_t i = current->InputCount() - 1; i >= 0; --i) {
       Value* v = current->InputAt(i);
       if (!v->IsUse()) continue;
       // Update expression stack.
       ASSERT(env->length() > variable_count());
+
+      Value* input_value = env->Last();
+      ASSERT(input_value->IsUse());
       env->RemoveLast();
+
       BindInstr* as_bind = v->AsUse()->definition()->AsBind();
-      if ((as_bind != NULL) && as_bind->computation()->IsLoadLocal()) {
-        Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsLoadLocal()->local().BitIndexIn(
-            non_copied_parameter_count_);
-        current->SetInputAt(i, CopyValue((*env)[index]));
-      }
-      if ((as_bind != NULL) && as_bind->computation()->IsStoreLocal()) {
-        // For each use of a StoreLocal: Replace it with the value from the
-        // environment.
-        Computation* comp = as_bind->computation();
-        intptr_t index = comp->AsStoreLocal()->local().BitIndexIn(
-            non_copied_parameter_count_);
-        current->SetInputAt(i, CopyValue((*env)[index]));
+      if ((as_bind != NULL) &&
+          (as_bind->computation()->IsLoadLocal() ||
+           as_bind->computation()->IsStoreLocal())) {
+        current->SetInputAt(i, CopyValue(input_value));
       }
     }
 
@@ -2652,6 +2686,15 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
           // computation.
           ASSERT(bind->is_used());
           index = load->local().BitIndexIn(non_copied_parameter_count_);
+
+          Value* value = (*env)[index];
+          if (value->IsUse()) {
+            PhiInstr* phi = value->AsUse()->definition()->AsPhi();
+            if ((phi != NULL) && !phi->is_alive()) {
+              phi->mark_alive();
+              live_phis->Add(phi);
+            }
+          }
         }
         // Update expression stack and remove from graph.
         if (bind->is_used()) {
@@ -2680,7 +2723,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
     GrowableArray<Value*> new_env(env->length());
     new_env.AddArray(*env);
-    RenameRecursive(block, &new_env);
+    RenameRecursive(block, &new_env, live_phis);
   }
 
   // 4. Process successor block. We have edge-split form, so that only blocks
@@ -2706,6 +2749,22 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
   }
 }
 
+
+void FlowGraphBuilder::MarkLivePhis(GrowableArray<PhiInstr*>* live_phis) {
+  while (!live_phis->is_empty()) {
+    PhiInstr* phi = live_phis->Last();
+    live_phis->RemoveLast();
+    for (intptr_t i = 0; i < phi->InputCount(); i++) {
+      Value* val = phi->InputAt(i);
+      if (!val->IsUse()) continue;
+      PhiInstr* used_phi = val->AsUse()->definition()->AsPhi();
+      if ((used_phi != NULL) && !used_phi->is_alive()) {
+        used_phi->mark_alive();
+        live_phis->Add(used_phi);
+      }
+    }
+  }
+}
 
 void FlowGraphBuilder::Bailout(const char* reason) {
   const char* kFormat = "FlowGraphBuilder Bailout: %s %s";

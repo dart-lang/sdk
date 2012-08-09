@@ -288,11 +288,16 @@ DART_EXPORT Dart_Handle Dart_Error(const char* format, ...);
  * Propagates an error.
  *
  * If the provided handle is an unhandled exception error, this
- * function will cause the unhandled exception to be rethrown.
+ * function will cause the unhandled exception to be rethrown.  This
+ * will proceeed in the standard way, walking up Dart frames until an
+ * appropriate 'catch' block is found, executing 'finally' blocks,
+ * etc.
  *
  * If the error is not an unhandled exception error, we will unwind
- * the stack to the next C frame.  Any intervening Dart frames will
- * be discarded.
+ * the stack to the next C frame.  Intervening Dart frames will be
+ * discarded; specifically, 'finally' blocks will not execute.  This
+ * is the standard way that compilation errors (and the like) are
+ * handled by the Dart runtime.
  *
  * In either case, when an error is propagated any current scopes
  * created by Dart_EnterScope will be exited.
@@ -2356,8 +2361,12 @@ DART_EXPORT Dart_Handle Dart_SetNativeInstanceField(Dart_Handle obj,
 /**
  * Throws an exception.
  *
- * Throws an exception, unwinding all dart frames on the stack. If
- * successful, this function does not return. Note that this means
+ * This function causes a Dart language exception to be thrown. This
+ * will proceeed in the standard way, walking up Dart frames until an
+ * appropriate 'catch' block is found, executing 'finally' blocks,
+ * etc.
+ *
+ * If successful, this function does not return. Note that this means
  * that the destructors of any stack-allocated C++ objects will not be
  * called. If there are no Dart frames on the stack, an error occurs.
  *

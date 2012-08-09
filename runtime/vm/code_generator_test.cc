@@ -63,7 +63,7 @@ CODEGEN_TEST_GENERATE(ReturnParameterCodegen, test) {
   const Function& function = test->function();
   function.set_num_fixed_parameters(num_params);
   ASSERT(function.num_optional_parameters() == 0);
-  node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, *parameter)));
+  node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, parameter)));
 }
 
 
@@ -97,10 +97,10 @@ CODEGEN_TEST_GENERATE(SmiParamSumCodegen, test) {
   ASSERT(function.num_optional_parameters() == 0);
   BinaryOpNode* add = new BinaryOpNode(kPos,
                                        Token::kADD,
-                                       new LoadLocalNode(kPos, *param1),
-                                       new LoadLocalNode(kPos, *param2));
-  node_seq->Add(new StoreLocalNode(kPos, *sum, add));
-  node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, *sum)));
+                                       new LoadLocalNode(kPos, param1),
+                                       new LoadLocalNode(kPos, param2));
+  node_seq->Add(new StoreLocalNode(kPos, sum, add));
+  node_seq->Add(new ReturnNode(kPos, new LoadLocalNode(kPos, sum)));
 }
 
 
@@ -352,7 +352,7 @@ CODEGEN_TEST_GENERATE(InstanceCallCodegen, test) {
   String& function_bar_name = String::ZoneHandle(Symbols::New("bar"));
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
-  const LocalVariable& allocated = *test->CreateTempConstVariable("alloc");
+  const LocalVariable* allocated = test->CreateTempConstVariable("alloc");
   InstanceCallNode* call_bar = new InstanceCallNode(
       kPos,
       new ConstructorCallNode(
@@ -490,7 +490,7 @@ CODEGEN_TEST_GENERATE(AllocateNewObjectCodegen, test) {
 
   const TypeArguments& no_type_arguments = TypeArguments::ZoneHandle();
   ArgumentListNode* no_arguments = new ArgumentListNode(kPos);
-  const LocalVariable& allocated = *test->CreateTempConstVariable("alloc");
+  const LocalVariable* allocated = test->CreateTempConstVariable("alloc");
   test->node_sequence()->Add(new ReturnNode(kPos, new ConstructorCallNode(
       kPos, no_type_arguments, constructor, no_arguments, allocated)));
 }

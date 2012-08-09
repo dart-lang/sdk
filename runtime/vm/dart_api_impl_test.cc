@@ -46,7 +46,7 @@ TEST_CASE(ErrorHandleBasics) {
   EXPECT_STREQ(
       "Unhandled exception:\n"
       "Exception: bad news\n"
-      " 0. Function: '::testMain' url: 'dart:test-lib' line:2 col:3",
+      "#0      testMain (dart:test-lib:2:3)",
       Dart_GetError(exception));
 
   EXPECT(Dart_IsError(Dart_ErrorGetException(instance)));
@@ -257,7 +257,7 @@ TEST_CASE(InstanceGetClass) {
   EXPECT_VALID(cls_name);
   const char* cls_name_cstr = "";
   EXPECT_VALID(Dart_StringToCString(cls_name, &cls_name_cstr));
-  EXPECT_STREQ("Bool", cls_name_cstr);
+  EXPECT_STREQ("bool", cls_name_cstr);
 
   // Errors propagate.
   Dart_Handle error = Dart_NewApiError("MyError");
@@ -3957,9 +3957,8 @@ TEST_CASE(InvokeClosure) {
 
 
 void ExceptionNative(Dart_NativeArguments args) {
-  Dart_Handle param = Dart_GetNativeArgument(args, 0);
-  Dart_EnterScope();  // Start a Dart API scope for invoking API functions.
-  Dart_ThrowException(param);
+  Dart_EnterScope();
+  Dart_ThrowException(Dart_NewString("Hello from ExceptionNative!"));
   UNREACHABLE();
 }
 
@@ -3971,18 +3970,7 @@ static Dart_NativeFunction native_lookup(Dart_Handle name, int argument_count) {
 
 TEST_CASE(ThrowException) {
   const char* kScriptChars =
-      "class ThrowException {\n"
-      "  ThrowException(int i) : fld1 = i {}\n"
-      "  int thrower(int i) native \"ThrowException_native\";"
-      "  int test() {\n"
-      "     try { thrower(10); } catch(var a) { return 5; } return 10;\n"
-      "  }\n"
-      "  int fld1;\n"
-      "}\n"
-      "ThrowException testMain() {\n"
-      "  ThrowException obj = new ThrowException(10);\n"
-      "  return obj;\n"
-      "}\n";
+      "int test() native \"ThrowException_native\";";
   Dart_Handle result;
   Isolate* isolate = Isolate::Current();
   EXPECT(isolate != NULL);
@@ -3996,23 +3984,15 @@ TEST_CASE(ThrowException) {
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(native_lookup));
 
-  // Invoke a function which returns an object of type ThrowException.
-  Dart_Handle retobj = Dart_Invoke(lib, Dart_NewString("testMain"), 0, NULL);
-  EXPECT_VALID(retobj);
-
   // Throwing an exception here should result in an error.
-  result = Dart_ThrowException(retobj);
-  EXPECT(Dart_IsError(result));
+  result = Dart_ThrowException(Dart_NewString("This doesn't work"));
+  EXPECT_ERROR(result, "No Dart frames on stack, cannot throw exception");
+  EXPECT(!Dart_ErrorHasException(result));
 
-  // Now invoke 'test' which indirectly invokes a natve method where
-  // it is ok to throw an exception, check the result which would
-  // indicate if an exception was thrown or not.
-  result = Dart_Invoke(retobj, Dart_NewString("test"), 0, NULL);
-  EXPECT_VALID(result);
-  EXPECT(Dart_IsInteger(result));
-  int64_t value = 0;
-  result = Dart_IntegerToInt64(result, &value);
-  EXPECT_EQ(5, value);
+  // Invoke 'test' and check for an uncaught exception.
+  result = Dart_Invoke(lib, Dart_NewString("test"), 0, NULL);
+  EXPECT_ERROR(result, "Hello from ExceptionNative!");
+  EXPECT(Dart_ErrorHasException(result));
 
   Dart_ExitScope();  // Exit the Dart API scope.
   EXPECT_EQ(size, state->ZoneSizeInBytes());
@@ -5499,19 +5479,31 @@ TEST_CASE(ParsePatchLibrary) {
   const char* kLibraryChars =
   "#library('patched_library');\n"
   "class A {\n"
+  "  var _f;\n"
   "  external method(var value);\n"
   "}\n"
-  "external int topLevel(var value);\n";
+  "external int unpatched();\n"
+  "external int topLevel(var value);\n"
+  "external int get topLevelGetter();\n"
+  "external void set topLevelSetter(int value);\n";
 
   const char* kPatchChars =
-  "patch int topLevel(var value) => value * value;\n";
+  "var _topLevelValue = -1;"
+  "patch int topLevel(var value) => value * value;\n"
+  "patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
+  "patch int get topLevelGetter() => 2 * _topLevelValue;\n"
+  // Allow top level methods named patch.
+  "patch(x) => x*3;\n";
 
   const char* kScriptChars =
   "#import('theLibrary');\n"
-  "main() {\n"
-  // TODO(iposva): Implement patching.
-  "  return 4 /* topLevel(2) */;\n"
-  "}\n";
+  "e1() => unpatched();\n"
+  "m1() => topLevel(2);\n"
+  "m2() {\n"
+  "  topLevelSetter = 20;\n"
+  "  return topLevelGetter;\n"
+  "}\n"
+  "m3() => patch(7);\n";
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
@@ -5521,19 +5513,43 @@ TEST_CASE(ParsePatchLibrary) {
   result = Dart_LoadLibrary(lib_url, source);
   EXPECT_VALID(result);
 
-  // TODO(iposva): Implement patching.
-  source = Dart_NewString(kPatchChars);
+  const String& url = String::Handle(String::New("theLibrary"));
+  const String& patch_source = String::Handle(String::New(kPatchChars));
+  const Library& lib = Library::Handle(Library::LookupLibrary(url));
+  const Error& err = Error::Handle(lib.Patch(url, patch_source));
+  if (!err.IsNull()) {
+    OS::Print("Patching error: %s\n", err.ToErrorCString());
+    EXPECT(false);
+  }
 
   Dart_Handle script_url = Dart_NewString("theScript");
   source = Dart_NewString(kScriptChars);
-  result = Dart_LoadScript(script_url, source);
-  EXPECT_VALID(result);
-  result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
+  Dart_Handle test_script = Dart_LoadScript(script_url, source);
+  EXPECT_VALID(test_script);
+
+  result = Dart_Invoke(test_script, Dart_NewString("e1"), 0, NULL);
+  EXPECT_ERROR(result, "External implementation missing");
+
+  int64_t value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m1"), 0, NULL);
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
-  int64_t value = 0;
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(4, value);
+
+  value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m2"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(40, value);
+
+  value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m3"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(21, value);
 }
 
 

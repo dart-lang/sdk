@@ -171,7 +171,7 @@ DEFINE_NATIVE_ENTRY(Double_toInt, 1) {
     GrowableArray<const Object*> args;
     args.Add(&String::ZoneHandle(String::New(
         "Infinity or NaN toInt")));
-    Exceptions::ThrowByType(Exceptions::kBadNumberFormat, args);
+    Exceptions::ThrowByType(Exceptions::kFormat, args);
   }
   double result = trunc(arg.value());
   if ((Smi::kMinValue <= result) && (result <= Smi::kMaxValue)) {

@@ -124,7 +124,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseInt, 1) {
   } else {
     GrowableArray<const Object*> args;
     args.Add(&value);
-    Exceptions::ThrowByType(Exceptions::kBadNumberFormat, args);
+    Exceptions::ThrowByType(Exceptions::kFormat, args);
   }
 }
 
@@ -176,7 +176,7 @@ DEFINE_NATIVE_ENTRY(MathNatives_parseDouble, 1) {
 
   GrowableArray<const Object*> args;
   args.Add(&value);
-  Exceptions::ThrowByType(Exceptions::kBadNumberFormat, args);
+  Exceptions::ThrowByType(Exceptions::kFormat, args);
 }
 
 }  // namespace dart

@@ -43,6 +43,7 @@ RECOGNIZED_LIST(DEFINE_ENUM_LIST)
 
 
 class BitVector;
+class FlowGraphAllocator;
 class FlowGraphCompiler;
 class FlowGraphVisitor;
 class Function;
@@ -308,12 +309,6 @@ class Value : public TemplateComputation<0> {
   virtual ComputationType computation_type() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
-  virtual intptr_t InputCount() const { return 0; }                            \
-  virtual Value* InputAt(intptr_t i) const {                                   \
-    UNREACHABLE();                                                             \
-    return NULL;                                                               \
-  }                                                                            \
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }         \
   virtual const char* DebugName() const { return #ShortName; }                 \
   virtual RawAbstractType* StaticType() const;                                 \
   virtual LocationSummary* MakeLocationSummary() const;                        \
@@ -474,7 +469,7 @@ class StoreContextComp : public TemplateComputation<1> {
 };
 
 
-class ClosureCallComp : public Computation {
+class ClosureCallComp : public TemplateComputation<0> {
  public:
   ClosureCallComp(ClosureCallNode* node,
                   intptr_t try_index,
@@ -507,7 +502,7 @@ class ClosureCallComp : public Computation {
 };
 
 
-class InstanceCallComp : public Computation {
+class InstanceCallComp : public TemplateComputation<0> {
  public:
   InstanceCallComp(intptr_t token_pos,
                    intptr_t try_index,
@@ -563,7 +558,7 @@ class InstanceCallComp : public Computation {
 };
 
 
-class PolymorphicInstanceCallComp : public Computation {
+class PolymorphicInstanceCallComp : public TemplateComputation<0> {
  public:
   explicit PolymorphicInstanceCallComp(InstanceCallComp* comp)
       : instance_call_(comp) {
@@ -571,13 +566,6 @@ class PolymorphicInstanceCallComp : public Computation {
   }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
-
-  virtual intptr_t InputCount() const { return 0; }
-  virtual Value* InputAt(intptr_t i) const {
-    UNREACHABLE();
-    return NULL;
-  }
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   void PrintTo(BufferFormatter* f) const;
 
@@ -641,7 +629,7 @@ class EqualityCompareComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObject) {
+        receiver_class_id_(kObjectCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -675,7 +663,7 @@ class RelationalOpComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        operands_class_id_(kObject) {
+        operands_class_id_(kObjectCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -705,7 +693,7 @@ class RelationalOpComp : public ComparisonComp {
 };
 
 
-class StaticCallComp : public Computation {
+class StaticCallComp : public TemplateComputation<0> {
  public:
   StaticCallComp(intptr_t token_pos,
                  intptr_t try_index,
@@ -962,7 +950,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
                   Value* index)
       : token_pos_(token_pos),
         try_index_(try_index),
-        receiver_type_(kIllegalObjectKind) {
+        receiver_type_(kIllegalCid) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -976,11 +964,11 @@ class LoadIndexedComp : public TemplateComputation<2> {
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
-  void set_receiver_type(ObjectKind receiver_type) {
+  void set_receiver_type(intptr_t receiver_type) {
     receiver_type_ = receiver_type;
   }
 
-  ObjectKind receiver_type() const {
+  intptr_t receiver_type() const {
     return receiver_type_;
   }
 
@@ -989,7 +977,7 @@ class LoadIndexedComp : public TemplateComputation<2> {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  ObjectKind receiver_type_;
+  intptr_t receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
@@ -1006,7 +994,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
                    Value* value)
       : token_pos_(token_pos),
         try_index_(try_index),
-        receiver_type_(kIllegalObjectKind) {
+        receiver_type_(kIllegalCid) {
     inputs_[0] = array;
     inputs_[1] = index;
     inputs_[2] = value;
@@ -1020,11 +1008,11 @@ class StoreIndexedComp : public TemplateComputation<3> {
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  void set_receiver_type(ObjectKind receiver_type) {
+  void set_receiver_type(intptr_t receiver_type) {
     receiver_type_ = receiver_type;
   }
 
-  ObjectKind receiver_type() const {
+  intptr_t receiver_type() const {
     return receiver_type_;
   }
 
@@ -1033,7 +1021,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  ObjectKind receiver_type_;
+  intptr_t receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -1177,7 +1165,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 };
 
 
-class CreateArrayComp : public Computation {
+class CreateArrayComp : public TemplateComputation<1> {
  public:
   CreateArrayComp(intptr_t token_pos,
                   intptr_t try_index,
@@ -1185,25 +1173,25 @@ class CreateArrayComp : public Computation {
                   Value* element_type)
       : token_pos_(token_pos),
         try_index_(try_index),
-        elements_(elements),
-        element_type_(element_type) {
+        elements_(elements) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);
     }
     ASSERT(element_type != NULL);
 #endif
+    inputs_[0] = element_type;
   }
 
   DECLARE_CALL_COMPUTATION(CreateArray)
 
-  virtual intptr_t ArgumentCount() const { return ElementCount() + 1; }
+  virtual intptr_t ArgumentCount() const { return ElementCount(); }
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
-  Value* element_type() const { return element_type_; }
+  Value* element_type() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1213,13 +1201,12 @@ class CreateArrayComp : public Computation {
   const intptr_t token_pos_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
-  Value* element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
 
 
-class CreateClosureComp : public Computation {
+class CreateClosureComp : public TemplateComputation<0> {
  public:
   CreateClosureComp(ClosureNode* node,
                     intptr_t try_index,
@@ -1560,7 +1547,7 @@ class BinaryOpComp : public TemplateComputation<2> {
 };
 
 
-class DoubleBinaryOpComp : public Computation {
+class DoubleBinaryOpComp : public TemplateComputation<0> {
  public:
   DoubleBinaryOpComp(Token::Kind op_kind, InstanceCallComp* instance_call)
       : op_kind_(op_kind), instance_call_(instance_call) { }
@@ -1663,7 +1650,7 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 class ToDoubleComp : public TemplateComputation<1> {
  public:
   ToDoubleComp(Value* value,
-               ObjectKind from,
+               intptr_t from,
                InstanceCallComp* instance_call)
       : from_(from), instance_call_(instance_call) {
     ASSERT(value != NULL);
@@ -1671,7 +1658,7 @@ class ToDoubleComp : public TemplateComputation<1> {
   }
 
   Value* value() const { return inputs_[0]; }
-  ObjectKind from() const { return from_; }
+  intptr_t from() const { return from_; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
@@ -1682,7 +1669,7 @@ class ToDoubleComp : public TemplateComputation<1> {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const ObjectKind from_;
+  const intptr_t from_;
   InstanceCallComp* instance_call_;
 
   DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);
@@ -1745,24 +1732,6 @@ FOR_EACH_INSTRUCTION(FORWARD_DECLARATION)
   virtual void Accept(FlowGraphVisitor* visitor);                              \
   virtual bool Is##type() const { return true; }                               \
   virtual type##Instr* As##type() { return this; }                             \
-  virtual intptr_t InputCount() const;                                         \
-  virtual Value* InputAt(intptr_t i) const;                                    \
-  virtual void SetInputAt(intptr_t i, Value* value);                           \
-  virtual const char* DebugName() const { return #type; }                      \
-  virtual void PrintTo(BufferFormatter* f) const;                              \
-  virtual void PrintToVisualizer(BufferFormatter* f) const;
-
-
-#define DECLARE_CALL_INSTRUCTION(type)                                         \
-  virtual void Accept(FlowGraphVisitor* visitor);                              \
-  virtual bool Is##type() const { return true; }                               \
-  virtual type##Instr* As##type() { return this; }                             \
-  virtual intptr_t InputCount() const { return 0; }                            \
-  virtual Value* InputAt(intptr_t i) const {                                   \
-    UNREACHABLE();                                                             \
-    return NULL;                                                               \
-  }                                                                            \
-  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }         \
   virtual const char* DebugName() const { return #type; }                      \
   virtual void PrintTo(BufferFormatter* f) const;                              \
   virtual void PrintToVisualizer(BufferFormatter* f) const;
@@ -1895,9 +1864,14 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
 };
 
 
-class InstructionWithInputs : public Instruction {
+template<intptr_t N>
+class TemplateInstruction: public Instruction {
  public:
-  InstructionWithInputs() : locs_(NULL) { }
+  TemplateInstruction<N>() : locs_(NULL) { }
+
+  virtual intptr_t InputCount() const { return N; }
+  virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
+  virtual void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -1908,9 +1882,11 @@ class InstructionWithInputs : public Instruction {
 
   virtual LocationSummary* MakeLocationSummary() const = 0;
 
+ protected:
+  EmbeddedArray<Value*, N> inputs_;
+
  private:
   LocationSummary* locs_;
-  DISALLOW_COPY_AND_ASSIGN(InstructionWithInputs);
 };
 
 
@@ -1972,7 +1948,7 @@ class MoveOperands : public ZoneAllocated {
 };
 
 
-class ParallelMoveInstr : public Instruction {
+class ParallelMoveInstr : public TemplateInstruction<0> {
  public:
   ParallelMoveInstr() : moves_(4) { }
 
@@ -1994,6 +1970,10 @@ class ParallelMoveInstr : public Instruction {
   void SetDestSlotAt(intptr_t index, const Location& loc);
 
   intptr_t NumMoves() const { return moves_.length(); }
+
+  LocationSummary* MakeLocationSummary() const { return NULL; }
+
+  void EmitNativeCode(FlowGraphCompiler* compiler) { UNREACHABLE(); }
 
  private:
   GrowableArray<MoveOperands*> moves_;   // Elements cannot be null.
@@ -2067,6 +2047,13 @@ class BlockEntryInstr : public Instruction {
       GrowableArray<BitVector*>* assigned_vars,
       intptr_t variable_count,
       intptr_t fixed_parameter_count);
+
+  virtual intptr_t InputCount() const { return 0; }
+  virtual Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  virtual void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2230,6 +2217,7 @@ class JoinEntryInstr : public BlockEntryInstr {
   virtual void PrepareEntry(FlowGraphCompiler* compiler);
 
   void InsertPhi(intptr_t var_index, intptr_t var_count);
+  void RemoveDeadPhis();
 
   intptr_t phi_count() const { return phi_count_; }
 
@@ -2338,6 +2326,13 @@ class BindInstr : public Definition {
   virtual intptr_t ArgumentCount() const {
     return computation()->ArgumentCount();
   }
+  intptr_t InputCount() const { return computation()->InputCount(); }
+
+  Value* InputAt(intptr_t i) const { return computation()->InputAt(i); }
+
+  void SetInputAt(intptr_t i, Value* value) {
+    computation()->SetInputAt(i, value);
+  }
 
   virtual bool CanDeoptimize() const { return computation()->CanDeoptimize(); }
 
@@ -2369,7 +2364,8 @@ class BindInstr : public Definition {
 
 class PhiInstr : public Definition {
  public:
-  explicit PhiInstr(intptr_t num_inputs) : inputs_(num_inputs) {
+  explicit PhiInstr(intptr_t num_inputs)
+    : inputs_(num_inputs), is_alive_(false) {
     for (intptr_t i = 0; i < num_inputs; ++i) {
       inputs_.Add(NULL);
     }
@@ -2380,12 +2376,23 @@ class PhiInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
+  intptr_t InputCount() const { return inputs_.length(); }
+
+  Value* InputAt(intptr_t i) const { return inputs_[i]; }
+
+  void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+
   virtual bool CanDeoptimize() const { return false; }
+
+  // Phi is alive if it reaches a non-environment use.
+  bool is_alive() const { return is_alive_; }
+  void mark_alive() { is_alive_ = true; }
 
   DECLARE_INSTRUCTION(Phi)
 
  private:
   GrowableArray<Value*> inputs_;
+  bool is_alive_;
 
   DISALLOW_COPY_AND_ASSIGN(PhiInstr);
 };
@@ -2404,6 +2411,14 @@ class ParameterInstr : public Definition {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
+  intptr_t InputCount() const { return 0; }
+  Value* InputAt(intptr_t i) const {
+    UNREACHABLE();
+    return NULL;
+  }
+  void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
+
+
   virtual bool CanDeoptimize() const { return false; }
 
  private:
@@ -2413,15 +2428,18 @@ class ParameterInstr : public Definition {
 };
 
 
-class PushArgumentInstr : public InstructionWithInputs {
+class PushArgumentInstr : public TemplateInstruction<1> {
  public:
-  explicit PushArgumentInstr(Value* value) : value_(value) { }
+  explicit PushArgumentInstr(Value* value) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
 
   DECLARE_INSTRUCTION(PushArgument)
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  Value* value() const { return value_; }
+  Value* value() const { return inputs_[0]; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2430,20 +2448,17 @@ class PushArgumentInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  Value* value_;
-
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
 
-class ReturnInstr : public InstructionWithInputs {
+class ReturnInstr : public TemplateInstruction<1> {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
-      : InstructionWithInputs(),
-        deopt_id_(Isolate::Current()->GetNextDeoptId()),
-        token_pos_(token_pos),
-        value_(value) {
-    ASSERT(value_ != NULL);
+      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
+        token_pos_(token_pos) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
   }
 
   DECLARE_INSTRUCTION(Return)
@@ -2452,7 +2467,7 @@ class ReturnInstr : public InstructionWithInputs {
 
   intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
-  Value* value() const { return value_; }
+  Value* value() const { return inputs_[0]; }
 
   virtual LocationSummary* MakeLocationSummary() const;
 
@@ -2463,21 +2478,19 @@ class ReturnInstr : public InstructionWithInputs {
  private:
   const intptr_t deopt_id_;
   const intptr_t token_pos_;
-  Value* value_;
 
   DISALLOW_COPY_AND_ASSIGN(ReturnInstr);
 };
 
 
-class ThrowInstr : public InstructionWithInputs {
+class ThrowInstr : public TemplateInstruction<0> {
  public:
   ThrowInstr(intptr_t token_pos, intptr_t try_index)
-      : InstructionWithInputs(),
-        deopt_id_(Isolate::Current()->GetNextDeoptId()),
+      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
-  DECLARE_CALL_INSTRUCTION(Throw)
+  DECLARE_INSTRUCTION(Throw)
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
@@ -2500,16 +2513,15 @@ class ThrowInstr : public InstructionWithInputs {
 };
 
 
-class ReThrowInstr : public InstructionWithInputs {
+class ReThrowInstr : public TemplateInstruction<0> {
  public:
   ReThrowInstr(intptr_t token_pos,
                intptr_t try_index)
-      : InstructionWithInputs(),
-        deopt_id_(Isolate::Current()->GetNextDeoptId()),
+      : deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
-  DECLARE_CALL_INSTRUCTION(ReThrow)
+  DECLARE_INSTRUCTION(ReThrow)
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
@@ -2532,12 +2544,11 @@ class ReThrowInstr : public InstructionWithInputs {
 };
 
 
-class GotoInstr : public InstructionWithInputs {
+class GotoInstr : public TemplateInstruction<0> {
  public:
   explicit GotoInstr(JoinEntryInstr* entry)
     : successor_(entry),
-      parallel_move_(NULL) {
-  }
+      parallel_move_(NULL) { }
 
   DECLARE_INSTRUCTION(Goto)
 
@@ -2578,25 +2589,24 @@ class GotoInstr : public InstructionWithInputs {
 };
 
 
-class BranchInstr : public InstructionWithInputs {
+class BranchInstr : public TemplateInstruction<2> {
  public:
   BranchInstr(intptr_t token_pos,
               intptr_t try_index,
               Value* left,
               Value* right,
               Token::Kind kind)
-      : InstructionWithInputs(),
-        deopt_id_(Isolate::kNoDeoptId),
+      : deopt_id_(Isolate::kNoDeoptId),
         ic_data_(NULL),
         token_pos_(token_pos),
         try_index_(try_index),
-        left_(left),
-        right_(right),
         kind_(kind),
         true_successor_(NULL),
         false_successor_(NULL) {
-    ASSERT(left_ != NULL);
-    ASSERT(right_ != NULL);
+    ASSERT(left != NULL);
+    ASSERT(right != NULL);
+    inputs_[0] = left;
+    inputs_[1] = right;
     ASSERT(Token::IsEqualityOperator(kind) ||
            Token::IsRelationalOperator(kind) ||
            Token::IsTypeTestOperator(kind));
@@ -2609,8 +2619,8 @@ class BranchInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  Value* left() const { return left_; }
-  Value* right() const { return right_; }
+  Value* left() const { return inputs_[0]; }
+  Value* right() const { return inputs_[1]; }
   Token::Kind kind() const { return kind_; }
   void set_kind(Token::Kind kind) {
     ASSERT(Token::IsEqualityOperator(kind) ||
@@ -2661,8 +2671,6 @@ class BranchInstr : public InstructionWithInputs {
   ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  Value* left_;
-  Value* right_;
   Token::Kind kind_;
   TargetEntryInstr* true_successor_;
   TargetEntryInstr* false_successor_;
@@ -2690,12 +2698,15 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  void InitializeLocations() {
-    location_count_ = values_.length();
-    if (location_count_ > 0) {
-      locations_ =
-          Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
-    }
+  // Initialize locations for the environment values on behalf of the
+  // register allocator.  The initial live ranges of environment uses extend
+  // from the block start position to the environment position.
+  void InitializeLocations(FlowGraphAllocator* allocator,
+                           intptr_t block_start_pos,
+                           intptr_t environment_pos);
+
+  GrowableArray<Value*>* values_ptr() {
+    return &values_;
   }
 
   Location LocationAt(intptr_t ix) const {

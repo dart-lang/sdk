@@ -23,7 +23,7 @@ void DynamicAssertionHelper::Fail(const char* format, ...) {
 
   va_list arguments;
   va_start(arguments, format);
-  char buffer[KB];
+  char buffer[2 * KB];
   vsnprintf(buffer, sizeof(buffer), format, arguments);
   va_end(arguments);
   stream << buffer << std::endl;

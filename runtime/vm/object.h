@@ -106,7 +106,7 @@ class Symbols;
     return reinterpret_cast<Raw##object*>(Object::null());                     \
   }                                                                            \
   virtual const char* ToCString() const;                                       \
-  static const ObjectKind kInstanceKind = k##object;                           \
+  static const ClassId kClassId = k##object##Cid;                              \
  protected:  /* NOLINT */                                                      \
   object() : super() {}                                                        \
  private:  /* NOLINT */                                                        \
@@ -145,46 +145,6 @@ class Symbols;
 
 class Object {
  public:
-  // Index for Singleton internal VM classes,
-  // this index is used in snapshots to refer to these classes directly.
-  enum {
-    kNullObject = 0,
-    kSentinelObject,
-    kClassClass,
-    kNullClass,
-    kDynamicClass,
-    kVoidClass,
-    kUnresolvedClassClass,
-    kTypeClass,
-    kTypeParameterClass,
-    kTypeArgumentsClass,
-    kInstantiatedTypeArgumentsClass,
-    kFunctionClass,
-    kFieldClass,
-    kLiteralTokenClass,
-    kTokenStreamClass,
-    kScriptClass,
-    kLibraryClass,
-    kLibraryPrefixClass,
-    kCodeClass,
-    kInstructionsClass,
-    kPcDescriptorsClass,
-    kStackmapClass,
-    kLocalVarDescriptorsClass,
-    kExceptionHandlersClass,
-    kDeoptInfoClass,
-    kContextClass,
-    kContextScopeClass,
-    kICDataClass,
-    kSubtypeTestCacheClass,
-    kApiErrorClass,
-    kLanguageErrorClass,
-    kUnhandledExceptionClass,
-    kUnwindErrorClass,
-    kMaxId,
-    kInvalidIndex = -1,
-  };
-
   virtual ~Object() { }
 
   RawObject* raw() const { return raw_; }
@@ -324,9 +284,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
-  static int GetSingletonClassIndex(const RawClass* raw_class);
-  static RawClass* GetSingletonClass(int index);
-  static const char* GetSingletonClassName(int index);
+  static const char* GetSingletonClassName(intptr_t class_id);
 
   static RawClass* CreateAndRegisterInterface(const char* cname,
                                               const Script& script,
@@ -349,7 +307,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
     return RoundedAllocationSize(sizeof(RawObject));
   }
 
-  static const ObjectKind kInstanceKind = kObject;
+  static const ClassId kClassId = kObjectCid;
 
   // Different kinds of type tests.
   enum TypeTestKind {
@@ -413,7 +371,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static cpp_vtable handle_vtable_;
-  static cpp_vtable builtin_vtables_[kNumPredefinedKinds];
+  static cpp_vtable builtin_vtables_[kNumPredefinedCids];
 
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
@@ -493,11 +451,6 @@ class Class : public Object {
   cpp_vtable handle_vtable() const { return raw_ptr()->handle_vtable_; }
   void set_handle_vtable(cpp_vtable value) const {
     raw_ptr()->handle_vtable_ = value;
-  }
-
-  ObjectKind instance_kind() const { return raw_ptr()->instance_kind_; }
-  void set_instance_kind(ObjectKind value) const {
-    raw_ptr()->instance_kind_ = value;
   }
 
   intptr_t id() const { return raw_ptr()->id_; }
@@ -623,6 +576,9 @@ class Class : public Object {
   // Check if this class represents a signature class.
   bool IsSignatureClass() const {
     return signature_function() != Object::null();
+  }
+  static bool IsSignatureClass(RawClass* cls) {
+    return cls->ptr()->signature_function_ != Object::null();
   }
 
   // Check if this class represents a canonical signature class, i.e. not an
@@ -758,7 +714,7 @@ class Class : public Object {
   // Return a class object corresponding to the specified kind. If
   // a canonicalized version of it exists then that object is returned
   // otherwise a new object is allocated and returned.
-  static RawClass* GetClass(ObjectKind kind);
+  static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
  private:
   void set_name(const String& value) const;
@@ -1335,6 +1291,8 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* UserVisibleName() const;
+  RawString* QualifiedUserVisibleName() const;
 
   // Build a string of the form '<T, R>(T, [b: B, c: C]) => R' representing the
   // internal signature of the given function.
@@ -1359,7 +1317,6 @@ class Function : public Object {
   bool HasInstantiatedSignature() const;
 
   RawClass* owner() const { return raw_ptr()->owner_; }
-  void set_owner(const Class& value) const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -1504,6 +1461,9 @@ class Function : public Object {
   bool is_optimizable() const { return raw()->IsOptimizable(); }
   void set_is_optimizable(bool value) const;
 
+  bool has_finally() const { return raw()->HasFinally(); }
+  void set_has_finally(bool value) const;
+
   bool is_native() const { return raw()->IsNative(); }
   void set_is_native(bool value) const;
 
@@ -1632,6 +1592,7 @@ class Function : public Object {
   void set_is_const(bool is_const) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
+  void set_owner(const Class& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   static RawFunction* New();
@@ -1665,6 +1626,8 @@ class Function : public Object {
 class Field : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
+  RawString* UserVisibleName() const;
+
   bool is_static() const { return raw_ptr()->is_static_; }
   bool is_final() const { return raw_ptr()->is_final_; }
   bool is_const() const { return raw_ptr()->is_const_; }
@@ -1676,9 +1639,6 @@ class Field : public Object {
   void set_value(const Instance& value) const;
 
   RawClass* owner() const { return raw_ptr()->owner_; }
-  void set_owner(const Class& value) const {
-    StorePointer(&raw_ptr()->owner_, value.raw());
-  }
 
   RawAbstractType* type() const  { return raw_ptr()->type_; }
   void set_type(const AbstractType& value) const;
@@ -1723,6 +1683,9 @@ class Field : public Object {
   }
   void set_is_const(bool value) const {
     raw_ptr()->is_const_ = value;
+  }
+  void set_owner(const Class& value) const {
+    StorePointer(&raw_ptr()->owner_, value.raw());
   }
   void set_token_pos(intptr_t token_pos) const {
     raw_ptr()->token_pos_ = token_pos;
@@ -1960,6 +1923,7 @@ class Library : public Object {
   // more regular.
   void AddClass(const Class& cls) const;
   void AddObject(const Object& obj, const String& name) const;
+  void ReplaceObject(const Object& obj, const String& name) const;
   RawObject* LookupObject(const String& name) const;
   RawClass* LookupClass(const String& name) const;
   RawClass* LookupClassAllowPrivate(const String& name) const;
@@ -1994,6 +1958,8 @@ class Library : public Object {
   void set_native_entry_resolver(Dart_NativeEntryResolver value) const {
     raw_ptr()->native_entry_resolver_ = value;
   }
+
+  RawError* Patch(const String& url, const String& source) const;
 
   RawString* PrivateName(const String& name) const;
 
@@ -2058,6 +2024,7 @@ class Library : public Object {
   static RawLibrary* NewLibraryHelper(const String& url,
                                       bool import_core_lib);
   void AddImportedInto(const Library& library) const;
+  RawObject* LookupEntry(const String& name, intptr_t *index) const;
   RawObject* LookupObjectFiltered(const String& name,
                                   const Library& filter_lib) const;
   RawLibrary* LookupObjectInImporter(const String& name) const;
@@ -2201,13 +2168,15 @@ class PcDescriptors : public Object {
   // Describes the layout of PC descriptor data.
   enum {
     kPcEntry = 0,      // PC value of the descriptor, unique.
-    kKindEntry,
-    kDeoptIdEntry,     // Deopt id.
-    kTokenPosEntry,    // Token position in source of PC.
-    kTryIndexEntry,    // Try block index of PC.
+    kKindEntry = 1,
+    kDeoptIdEntry = 2,      // Deopt id.
+    kTokenPosEntry = 3,     // Token position in source.
+    kDeoptReasonEntry = 3,  // DeoptReasonId.
+    kTryIndexEntry = 4,     // Try block index.
+    kDeoptIndexEntry = 4,   // Deoptimization array index.
     // We would potentially be adding other objects here like
     // pointer maps for optimized functions, local variables information  etc.
-    kNumberOfEntries
+    kNumberOfEntries = 5,
   };
 
  public:
@@ -2229,15 +2198,17 @@ class PcDescriptors : public Object {
   intptr_t DeoptId(intptr_t index) const;
   intptr_t TokenPos(intptr_t index) const;
   intptr_t TryIndex(intptr_t index) const;
+  // Different encoding for kDeoptIndex.
   // Index into the deopt-info array of Code object.
   intptr_t DeoptIndex(intptr_t index) const;
+  intptr_t DeoptReason(intptr_t index) const;
 
   void AddDescriptor(intptr_t index,
                      uword pc,
                      PcDescriptors::Kind kind,
                      intptr_t deopt_id,
-                     intptr_t token_pos,
-                     intptr_t try_index) const {
+                     intptr_t token_pos,  // Or deopt reason.
+                     intptr_t try_index) const {  // Or deopt index.
     SetPC(index, pc);
     SetKind(index, kind);
     SetDeoptId(index, deopt_id);
@@ -5375,7 +5346,7 @@ void Object::SetRaw(RawObject* value) {
          vm_isolate_heap->Contains(reinterpret_cast<uword>(raw_->ptr())));
 #endif
   intptr_t cid = raw_->GetClassId();
-  if (cid < kNumPredefinedKinds) {
+  if (cid < kNumPredefinedCids) {
 #if defined(DEBUG)
     ASSERT(builtin_vtables_[cid] ==
            isolate->class_table()->At(cid)->ptr()->handle_vtable_);

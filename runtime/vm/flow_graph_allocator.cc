@@ -80,12 +80,34 @@ FlowGraphAllocator::FlowGraphAllocator(
 }
 
 
+// Remove environments from the instructions which can't deoptimize.
+// Replace dead phis uses with null values in environments.
 void FlowGraphAllocator::EliminateEnvironmentUses() {
+  ConstantVal* null_value = new ConstantVal(Object::ZoneHandle());
+
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* block = block_order_[i];
+
+    if (block->IsJoinEntry()) block->AsJoinEntry()->RemoveDeadPhis();
+
     for (ForwardInstructionIterator it(block); !it.Done(); it.Advance()) {
       Instruction* current = it.Current();
-      if (!current->CanDeoptimize()) current->set_env(NULL);
+      if (current->CanDeoptimize()) {
+        ASSERT(current->env() != NULL);
+        GrowableArray<Value*>* values = current->env()->values_ptr();
+
+        for (intptr_t i = 0; i < values->length(); i++) {
+          UseVal* use = (*values)[i]->AsUse();
+          if (use == NULL) continue;
+
+          PhiInstr* phi = use->definition()->AsPhi();
+          if (phi == NULL) continue;
+
+          if (!phi->is_alive()) (*values)[i] = null_value;
+        }
+      } else {
+        current->set_env(NULL);
+      }
     }
   }
 }
@@ -139,6 +161,7 @@ void FlowGraphAllocator::ComputeInitialSets() {
         for (intptr_t j = 0; j < join->phis()->length(); j++) {
           PhiInstr* phi = (*join->phis())[j];
           if (phi == NULL) continue;
+
           kill->Add(phi->ssa_temp_index());
           live_in->Remove(phi->ssa_temp_index());
 
@@ -277,6 +300,15 @@ void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
     }
   }
   uses_ = new UsePosition(pos, uses_, location_slot);
+}
+
+
+void LiveRange::AddHintedUse(intptr_t pos,
+                             Location* location_slot,
+                             Location* hint) {
+  ASSERT(hint != NULL);
+  AddUse(pos, location_slot);
+  uses_->set_hint(hint);
 }
 
 
@@ -560,7 +592,7 @@ Instruction* FlowGraphAllocator::ConnectOutgoingPhiMoves(
           val->AsUse()->definition()->ssa_temp_index());
 
       range->AddUseInterval(block->start_pos(), pos);
-      range->AddUse(pos, move->src_slot());
+      range->AddHintedUse(pos, move->src_slot(), move->dest_slot());
 
       move->set_src(Location::PrefersRegister());
     } else {
@@ -651,33 +683,9 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       (locs->out().policy() == Location::kSameAsFirstInput);
 
   // Add uses from the deoptimization environment.
-  if (current->env() != NULL) {
-    // Any value mentioned in the deoptimization environment should survive
-    // until the end of instruction but it does not need to be in the register.
-    // Expected shape of live range:
-    //
-    //                 i  i'
-    //      value    -----*
-    //
-
-    Environment* env = current->env();
-    const GrowableArray<Value*>& values = env->values();
-    env->InitializeLocations();
-    for (intptr_t j = 0; j < values.length(); j++) {
-      Value* val = values[j];
-      Location* loc = env->LocationSlotAt(j);
-      if (val->IsUse()) {
-        *loc = Location::Any();
-        const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
-
-        LiveRange* range = GetLiveRange(vreg);
-        range->AddUseInterval(block->start_pos(), pos + 1);
-        range->AddUse(pos + 1, loc);
-      } else {
-        ASSERT(val->IsConstant());
-        *loc = Location::NoLocation();
-      }
-    }
+  Environment* env = current->env();
+  if (env != NULL) {
+    env->InitializeLocations(this, block->start_pos(), pos + 1);
   }
 
   // Process inputs.
@@ -705,7 +713,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
           AddMoveAt(pos - 1, *in_ref, Location::Any());
       BlockLocation(*in_ref, pos - 1, pos + 1);
       range->AddUseInterval(block->start_pos(), pos - 1);
-      range->AddUse(pos - 1, move->src_slot());
+      range->AddHintedUse(pos - 1, move->src_slot(), in_ref);
     } else {
       // Normal unallocated input. Expected shape of
       // live ranges:
@@ -823,7 +831,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     if (range->Start() == range->End()) return;
 
     MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
-    range->AddUse(pos + 1, move->dest_slot());
+    range->AddHintedUse(pos + 1, move->dest_slot(), out);
   } else if (output_same_as_first_input) {
     // Output register will contain a value of the first input at instruction's
     // start. Expected shape of live ranges:
@@ -1342,9 +1350,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   // If hint is available try hint first.
   // TODO(vegorov): ensure that phis are hinted on the back edge.
   Location hint = unallocated->finger()->FirstHint();
-  if (!hint.IsInvalid()) {
-    ASSERT(hint.IsRegister());
-
+  if (hint.IsRegister()) {
     if (!blocked_cpu_regs_[hint.reg()]) {
       free_until = FirstIntersectionWithAllocated(hint.reg(), unallocated);
       candidate = hint.reg();
@@ -1354,9 +1360,7 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
     TRACE_ALLOC(hint.Print());
     TRACE_ALLOC(OS::Print(" for %d: free until %d\n",
                           unallocated->vreg(), free_until));
-  }
-
-  if (free_until != kMaxPosition) {
+  } else if (free_until != kMaxPosition) {
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
       if (!blocked_cpu_regs_[reg] && cpu_regs_[reg].length() == 0) {
         candidate = static_cast<Register>(reg);

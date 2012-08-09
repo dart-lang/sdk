@@ -709,7 +709,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
     if (!parser.current_function().IsLocalFunction() ||
         ((instantiator != NULL) && instantiator->is_captured())) {
       parsed_function->set_instantiator(
-          new LoadLocalNode(node_sequence->token_pos(), *instantiator));
+          new LoadLocalNode(node_sequence->token_pos(), instantiator));
     }
   }
 
@@ -851,7 +851,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
 
   // Receiver is local 0.
   LocalVariable* receiver = current_block_->scope->VariableAt(0);
-  LoadLocalNode* load_receiver = new LoadLocalNode(TokenPos(), *receiver);
+  LoadLocalNode* load_receiver = new LoadLocalNode(TokenPos(), receiver);
   // TokenPos() returns the function's token position which points to the
   // name of the field;
   ASSERT(IsIdentifier());
@@ -899,9 +899,9 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   AddFormalParamsToScope(&params, current_block_->scope);
 
   LoadLocalNode* receiver =
-      new LoadLocalNode(TokenPos(), *current_block_->scope->VariableAt(0));
+      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(0));
   LoadLocalNode* value =
-      new LoadLocalNode(TokenPos(), *current_block_->scope->VariableAt(1));
+      new LoadLocalNode(TokenPos(), current_block_->scope->VariableAt(1));
 
   StoreInstanceFieldNode* store_field =
       new StoreInstanceFieldNode(TokenPos(), receiver, field, value);
@@ -1192,22 +1192,6 @@ void Parser::CheckFunctionIsCallable(intptr_t token_pos,
 }
 
 
-static RawFunction* ResolveDynamicFunction(const Class& cls,
-                                           const String& name) {
-  Function& func = Function::Handle(cls.LookupDynamicFunction(name));
-  if (func.IsNull()) {
-    Class& super_cls = Class::Handle(cls.SuperClass());
-    while (!super_cls.IsNull()) {
-      func = super_cls.LookupDynamicFunction(name);
-      if (!func.IsNull()) {
-        return func.raw();
-      }
-      super_cls = super_cls.SuperClass();
-    }
-  }
-  return func.raw();
-}
-
 // Resolve and return the dynamic function of the given name in the superclass.
 // If it is not found, return noSuchMethod and set is_no_such_method to true.
 RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
@@ -1220,10 +1204,11 @@ RawFunction* Parser::GetSuperFunction(intptr_t token_pos,
   }
 
   Function& super_func =
-      Function::Handle(ResolveDynamicFunction(super_class, name));
+      Function::Handle(Resolver::ResolveDynamicAnyArgs(super_class, name));
   if (super_func.IsNull()) {
     const String& no_such_method_name = String::Handle(Symbols::NoSuchMethod());
-    super_func = ResolveDynamicFunction(super_class, no_such_method_name);
+    super_func =
+        Resolver::ResolveDynamicAnyArgs(super_class, no_such_method_name);
     ASSERT(!super_func.IsNull());
     *is_no_such_method = true;
   } else {
@@ -1326,10 +1311,9 @@ AstNode* Parser::ParseSuperOperator() {
       if (!IsSimpleLocalOrLiteralNode(index_expr)) {
         LocalVariable* temp =
             CreateTempConstVariable(operator_pos, "lix");
-        AstNode* save =
-            new StoreLocalNode(operator_pos, *temp, index_expr);
+        AstNode* save = new StoreLocalNode(operator_pos, temp, index_expr);
         current_block_->statements->Add(save);
-        index_expr = new LoadLocalNode(operator_pos, *temp);
+        index_expr = new LoadLocalNode(operator_pos, temp);
       }
     }
 
@@ -1437,7 +1421,7 @@ AstNode* Parser::CreateImplicitClosureNode(const Function& func,
 AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
   TRACE_PARSER("ParseSuperFieldAccess");
   const intptr_t field_pos = TokenPos();
-  const Class& super_class = Class::Handle(current_class().SuperClass());
+  const Class& super_class = Class::ZoneHandle(current_class().SuperClass());
   if (super_class.IsNull()) {
     ErrorMsg("class '%s' does not have a superclass",
              String::Handle(current_class().Name()).ToCString());
@@ -1447,14 +1431,14 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
   const String& getter_name =
       String::ZoneHandle(Field::GetterName(field_name));
   const Function& super_getter = Function::ZoneHandle(
-      ResolveDynamicFunction(super_class, getter_name));
+      Resolver::ResolveDynamicAnyArgs(super_class, getter_name));
   if (super_getter.IsNull()) {
     // Check if this is an access to an implicit closure using 'super'.
     // If a function exists of the specified field_name then try
     // accessing it as a getter, at runtime we will handle this by
     // creating an implicit closure of the function and returning it.
     const Function& super_function = Function::ZoneHandle(
-        ResolveDynamicFunction(super_class, field_name));
+        Resolver::ResolveDynamicAnyArgs(super_class, field_name));
     if (super_function.IsNull()) {
       ErrorMsg(field_pos, "field or getter '%s' not found in superclass",
                field_name.ToCString());
@@ -1463,37 +1447,9 @@ AstNode* Parser::ParseSuperFieldAccess(const String& field_name) {
                                      field_pos,
                                      implicit_argument);
   }
-  // All dynamic getters take one argument and no named arguments.
-  ASSERT(super_getter.AreValidArgumentCounts(1, 0, NULL));
-  ArgumentListNode* getter_arguments = new ArgumentListNode(field_pos);
-  getter_arguments->Add(implicit_argument);
-  AstNode* super_field =
-      new StaticCallNode(field_pos, super_getter, getter_arguments);
 
-  if (Token::IsAssignmentOperator(CurrentToken())) {
-    const String& setter_name =
-        String::ZoneHandle(Field::SetterName(field_name));
-    const Function& super_setter = Function::ZoneHandle(
-        ResolveDynamicFunction(super_class, setter_name));
-    if (super_setter.IsNull()) {
-      ErrorMsg(field_pos,
-               "field '%s' not assignable in superclass",
-               field_name.ToCString());
-    }
-    // All dynamic setters take two arguments and no named arguments.
-    ASSERT(super_setter.AreValidArgumentCounts(2, 0, NULL));
-
-    Token::Kind assignment_op = CurrentToken();
-    ConsumeToken();
-    AstNode* value = ParseExpr(kAllowConst, kConsumeCascades);
-    value = ExpandAssignableOp(field_pos, assignment_op, super_field, value);
-
-    ArgumentListNode* setter_arguments = new ArgumentListNode(field_pos);
-    setter_arguments->Add(implicit_argument);
-    setter_arguments->Add(value);
-    super_field = new StaticCallNode(field_pos, super_setter, setter_arguments);
-  }
-  return super_field;
+  return new StaticGetterNode(
+                 field_pos, implicit_argument, true, super_class, field_name);
 }
 
 
@@ -1512,7 +1468,7 @@ void Parser::GenerateSuperConstructorCall(const Class& cls,
   ctor_name = String::Concat(ctor_name, ctor_suffix);
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // Implicit 'this' parameter is the first argument.
-  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Implicit construction phase parameter is second argument.
   AstNode* phase_parameter =
@@ -1563,7 +1519,7 @@ AstNode* Parser::ParseSuperInitializer(const Class& cls,
 
   ArgumentListNode* arguments = new ArgumentListNode(supercall_pos);
   // 'this' parameter is the first argument to super class constructor.
-  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(supercall_pos, receiver);
   arguments->Add(implicit_argument);
   // Second implicit parameter is the construction phase. We optimistically
   // assume that we can execute both the super initializer and the super
@@ -1624,7 +1580,7 @@ AstNode* Parser::ParseInitializer(const Class& cls,
              field_name.ToCString());
   }
   CheckDuplicateFieldInit(field_pos, initialized_fields, &field);
-  AstNode* instance = new LoadLocalNode(field_pos, *receiver);
+  AstNode* instance = new LoadLocalNode(field_pos, receiver);
   return new StoreInstanceFieldNode(field_pos, instance, field, init_expr);
 }
 
@@ -1779,12 +1735,12 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 
   ArgumentListNode* arguments = new ArgumentListNode(call_pos);
   // 'this' parameter is the first argument to constructor.
-  AstNode* implicit_argument = new LoadLocalNode(call_pos, *receiver);
+  AstNode* implicit_argument = new LoadLocalNode(call_pos, receiver);
   arguments->Add(implicit_argument);
   // Construction phase parameter is second argument.
   LocalVariable* phase_param = LookupPhaseParameter();
   ASSERT(phase_param != NULL);
-  AstNode* phase_argument = new LoadLocalNode(call_pos, *phase_param);
+  AstNode* phase_argument = new LoadLocalNode(call_pos, phase_param);
   arguments->Add(phase_argument);
   ParseActualParameters(arguments, kAllowConst);
 
@@ -1839,7 +1795,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // to strore the initializer expressions in the respective instance fields.
   for (int i = 0; i < initializers.length(); i++) {
     const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), *receiver);
+    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
     AstNode* field_init =
         new StoreInstanceFieldNode(field->token_pos(),
                                    instance,
@@ -1927,7 +1883,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   OpenBlock();
   for (int i = 0; i < initializers.length(); i++) {
     const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), *receiver);
+    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
     AstNode* field_init =
         new StoreInstanceFieldNode(field->token_pos(),
                                    instance,
@@ -1950,7 +1906,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
                    field_name.ToCString());
         }
         CheckDuplicateFieldInit(param.name_pos, &initialized_fields, &field);
-        AstNode* instance = new LoadLocalNode(param.name_pos, *receiver);
+        AstNode* instance = new LoadLocalNode(param.name_pos, receiver);
         LocalVariable* p =
             current_block_->scope->LookupVariable(*param.name, false);
         ASSERT(p != NULL);
@@ -1958,7 +1914,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         // list, nor can they be used in the constructor body.
         // Thus, make the parameter invisible.
         p->set_invisible(true);
-        AstNode* value = new LoadLocalNode(param.name_pos, *p);
+        AstNode* value = new LoadLocalNode(param.name_pos, p);
         AstNode* initializer = new StoreInstanceFieldNode(
             param.name_pos, instance, field, value);
         current_block_->statements->Add(initializer);
@@ -1973,7 +1929,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (init_statements->length() > 0) {
     // Generate guard around the initializer code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), *phase_param);
+    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
     AstNode* phase_check = new BinaryOpNode(
         TokenPos(), Token::kBIT_AND, phase_value,
         new LiteralNode(TokenPos(),
@@ -2023,8 +1979,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
       if (!IsSimpleLocalOrLiteralNode(arg)) {
         LocalVariable* temp =
             CreateTempConstVariable(arg->token_pos(), "sca");
-        AstNode* save_temp =
-            new StoreLocalNode(arg->token_pos(), *temp, arg);
+        AstNode* save_temp = new StoreLocalNode(arg->token_pos(), temp, arg);
         ctor_args->SetNodeAt(i, save_temp);
       }
     }
@@ -2042,7 +1997,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
     ArgumentListNode* super_call_args = new ArgumentListNode(TokenPos());
     // First argument is the receiver.
-    super_call_args->Add(new LoadLocalNode(TokenPos(), *receiver));
+    super_call_args->Add(new LoadLocalNode(TokenPos(), receiver));
     // Second argument is the construction phase argument.
     AstNode* phase_parameter =
         new LiteralNode(TokenPos(),
@@ -2058,10 +2013,10 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
         ASSERT(arg->IsLoadLocalNode() || arg->IsStoreLocalNode());
         if (arg->IsLoadLocalNode()) {
           const LocalVariable& temp = arg->AsLoadLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), temp));
+          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
         } else if (arg->IsStoreLocalNode()) {
           const LocalVariable& temp = arg->AsStoreLocalNode()->local();
-          super_call_args->Add(new LoadLocalNode(TokenPos(), temp));
+          super_call_args->Add(new LoadLocalNode(TokenPos(), &temp));
         }
       }
     }
@@ -2091,7 +2046,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   if (ctor_block->length() > 0) {
     // Generate guard around the constructor body code.
     LocalVariable* phase_param = LookupPhaseParameter();
-    AstNode* phase_value = new LoadLocalNode(TokenPos(), *phase_param);
+    AstNode* phase_value = new LoadLocalNode(TokenPos(), phase_param);
     AstNode* phase_check =
         new BinaryOpNode(TokenPos(), Token::kBIT_AND,
             phase_value,
@@ -3622,7 +3577,14 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   AbstractType& result_type = Type::Handle(Type::DynamicType());
   const bool is_static = true;
   bool is_external = false;
-  if (CurrentToken() == Token::kEXTERNAL) {
+  bool is_patch = false;
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch") &&
+      (LookaheadToken(1) != Token::kLPAREN)) {
+    ConsumeToken();
+    is_patch = true;
+  } else if (CurrentToken() == Token::kEXTERNAL) {
     ConsumeToken();
     is_external = true;
   }
@@ -3639,8 +3601,11 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   const intptr_t name_pos = TokenPos();
   const String& func_name = *ExpectIdentifier("function name expected");
 
-  if (library_.LookupObject(func_name) != Object::null()) {
+  bool found = library_.LookupObject(func_name) != Object::null();
+  if (found && !is_patch) {
     ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
+  } else if (!found && is_patch) {
+    ErrorMsg(name_pos, "missing '%s' cannot be patched", func_name.ToCString());
   }
   String& accessor_name = String::Handle(Field::GetterName(func_name));
   if (library_.LookupObject(accessor_name) != Object::null()) {
@@ -3690,14 +3655,29 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   func.set_end_token_pos(function_end_pos);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
-  library_.AddObject(func, func_name);
+  if (!is_patch) {
+    library_.AddObject(func, func_name);
+  } else {
+    library_.ReplaceObject(func, func_name);
+  }
 }
 
 
 void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   TRACE_PARSER("ParseTopLevelAccessor");
   const bool is_static = true;
+  bool is_external = false;
+  bool is_patch = false;
   AbstractType& result_type = AbstractType::Handle();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      (CurrentLiteral()->Equals("patch"))) {
+    ConsumeToken();
+    is_patch = true;
+  } else if (CurrentToken() == Token::kEXTERNAL) {
+    ConsumeToken();
+    is_external = true;
+  }
   bool is_getter = (CurrentToken() == Token::kGET);
   if (CurrentToken() == Token::kGET ||
       CurrentToken() == Token::kSET) {
@@ -3746,13 +3726,20 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
     ErrorMsg(name_pos, "'%s' is already defined in this library",
              field_name->ToCString());
   }
-  if (library_.LookupObject(accessor_name) != Object::null()) {
+  bool found = library_.LookupObject(accessor_name) != Object::null();
+  if (found && !is_patch) {
     ErrorMsg(name_pos, "%s for '%s' is already defined",
+             is_getter ? "getter" : "setter",
+             field_name->ToCString());
+  } else if (!found && is_patch) {
+    ErrorMsg(name_pos, "missing %s for '%s' cannot be patched",
              is_getter ? "getter" : "setter",
              field_name->ToCString());
   }
 
-  if (CurrentToken() == Token::kLBRACE) {
+  if (is_external) {
+    ExpectSemicolon();
+  } else if (CurrentToken() == Token::kLBRACE) {
     SkipBlock();
   } else if (CurrentToken() == Token::kARROW) {
     ConsumeToken();
@@ -3770,13 +3757,17 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
                     is_static,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
-                    /* is_external = */ false,
+                    is_external,
                     current_class(),
                     accessor_pos));
   func.set_result_type(result_type);
   AddFormalParamsToFunction(&params, func);
   top_level->functions.Add(func);
-  library_.AddObject(func, accessor_name);
+  if (!is_patch) {
+    library_.AddObject(func, accessor_name);
+  } else {
+    library_.ReplaceObject(func, accessor_name);
+  }
 }
 
 
@@ -4211,7 +4202,7 @@ AstNode* Parser::LoadReceiver(intptr_t token_pos) {
   if (receiver == NULL) {
     ErrorMsg(token_pos, "illegal implicit access to receiver 'this'");
   }
-  return new LoadLocalNode(TokenPos(), *receiver);
+  return new LoadLocalNode(TokenPos(), receiver);
 }
 
 
@@ -4223,7 +4214,7 @@ AstNode* Parser::LoadTypeArgumentsParameter(intptr_t token_pos) {
   LocalVariable* param = LookupTypeArgumentsParameter(current_block_->scope,
                                                       kTestOnly);
   ASSERT(param != NULL);
-  return new LoadLocalNode(TokenPos(), *param);
+  return new LoadLocalNode(TokenPos(), param);
 }
 
 
@@ -4252,14 +4243,14 @@ AstNode* Parser::ParseVariableDeclaration(const AbstractType& type,
     const intptr_t assign_pos = TokenPos();
     ConsumeToken();
     AstNode* expr = ParseExpr(is_const, kConsumeCascades);
-    initialization = new StoreLocalNode(assign_pos, *variable, expr);
+    initialization = new StoreLocalNode(assign_pos, variable, expr);
   } else if (is_final || is_const) {
     ErrorMsg(ident_pos,
     "missing initialization of 'final' or 'const' variable");
   } else {
     // Initialize variable with null.
     AstNode* null_expr = new LiteralNode(ident_pos, Instance::ZoneHandle());
-    initialization = new StoreLocalNode(ident_pos, *variable, null_expr);
+    initialization = new StoreLocalNode(ident_pos, variable, null_expr);
   }
   // Add variable to scope after parsing the initalizer expression.
   // The expression must not be able to refer to the variable.
@@ -4368,7 +4359,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     if (!is_literal) {
       ErrorMsg("function name expected");
     }
-    function_name = &String::ZoneHandle(Symbols::Function());
+    function_name = &String::ZoneHandle(Symbols::AnonymousClosure());
   }
   ASSERT(ident_pos >= 0);
 
@@ -4535,7 +4526,7 @@ AstNode* Parser::ParseFunctionStatement(bool is_literal) {
     return closure;
   } else {
     AstNode* initialization =
-        new StoreLocalNode(ident_pos, *function_variable, closure);
+        new StoreLocalNode(ident_pos, function_variable, closure);
     return initialization;
   }
 }
@@ -4694,10 +4685,18 @@ bool Parser::IsVariableDeclaration() {
 bool Parser::IsFunctionDeclaration() {
   const intptr_t saved_pos = TokenPos();
   bool is_external = false;
-  if (is_top_level_ && (CurrentToken() == Token::kEXTERNAL)) {
-    // Skip over 'external' for top-level function declarations.
-    is_external = true;
-    ConsumeToken();
+  if (is_top_level_) {
+    if (is_patch_source() &&
+        (CurrentToken() == Token::kIDENT) &&
+        CurrentLiteral()->Equals("patch") &&
+        (LookaheadToken(1) != Token::kLPAREN)) {
+      // Skip over 'patch' for top-level function declarations in patch sources.
+      ConsumeToken();
+    } else if (CurrentToken() == Token::kEXTERNAL) {
+      // Skip over 'external' for top-level function declarations.
+      is_external = true;
+      ConsumeToken();
+    }
   }
   if (IsIdentifier() && (LookaheadToken(1) == Token::kLPAREN)) {
     // Possibly a function without explicit return type.
@@ -4729,10 +4728,18 @@ bool Parser::IsFunctionDeclaration() {
 
 
 bool Parser::IsTopLevelAccessor() {
+  const intptr_t saved_pos = TokenPos();
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      (CurrentLiteral()->Equals("patch"))) {
+    ConsumeToken();
+  } else if (CurrentToken() == Token::kEXTERNAL) {
+    ConsumeToken();
+  }
   if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
+    SetPosition(saved_pos);
     return true;
   }
-  const intptr_t saved_pos = TokenPos();
   if (TryParseReturnType()) {
     if ((CurrentToken() == Token::kGET) || (CurrentToken() == Token::kSET)) {
       if (Token::IsIdentifier(LookaheadToken(1))) {  // Accessor name.
@@ -4918,7 +4925,7 @@ CaseNode* Parser::ParseCaseClause(LocalVariable* switch_expr_value,
       const intptr_t expr_pos = TokenPos();
       AstNode* expr = ParseExpr(kAllowConst, kConsumeCascades);
       AstNode* switch_expr_load = new LoadLocalNode(case_pos,
-                                                    *switch_expr_value);
+                                                    switch_expr_value);
       AstNode* case_comparison = new ComparisonNode(expr_pos,
                                                     Token::kEQ,
                                                     expr,
@@ -5009,7 +5016,7 @@ AstNode* Parser::ParseSwitchStatement(String* label_name) {
                         Type::ZoneHandle(Type::DynamicType()));
   current_block_->scope->AddVariable(temp_variable);
   AstNode* save_switch_expr =
-      new StoreLocalNode(expr_pos, *temp_variable, switch_expr);
+      new StoreLocalNode(expr_pos, temp_variable, switch_expr);
   current_block_->statements->Add(save_switch_expr);
 
   // Parse case clauses
@@ -5154,13 +5161,13 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
   AstNode* get_iterator = new InstanceCallNode(
       collection_pos, collection_expr, iterator_method_name, no_args);
   AstNode* iterator_init =
-      new StoreLocalNode(collection_pos, *iterator_var, get_iterator);
+      new StoreLocalNode(collection_pos, iterator_var, get_iterator);
   current_block_->statements->Add(iterator_init);
 
   // Generate while loop condition.
   AstNode* iterator_has_next = new InstanceCallNode(
       collection_pos,
-      new LoadLocalNode(collection_pos, *iterator_var),
+      new LoadLocalNode(collection_pos, iterator_var),
       String::ZoneHandle(Symbols::HasNext()),
       no_args);
 
@@ -5173,7 +5180,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
 
   AstNode* iterator_next = new InstanceCallNode(
       collection_pos,
-      new LoadLocalNode(collection_pos, *iterator_var),
+      new LoadLocalNode(collection_pos, iterator_var),
       String::ZoneHandle(Symbols::Next()),
       no_args);
 
@@ -5183,7 +5190,7 @@ AstNode* Parser::ParseForInStatement(intptr_t forin_pos,
     // The for loop declares a new variable. Add it to the loop body scope.
     current_block_->scope->AddVariable(loop_var);
     loop_var_assignment =
-        new StoreLocalNode(loop_var_pos, *loop_var, iterator_next);
+        new StoreLocalNode(loop_var_pos, loop_var, iterator_next);
   } else {
     AstNode* loop_var_primary =
         ResolveIdent(loop_var_pos, *loop_var_name, false);
@@ -5594,8 +5601,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     ASSERT(catch_excp_var != NULL);
     current_block_->statements->Add(
         new StoreLocalNode(catch_pos,
-                           *var,
-                           new LoadLocalNode(catch_pos, *catch_excp_var)));
+                           var,
+                           new LoadLocalNode(catch_pos, catch_excp_var)));
     if (stack_trace_param.var != NULL) {
       // A stack trace variable is specified in this block, so generate code
       // to load the stack trace object (:stacktrace_var) into the stack trace
@@ -5604,8 +5611,8 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       ASSERT(catch_trace_var != NULL);
       current_block_->statements->Add(
           new StoreLocalNode(catch_pos,
-                             *trace,
-                             new LoadLocalNode(catch_pos, *catch_trace_var)));
+                             trace,
+                             new LoadLocalNode(catch_pos, catch_trace_var)));
     }
 
     ParseStatementSequence();  // Parse the catch handler code.
@@ -5623,7 +5630,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
         CaptureInstantiator();
       }
       TypeNode* exception_type = new TypeNode(catch_pos, *exception_param.type);
-      AstNode* exception_var = new LoadLocalNode(catch_pos, *catch_excp_var);
+      AstNode* exception_var = new LoadLocalNode(catch_pos, catch_excp_var);
       if (!exception_type->type().IsInstantiated()) {
         EnsureExpressionTemp();
       }
@@ -5649,6 +5656,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   SequenceNode* finally_block = NULL;
   if (CurrentToken() == Token::kFINALLY) {
     current_function().set_is_optimizable(false);
+    current_function().set_has_finally(true);
     ConsumeToken();  // Consume the 'finally'.
     const intptr_t finally_pos = TokenPos();
     // Add the finally block to the exit points recorded so far.
@@ -5659,7 +5667,7 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
       finally_block = ParseFinallyBlock();
       InlinedFinallyNode* node = new InlinedFinallyNode(finally_pos,
                                                         finally_block,
-                                                        *context_var);
+                                                        context_var);
       AddFinallyBlockToNode(node_to_inline, node);
       node_index += 1;
       node_to_inline = inner_try_block->GetNodeToInlineFinally(node_index);
@@ -5684,21 +5692,21 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
     // the next catch handler can deal with it.
     catch_handler_list->Add(
         new ThrowNode(handler_pos,
-                      new LoadLocalNode(handler_pos, *catch_excp_var),
-                      new LoadLocalNode(handler_pos, *catch_trace_var)));
+                      new LoadLocalNode(handler_pos, catch_excp_var),
+                      new LoadLocalNode(handler_pos, catch_trace_var)));
   }
   CatchClauseNode* catch_block = new CatchClauseNode(handler_pos,
                                                      catch_handler_list,
-                                                     *context_var,
-                                                     *catch_excp_var,
-                                                     *catch_trace_var);
+                                                     context_var,
+                                                     catch_excp_var,
+                                                     catch_trace_var);
 
   // Now create the try/catch ast node and return it. If there is a label
   // on the try/catch, close the block that's embedding the try statement
   // and attach the label to it.
   AstNode* try_catch_node =
       new TryCatchNode(try_pos, try_block, end_catch_label,
-                       *context_var, catch_block, finally_block);
+                       context_var, catch_block, finally_block);
 
   if (try_label != NULL) {
     current_block_->statements->Add(try_catch_node);
@@ -5885,8 +5893,8 @@ AstNode* Parser::ParseStatement() {
           String::ZoneHandle(Symbols::StacktraceVar()));
       ASSERT(trace_var != NULL);
       statement = new ThrowNode(statement_pos,
-                                new LoadLocalNode(statement_pos, *excp_var),
-                                new LoadLocalNode(statement_pos, *trace_var));
+                                new LoadLocalNode(statement_pos, excp_var),
+                                new LoadLocalNode(statement_pos, trace_var));
     }
   } else {
     statement = ParseExpr(kAllowConst, kConsumeCascades);
@@ -6278,12 +6286,13 @@ AstNode* Parser::ParseExprList() {
 }
 
 
-const LocalVariable& Parser::GetIncrementTempLocal() {
+const LocalVariable* Parser::GetIncrementTempLocal() {
   if (expression_temp_ == NULL) {
     expression_temp_ = ParsedFunction::CreateExpressionTempVar(
         current_function().token_pos());
+    ASSERT(expression_temp_ != NULL);
   }
-  return *expression_temp_;
+  return expression_temp_;
 }
 
 
@@ -6402,24 +6411,24 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "lia");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->array());
+          new StoreLocalNode(token_pos, temp, left_node->array());
       left_node =
           new LoadIndexedNode(token_pos, save, left_node->index_expr());
       right_node = new LoadIndexedNode(token_pos,
-                                       new LoadLocalNode(token_pos, *temp),
+                                       new LoadLocalNode(token_pos, temp),
                                        right_node->index_expr());
     }
     if (!IsSimpleLocalOrLiteralNode(left_node->index_expr())) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "lix");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->index_expr());
+          new StoreLocalNode(token_pos, temp, left_node->index_expr());
       left_node = new LoadIndexedNode(token_pos,
                                       left_node->array(),
                                       save);
       right_node = new LoadIndexedNode(token_pos,
                                        right_node->array(),
-                                       new LoadLocalNode(token_pos, *temp));
+                                       new LoadLocalNode(token_pos, temp));
     }
     *expr = right_node;
     return left_node;
@@ -6433,12 +6442,12 @@ AstNode* Parser::PrepareCompoundAssignmentNodes(AstNode** expr) {
       LocalVariable* temp =
           CreateTempConstVariable(token_pos, "igr");
       StoreLocalNode* save =
-          new StoreLocalNode(token_pos, *temp, left_node->receiver());
+          new StoreLocalNode(token_pos, temp, left_node->receiver());
       left_node = new InstanceGetterNode(token_pos,
                                          save,
                                          left_node->field_name());
       right_node = new InstanceGetterNode(token_pos,
-                                          new LoadLocalNode(token_pos, *temp),
+                                          new LoadLocalNode(token_pos, temp),
                                           right_node->field_name());
     }
     *expr = right_node;
@@ -6466,12 +6475,12 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
   LocalVariable* cascade_receiver_var =
       CreateTempConstVariable(cascade_pos, "casc");
   StoreLocalNode* save_cascade =
-      new StoreLocalNode(cascade_pos, *cascade_receiver_var, expr);
+      new StoreLocalNode(cascade_pos, cascade_receiver_var, expr);
   current_block_->statements->Add(save_cascade);
   while (CurrentToken() == Token::kCASCADE) {
     cascade_pos = TokenPos();
     LoadLocalNode* load_cascade_receiver =
-        new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+        new LoadLocalNode(cascade_pos, cascade_receiver_var);
     if (Token::IsIdentifier(LookaheadToken(1))) {
       // Replace .. with . for ParseSelectors().
       token_kind_ = Token::kPERIOD;
@@ -6508,7 +6517,7 @@ AstNode* Parser::ParseCascades(AstNode* expr) {
     current_block_->statements->Add(expr);
   }
   // Result of the cascade is the receiver.
-  return new LoadLocalNode(cascade_pos, *cascade_receiver_var);
+  return new LoadLocalNode(cascade_pos, cascade_receiver_var);
 }
 
 
@@ -6707,6 +6716,7 @@ AstNode* Parser::ParseStaticCall(const Class& cls,
         EnsureExpressionTemp();
         closure = new StaticGetterNode(call_pos,
                                        NULL,
+                                       false,
                                        Class::ZoneHandle(cls.raw()),
                                        func_name);
         return new ClosureCallNode(call_pos, closure, arguments);
@@ -6816,6 +6826,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
       // exist, and error will be reported by the code generator.
       access = new StaticGetterNode(call_pos,
                                     NULL,
+                                    false,
                                     Class::ZoneHandle(cls.raw()),
                                     String::ZoneHandle(field_name.raw()));
     } else {
@@ -6855,6 +6866,7 @@ AstNode* Parser::ParseStaticFieldAccess(const Class& cls,
         ASSERT(func.kind() != RawFunction::kConstImplicitGetter);
         access = new StaticGetterNode(call_pos,
                                       NULL,
+                                      false,
                                       Class::ZoneHandle(cls.raw()),
                                       field_name);
       }
@@ -7066,7 +7078,7 @@ AstNode* Parser::ParsePostfixExpr() {
     ConsumeToken();
     // Not prefix.
     AstNode* left_expr = PrepareCompoundAssignmentNodes(&postfix_expr);
-    const LocalVariable& temp = GetIncrementTempLocal();
+    const LocalVariable* temp = GetIncrementTempLocal();
     AstNode* save =
         new StoreLocalNode(postfix_expr_pos, temp, postfix_expr);
     Token::Kind binary_op =
@@ -7255,6 +7267,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
       // The implicit static getter will throw the exception if necessary.
       return new StaticGetterNode(TokenPos(),
                                   NULL,
+                                  false,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7306,6 +7319,7 @@ AstNode* Parser::RunStaticFieldInitializer(const Field& field) {
     } else {
       return new StaticGetterNode(TokenPos(),
                                   NULL,
+                                  false,
                                   Class::ZoneHandle(field.owner()),
                                   String::ZoneHandle(field.name()));
     }
@@ -7380,7 +7394,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
   LocalVariable* local = LookupLocalScope(ident);
   if (local != NULL) {
     if (node != NULL) {
-      *node = new LoadLocalNode(ident_pos, *local);
+      *node = new LoadLocalNode(ident_pos, local);
     }
     return true;
   }
@@ -7429,7 +7443,9 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
     } else if (func.IsStaticFunction()) {
       if (node != NULL) {
         ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-        // The static getter may be changed later into an instance setter.
+        // The static getter may later be changed into a dynamically
+        // resolved instance setter if no static setter can
+        // be found.
         AstNode* receiver = NULL;
         const bool kTestOnly = true;
         ASSERT(!current_function().IsInFactoryScope());
@@ -7439,6 +7455,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         }
         *node = new StaticGetterNode(ident_pos,
                                      receiver,
+                                     false,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7466,6 +7483,7 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
         // when we try to invoke the getter.
         *node = new StaticGetterNode(ident_pos,
                                      NULL,
+                                     false,
                                      Class::ZoneHandle(isolate, cls.raw()),
                                      ident);
       }
@@ -7538,6 +7556,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
     return new StaticGetterNode(qual_ident.ident_pos,
                                 NULL,
+                                false,
                                 Class::ZoneHandle(func.owner()),
                                 *qual_ident.ident);
   }
@@ -7884,7 +7903,7 @@ ConstructorCallNode* Parser::CreateConstructorCallNode(
                                  type_arguments,
                                  constructor,
                                  arguments,
-                                 *allocated);
+                                 allocated);
 }
 
 
@@ -8584,7 +8603,7 @@ AstNode* Parser::ParsePrimary() {
     if (local == NULL) {
       ErrorMsg("receiver 'this' is not in scope");
     }
-    primary = new LoadLocalNode(TokenPos(), *local);
+    primary = new LoadLocalNode(TokenPos(), local);
     ConsumeToken();
   } else if (CurrentToken() == Token::kINTEGER) {
     const Integer& literal = Integer::ZoneHandle(CurrentIntegerLiteral());

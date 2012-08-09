@@ -8,7 +8,7 @@ class Double implements double {
   int hashCode() {
     try {
       return toInt();
-    } catch (BadNumberFormatException e) {
+    } catch (FormatException e) {
       return 0;
     }
   }
@@ -100,7 +100,7 @@ class Double implements double {
 
   double abs() {
     // Handle negative 0.0.
-    if (this == 0.0) return 0.0;  
+    if (this == 0.0) return 0.0;
     return this < 0.0 ? -this : this;
   }
 

@@ -34,6 +34,10 @@ class Resolver : public AllStatic {
       int num_arguments,
       int num_named_arguments);
 
+  static RawFunction* ResolveDynamicAnyArgs(
+      const Class& receiver_class,
+      const String& function_name);
+
   enum StaticResolveType {
     kIsQualified,
     kNotQualified

@@ -125,18 +125,29 @@ class ArchiveReader {
       if (format.zip) pending.add(call(SUPPORT_FORMAT_ZIP, id));
     }
 
-    if (!filter.options.isEmpty) {
-      pending.add(
-          call(SET_FILTER_OPTIONS, id, [filter.options.serialize()]));
+    void addOption(request, option) {
+      var value;
+      if (option.value == false || option.value == null) {
+        value = null;
+      } else if (option.value == true) {
+        value = '1';
+      } else {
+        value = option.value.toString();
+      }
+
+      pending.add(CALL(request, id, [module, option.name, value]));
+    };
+
+    for (var option in filter.options.all) {
+      addOption(SET_FILTER_OPTION, option);
     }
 
-    if (!format.options.isEmpty) {
-      pending.add(
-          call(SET_FORMAT_OPTIONS, id, [format.options.serialize()]));
+    for (var option in format.options.all) {
+      addOption(SET_FORMAT_OPTION, option);
     }
 
-    if (!options.isEmpty) {
-      pending.add(call(SET_OPTIONS, id, [options.serialize()]));
+    for (var option in options.all) {
+      addOption(SET_OPTION, option);
     }
 
     return Futures.wait(pending);

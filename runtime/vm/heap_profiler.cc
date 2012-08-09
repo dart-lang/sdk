@@ -136,7 +136,7 @@ const RawObject* HeapProfiler::ObjectId(const RawObject* raw_obj) {
     if (smi_table_.find(raw_smi) == smi_table_.end()) {
       smi_table_.insert(raw_smi);
     }
-  } else if (raw_obj->GetClassId() == kNullClassId) {
+  } else if (raw_obj->GetClassId() == kNullCid) {
     // Instances of the Null type are translated to NULL so they can
     // be printed as "null" in HAT.
     return NULL;
@@ -202,16 +202,16 @@ void HeapProfiler::WriteRoot(const RawObject* raw_obj) {
 
 void HeapProfiler::WriteObject(const RawObject* raw_obj) {
   ASSERT(raw_obj->IsHeapObject());
-  ObjectKind kind = raw_obj->GetObjectKind();
-  switch (kind) {
+  intptr_t class_id = raw_obj->GetClassId();
+  switch (class_id) {
     case kFreeListElement: {
       // Free space has an object-like encoding.  Heap profiles only
       // care about live objects so we skip over these records.
       break;
     }
-    case Class::kInstanceKind: {
+    case kClassCid: {
       const RawClass* raw_class = reinterpret_cast<const RawClass*>(raw_obj);
-      if (raw_class->ptr()->instance_kind_ == kFreeListElement) {
+      if (raw_class->ptr()->id_ == kFreeListElement) {
         // Skip over the FreeListElement class.  This class exists to
         // describe free space.
         break;
@@ -219,13 +219,13 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
       WriteClassDump(raw_class);
       break;
     }
-    case Array::kInstanceKind:
-    case ImmutableArray::kInstanceKind: {
+    case kArrayCid:
+    case kImmutableArrayCid: {
       WriteObjectArrayDump(reinterpret_cast<const RawArray*>(raw_obj));
       break;
     }
-    case Int8Array::kInstanceKind:
-    case Uint8Array::kInstanceKind: {
+    case kInt8ArrayCid:
+    case kUint8ArrayCid: {
       const RawInt8Array* raw_int8_array =
           reinterpret_cast<const RawInt8Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int8_array,
@@ -233,8 +233,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_int8_array->data_[0]);
       break;
     }
-    case Int16Array::kInstanceKind:
-    case Uint16Array::kInstanceKind: {
+    case kInt16ArrayCid:
+    case kUint16ArrayCid: {
       const RawInt16Array* raw_int16_array =
           reinterpret_cast<const RawInt16Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int16_array,
@@ -242,8 +242,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_int16_array->data_[0]);
       break;
     }
-    case Int32Array::kInstanceKind:
-    case Uint32Array::kInstanceKind: {
+    case kInt32ArrayCid:
+    case kUint32ArrayCid: {
       const RawInt32Array* raw_int32_array =
           reinterpret_cast<const RawInt32Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int32_array,
@@ -251,8 +251,8 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_int32_array->data_[0]);
       break;
     }
-    case Int64Array::kInstanceKind:
-    case Uint64Array::kInstanceKind: {
+    case kInt64ArrayCid:
+    case kUint64ArrayCid: {
       const RawInt64Array* raw_int64_array =
           reinterpret_cast<const RawInt64Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_int64_array,
@@ -260,7 +260,7 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_int64_array->data_[0]);
       break;
     }
-    case Float32Array::kInstanceKind: {
+    case kFloat32ArrayCid: {
       const RawFloat32Array* raw_float32_array =
           reinterpret_cast<const RawFloat32Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_float32_array,
@@ -268,7 +268,7 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_float32_array->data_[0]);
       break;
     }
-    case Float64Array::kInstanceKind: {
+    case kFloat64ArrayCid: {
       const RawFloat64Array* raw_float64_array =
           reinterpret_cast<const RawFloat64Array*>(raw_obj);
       WritePrimitiveArrayDump(raw_float64_array,
@@ -276,12 +276,12 @@ void HeapProfiler::WriteObject(const RawObject* raw_obj) {
                               &raw_float64_array->data_[0]);
       break;
     }
-    case OneByteString::kInstanceKind:
-    case TwoByteString::kInstanceKind:
-    case FourByteString::kInstanceKind:
-    case ExternalOneByteString::kInstanceKind:
-    case ExternalTwoByteString::kInstanceKind:
-    case ExternalFourByteString::kInstanceKind: {
+    case kOneByteStringCid:
+    case kTwoByteStringCid:
+    case kFourByteStringCid:
+    case kExternalOneByteStringCid:
+    case kExternalTwoByteStringCid:
+    case kExternalFourByteStringCid: {
       WriteInstanceDump(StringId(reinterpret_cast<const RawString*>(raw_obj)));
       break;
     }
@@ -343,8 +343,8 @@ void HeapProfiler::WriteRecord(const Record& record) {
 void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
   intptr_t length = 0;
   char* characters = NULL;
-  ObjectKind kind = raw_string->GetObjectKind();
-  if (kind == OneByteString::kInstanceKind) {
+  intptr_t class_id = raw_string->GetClassId();
+  if (class_id == kOneByteStringCid) {
     const RawOneByteString* onestr =
         reinterpret_cast<const RawOneByteString*>(raw_string);
     for (intptr_t i = 0; i < Smi::Value(onestr->ptr()->length_); ++i) {
@@ -355,7 +355,7 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
       int32_t ch = onestr->ptr()->data_[i];
       j += Utf8::Encode(ch, &characters[j]);
     }
-  } else if (kind == TwoByteString::kInstanceKind) {
+  } else if (class_id == kTwoByteStringCid) {
     const RawTwoByteString* twostr =
         reinterpret_cast<const RawTwoByteString*>(raw_string);
     for (intptr_t i = 0; i < Smi::Value(twostr->ptr()->length_); ++i) {
@@ -367,7 +367,7 @@ void HeapProfiler::WriteStringInUtf8(const RawString* raw_string) {
       j += Utf8::Encode(ch, &characters[j]);
     }
   } else {
-    ASSERT(kind == FourByteString::kInstanceKind);
+    ASSERT(class_id == kFourByteStringCid);
     const RawFourByteString* fourstr =
         reinterpret_cast<const RawFourByteString*>(raw_string);
     for (intptr_t i = 0; i < Smi::Value(fourstr->ptr()->length_); ++i) {
@@ -413,8 +413,8 @@ void HeapProfiler::WriteLoadClass(const RawClass* raw_class) {
   // stack trace serial number
   record.Write32(0);
   if (raw_class->ptr()->name_ == String::null()) {
-    intptr_t class_index = Object::GetSingletonClassIndex(raw_class);
-    const char* name = Object::GetSingletonClassName(class_index);
+    intptr_t class_id = raw_class->ptr()->id_;
+    const char* name = Object::GetSingletonClassName(class_id);
     record.WritePointer(StringId(name));
   } else {
     record.WritePointer(StringId(raw_class->ptr()->name_));
@@ -698,7 +698,7 @@ void HeapProfilerRootVisitor::VisitPointers(RawObject** first,
     RawObject* raw_obj = *current;
     if (raw_obj->IsHeapObject()) {
       // Skip visits of FreeListElements.
-      if (raw_obj->GetObjectKind() == kFreeListElement) {
+      if (raw_obj->GetClassId() == kFreeListElement) {
         // Only the class of the free list element should ever be visited.
         ASSERT(first == last);
         return;
