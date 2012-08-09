@@ -146,7 +146,7 @@ prefix_core_test: Fail # Issue 2264.
 default_factory2_test/01: Crash
 default_factory3_test: Crash
 factory2_test: Crash
-function_type_alias6_test: Crash
+function_type_alias6_test: Crash, Timeout
 type_variable_scope_test/00: Crash
 type_variable_scope_test/01: Crash
 type_variable_scope_test/02: Crash
