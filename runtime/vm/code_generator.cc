@@ -989,9 +989,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
-  const String& getter_prefix = String::Handle(String::New("get:"));
   Closure& closure = Closure::Handle();
-  if (!original_function_name.StartsWith(getter_prefix)) {
+  if (!Field::IsGetterName(original_function_name)) {
     // This is not a getter so can't be the case where we are trying to
     // create an implicit closure of an instance function.
     arguments.SetReturn(closure);
@@ -1000,7 +999,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
-  func_name = String::SubString(original_function_name, getter_prefix.Length());
+  func_name = Field::NameFromGetter(original_function_name);
   func_name = Symbols::New(func_name);
   const Function& function = Function::Handle(
       LookupDynamicFunction(isolate, receiver_class, func_name));
