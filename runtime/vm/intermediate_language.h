@@ -1095,28 +1095,26 @@ class InstanceOfComp : public TemplateComputation<3> {
 };
 
 
-class AllocateObjectComp : public Computation {
+class AllocateObjectComp : public TemplateComputation<0> {
  public:
   AllocateObjectComp(ConstructorCallNode* node,
                      intptr_t try_index,
-                     ZoneGrowableArray<Value*>* arguments)
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
 
-  DECLARE_COMPUTATION(AllocateObject)
+  DECLARE_CALL_COMPUTATION(AllocateObject)
+
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
-  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1125,19 +1123,23 @@ class AllocateObjectComp : public Computation {
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* const arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
 };
 
 
-class AllocateObjectWithBoundsCheckComp : public Computation {
+class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
  public:
   AllocateObjectWithBoundsCheckComp(ConstructorCallNode* node,
                                     intptr_t try_index,
-                                    ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
-    // One type-argument and one instantiator.
-    ASSERT(arguments->length() == 2);
+                                    Value* type_arguments,
+                                    Value* instantiator)
+      : ast_node_(*node), try_index_(try_index) {
+    ASSERT(type_arguments != NULL);
+    ASSERT(instantiator != NULL);
+    inputs_[0] = type_arguments;
+    inputs_[1] = instantiator;
   }
 
   DECLARE_COMPUTATION(AllocateObjectWithBoundsCheck)
@@ -1145,13 +1147,6 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
-  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1160,7 +1155,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* const arguments_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectWithBoundsCheckComp);
 };
 

@@ -292,9 +292,9 @@ void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < arguments().length(); i++) {
+  for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
-    arguments()[i]->PrintTo(f);
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -302,9 +302,9 @@ void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
 void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
     BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < arguments().length(); i++) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    arguments()[i]->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
 }
 

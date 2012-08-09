@@ -179,16 +179,6 @@ bool Value::StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
 }
 
 
-intptr_t AllocateObjectComp::InputCount() const {
-  return arguments().length();
-}
-
-
-intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
-  return arguments().length();
-}
-
-
 RawAbstractType* PhiInstr::StaticType() const {
   // TODO(regis): Return the least upper bound of the input static types.
   // It is much simpler to compute the least specific of the input static types,
@@ -1138,7 +1128,7 @@ void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          try_index(),
                          &label,
                          PcDescriptors::kOther);
-  __ Drop(arguments().length());  // Discard arguments.
+  __ Drop(ArgumentCount());  // Discard arguments.
 }
 
 

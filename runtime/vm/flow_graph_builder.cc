@@ -1453,11 +1453,6 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
 
-  ZoneGrowableArray<Value*>* allocate_arguments =
-      new ZoneGrowableArray<Value*>();
-  if (requires_type_arguments) {
-    BuildConstructorTypeArguments(node, allocate_arguments);
-  }
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
   Computation* allocate_comp = NULL;
@@ -1468,6 +1463,10 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
       !node->type_arguments().IsWithinBoundsOf(cls,
                                                node->type_arguments(),
                                                NULL)) {
+    Value* type_arguments = NULL;
+    Value* instantiator = NULL;
+    BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
+
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
     // Although the type arguments may be uninstantiated at compile time, they
@@ -1475,8 +1474,16 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
     // type arguments of the instantiator at run time.
     allocate_comp = new AllocateObjectWithBoundsCheckComp(node,
                                                           owner()->try_index(),
-                                                          allocate_arguments);
+                                                          type_arguments,
+                                                          instantiator);
   } else {
+    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>();
+
+    if (requires_type_arguments) {
+      BuildConstructorTypeArguments(node, NULL, NULL, allocate_arguments);
+    }
+
     allocate_comp = new AllocateObjectComp(node,
                                            owner()->try_index(),
                                            allocate_arguments);
@@ -1629,17 +1636,32 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
 
 void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
-    ZoneGrowableArray<Value*>* args) {
+    Value** type_arguments,
+    Value** instantiator,
+    ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    Value* type_args = Bind(new ConstantVal(node->type_arguments()));
+    Value* type_arguments_val = Bind(new ConstantVal(node->type_arguments()));
+    if (call_arguments != NULL) {
+      ASSERT(type_arguments == NULL);
+      call_arguments->Add(PushArgument(type_arguments_val));
+    } else {
+      ASSERT(type_arguments != NULL);
+      *type_arguments = type_arguments_val;
+    }
+
     // No instantiator required.
-    Value* no_instantiator = Bind(
+    Value* instantiator_val = Bind(
         new ConstantVal(Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-    args->Add(type_args);
-    args->Add(no_instantiator);
+    if (call_arguments != NULL) {
+      ASSERT(instantiator == NULL);
+      call_arguments->Add(PushArgument(instantiator_val));
+    } else {
+      ASSERT(instantiator != NULL);
+      *instantiator = instantiator_val;
+    }
     return;
   }
   // The type arguments are uninstantiated. The generated pseudo code:
@@ -1676,10 +1698,23 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Do(BuildStoreLocal(t1, extract_instantiator));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.
-  Value* load_0 = Bind(BuildLoadLocal(t2));
-  Value* load_1 = Bind(BuildLoadLocal(t1));
-  args->Add(load_0);
-  args->Add(load_1);
+  Value* type_arguments_val = Bind(BuildLoadLocal(t2));
+  if (call_arguments != NULL) {
+    ASSERT(type_arguments == NULL);
+    call_arguments->Add(PushArgument(type_arguments_val));
+  } else {
+    ASSERT(type_arguments != NULL);
+    *type_arguments = type_arguments_val;
+  }
+
+  Value* instantiator_val = Bind(BuildLoadLocal(t1));
+  if (call_arguments != NULL) {
+    ASSERT(instantiator == NULL);
+    call_arguments->Add(PushArgument(instantiator_val));
+  } else {
+    ASSERT(instantiator != NULL);
+    *instantiator = instantiator_val;
+  }
 }
 
 
