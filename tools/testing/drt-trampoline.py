@@ -34,7 +34,6 @@ def main(argv):
     elif arg.startswith(OUT_EXPECTATION_PREFIX):
       out_expected_file = arg[len(OUT_EXPECTATION_PREFIX):]
       if out_expected_file.endswith('.png'):
-        cmd.append('--pixel-tests')
         cmd.append('--notree')
         is_png = True
       elif not out_expected_file.endswith('.txt'):
@@ -43,10 +42,14 @@ def main(argv):
             + 'please specify either a .txt or a .png file')
     elif arg.endswith('.html'):
       test_file = arg
-      cmd.append(arg)
     else:
       cmd.append(arg)
 
+  if is_png:
+    # pixel tests are specified by running DRT "foo.html'-p"
+    cmd.append(test_file + "'-p")
+  else:
+    cmd.append(test_file)
 
   stdout = subprocess.PIPE if out_expected_file else None
   p = subprocess.Popen(cmd, env=env, stdout=stdout)
@@ -59,10 +62,11 @@ def main(argv):
     expectation = None
     if is_png:
       # DRT prints the image to STDOUT, but includes extra text that we trim:
-      # - 4 header lines
+      # - several header lines until a line saying 'Content-Length:'
       # - a '#EOF\n' at the end
-      output = output.replace('\n', '_', 3)
-      output = output[output.find('\n') + 1: -len('#EOF\n')]
+      last_header_line = output.find('Content-Length:')
+      start_pos = output.find('\n', last_header_line) + 1
+      output = output[start_pos : -len('#EOF\n')]
     if os.path.exists(out_expected_file):
       with open(out_expected_file, 'r') as f:
         expectation = f.read()
@@ -83,7 +87,12 @@ def main(argv):
       with open(out_file, 'w') as f:
         f.write(output)
       print 'FAIL'
-      print 'Expectation didn\'t match. Update expectations by running:\n'
+      print 'Expectation didn\'t match.\n'
+      if len(output) == 0:
+        print ('\033[31mERROR\033[0m: DumpRenderTree generated an empty pixel '
+            'output! This is commonly an error in executing DumpRenderTree, and'
+            ' not that expectations are out of date.\n')
+      print 'You can update expectations by running:\n'
       print 'cp %s %s\n' % (out_file, out_expected_file)
     print '#EOF'
 
