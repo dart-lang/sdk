@@ -111,6 +111,7 @@ class Selector implements Hashable {
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount() => namedArguments.length;
   int get positionalArgumentCount() => argumentCount - namedArgumentCount;
+  Type get receiverType() => null;
 
   static final Selector GETTER =
       const Selector.constant(SelectorKind.GETTER, 0);
@@ -266,7 +267,8 @@ class Selector implements Hashable {
   }
 
   bool operator ==(other) {
-    if (other is !Selector || other is TypedSelector) return false;
+    if (other is !Selector) return false;
+    if (receiverType !== other.receiverType) return false;
     return argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
@@ -346,11 +348,5 @@ class TypedSelector extends Selector {
     }
 
     return false;
-  }
-
-  bool operator ==(other) {
-    if (other is !TypedSelector) return false;
-    if (other.receiverType !== receiverType) return false;
-    return super == other;
   }
 }
