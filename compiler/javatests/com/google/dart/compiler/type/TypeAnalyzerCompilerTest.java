@@ -1778,12 +1778,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
           errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
     }
-    // use CompilerConfiguration
+    // use CompilerConfiguration to suppress
     {
       compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
         @Override
-        public boolean suppressNoMemberWarningForInferredTypes() {
-          return true;
+        public boolean memberWarningForInferredTypes() {
+          return false;
         }
       });
       AnalyzeLibraryResult result = analyzeLibrary(

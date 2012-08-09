@@ -182,7 +182,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    private final boolean suppressNoMemberWarningForInferredTypes;
+    private final boolean memberWarningForInferredTypes;
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -208,7 +208,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
-      this.suppressNoMemberWarningForInferredTypes = compilerOptions.suppressNoMemberWarningForInferredTypes();
+      this.memberWarningForInferredTypes = compilerOptions.memberWarningForInferredTypes();
     }
 
     @VisibleForTesting
@@ -562,7 +562,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
-        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+        if (memberWarningForInferredTypes || !receiver.isInferred()) {
           typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
         }
@@ -915,7 +915,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         default:
-          if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+          if (memberWarningForInferredTypes || !receiver.isInferred()) {
             typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
           }
           return dynamicType;
@@ -2003,7 +2003,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+        if (memberWarningForInferredTypes || !receiver.isInferred()) {
           typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
         }
         return dynamicType;
