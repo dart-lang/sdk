@@ -958,6 +958,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             Type argumentType = argumentTypes.next();
             argumentType.getClass(); // quick null check
             DartExpression argumentNode = argumentNodes.get(argumentIndex);
+            argumentNode.setInvocationParameterId(argumentIndex);
             if (argumentNode instanceof DartNamedExpression) {
               onError(argumentNode, TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, parameterType);
               return ftype.getReturnType();
@@ -993,6 +994,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type argumentType = argumentTypes.next();
           argumentType.getClass(); // quick null check
           DartExpression argumentNode = argumentNodes.get(argumentIndex);
+          argumentNode.setInvocationParameterId(argumentIndex);
           if (checkAssignable(argumentNode, namedType, argumentType)) {
             inferFunctionLiteralParametersTypes(argumentNode, namedType);
           }
@@ -1006,6 +1008,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression argumentNode = namedExpression.getExpression();
           // Prepare parameter name.
           String parameterName = namedExpression.getName().getName();
+          argumentNode.setInvocationParameterId(parameterName);
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(namedExpression, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
           } else if (usedNamedParametersNamed.contains(parameterName)) {
