@@ -139,6 +139,28 @@ void testListOutputStream4() {
   donePort.receive((x,y) => donePort.close());
 }
 
+void testListOutputStream5() {
+  ListOutputStream stream = new ListOutputStream();
+  ReceivePort donePort = new ReceivePort();
+
+  stream.onClosed = () {
+    Expect.isTrue(stream.closed);
+    var contents = stream.read();
+    Expect.equals(3, contents.length);
+    for (var i = 0; i < contents.length; i++) Expect.equals(i + 1, contents[i]);
+    donePort.toSendPort().send(null);
+  };
+
+  Expect.isFalse(stream.closed);
+  stream.write([1, 2, 3]);
+  Expect.isFalse(stream.closed);
+  stream.close();
+  Expect.isTrue(stream.closed);
+  Expect.throws(() => stream.write([4, 5, 6]));
+
+  donePort.receive((x,y) => donePort.close());
+}
+
 main() {
   testEmptyListOutputStream1();
   testEmptyListOutputStream2();
@@ -146,4 +168,5 @@ main() {
   testListOutputStream2();
   testListOutputStream3();
   testListOutputStream4();
+  testListOutputStream5();
 }
