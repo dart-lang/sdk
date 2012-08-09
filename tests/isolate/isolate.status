@@ -4,40 +4,29 @@
 
 [ $runtime == vm ]
 isolate2_negative_test: Skip  # Need to resolve correct behaviour.
-serialization_test: Skip  # tests frog-specific serialization code
-spawn_uri_test: Fail # test uses a ".js" suffix that is bogus on vm.
+serialization_test: Skip  # tests dart2js-specific serialization code
+spawn_uri_test: Fail, OK # test uses a ".js" suffix that is bogus on vm.
 compute_this_script_browser_test: Skip # browser specific test
+timer_not_available_test: Fail, OK # only meant to test when there is no way to
+                                   # implement timer (currently only in d8)
 
 [ $compiler == none && $runtime == drt ]
-serialization_test: Skip  # tests frog-specific serialization code
+serialization_test: Skip  # tests dart2js-specific serialization code
 spawn_uri_test: Skip # uses a .js extension (not for dartium)
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # not implemented in dartium yet.
 spawn_uri_vm_negative_test: Skip
-
-[ $compiler == frog ]
-spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
-spawn_uri_vm_negative_test: Skip # ditto above.
-
-[ $compiler == frog && $runtime == d8 ]
-spawn_uri_test: Fail # not implemented for d8
-compute_this_script_browser_test: Skip # browser specific test
+timer_not_available_test: Fail, OK # only meant to test when there is no way to
+                                   # implement timer (currently only in d8)
 
 [ $compiler == dartc ]
-serialization_test: Skip  # tests frog-specific serialization code
+serialization_test: Skip  # tests dart2js-specific serialization code
 isolate_negative_test: Fail    # status change with --check-only
 isolate2_negative_test: Fail   # status change with --check-only
 spawn_function_negative_test: Fail, OK # Fails at runtime.
 spawn_uri_negative_test: Fail, OK # Fails at runtime.
 spawn_uri_vm_negative_test: Fail, OK # Fails at runtime.
 unresolved_ports_negative_test: Fail, OK # Fails at runtime.
-
-# TODO(jmesserly): investigate why these are flaky on actual browsers
-[ $compiler == frog && ($runtime == drt || $runtime == ff || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera) ]
-nested_spawn2_test: Skip
-nested_spawn_test: Skip
-isolate_negative_test: Skip
-isolate2_negative_test: Skip
 
 [ $runtime == safari ]
 cross_isolate_message_test: Skip      # Depends on 32/64 bit Safari. See Issue 1120
@@ -73,14 +62,20 @@ spawn_uri_test: Skip # dart2js does not support spawnUri yet
 spawn_uri_negative_test: Skip # ditto
 spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 spawn_uri_vm_negative_test: Skip # ditto above.
-constructor_test: Fail, OK # dart2js does not support subclassing Isolate
+timer_not_available_test: Fail, OK # only meant to test when there is no way to
+                                   # implement timer (currently only in d8)
 
 [ $compiler == dart2js && $runtime == d8 ]
-constructor_test: Fail, OK # dart2js does not support subclassing Isolate
-spawn_uri_test: Skip # loading another file is not supported in d8
-spawn_uri_negative_test: Skip # ditto
+spawn_uri_test: Fail, OK # loading another file is not supported in d8
+spawn_uri_negative_test: Pass # for the wrong reasons (not supported in d8)
 spawn_uri_vm_test: Skip # test uses a ".dart" suffix that only works in vm.
 spawn_uri_vm_negative_test: Skip # ditto above.
+timer_cancel_test: Fail,OK # Needs Timer to run.
+timer_cancel1_test: Fail,OK # Needs Timer to run.
+timer_cancel2_test: Fail,OK # Needs Timer to run.
+multiple_timer_test: Fail,OK # Needs Timer to run.
+timer_test: Fail,OK # Needs Timer to run.
+timer_repeat_test: Fail,OK # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.

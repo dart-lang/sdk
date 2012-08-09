@@ -57,12 +57,6 @@ medium_integer_test: Fail # Issue 1146.
 
 [ $compiler == dart2js ]
 medium_integer_test: Fail, OK # cannot resolve type Mint
-io/timer_cancel_test: Fail # Needs Timer to run.
-io/timer_cancel1_test: Fail # Needs Timer to run.
-io/timer_cancel2_test: Fail # Needs Timer to run.
-io/multiple_timer_test: Fail # Needs Timer to run.
-io/timer_test: Fail # Needs Timer to run.
-io/timer_repeat_test: Fail # Needs Timer to run.
 
 [ $compiler == dart2js && $runtime == d8 ]
 assert_test: Fail # Assert not implemented

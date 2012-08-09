@@ -43,8 +43,9 @@
 #source("serialization.dart");
 #source("dart2js/compiler_hooks.dart");
 #source("dart2js/isolateimpl.dart");
-#source("dart2js/ports.dart");
 #source("dart2js/messages.dart");
+#source("dart2js/ports.dart");
+#source("dart2js/timer_provider.dart");
 
 /**
  * Called by the compiler to support switching
