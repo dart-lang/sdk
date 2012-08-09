@@ -50,9 +50,7 @@ void checkPrintType(String expression, checkType(compiler, type)) {
         var parameter =
           printElement.computeSignature(compiler).requiredParameters.head;
         var type = compiler.typesTask.getGuaranteedTypeOfElement(parameter);
-        // TODO(ahe): Should be:
-        // checkType(compiler, type);
-        Expect.isNull(type);
+        checkType(compiler, type);
       });
 }
 

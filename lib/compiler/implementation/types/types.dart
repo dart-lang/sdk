@@ -165,8 +165,7 @@ class ConcreteTypeInferencer extends AbstractVisitor {
     node.visitChildren(this);
     Element element = elements[node.selector];
     if (element === null) return;
-    if (element.isInstanceMember()) return;
-    if (!element.isFunction()) return;
+    if (!Elements.isStaticOrTopLevelFunction(element)) return;
     if (node.argumentsNode === null) {
       // interest(node, 'closurized method');
       task.untypedElements.add(element);
@@ -179,8 +178,12 @@ class ConcreteTypeInferencer extends AbstractVisitor {
         task.typedSends[element] = types;
       } else {
         // interest(node, 'multiple invocations');
-        // TODO(ahe): Compare [existing] to [types].
-        task.untypedElements.add(element);
+        Link<Element> lub = computeLubs(existing, types);
+        if (lub === null) {
+          task.untypedElements.add(element);
+        } else {
+          task.typedSends[element] = lub;
+        }
       }
     } else {
       // interest(node, 'dynamically typed invocation');
@@ -194,8 +197,37 @@ class ConcreteTypeInferencer extends AbstractVisitor {
     node.visitChildren(this);
   }
 
-  interest(Node node, String note) {
+  void interest(Node node, String note) {
     var message = MessageKind.GENERIC.message([note]);
     task.compiler.reportWarning(node, message);
+  }
+
+  /**
+   * Computes the pairwise Least Upper Bound (LUB) of the elements of
+   * [a] and [b]. Returns [:null:] if it gives up, or if the lists
+   * aren't the same length.
+   */
+  Link<Element> computeLubs(Link<Element> a, Link<Element> b) {
+    LinkBuilder<Element> lubs = new LinkBuilder<Element>();
+    while (!a.isEmpty() && !b.isEmpty()) {
+      Element lub = computeLub(a.head, b.head);
+      if (lub === null) return null;
+      lubs.addLast(lub);
+      a = a.tail;
+      b = b.tail;
+    }
+    return (a.isEmpty() && b.isEmpty()) ? lubs.toLink() : null;
+  }
+
+  /**
+   * Computes the Least Upper Bound (LUB) of [a] and [b]. Returns
+   * [:null:] if it gives up.
+   */
+  Element computeLub(Element a, Element b) {
+    // Fast common case, but also simple initial implementation.
+    if (a === b) return a;
+
+    // TODO(ahe): Improve the following "computation"...
+    return null;
   }
 }
