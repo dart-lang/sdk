@@ -600,9 +600,10 @@ void StubCode::GenerateDeoptimizeStub(Assembler* assembler) {
   __ CallRuntime(kDeoptimizeCopyFrameRuntimeEntry);
   // Result (EAX) is stack-size (FP - SP) in bytes, incl. the return address.
   __ LeaveFrame();
-  __ popl(EDX);  // Discard return address.
+  __ popl(EDX);  // Preserve return address.
   __ movl(ESP, EBP);
   __ subl(ESP, EAX);
+  __ movl(Address(ESP, 0), EDX);
 
   __ EnterFrame(0);
   __ movl(ECX, ESP);  // Get last FP address.

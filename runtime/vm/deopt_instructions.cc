@@ -4,16 +4,44 @@
 
 #include "vm/deopt_instructions.h"
 
+#include "vm/assembler_macros.h"
 #include "vm/intermediate_language.h"
 #include "vm/locations.h"
 #include "vm/parser.h"
 
 namespace dart {
 
+DeoptimizationContext::DeoptimizationContext(intptr_t* to_frame_start,
+                                             intptr_t to_frame_size,
+                                             const Array& object_table,
+                                             intptr_t num_args)
+    : object_table_(object_table),
+      to_frame_(to_frame_start),
+      to_frame_size_(to_frame_size),
+      from_frame_(NULL),
+      from_frame_size_(0),
+      registers_copy_(NULL),
+      num_args_(num_args),
+      isolate_(Isolate::Current()) {
+  from_frame_ = isolate_->deopt_frame_copy();
+  from_frame_size_ = isolate_->deopt_frame_copy_size();
+  registers_copy_ = isolate_->deopt_registers_copy();
+}
+
+
+intptr_t* DeoptimizationContext::GetFromFpAddress() const {
+  return &from_frame_[from_frame_size_ - 1 - num_args_ - 1];
+}
+
+
+intptr_t* DeoptimizationContext::GetFromPcAddress() const {
+  return &from_frame_[from_frame_size_ - 1 - num_args_];
+}
+
 // Deoptimization instruction moving value from optimized frame at
 // 'from_index' to specified slots in the unoptimized frame.
-// 'from_index' represents the local count >= 0, first
-// argument being 0.
+// 'from_index' represents the slot index of the frame (0 being first argument)
+// and accounts for saved return address, frame pointer and pc marker.
 class DeoptStackSlotInstr : public DeoptInstr {
  public:
   explicit DeoptStackSlotInstr(intptr_t from_index)
@@ -29,6 +57,14 @@ class DeoptStackSlotInstr : public DeoptInstr {
     char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
     OS::SNPrint(chars, len + 1, "s%d", stack_slot_index_);
     return chars;
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t from_index =
+       deopt_context->from_frame_size() - stack_slot_index_ - 1;
+    intptr_t* from_addr = deopt_context->GetFromFrameAddressAt(from_index);
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = *from_addr;
   }
 
  private:
@@ -57,6 +93,18 @@ class DeoptRetAddrInstr : public DeoptInstr {
     return chars;
   }
 
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    Function& function = Function::Handle(deopt_context->isolate());
+    function ^= deopt_context->ObjectAt(object_table_index_);
+    Smi& deopt_id_as_smi = Smi::Handle(deopt_context->isolate());
+    deopt_id_as_smi ^= deopt_context->ObjectAt(object_table_index_ + 1);
+    const Code& code =
+        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    uword continue_at_pc = code.GetDeoptPcAtDeoptId(deopt_id_as_smi.Value());
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = continue_at_pc;
+  }
+
  private:
   const intptr_t object_table_index_;
 
@@ -82,6 +130,14 @@ class DeoptConstantInstr : public DeoptInstr {
     return chars;
   }
 
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    const Object& obj = Object::Handle(
+        deopt_context->isolate(), deopt_context->ObjectAt(object_table_index_));
+    RawObject** to_addr = reinterpret_cast<RawObject**>(
+        deopt_context->GetToFrameAddressAt(to_index));
+    *to_addr = obj.raw();
+  }
+
  private:
   const intptr_t object_table_index_;
 
@@ -100,6 +156,12 @@ class DeoptRegisterInstr: public DeoptInstr {
 
   virtual const char* ToCString() const {
     return Assembler::RegisterName(reg_);
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t value = deopt_context->RegisterValue(reg_);
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = value;
   }
 
  private:
@@ -128,6 +190,17 @@ class DeoptPcMarkerInstr : public DeoptInstr {
     return chars;
   }
 
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    Function& function = Function::Handle(deopt_context->isolate());
+    function ^= deopt_context->ObjectAt(object_table_index_);
+    const Code& code =
+        Code::Handle(deopt_context->isolate(), function.unoptimized_code());
+    intptr_t pc_marker = code.EntryPoint() +
+                         AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = pc_marker;
+  }
+
  private:
   intptr_t object_table_index_;
 
@@ -143,14 +216,22 @@ class DeoptCallerFpInstr : public DeoptInstr {
   virtual intptr_t from_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kSetCallerFp; }
 
-  virtual const char* ToCString() const { return "callerfp"; }
+  virtual const char* ToCString() const {
+    return "callerfp";
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t* from_addr = deopt_context->GetFromFpAddress();
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = *from_addr;
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerFpInstr);
 };
 
 
-// Deoptimization instruction copying the caller return address from optimzied
+// Deoptimization instruction copying the caller return address from optimized
 // frame.
 class DeoptCallerPcInstr : public DeoptInstr {
  public:
@@ -159,7 +240,15 @@ class DeoptCallerPcInstr : public DeoptInstr {
   virtual intptr_t from_index() const { return 0; }
   virtual DeoptInstr::Kind kind() const { return kSetCallerPc; }
 
-  virtual const char* ToCString() const { return "callerpc"; }
+  virtual const char* ToCString() const {
+    return "callerpc";
+  }
+
+  void Execute(DeoptimizationContext* deopt_context, intptr_t to_index) {
+    intptr_t* from_addr = deopt_context->GetFromPcAddress();
+    intptr_t* to_addr = deopt_context->GetToFrameAddressAt(to_index);
+    *to_addr = *from_addr;
+  }
 
  private:
   DISALLOW_COPY_AND_ASSIGN(DeoptCallerPcInstr);
@@ -226,7 +315,11 @@ void DeoptInfoBuilder::AddCopy(const Location& from_loc,
   } else if (from_loc.IsRegister()) {
     deopt_instr = new DeoptRegisterInstr(from_loc.reg());
   } else if (from_loc.IsStackSlot()) {
-    deopt_instr = new DeoptStackSlotInstr(from_loc.stack_index() + num_args_);
+    intptr_t from_index = (from_loc.stack_index() < 0) ?
+        from_loc.stack_index() + num_args_ :
+        from_loc.stack_index() + num_args_ -
+            ParsedFunction::kFirstLocalSlotIndex + 1;
+    deopt_instr = new DeoptStackSlotInstr(from_index);
   } else if (from_loc.IsInvalid()) {
     ASSERT(from_value.IsConstant());
     const Object& obj = from_value.AsConstant()->value();

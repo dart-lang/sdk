@@ -37,56 +37,11 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
         __ pushl(registers_[i]);
       }
     }
-  } else {
-    // We have a deoptimization environment, we have to tear down the
-    // optimized frame and recreate a non-optimized one.
-    const intptr_t fixed_parameter_count =
-        deoptimization_env_->fixed_parameter_count();
-
-    const GrowableArray<Value*>& values = deoptimization_env_->values();
-
-    // 1. Build a parallel move representing the frame translation.
-    ParallelMoveInstr* move = new ParallelMoveInstr();
-    for (intptr_t i = 0; i < values.length(); i++) {
-      Location destination = Location::StackSlot(i - fixed_parameter_count);
-      Location source = deoptimization_env_->LocationAt(i);
-      if (source.IsInvalid()) {
-        ASSERT(values[i]->IsConstant());
-        source = Location::Constant(values[i]->AsConstant()->value());
-      }
-      move->AddMove(destination, source);
-    }
-
-
-    const intptr_t local_slot_count = values.length() - fixed_parameter_count;
-    const intptr_t top_offset =
-        ParsedFunction::kFirstLocalSlotIndex - (local_slot_count - 1);
-
-    // ParallelMoveResolver will use push and pop to allocate internally a
-    // scratch register for memory to memory moves.  This means we have to
-    // ensure that these stack manipulations will not interfere with actual
-    // moves. If number of local slots exceed number of spill slots we need
-    // to expand reserved stack area before resolving parallel move. Otherwise
-    // we need to shrink stack area after resolving parallel move. This
-    // guarantees that all moves happen below stack pointer and will not
-    // interfere with additional push/pops.
-    const intptr_t spill_slot_count = compiler->StackSize();
-
-    if (local_slot_count > spill_slot_count) {
-      // Expand reserved stack area.
-      __ leal(ESP, Address(EBP, top_offset * kWordSize));
-    }
-
-    compiler->parallel_move_resolver()->EmitNativeCode(move);
-
-    if (local_slot_count < spill_slot_count) {
-      // Shrink reserved stack area.
-      __ leal(ESP, Address(EBP, top_offset * kWordSize));
-    }
   }
 
   if (compiler->IsLeaf()) {
     Label L;
+    __ pushl(EAX);  // Preserve EAX.
     __ call(&L);
     const intptr_t offset = assem->CodeSize();
     __ Bind(&L);
@@ -94,6 +49,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
     __ subl(EAX,
         Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
     __ movl(Address(EBP, -kWordSize), EAX);
+    __ popl(EAX);
   }
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;

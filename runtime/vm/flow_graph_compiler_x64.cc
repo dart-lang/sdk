@@ -32,40 +32,18 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
   __ Bind(entry_label());
 
   if (deoptimization_env_ == NULL) {
+    // TODO(srdjan): Deprecate once non-SSA optimizing compiler is removed.
     for (intptr_t i = 0; i < registers_.length(); i++) {
       if (registers_[i] != kNoRegister) {
         __ pushq(registers_[i]);
       }
     }
-  } else {
-    // We have a deoptimization environment, we have to tear down the
-    // optimized frame and recreate a non-optimized one.
-    const intptr_t fixed_parameter_count =
-        deoptimization_env_->fixed_parameter_count();
-
-    // 1. Set the stack pointer to the top of the non-optimized frame.
-    const GrowableArray<Value*>& values = deoptimization_env_->values();
-    const intptr_t local_slot_count = values.length() - fixed_parameter_count;
-    const intptr_t top_offset =
-        ParsedFunction::kFirstLocalSlotIndex - (local_slot_count - 1);
-    __ leaq(RSP, Address(RBP, top_offset * kWordSize));
-
-    // 2. Build and emit a parallel move representing the frame translation.
-    ParallelMoveInstr* move = new ParallelMoveInstr();
-    for (intptr_t i = 0; i < values.length(); i++) {
-      Location destination = Location::StackSlot(i - fixed_parameter_count);
-      Location source = deoptimization_env_->LocationAt(i);
-      if (source.IsInvalid()) {
-        ASSERT(values[i]->IsConstant());
-        source = Location::Constant(values[i]->AsConstant()->value());
-      }
-      move->AddMove(destination, source);
-    }
-    compiler->parallel_move_resolver()->EmitNativeCode(move);
   }
-
   if (compiler->IsLeaf()) {
     __ Comment("Leaf method, lazy PC marker setup");
+    // TODO(srdjan): Can we use TMP instead of RAX? We must guarantee that
+    // TMP is never part of deoptimization environment.
+    __ pushq(RAX);  // Preserve RAX.
     Label L;
     __ call(&L);
     const intptr_t offset = assem->CodeSize();
@@ -74,10 +52,11 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
     __ subq(RAX,
         Immediate(offset - AssemblerMacros::kOffsetOfSavedPCfromEntrypoint));
     __ movq(Address(RBP, -kWordSize), RAX);
+    __ popq(RAX);  // Restore RAX.
   }
   __ call(&StubCode::DeoptimizeLabel());
   const intptr_t deopt_info_index = stub_ix;
-  compiler->pc_descriptors_list()-> AddDeoptInfo(
+  compiler->pc_descriptors_list()->AddDeoptInfo(
       compiler->assembler()->CodeSize(),
       deopt_id_,
       reason_,

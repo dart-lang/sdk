@@ -222,11 +222,13 @@ class Isolate : public BaseIsolate {
 
   intptr_t* deopt_registers_copy() const { return deopt_registers_copy_; }
   void set_deopt_registers_copy(intptr_t* value) {
+    ASSERT((value == NULL) || (deopt_registers_copy_ == NULL));
     deopt_registers_copy_ = value;
   }
   intptr_t* deopt_frame_copy() const { return deopt_frame_copy_; }
   void SetDeoptFrameCopy(intptr_t* value, intptr_t size) {
     ASSERT((value == NULL) || (size > 0));
+    ASSERT((value == NULL) || (deopt_frame_copy_ == NULL));
     deopt_frame_copy_ = value;
     deopt_frame_copy_size_ = size;
   }

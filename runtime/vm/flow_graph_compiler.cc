@@ -31,11 +31,15 @@ DECLARE_FLAG(int, optimization_counter_threshold);
 
 RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
   if (deoptimization_env_ == NULL) return DeoptInfo::null();
+  const Function& function = compiler->parsed_function().function();
+  // For functions with optional arguments, all incoming are copied to local
+  // area below FP, deoptimization environment does not track them.
+  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+      0 : function.num_fixed_parameters();
   const intptr_t fixed_parameter_count =
       deoptimization_env_->fixed_parameter_count();
-  DeoptInfoBuilder builder(compiler->object_table(), fixed_parameter_count);
+  DeoptInfoBuilder builder(compiler->object_table(), num_args);
 
-  const Function& function = compiler->parsed_function().function();
   intptr_t slot_ix = 0;
   builder.AddReturnAddress(function, deopt_id_, slot_ix++);
 
