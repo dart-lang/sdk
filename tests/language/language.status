@@ -98,7 +98,9 @@ setter_no_getter_call_test/01: Fail # Issue 4383
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
+try_catch_test: Fail # Uses new catch syntax.
 # try_catch_syntax_test/08: Fail # Issue 3795
+
 type_variable_bounds_test/00: Fail # issue 3079
 
 #
