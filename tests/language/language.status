@@ -221,7 +221,6 @@ duplicate_constructor_test/01: Fail
 default_factory_library_test: Fail
 # Common with language_dart2js.
 function_type_alias3_test: Fail
-function_type_alias4_test: Crash, Fail
 function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
@@ -236,7 +235,6 @@ instanceof2_test: Fail
 instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
-method_override_test: Fail
 named_parameters_type_test: Fail
 numbers_test: Fail
 # DartVM problem.
@@ -251,7 +249,6 @@ super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
 const_test: Fail
-# default_factory3_test: Fail # Depends on empty class processing.
 dynamic_test: Fail # Depends on empty class processing.
 empty_body_member_negative_test: Fail
 factory4_test: Fail
@@ -268,7 +265,6 @@ field_optimization_test: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
-function_literals_test: Fail
 generic_instanceof3_test: Fail
 getters_setters2_test/03: Fail
 implicit_this_test/01: Fail
@@ -288,13 +284,13 @@ library5_test: Fail
 library_same_name_used_test: Fail
 local_function2_test: Fail
 method_override2_test/none: Fail
-method_override_test: Fail
 named_parameters_type_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
 prefix14_test: Fail
 prefix15_test: Fail
+prefix16_test: Fail # Cannot resolve class only used in typedef.
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 rethrow_test: Fail

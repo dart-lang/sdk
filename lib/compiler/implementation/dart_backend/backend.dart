@@ -70,10 +70,15 @@ class DartBackend extends Backend {
       !isDartCoreLib(compiler, element.getLibrary());
 
     try {
+      Set<TypedefElement> typedefs = new Set<TypedefElement>();
       PlaceholderCollector collector = new PlaceholderCollector(compiler);
       resolvedElements.forEach((element, treeElements) {
         if (!shouldOutput(element)) return;
+        if (element is AbstractFieldElement) return;
         collector.collect(element, treeElements);
+        new ReferencedElementCollector(
+            compiler, element, treeElements, typedefs)
+        .collect();
       });
 
       ConflictingRenamer renamer =
@@ -94,6 +99,8 @@ class DartBackend extends Backend {
 
         emitter.outputElement(element);
       });
+
+      typedefs.forEach(emitter.outputElement);
 
       // Now output resolved classes with inner elements we met before.
       resolvedClassMembers.forEach(emitter.outputClass);
@@ -122,4 +129,36 @@ bool isDartCoreLib(Compiler compiler, LibraryElement libraryElement) {
     }
   }
   return false;
+}
+
+/**
+ * Some elements are not recorded by resolver now,
+ * for example, typedefs or classes which are only
+ * used in signatures, as/is operators or in super clauses
+ * (just to name a few).  Retraverse AST to pick those up.
+ */
+class ReferencedElementCollector extends AbstractVisitor {
+  final Compiler compiler;
+  final Element element;
+  final TreeElements treeElements;
+  final Set<TypedefElement> typedefs;
+
+  ReferencedElementCollector(
+      this.compiler,
+      this.element, this.treeElements,
+      this.typedefs);
+
+  visitNode(Node node) { node.visitChildren(this); }
+
+  visitTypeAnnotation(TypeAnnotation typeAnnotation) {
+    Element element = treeElements[typeAnnotation];
+    if (element !== null) {
+      if (element.isTypedef()) typedefs.add(element);
+    }
+    typeAnnotation.visitChildren(this);
+  }
+
+  void collect() {
+    element.parseNode(compiler).accept(this);
+  }
 }

@@ -133,9 +133,6 @@ class PlaceholderCollector extends AbstractVisitor {
   }
   
   void collect(Element element, TreeElements elements) {
-    // Skip AbstractFieldElement, it has no node.
-    // Instead getters and setters should be processed explicitly.
-    if (element is AbstractFieldElement) return;
     treeElements = elements;
     Node elementNode;
     if (element is FunctionElement) {
