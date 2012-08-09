@@ -1731,23 +1731,27 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           currentLibrary, node.name, node.selector));
       visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader !== null;
+
+      // Register this invocation to collect the types used at all call sites.
+      Selector selector = getOptimizedSelectorFor(node, node.selector);
+      backend.registerDynamicInvocation(node, selector);
+
       if (node.element !== null) {
         // If we know we're calling a specific method, register that
         // method only.
-        if (inLoop) {
-          backend.builder.functionsCalledInLoop.add(node.element);
-        }
+        if (inLoop) backend.builder.functionsCalledInLoop.add(node.element);
         world.registerDynamicInvocationOf(node.element);
       } else {
-        Selector selector = getOptimizedSelectorFor(node, node.selector);
-        world.registerDynamicInvocation(node.name, selector);
         if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
+        world.registerDynamicInvocation(node.name, selector);
       }
     }
     endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
+    // TODO(4434): For private members we need to use the untyped selector.
+    if (node.name.isPrivate()) return defaultSelector;
     Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
     if (receiverType !== null) {
       return new TypedSelector(receiverType, defaultSelector);

@@ -138,6 +138,7 @@ class SsaBuilderTask extends CompilerTask {
   // Loop tracking information.
   final Set<FunctionElement> functionsCalledInLoop;
   final Map<SourceString, Selector> selectorsCalledInLoop;
+  final JavaScriptBackend backend;
 
   String get name() => 'SSA builder';
 
@@ -147,6 +148,7 @@ class SsaBuilderTask extends CompilerTask {
       emitter = backend.emitter,
       functionsCalledInLoop = new Set<FunctionElement>(),
       selectorsCalledInLoop = new Map<SourceString, Selector>(),
+      backend = backend,
       super(backend.compiler);
 
   HGraph build(WorkItem work) {
@@ -171,6 +173,20 @@ class SsaBuilderTask extends CompilerTask {
         inLoop = selector !== null && selector.applies(element, compiler);
       }
       graph.calledInLoop = inLoop;
+
+      // If there is an estimate of the parameter types assume these types when
+      // compiling.
+      List<HType> parameterTypes =
+          backend.optimisticParameterTypesWithRecompilationOnTypeChange(
+              element);
+      if (parameterTypes != null) {
+        FunctionSignature signature = element.computeSignature(compiler);
+        int i = 0;
+        signature.forEachParameter((Element param) {
+          builder.parameters[param].guaranteedType = parameterTypes[i++];
+        });
+      }
+
       if (compiler.tracer.enabled) {
         String name;
         if (element.isMember()) {

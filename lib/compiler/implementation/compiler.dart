@@ -51,6 +51,24 @@ class Backend {
   abstract List<CompilerTask> get tasks();
 }
 
+class InvocationInfo {
+  int parameterCount;
+  List<HType> providedTypes;
+  List<Element> compiledFunctions;
+
+  InvocationInfo(List<HType> types)
+      : parameterCount = types != null ? types.length : -1,
+        providedTypes = types,
+        compiledFunctions = new List<Element>();
+
+  addCompiledFunction(FunctionElement function) =>
+      compiledFunctions.add(function);
+
+  void clearTypeInformation() => providedTypes = null;
+  bool get hasTypeInformation() => providedTypes != null;
+
+}
+
 class JavaScriptBackend extends Backend {
   SsaBuilderTask builder;
   SsaOptimizerTask optimizer;
@@ -59,6 +77,8 @@ class JavaScriptBackend extends Backend {
   final Map<Element, Map<Element, HType>> fieldInitializers;
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;
+
+  final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
 
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
@@ -69,6 +89,7 @@ class JavaScriptBackend extends Backend {
         fieldInitializers = new Map<Element, Map<Element, HType>>(),
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
+        invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -205,6 +226,98 @@ class JavaScriptBackend extends Backend {
     Map<Element, HType> fields = fieldSettersType[enclosingClass];
     if (!fields.containsKey(field)) return HType.CONFLICTING;
     return fields[field];
+  }
+
+  /**
+   *  Register a dynamic invocation and collect the provided types for the
+   *  named selector.
+   */
+  void registerDynamicInvocation(HInvokeDynamicMethod node, Selector selector) {
+    Map<Selector, InvocationInfo> invocationInfos =
+        invocationInfo.putIfAbsent(node.name,
+                                   () => new Map<Selector, InvocationInfo>());
+    InvocationInfo info = invocationInfos[selector];
+    if (info != null) {
+      // If we don't know anything useful about the types adding more
+      // information will not help.
+      if (!info.hasTypeInformation) return;
+
+      // Update the type information with the provided types.
+      bool typesChanged = false;
+      List<HType> types = info.providedTypes;
+      bool allUnknown = true;
+      for (int i = 0; i < types.length; i++) {
+        HType newType = types[i].union(node.inputs[i + 1].propagatedType);
+        if (newType != types[i]) {
+          typesChanged = true;
+          types[i] = newType;
+        }
+        if (types[i] != HType.UNKNOWN) allUnknown = false;
+      }
+      // If the provided types change we need to recompile all functions which
+      // have been compiled under the now invalidated assumptions.
+      if (typesChanged && info.compiledFunctions.length != 0) {
+        if (compiler.phase == Compiler.PHASE_COMPILING) {
+          info.compiledFunctions.forEach(
+              compiler.enqueuer.codegen.eagerRecompile);
+          info.compiledFunctions.clear();
+        }
+      }
+      // If all information is lost no need to keep it around.
+      if (allUnknown) info.clearTypeInformation();
+    } else {
+      // Gather the type information provided. If the types contains no useful
+      // information there is no need to actually store them.
+      bool allUnknown = true;
+      for (int i = 1; i < node.inputs.length; i++) {
+        if (node.inputs[i].propagatedType != HType.UNKNOWN) {
+          allUnknown = false;
+          break;
+        }
+      }
+      List<HType> types = null;
+      if (!allUnknown) {
+        types = new List<HType>(node.inputs.length - 1);
+        for (int i = 0; i < types.length; i++) {
+          types[i] = node.inputs[i + 1].propagatedType;
+        }
+      }
+      InvocationInfo info = new InvocationInfo(types);
+      invocationInfos[selector] = info;
+    }
+  }
+
+  /**
+   * Retreive the types of the parameters used for calling the [element]
+   * function. The types are optimistic in the sense as they are based on the
+   * possible invocations of the function seen so far. As compiling more
+   * code can invalidate this asumption the function is registered for being
+   * re-compiled if new possible invocations of this function invalidate these
+   * asumptions.
+   */
+  List<HType> optimisticParameterTypesWithRecompilationOnTypeChange(
+      FunctionElement element) {
+    Map<Selector, InvocationInfo> invocationInfos =
+        invocationInfo[element.name];
+    if (invocationInfos == null) return null;
+
+    int foundCount = 0;
+    InvocationInfo found = null;
+    invocationInfos.forEach((Selector selector, InvocationInfo info) {
+      if (selector.applies(element, compiler)) {
+        found = info;
+        foundCount++;
+      }
+    });
+
+    if (foundCount == 1 && found.hasTypeInformation) {
+      FunctionSignature signature = element.computeSignature(compiler);
+      if (signature.parameterCount == found.parameterCount) {
+        found.addCompiledFunction(element);
+        return found.providedTypes;
+      }
+    }
+    return null;
   }
 }
 
