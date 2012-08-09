@@ -13,15 +13,7 @@ class SendVisitor extends ResolvedVisitor {
   visitForeignSend(Send node) {}
 
   visitDynamicSend(Send node) {
-    tryRenamePrivateId(node);
-  }
-
-  tryRenamePrivateId(Send node) {
-    Node selector = node.selector;
-    assert(selector !== null);
-    if (selector.source.isPrivate()) {
-      collector.makePrivateIdentifier(selector);
-    }
+    tryRenamePrivateSelector(node);
   }
 
   visitGetterSend(Send node) {
@@ -29,7 +21,7 @@ class SendVisitor extends ResolvedVisitor {
     // element === null means dynamic property access.
     // We don't want to rename non top-level element access.
     if (element === null || !element.isTopLevel()) {
-      tryRenamePrivateId(node);
+      tryRenamePrivateSelector(node);
       return;
     }
     // Unqualified <class> in static invocation, why it's not a type annotation?
@@ -53,6 +45,14 @@ class SendVisitor extends ResolvedVisitor {
       assert(elements[node.receiver].isPrefix());
       // Hack: putting null into map overrides receiver of original node.
       collector.makeNullPlaceholder(node.receiver);
+    }
+  }
+
+  tryRenamePrivateSelector(Send node) {
+    Identifier selector = node.selector.asIdentifier();
+    assert(selector !== null);
+    if (selector.source.isPrivate()) {
+      collector.makePrivateIdentifier(selector);
     }
   }
 }
