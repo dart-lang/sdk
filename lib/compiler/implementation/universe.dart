@@ -266,7 +266,7 @@ class Selector implements Hashable {
   }
 
   bool operator ==(other) {
-    if (other is !Selector) return false;
+    if (other is !Selector || other is TypedSelector) return false;
     return argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
            && sameNames(namedArguments, other.namedArguments);
