@@ -2,11 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Returns null if no need to rename a node.
+typedef String Renamer(Node node);
+
 class Unparser implements Visitor {
-  final Renamer renamer;
+  final Renamer rename;
   StringBuffer sb;
 
-  Unparser([this.renamer = const Renamer()]);
+  Unparser() : this.withRenamer((Node) => null);
+  Unparser.withRenamer(this.rename);
 
   String unparse(Node node) {
     sb = new StringBuffer();
@@ -27,7 +31,14 @@ class Unparser implements Visitor {
   }
 
   visit(Node node) {
-    if (node !== null) node.accept(this);
+    if (node === null) return;
+    String renamed = rename(node);
+    if (renamed !== null) {
+      sb.add(renamed);
+    } else {
+      // Fallback.
+      node.accept(this);
+    }
   }
 
   visitBlock(Block node) {
@@ -127,12 +138,7 @@ class Unparser implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    String newName = renamer.renameIdentifier(node);
-    if (newName === null) {
-      add(node.token.value);
-    } else {
-      sb.add(newName);
-    }
+    add(node.token.value);
   }
 
   visitIf(If node) {
@@ -234,7 +240,10 @@ class Unparser implements Visitor {
     if (node.isPrefix) {
       visit(node.selector);
     }
-    if (node.receiver !== null) {
+    // TODO(smok): Remove ugly hack for library preferences.
+    // Check that renamer does not want to omit receiver at all,
+    // in that case we don't need spaces or dot.
+    if (node.receiver !== null && rename(node.receiver) != '') {
       visit(node.receiver);
       CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
       if (asCascadeReceiver !== null) {
@@ -259,14 +268,8 @@ class Unparser implements Visitor {
   }
 
   visitSend(Send node) {
-    String newMethodName = renamer.renameSendMethod(node);
-    if (newMethodName !== null) {
-      sb.add(newMethodName);
-      visit(node.argumentsNode);
-    } else {
-      unparseSendPart(node);
-      visit(node.argumentsNode);
-    }
+    unparseSendPart(node);
+    visit(node.argumentsNode);
   }
 
   /**
@@ -315,14 +318,8 @@ class Unparser implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    String newName = renamer.renameTypeName(node);
-    if (newName !== null) {
-      sb.add(newName);
-      visit(node.typeArguments);
-    } else {
-      // Fallback to default unparse without renaming.
-      node.visitChildren(this);
-    }
+    visit(node.typeName);
+    visit(node.typeArguments);
   }
 
   visitTypeVariable(TypeVariable node) {

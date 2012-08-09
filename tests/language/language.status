@@ -143,17 +143,15 @@ prefix_core_test: Fail # Issue 2264.
 [ $compiler == dart2dart ]
 # Tests that crash after reverting resolution of type variables in default clause.
 # https://chromiumcodereview.appspot.com/10824062/
-default_factory2_test/01: Crash
-default_factory3_test: Crash
-factory2_test: Crash
+default_factory2_test/01: Fail
+default_factory3_test: Fail
 function_type_alias6_test: Crash, Timeout
-type_variable_scope_test/00: Crash
-type_variable_scope_test/01: Crash
-type_variable_scope_test/02: Crash
-type_variable_scope_test/03: Crash
-type_variable_scope_test/04: Crash
-type_variable_scope_test/05: Crash
-type_variable_scope_test/none: Crash
+type_variable_scope_test/00: Fail
+type_variable_scope_test/01: Fail
+type_variable_scope_test/02: Fail
+type_variable_scope_test/03: Fail
+type_variable_scope_test/04: Fail
+type_variable_scope_test/05: Fail
 # Passes VMOptions, should be supported in test framework.
 assertion_test: Fail
 bootstrap_test: Fail
@@ -300,7 +298,6 @@ prefix14_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
-prefix21_test: Fail
 rethrow_test: Fail
 savannah_test: Fail
 static_final_field_negative_test: Fail

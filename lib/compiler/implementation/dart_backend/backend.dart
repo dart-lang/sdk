@@ -70,7 +70,15 @@ class DartBackend extends Backend {
       !isDartCoreLib(compiler, element.getLibrary());
 
     try {
-      Emitter emitter = new Emitter(compiler);
+      PlaceholderCollector collector = new PlaceholderCollector(compiler);
+      resolvedElements.forEach((element, treeElements) {
+        if (!shouldOutput(element)) return;
+        collector.collect(element, treeElements);
+      });
+
+      ConflictingRenamer renamer =
+          new ConflictingRenamer(compiler, collector.placeholders);
+      Emitter emitter = new Emitter(compiler, renamer);
       resolvedElements.forEach((element, treeElements) {
         if (!shouldOutput(element)) return;
         if (element.isMember()) {

@@ -11,6 +11,5 @@
 #source('dartstring.dart');
 #source('nodes.dart');
 #source('prettyprint.dart');
-#source('renamer.dart');
 #source('unparser.dart');
 #source('visitors.dart');
