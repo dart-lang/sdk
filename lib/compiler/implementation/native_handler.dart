@@ -188,7 +188,7 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   // not a JS property on the DOM types, returns the type name.
   if (element.name == const SourceString('typeName')
       && element.isGetter()
-      && nativeEmitter.toNativeName(element.enclosingElement) == 'DOMType') {
+      && nativeEmitter.toNativeName(element.getEnclosingClass()) == 'DOMType') {
     Element methodElement =
         compiler.findHelper(const SourceString('getTypeNameOf'));
     HStatic method = new HStatic(methodElement);

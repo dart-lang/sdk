@@ -306,14 +306,14 @@ class TypedSelector extends Selector {
    */
   bool hasElementIn(ClassElement cls, Element element) {
     Element resolved = cls.lookupMember(element.name);
-    if (resolved === element) return  true;
+    if (resolved === element) return true;
     if (resolved === null) return false;
     if (resolved.kind === ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = resolved;
       if (element === field.getter || element === field.setter) {
         return true;
       } else {
-        ClassElement otherCls = field.enclosingElement;
+        ClassElement otherCls = field.getEnclosingClass();
         // We have not found a match, but another class higher in the
         // hierarchy may define the getter or the setter.
         return hasElementIn(otherCls.superclass, element);
@@ -323,14 +323,14 @@ class TypedSelector extends Selector {
   }
 
   bool applies(Element element, Compiler compiler) {
-    if (!element.enclosingElement.isClass()) return false;
+    if (!element.isMember()) return false;
 
     // A closure can be called through any typed selector:
     // class A {
     //   get foo() => () => 42;
     //   bar() => foo(); // The call to 'foo' is a typed selector.
     // }
-    ClassElement other = element.enclosingElement;
+    ClassElement other = element.getEnclosingClass();
     if (other.superclass === compiler.closureClass) {
       return super.applies(element, compiler);
     }

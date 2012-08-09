@@ -80,7 +80,7 @@ class Enqueuer {
     }
     if (!isResolutionQueue &&
         element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      registerInstantiatedClass(element.enclosingElement);
+      registerInstantiatedClass(element.getEnclosingClass());
     }
     if (elements === null) {
       elements = getCachedElements(element);

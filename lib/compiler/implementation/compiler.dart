@@ -110,10 +110,10 @@ class JavaScriptBackend extends Backend {
 
   void updateFieldInitializers(Element field, HType propagatedType) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
+    assert(field.isMember());
     Map<Element, HType> fields =
         fieldInitializers.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
+          field.getEnclosingClass(), () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
       fields[field] = propagatedType;
     } else {
@@ -123,20 +123,20 @@ class JavaScriptBackend extends Backend {
 
   HType typeFromInitializersSoFar(Element field) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldInitializers.containsKey(field.enclosingElement)) {
+    assert(field.isMember());
+    if (!fieldInitializers.containsKey(field.getEnclosingClass())) {
       return HType.CONFLICTING;
     }
-    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
+    Map<Element, HType> fields = fieldInitializers[field.getEnclosingClass()];
     return fields[field];
   }
 
   void updateFieldConstructorSetters(Element field, HType type) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
+    assert(field.isMember());
     Map<Element, HType> fields =
         fieldConstructorSetters.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
+            field.getEnclosingClass(), () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
       fields[field] = type;
     } else {
@@ -146,10 +146,11 @@ class JavaScriptBackend extends Backend {
 
   // Check if this field is set in the constructor body.
   bool hasConstructorBodyFieldSetter(Element field) {
-    if (!fieldConstructorSetters.containsKey(field.enclosingElement)) {
+    ClassElement enclosingClass = field.getEnclosingClass();
+    if (!fieldConstructorSetters.containsKey(enclosingClass)) {
       return false;
     }
-    return fieldConstructorSetters[field.enclosingElement][field] != null;
+    return fieldConstructorSetters[enclosingClass][field] != null;
   }
 
   // Provide an optimistic estimate of the type of a field after construction.
@@ -159,20 +160,20 @@ class JavaScriptBackend extends Backend {
   // that could alter the field.
   HType optimisticFieldTypeAfterConstruction(Element field) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
+    assert(field.isMember());
 
+    ClassElement classElement = field.getEnclosingClass();
     if (hasConstructorBodyFieldSetter(field)) {
       // If there are field setters but there is only constructor then the type
       // of the field is determined by the assignments in the constructor
       // body.
-      ClassElement classElement = field.enclosingElement;
       if (classElement.constructors.length == 1) {
-        return fieldConstructorSetters[field.enclosingElement][field];
+        return fieldConstructorSetters[classElement][field];
       } else {
         return HType.UNKNOWN;
       }
-    } else if (fieldInitializers.containsKey(field.enclosingElement)) {
-      HType type = fieldInitializers[field.enclosingElement][field];
+    } else if (fieldInitializers.containsKey(classElement)) {
+      HType type = fieldInitializers[classElement][field];
       return type == null ? HType.CONFLICTING : type;
     } else {
       return HType.CONFLICTING;
@@ -181,10 +182,10 @@ class JavaScriptBackend extends Backend {
 
   void updateFieldSetters(Element field, HType type) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
+    assert(field.isMember());
     Map<Element, HType> fields =
         fieldSettersType.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
+          field.getEnclosingClass(), () => new Map<Element, HType>());
     if (!fields.containsKey(field)) {
       fields[field] = type;
     } else {
@@ -196,11 +197,12 @@ class JavaScriptBackend extends Backend {
   // have been seen during compilation so far.
   HType fieldSettersTypeSoFar(Element field) {
     assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldSettersType.containsKey(field.enclosingElement)) {
+    assert(field.isMember());
+    ClassElement enclosingClass = field.getEnclosingClass();
+    if (!fieldSettersType.containsKey(enclosingClass)) {
       return HType.CONFLICTING;
     }
-    Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
+    Map<Element, HType> fields = fieldSettersType[enclosingClass];
     if (!fields.containsKey(field)) return HType.CONFLICTING;
     return fields[field];
   }
@@ -412,7 +414,7 @@ class Compiler implements DiagnosticListener {
   void enableNoSuchMethod(Element element) {
     // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
-    if (element.enclosingElement === objectClass) {
+    if (element.getEnclosingClass() === objectClass) {
       enqueuer.resolution.registerDynamicInvocationOf(element);
       return;
     }
@@ -820,7 +822,7 @@ class Compiler implements DiagnosticListener {
         resolved.remove(e);
       }
       if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-        ClassElement enclosingClass = e.enclosingElement;
+        ClassElement enclosingClass = e.getEnclosingClass();
         if (enclosingClass.isInterface()) {
           resolved.remove(e);
         }

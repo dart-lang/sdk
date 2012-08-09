@@ -987,11 +987,11 @@ class CompileTimeConstantEvaluator extends AbstractVisitor {
 
     Send send = node.send;
     FunctionElement constructor = elements[send];
-    ClassElement classElement = constructor.enclosingElement;
+    ClassElement classElement = constructor.getEnclosingClass();
     if (classElement.isInterface()) {
       compiler.resolver.resolveMethodElement(constructor);
       constructor = constructor.defaultImplementation;
-      classElement = constructor.enclosingElement;
+      classElement = constructor.getEnclosingClass();
     }
 
     Selector selector = elements.getSelector(send);
@@ -1126,7 +1126,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
     if (!foundSuperOrRedirect) {
       // No super initializer found. Try to find the default constructor if
       // the class is not Object.
-      ClassElement enclosingClass = constructor.enclosingElement;
+      ClassElement enclosingClass = constructor.getEnclosingClass();
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);

@@ -58,11 +58,11 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
       FunctionElement element = work.element;
       CodeBuffer code;
+      ClassElement enclosingClass = element.getEnclosingClass();
       if (element.isInstanceMember()
-          && element.enclosingElement.isClass()
-          && element.enclosingElement.isNative()
+          && enclosingClass.isNative()
           && native.isOverriddenMethod(
-              element, element.enclosingElement, nativeEmitter)) {
+              element, enclosingClass, nativeEmitter)) {
         // Record that this method is overridden. In case of optional
         // arguments, the emitter will generate stubs to handle them,
         // and needs to know if the method is overridden.
@@ -1800,7 +1800,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitInvokeSuper(HInvokeSuper node) {
     beginExpression(JSPrecedence.CALL_PRECEDENCE);
     Element superMethod = node.element;
-    Element superClass = superMethod.enclosingElement;
+    Element superClass = superMethod.getEnclosingClass();
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolateAccess(superClass);
@@ -1811,7 +1811,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       buffer.add('$className.prototype.$methodName.call');
       visitArguments(node.inputs);
     } else if (superMethod.kind == ElementKind.FIELD) {
-      ClassElement currentClass = work.element.enclosingElement;
+      ClassElement currentClass = work.element.getEnclosingClass();
       if (currentClass.isShadowedByField(superMethod)) {
         buffer.add('this.${compiler.namer.shadowedFieldName(superMethod)}');
       } else {
@@ -1874,7 +1874,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitFieldSet(HFieldSet node) {
     if (node.element != null &&
         work.element.isGenerativeConstructorBody() &&
-        node.element.enclosingElement.isClass() &&
+        node.element.isMember() &&
         node.value.hasGuaranteedType() &&
         node.block.dominates(currentGraph.exit)) {
       backend.updateFieldConstructorSetters(node.element,

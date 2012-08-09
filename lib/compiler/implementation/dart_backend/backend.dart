@@ -40,7 +40,7 @@ class DartBackend extends Backend {
    */
   void addMemberToClass(Element element, ClassElement classElement) {
     // ${element} should have ${classElement} as enclosing.
-    assert(element.enclosingElement == classElement);
+    assert(element.isMember());
     Set<Element> resolvedElementsInClass = resolvedClassMembers.putIfAbsent(
         classElement, () => new Set<Element>());
     resolvedElementsInClass.add(element);
@@ -82,7 +82,7 @@ class DartBackend extends Backend {
       resolvedElements.forEach((element, treeElements) {
         if (!shouldOutput(element)) return;
         if (element.isMember()) {
-          var enclosingClass = element.enclosingElement;
+          ClassElement enclosingClass = element.getEnclosingClass();
           assert(enclosingClass.isClass());
           assert(enclosingClass.isTopLevel());
           addMemberToClass(element, enclosingClass);

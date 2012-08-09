@@ -178,16 +178,16 @@ class Namer {
     LibraryElement lib = element.getLibrary();
     String name;
     if (element.isGenerativeConstructor()) {
-      if (element.name == element.enclosingElement.name) {
+      if (element.name == element.getEnclosingClass().name) {
         // Keep the class name for the class and not the factory.
         name = "${element.name.slowToString()}\$";
       } else {
         name = element.name.slowToString();
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
-      if (element.enclosingElement != null &&
-          element.enclosingElement.isClass()) {
-        name = "${element.enclosingElement.name.slowToString()}_"
+      if (element.isMember()) {
+        ClassElement enclosingClass = element.getEnclosingClass();
+        name = "${enclosingClass.name.slowToString()}_"
                "${element.name.slowToString()}";
       } else {
         name = element.name.slowToString();

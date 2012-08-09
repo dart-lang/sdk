@@ -86,7 +86,7 @@ class ResolverTask extends CompilerTask {
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
-      final ClassElement classElement = constructor.enclosingElement;
+      final ClassElement classElement = constructor.getEnclosingClass();
       final SourceString constructorName =
           getConstructorName(initializers.head);
       final SourceString className = classElement.name;
@@ -160,7 +160,7 @@ class ResolverTask extends CompilerTask {
   void resolveConstructorImplementation(FunctionElement constructor,
                                         FunctionExpression node) {
     if (constructor.defaultImplementation !== constructor) return;
-    ClassElement intrface = constructor.enclosingElement;
+    ClassElement intrface = constructor.getEnclosingClass();
     if (!intrface.isInterface()) return;
     Type defaultType = intrface.defaultClass;
     if (defaultType === null) {
@@ -404,7 +404,7 @@ class InitializerResolver {
     // Lookup target field.
     Element target;
     if (isFieldInitializer(init)) {
-      final ClassElement classElement = constructor.enclosingElement;
+      final ClassElement classElement = constructor.getEnclosingClass();
       target = classElement.lookupLocalMember(name);
       if (target === null) {
         error(selector, MessageKind.CANNOT_RESOLVE, [name]);
@@ -446,7 +446,7 @@ class InitializerResolver {
   void resolveImplicitSuperConstructorSend(FunctionElement constructor,
                                            FunctionExpression functionNode) {
     // If the class has a super resolve the implicit super call.
-    ClassElement classElement = constructor.enclosingElement;
+    ClassElement classElement = constructor.getEnclosingClass();
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
@@ -464,7 +464,7 @@ class InitializerResolver {
                              SourceString constructorName,
                              Selector selector,
                              Node diagnosticNode) {
-    ClassElement lookupTarget = constructor.enclosingElement;
+    ClassElement lookupTarget = constructor.getEnclosingClass();
     bool validTarget = true;
     FunctionElement result;
     if (isSuperCall) {
@@ -837,7 +837,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.enclosingElement = element,
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),
-      this.currentClass = element.isMember() ? element.enclosingElement : null,
+      this.currentClass = element.isMember() ?
+                              element.getEnclosingClass() :
+                              null,
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
       scope = element.buildEnclosingScope(),
@@ -1360,7 +1362,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
     world.registerStaticUse(constructor.defaultImplementation);
-    ClassElement cls = constructor.defaultImplementation.enclosingElement;
+    ClassElement cls = constructor.defaultImplementation.getEnclosingClass();
     world.registerInstantiatedClass(cls);
     cls.forEachInstanceField(
         includeBackendMembers: false,
@@ -1664,7 +1666,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
 
   TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
       : this.element = element,
-        scope = element.enclosingElement.buildScope(),
+        scope = element.buildEnclosingScope(),
         typeResolver = new TypeResolver(compiler),
         super(compiler);
 
@@ -2102,7 +2104,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   ClassElement get currentClass() {
     return enclosingElement.isMember()
-      ? enclosingElement.enclosingElement : null;
+      ? enclosingElement.getEnclosingClass() : null;
   }
 }
 

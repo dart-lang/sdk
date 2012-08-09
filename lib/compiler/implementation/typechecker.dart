@@ -339,7 +339,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
-    if (element.isMember()) currentClass = element.enclosingElement;
+    if (element.isMember()) currentClass = element.getEnclosingClass();
     StatementType bodyType = analyze(node.body);
     if (returnType != types.voidType && returnType != types.dynamicType
         && bodyType != StatementType.RETURNING) {

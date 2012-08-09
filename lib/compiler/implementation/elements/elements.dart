@@ -118,9 +118,15 @@ class Element implements Hashable {
   }
 
   bool isFunction() => kind === ElementKind.FUNCTION;
+  bool isConstructor() => isFactoryConstructor() || isGenerativeConstructor();
   bool isClosure() => false;
-  bool isMember() =>
-      enclosingElement !== null && enclosingElement.kind === ElementKind.CLASS;
+  bool isMember() {
+    // Check that this element is defined in the scope of a Class.
+    Element enclosing = enclosingElement;
+    // TODO(lrn): Skip any synthetic elements inserted, e.g.,
+    // a compilation unit override.
+    return enclosing !== null && enclosing.isClass();
+  }
   bool isInstanceMember() => false;
   bool isFactoryConstructor() => modifiers !== null && modifiers.isFactory();
   bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
@@ -142,6 +148,7 @@ class Element implements Hashable {
   bool isSetter() => kind === ElementKind.SETTER;
   bool isAccessor() => isGetter() || isSetter();
   bool isForeign() => kind === ElementKind.FOREIGN;
+  bool isLibrary() => kind === ElementKind.LIBRARY;
   bool impliesType() => (kind.category & ElementCategory.IMPLIES_TYPE) != 0;
   bool isExtendable() => (kind.category & ElementCategory.IS_EXTENDABLE) != 0;
 
@@ -193,7 +200,7 @@ class Element implements Hashable {
 
   ClassElement getEnclosingClass() {
     for (Element e = this; e !== null; e = e.enclosingElement) {
-      if (e.kind === ElementKind.CLASS) return e;
+      if (e.isClass()) return e;
     }
     return null;
   }
@@ -206,6 +213,7 @@ class Element implements Hashable {
   }
 
   Element getOutermostEnclosingMemberOrTopLevel() {
+    // TODO(lrn): Why is this called "Outermost"?
     for (Element e = this; e !== null; e = e.enclosingElement) {
       if (e.isMember() || e.isTopLevel()) {
         return e;
