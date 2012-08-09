@@ -6,10 +6,12 @@
 typedef String Renamer(Node node);
 
 class Unparser implements Visitor {
-  final Renamer rename;
+  Renamer rename;
   StringBuffer sb;
 
-  Unparser() : this.withRenamer((Node) => null);
+  Unparser() {
+    rename = (Node node) => null;
+  }
   Unparser.withRenamer(this.rename);
 
   String unparse(Node node) {
