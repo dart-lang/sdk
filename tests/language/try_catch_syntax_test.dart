@@ -31,7 +31,6 @@ testIllegalFinally() {
 
 testIllegalCatch() {
   try { } catch () { }           /// 07: compile-time error
-  try { } catch (e) { }          /// 08: compile-time error
   try { } catch (MammaMia e) { } /// 09: compile-time error
 }
 

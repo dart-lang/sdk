@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DEFINE_FLAG(bool, warn_legacy_catch, false, "Warning on legacy catch syntax");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -5361,6 +5362,8 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
+// TODO(hausner): This structure can be simplified once the old catch
+// syntax is removed. All catch parameters in the new syntax are final.
 struct CatchParamDesc {
   CatchParamDesc()
       : token_pos(0), type(NULL), var(NULL), is_final(false) { }
@@ -5560,17 +5563,63 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   const intptr_t handler_pos = TokenPos();
   OpenBlock();  // Start the catch block sequence.
   current_block_->scope->AddLabel(end_catch_label);
-  while (CurrentToken() == Token::kCATCH) {
-    catch_seen = true;
+  while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
-    ConsumeToken();  // Consume the 'catch'.
-    ExpectToken(Token::kLPAREN);
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
-    ParseCatchParameter(&exception_param);
-    if (CurrentToken() == Token::kCOMMA) {
-      ConsumeToken();
-      ParseCatchParameter(&stack_trace_param);
+    catch_seen = true;
+    if (CurrentToken() == Token::kCATCH) {
+      ConsumeToken();  // Consume the 'catch'.
+      ExpectToken(Token::kLPAREN);
+      if (IsIdentifier() &&
+          ((LookaheadToken(1) == Token::kCOMMA) ||
+          (LookaheadToken(1) == Token::kRPAREN))) {
+        // New catch syntax for untyped exception variable:
+        // catch(e) or catch (e,s).
+        exception_param.is_final = true;
+        exception_param.type =
+            &AbstractType::ZoneHandle(Type::DynamicType());
+        exception_param.token_pos = TokenPos();
+        exception_param.var = ExpectIdentifier("identifier expected");
+        if (CurrentToken() == Token::kCOMMA) {
+          ConsumeToken();
+          stack_trace_param.is_final = true;
+          // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+          stack_trace_param.type =
+              &AbstractType::ZoneHandle(Type::DynamicType());
+          stack_trace_param.token_pos = TokenPos();
+          stack_trace_param.var = ExpectIdentifier("identifier expected");
+        }
+      } else {
+        // TODO(hausner): Remove legacy syntax support.
+        if (FLAG_warn_legacy_catch) {
+          Warning("legacy catch syntax");
+        }
+        ParseCatchParameter(&exception_param);
+        if (CurrentToken() == Token::kCOMMA) {
+          ConsumeToken();
+          ParseCatchParameter(&stack_trace_param);
+        }
+      }
+    } else {
+      // on T catch(e) { ...
+      ConsumeToken();  // on
+      exception_param.is_final = true;
+      exception_param.type = &AbstractType::ZoneHandle(
+          ParseType(ClassFinalizer::kCanonicalizeWellFormed));
+      ExpectToken(Token::kCATCH);
+      ExpectToken(Token::kLPAREN);
+      exception_param.token_pos = TokenPos();
+      exception_param.var = ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kCOMMA) {
+        ConsumeToken();
+        stack_trace_param.is_final = true;
+        // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+        stack_trace_param.type =
+        &AbstractType::ZoneHandle(Type::DynamicType());
+        stack_trace_param.token_pos = TokenPos();
+        stack_trace_param.var = ExpectIdentifier("identifier expected");
+      }
     }
     ExpectToken(Token::kRPAREN);
 
