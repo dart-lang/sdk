@@ -56,17 +56,22 @@ class String;
 
 // Serialized object header encoding is as follows:
 // - Smi: the Smi value is written as is (last bit is not tagged).
-// - VM internal type (from VM isolate): (index of type in vm isolate | 0x3)
-// - Object that has already been written: (negative id in stream | 0x3)
+// - VM object (from VM isolate): (object id in vm isolate | 0x3)
+//   This valus is serialized as a negative number.
+//   (note VM objects are never serialized they are expected to be found
+//    using ths unique ID assigned to them).
+// - Reference to object that has already been written: (object id | 0x3)
+//   This valus is serialized as a positive number.
 // - Object that is seen for the first time (inlined in the stream):
 //   (a unique id for this object | 0x1)
 enum SerializedHeaderType {
-  kInlined = 0x1,
+  kInlined  = 0x1,
   kObjectId = 0x3,
 };
 static const int8_t kHeaderTagBits = 2;
-static const int8_t kObjectIdTagBits = (kBitsPerWord - kHeaderTagBits);
-static const intptr_t kMaxObjectId = (kIntptrMax >> kHeaderTagBits);
+static const int8_t kObjectIdBits = (kBitsPerWord - (kHeaderTagBits + 1));
+static const intptr_t kMaxObjectId = (kUwordMax >> (kHeaderTagBits + 1));
+
 
 class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
                                             0,
@@ -76,7 +81,7 @@ class SerializedHeaderTag : public BitField<enum SerializedHeaderType,
 
 class SerializedHeaderData : public BitField<intptr_t,
                                              kHeaderTagBits,
-                                             kObjectIdTagBits> {
+                                             kObjectIdBits> {
 };
 
 
@@ -157,6 +162,15 @@ class BaseReader {
 
   RawSmi* ReadAsSmi();
   intptr_t ReadSmiValue();
+
+  // Negative header value indicates VM isolate object id.
+  bool IsVMIsolateObject(intptr_t header_value) { return (header_value < 0); }
+  intptr_t GetVMIsolateObjectId(intptr_t header_val) {
+    ASSERT(IsVMIsolateObject(header_val));
+    intptr_t value = -header_val;  // Header is negative for VM isolate objects.
+    ASSERT(SerializedHeaderTag::decode(value) == kObjectId);
+    return SerializedHeaderData::decode(value);
+  }
 
  private:
   ReadStream stream_;  // input stream.
@@ -241,7 +255,10 @@ class SnapshotReader : public BaseReader {
   RawObject* ReadObjectImpl(intptr_t header);
   RawObject* ReadObjectRef();
 
-  // Read an object that was serialized as an Id (singleton, object store,
+  // Read a VM isolate object that was serialized as an Id.
+  RawObject* ReadVMIsolateObject(intptr_t object_id);
+
+  // Read an object that was serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
   RawObject* ReadIndexedObject(intptr_t object_id);
 
@@ -304,25 +321,30 @@ class BaseWriter {
     Write<int64_t>(value);
   }
 
-  // Write an object that is serialized as an Id (singleton, object store,
+  // Write an object that is serialized as an Id (singleton in object store,
   // or an object that was already serialized before).
   void WriteIndexedObject(intptr_t object_id) {
-    WriteSerializationMarker(kObjectId, object_id);
+    ASSERT(object_id <= kMaxObjectId);
+    intptr_t value = 0;
+    value = SerializedHeaderTag::update(kObjectId, value);
+    value = SerializedHeaderData::update(object_id, value);
+    WriteIntptrValue(value);
   }
 
-  // Write out object header value.
-  void WriteObjectHeader(intptr_t class_id, intptr_t tags) {
-    // Write out the class information.
-    WriteIndexedObject(class_id);
-    // Write out the tags information.
-    WriteIntptrValue(tags);
+  // Write a VM Isolateobject that is serialized as an Id.
+  void WriteVMIsolateObject(intptr_t object_id) {
+    ASSERT(object_id <= kMaxObjectId);
+    intptr_t value = 0;
+    value = SerializedHeaderTag::update(kObjectId, value);
+    value = SerializedHeaderData::update(object_id, value);
+    WriteIntptrValue(-value);  // Write as a negative value.
   }
 
   // Write serialization header information for an object.
-  void WriteSerializationMarker(SerializedHeaderType type, intptr_t id) {
+  void WriteInlinedObjectHeader(intptr_t id) {
     ASSERT(id <= kMaxObjectId);
     intptr_t value = 0;
-    value = SerializedHeaderTag::update(type, value);
+    value = SerializedHeaderTag::update(kInlined, value);
     value = SerializedHeaderData::update(id, value);
     WriteIntptrValue(value);
   }
@@ -409,6 +431,7 @@ class SnapshotWriter : public BaseWriter {
   void UnmarkAll();
 
   bool CheckAndWritePredefinedObject(RawObject* raw);
+  void HandleVMIsolateObject(RawObject* raw);
 
   void WriteObjectRef(RawObject* raw);
   void WriteClassId(RawClass* cls);

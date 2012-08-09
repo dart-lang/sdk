@@ -45,23 +45,23 @@ class _ListInputStream extends _BaseDataInputStream implements ListInputStream {
 class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   _ListOutputStream() : _bufferList = new _BufferList();
 
-  List<int> contents() => _bufferList.readBytes(_bufferList.length);
+  List<int> read() => _bufferList.readBytes(_bufferList.length);
 
-  bool write(List<int> buffer, [bool copyBuffer = false]) {
+  bool write(List<int> buffer, [bool copyBuffer = true]) {
     if (_streamMarkedClosed) throw new StreamException.streamClosed();
     if (copyBuffer) {
       _bufferList.add(buffer.getRange(0, buffer.length));
     } else {
       _bufferList.add(buffer);
     }
+    _checkScheduleCallbacks();
     return true;
   }
 
   bool writeFrom(List<int> buffer, [int offset = 0, int len]) {
-    if (_streamMarkedClosed) throw new StreamException.streamClosed();
-    _bufferList.add(
-        buffer.getRange(offset, (len == null) ? buffer.length - offset : len));
-    return true;
+    return write(
+        buffer.getRange(offset, (len == null) ? buffer.length - offset : len),
+        copyBuffer: false);
   }
 
   void flush() {
@@ -75,6 +75,11 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
 
   void destroy() {
     close();
+  }
+
+  void set onData(void callback()) {
+    _clientDataHandler = callback;
+    _checkScheduleCallbacks();
   }
 
   void set onNoPendingWrites(void callback()) {
@@ -91,9 +96,18 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   }
 
   void _checkScheduleCallbacks() {
+    void issueDataCallback(Timer timer) {
+      _scheduledDataCallback = null;
+      if (_clientDataHandler != null) {
+        _clientDataHandler();
+        _checkScheduleCallbacks();
+      }
+    }
+
     void issueNoPendingWriteCallback(Timer timer) {
       _scheduledNoPendingWriteCallback = null;
-      if (_clientNoPendingWriteHandler !== null) {
+      if (_clientNoPendingWriteHandler != null &&
+          !_streamMarkedClosed) {
         _clientNoPendingWriteHandler();
         _checkScheduleCallbacks();
       }
@@ -108,27 +122,35 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
     // output stream does not wait for any transmission. Schedule
     // close callback once when the stream is closed. Only schedule a
     // new callback if the previous one has actually been called.
-    if (!_closeCallbackCalled) {
-      if (!_streamMarkedClosed) {
-        if (_clientNoPendingWriteHandler != null &&
-            _scheduledNoPendingWriteCallback == null) {
-          _scheduledNoPendingWriteCallback =
-              new Timer(0, issueNoPendingWriteCallback);
-        }
-      } else if (_clientCloseHandler != null &&
-                 _streamMarkedClosed &&
-                 !_closeCallbackCalled) {
-        _scheduledCloseCallback = new Timer(0, issueCloseCallback);
-        _closeCallbackCalled = true;
+    if (_closeCallbackCalled) return;
+
+    if (!_streamMarkedClosed) {
+      if (!_bufferList.isEmpty() &&
+          _clientDataHandler != null &&
+          _scheduledDataCallback == null) {
+        _scheduledDataCallback = new Timer(0, issueDataCallback);
       }
+
+      if (_clientNoPendingWriteHandler != null &&
+          _scheduledNoPendingWriteCallback == null &&
+          _scheduledDataCallback == null) {
+        _scheduledNoPendingWriteCallback =
+          new Timer(0, issueNoPendingWriteCallback);
+      }
+
+    } else if (_clientCloseHandler != null) {
+      _scheduledCloseCallback = new Timer(0, issueCloseCallback);
+      _closeCallbackCalled = true;
     }
   }
 
   _BufferList _bufferList;
   bool _streamMarkedClosed = false;
   bool _closeCallbackCalled = false;
+  Timer _scheduledDataCallback;
   Timer _scheduledNoPendingWriteCallback;
   Timer _scheduledCloseCallback;
+  Function _clientDataHandler;
   Function _clientNoPendingWriteHandler;
   Function _clientCloseHandler;
 }

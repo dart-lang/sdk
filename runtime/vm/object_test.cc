@@ -2536,11 +2536,11 @@ TEST_CASE(PcDescriptors) {
   EXPECT_EQ(kNumEntries, pc_descs.Length());
   EXPECT_EQ(1, pc_descs.TryIndex(0));
   EXPECT_EQ(static_cast<uword>(10), pc_descs.PC(0));
-  EXPECT_EQ(1, pc_descs.NodeId(0));
-  EXPECT_EQ(20, pc_descs.TokenIndex(0));
+  EXPECT_EQ(1, pc_descs.DeoptId(0));
+  EXPECT_EQ(20, pc_descs.TokenPos(0));
   EXPECT_EQ(3, pc_descs.TryIndex(5));
   EXPECT_EQ(static_cast<uword>(80), pc_descs.PC(5));
-  EXPECT_EQ(150, pc_descs.TokenIndex(5));
+  EXPECT_EQ(150, pc_descs.TokenPos(5));
   EXPECT_EQ(PcDescriptors::kOther, pc_descs.DescriptorKind(0));
   EXPECT_EQ(PcDescriptors::kDeopt, pc_descs.DescriptorKind(1));
 }
@@ -2613,7 +2613,7 @@ TEST_CASE(ICData) {
   ICData& o1 = ICData::Handle();
   o1 = ICData::New(function, target_name, id, num_args_tested);
   EXPECT_EQ(1, o1.num_args_tested());
-  EXPECT_EQ(id, o1.id());
+  EXPECT_EQ(id, o1.deopt_id());
   EXPECT_EQ(function.raw(), o1.function());
   EXPECT_EQ(0, o1.NumberOfChecks());
   EXPECT_EQ(target_name.raw(), o1.target_name());
@@ -2642,7 +2642,7 @@ TEST_CASE(ICData) {
   ICData& o2 = ICData::Handle();
   o2 = ICData::New(function, target_name, 57, 2);
   EXPECT_EQ(2, o2.num_args_tested());
-  EXPECT_EQ(57, o2.id());
+  EXPECT_EQ(57, o2.deopt_id());
   EXPECT_EQ(function.raw(), o2.function());
   EXPECT_EQ(0, o2.NumberOfChecks());
   GrowableArray<intptr_t> classes;

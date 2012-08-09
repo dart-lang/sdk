@@ -75,7 +75,6 @@ class LocalVariable;
   M(NativeCall, NativeCallComp)                                                \
   M(LoadIndexed, LoadIndexedComp)                                              \
   M(StoreIndexed, StoreIndexedComp)                                            \
-  M(InstanceSetter, InstanceSetterComp)                                        \
   M(LoadInstanceField, LoadInstanceFieldComp)                                  \
   M(StoreInstanceField, StoreInstanceFieldComp)                                \
   M(LoadStaticField, LoadStaticFieldComp)                                      \
@@ -118,16 +117,14 @@ class Value;
 
 class Computation : public ZoneAllocated {
  public:
-  static const intptr_t kNoCid = -1;
-
-  Computation() : cid_(kNoCid), ic_data_(NULL), locs_(NULL) {
+  Computation() : deopt_id_(Isolate::kNoDeoptId), ic_data_(NULL), locs_(NULL) {
     Isolate* isolate = Isolate::Current();
-    cid_ = isolate->GetNextCid();
-    ic_data_ = isolate->GetICDataForCid(cid_);
+    deopt_id_ = isolate->GetNextDeoptId();
+    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
   }
 
-  // Unique computation/instruction id, used for deoptimization.
-  intptr_t cid() const { return cid_; }
+  // Unique id used for deoptimization.
+  intptr_t deopt_id() const { return deopt_id_; }
 
   ICData* ic_data() const { return ic_data_; }
   void set_ic_data(ICData* value) { ic_data_ = value; }
@@ -205,7 +202,7 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 #undef DECLARE_PREDICATE
 
  private:
-  intptr_t cid_;
+  intptr_t deopt_id_;
   ICData* ic_data_;
   LocationSummary* locs_;
 
@@ -532,6 +529,7 @@ class InstanceCallComp : public Computation {
     ASSERT(Token::IsBinaryToken(token_kind) ||
            Token::IsUnaryToken(token_kind) ||
            token_kind == Token::kGET ||
+           token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
   }
 
@@ -883,7 +881,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   StoreInstanceFieldComp(const Field& field,
                          Value* instance,
                          Value* value,
-                         InstanceSetterComp* original)  // Maybe NULL.
+                         InstanceCallComp* original)  // Maybe NULL.
       : field_(field), original_(original) {
     ASSERT(instance != NULL);
     ASSERT(value != NULL);
@@ -898,7 +896,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
   Value* instance() const { return inputs_[0]; }
   Value* value() const { return inputs_[1]; }
 
-  const InstanceSetterComp* original() const { return original_; }
+  const InstanceCallComp* original() const { return original_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -906,7 +904,7 @@ class StoreInstanceFieldComp : public TemplateComputation<2> {
 
  private:
   const Field& field_;
-  const InstanceSetterComp* original_;  // For optimizations.
+  const InstanceCallComp* original_;  // For optimizations.
 
   DISALLOW_COPY_AND_ASSIGN(StoreInstanceFieldComp);
 };
@@ -1038,43 +1036,6 @@ class StoreIndexedComp : public TemplateComputation<3> {
   ObjectKind receiver_type_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
-};
-
-
-// TODO(fschneider): Make this an instance call.
-class InstanceSetterComp : public Computation {
- public:
-  InstanceSetterComp(intptr_t token_pos,
-                     intptr_t try_index,
-                     const String& field_name,
-                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        field_name_(field_name),
-        arguments_(arguments) { }
-
-  DECLARE_CALL_COMPUTATION(InstanceSetter)
-
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
-  const String& field_name() const { return field_name_; }
-
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
-  PushArgumentInstr* ArgumentAt(intptr_t index) const {
-    return (*arguments_)[index];
-  }
-
-  virtual bool CanDeoptimize() const { return true; }
-
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
- private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
-  const String& field_name_;
-  ZoneGrowableArray<PushArgumentInstr*>* arguments_;
-
-  DISALLOW_COPY_AND_ASSIGN(InstanceSetterComp);
 };
 
 
@@ -1216,7 +1177,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
 };
 
 
-class CreateArrayComp : public TemplateComputation<1> {
+class CreateArrayComp : public Computation {
  public:
   CreateArrayComp(intptr_t token_pos,
                   intptr_t try_index,
@@ -1224,27 +1185,25 @@ class CreateArrayComp : public TemplateComputation<1> {
                   Value* element_type)
       : token_pos_(token_pos),
         try_index_(try_index),
-        elements_(elements) {
+        elements_(elements),
+        element_type_(element_type) {
 #if defined(DEBUG)
     for (int i = 0; i < ElementCount(); ++i) {
       ASSERT(ElementAt(i) != NULL);
     }
     ASSERT(element_type != NULL);
 #endif
-    inputs_[0] = element_type;
   }
 
-  DECLARE_COMPUTATION(CreateArray)
+  DECLARE_CALL_COMPUTATION(CreateArray)
+
+  virtual intptr_t ArgumentCount() const { return ElementCount() + 1; }
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
   intptr_t ElementCount() const { return elements_->length(); }
   Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
-  Value* element_type() const { return inputs_[0]; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const;
-  virtual void SetInputAt(intptr_t i, Value* value);
+  Value* element_type() const { return element_type_; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1254,6 +1213,7 @@ class CreateArrayComp : public TemplateComputation<1> {
   const intptr_t token_pos_;
   const intptr_t try_index_;
   ZoneGrowableArray<Value*>* const elements_;
+  Value* element_type_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
@@ -2480,7 +2440,7 @@ class ReturnInstr : public InstructionWithInputs {
  public:
   ReturnInstr(intptr_t token_pos, Value* value)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         value_(value) {
     ASSERT(value_ != NULL);
@@ -2490,7 +2450,7 @@ class ReturnInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   Value* value() const { return value_; }
 
@@ -2501,7 +2461,7 @@ class ReturnInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   Value* value_;
 
@@ -2513,7 +2473,7 @@ class ThrowInstr : public InstructionWithInputs {
  public:
   ThrowInstr(intptr_t token_pos, intptr_t try_index)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
@@ -2521,7 +2481,7 @@ class ThrowInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 1; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
@@ -2532,7 +2492,7 @@ class ThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
 
@@ -2545,7 +2505,7 @@ class ReThrowInstr : public InstructionWithInputs {
   ReThrowInstr(intptr_t token_pos,
                intptr_t try_index)
       : InstructionWithInputs(),
-        cid_(Isolate::Current()->GetNextCid()),
+        deopt_id_(Isolate::Current()->GetNextDeoptId()),
         token_pos_(token_pos),
         try_index_(try_index) { }
 
@@ -2553,7 +2513,7 @@ class ReThrowInstr : public InstructionWithInputs {
 
   virtual intptr_t ArgumentCount() const { return 2; }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
@@ -2564,7 +2524,7 @@ class ReThrowInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return false; }
 
  private:
-  const intptr_t cid_;  // Computation/instruction id.
+  const intptr_t deopt_id_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
 
@@ -2626,7 +2586,7 @@ class BranchInstr : public InstructionWithInputs {
               Value* right,
               Token::Kind kind)
       : InstructionWithInputs(),
-        cid_(Computation::kNoCid),
+        deopt_id_(Isolate::kNoDeoptId),
         ic_data_(NULL),
         token_pos_(token_pos),
         try_index_(try_index),
@@ -2641,8 +2601,8 @@ class BranchInstr : public InstructionWithInputs {
            Token::IsRelationalOperator(kind) ||
            Token::IsTypeTestOperator(kind));
     Isolate* isolate = Isolate::Current();
-    cid_ = isolate->GetNextCid();
-    ic_data_ = isolate->GetICDataForCid(cid_);
+    deopt_id_ = isolate->GetNextDeoptId();
+    ic_data_ = isolate->GetICDataForDeoptId(deopt_id_);
   }
 
   DECLARE_INSTRUCTION(Branch)
@@ -2659,7 +2619,7 @@ class BranchInstr : public InstructionWithInputs {
     kind_ = kind;
   }
 
-  intptr_t cid() const { return cid_; }
+  intptr_t deopt_id() const { return deopt_id_; }
 
   const ICData* ic_data() const { return ic_data_; }
   bool HasICData() const {
@@ -2697,7 +2657,7 @@ class BranchInstr : public InstructionWithInputs {
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  intptr_t cid_;  // Computation/instruction id.
+  intptr_t deopt_id_;
   ICData* ic_data_;
   const intptr_t token_pos_;
   const intptr_t try_index_;
@@ -2717,13 +2677,11 @@ class BranchInstr : public InstructionWithInputs {
 class Environment : public ZoneAllocated {
  public:
   // Construct an environment by copying from an array of values.
-  // TODO(vegorov): it's absolutely crucial that locations_ backing store
-  // is preallocated and never reallocated.  We use pointers into it
-  // during register allocation.
   explicit Environment(const GrowableArray<Value*>& values,
                        intptr_t fixed_parameter_count)
       : values_(values.length()),
-        locations_(values.length()),
+        location_count_(0),
+        locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
   }
@@ -2732,16 +2690,22 @@ class Environment : public ZoneAllocated {
     return values_;
   }
 
-  void AddLocation(Location value) {
-    locations_.Add(value);
+  void InitializeLocations() {
+    location_count_ = values_.length();
+    if (location_count_ > 0) {
+      locations_ =
+          Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
+    }
   }
 
   Location LocationAt(intptr_t ix) const {
+    ASSERT((ix >= 0) && (ix < location_count_));
     return locations_[ix];
   }
 
   Location* LocationSlotAt(intptr_t ix) const {
-    return & locations_[ix];
+    ASSERT((ix >= 0) && (ix < location_count_));
+    return &locations_[ix];
   }
 
   intptr_t fixed_parameter_count() const {
@@ -2752,7 +2716,8 @@ class Environment : public ZoneAllocated {
 
  private:
   GrowableArray<Value*> values_;
-  GrowableArray<Location> locations_;
+  intptr_t location_count_;
+  Location* locations_;
   const intptr_t fixed_parameter_count_;
 
   DISALLOW_COPY_AND_ASSIGN(Environment);

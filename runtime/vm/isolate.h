@@ -174,17 +174,20 @@ class Isolate : public BaseIsolate {
   uword spawn_data() const { return spawn_data_; }
   void set_spawn_data(uword value) { spawn_data_ = value; }
 
-  // Deprecate.
-  intptr_t ast_node_id() const { return ast_node_id_; }
-  void set_ast_node_id(int value) { ast_node_id_ = value; }
-
-  intptr_t computation_id() const { return computation_id_; }
-  void set_computation_id(int value) { computation_id_ = value; }
-  intptr_t GetNextCid() { return computation_id_++; }
+  static const intptr_t kNoDeoptId = -1;
+  intptr_t deopt_id() const { return deopt_id_; }
+  void set_deopt_id(int value) {
+    ASSERT(value >= 0);
+    deopt_id_ = value;
+  }
+  intptr_t GetNextDeoptId() {
+    ASSERT(deopt_id_ != kNoDeoptId);
+    return deopt_id_++;
+  }
 
   RawArray* ic_data_array() const { return ic_data_array_; }
   void set_ic_data_array(RawArray* value) { ic_data_array_ = value; }
-  ICData* GetICDataForCid(intptr_t cid) const;
+  ICData* GetICDataForDeoptId(intptr_t deopt_id) const;
 
   Debugger* debugger() const { return debugger_; }
 
@@ -258,8 +261,7 @@ class Isolate : public BaseIsolate {
   Debugger* debugger_;
   LongJump* long_jump_base_;
   TimerList timer_list_;
-  intptr_t ast_node_id_;  // Deprecate.
-  intptr_t computation_id_;
+  intptr_t deopt_id_;
   RawArray* ic_data_array_;
   Mutex* mutex_;  // protects stack_limit_ and saved_stack_limit_.
   uword stack_limit_;

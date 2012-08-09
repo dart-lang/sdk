@@ -24,7 +24,8 @@ DECLARE_FLAG(bool, print_scopes);
 DECLARE_FLAG(bool, trace_functions);
 
 
-void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
+void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
+                                      intptr_t stub_ix) {
   Assembler* assem = compiler->assembler();
 #define __ assem->
   __ Comment("Deopt stub for id %d", deopt_id_);
@@ -42,14 +43,9 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
     const intptr_t fixed_parameter_count =
         deoptimization_env_->fixed_parameter_count();
 
-    // 1. Set the stack pointer to the top of the non-optimized frame.
     const GrowableArray<Value*>& values = deoptimization_env_->values();
-    const intptr_t local_slot_count = values.length() - fixed_parameter_count;
-    const intptr_t top_offset =
-        ParsedFunction::kFirstLocalSlotIndex - (local_slot_count - 1);
-    __ leal(ESP, Address(EBP, top_offset * kWordSize));
 
-    // 2. Build and emit a parallel move representing the frame translation.
+    // 1. Build a parallel move representing the frame translation.
     ParallelMoveInstr* move = new ParallelMoveInstr();
     for (intptr_t i = 0; i < values.length(); i++) {
       Location destination = Location::StackSlot(i - fixed_parameter_count);
@@ -60,7 +56,33 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
       }
       move->AddMove(destination, source);
     }
+
+
+    const intptr_t local_slot_count = values.length() - fixed_parameter_count;
+    const intptr_t top_offset =
+        ParsedFunction::kFirstLocalSlotIndex - (local_slot_count - 1);
+
+    // ParallelMoveResolver will use push and pop to allocate internally a
+    // scratch register for memory to memory moves.  This means we have to
+    // ensure that these stack manipulations will not interfere with actual
+    // moves. If number of local slots exceed number of spill slots we need
+    // to expand reserved stack area before resolving parallel move. Otherwise
+    // we need to shrink stack area after resolving parallel move. This
+    // guarantees that all moves happen below stack pointer and will not
+    // interfere with additional push/pops.
+    const intptr_t spill_slot_count = compiler->StackSize();
+
+    if (local_slot_count > spill_slot_count) {
+      // Expand reserved stack area.
+      __ leal(ESP, Address(EBP, top_offset * kWordSize));
+    }
+
     compiler->parallel_move_resolver()->EmitNativeCode(move);
+
+    if (local_slot_count < spill_slot_count) {
+      // Shrink reserved stack area.
+      __ leal(ESP, Address(EBP, top_offset * kWordSize));
+    }
   }
 
   if (compiler->IsLeaf()) {
@@ -75,10 +97,12 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler) {
   }
   __ movl(EAX, Immediate(Smi::RawValue(reason_)));
   __ call(&StubCode::DeoptimizeLabel());
-  compiler->AddCurrentDescriptor(PcDescriptors::kOther,
-                                 deopt_id_,
-                                 deopt_token_pos_,
-                                 try_index_);
+  const intptr_t deopt_info_index = stub_ix;
+  compiler->pc_descriptors_list()-> AddDeoptInfo(
+      compiler->assembler()->CodeSize(),
+      deopt_id_,
+      deopt_token_pos_,
+      deopt_info_index);
 #undef __
 }
 
@@ -149,7 +173,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateCallSubtypeTestStub(
 // Clobbers ECX, EDI.
 RawSubtypeTestCache*
 FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
-    intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
@@ -178,7 +201,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       GenerateListTypeCheck(kClassIdReg, is_instance_lbl);
     }
     return GenerateSubtype1TestCacheLookup(
-        cid, token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+        token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
   }
   // If one type argument only, check if type argument is Object or Dynamic.
   if (type_arguments.Length() == 1) {
@@ -192,7 +215,7 @@ FlowGraphCompiler::GenerateInstantiatedTypeWithArgumentsTest(
       if (object_type.IsSubtypeOf(tp_argument, NULL)) {
         // Instance class test only necessary.
         return GenerateSubtype1TestCacheLookup(
-            cid, token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
+            token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
       }
     }
   }
@@ -226,7 +249,6 @@ void FlowGraphCompiler::CheckClassIds(Register class_id_reg,
 // Clobbers ECX, EDI.
 // Returns true if there is a fallthrough.
 bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
-    intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
@@ -301,7 +323,6 @@ bool FlowGraphCompiler::GenerateInstantiatedTypeNoArgumentsTest(
 // arrays can grow too high, but they may be useful when optimizing
 // code (type-feedback).
 RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
-    intptr_t cid,
     intptr_t token_pos,
     const Class& type_class,
     Label* is_instance_lbl,
@@ -330,7 +351,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateSubtype1TestCacheLookup(
 // EAX: instance (preserved).
 // Clobbers EDX, EDI, ECX.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
-    intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
@@ -422,7 +442,6 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateUninstantiatedTypeTest(
 // may fall through to it. Otherwise, this inline code will jump to the label
 // is_instance or to the label is_not_instance.
 RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
-    intptr_t cid,
     intptr_t token_pos,
     const AbstractType& type,
     Label* is_instance_lbl,
@@ -438,16 +457,14 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
     // A class equality check is only applicable with a dst type of a
     // non-parameterized class or with a raw dst type of a parameterized class.
     if (type_class.HasTypeArguments()) {
-      return GenerateInstantiatedTypeWithArgumentsTest(cid,
-                                                       token_pos,
+      return GenerateInstantiatedTypeWithArgumentsTest(token_pos,
                                                        type,
                                                        is_instance_lbl,
                                                        is_not_instance_lbl);
       // Fall through to runtime call.
     }
     const bool has_fall_through =
-        GenerateInstantiatedTypeNoArgumentsTest(cid,
-                                                token_pos,
+        GenerateInstantiatedTypeNoArgumentsTest(token_pos,
                                                 type,
                                                 is_instance_lbl,
                                                 is_not_instance_lbl);
@@ -455,14 +472,12 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
       // If test non-conclusive so far, try the inlined type-test cache.
       // 'type' is known at compile time.
       return GenerateSubtype1TestCacheLookup(
-          cid, token_pos, type_class,
-          is_instance_lbl, is_not_instance_lbl);
+          token_pos, type_class, is_instance_lbl, is_not_instance_lbl);
     } else {
       return SubtypeTestCache::null();
     }
   }
-  return GenerateUninstantiatedTypeTest(cid,
-                                        token_pos,
+  return GenerateUninstantiatedTypeTest(token_pos,
                                         type,
                                         is_instance_lbl,
                                         is_not_instance_lbl);
@@ -481,7 +496,7 @@ RawSubtypeTestCache* FlowGraphCompiler::GenerateInlineInstanceof(
 // Clobbers ECX and EDX.
 // Returns:
 // - true or false in EAX.
-void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
+void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
                                            intptr_t token_pos,
                                            intptr_t try_index,
                                            const AbstractType& type,
@@ -509,7 +524,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 
   // Generate inline instanceof test.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  test_cache = GenerateInlineInstanceof(cid, token_pos, type,
+  test_cache = GenerateInlineInstanceof(token_pos, type,
                                         &is_instance, &is_not_instance);
 
   // test_cache is null if there is no fall-through.
@@ -519,17 +534,17 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
     __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
     __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
     __ PushObject(Object::ZoneHandle());  // Make room for the result.
-    __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
     __ pushl(EAX);  // Push the instance.
     __ PushObject(type);  // Push the type.
     __ pushl(ECX);  // Instantiator.
     __ pushl(EDX);  // Instantiator type arguments.
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
-    GenerateCallRuntime(cid, token_pos, try_index, kInstanceofRuntimeEntry);
+    GenerateCallRuntime(deopt_id, token_pos, try_index,
+                        kInstanceofRuntimeEntry);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
-    __ Drop(6);
+    __ Drop(5);
     if (negate_result) {
       __ popl(EDX);
       __ LoadObject(EAX, bool_true());
@@ -565,7 +580,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t cid,
 // - object in EAX for successful assignable check (or throws TypeError).
 // Performance notes: positive checks must be quick, negative checks can be slow
 // as they throw an exception.
-void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
+void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                                                  intptr_t token_pos,
                                                  intptr_t try_index,
                                                  const AbstractType& dst_type,
@@ -594,7 +609,7 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
     __ pushl(EAX);  // Push the source object.
     __ PushObject(dst_name);  // Push the name of the destination.
     __ PushObject(error_message);
-    GenerateCallRuntime(cid,
+    GenerateCallRuntime(deopt_id,
                         token_pos,
                         try_index,
                         kMalformedTypeErrorRuntimeEntry);
@@ -607,14 +622,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
 
   // Generate inline type check, linking to runtime call if not assignable.
   SubtypeTestCache& test_cache = SubtypeTestCache::ZoneHandle();
-  test_cache = GenerateInlineInstanceof(cid, token_pos, dst_type,
+  test_cache = GenerateInlineInstanceof(token_pos, dst_type,
                                         &is_assignable, &runtime_call);
 
   __ Bind(&runtime_call);
   __ movl(EDX, Address(ESP, 0));  // Get instantiator type arguments.
   __ movl(ECX, Address(ESP, kWordSize));  // Get instantiator.
   __ PushObject(Object::ZoneHandle());  // Make room for the result.
-  __ pushl(Immediate(Smi::RawValue(cid)));  // Computation id.
   __ pushl(EAX);  // Push the source object.
   __ PushObject(dst_type);  // Push the type of the destination.
   __ pushl(ECX);  // Instantiator.
@@ -622,13 +636,13 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t cid,
   __ PushObject(dst_name);  // Push the name of the destination.
   __ LoadObject(EAX, test_cache);
   __ pushl(EAX);
-  GenerateCallRuntime(cid,
+  GenerateCallRuntime(deopt_id,
                       token_pos,
                       try_index,
                       kTypeCheckRuntimeEntry);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
-  __ Drop(7);
+  __ Drop(6);
   __ popl(EAX);
 
   __ Bind(&is_assignable);
@@ -801,7 +815,7 @@ void FlowGraphCompiler::CopyParameters() {
     __ addl(ESP, Immediate(StackSize() * kWordSize));
   }
   if (function.IsClosureFunction()) {
-    GenerateCallRuntime(AstNode::kNoId,
+    GenerateCallRuntime(Isolate::kNoDeoptId,
                         0,
                         CatchClauseNode::kInvalidTryIndex,
                         kClosureArgumentMismatchRuntimeEntry);
@@ -812,7 +826,7 @@ void FlowGraphCompiler::CopyParameters() {
     ICData& ic_data = ICData::ZoneHandle();
     ic_data = ICData::New(function,
                           String::Handle(function.name()),
-                          AstNode::kNoId,
+                          Isolate::kNoDeoptId,
                           kNumArgsChecked);
     __ LoadObject(ECX, ic_data);
     // EBP - 4 : PC marker, allows easy identification of RawInstruction obj.
@@ -828,7 +842,7 @@ void FlowGraphCompiler::CopyParameters() {
   if (FLAG_trace_functions) {
     __ pushl(EAX);  // Preserve result.
     __ PushObject(Function::ZoneHandle(function.raw()));
-    GenerateCallRuntime(AstNode::kNoId,
+    GenerateCallRuntime(Isolate::kNoDeoptId,
                         0,
                         CatchClauseNode::kInvalidTryIndex,
                         kTraceFunctionExitRuntimeEntry);
@@ -949,7 +963,7 @@ void FlowGraphCompiler::CompileGraph() {
       __ cmpl(EAX, Immediate(Smi::RawValue(parameter_count)));
       __ j(EQUAL, &argc_in_range, Assembler::kNearJump);
       if (function.IsClosureFunction()) {
-        GenerateCallRuntime(AstNode::kNoId,
+        GenerateCallRuntime(Isolate::kNoDeoptId,
                             function.token_pos(),
                             CatchClauseNode::kInvalidTryIndex,
                             kClosureArgumentMismatchRuntimeEntry);
@@ -987,7 +1001,7 @@ void FlowGraphCompiler::CompileGraph() {
             Address::Absolute(Isolate::Current()->stack_limit_address()));
     Label no_stack_overflow;
     __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
-    GenerateCallRuntime(AstNode::kNoId,
+    GenerateCallRuntime(Isolate::kNoDeoptId,
                         function.token_pos(),
                         CatchClauseNode::kInvalidTryIndex,
                         kStackOverflowRuntimeEntry);
@@ -1011,7 +1025,7 @@ void FlowGraphCompiler::CompileGraph() {
   // at entry point.
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kPatchCode,
                                        assembler()->CodeSize(),
-                                       AstNode::kNoId,
+                                       Isolate::kNoDeoptId,
                                        0,
                                        -1);
   __ jmp(&StubCode::FixCallersTargetLabel());
@@ -1025,18 +1039,18 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
   ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ call(label);
-  AddCurrentDescriptor(kind, AstNode::kNoId, token_pos, try_index);
+  AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
 }
 
 
-void FlowGraphCompiler::GenerateCallRuntime(intptr_t cid,
+void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
                                             intptr_t try_index,
                                             const RuntimeEntry& entry) {
   ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
-  AddCurrentDescriptor(PcDescriptors::kOther, cid, token_pos, try_index);
+  AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
 }
 
 

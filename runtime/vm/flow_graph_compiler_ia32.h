@@ -43,6 +43,9 @@ class FlowGraphCompiler : public ValueObject {
   DescriptorList* pc_descriptors_list() const {
     return pc_descriptors_list_;
   }
+  const GrowableObjectArray& object_table() {
+    return object_table_;
+  }
   BlockEntryInstr* current_block() const { return current_block_; }
   void set_current_block(BlockEntryInstr* value) {
     current_block_ = value;
@@ -77,7 +80,7 @@ class FlowGraphCompiler : public ValueObject {
   // no fall-through to regular code is needed.
   bool TryIntrinsify();
 
-  void GenerateCallRuntime(intptr_t cid,
+  void GenerateCallRuntime(intptr_t deopt_id,
                            intptr_t token_pos,
                            intptr_t try_index,
                            const RuntimeEntry& entry);
@@ -87,19 +90,19 @@ class FlowGraphCompiler : public ValueObject {
                     const ExternalLabel* label,
                     PcDescriptors::Kind kind);
 
-  void GenerateAssertAssignable(intptr_t cid,
+  void GenerateAssertAssignable(intptr_t deopt_id,
                                 intptr_t token_pos,
                                 intptr_t try_index,
                                 const AbstractType& dst_type,
                                 const String& dst_name);
 
-  void GenerateInstanceOf(intptr_t cid,
+  void GenerateInstanceOf(intptr_t deopt_id,
                           intptr_t token_pos,
                           intptr_t try_index,
                           const AbstractType& type,
                           bool negate_result);
 
-  void GenerateInstanceCall(intptr_t cid,
+  void GenerateInstanceCall(intptr_t deopt_id,
                             intptr_t token_pos,
                             intptr_t try_index,
                             const String& function_name,
@@ -107,7 +110,7 @@ class FlowGraphCompiler : public ValueObject {
                             const Array& argument_names,
                             intptr_t checked_argument_count);
 
-  void GenerateStaticCall(intptr_t cid,
+  void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,
                           intptr_t try_index,
                           const Function& function,
@@ -147,7 +150,7 @@ class FlowGraphCompiler : public ValueObject {
                        const Array& arg_names,
                        Label* deopt,
                        Label* done,  // Can be NULL, which means fallthrough.
-                       intptr_t cid,
+                       intptr_t deopt_id,
                        intptr_t token_index,
                        intptr_t try_index);
 
@@ -171,7 +174,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void AddExceptionHandler(intptr_t try_index, intptr_t pc_offset);
   void AddCurrentDescriptor(PcDescriptors::Kind kind,
-                            intptr_t cid,
+                            intptr_t deopt_id,
                             intptr_t token_pos,
                             intptr_t try_index);
   Label* AddDeoptStub(intptr_t deopt_id,
@@ -184,6 +187,7 @@ class FlowGraphCompiler : public ValueObject {
 
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
+  void FinalizeDeoptInfo(const Code& code);
   void FinalizeStackmaps(const Code& code);
   void FinalizeVarDescriptors(const Code& code);
   void FinalizeComments(const Code& code);
@@ -220,34 +224,29 @@ class FlowGraphCompiler : public ValueObject {
                      Label* is_instance_lbl,
                      Label* is_not_instance_lbl);
 
-  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t cid,
-                                                intptr_t token_pos,
+  RawSubtypeTestCache* GenerateInlineInstanceof(intptr_t token_pos,
                                                 const AbstractType& type,
                                                 Label* is_instance_lbl,
                                                 Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateInstantiatedTypeWithArgumentsTest(
-      intptr_t cid,
       intptr_t token_pos,
       const AbstractType& dst_type,
       Label* is_instance_lbl,
       Label* is_not_instance_lbl);
 
-  bool GenerateInstantiatedTypeNoArgumentsTest(intptr_t cid,
-                                               intptr_t token_pos,
+  bool GenerateInstantiatedTypeNoArgumentsTest(intptr_t token_pos,
                                                const AbstractType& dst_type,
                                                Label* is_instance_lbl,
                                                Label* is_not_instance_lbl);
 
   RawSubtypeTestCache* GenerateUninstantiatedTypeTest(
-      intptr_t cid,
       intptr_t token_pos,
       const AbstractType& dst_type,
       Label* is_instance_lbl,
       Label* is_not_instance_label);
 
   RawSubtypeTestCache* GenerateSubtype1TestCacheLookup(
-      intptr_t cid,
       intptr_t token_pos,
       const Class& type_class,
       Label* is_instance_lbl,
@@ -297,6 +296,7 @@ class FlowGraphCompiler : public ValueObject {
   StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
+  const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
   const bool is_ssa_;
   const bool is_dart_leaf_;

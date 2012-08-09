@@ -250,7 +250,6 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
-condition_bailout_test: Fail
 const_test: Fail
 # default_factory3_test: Fail # Depends on empty class processing.
 dynamic_test: Fail # Depends on empty class processing.
@@ -289,12 +288,11 @@ library5_test: Fail
 library_same_name_used_test: Fail
 local_function2_test: Fail
 method_override2_test/none: Fail
-naming_test: Fail
+method_override_test: Fail
+named_parameters_type_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
-operator3_test: Fail
-operator_test: Fail
 prefix14_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail

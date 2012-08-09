@@ -188,29 +188,6 @@ intptr_t AllocateObjectWithBoundsCheckComp::InputCount() const {
 }
 
 
-intptr_t CreateArrayComp::InputCount() const {
-  return ElementCount() + 1;
-}
-
-
-Value* CreateArrayComp::InputAt(intptr_t i) const {
-  if (i == 0) {
-    return element_type();
-  } else {
-    return ElementAt(i - 1);
-  }
-}
-
-
-void CreateArrayComp::SetInputAt(intptr_t i, Value* value) {
-  if (i == 0) {
-    inputs_[0] = value;
-  } else {
-    (*elements_)[i - 1] = value;
-  }
-}
-
-
 intptr_t BranchInstr::InputCount() const {
   return 2;
 }
@@ -561,21 +538,18 @@ void BlockEntryInstr::DiscoverBlocks(
   // 5. Iterate straight-line successors until a branch instruction or
   // another basic block entry instruction, and visit that instruction.
   ASSERT(next() != NULL);
+  ASSERT(!next()->IsBlockEntry());
   Instruction* next_instr = next();
-  if (next_instr->IsBlockEntry()) {
-    set_last_instruction(this);
-  } else {
-    while ((next_instr != NULL) &&
-           !next_instr->IsBlockEntry() &&
-           !next_instr->IsBranch()) {
-      if (vars != NULL) {
-        next_instr->RecordAssignedVars(vars, fixed_parameter_count);
-      }
-      set_last_instruction(next_instr);
-      GotoInstr* goto_instr = next_instr->AsGoto();
-      next_instr =
-          (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
+  while ((next_instr != NULL) &&
+         !next_instr->IsBlockEntry() &&
+         !next_instr->IsBranch()) {
+    if (vars != NULL) {
+      next_instr->RecordAssignedVars(vars, fixed_parameter_count);
     }
+    set_last_instruction(next_instr);
+    GotoInstr* goto_instr = next_instr->AsGoto();
+    next_instr =
+        (goto_instr != NULL) ? goto_instr->successor() : next_instr->next();
   }
   if (next_instr != NULL) {
     next_instr->DiscoverBlocks(this, preorder, postorder,
@@ -794,13 +768,6 @@ RawAbstractType* LoadIndexedComp::StaticType() const {
 
 
 RawAbstractType* StoreIndexedComp::StaticType() const {
-  UNREACHABLE();
-  return AbstractType::null();
-}
-
-
-RawAbstractType* InstanceSetterComp::StaticType() const {
-  // This computation does not have a result value.
   UNREACHABLE();
   return AbstractType::null();
 }
@@ -1026,7 +993,7 @@ void StoreInstanceFieldComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   if (HasICData()) {
     ASSERT(original() != NULL);
-    Label* deopt = compiler->AddDeoptStub(original()->cid(),
+    Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
                                           original()->token_pos(),
                                           original()->try_index(),
                                           kDeoptInstanceGetterSameTarget,
@@ -1051,7 +1018,7 @@ LocationSummary* ThrowInstr::MakeLocationSummary() const {
 
 
 void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(cid(),
+  compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
                                 kThrowRuntimeEntry);
@@ -1065,7 +1032,7 @@ LocationSummary* ReThrowInstr::MakeLocationSummary() const {
 
 
 void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateCallRuntime(cid(),
+  compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
                                 kReThrowRuntimeEntry);
@@ -1206,10 +1173,10 @@ LocationSummary* InstanceCallComp::MakeLocationSummary() const {
 
 void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 cid(),
+                                 deopt_id(),
                                  token_pos(),
                                  try_index());
-  compiler->GenerateInstanceCall(cid(),
+  compiler->GenerateInstanceCall(deopt_id(),
                                  token_pos(),
                                  try_index(),
                                  function_name(),
@@ -1230,7 +1197,7 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateInlinedMathSqrt(&done);
     // Falls through to static call when operand type is not double or smi.
   }
-  compiler->GenerateStaticCall(cid(),
+  compiler->GenerateStaticCall(deopt_id(),
                                token_pos(),
                                try_index(),
                                function(),
@@ -1251,7 +1218,7 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateAssertAssignable(cid(),
+  compiler->GenerateAssertAssignable(deopt_id(),
                                      token_pos(),
                                      try_index(),
                                      dst_type(),

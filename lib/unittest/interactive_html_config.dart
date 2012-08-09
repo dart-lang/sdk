@@ -73,11 +73,8 @@ class SlaveInteractiveHtmlConfiguration extends Configuration {
   get autoStart() => false;
 
   void onInit() {
-    _onErrorClosure = (e) {
-      // TODO(vsm): figure out how to expose the stack trace here
-      // Currently e.message works in dartium, but not in dartc.
-      reportTestError('(DOM callback has errors) Caught ${e}', '');
-    };
+    _onErrorClosure =
+        (e) => handleExternalError(e, '(DOM callback has errors)');
 
     /**
      *  The master posts a 'start' message to kick things off,
@@ -226,11 +223,8 @@ class MasterInteractiveHtmlConfiguration extends Configuration {
 
   void onInit() {
     _messageHandler = _handleMessage; // We need to make just one closure.
-    _onErrorClosure = (e) {
-      // TODO(vsm): figure out how to expose the stack trace here
-      // Currently e.message works in dartium, but not in dartc.
-      reportTestError('(DOM callback has errors) Caught ${e}', '');
-    };
+    _onErrorClosure =
+        (e) => handleExternalError(e, '(DOM callback has errors)');
     document.query('#group-divs').innerHTML = "";
   }
 

@@ -18,7 +18,7 @@ AstPrinter::~AstPrinter() { }
 
 
 void AstPrinter::VisitGenericAstNode(AstNode* node) {
-  OS::Print("(%d: %s ", node->id(), node->Name());
+  OS::Print("(%s ", node->Name());
   node->VisitChildren(this);
   OS::Print(")");
 }
@@ -30,8 +30,7 @@ void AstPrinter::VisitSequenceNode(SequenceNode* node_sequence) {
   // CodeGeneratorContext.
   ASSERT(node_sequence != NULL);
   for (int i = 0; i < node_sequence->length(); i++) {
-    OS::Print("id %d, scope 0x%x: ",
-              node_sequence->NodeAt(i)->id(),
+    OS::Print("scope 0x%x: ",
               node_sequence->scope());
     node_sequence->NodeAt(i)->Visit(this);
     OS::Print("\n");

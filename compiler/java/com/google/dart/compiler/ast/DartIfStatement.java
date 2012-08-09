@@ -12,10 +12,15 @@ public class DartIfStatement extends DartStatement {
   private DartExpression condition;
   private DartStatement thenStmt;
   private DartStatement elseStmt;
+  private final int closeParenOffset;
+  private final int elseTokenOffset;
 
-  public DartIfStatement(DartExpression condition, DartStatement thenStmt, DartStatement elseStmt) {
+  public DartIfStatement(DartExpression condition, int closeParentOffset, DartStatement thenStmt,
+      int elseTokenOffset, DartStatement elseStmt) {
     this.condition = becomeParentOf(condition);
+    closeParenOffset = closeParentOffset;
     this.thenStmt = becomeParentOf(thenStmt);
+    this.elseTokenOffset = elseTokenOffset;
     this.elseStmt = becomeParentOf(elseStmt);
   }
 
@@ -23,12 +28,20 @@ public class DartIfStatement extends DartStatement {
     return condition;
   }
 
-  public DartStatement getElseStatement() {
-    return elseStmt;
+  public int getCloseParenOffset() {
+    return closeParenOffset;
   }
 
   public DartStatement getThenStatement() {
     return thenStmt;
+  }
+
+  public int getElseTokenOffset() {
+    return elseTokenOffset;
+  }
+
+  public DartStatement getElseStatement() {
+    return elseStmt;
   }
 
   @Override

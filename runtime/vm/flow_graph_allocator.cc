@@ -352,9 +352,10 @@ LiveRange* FlowGraphAllocator::MakeLiveRangeForTemporary() {
 
 
 // Block location from the start of the instruction to its end.
-void FlowGraphAllocator::BlockLocation(Location loc, intptr_t pos) {
+void FlowGraphAllocator::BlockLocation(Location loc,
+                                       intptr_t from,
+                                       intptr_t to) {
   ASSERT(loc.IsRegister());
-  ASSERT(IsInstructionStartPosition(pos));
   const Register reg = loc.reg();
   if (blocked_cpu_regs_[reg]) return;
   if (cpu_regs_[reg].length() == 0) {
@@ -365,7 +366,7 @@ void FlowGraphAllocator::BlockLocation(Location loc, intptr_t pos) {
     temporaries_.Add(range);
 #endif
   }
-  cpu_regs_[reg][0]->AddUseInterval(pos, pos + 1);
+  cpu_regs_[reg][0]->AddUseInterval(from, to);
 }
 
 
@@ -447,6 +448,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
     ConnectIncomingPhiMoves(block);
   }
 
+  const bool copied = builder_->copied_parameter_count() > 0;
+
   // Process incoming parameters.
   const intptr_t fixed_parameters_count =
       builder_->parsed_function().function().num_fixed_parameters();
@@ -461,10 +464,19 @@ void FlowGraphAllocator::BuildLiveRanges() {
       range->AddUseInterval(graph_entry->start_pos(), graph_entry->end_pos());
       range->DefineAt(graph_entry->start_pos());
 
-      // Slot index for the rightmost parameter is -1.
-      const intptr_t slot_index = param->index() - fixed_parameters_count;
+      // Slot index for the leftmost copied parameter is 0.
+      intptr_t slot_index = param->index();
+      if (!copied) {
+        // Slot index for the rightmost fixed parameter is -1.
+        slot_index -= fixed_parameters_count;
+      }
+
       range->set_assigned_location(Location::StackSlot(slot_index));
       range->set_spill_slot(Location::StackSlot(slot_index));
+      if (copied) {
+        ASSERT(spill_slots_.length() == slot_index);
+        spill_slots_.Add(range->End());
+      }
 
       range->finger()->Initialize(range);
       UsePosition* use = range->finger()->FirstRegisterBeneficialUse(
@@ -650,19 +662,20 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     Environment* env = current->env();
     const GrowableArray<Value*>& values = env->values();
-
+    env->InitializeLocations();
     for (intptr_t j = 0; j < values.length(); j++) {
       Value* val = values[j];
+      Location* loc = env->LocationSlotAt(j);
       if (val->IsUse()) {
-        env->AddLocation(Location::Any());
+        *loc = Location::Any();
         const intptr_t vreg = val->AsUse()->definition()->ssa_temp_index();
 
         LiveRange* range = GetLiveRange(vreg);
         range->AddUseInterval(block->start_pos(), pos + 1);
-        range->AddUse(pos + 1, env->LocationSlotAt(j));
+        range->AddUse(pos + 1, loc);
       } else {
         ASSERT(val->IsConstant());
-        env->AddLocation(Location::NoLocation());
+        *loc = Location::NoLocation();
       }
     }
   }
@@ -684,15 +697,15 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       // Input is expected in a fixed register. Expected shape of
       // live ranges:
       //
-      //                 i  i'
+      //                 j' i  i'
       //      value    --*
-      //      register   [--)
+      //      register   [-----)
       //
       MoveOperands* move =
-          AddMoveAt(pos, *in_ref, Location::PrefersRegister());
-      BlockLocation(*in_ref, pos);
-      range->AddUseInterval(block->start_pos(), pos);
-      range->AddUse(pos, move->src_slot());
+          AddMoveAt(pos - 1, *in_ref, Location::Any());
+      BlockLocation(*in_ref, pos - 1, pos + 1);
+      range->AddUseInterval(block->start_pos(), pos - 1);
+      range->AddUse(pos - 1, move->src_slot());
     } else {
       // Normal unallocated input. Expected shape of
       // live ranges:
@@ -716,7 +729,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     Location temp = locs->temp(j);
     if (temp.IsRegister()) {
-      BlockLocation(temp, pos);
+      BlockLocation(temp, pos, pos + 1);
     } else if (temp.IsUnallocated()) {
       LiveRange* range = MakeLiveRangeForTemporary();
       range->AddUseInterval(pos, pos + 1);
@@ -737,7 +750,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
       BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)),
-                    pos);
+                    pos,
+                    pos + 1);
     }
 
 #if defined(DEBUG)
@@ -782,7 +796,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //    register        [--)
     //    output             [-------
     //
-    BlockLocation(*out, pos);
+    BlockLocation(*out, pos, pos + 1);
 
     if (range->vreg() == kTempVirtualRegister) return;
 
@@ -808,7 +822,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     range->DefineAt(pos + 1);
     if (range->Start() == range->End()) return;
 
-    MoveOperands* move = AddMoveAt(pos + 1, Location::PrefersRegister(), *out);
+    MoveOperands* move = AddMoveAt(pos + 1, Location::Any(), *out);
     range->AddUse(pos + 1, move->dest_slot());
   } else if (output_same_as_first_input) {
     // Output register will contain a value of the first input at instruction's
@@ -824,7 +838,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     locs->set_out(Location::RequiresRegister());
     MoveOperands* move = AddMoveAt(pos,
                                    Location::RequiresRegister(),
-                                   Location::PrefersRegister());
+                                   Location::Any());
 
     // Add uses to the live range of the input.
     Value* input = current->InputAt(0);
@@ -1078,6 +1092,19 @@ UsePosition* AllocationFinger::FirstRegisterBeneficialUse(intptr_t after) {
 }
 
 
+void AllocationFinger::UpdateAfterSplit(intptr_t first_use_after_split_pos) {
+  if ((first_register_use_ != NULL) &&
+      (first_register_use_->pos() >= first_use_after_split_pos)) {
+    first_register_use_ = NULL;
+  }
+
+  if ((first_register_beneficial_use_ != NULL) &&
+      (first_register_beneficial_use_->pos() >= first_use_after_split_pos)) {
+    first_register_beneficial_use_ = NULL;
+  }
+}
+
+
 intptr_t UseInterval::Intersect(UseInterval* other) {
   if (this->start() <= other->start()) {
     if (other->start() < this->end()) return other->start();
@@ -1119,7 +1146,6 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
     interval = finger_.first_pending_use_interval();
   }
 
-  ASSERT(interval->start() < split_pos);
   ASSERT(split_pos < End());
 
   // Corner case. We need to start over to find previous interval.
@@ -1181,6 +1207,11 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
 
   last_use_interval_ = last_before_split;
   last_use_interval_->next_ = NULL;
+
+  if (first_use_after_split != NULL) {
+    finger_.UpdateAfterSplit(first_use_after_split->pos());
+  }
+
   return next_sibling_;
 }
 
@@ -1432,7 +1463,7 @@ bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
         allocated->finger()->first_pending_use_interval();
     if (first_pending_use_interval->Contains(start)) {
       // This is an active interval.
-      if (allocated->vreg() <= 0) {
+      if (allocated->vreg() < 0) {
         // This register blocked by an interval that
         // can't be spilled.
         return false;
@@ -1816,6 +1847,21 @@ void FlowGraphAllocator::AllocateRegisters() {
 
   if (FLAG_print_ssa_liveness) {
     DumpLiveness();
+  }
+
+  if (FLAG_print_ssa_liveranges) {
+    const Function& function = builder_->parsed_function().function();
+
+    OS::Print("-- [before ssa allocator] ranges [%s] ---------\n",
+              function.ToFullyQualifiedCString());
+    PrintLiveRanges();
+    OS::Print("----------------------------------------------\n");
+
+    OS::Print("-- [before ssa allocator] ir [%s] -------------\n",
+              function.ToFullyQualifiedCString());
+    FlowGraphPrinter printer(Function::Handle(), block_order_, true);
+    printer.PrintBlocks();
+    OS::Print("----------------------------------------------\n");
   }
 
   AllocateCPURegisters();

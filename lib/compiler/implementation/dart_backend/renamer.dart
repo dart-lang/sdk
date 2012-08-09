@@ -2,6 +2,62 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class SendRenamer extends ResolvedVisitor<String> {
+  final ConflictingRenamer renamer;
+
+  SendRenamer(this.renamer, elements) : super(elements);
+
+  String visitSuperSend(Send node) => null;
+  String visitOperatorSend(Send node) => null;
+  String visitClosureSend(Send node) => null;
+  String visitDynamicSend(Send node) => null;
+  String visitForeignSend(Send node) => null;
+
+  String visitGetterSend(Send node) {
+    final element = elements[node];
+    if (element === null || !element.isTopLevel()) return null;
+    return renamer.renameElement(element);
+  }
+
+  String visitStaticSend(Send node) {
+    final element = elements[node];
+
+    if (element.isTopLevel()) return renamer.renameElement(element);
+
+    if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
+      // Don't want to rename redirects to :this(args) or super calls.
+      if (Initializers.isConstructorRedirect(node)) return null;
+      if (Initializers.isSuperConstructorCall(node)) return null;
+
+      TypeAnnotation typeAnnotation;
+      if (node.selector is TypeAnnotation) {
+        // <simple class name> case.
+        typeAnnotation = node.selector;
+      } else if (node.selector.receiver is TypeAnnotation) {
+        // <complex generic type> case.
+        typeAnnotation = node.selector.receiver;
+      } else {
+        internalError("Don't know how to deduce type", node: node);
+      }
+      final type = new Unparser(renamer).unparse(typeAnnotation);
+
+      final constructor = element.asFunctionElement().cachedNode;
+      final nameAsSend = constructor.name.asSend();
+      if (nameAsSend !== null) {
+        final name = nameAsSend.selector.asIdentifier().source.slowToString();
+        return '$type.$name';
+      }
+      return '$type';
+    }
+
+    return null;
+  }
+
+  void internalError(String reason, [Node node]) {
+    renamer.compiler.cancel(reason: reason, node: node);
+  }
+}
+
 /**
  * Renames only top-level elements that would let to ambiguity if not renamed.
  * TODO(smok): Make sure that top-level fields are correctly renamed.
@@ -27,41 +83,8 @@ class ConflictingRenamer extends Renamer {
     contextElements = resolvedElements[element];
   }
 
-  String getFactoryName(FunctionExpression node) =>
-      node.name.asSend().selector.asIdentifier().source.slowToString();
-
-  String renameSendMethod(Send send) {
-    if (contextElements[send] === null) return null;
-    Element element = contextElements[send];
-    if (element.isTopLevel()) {
-      return renameElement(element);
-    } else if (
-        (element.isGenerativeConstructor() || element.isFactoryConstructor())
-        && element.asFunctionElement().cachedNode.name is Send
-        // Don't want to rename redirects to :this(args).
-        && !Initializers.isConstructorRedirect(send)
-        // Don't want to rename super calls.
-        && !Initializers.isSuperConstructorCall(send)) {
-      FunctionExpression constructor = element.asFunctionElement().cachedNode;
-      TypeAnnotation typeAnnotation;
-      if (send.selector is TypeAnnotation) {
-        // <simple class name>.<name> case.
-        typeAnnotation = send.selector;
-      } else if (send.selector.receiver is TypeAnnotation) {
-        // <complex generic type>.<name> case.
-        typeAnnotation = send.selector.receiver;
-      } else {
-        compiler.cancel(
-          reason: "Don't know how to deduce type",
-          element: element,
-          node: send);
-      }
-      final type = new Unparser(this).unparse(typeAnnotation);
-      return '$type.${getFactoryName(constructor)}';
-    } else {
-      return null;
-    }
-  }
+  String renameSendMethod(Send send) =>
+      new SendRenamer(this, contextElements).visitSend(send);
 
   String renameTypeName(TypeAnnotation typeAnnotation) {
     Type type;

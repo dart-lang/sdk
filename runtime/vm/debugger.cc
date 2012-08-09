@@ -193,13 +193,13 @@ void ActivationFrame::GetPcDescriptors() {
 
 
 // Compute token_pos_ and pc_desc_index_.
-intptr_t ActivationFrame::TokenIndex() {
+intptr_t ActivationFrame::TokenPos() {
   if (token_pos_ < 0) {
     GetPcDescriptors();
     for (int i = 0; i < pc_desc_.Length(); i++) {
       if (pc_desc_.PC(i) == pc_) {
         pc_desc_index_ = i;
-        token_pos_ = pc_desc_.TokenIndex(i);
+        token_pos_ = pc_desc_.TokenPos(i);
         break;
       }
     }
@@ -211,7 +211,7 @@ intptr_t ActivationFrame::TokenIndex() {
 
 intptr_t ActivationFrame::PcDescIndex() {
   if (pc_desc_index_ < 0) {
-    TokenIndex();
+    TokenPos();
     ASSERT(pc_desc_index_ >= 0);
   }
   return pc_desc_index_;
@@ -223,7 +223,7 @@ intptr_t ActivationFrame::LineNumber() {
   if (line_number_ < 0) {
     const Script& script = Script::Handle(SourceScript());
     intptr_t ignore_column;
-    script.GetTokenLocation(TokenIndex(), &line_number_, &ignore_column);
+    script.GetTokenLocation(TokenPos(), &line_number_, &ignore_column);
   }
   return line_number_;
 }
@@ -252,7 +252,7 @@ intptr_t ActivationFrame::ContextLevel() {
       return context_level_;
     }
     intptr_t innermost_begin_pos = 0;
-    intptr_t activation_token_pos = TokenIndex();
+    intptr_t activation_token_pos = TokenPos();
     GetVarDescriptors();
     intptr_t var_desc_len = var_descriptors_.Length();
     for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
@@ -298,7 +298,7 @@ void ActivationFrame::GetDescIndices() {
   GetVarDescriptors();
   // TODO(hausner): Consider replacing this GrowableArray.
   GrowableArray<String*> var_names(8);
-  intptr_t activation_token_pos = TokenIndex();
+  intptr_t activation_token_pos = TokenPos();
   intptr_t var_desc_len = var_descriptors_.Length();
   for (int cur_idx = 0; cur_idx < var_desc_len; cur_idx++) {
     ASSERT(var_names.length() == desc_indices_.length());
@@ -461,7 +461,7 @@ CodeBreakpoint::CodeBreakpoint(const Function& func, intptr_t pc_desc_index)
   ASSERT(!code.IsNull());  // Function must be compiled.
   PcDescriptors& desc = PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(pc_desc_index < desc.Length());
-  token_pos_ = desc.TokenIndex(pc_desc_index);
+  token_pos_ = desc.TokenPos(pc_desc_index);
   ASSERT(token_pos_ >= 0);
   pc_ = desc.PC(pc_desc_index);
   ASSERT(pc_ != 0);
@@ -837,7 +837,7 @@ CodeBreakpoint* Debugger::MakeCodeBreakpoint(const Function& func,
   uword lowest_pc = kUwordMax;
   intptr_t lowest_pc_index = -1;
   for (int i = 0; i < desc.Length(); i++) {
-    intptr_t desc_token_pos = desc.TokenIndex(i);
+    intptr_t desc_token_pos = desc.TokenPos(i);
     if (desc_token_pos < first_token_pos) {
       continue;
     }

@@ -155,11 +155,13 @@ class DeoptimizationStub : public ZoneAllocated {
   Label* entry_label() { return &entry_label_; }
 
   // Implementation is in architecture specific file.
-  void GenerateCode(FlowGraphCompiler* compiler);
+  void GenerateCode(FlowGraphCompiler* compiler, intptr_t stub_ix);
 
   void set_deoptimization_env(Environment* env) {
     deoptimization_env_ = env;
   }
+
+  RawDeoptInfo* CreateDeoptInfo(FlowGraphCompiler* compiler);
 
  private:
   const intptr_t deopt_id_;

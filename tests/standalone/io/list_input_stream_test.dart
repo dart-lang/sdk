@@ -105,7 +105,7 @@ void testListInputStreamPipe1() {
   ReceivePort donePort = new ReceivePort();
 
   void onClosed() {
-    var contents = output.contents();
+    var contents = output.read();
     Expect.equals(data.length, contents.length);
     donePort.toSendPort().send(null);
   }
@@ -135,7 +135,7 @@ void testListInputStreamPipe2() {
       }
       count++;
     } else {
-      var contents = output.contents();
+      var contents = output.read();
       Expect.equals(data.length * 10, contents.length);
       donePort.toSendPort().send(null);
     }

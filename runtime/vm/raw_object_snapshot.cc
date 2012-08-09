@@ -81,13 +81,14 @@ void RawClass::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   if ((kind == Snapshot::kFull) ||
       (kind == Snapshot::kScript &&
        !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)))) {
     // Write out the class and tags information.
-    writer->WriteObjectHeader(Object::kClassClass, writer->GetObjectTags(this));
+    writer->WriteVMIsolateObject(Object::kClassClass);
+    writer->WriteIntptrValue(writer->GetObjectTags(this));
 
     // Write out all the non object pointer fields.
     // NOTE: cpp_vtable_ is not written.
@@ -145,11 +146,11 @@ void RawUnresolvedClass::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kUnresolvedClassClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kUnresolvedClassClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
@@ -217,10 +218,11 @@ void RawType::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeClass, writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kTypeClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
@@ -270,11 +272,11 @@ void RawTypeParameter::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeParameterClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kTypeParameterClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object pointer fields.
   writer->WriteIntptrValue(ptr()->index_);
@@ -342,11 +344,11 @@ void RawTypeArguments::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTypeArgumentsClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kTypeArgumentsClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -395,11 +397,11 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
   ASSERT(kind == Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kInstantiatedTypeArgumentsClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kInstantiatedTypeArgumentsClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer, false);
@@ -456,11 +458,11 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kFunctionClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kFunctionClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
@@ -523,10 +525,11 @@ void RawField::WriteTo(SnapshotWriter* writer,
          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kFieldClass, writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kFieldClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
@@ -575,11 +578,11 @@ void RawLiteralToken::WriteTo(SnapshotWriter* writer,
   ASSERT(kind != Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLiteralTokenClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kLiteralTokenClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the kind field.
   writer->Write<intptr_t>(ptr()->kind_);
@@ -631,11 +634,11 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kTokenStreamClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kTokenStreamClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the length field and the token stream.
   intptr_t len = Smi::Value(ptr()->length_);
@@ -685,10 +688,11 @@ void RawScript::WriteTo(SnapshotWriter* writer,
          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kScriptClass, writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kScriptClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all the object pointer fields.
   writer->WriteObjectImpl(ptr()->url_);
@@ -756,10 +760,11 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
   ASSERT(kind != Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLibraryClass, writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kLibraryClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   if (RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this))) {
     ASSERT(kind != Snapshot::kFull);
@@ -826,11 +831,11 @@ void RawLibraryPrefix::WriteTo(SnapshotWriter* writer,
          !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kLibraryPrefixClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kLibraryPrefixClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out all non object fields.
   writer->WriteIntptrValue(ptr()->num_libs_);
@@ -995,10 +1000,11 @@ void RawContext::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kContextClass, writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kContextClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out num of variables in the context.
   writer->WriteIntptrValue(ptr()->num_variables_);
@@ -1046,11 +1052,11 @@ void RawContextScope::WriteTo(SnapshotWriter* writer,
   ASSERT(kind == Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(Object::kContextScopeClass,
-                            writer->GetObjectTags(this));
+  writer->WriteVMIsolateObject(Object::kContextScopeClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Serialize number of variables.
   writer->WriteIntptrValue(ptr()->num_variables_);
@@ -1224,11 +1230,11 @@ void RawMint::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kMintClass,
-                            writer->GetObjectTags(this));
+  writer->WriteIndexedObject(ObjectStore::kMintClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the 64 bit value.
   writer->Write<int64_t>(ptr()->value_);
@@ -1272,11 +1278,11 @@ void RawBigint::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kBigintClass,
-                            writer->GetObjectTags(this));
+  writer->WriteIndexedObject(ObjectStore::kBigintClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the bigint value as a HEXCstring.
   intptr_t length = ptr()->signed_length_;
@@ -1342,11 +1348,11 @@ void RawDouble::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kDoubleClass,
-                            writer->GetObjectTags(this));
+  writer->WriteIndexedObject(ObjectStore::kDoubleClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the double value.
   writer->Write<double>(ptr()->value_);
@@ -1501,10 +1507,11 @@ static void StringWriteTo(SnapshotWriter* writer,
   intptr_t len = Smi::Value(length);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(class_id, tags);
+  writer->WriteIndexedObject(class_id);
+  writer->WriteIntptrValue(tags);
 
   // Write out the length field.
   writer->Write<RawObject*>(length);
@@ -1755,11 +1762,11 @@ void RawGrowableObjectArray::WriteTo(SnapshotWriter* writer,
   ASSERT(writer != NULL);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kGrowableObjectArrayClass,
-                            writer->GetObjectTags(this));
+  writer->WriteIndexedObject(ObjectStore::kGrowableObjectArrayClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the used length field.
   writer->Write<RawObject*>(ptr()->length_);
@@ -1865,10 +1872,11 @@ static void ByteArrayWriteTo(SnapshotWriter* writer,
   intptr_t len = Smi::Value(length);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(byte_array_kind, tags);
+  writer->WriteIndexedObject(byte_array_kind);
+  writer->WriteIntptrValue(tags);
 
   // Write out the length field.
   writer->Write<RawObject*>(length);
@@ -1995,11 +2003,11 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
   ASSERT(kind == Snapshot::kMessage);
 
   // Write out the serialization header value for this object.
-  writer->WriteSerializationMarker(kInlined, object_id);
+  writer->WriteInlinedObjectHeader(object_id);
 
   // Write out the class and tags information.
-  writer->WriteObjectHeader(ObjectStore::kJSRegExpClass,
-                            writer->GetObjectTags(this));
+  writer->WriteIndexedObject(ObjectStore::kJSRegExpClass);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
 
   // Write out the data length field.
   writer->Write<RawObject*>(ptr()->data_length_);

@@ -23,6 +23,18 @@ class BufferFormatter;
 // enumeration), constant locations contain a tagged (low 2 bits are set to 01)
 // Object handle
 class Location : public ValueObject {
+ private:
+  enum {
+    // Number of bits required to encode Kind value.
+    kBitsForKind = 3,
+    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
+  };
+
+  static const uword kInvalidLocation = 0;
+  static const uword kConstantMask = 0x3;
+  static const intptr_t kStackIndexBias =
+      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
+
  public:
   // Constant payload can overlap with kind field so Kind values
   // have to be chosen in a way that their last 2 bits are never
@@ -48,15 +60,6 @@ class Location : public ValueObject {
     // a spill index.
     kStackSlot = 4,
   };
-
-  enum {
-    // Number of bits required to encode Kind value.
-    kBitsForKind = 3,
-    kBitsForPayload = kWordSize * kBitsPerByte - kBitsForKind,
-  };
-
-  static const uword kInvalidLocation = 0;
-  static const uword kConstantMask = 0x3;
 
   Location() : value_(kInvalidLocation) {
     ASSERT(IsInvalid());
@@ -148,8 +151,6 @@ class Location : public ValueObject {
   }
 
   // Spill slots.
-  static const intptr_t kStackIndexBias =
-      static_cast<intptr_t>(1) << (kBitsForPayload - 1);
   static Location StackSlot(intptr_t stack_index) {
     ASSERT((-kStackIndexBias <= stack_index) &&
            (stack_index < kStackIndexBias));

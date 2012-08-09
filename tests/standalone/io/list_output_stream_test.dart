@@ -7,9 +7,9 @@
 
 void testEmptyListOutputStream1() {
   ListOutputStream stream = new ListOutputStream();
-  Expect.equals(null, stream.contents());
+  Expect.equals(null, stream.read());
   stream.close();
-  Expect.equals(null, stream.contents());
+  Expect.equals(null, stream.read());
   Expect.throws(() { stream.write([0]); });
 }
 
@@ -23,7 +23,7 @@ void testEmptyListOutputStream2() {
   }
 
   void onClosed() {
-    Expect.equals(null, stream.contents());
+    Expect.equals(null, stream.read());
     donePort.toSendPort().send(null);
   }
 
@@ -36,15 +36,15 @@ void testEmptyListOutputStream2() {
 
 void testListOutputStream1() {
   ListOutputStream stream = new ListOutputStream();
-  Expect.equals(null, stream.contents());
+  Expect.equals(null, stream.read());
   stream.write([1, 2]);
   stream.writeFrom([1, 2, 3, 4, 5], 2, 2);
   stream.write([5]);
   stream.close();
-  var contents = stream.contents();
+  var contents = stream.read();
   Expect.equals(5, contents.length);
   for (var i = 0; i < contents.length; i++) Expect.equals(i + 1, contents[i]);
-  Expect.equals(null, stream.contents());
+  Expect.equals(null, stream.read());
 }
 
 
@@ -72,10 +72,10 @@ void testListOutputStream2() {
 
   void onClosed() {
     Expect.equals(4, stage);
-    var contents = stream.contents();
+    var contents = stream.read();
     Expect.equals(5, contents.length);
     for (var i = 0; i < contents.length; i++) Expect.equals(i + 1, contents[i]);
-    Expect.equals(null, stream.contents());
+    Expect.equals(null, stream.read());
     donePort.toSendPort().send(null);
   }
 
@@ -98,7 +98,7 @@ void testListOutputStream3() {
   }
 
   void onClosed() {
-    var contents = stream.contents();
+    var contents = stream.read();
     Expect.equals(38, contents.length);
     donePort.toSendPort().send(null);
   }
@@ -109,10 +109,41 @@ void testListOutputStream3() {
   donePort.receive((x,y) => donePort.close());
 }
 
+void testListOutputStream4() {
+  ListOutputStream stream = new ListOutputStream();
+  ReceivePort donePort = new ReceivePort();
+  List result = <int>[];
+
+  void onData() => result.addAll(stream.read());
+
+  void onClosed() {
+    Expect.equals(4, result.length);
+    for (var i = 0; i < result.length; i++) Expect.equals(i + 1, result[i]);
+    donePort.toSendPort().send(null);
+  }
+
+  stream.onData = onData;
+  stream.onClosed = onClosed;
+
+  new Timer(0, (_) {
+    result.add(1);
+    stream.write([2]);
+
+    new Timer(0, (_) {
+      result.add(3);
+      stream.write([4]);
+      stream.close();
+    });
+  });
+
+  donePort.receive((x,y) => donePort.close());
+}
+
 main() {
   testEmptyListOutputStream1();
   testEmptyListOutputStream2();
   testListOutputStream1();
   testListOutputStream2();
   testListOutputStream3();
+  testListOutputStream4();
 }

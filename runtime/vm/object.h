@@ -2202,8 +2202,8 @@ class PcDescriptors : public Object {
   enum {
     kPcEntry = 0,      // PC value of the descriptor, unique.
     kKindEntry,
-    kNodeIdEntry,      // AST node id.
-    kTokenIndexEntry,  // Token position in source of PC.
+    kDeoptIdEntry,     // Deopt id.
+    kTokenPosEntry,    // Token position in source of PC.
     kTryIndexEntry,    // Try block index of PC.
     // We would potentially be adding other objects here like
     // pointer maps for optimized functions, local variables information  etc.
@@ -2212,7 +2212,7 @@ class PcDescriptors : public Object {
 
  public:
   enum Kind {
-    kDeopt = 0,   // Deoptimization cotinuation point.
+    kDeopt = 0,   // Deoptimization continuation point.
     kDeoptIndex,  // Index into deopt info array.
     kPatchCode,   // Buffer for patching code entry.
     kIcCall,      // IC call.
@@ -2226,8 +2226,8 @@ class PcDescriptors : public Object {
   uword PC(intptr_t index) const;
   PcDescriptors::Kind DescriptorKind(intptr_t index) const;
   const char* KindAsStr(intptr_t index) const;
-  intptr_t NodeId(intptr_t index) const;
-  intptr_t TokenIndex(intptr_t index) const;
+  intptr_t DeoptId(intptr_t index) const;
+  intptr_t TokenPos(intptr_t index) const;
   intptr_t TryIndex(intptr_t index) const;
   // Index into the deopt-info array of Code object.
   intptr_t DeoptIndex(intptr_t index) const;
@@ -2235,13 +2235,13 @@ class PcDescriptors : public Object {
   void AddDescriptor(intptr_t index,
                      uword pc,
                      PcDescriptors::Kind kind,
-                     intptr_t node_id,
+                     intptr_t deopt_id,
                      intptr_t token_pos,
                      intptr_t try_index) const {
     SetPC(index, pc);
     SetKind(index, kind);
-    SetNodeId(index, node_id);
-    SetTokenIndex(index, token_pos);
+    SetDeoptId(index, deopt_id);
+    SetTokenPos(index, token_pos);
     SetTryIndex(index, try_index);
   }
 
@@ -2269,8 +2269,8 @@ class PcDescriptors : public Object {
  private:
   void SetPC(intptr_t index, uword value) const;
   void SetKind(intptr_t index, PcDescriptors::Kind kind) const;
-  void SetNodeId(intptr_t index, intptr_t value) const;
-  void SetTokenIndex(intptr_t index, intptr_t value) const;
+  void SetDeoptId(intptr_t index, intptr_t value) const;
+  void SetTokenPos(intptr_t index, intptr_t value) const;
   void SetTryIndex(intptr_t index, intptr_t value) const;
 
   void SetLength(intptr_t value) const;
@@ -2590,8 +2590,7 @@ class Code : public Object {
   // Find pc of patch code buffer. Return 0 if not found.
   uword GetPatchCodePc() const;
 
-  uword GetDeoptPcAtNodeId(intptr_t node_id) const;
-  uword GetTypeTestAtNodeId(intptr_t node_id) const;
+  uword GetDeoptPcAtDeoptId(intptr_t deopt_id) const;
 
   // Returns true if there is an object in the code between 'start_offset'
   // (inclusive) and 'end_offset' (exclusive).
@@ -2793,8 +2792,8 @@ class ICData : public Object {
     return raw_ptr()->num_args_tested_;
   }
 
-  intptr_t id() const {
-    return raw_ptr()->id_;
+  intptr_t deopt_id() const {
+    return raw_ptr()->deopt_id_;
   }
 
   intptr_t NumberOfChecks() const;
@@ -2843,7 +2842,7 @@ class ICData : public Object {
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
-                        intptr_t id,
+                        intptr_t deopt_id,
                         intptr_t num_args_tested);
 
  private:
@@ -2853,7 +2852,7 @@ class ICData : public Object {
 
   void set_function(const Function& value) const;
   void set_target_name(const String& value) const;
-  void set_id(intptr_t value) const;
+  void set_deopt_id(intptr_t value) const;
   void set_num_args_tested(intptr_t value) const;
   void set_ic_data(const Array& value) const;
 

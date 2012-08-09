@@ -386,6 +386,9 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
     if ((op_kind == Token::kGET) && TryInlineInstanceGetter(instr, comp)) {
       return;
     }
+    if ((op_kind == Token::kSET) && TryInlineInstanceSetter(instr, comp)) {
+      return;
+    }
     if (TryInlineInstanceMethod(instr, comp)) {
       return;
     }
@@ -414,7 +417,12 @@ void FlowGraphOptimizer::VisitStaticCall(StaticCallComp* comp,
 
 
 bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
-                                                 InstanceSetterComp* comp) {
+                                                 InstanceCallComp* comp) {
+  if (FLAG_enable_type_checks) {
+    // TODO(srdjan): Add assignable check node if --enable_type_checks.
+    return false;
+  }
+
   ASSERT(comp->HasICData());
   const ICData& ic_data = *comp->ic_data();
   if (ic_data.NumberOfChecks() == 0) {
@@ -434,7 +442,9 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
     return false;
   }
   // Inline implicit instance setter.
-  const Field& field = Field::Handle(GetField(class_id, comp->field_name()));
+  const String& field_name =
+      String::Handle(Field::NameFromSetter(comp->function_name()));
+  const Field& field = Field::Handle(GetField(class_id, field_name));
   ASSERT(!field.IsNull());
   StoreInstanceFieldComp* store = new StoreInstanceFieldComp(
       field,
@@ -443,23 +453,8 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
       comp);
   store->set_ic_data(comp->ic_data());
   instr->set_computation(store);
-  // Remove original push arguments.
-  for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    comp->ArgumentAt(i)->RemoveFromGraph();
-  }
+  RemovePushArguments(comp);
   return true;
-}
-
-
-void FlowGraphOptimizer::VisitInstanceSetter(InstanceSetterComp* comp,
-                                             BindInstr* instr) {
-  // TODO(srdjan): Add assignable check node if --enable_type_checks.
-  if (comp->HasICData() && !FLAG_enable_type_checks) {
-    if (TryInlineInstanceSetter(instr, comp)) {
-      return;
-    }
-  }
-  // TODO(srdjan): Polymorphic dispatch to setters or deoptimize.
 }
 
 

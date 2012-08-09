@@ -62,7 +62,7 @@ BENCHMARK(CorelibIsolateStartup) {
   uint8_t* buffer = NULL;
   intptr_t size = 0;
   Dart_Handle result = Dart_CreateSnapshot(&buffer, &size);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   Timer timer(true, "Core Isolate startup benchmark");
   timer.Start();
   for (int i = 0; i < kNumIterations; i++) {
@@ -90,9 +90,9 @@ static void InitNativeFields(Dart_NativeArguments args) {
   EXPECT_EQ(1, count);
 
   Dart_Handle recv = Dart_GetNativeArgument(args, 0);
-  EXPECT(!Dart_IsError(recv));
+  EXPECT_VALID(recv);
   Dart_Handle result = Dart_SetNativeInstanceField(recv, 0, 7);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
 
   Dart_ExitScope();
 }
@@ -107,25 +107,26 @@ static void UseDartApi(Dart_NativeArguments args) {
 
   // Get the receiver.
   Dart_Handle recv = Dart_GetNativeArgument(args, 0);
-  EXPECT(!Dart_IsError(recv));
+  EXPECT_VALID(recv);
 
   // Get param1.
   Dart_Handle param1 = Dart_GetNativeArgument(args, 1);
-  EXPECT(!Dart_IsError(param1));
+  EXPECT_VALID(param1);
   EXPECT(Dart_IsInteger(param1));
   bool fits = false;
   Dart_Handle result = Dart_IntegerFitsIntoInt64(param1, &fits);
-  EXPECT(!Dart_IsError(result) && fits);
+  EXPECT_VALID(result);
+  EXPECT(fits);
   int64_t value1;
   result = Dart_IntegerToInt64(param1, &value1);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   EXPECT_LE(0, value1);
   EXPECT_LE(value1, 1000000);
 
   // Get native field from receiver.
   intptr_t value2;
   result = Dart_GetNativeInstanceField(recv, 0, &value2);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   EXPECT_EQ(7, value2);
 
   // Return param + receiver.field.
@@ -137,7 +138,7 @@ static void UseDartApi(Dart_NativeArguments args) {
 static Dart_NativeFunction bm_uda_lookup(Dart_Handle name, int argument_count) {
   const char* cstr = NULL;
   Dart_Handle result = Dart_StringToCString(name, &cstr);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   if (strcmp(cstr, "init") == 0) {
     return InitNativeFields;
   } else {
@@ -171,7 +172,7 @@ BENCHMARK(UseDartApi) {
       lib,
       Dart_NewString("NativeFieldsWrapper"),
       1);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
 
   Dart_Handle args[1];
   args[0] = Dart_NewInteger(kNumIterations);
@@ -250,11 +251,11 @@ BENCHMARK(Dart2JSCompileAll) {
       kScriptChars,
       reinterpret_cast<Dart_NativeEntryResolver>(NativeResolver),
       import_map);
-  EXPECT(!Dart_IsError(lib));
+  EXPECT_VALID(lib);
   Timer timer(true, "Compile all of dart2js benchmark");
   timer.Start();
   Dart_Handle result = Dart_CompileAll();
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
   timer.Stop();
   int64_t elapsed_time = timer.TotalElapsedTime();
   benchmark->set_score(elapsed_time);
@@ -345,7 +346,8 @@ BENCHMARK(FrameLookup) {
   Dart_Handle result = Dart_Invoke(cls, Dart_NewString("testMain"), 0, NULL);
   EXPECT_VALID(result);
   int64_t elapsed_time = 0;
-  EXPECT(!Dart_IsError(Dart_IntegerToInt64(result, &elapsed_time)));
+  result = Dart_IntegerToInt64(result, &elapsed_time);
+  EXPECT_VALID(result);
   benchmark->set_score(elapsed_time);
 }
 

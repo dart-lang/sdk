@@ -97,6 +97,8 @@
     'debugger_x64.cc',
     'debugger_arm.cc',
     'debugger_api_impl_test.cc',
+    'deopt_instructions.cc',
+    'deopt_instructions.h',
     'disassembler.cc',
     'disassembler.h',
     'disassembler_ia32.cc',

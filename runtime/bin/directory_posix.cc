@@ -376,7 +376,30 @@ Directory::ExistsResult Directory::Exists(const char* dir_name) {
 
 
 char* Directory::Current() {
+#if defined(TARGET_OS_LINUX) || defined(TARGET_OS_MACOS)
+
+  // On targets that support it, let getcwd allocate the buffer
+  // dynamically. (Not part of POSIX, but implemented on many platforms.)
   return getcwd(NULL, 0);
+
+#else
+
+  // POSIX getcwd requires a pre-allocated buffer.
+  char buffer[PATH_MAX];
+  if (NULL == getcwd(buffer, PATH_MAX)) {
+    return NULL;
+  }
+
+  size_t length = strlen(buffer) + 1;
+  char* result = reinterpret_cast<char*>(malloc(length));
+  if (result == NULL) {
+    return NULL;
+  }
+
+  strncpy(result, buffer, length);
+  return result;
+
+#endif
 }
 
 

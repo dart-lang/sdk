@@ -129,7 +129,7 @@ class ActivationFrame : public ZoneAllocated {
   RawString* SourceUrl();
   RawScript* SourceScript();
   RawLibrary* Library();
-  intptr_t TokenIndex();
+  intptr_t TokenPos();
   intptr_t LineNumber();
 
   // The context level of a frame is the context level at the

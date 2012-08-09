@@ -33,7 +33,7 @@ TEST_CASE(ErrorHandleBasics) {
                                       0,
                                       NULL);
 
-  EXPECT(!Dart_IsError(instance));
+  EXPECT_VALID(instance);
   EXPECT(Dart_IsError(error));
   EXPECT(Dart_IsError(exception));
 
@@ -73,7 +73,7 @@ TEST_CASE(ErrorHandleTypes) {
   Dart_Handle fatal_error =
       Api::NewHandle(isolate, UnwindError::New(fatal_message));
 
-  EXPECT(!Dart_IsError(not_error));
+  EXPECT_VALID(not_error);
   EXPECT(Dart_IsError(api_error));
   EXPECT(Dart_IsError(exception_error));
   EXPECT(Dart_IsError(compile_error));
@@ -4905,7 +4905,7 @@ TEST_CASE(LoadImportScript) {
   result = Dart_SetImportMap(import_map);
   EXPECT_VALID(result);
   result = Dart_LoadScript(url, source);
-  EXPECT(!Dart_IsError(result));
+  EXPECT_VALID(result);
 }
 
 
@@ -6215,7 +6215,7 @@ UNIT_TEST_CASE(IsolateShutdown) {
 }
 
 static int64_t GetValue(Dart_Handle arg) {
-  EXPECT(!Dart_IsError(arg));
+  EXPECT_VALID(arg);
   EXPECT(Dart_IsInteger(arg));
   int64_t value;
   EXPECT_VALID(Dart_IntegerToInt64(arg, &value));
@@ -6227,7 +6227,7 @@ static void NativeFoo1(Dart_NativeArguments args) {
   intptr_t i = Dart_GetNativeArgumentCount(args);
   EXPECT_EQ(1, i);
   Dart_Handle arg = Dart_GetNativeArgument(args, 0);
-  EXPECT(!Dart_IsError(arg));
+  EXPECT_VALID(arg);
   Dart_SetReturnValue(args, Dart_NewInteger(1));
   Dart_ExitScope();
 }

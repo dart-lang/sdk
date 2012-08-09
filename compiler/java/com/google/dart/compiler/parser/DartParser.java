@@ -4177,12 +4177,15 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.LPAREN);
     DartExpression condition = parseExpression();
     expectCloseParen();
+    int closeParentOffset = ctx.getTokenLocation().getBegin();
     DartStatement yes = parseStatement();
     DartStatement no = null;
+    int elseTokenOffset = 0;
     if (optional(Token.ELSE)) {
+      elseTokenOffset = ctx.getTokenLocation().getBegin();
       no = parseStatement();
     }
-    return done(new DartIfStatement(condition, yes, no));
+    return done(new DartIfStatement(condition, closeParentOffset, yes, elseTokenOffset, no));
   }
 
   /**

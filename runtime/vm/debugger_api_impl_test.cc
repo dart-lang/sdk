@@ -18,16 +18,9 @@ static Dart_Handle script_lib = NULL;
 
 static const bool verbose = true;
 
-#define EXPECT_NOT_ERROR(handle)                                              \
-  if (Dart_IsError(handle)) {                                                 \
-    OS::Print("Error: %s\n", Dart_GetError(handle));                          \
-  }                                                                           \
-  EXPECT(!Dart_IsError(handle));
-
-
 static void LoadScript(const char* source) {
   script_lib = TestCase::LoadTestScript(source, NULL);
-  EXPECT(!Dart_IsError(script_lib));
+  EXPECT_VALID(script_lib);
 }
 
 
@@ -40,7 +33,7 @@ static void SetBreakpointAtEntry(const char* cname, const char* fname) {
                         Dart_NewString(cname),
                         Dart_NewString(fname),
                         &bpt);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
 }
 
 
@@ -64,14 +57,14 @@ static char const* BreakpointInfo(Dart_StackTrace trace) {
   static char info_str[128];
   Dart_ActivationFrame frame;
   Dart_Handle res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   Dart_Handle func_name;
   Dart_Handle url;
   intptr_t line_number = 0;
   intptr_t library_id = 0;
   res = Dart_ActivationFrameInfo(
             frame, &func_name, &url, &line_number, &library_id);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   OS::SNPrint(info_str, sizeof(info_str), "function %s (%s:%d)",
               ToCString(func_name), ToCString(url), line_number);
   return info_str;
@@ -84,10 +77,10 @@ static void PrintValue(Dart_Handle value, bool expand);
 static void PrintObjectList(Dart_Handle list, const char* prefix, bool expand) {
   intptr_t list_length = 0;
   Dart_Handle retval = Dart_ListLength(list, &list_length);
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(list, i);
-    EXPECT_NOT_ERROR(name_handle);
+    EXPECT_VALID(name_handle);
     EXPECT(Dart_IsString(name_handle));
     Dart_Handle value_handle = Dart_ListGetAt(list, i + 1);
     OS::Print("\n        %s %s = ", prefix, ToCString(name_handle));
@@ -98,20 +91,20 @@ static void PrintObjectList(Dart_Handle list, const char* prefix, bool expand) {
 
 static void PrintObject(Dart_Handle obj, bool expand) {
   Dart_Handle obj_class = Dart_GetObjClass(obj);
-  EXPECT_NOT_ERROR(obj_class);
+  EXPECT_VALID(obj_class);
   EXPECT(!Dart_IsNull(obj_class));
   Dart_Handle class_name = Dart_ToString(obj_class);
-  EXPECT_NOT_ERROR(class_name);
+  EXPECT_VALID(class_name);
   EXPECT(Dart_IsString(class_name));
   char const* class_name_str;
   Dart_StringToCString(class_name, &class_name_str);
   Dart_Handle fields = Dart_GetInstanceFields(obj);
-  EXPECT_NOT_ERROR(fields);
+  EXPECT_VALID(fields);
   EXPECT(Dart_IsList(fields));
   OS::Print("object of type '%s'", class_name_str);
   PrintObjectList(fields, "field", false);
   Dart_Handle statics = Dart_GetStaticFields(obj_class);
-  EXPECT_NOT_ERROR(obj_class);
+  EXPECT_VALID(obj_class);
   PrintObjectList(statics, "static field", false);
 }
 
@@ -121,12 +114,12 @@ static void PrintValue(Dart_Handle value, bool expand) {
     OS::Print("null");
   } else if (Dart_IsString(value)) {
     Dart_Handle str_value = Dart_ToString(value);
-    EXPECT_NOT_ERROR(str_value);
+    EXPECT_VALID(str_value);
     EXPECT(Dart_IsString(str_value));
     OS::Print("\"%s\"", ToCString(str_value));
   } else if (Dart_IsNumber(value) || Dart_IsBoolean(value)) {
     Dart_Handle str_value = Dart_ToString(value);
-    EXPECT_NOT_ERROR(str_value);
+    EXPECT_VALID(str_value);
     EXPECT(Dart_IsString(str_value));
     OS::Print("%s", ToCString(str_value));
   } else {
@@ -139,23 +132,23 @@ static void PrintActivationFrame(Dart_ActivationFrame frame) {
   Dart_Handle func_name;
   Dart_Handle res;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
   Dart_StringToCString(func_name, &func_name_chars);
   OS::Print("    function %s\n", func_name_chars);
   Dart_Handle locals = Dart_GetLocalVariables(frame);
-  EXPECT_NOT_ERROR(locals);
+  EXPECT_VALID(locals);
   intptr_t list_length = 0;
   Dart_Handle ret = Dart_ListLength(locals, &list_length);
-  EXPECT_NOT_ERROR(ret);
+  EXPECT_VALID(ret);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(locals, i);
-    EXPECT_NOT_ERROR(name_handle);
+    EXPECT_VALID(name_handle);
     EXPECT(Dart_IsString(name_handle));
     OS::Print("      local var %s = ", ToCString(name_handle));
     Dart_Handle value_handle = Dart_ListGetAt(locals, i + 1);
-    EXPECT_NOT_ERROR(value_handle);
+    EXPECT_VALID(value_handle);
     PrintValue(value_handle, true);
     OS::Print("\n");
   }
@@ -165,11 +158,11 @@ static void PrintActivationFrame(Dart_ActivationFrame frame) {
 static void PrintStackTrace(Dart_StackTrace trace) {
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     PrintActivationFrame(frame);
   }
 }
@@ -181,19 +174,19 @@ static void VerifyListEquals(Dart_Handle expected, Dart_Handle got) {
   Dart_Handle res;
   intptr_t expected_length;
   res = Dart_ListLength(expected, &expected_length);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   intptr_t got_length;
   res = Dart_ListLength(expected, &got_length);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT_EQ(expected_length, got_length);
   for (intptr_t i = 0; i < expected_length; i++) {
     Dart_Handle expected_elem = Dart_ListGetAt(expected, i);
-    EXPECT_NOT_ERROR(expected_elem);
+    EXPECT_VALID(expected_elem);
     Dart_Handle got_elem = Dart_ListGetAt(got, i);
-    EXPECT_NOT_ERROR(got_elem);
+    EXPECT_VALID(got_elem);
     bool equals;
     res = Dart_ObjectEquals(expected_elem, got_elem, &equals);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     EXPECT(equals);
   }
 }
@@ -205,7 +198,7 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
   Dart_Handle func_name;
   Dart_Handle res;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsString(func_name));
   const char* func_name_chars;
   Dart_StringToCString(func_name, &func_name_chars);
@@ -215,7 +208,7 @@ static void VerifyStackFrame(Dart_ActivationFrame frame,
 
   if (!Dart_IsNull(expected_locals)) {
     Dart_Handle locals = Dart_GetLocalVariables(frame);
-    EXPECT_NOT_ERROR(locals);
+    EXPECT_VALID(locals);
     VerifyListEquals(expected_locals, locals);
   }
 }
@@ -227,11 +220,11 @@ static void VerifyStackTrace(Dart_StackTrace trace,
                              int expected_frames) {
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     if (i < expected_frames) {
       VerifyStackFrame(frame, func_names[i], local_vars[i]);
     } else {
@@ -248,15 +241,15 @@ void TestBreakpointHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   breakpoint_hit_counter++;
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT_EQ(expected_trace_length, trace_len);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     Dart_Handle func_name;
     res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
@@ -284,7 +277,7 @@ TEST_CASE(Debug_Breakpoint) {
 
   breakpoint_hit = false;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT(breakpoint_hit == true);
 }
 
@@ -294,14 +287,14 @@ void TestStepOutHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(breakpoint_hit_counter < expected_bpts_length);
   Dart_ActivationFrame frame;
   res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   Dart_Handle func_name;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
@@ -342,7 +335,7 @@ TEST_CASE(Debug_StepOut) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -368,14 +361,14 @@ void TestStepIntoHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(breakpoint_hit_counter < expected_bpts_length);
   Dart_ActivationFrame frame;
   res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   Dart_Handle func_name;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
@@ -423,7 +416,7 @@ TEST_CASE(Debug_StepInto) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -466,7 +459,7 @@ TEST_CASE(Debug_IgnoreBP) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -495,7 +488,7 @@ TEST_CASE(Debug_DeoptimizeFunction) {
 
   // Cause function foo to be optimized before we set a BP.
   Dart_Handle res = Invoke("warmup");
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
 
   // Now set breakpoint in main and then step into optimized function foo.
   SetBreakpointAtEntry("", "main");
@@ -504,7 +497,7 @@ TEST_CASE(Debug_DeoptimizeFunction) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT(Dart_IsInteger(retval));
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
@@ -519,14 +512,14 @@ void TestSingleStepHandler(Dart_Breakpoint bpt, Dart_StackTrace trace) {
   const intptr_t expected_bpts_length = ARRAY_SIZE(expected_bpts);
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(breakpoint_hit_counter < expected_bpts_length);
   Dart_ActivationFrame frame;
   res = Dart_GetActivationFrame(trace, 0, &frame);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   Dart_Handle func_name;
   res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsString(func_name));
   const char* name_chars;
   Dart_StringToCString(func_name, &name_chars);
@@ -564,7 +557,7 @@ TEST_CASE(Debug_SingleStep) {
   breakpoint_hit = false;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   EXPECT(breakpoint_hit == true);
 }
 
@@ -576,15 +569,15 @@ static void ClosureBreakpointHandler(Dart_Breakpoint bpt,
   breakpoint_hit_counter++;
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT_EQ(expected_trace_length, trace_len);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     Dart_Handle func_name;
     res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
@@ -614,7 +607,7 @@ TEST_CASE(Debug_ClosureBreakpoint) {
 
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
   EXPECT_EQ(442, int_value);
@@ -654,12 +647,12 @@ TEST_CASE(Debug_ExprClosureBreakpoint) {
   Dart_Handle script_url = Dart_NewString(TestCase::url());
   intptr_t line_no = 5;  // In closure 'add'.
   Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsInteger(res));
 
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   int64_t int_value = 0;
   Dart_IntegerToInt64(retval, &int_value);
   EXPECT_EQ(30, int_value);
@@ -676,15 +669,15 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
   breakpoint_hit_counter++;
   intptr_t trace_len;
   Dart_Handle res = Dart_StackTraceLength(trace, &trace_len);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT_EQ(expected_trace_length, trace_len);
   for (int i = 0; i < trace_len; i++) {
     Dart_ActivationFrame frame;
     res = Dart_GetActivationFrame(trace, i, &frame);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     Dart_Handle func_name;
     res = Dart_ActivationFrameInfo(frame, &func_name, NULL, NULL, NULL);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
     EXPECT(Dart_IsString(func_name));
     const char* name_chars;
     Dart_StringToCString(func_name, &name_chars);
@@ -695,7 +688,7 @@ static void DeleteBreakpointHandler(Dart_Breakpoint bpt,
   if (breakpoint_hit_counter == 2) {
     if (verbose) OS::Print("uninstalling breakpoint\n");
     Dart_Handle res = Dart_RemoveBreakpoint(bp_id_to_be_deleted);
-    EXPECT_NOT_ERROR(res);
+    EXPECT_VALID(res);
   }
 }
 
@@ -722,7 +715,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   Dart_SetBreakpointHandler(&DeleteBreakpointHandler);
 
   Dart_Handle res = Dart_SetBreakpoint(script_url, line_no);
-  EXPECT_NOT_ERROR(res);
+  EXPECT_VALID(res);
   EXPECT(Dart_IsInteger(res));
   int64_t bp_id = 0;
   Dart_IntegerToInt64(res, &bp_id);
@@ -733,7 +726,7 @@ TEST_CASE(Debug_DeleteBreakpoint) {
   bp_id_to_be_deleted = bp_id;
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
   EXPECT_EQ(2, breakpoint_hit_counter);
 }
 
@@ -744,7 +737,7 @@ static void InspectStaticFieldHandler(Dart_Breakpoint bpt,
   ASSERT(!Dart_IsError(script_lib));
   ASSERT(Dart_IsLibrary(script_lib));
   Dart_Handle class_A = Dart_GetClass(script_lib, Dart_NewString("A"));
-  EXPECT(!Dart_IsError(class_A));
+  EXPECT_VALID(class_A);
 
   const int expected_num_fields = 2;
   struct {
@@ -768,22 +761,22 @@ static void InspectStaticFieldHandler(Dart_Breakpoint bpt,
 
   intptr_t list_length = 0;
   Dart_Handle retval = Dart_ListLength(fields, &list_length);
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   int num_fields = list_length / 2;
   OS::Print("Class A has %d fields:\n", num_fields);
   ASSERT(expected_num_fields == num_fields);
 
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(fields, i);
-    EXPECT_NOT_ERROR(name_handle);
+    EXPECT_VALID(name_handle);
     EXPECT(Dart_IsString(name_handle));
     char const* name;
     Dart_StringToCString(name_handle, &name);
     EXPECT_STREQ(expected[expected_idx].field_name, name);
     Dart_Handle value_handle = Dart_ListGetAt(fields, i + 1);
-    EXPECT_NOT_ERROR(value_handle);
+    EXPECT_VALID(value_handle);
     value_handle = Dart_ToString(value_handle);
-    EXPECT_NOT_ERROR(value_handle);
+    EXPECT_VALID(value_handle);
     EXPECT(Dart_IsString(value_handle));
     char const* value;
     Dart_StringToCString(value_handle, &value);
@@ -816,7 +809,7 @@ TEST_CASE(Debug_InspectStaticField) {
 
   breakpoint_hit_counter = 0;
   Dart_Handle retval = Invoke("main");
-  EXPECT(!Dart_IsError(retval));
+  EXPECT_VALID(retval);
 }
 
 
@@ -842,27 +835,27 @@ TEST_CASE(Debug_InspectObject) {
 
   Dart_Handle object_b = Invoke("get_b");
 
-  EXPECT_NOT_ERROR(object_b);
+  EXPECT_VALID(object_b);
 
   Dart_Handle fields = Dart_GetInstanceFields(object_b);
-  EXPECT_NOT_ERROR(fields);
+  EXPECT_VALID(fields);
   EXPECT(Dart_IsList(fields));
   intptr_t list_length = 0;
   Dart_Handle retval = Dart_ListLength(fields, &list_length);
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   int num_fields = list_length / 2;
   EXPECT_EQ(kNumObjectFields, num_fields);
   OS::Print("Object has %d fields:\n", num_fields);
   for (int i = 0; i + 1 < list_length; i += 2) {
     Dart_Handle name_handle = Dart_ListGetAt(fields, i);
-    EXPECT_NOT_ERROR(name_handle);
+    EXPECT_VALID(name_handle);
     EXPECT(Dart_IsString(name_handle));
     char const* name;
     Dart_StringToCString(name_handle, &name);
     Dart_Handle value_handle = Dart_ListGetAt(fields, i + 1);
-    EXPECT_NOT_ERROR(value_handle);
+    EXPECT_VALID(value_handle);
     value_handle = Dart_ToString(value_handle);
-    EXPECT_NOT_ERROR(value_handle);
+    EXPECT_VALID(value_handle);
     EXPECT(Dart_IsString(value_handle));
     char const* value;
     Dart_StringToCString(value_handle, &value);
@@ -871,38 +864,38 @@ TEST_CASE(Debug_InspectObject) {
 
   // Check that an integer value returns an empty list of fields.
   Dart_Handle triple_six = Invoke("get_int");
-  EXPECT_NOT_ERROR(triple_six);
+  EXPECT_VALID(triple_six);
   EXPECT(Dart_IsInteger(triple_six));
   int64_t int_value = 0;
   Dart_IntegerToInt64(triple_six, &int_value);
   EXPECT_EQ(666, int_value);
   fields = Dart_GetInstanceFields(triple_six);
-  EXPECT_NOT_ERROR(fields);
+  EXPECT_VALID(fields);
   EXPECT(Dart_IsList(fields));
   retval = Dart_ListLength(fields, &list_length);
   EXPECT_EQ(0, list_length);
 
   // Check static field of class B (one field named 'bla')
   Dart_Handle class_B = Dart_GetObjClass(object_b);
-  EXPECT_NOT_ERROR(class_B);
+  EXPECT_VALID(class_B);
   EXPECT(!Dart_IsNull(class_B));
   fields = Dart_GetStaticFields(class_B);
-  EXPECT_NOT_ERROR(fields);
+  EXPECT_VALID(fields);
   EXPECT(Dart_IsList(fields));
   list_length = 0;
   retval = Dart_ListLength(fields, &list_length);
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   EXPECT_EQ(2, list_length);
   Dart_Handle name_handle = Dart_ListGetAt(fields, 0);
-  EXPECT_NOT_ERROR(name_handle);
+  EXPECT_VALID(name_handle);
   EXPECT(Dart_IsString(name_handle));
   char const* name;
   Dart_StringToCString(name_handle, &name);
   EXPECT_STREQ("bla", name);
   Dart_Handle value_handle = Dart_ListGetAt(fields, 1);
-  EXPECT_NOT_ERROR(value_handle);
+  EXPECT_VALID(value_handle);
   value_handle = Dart_ToString(value_handle);
-  EXPECT_NOT_ERROR(value_handle);
+  EXPECT_VALID(value_handle);
   EXPECT(Dart_IsString(value_handle));
   char const* value;
   Dart_StringToCString(value_handle, &value);
@@ -910,31 +903,31 @@ TEST_CASE(Debug_InspectObject) {
 
   // Check static field of B's superclass.
   Dart_Handle class_A = Dart_GetSuperclass(class_B);
-  EXPECT_NOT_ERROR(class_A);
+  EXPECT_VALID(class_A);
   EXPECT(!Dart_IsNull(class_A));
   fields = Dart_GetStaticFields(class_A);
-  EXPECT_NOT_ERROR(fields);
+  EXPECT_VALID(fields);
   EXPECT(Dart_IsList(fields));
   list_length = 0;
   retval = Dart_ListLength(fields, &list_length);
-  EXPECT_NOT_ERROR(retval);
+  EXPECT_VALID(retval);
   EXPECT_EQ(4, list_length);
   // Static field "bla" should have value "yada yada yada".
   name_handle = Dart_ListGetAt(fields, 0);
-  EXPECT_NOT_ERROR(name_handle);
+  EXPECT_VALID(name_handle);
   EXPECT(Dart_IsString(name_handle));
   Dart_StringToCString(name_handle, &name);
   EXPECT_STREQ("bla", name);
   value_handle = Dart_ListGetAt(fields, 1);
-  EXPECT_NOT_ERROR(value_handle);
+  EXPECT_VALID(value_handle);
   value_handle = Dart_ToString(value_handle);
-  EXPECT_NOT_ERROR(value_handle);
+  EXPECT_VALID(value_handle);
   EXPECT(Dart_IsString(value_handle));
   Dart_StringToCString(value_handle, &value);
   EXPECT_STREQ("yada yada yada", value);
   // The static field "error" should result in a compile error.
   name_handle = Dart_ListGetAt(fields, 2);
-  EXPECT_NOT_ERROR(name_handle);
+  EXPECT_VALID(name_handle);
   EXPECT(Dart_IsString(name_handle));
   Dart_StringToCString(name_handle, &name);
   EXPECT_STREQ("error", name);

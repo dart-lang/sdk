@@ -91,7 +91,7 @@ class FlowGraphAllocator : public ValueObject {
   Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block);
   void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
-  void BlockLocation(Location loc, intptr_t pos);
+  void BlockLocation(Location loc, intptr_t from, intptr_t to);
 
   // Process live ranges sorted by their start and assign registers
   // to them
@@ -346,6 +346,7 @@ class AllocationFinger : public ValueObject {
   }
 
   void Initialize(LiveRange* range);
+  void UpdateAfterSplit(intptr_t first_use_after_split_pos);
   bool Advance(intptr_t start);
 
   UseInterval* first_pending_use_interval() const {

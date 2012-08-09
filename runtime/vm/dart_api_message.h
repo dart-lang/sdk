@@ -84,6 +84,7 @@ class ApiMessageReader : public BaseReader {
   Dart_CObject* ReadInlinedObject(intptr_t object_id);
   Dart_CObject* ReadObjectImpl();
   Dart_CObject* ReadIndexedObject(intptr_t object_id);
+  Dart_CObject* ReadVMSymbol(intptr_t object_id);
   Dart_CObject* ReadObjectRef();
   Dart_CObject* ReadObject();
 
@@ -143,6 +144,7 @@ class ApiMessageWriter : public BaseWriter {
   void AddToForwardList(Dart_CObject* object);
 
   void WriteSmi(int64_t value);
+  void WriteNullObject();
   void WriteMint(Dart_CObject* object, int64_t value);
   void WriteInt32(Dart_CObject* object);
   void WriteInt64(Dart_CObject* object);
