@@ -264,11 +264,6 @@ class Unparser implements Visitor {
     }
   }
 
-  unparseSend(Send node) {
-    unparseSendPart(node);
-    visit(node.argumentsNode);
-  }
-
   visitSend(Send node) {
     unparseSendPart(node);
     visit(node.argumentsNode);
