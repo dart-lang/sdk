@@ -151,7 +151,9 @@ class PlaceholderCollector extends AbstractVisitor {
     } else {
       assert(false); // Unreachable.
     }
-    elementNode.accept(this);
+    compiler.withCurrentElement(element, () {
+      elementNode.accept(this);
+    });
   }
 
   Type resolveType(TypeAnnotation typeAnnotation) {
@@ -187,6 +189,10 @@ class PlaceholderCollector extends AbstractVisitor {
         new PrivatePlaceholder(currentElement.getLibrary(), node);
   }
 
+  void makeUnresolvedPlaceholder(Node node) {
+    placeholders[node] = const UnresolvedPlaceholder();
+  }
+
   void internalError(String reason, [Node node]) {
     compiler.cancel(reason: reason, node: node);
   }
@@ -208,7 +214,44 @@ class PlaceholderCollector extends AbstractVisitor {
     send.visitChildren(this);
   }
 
+  static bool isPlainTypeName(TypeAnnotation typeAnnotation) {
+    if (typeAnnotation.typeName is !Identifier) return false;
+    if (typeAnnotation.typeArguments === null) return true;
+    if (typeAnnotation.typeArguments.length === 0) return true;
+    return false;
+  }
+
+  static bool isDynamicType(TypeAnnotation typeAnnotation) {
+    if (!isPlainTypeName(typeAnnotation)) return false;
+    String name = typeAnnotation.typeName.asIdentifier().source.slowToString();
+    return name == 'Dynamic';
+  }
+
   visitTypeAnnotation(TypeAnnotation node) {
+    // Poor man generic variables resolution.
+    // TODO(antonm): get rid of it once resolver can deal with it.
+    if (isPlainTypeName(node)) {
+      String name = node.typeName.source.slowToString();
+      if (currentElement is TypedefElement) {
+        TypedefElement typedefElement = currentElement;
+        NodeList typeParameters = typedefElement.cachedNode.typeParameters;
+        if (typeParameters !== null) {
+          for (TypeVariable typeVariable in typeParameters) {
+            Identifier typeVariableName = typeVariable.name;
+            // If names are equal, then it's a variable and sholdn't be renamed.
+            if (typeVariableName.source.slowToString() == name) return;
+          }
+        }
+      }
+      if (currentElement is ClassElement) {
+        ClassElement classElement = currentElement;
+        String name = node.typeName.source.slowToString();
+        for (TypeVariableType argument in classElement.type.arguments) {
+          // If names are equal, then it's a variable and sholdn't be renamed.
+          if (argument.name.slowToString() == name) return;
+        }
+      }
+    }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
     if (type is !InterfaceType) return null;
     var target = node.typeName;
@@ -221,7 +264,12 @@ class PlaceholderCollector extends AbstractVisitor {
         if (!hasPrefix) target = send.receiver;
       }
     }
-    makeTypePlaceholder(target, type);
+    // TODO(antonm): is there a better way to detect unresolved types?
+    if (type !== compiler.types.dynamicType) {
+      makeTypePlaceholder(target, type);
+    } else {
+      if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+    }
     node.visitChildren(this);
   }
 }

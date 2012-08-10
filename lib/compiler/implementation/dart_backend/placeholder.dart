@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class Placeholder {
+  const Placeholder();
   abstract String rename(ConflictingRenamer renamer);
 }
 
@@ -25,4 +26,11 @@ class ElementPlaceholder extends Placeholder {
   ElementPlaceholder(this.element);
   String rename(ConflictingRenamer renamer) => renamer.renameElement(element);
   String toString() => 'element_placeholder[$element]';
+}
+
+class UnresolvedPlaceholder extends Placeholder {
+  const UnresolvedPlaceholder();
+  String rename(ConflictingRenamer renamer) =>
+      renamer.generateUniqueName('unresolved');
+  String toString() => 'unresolved_placeholder';
 }

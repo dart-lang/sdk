@@ -408,22 +408,21 @@ main() {
   testNativeMethods();
   testPrefixIncrements();
   testConstModifier();
-  testStaticInvocation();
   testSimpleFileUnparse();
+  testTopLevelField();
   testSimpleObjectInstantiation();
   testSimpleTopLevelClass();
   testClassWithSynthesizedConstructor();
   testClassWithMethod();
+  testExtendsImplements();
   testVariableDefinitions();
   testGetSet();
   testFactoryConstructor();
-  testTopLevelField();
   testAbstractClass();
-  testConflictLibraryClassRename();
-  testNoConflictSendsRename();
   testConflictSendsRename();
-  // Disabled with revert of https://chromiumcodereview.appspot.com/10824062/
-  // testDefaultClassWithArgs();
-  if (false) // Temporary resolved, fix is near.
+  testNoConflictSendsRename();
+  testConflictLibraryClassRename();
+  testDefaultClassWithArgs();
   testClassExtendsWithArgs();
+  testStaticInvocation();
 }

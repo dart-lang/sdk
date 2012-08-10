@@ -35,16 +35,16 @@ class ConflictingRenamer {
   String renamePrivateIdentifier(LibraryElement library, String id) =>
       getName(library, id, () => '_${privateNameCounter++}${id}');
 
+  String generateUniqueName(name) {
+    while (usedTopLevelIdentifiers.contains(name)) name = 'p_$name';
+    usedTopLevelIdentifiers.add(name);
+    return name;
+  }
+
   String renameElement(Element element) {
     assert(element.isTopLevel());
     // TODO(smok): Make sure that the new name does not conflict with existing
     // local identifiers.
-    generateUniqueName(name) {
-      while (usedTopLevelIdentifiers.contains(name)) name = 'p_$name';
-      usedTopLevelIdentifiers.add(name);
-      return name;
-    }
-
     String originalName = element.name.slowToString();
     LibraryElement library = element.getLibrary();
     if (library === compiler.coreLibrary) return originalName;

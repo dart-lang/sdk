@@ -157,6 +157,8 @@ class ReferencedElementCollector extends AbstractVisitor {
   }
 
   void collect() {
-    element.parseNode(compiler).accept(this);
+    compiler.withCurrentElement(element, () {
+      element.parseNode(compiler).accept(this);
+    });
   }
 }

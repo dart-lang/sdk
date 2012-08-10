@@ -251,10 +251,10 @@ super_first_constructor_test: Fail
 method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
+type_variable_bounds2_test/00: Fail # See above
+type_variable_bounds2_test/03: Fail # See above
+type_variable_bounds2_test/05: Fail # See above
 try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
-dynamic_test: Fail # Apparently dart2js cannot resolve T in typedef Dynamic F1<T>(Dynamic x, T y) and hence failure.
-# That might be a bug in dart2dart though.
-method_override_test: Fail # See above.
 # Should be triaged.
 const_test: Fail
 empty_body_member_negative_test: Fail
@@ -289,7 +289,6 @@ number_identifier_negative_test: Fail
 operator1_negative_test: Fail
 prefix14_test: Fail
 prefix15_test: Fail
-prefix16_test: Fail # Cannot resolve class only used in typedef.
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
@@ -302,7 +301,6 @@ static_top_level_test/05: Fail
 string_interpolation7_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail
-try_catch_syntax_test/09: Fail
 typed_message_test: Fail
 type_variable_bounds2_test/02: Fail
 type_variable_bounds2_test/06: Fail
