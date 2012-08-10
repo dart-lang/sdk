@@ -32,7 +32,6 @@ public class LibraryUnit {
   private final LibraryNode selfSourcePath;
   private final List<LibraryNode> importPaths = Lists.newArrayList();
   private final List<LibraryNode> sourcePaths = Lists.newArrayList();
-  private final List<LibraryNode> resourcePaths = Lists.newArrayList();
   private final List<LibraryNode> nativePaths = Lists.newArrayList();
 
   private final Map<String, DartUnit> units = new ConcurrentSkipListMap<String, DartUnit>();
@@ -84,11 +83,6 @@ public class LibraryUnit {
     assert path != null;
     sourcePaths.add(path);
     sourceCount++;
-  }
-
-  public void addResourcePath(LibraryNode path) {
-    assert path != null;
-    resourcePaths.add(path);
   }
 
   public int getSourceCount() {
@@ -217,16 +211,6 @@ public class LibraryUnit {
    */
   public Iterable<LibraryNode> getSourcePaths() {
     return sourcePaths;
-  }
-
-  /**
-   * Return a collection of paths to resources that are included in
-   * this library or application.
-   *
-   * @return the paths (not <code>null</code>, contains no <code>null</code>)
-   */
-  public Iterable<LibraryNode> getResourcePaths() {
-    return resourcePaths;
   }
 
   /**

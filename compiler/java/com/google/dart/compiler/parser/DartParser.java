@@ -64,7 +64,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -423,11 +422,7 @@ public class DartParser extends CompletionHooksParserBase {
       libUnit.addSourcePath(sourcePath);
     }
     while (peek(0) == Token.RESOURCE) {
-      beginResourceDirective();
-      DartResourceDirective resourceDirective = done(parseResourceDirective());
-      LibraryNode resourcePath = new LibraryNode(resourceDirective.getResourceUri().getValue());
-      resourcePath.setSourceInfo(resourceDirective.getSourceInfo());
-      libUnit.addResourcePath(resourcePath);
+      parseResourceDirective();
     }
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
@@ -464,11 +459,10 @@ public class DartParser extends CompletionHooksParserBase {
       unit.getDirectives().add(done(parseSourceDirective()));
     }
     while (peek(0) == Token.RESOURCE) {
-      beginResourceDirective();
-      unit.getDirectives().add(done(parseResourceDirective()));
+      parseResourceDirective();
     }
     while (peek(0) == Token.NATIVE) {
-      beginResourceDirective();
+      beginNativeDirective();
       unit.getDirectives().add(done(parseNativeDirective()));
     }
   }
@@ -555,15 +549,15 @@ public class DartParser extends CompletionHooksParserBase {
     return new DartSourceDirective(sourceUri);
   }
 
-  private DartResourceDirective parseResourceDirective() {
+  private void parseResourceDirective() {
     expect(Token.RESOURCE);
+    reportError(position(), ParserErrorCode.DEPRECATED_RESOURCE_DIRECTIVE);
     expect(Token.LPAREN);
     beginLiteral();
     expect(Token.STRING);
     DartStringLiteral resourceUri = done(DartStringLiteral.get(ctx.getTokenString()));
     expectCloseParen();
     expect(Token.SEMICOLON);
-    return new DartResourceDirective(resourceUri);
   }
 
   private DartNativeDirective parseNativeDirective() {

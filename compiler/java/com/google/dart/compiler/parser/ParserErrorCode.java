@@ -31,6 +31,7 @@ public enum ParserErrorCode implements ErrorCode {
       "Default values cannot be specified in closure type definition"),
   DEFAULT_POSITIONAL_PARAMETER("Positional parameters cannot have default values"),
   DEPRECATED_USE_OF_FACTORY_KEYWORD("Deprecated use of the 'factory' keyword: use 'default' instead"),
+  DEPRECATED_RESOURCE_DIRECTIVE("The #resource directive has been deprecated and will soon be removed"),
   DIRECTIVE_OUT_OF_ORDER("Directive out of order"),
   DISALLOWED_ABSTRACT_KEYWORD("Abstract keyword not allowed here"),
   // TODO(zundel): error message needs JUnit test (unreachable code?)

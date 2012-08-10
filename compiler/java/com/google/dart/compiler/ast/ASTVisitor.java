@@ -273,10 +273,6 @@ public class ASTVisitor<R> {
     return visitNode(node);
   }
 
-  public R visitResourceDirective(DartResourceDirective node) {
-    return visitDirective(node);
-  }
-
   public R visitReturnStatement(DartReturnStatement node) {
     return visitStatement(node);
   }

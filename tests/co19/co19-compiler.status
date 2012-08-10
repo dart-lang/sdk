@@ -93,8 +93,8 @@ Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # co19 issue 160
-Language/11_Statements/09_Try_A01_t14: Fail # out of date
-Language/11_Statements/09_Try_A01_t18: Fail # out of date
+Language/11_Statements/09_Try_A01_t14: Fail # out of date - catch parameters are not allowed to be typed
+Language/11_Statements/09_Try_A01_t18: Fail # out of date - catch parameters are not allowed to be typed
 Language/11_Statements/11_Labels_A03_t04: Fail # co19 issue 137
 Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
@@ -103,7 +103,9 @@ Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 
 Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Skip # language change 1031
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
+Language/12_Libraries_and_Scripts/3_Includes_A01_t13: Skip # out of date - resource directives have been removed
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t01: Skip # out of date - resource directives have been removed
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 148
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t04: Fail # co19 issue 141
 Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130

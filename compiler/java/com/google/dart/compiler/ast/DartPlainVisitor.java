@@ -96,8 +96,6 @@ public interface DartPlainVisitor<R> {
 
   R visitTypeNode(DartTypeNode node);
 
-  R visitResourceDirective(DartResourceDirective node);
-
   R visitReturnStatement(DartReturnStatement node);
 
   R visitSourceDirective(DartSourceDirective node);

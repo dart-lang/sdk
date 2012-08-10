@@ -8,7 +8,6 @@
 #import("dart:core");
  
 #source("ListObjectLiterals.dart");
-#resource("myimage.gif");
  
  main() {
    // something to do here
