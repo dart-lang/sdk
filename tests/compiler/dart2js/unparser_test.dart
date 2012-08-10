@@ -187,16 +187,9 @@ testVariableDefinitions() {
   // Class member of typedef-ed function type.
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
-  testDart2Dart('typedef void foofunc(arg);'
-      'class A {'
-        'final foofunc handler;'
-        'A(foofunc this.handler);'
-      '}'
-      'main() {new A((arg) {});}', (result) {
-        Expect.equals(
-            'main(){new A((arg){});}'
-            'class A{A(foofunc this.handler);final foofunc handler;}', result);
-      });
+  testDart2Dart(
+    'main(){new A((arg){});}typedef void foofunc(arg);'
+    'class A{A(foofunc this.handler);final foofunc handler;}');
 }
 
 testGetSet() {

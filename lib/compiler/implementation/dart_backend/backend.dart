@@ -59,13 +59,14 @@ class DartBackend extends Backend {
       !isDartCoreLib(compiler, element.getLibrary());
 
     Set<TypedefElement> typedefs = new Set<TypedefElement>();
+    Set<ClassElement> classes = new Set<ClassElement>();
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
       if (element is AbstractFieldElement) return;
       collector.collect(element, treeElements);
       new ReferencedElementCollector(
-          compiler, element, treeElements, typedefs)
+          compiler, element, treeElements, typedefs, classes)
       .collect();
     });
 
@@ -89,6 +90,12 @@ class DartBackend extends Backend {
     });
 
     typedefs.forEach(emitter.outputElement);
+    final emptySet = new Set<Element>();
+    classes.forEach((classElement) {
+      if (!shouldOutput(classElement)) return;
+      if (resolvedClassMembers.containsKey(classElement)) return;
+      emitter.outputClass(classElement, emptySet);
+    });
 
     // Now output resolved classes with inner elements we met before.
     resolvedClassMembers.forEach(emitter.outputClass);
@@ -123,19 +130,20 @@ class ReferencedElementCollector extends AbstractVisitor {
   final Element element;
   final TreeElements treeElements;
   final Set<TypedefElement> typedefs;
+  final Set<ClassElement> classes;
 
   ReferencedElementCollector(
       this.compiler,
       this.element, this.treeElements,
-      this.typedefs);
+      this.typedefs, this.classes);
 
   visitNode(Node node) { node.visitChildren(this); }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
-    Element element = treeElements[typeAnnotation];
-    if (element !== null) {
-      if (element.isTypedef()) typedefs.add(element);
-    }
+    final type = compiler.resolveTypeAnnotation(element, typeAnnotation);
+    Element typeElement = type.element;
+    if (typeElement.isTypedef()) typedefs.add(typeElement);
+    if (typeElement.isClass()) classes.add(typeElement);
     typeAnnotation.visitChildren(this);
   }
 

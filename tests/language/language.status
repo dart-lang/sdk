@@ -230,10 +230,8 @@ function_type_alias7_test/00: Fail
 function_type_alias_test: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
-generic_deep_test: Fail
 get_set_syntax_test/none: Fail
 implicit_scope_test: Fail
-instanceof2_test: Fail
 instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
@@ -249,14 +247,15 @@ prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
+# Triaged.
+method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
+method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
+method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
+try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
 # Should be triaged.
 const_test: Fail
-dynamic_test: Fail # Depends on empty class processing.
 empty_body_member_negative_test: Fail
 factory4_test: Fail
-f_bounded_quantification_test/01: Fail
-f_bounded_quantification_test/02: Fail
-f_bounded_quantification_test/none: Fail
 field2_negative_test: Fail
 field4_negative_test: Fail
 field5_negative_test: Fail
@@ -267,7 +266,6 @@ field_optimization_test: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
-generic_instanceof3_test: Fail
 getters_setters2_test/03: Fail
 implicit_this_test/01: Fail
 implicit_this_test/02: Fail
@@ -276,16 +274,12 @@ implicit_this_test/04: Fail
 implicit_this_test/none: Fail
 implied_interface_test: Fail
 incr_op_test: Fail
-instanceof_test: Fail
 interface_factory_constructor_negative_test: Fail
 interface_inherit_field_test: Fail
 interface_static_method_negative_test: Fail
 interface_test: Fail
-is_operator_test: Fail
 library5_test: Fail
 library_same_name_used_test: Fail
-local_function2_test: Fail
-method_override2_test/none: Fail
 named_parameters_type_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
@@ -295,8 +289,6 @@ prefix15_test: Fail
 prefix16_test: Fail # Cannot resolve class only used in typedef.
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
-rethrow_test: Fail
-savannah_test: Fail
 static_final_field_negative_test: Fail
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
@@ -307,24 +299,13 @@ static_top_level_test/05: Fail
 string_interpolation7_test: Fail
 switch_label_test: Fail
 syntax_test/none: Fail
-throw1_test: Fail
-throw2_test: Fail
-throw4_test: Fail
-throw5_test: Fail
-top_level_prefixed_declaration_test: Fail
-try_catch2_test: Fail
-try_catch3_test: Fail
 try_catch_syntax_test/09: Fail
-try_catch_test: Fail
 typed_message_test: Fail
 type_variable_bounds2_test/00: Fail
-type_variable_bounds2_test/01: Fail
 type_variable_bounds2_test/02: Fail
 type_variable_bounds2_test/03: Fail
-type_variable_bounds2_test/04: Fail
 type_variable_bounds2_test/05: Fail
 type_variable_bounds2_test/06: Fail
-type_variable_bounds2_test/none: Fail
 type_variable_bounds_test/02: Fail
 type_variable_bounds_test/04: Fail
 type_variable_bounds_test/05: Fail
