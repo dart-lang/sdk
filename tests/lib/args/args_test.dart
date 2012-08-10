@@ -357,6 +357,30 @@ main() {
         parser.addOption('mode', allowed: ['debug', 'release']);
         throwsFormat(parser, ['--mode=profile']);
       });
+
+      test('returns last provided value', () {
+        var parser = new ArgParser();
+        parser.addOption('define');
+        var args = parser.parse(['--define=1', '--define=2']);
+        expect(args['define'], equals('2'));
+      });
+
+      test('returns a List if multi-valued', () {
+        var parser = new ArgParser();
+        parser.addOption('define', allowMultiple: true);
+        var args = parser.parse(['--define=1']);
+        expect(args['define'], equals(['1']));
+        args = parser.parse(['--define=1', '--define=2']);
+        expect(args['define'], equals(['1','2']));
+      });
+
+      test('returns the default value for multi-valued arguments '
+           'if not explicitly set', () {
+        var parser = new ArgParser();
+        parser.addOption('define', defaultsTo:'0', allowMultiple: true);
+        var args = parser.parse(['']);
+        expect(args['define'], equals(['0']));
+      });
     });
 
     group('remaining args', () {
@@ -557,7 +581,7 @@ main() {
 }
 
 throwsIllegalArg(function) {
-  expect(function, throwsA(new isInstanceOf<IllegalArgumentException>()));
+  expect(function, throwsIllegalArgumentException);
 }
 
 throwsFormat(ArgParser parser, List<String> args) {
