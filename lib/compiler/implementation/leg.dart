@@ -8,7 +8,7 @@
 
 #import('dart_backend/dart_backend.dart', prefix: 'dart_backend');
 #import('elements/elements.dart');
-#import('js_backend/js_backend.dart', prefix: 'js_backend');
+#import('native_handler.dart', prefix: 'native');
 #import('scanner/scanner_implementation.dart');
 #import('scanner/scannerlib.dart');
 #import('ssa/ssa.dart');
@@ -26,8 +26,10 @@
 #source('compile_time_constants.dart');
 #source('compiler.dart');
 #source('diagnostic_listener.dart');
+#source('emitter.dart');
 #source('enqueue.dart');
 #source('namer.dart');
+#source('native_emitter.dart');
 #source('operations.dart');
 #source('resolved_visitor.dart');
 #source('resolver.dart');
