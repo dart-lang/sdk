@@ -224,7 +224,7 @@ class LibraryCompiler extends api.Compiler {
       elementList.add(scanner.loadLibrary(uri, null));
     }
 
-    world.populate(this, libraries.getValues());
+    world.populate(this);
 
     log('Resolving...');
     phase = Compiler.PHASE_RESOLVING;
