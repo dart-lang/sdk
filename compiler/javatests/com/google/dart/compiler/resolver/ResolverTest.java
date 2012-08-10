@@ -448,7 +448,7 @@ public class ResolverTest extends ResolverTestCase {
         "class B<T> {",
         "  factory A() { return new C<K>();}",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
+        TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void testFactoryBadTypeArgs2() {
@@ -724,7 +724,7 @@ public class ResolverTest extends ResolverTestCase {
         "  var Bar;",
         "  create() { return new Bar();}",
         "}"),
-        ResolverErrorCode.NOT_A_TYPE);
+        TypeErrorCode.NOT_A_TYPE);
   }
 
   public void testNewExpression4() {
@@ -747,7 +747,7 @@ public class ResolverTest extends ResolverTestCase {
       "class B {",
       "  foo() { return new Foo<T>(); }",
       "}"),
-      ResolverErrorCode.NO_SUCH_TYPE);
+      TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void testNewExpression6() {
@@ -1038,7 +1038,7 @@ public class ResolverTest extends ResolverTestCase {
         "    new Unknown();",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
+        TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_new_noSuchType_typeArgument() throws Exception {
@@ -1050,7 +1050,7 @@ public class ResolverTest extends ResolverTestCase {
         "    new Foo<T>();",
         "  }",
         "}"),
-        ResolverErrorCode.NO_SUCH_TYPE);
+        TypeErrorCode.NO_SUCH_TYPE);
   }
 
   public void test_new_wrongTypeArgumentsNumber() throws Exception {
@@ -1193,7 +1193,7 @@ public class ResolverTest extends ResolverTestCase {
         "  }",
         "}"),
         ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING,
-        ResolverErrorCode.NOT_A_TYPE);
+        TypeErrorCode.NOT_A_TYPE);
   }
 
   public void test_operatorIs_withFunctionAlias() throws Exception {
@@ -1217,8 +1217,8 @@ public class ResolverTest extends ResolverTestCase {
         "  static foo() { new T(); }", // can't ref type variable in method
         "  static bar() { T variable = 1; }",
         "}"),
-        ResolverErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT,
-        TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT);
+        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
+        errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
   }
 
   public void testTypeVariableShadowsClass() {

@@ -727,7 +727,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  new func();",
         "}",
         "");
-    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.NOT_A_TYPE, 4, 7, 4));
+    assertErrors(libraryResult.getErrors(), errEx(TypeErrorCode.NOT_A_TYPE, 4, 7, 4));
   }
 
   /**
@@ -3413,6 +3413,29 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         libraryResult.getErrors(),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
         errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+  }
+  
+  /**
+   * Unresolved constructor is warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3800
+   */
+  public void test_unresolvedConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  new A(); // OK",
+        "  new A.noSuchConstructor(); // warning",
+        "  new B(); // warning",
+        "  new B.noSuchConstructor(); // warning",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 7, 19),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
   }
 
   private static <T extends DartNode> T findNode(

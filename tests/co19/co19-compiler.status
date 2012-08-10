@@ -6,15 +6,16 @@
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
-LibTest/core/BadNumberFormatException/*: Fail
 LibTest/core/double/toInt_A01_t03: Fail
 LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
 Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
+Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
 Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 143
 Language/03_Overview/1_Scoping_A03_t05: Fail # co19 issue 144
+Language/03_Overview/2_Privacy_A01_t02: Fail # language change 1031
 Language/05_Variables/05_Variables_A01_t01: Fail # Issue 3323
 Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
@@ -27,6 +28,7 @@ Language/07_Classes/4_Instance_Variables_A01_t03: Skip # co19 issue 165
 Language/07_Classes/4_Instance_Variables_A01_t04: Skip # co19 issue 165
 Language/07_Classes/4_Instance_Variables_A01_t07: Skip # co19 issue 165
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A15_t07: Fail # Issue 3323
+Language/07_Classes/5_Constructors_A02_t03: Fail # language change 1031
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t01: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t02: Fail # Issue 2477
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # Issue 2477
@@ -51,23 +53,41 @@ Language/10_Expressions/01_Constants_A16_t01: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t02: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A16_t03: Fail # Issue 1473
 Language/10_Expressions/01_Constants_A17_t03: Fail # Issue 1473
+Language/10_Expressions/02_Null_A03_t01: Fail # language change 1031
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 149
+Language/10_Expressions/10_Instance_Creation_A02_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t02: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t03: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t04: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A02_t06: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A03_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/1_New_A04_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t02: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t03: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t04: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t06: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t01: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t03: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t04: Fail # language change 1031
+Language/10_Expressions/10_Instance_Creation/2_Const_A05_t01: Fail # language change 1031
 Language/10_Expressions/10_Instance_Creation/2_Const_A10_t01: Fail # Issue 1473
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t02: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # co19 issue 155
-Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Skip # language change 1031
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Fail # language change 1031
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Issue 3524
-Language/10_Expressions/15_Getter_Invocation_A07_t04: Skip # language change 1031
-Language/10_Expressions/15_Getter_Invocation_A07_t05: Skip # language change 1031
-Language/10_Expressions/15_Getter_Invocation_A07_t06: Skip # language change 1031
-Language/10_Expressions/16_Assignment_A04_t03: Skip # language change 1031
-Language/10_Expressions/16_Assignment_A04_t04: Skip # language change 1031
+Language/10_Expressions/15_Getter_Invocation_A07_t04: Fail # language change 1031
+Language/10_Expressions/15_Getter_Invocation_A07_t05: Fail # language change 1031
+Language/10_Expressions/15_Getter_Invocation_A07_t06: Fail # language change 1031
+Language/10_Expressions/16_Assignment_A04_t03: Fail # language change 1031
+Language/10_Expressions/16_Assignment_A04_t04: Fail # language change 1031
 Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
@@ -100,7 +120,7 @@ Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
-Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Skip # language change 1031
+Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Fail # language change 1031
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/3_Includes_A01_t13: Skip # out of date - resource directives have been removed
@@ -112,8 +132,6 @@ Language/13_Types/4_Interface_Types_A10_t09:Fail # co19 Issue 130
 Language/13_Types/5_Function_Types_A01_t08:Fail # co19 Issue 130
 
 
-LibTest/core/FallThroughError/FallThroughError_A01_t01: Fail # Issue 1269
-LibTest/core/FallThroughError/toString_A01_t01: Fail # Issue 1269
 LibTest/core/FallThroughError/toString_A01_t02: Fail # co19 issue 139
 LibTest/core/List/every_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
 LibTest/core/List/filter_A03_t01: Skip # status change with --check-only, Promise removed (co19 Issue #79)
@@ -163,9 +181,6 @@ LibTest/isolate/Isolate/main_A01_t01: Fail, OK
 LibTest/isolate/Isolate/class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A01_t01: Fail, OK
 LibTest/isolate/Isolate/Isolate_class_A02_t01: Fail, OK
-LibTest/isolate/Isolate/Isolate_A01_t01: Fail, OK
-LibTest/isolate/Isolate/Isolate.light_A01_t01: Fail, OK
-LibTest/isolate/Isolate/Isolate.heavy_A01_t01: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t01: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t02: Fail, OK
 LibTest/isolate/Isolate/spawn_A01_t03: Fail, OK

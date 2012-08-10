@@ -1430,7 +1430,7 @@ public class Resolver {
         public Element visitTypeNode(DartTypeNode type) {
           return recordType(type, resolveType(type, inStaticContext(currentMethod),
                                               inFactoryContext(currentMethod),
-                                              ResolverErrorCode.NO_SUCH_TYPE,
+                                              TypeErrorCode.NO_SUCH_TYPE,
                                               ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS));
         }
 

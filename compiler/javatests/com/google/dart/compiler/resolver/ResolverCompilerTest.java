@@ -247,7 +247,7 @@ public class ResolverCompilerTest extends CompilerTestCase {
             "  }",
             "}"));
     assertErrors(
-        libraryResult.getCompilationErrors(),
+        libraryResult.getErrors(),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 9, 5));
     DartUnit unit = libraryResult.getLibraryUnitResult().getUnits().iterator().next();
     DartNewExpression newExpression = findExpression(unit, "new A.foo()");
