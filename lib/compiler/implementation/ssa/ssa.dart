@@ -5,10 +5,11 @@
 #library('ssa');
 
 #import('../leg.dart');
-#import('../native_handler.dart', prefix: 'native');
 #import('../source_file.dart');
 #import('../source_map_builder.dart');
 #import('../elements/elements.dart');
+#import('../js_backend/js_backend.dart');
+#import('../native_handler.dart', prefix: 'native');
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
 #import('../util/util.dart');

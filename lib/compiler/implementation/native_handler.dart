@@ -6,6 +6,7 @@
 #import('dart:uri');
 #import('leg.dart');
 #import('elements/elements.dart');
+#import('js_backend/js_backend.dart');
 #import('scanner/scannerlib.dart');
 #import('ssa/ssa.dart');
 #import('tree/tree.dart');
