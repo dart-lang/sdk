@@ -20,6 +20,47 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+UseVal::UseVal(Definition* definition)
+    : definition_(definition), next_use_(NULL), previous_use_(NULL) {
+  AddToUseList();
+}
+
+
+void UseVal::SetDefinition(Definition* definition) {
+  ASSERT(definition != NULL);
+  RemoveFromUseList();
+  definition_ = definition;
+  AddToUseList();
+}
+
+
+void UseVal::RemoveFromUseList() {
+  ASSERT(definition_ != NULL);
+  if (next_use_ != NULL) {
+    next_use_->previous_use_ = previous_use_;
+  }
+  if (previous_use_ != NULL) {
+    previous_use_->next_use_ = next_use_;
+  } else {
+    // This is the head of the list.
+    ASSERT(definition_->use_list() == this);
+    definition_->set_use_list(next_use_);
+  }
+  previous_use_ = next_use_ = NULL;
+  definition_ = NULL;
+}
+
+
+void UseVal::AddToUseList() {
+  ASSERT(next_use_ == NULL && previous_use_ == NULL && definition_ != NULL);
+  UseVal* head = definition_->use_list();
+  if (head != NULL) {
+    next_use_ = head;
+    head->previous_use_ = this;
+  }
+  definition_->set_use_list(this);
+}
+
 
 MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
     const Function& function) {

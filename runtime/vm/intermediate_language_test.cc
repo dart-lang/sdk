@@ -17,4 +17,28 @@ TEST_CASE(InstructionTests) {
   EXPECT(!bind_instr->IsBlockEntry());
 }
 
+TEST_CASE(DefUseTests) {
+  Definition* def1 = new PhiInstr(0);
+  Definition* def2 = new PhiInstr(0);
+  EXPECT(def1->use_list() == NULL);
+  EXPECT(def2->use_list() == NULL);
+  UseVal* use1 = new UseVal(def1);
+  EXPECT(def1->use_list() == use1);
+  EXPECT(def1->use_list()->next_use() == NULL);
+  UseVal* use2 = new UseVal(def1);
+  EXPECT(def1->use_list()->next_use()->next_use() == NULL);
+  UseVal* use3 = new UseVal(def1);
+  EXPECT(def1->use_list()->next_use()->next_use()->next_use() == NULL);
+  use1->RemoveFromUseList();
+  EXPECT(def1->use_list()->next_use()->next_use() == NULL);
+  use3->SetDefinition(def2);
+  EXPECT(def1->use_list() == use2);
+  EXPECT(def1->use_list()->next_use() == NULL);
+  EXPECT(def2->use_list() == use3);
+  EXPECT(def2->use_list()->next_use() == NULL);
+  BindInstr* bind = new BindInstr(BindInstr::kUsed, use2);
+  bind->RemoveInputUses();
+  EXPECT(def1->use_list() == NULL);
+}
+
 }  // namespace dart
