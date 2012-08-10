@@ -29,9 +29,6 @@ crypto/sha256_test: Fail
 unittest/mock_regexp_negative_test: fail
 unittest/mock_stepwise_negative_test: fail
 
-[ $runtime == opera ]
-*: Skip
-
 [ $compiler == dart2js && $checked ]
 fixnum/int_32_test: Fail # Issue 3720.
 fixnum/int_64_test: Fail # Issue 3720.

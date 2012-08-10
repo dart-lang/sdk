@@ -20,9 +20,6 @@ string_interpolation_test: Skip
 
 [ $compiler == dartc || $runtime == vm ]
 
-[ $runtime == opera ]
-*: Skip
-
 [ $compiler == dart2js && ($runtime == ff || $runtime == ie || $runtime == safari) ]
 naming_test: Fail # BUG(3305)
 

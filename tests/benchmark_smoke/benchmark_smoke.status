@@ -17,9 +17,6 @@
 [ $compiler == frog && $runtime == d8 ]
 *: Skip
 
-[ $runtime == opera ]
-*: Skip
-
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
