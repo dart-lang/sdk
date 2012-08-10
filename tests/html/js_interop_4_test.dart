@@ -59,6 +59,6 @@ main() {
     port2.receive(fun2);
     window.registerPort('fun2', port2.toSendPort());
 
-    spawnFunction(testIsolateEntry);
+    spawnDomFunction(testIsolateEntry);
   });
 }

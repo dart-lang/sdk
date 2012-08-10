@@ -41202,15 +41202,7 @@ class _Deserializer {
 // BSD-style license that can be found in the LICENSE file.
 
 // This API is exploratory.
-spawnDomIsolate(Window targetWindow, String entryPoint) {
-  if (targetWindow is! _DOMWindowImpl && targetWindow is! _DOMWindowCrossFrameImpl) {
-    throw 'Bad window argument: $targetWindow';
-  }
-  final result = new Completer<SendPort>();
-  final port = _Utils.spawnDomIsolateImpl(targetWindow, entryPoint);
-  window.setTimeout(() { result.complete(port); }, 0);
-  return result.future;
-}
+spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
 
 // layoutTestController implementation.
 // FIXME: provide a separate lib for layoutTestController.
@@ -41268,7 +41260,7 @@ class _Utils {
   }
 
   static window() native "Utils_window";
-  static SendPort spawnDomIsolateImpl(Window window, String entryPoint) native "Utils_spawnDomIsolate";
+  static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 }
 

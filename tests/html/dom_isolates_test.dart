@@ -1,62 +1,64 @@
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file
+
 #library('DOMIsolatesTest');
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/html_config.dart');
 #import('dart:html');
 #import('dart:isolate');
 
-isolateMain(port) {
+isolateMain() {
   port.receive((msg, replyTo) {
     if (msg != 'check') {
       replyTo.send('wrong msg: $msg');
     }
-    replyTo.send(window.location.toString());
+    replyTo.send('${window.location}');
     port.close();
   });
 }
 
-isolateMainTrampoline(port) {
-  final childPortFuture = spawnDomIsolate(window, 'isolateMain');
+isolateMainTrampoline() {
+  final childPort = spawnDomFunction(isolateMain);
   port.receive((msg, parentPort) {
-    childPortFuture.then((childPort) {
-      childPort.call(msg).then((response) {
-        parentPort.send(response);
-        port.close();
-      });
+    childPort.call(msg).then((response) {
+      parentPort.send(response);
+      port.close();
     });
   });
 }
 
+dummy() => print("Bad invocation of top-level function");
+
 main() {
   useHtmlConfiguration();
 
-  final iframe = new Element.tag('iframe');
-  document.body.nodes.add(iframe);
-
   test('Simple DOM isolate test', () {
-    spawnDomIsolate(iframe.contentWindow, 'isolateMain').then(
-      expectAsync1((sendPort) {
-        sendPort.call('check').then(
-          expectAsync1((msg) {
-            Expect.equals('about:blank', msg);
-          }));
+    spawnDomFunction(isolateMain).call('check').then(
+      expectAsync1((msg) {
+        expect(msg, equals('${window.location}'));
       }));
   });
 
   test('Nested DOM isolates test', () {
-    spawnDomIsolate(iframe.contentWindow, 'isolateMainTrampoline').then(
-      expectAsync1((sendPort) {
-        sendPort.call('check').then(
-          expectAsync1((msg) {
-            Expect.equals('about:blank', msg);
-          }));
+    spawnDomFunction(isolateMainTrampoline).call('check').then(
+      expectAsync1((msg) {
+        expect(msg, equals('${window.location}'));
       }));
   });
 
-  test('Null as target window', () {
-    expect(() => spawnDomIsolate(null, 'isolateMain'), throws);
+  test('Not function', () {
+      expect(() => spawnDomFunction(42), throws);
   });
 
-  test('Not window as target window', () {
-    expect(() => spawnDomIsolate(document, 'isolateMain'), throws);
+  test('Not topLevelFunction', () {
+    var closure = guardAsync(() {});
+    expect(() => spawnDomFunction(closure), throws);
+  });
+
+  test('Masked local function', () {
+    var local = 42;
+    dummy() => print("Bad invocation of local function: $local");
+    expect(() => spawnDomFunction(dummy), throws);
   });
 }

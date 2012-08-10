@@ -32,7 +32,7 @@ class _Utils {
   }
 
   static window() native "Utils_window";
-  static SendPort spawnDomIsolateImpl(Window window, String entryPoint) native "Utils_spawnDomIsolate";
+  static SendPort spawnDomFunctionImpl(Function topLevelFunction) native "Utils_spawnDomFunction";
   static int _getNewIsolateId() native "Utils_getNewIsolateId";
 }
 
