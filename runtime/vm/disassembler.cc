@@ -15,7 +15,7 @@ void DisassembleToStdout::ConsumeInstruction(char* hex_buffer,
                                              char* human_buffer,
                                              intptr_t human_size,
                                              uword pc) {
-  static const int kHexColumnWidth = 18;
+  static const int kHexColumnWidth = 23;
   uint8_t* pc_ptr = reinterpret_cast<uint8_t*>(pc);
   OS::Print("%p    %s", pc_ptr, hex_buffer);
   int hex_length = strlen(hex_buffer);
