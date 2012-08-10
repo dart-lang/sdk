@@ -1186,13 +1186,6 @@ void Class::InitEmptyFields() {
 }
 
 
-void Class::InitFunctionsCache() const {
-  // TODO(srdjan): Make functions_cache growable and start with smaller size.
-  StorePointer(&raw_ptr()->functions_cache_,
-               Array::New(FunctionsCache::kNumEntries * 32, Heap::kOld));
-}
-
-
 bool Class::HasInstanceFields() const {
   const Array& field_array = Array::Handle(fields());
   Field& field = Field::Handle();
@@ -1677,12 +1670,6 @@ void Class::set_interfaces(const Array& value) const {
   // Verification and resolving of interfaces occurs in finalizer.
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->interfaces_, value.raw());
-}
-
-
-void Class::set_functions_cache(const Array& value) const {
-  ASSERT(!value.IsNull());
-  StorePointer(&raw_ptr()->functions_cache_, value.raw());
 }
 
 

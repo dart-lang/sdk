@@ -555,13 +555,6 @@ class Class : public Object {
     return OFFSET_OF(RawClass, interfaces_);
   }
 
-  RawArray* functions_cache() const { return raw_ptr()->functions_cache_; }
-  void set_functions_cache(const Array& value) const;
-
-  static intptr_t functions_cache_offset() {
-    return OFFSET_OF(RawClass, functions_cache_);
-  }
-
   // Check if this class represents the class of null.
   bool IsNullClass() const { return raw() == Object::null_class(); }
 
@@ -687,9 +680,6 @@ class Class : public Object {
   RawArray* constants() const;
 
   void Finalize() const;
-
-  // Initialize the functions cache array.
-  void InitFunctionsCache() const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();

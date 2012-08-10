@@ -758,15 +758,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
   } else {
     receiver_class = receiver.clazz();
   }
-  FunctionsCache functions_cache(receiver_class);
-  Code& code = Code::Handle();
-      code = functions_cache.LookupCode(function_name,
-                                        num_arguments,
-                                        num_named_arguments);
-  if (!code.IsNull()) {
-    // Function's code found in the cache.
-    return code.raw();
-  }
 
   Function& function = Function::Handle();
   function = Resolver::ResolveDynamic(receiver,
@@ -782,9 +773,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
         Exceptions::PropagateError(error);
       }
     }
-    functions_cache.AddCompiledFunction(function,
-                                        num_arguments,
-                                        num_named_arguments);
     return function.CurrentCode();
   }
 }
@@ -1631,100 +1619,5 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   }
 }
 END_LEAF_RUNTIME_ENTRY
-
-
-// We are entering function name for a valid argument count.
-void FunctionsCache::EnterFunctionAt(int i,
-                                     const Array& cache,
-                                     const Function& function,
-                                     int num_arguments,
-                                     int num_named_arguments) {
-  ASSERT((i % kNumEntries) == 0);
-  ASSERT(function.AreValidArgumentCounts(num_arguments,
-                                         num_named_arguments,
-                                         NULL));
-  cache.SetAt(i + FunctionsCache::kFunctionName,
-      String::Handle(function.name()));
-  cache.SetAt(i + FunctionsCache::kArgCount,
-      Smi::Handle(Smi::New(num_arguments)));
-  cache.SetAt(i + FunctionsCache::kNamedArgCount,
-      Smi::Handle(Smi::New(num_named_arguments)));
-  cache.SetAt(i + FunctionsCache::kFunction, function);
-}
-
-
-void FunctionsCache::AddCompiledFunction(const Function& function,
-                                         int num_arguments,
-                                         int num_named_arguments) {
-// TODO(srdjan): Evaluate if populating the function cache is needed.
-// It is turned off currently because we do not populate code objects
-// in snapshot and hence end up in an inconsistent state as function
-// cache is populated but there are no code objects.
-#if 0
-  ASSERT(function.HasCode());
-  Array& cache = Array::Handle(class_.functions_cache());
-  if (cache.IsNull()) {
-    class_.InitFunctionsCache();
-    cache = class_.functions_cache();
-  }
-  // Search for first free slot. Last entry is always NULL object.
-  for (intptr_t i = 0; i < (cache.Length() - kNumEntries); i += kNumEntries) {
-    if (Object::Handle(cache.At(i)).IsNull()) {
-      EnterFunctionAt(i,
-                      cache,
-                      function,
-                      num_arguments,
-                      num_named_arguments);
-      return;
-    }
-  }
-  intptr_t ix = cache.Length() - kNumEntries;
-  // Grow by 8 entries.
-  cache = Array::Grow(cache, cache.Length() + (8 * kNumEntries));
-  class_.set_functions_cache(cache);
-  EnterFunctionAt(ix,
-                  cache,
-                  function,
-                  num_arguments,
-                  num_named_arguments);
-#endif
-}
-
-
-// Only the number of named arguments is checked, but not the actual names.
-RawCode* FunctionsCache::LookupCode(const String& function_name,
-                                    int num_arguments,
-                                    int num_named_arguments) {
-  const Array& cache = Array::Handle(class_.functions_cache());
-  if (cache.IsNull()) {
-    return Code::null();  // Functions cache has not been populated yet.
-  }
-  String& test_name = String::Handle();
-  for (intptr_t i = 0; i < cache.Length(); i += kNumEntries) {
-    test_name ^= cache.At(i + FunctionsCache::kFunctionName);
-    if (test_name.IsNull()) {
-      // Found NULL, no more entries to check, abort lookup.
-      return Code::null();
-    }
-    if (function_name.Equals(test_name)) {
-      Smi& smi = Smi::Handle();
-      smi ^= cache.At(i + FunctionsCache::kArgCount);
-      if (num_arguments == smi.Value()) {
-        smi ^= cache.At(i + FunctionsCache::kNamedArgCount);
-        if (num_named_arguments == smi.Value()) {
-          Function& result = Function::Handle();
-          result ^= cache.At(i + FunctionsCache::kFunction);
-          ASSERT(!result.IsNull());
-          ASSERT(result.HasCode());
-          return result.CurrentCode();
-        }
-      }
-    }
-  }
-  // The cache is null terminated, therefore the loop above should never
-  // terminate by itself.
-  UNREACHABLE();
-  return Code::null();
-}
 
 }  // namespace dart

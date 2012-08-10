@@ -84,46 +84,6 @@ DEOPT_REASONS(DEFINE_ENUM_LIST)
 #undef DEFINE_ENUM_LIST
 };
 
-// This class wraps around the array RawClass::functions_cache_.
-// The structure of that array is specified by FunctionsCache::Entries.
-// The last entry in the array is always NULL, the lookup code can rely on
-// last entry being NULL to terminate its search.
-// The compiled functions are added sequentially (except for the last entry
-// being empty). Names of functions with variable number of arguments
-// can appear several times, once for each valid argument count.
-class FunctionsCache : public ValueObject {
- public:
-  // Entries in the RawClass::functions_cache_. The size of initially allocated
-  // functions_cache_ array is (kInitialSize * kNumEntries).
-  enum Entries {
-    kFunctionName = 0,
-    kArgCount = 1,
-    kNamedArgCount = 2,
-    kFunction = 3,
-    kNumEntries = 4
-  };
-
-  explicit FunctionsCache(const Class& cls) : class_(cls) {}
-
-  void AddCompiledFunction(const Function& function,
-                           int num_arguments,
-                           int num_named_arguments);
-
-  // This is a testing function, the lookup (will) occur inlined in stub code.
-  RawCode* LookupCode(const String& function_name,
-                      int num_arguments,
-                      int num_named_arguments);
-
- private:
-  static void EnterFunctionAt(int i,
-                              const Array& cache,
-                              const Function& function,
-                              int num_arguments,
-                              int num_named_arguments);
-
-  const Class& class_;
-};
-
 
 RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                           const Instance& receiver);

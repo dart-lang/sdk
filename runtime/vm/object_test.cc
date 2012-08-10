@@ -110,15 +110,6 @@ TEST_CASE(Class) {
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
   cls.set_interfaces(interfaces);
   cls.Finalize();
-
-  ASSERT(cls.functions_cache() == Array::null());
-  cls.InitFunctionsCache();
-  const Array& array = Array::Handle(cls.functions_cache());
-  array.SetAt(0, function_name);
-  cls.set_functions_cache(array);
-  String& test_name = String::Handle();
-  test_name ^= Array::Handle(cls.functions_cache()).At(0);
-  EXPECT(test_name.Equals(function_name));
 }
 
 
