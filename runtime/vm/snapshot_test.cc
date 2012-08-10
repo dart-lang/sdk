@@ -783,7 +783,7 @@ TEST_CASE(SerializeScript) {
   const String& dummy_key = String::Handle(String::New(""));
   Scanner scanner(str, dummy_key);
   const TokenStream& reconstructed_tokens =
-      TokenStream::Handle(TokenStream::New(scanner.GetStream()));
+      TokenStream::Handle(TokenStream::New(scanner.GetStream(), dummy_key));
   expected_iterator.SetCurrentPosition(0);
   TokenStream::Iterator reconstructed_iterator(reconstructed_tokens, 0);
   expected_kind = expected_iterator.CurrentTokenKind();

@@ -623,6 +623,9 @@ RawTokenStream* TokenStream::ReadFrom(SnapshotReader* reader,
   // Read in the literal/identifier token array.
   *(reader->TokensHandle()) ^= reader->ReadObjectImpl();
   token_stream.SetTokenObjects(*(reader->TokensHandle()));
+  // Read in the private key in use by the token stream.
+  *(reader->StringHandle()) ^= reader->ReadObjectImpl();
+  token_stream.SetPrivateKey(*(reader->StringHandle()));
 
   return token_stream.raw();
 }
@@ -649,6 +652,8 @@ void RawTokenStream::WriteTo(SnapshotWriter* writer,
 
   // Write out the literal/identifier token array.
   writer->WriteObjectImpl(ptr()->token_objects_);
+  // Write out the private key in use by the token stream.
+  writer->WriteObjectImpl(ptr()->private_key_);
 }
 
 

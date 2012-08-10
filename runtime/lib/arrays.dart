@@ -81,7 +81,7 @@ class Arrays {
       throw new IllegalArgumentException("negative length $length");
     }
     if (start < 0 || start >= a.length) {
-      String message = "$start must be in the range [0..${a.length})"; 
+      String message = "$start must be in the range [0..${a.length})";
       throw new IndexOutOfRangeException(message);
     }
     if (start + length > a.length) {

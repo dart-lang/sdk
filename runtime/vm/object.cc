@@ -4508,24 +4508,48 @@ void TokenStream::SetLength(intptr_t value) const {
 }
 
 
+RawString* TokenStream::PrivateKey() const {
+  return raw_ptr()->private_key_;
+}
+
+
+void TokenStream::SetPrivateKey(const String& value) const {
+  StorePointer(&raw_ptr()->private_key_, value.raw());
+}
+
+
 RawString* TokenStream::GenerateSource() const {
   Iterator iterator(*this, 0);
-  GrowableObjectArray& literals =
+  const GrowableObjectArray& literals =
       GrowableObjectArray::Handle(GrowableObjectArray::New(Length()));
-  String& literal = String::Handle();
+  const String& private_key = String::Handle(PrivateKey());
+  intptr_t private_len = private_key.Length();
+
   String& blank = String::Handle(String::New(" "));
   String& newline = String::Handle(String::New("\n"));
   String& two_newlines = String::Handle(String::New("\n\n"));
   String& double_quotes = String::Handle(String::New("\""));
   String& dollar = String::Handle(String::New("$"));
   String& two_spaces = String::Handle(String::New("  "));
+
+  Token::Kind curr = iterator.CurrentTokenKind();
+  Token::Kind prev = Token::kILLEGAL;
+  // Handles used in the loop.
   Object& obj = Object::Handle();
-  Token::Kind kind = iterator.CurrentTokenKind();
+  String& literal = String::Handle();
+  // Current indentation level.
   int indent = 0;
-  while (kind != Token::kEOS) {
+
+  while (curr != Token::kEOS) {
+    // Remember current values for this token.
     obj = iterator.CurrentToken();
     literal = iterator.MakeLiteralToken(obj);
-    if (kind == Token::kSTRING) {
+    // Advance to be able to use next token kind.
+    iterator.Advance();
+    Token::Kind next = iterator.CurrentTokenKind();
+
+    // Handle the current token.
+    if (curr == Token::kSTRING) {
       bool escape_quotes = false;
       for (intptr_t i = 0; i < literal.Length(); i++) {
         if (literal.CharAt(i) == '"') {
@@ -4533,31 +4557,32 @@ RawString* TokenStream::GenerateSource() const {
           break;
         }
       }
-      literals.Add(double_quotes);
+      if ((prev != Token::kINTERPOL_VAR) && (prev != Token::kINTERPOL_END)) {
+        literals.Add(double_quotes);
+      }
       if (escape_quotes) {
         literal = String::EscapeDoubleQuotes(literal);
         literals.Add(literal);
       } else {
         literals.Add(literal);
       }
-      literals.Add(double_quotes);
-    } else if (kind == Token::kINTERPOL_VAR) {
-      literals.Add(double_quotes);
+      if ((next != Token::kINTERPOL_VAR) && (next != Token::kINTERPOL_START)) {
+        literals.Add(double_quotes);
+      }
+    } else if (curr == Token::kINTERPOL_VAR) {
       literals.Add(dollar);
       literals.Add(literal);
-      literals.Add(double_quotes);
-    } else if (kind == Token::kINTERPOL_START) {
-      literals.Add(double_quotes);
+    } else if (curr == Token::kIDENT) {
+      if (literal.CharAt(0) == Scanner::kPrivateIdentifierStart) {
+        literal = String::SubString(literal, 0, literal.Length() - private_len);
+      }
       literals.Add(literal);
-    } else if (kind == Token::kINTERPOL_END) {
-      literals.Add(literal);
-      literals.Add(double_quotes);
     } else {
       literals.Add(literal);
     }
     // Determine the separation text based on this current token.
     const String* separator = NULL;
-    switch (kind) {
+    switch (curr) {
       case Token::kLBRACE:
         indent++;
         separator = &newline;
@@ -4574,17 +4599,19 @@ RawString* TokenStream::GenerateSource() const {
         break;
       case Token::kPERIOD:
       case Token::kLPAREN:
+      case Token::kLBRACK:
+      case Token::kTIGHTADD:
+      case Token::kINTERPOL_VAR:
+      case Token::kINTERPOL_START:
+      case Token::kINTERPOL_END:
         break;
       default:
         separator = &blank;
         break;
     }
-    // Advance the iterator.
-    iterator.Advance();
-    kind = iterator.CurrentTokenKind();
     // Determine whether the separation text needs to be updated based on the
     // next token.
-    switch (kind) {
+    switch (next) {
       case Token::kRBRACE:
         indent--;
         break;
@@ -4593,11 +4620,27 @@ RawString* TokenStream::GenerateSource() const {
       case Token::kCOMMA:
       case Token::kLPAREN:
       case Token::kRPAREN:
+      case Token::kLBRACK:
+      case Token::kRBRACK:
+      case Token::kINTERPOL_VAR:
+      case Token::kINTERPOL_START:
+      case Token::kINTERPOL_END:
         separator = NULL;
         break;
+      case Token::kELSE:
+        separator = &blank;
       default:
         // Do nothing.
         break;
+    }
+    // Update the few cases where both tokens need to be taken into account.
+    if (((curr == Token::kIF) || (curr == Token::kFOR)) &&
+        (next == Token::kLPAREN)) {
+      separator = &blank;
+    } else if ((curr == Token::kASSIGN) && (next == Token::kLPAREN)) {
+      separator = & blank;
+    } else if ((curr == Token::kLBRACE) && (next == Token::kRBRACE)) {
+      separator = NULL;
     }
     if (separator != NULL) {
       literals.Add(*separator);
@@ -4607,6 +4650,9 @@ RawString* TokenStream::GenerateSource() const {
         }
       }
     }
+    // Setup for next iteration.
+    prev = curr;
+    curr = next;
   }
   const Array& source = Array::Handle(Array::MakeArray(literals));
   return String::ConcatAll(source);
@@ -4794,7 +4840,8 @@ class CompressedTokenStreamData : public ValueObject {
 };
 
 
-RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
+RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens,
+                                 const String& private_key) {
   // Copy the relevant data out of the scanner into a compressed stream of
   // tokens.
   CompressedTokenStreamData data;
@@ -4823,6 +4870,7 @@ RawTokenStream* TokenStream::New(const Scanner::GrowableTokenStream& tokens) {
 
   // Create and setup the token stream object.
   const TokenStream& result = TokenStream::Handle(New(data.Length()));
+  result.SetPrivateKey(private_key);
   {
     NoGCScope no_gc;
     memmove(result.EntryAddr(0), data.GetStream(), data.Length());
@@ -5026,7 +5074,8 @@ void Script::Tokenize(const String& private_key) const {
   TimerScope timer(FLAG_compiler_stats, &CompilerStats::scanner_timer);
   const String& src = String::Handle(Source());
   Scanner scanner(src, private_key);
-  set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream())));
+  set_tokens(TokenStream::Handle(TokenStream::New(scanner.GetStream(),
+                                                  private_key)));
   if (FLAG_compiler_stats) {
     CompilerStats::src_length += src.Length();
   }

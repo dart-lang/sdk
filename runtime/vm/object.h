@@ -1745,7 +1745,8 @@ class TokenStream : public Object {
   }
 
   static RawTokenStream* New(intptr_t length);
-  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens);
+  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
+                             const String& private_key);
 
   // The class Iterator encapsulates iteration over the tokens
   // in a TokenStream object.
@@ -1787,6 +1788,9 @@ class TokenStream : public Object {
 
  private:
   void SetLength(intptr_t value) const;
+
+  RawString* PrivateKey() const;
+  void SetPrivateKey(const String& value) const;
 
   uint8_t* EntryAddr(intptr_t token_pos) const {
     ASSERT((token_pos >=0) && (token_pos < Length()));
