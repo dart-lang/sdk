@@ -145,6 +145,9 @@ class PlaceholderCollector extends AbstractVisitor {
       currentElement = element.variables;
       elementNode = currentElement.parseNode(compiler);
       collectFieldDeclarationPlaceholders(element, elementNode);
+    } else if (element is ClassElement || element is TypedefElement) {
+      currentElement = element;
+      elementNode = currentElement.parseNode(compiler);
     } else {
       assert(false); // Unreachable.
     }
@@ -191,10 +194,6 @@ class PlaceholderCollector extends AbstractVisitor {
   visit(Node node) => (node === null) ? null : node.accept(this);
 
   visitNode(Node node) { node.visitChildren(this); }  // We must go deeper.
-
-  visitClassNode(ClassNode node) {
-    internalError('Should never meet ClassNode', node);
-  }
 
   visitSend(Send send) {
     new SendVisitor(this, treeElements).visitSend(send);

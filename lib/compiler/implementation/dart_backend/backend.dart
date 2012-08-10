@@ -69,6 +69,10 @@ class DartBackend extends Backend {
           compiler, element, treeElements, typedefs, classes)
       .collect();
     });
+    final emptyTreeElements = new TreeElementMapping();
+    collectElement(element) { collector.collect(element, emptyTreeElements); }
+    typedefs.forEach(collectElement);
+    classes.forEach(collectElement);
 
     ConflictingRenamer renamer =
         new ConflictingRenamer(compiler, collector.placeholders);
@@ -142,7 +146,12 @@ class ReferencedElementCollector extends AbstractVisitor {
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
     final type = compiler.resolveTypeAnnotation(element, typeAnnotation);
     Element typeElement = type.element;
-    if (typeElement.isTypedef()) typedefs.add(typeElement);
+    if (typeElement.isTypedef() && !typedefs.contains(typeElement)) {
+      typedefs.add(typeElement);
+      new ReferencedElementCollector(
+          compiler, typeElement, new TreeElementMapping(), typedefs, classes)
+      .collect();
+    }
     if (typeElement.isClass()) classes.add(typeElement);
     typeAnnotation.visitChildren(this);
   }
