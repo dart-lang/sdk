@@ -138,9 +138,6 @@ gc_test: Skip # Issue 1487
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
 
-[ $runtime == safari || $runtime == ff ]
-naming_test: Fail # Issue 4454
-
 [ $runtime == opera ]
 # TODO(kasperl): Triage these tests.
 arithmetic_test: Crash
