@@ -1999,7 +1999,13 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
     // Otherwise polymorphic dispatch.
   }
   // Call.
-  return Computation::MakeCallSummary();
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(EAX));
+  locs->set_in(1, Location::RegisterLocation(ECX));
+  return locs;
 }
 
 
@@ -2032,6 +2038,10 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     // Otherwise polymorphic dispatch?
   }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ pushl(left);
+  __ pushl(right);
   // Not equal is always split into '==' and negate,
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   Token::Kind call_kind = (kind() == Token::kNE) ? Token::kEQ : kind();
@@ -2050,8 +2060,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
                                  kNumArgsChecked);
-  ASSERT(locs()->out().reg() == EAX);
-  __ CompareObject(locs()->out().reg(), compiler->bool_true());
+  __ CompareObject(EAX, compiler->bool_true());
   EmitBranchOnCondition(compiler, branch_condition);
 }
 
