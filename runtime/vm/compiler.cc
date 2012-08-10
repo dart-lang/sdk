@@ -33,11 +33,7 @@ DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
 DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
-#if defined(TARGET_ARCH_X64)
 DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
-#else
-DEFINE_FLAG(bool, use_ssa, false, "Use SSA form");
-#endif
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
