@@ -52,6 +52,7 @@ static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
 ct_const_test: Fail # We don't take the generic type into account yet.
+call_operator_test: Fail # Unexpected token 'call'
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.
 default_factory_library_test: Fail # lib is not a type

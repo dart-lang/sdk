@@ -41,18 +41,18 @@ main() { new A().foo(); }
 
 closureInvocation() {
   String generated = compile(TEST_INVOCATION0);
-  Expect.isTrue(generated.contains(@".call$0()"));
+  Expect.isTrue(generated.contains(".\$call\$0()"));
   generated = compile(TEST_INVOCATION1);
-  Expect.isTrue(generated.contains(@".call$1(1)"));
+  Expect.isTrue(generated.contains(@".$call$1(1)"));
   generated = compile(TEST_INVOCATION2);
-  Expect.isTrue(generated.contains(@".call$2(1, 2)"));
+  Expect.isTrue(generated.contains(@".$call$2(1, 2)"));
 }
 
 // Make sure that the bailout version does not introduce a second version of
 // the closure.
 closureBailout() {
   String generated = compileAll(TEST_BAILOUT);
-  RegExp regexp = const RegExp(@'call\$0: function');
+  RegExp regexp = const RegExp(@'\$call\$0: function');
   Iterator<Match> matches = regexp.allMatches(generated).iterator();
   checkNumberOfMatches(matches, 1);
 }

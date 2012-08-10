@@ -1150,13 +1150,14 @@ class Elements {
 
   static bool isInstanceSend(Send send, TreeElements elements) {
     Element element = elements[send];
-    if (element === null) return !isClosureSend(send, element);
+    if (element === null) return !isClosureSend(send, elements);
     return isInstanceMethod(element) || isInstanceField(element);
   }
 
-  static bool isClosureSend(Send send, Element element) {
+  static bool isClosureSend(Send send, TreeElements elements) {
     if (send.isPropertyAccess) return false;
     if (send.receiver !== null) return false;
+    Element element = elements[send];
     // (o)() or foo()().
     if (element === null && send.selector.asIdentifier() === null) return true;
     if (element === null) return false;
