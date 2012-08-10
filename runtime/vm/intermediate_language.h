@@ -601,7 +601,11 @@ class PolymorphicInstanceCallComp : public TemplateComputation<0> {
 
   void PrintTo(BufferFormatter* f) const;
 
-  DECLARE_COMPUTATION(PolymorphicInstanceCall)
+  virtual intptr_t ArgumentCount() const {
+    return instance_call()->ArgumentCount();
+  }
+
+  DECLARE_CALL_COMPUTATION(PolymorphicInstanceCall)
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -2518,26 +2522,53 @@ class ParameterInstr : public Definition {
 };
 
 
-class PushArgumentInstr : public TemplateInstruction<1> {
+class PushArgumentInstr : public Definition {
  public:
-  explicit PushArgumentInstr(Value* value) {
+  explicit PushArgumentInstr(Value* value) : value_(value), locs_(NULL) {
     ASSERT(value != NULL);
-    inputs_[0] = value;
   }
 
   DECLARE_INSTRUCTION(PushArgument)
 
+  intptr_t InputCount() const { return 1; }
+  Value* InputAt(intptr_t i) const {
+    ASSERT(i == 0);
+    return value_;
+  }
+  void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(i == 0);
+    value_ = value;
+  }
+
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  Value* value() const { return inputs_[0]; }
+  virtual RawAbstractType* CompileType() const;
 
-  virtual LocationSummary* MakeLocationSummary() const;
+  Value* value() const { return value_; }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   virtual bool CanDeoptimize() const { return false; }
 
+  bool WasEliminated() const {
+    return next() == NULL;
+  }
+
+  virtual void RemoveInputUses() { value_->RemoveFromUseList(); }
+
  private:
+  Value* value_;
+  LocationSummary* locs_;
+
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
@@ -2778,34 +2809,31 @@ class Environment : public ZoneAllocated {
   explicit Environment(const GrowableArray<Value*>& values,
                        intptr_t fixed_parameter_count)
       : values_(values.length()),
-        location_count_(0),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
+  }
+
+  void set_locations(Location* locations) {
+    ASSERT(locations_ == NULL);
+    locations_ = locations;
   }
 
   const GrowableArray<Value*>& values() const {
     return values_;
   }
 
-  // Initialize locations for the environment values on behalf of the
-  // register allocator.  The initial live ranges of environment uses extend
-  // from the block start position to the environment position.
-  void InitializeLocations(FlowGraphAllocator* allocator,
-                           intptr_t block_start_pos,
-                           intptr_t environment_pos);
-
   GrowableArray<Value*>* values_ptr() {
     return &values_;
   }
 
   Location LocationAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < location_count_));
+    ASSERT((ix >= 0) && (ix < values_.length()));
     return locations_[ix];
   }
 
   Location* LocationSlotAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < location_count_));
+    ASSERT((ix >= 0) && (ix < values_.length()));
     return &locations_[ix];
   }
 
@@ -2817,7 +2845,6 @@ class Environment : public ZoneAllocated {
 
  private:
   GrowableArray<Value*> values_;
-  intptr_t location_count_;
   Location* locations_;
   const intptr_t fixed_parameter_count_;
 

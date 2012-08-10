@@ -45,7 +45,17 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
 
   // All locals between TOS and PC-marker.
   const GrowableArray<Value*>& values = deoptimization_env_->values();
-  // const intptr_t local_slot_count = values.length() - fixed_parameter_count;
+
+  // Assign locations to values pushed above spill slots with PushArgument.
+  intptr_t height = compiler->StackSize();
+  for (intptr_t i = 0; i < values.length(); i++) {
+    if (deoptimization_env_->LocationAt(i).IsInvalid() &&
+        !values[i]->IsConstant()) {
+      ASSERT(values[i]->AsUse()->definition()->IsPushArgument());
+      *deoptimization_env_->LocationSlotAt(i) = Location::StackSlot(height++);
+    }
+  }
+
   for (intptr_t i = values.length() - 1; i >= fixed_parameter_count; i--) {
     builder.AddCopy(deoptimization_env_->LocationAt(i), *values[i], slot_ix++);
   }

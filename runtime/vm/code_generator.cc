@@ -1548,8 +1548,11 @@ static void DeoptimizeWithDeoptInfo(const Code& code,
   }
   if (FLAG_trace_deopt) {
     for (intptr_t i = 0; i < len; i++) {
-      OS::Print("*%d. 0x%x [%s]\n",
-          i, start[i], deopt_instructions[i]->ToCString());
+      OS::Print("*%d. [0x%0" PRIxPTR "] 0x%012" PRIxPTR " [%s]\n",
+          i,
+          &start[i],
+          start[i],
+          deopt_instructions[i]->ToCString());
     }
   }
 }

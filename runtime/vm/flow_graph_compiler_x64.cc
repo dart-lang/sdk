@@ -39,6 +39,7 @@ void DeoptimizationStub::GenerateCode(FlowGraphCompiler* compiler,
       }
     }
   }
+
   if (compiler->IsLeaf()) {
     __ Comment("Leaf method, lazy PC marker setup");
     // TODO(srdjan): Can we use TMP instead of RAX? We must guarantee that

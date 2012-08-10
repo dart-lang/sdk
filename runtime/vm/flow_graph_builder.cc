@@ -96,7 +96,7 @@ void EffectGraphVisitor::Do(Computation* computation) {
 
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
-  ASSERT(!instruction->IsDefinition());
+  ASSERT(!instruction->IsBind());
   ASSERT(!instruction->IsBlockEntry());
   DeallocateTempIndex(instruction->InputCount());
   if (is_empty()) {
@@ -2751,7 +2751,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // 2c. Handle pushed argument.
     PushArgumentInstr* push = current->AsPushArgument();
     if (push != NULL) {
-      env->Add(push->value());
+      env->Add(new UseVal(push));
     }
   }
 

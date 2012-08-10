@@ -100,10 +100,19 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
           UseVal* use = (*values)[i]->AsUse();
           if (use == NULL) continue;
 
-          PhiInstr* phi = use->definition()->AsPhi();
-          if (phi == NULL) continue;
+          Definition* def = use->definition();
 
-          if (!phi->is_alive()) (*values)[i] = null_value;
+          PushArgumentInstr* push_argument = def->AsPushArgument();
+          if ((push_argument != NULL) && push_argument->WasEliminated()) {
+            (*values)[i] = push_argument->value();
+            continue;
+          }
+
+          PhiInstr* phi = def->AsPhi();
+          if ((phi != NULL) && !phi->is_alive()) {
+            (*values)[i] = null_value;
+            continue;
+          }
         }
       } else {
         current->set_env(NULL);
@@ -145,10 +154,9 @@ void FlowGraphAllocator::ComputeInitialSets() {
       if (current->env() != NULL) {
         const GrowableArray<Value*>& values = current->env()->values();
         for (intptr_t j = 0; j < values.length(); j++) {
-          Value* val = values[j];
-          if (val->IsUse()) {
-            const intptr_t use = val->AsUse()->definition()->ssa_temp_index();
-            live_in->Add(use);
+          UseVal* use_val = values[j]->AsUse();
+          if ((use_val != NULL) && !use_val->definition()->IsPushArgument()) {
+            live_in->Add(use_val->definition()->ssa_temp_index());
           }
         }
       }
@@ -656,6 +664,55 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
 }
 
 
+void FlowGraphAllocator::ProcessEnvironmentUses(BlockEntryInstr* block,
+                                                Instruction* current) {
+  ASSERT(current->env() != NULL);
+
+  Environment* env = current->env();
+
+  // Any value mentioned in the deoptimization environment should survive
+  // until the end of instruction but it does not need to be in the register.
+  // Expected shape of live range:
+  //
+  //                 i  i'
+  //      value    -----*
+  //
+
+  const GrowableArray<Value*>& values = env->values();
+  if (values.length() == 0) return;
+
+  const intptr_t block_start_pos = block->start_pos();
+  const intptr_t use_pos = current->lifetime_position() + 1;
+
+  Location* locations =
+      Isolate::Current()->current_zone()->Alloc<Location>(values.length());
+
+  for (intptr_t i = 0; i < values.length(); ++i) {
+    Value* value = values[i];
+    if (value->IsUse()) {
+      locations[i] = Location::Any();
+      Definition* def = value->AsUse()->definition();
+
+      if (def->IsPushArgument()) {
+        // Frame size is unknown until after allocation.
+        locations[i] = Location::NoLocation();
+        continue;
+      }
+
+      const intptr_t vreg = def->ssa_temp_index();
+      LiveRange* range = GetLiveRange(vreg);
+      range->AddUseInterval(block_start_pos, use_pos);
+      range->AddUse(use_pos, &locations[i]);
+    } else {
+      ASSERT(value->IsConstant());
+      locations[i] = Location::NoLocation();
+    }
+  }
+
+  env->set_locations(locations);
+}
+
+
 // Create and update live ranges corresponding to instruction's inputs,
 // temporaries and output.
 void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
@@ -683,10 +740,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
       (locs->out().policy() == Location::kSameAsFirstInput);
 
   // Add uses from the deoptimization environment.
-  Environment* env = current->env();
-  if (env != NULL) {
-    env->InitializeLocations(this, block->start_pos(), pos + 1);
-  }
+  if (current->env() != NULL) ProcessEnvironmentUses(block, current);
 
   // Process inputs.
   // Skip the first input if output is specified with kSameAsFirstInput policy,

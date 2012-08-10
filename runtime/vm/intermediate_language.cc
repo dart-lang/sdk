@@ -273,6 +273,11 @@ RawAbstractType* ParameterInstr::CompileType() const {
 }
 
 
+RawAbstractType* PushArgumentInstr::CompileType() const {
+  return AbstractType::null();
+}
+
+
 intptr_t JoinEntryInstr::IndexOfPredecessor(BlockEntryInstr* pred) const {
   for (intptr_t i = 0; i < predecessors_.length(); ++i) {
     if (predecessors_[i] == pred) return i;
@@ -1229,38 +1234,6 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (compiler->is_ssa()) {
     ASSERT(locs()->in(0).IsRegister());
     __ PushRegister(locs()->in(0).reg());
-  }
-}
-
-
-void Environment::InitializeLocations(FlowGraphAllocator* allocator,
-                                      intptr_t block_start_pos,
-                                      intptr_t environment_pos) {
-  // Any value mentioned in the deoptimization environment should survive
-  // until the end of instruction but it does not need to be in the register.
-  // Expected shape of live range:
-  //
-  //                 i  i'
-  //      value    -----*
-  //
-  ASSERT(locations_ == NULL);
-  location_count_ = values_.length();
-  if (location_count_ > 0) {
-    locations_ =
-        Isolate::Current()->current_zone()->Alloc<Location>(location_count_);
-    for (intptr_t i = 0; i < location_count_; ++i) {
-      Value* value = values_[i];
-      if (value->IsUse()) {
-        locations_[i] = Location::Any();
-        const intptr_t vreg = value->AsUse()->definition()->ssa_temp_index();
-        LiveRange* range = allocator->GetLiveRange(vreg);
-        range->AddUseInterval(block_start_pos, environment_pos);
-        range->AddUse(environment_pos, &locations_[i]);
-      } else {
-        ASSERT(value->IsConstant());
-        locations_[i] = Location::NoLocation();
-      }
-    }
   }
 }
 

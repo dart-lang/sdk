@@ -1712,14 +1712,12 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          PcDescriptors::kOther);
   // Newly allocated object is now in the result register (RAX).
   ASSERT(result == RAX);
-  __ popq(right);
-  __ popq(left);
+  __ movq(right, Address(RSP, 0));
+  __ movq(left, Address(RSP, kWordSize));
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptDoubleBinaryOp,
-                                        left,
-                                        right);
+                                        kDeoptDoubleBinaryOp);
 
   // Binary operation of two Smi's produces a Smi not a double.
   __ movq(temp, left);
@@ -1739,6 +1737,8 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+
+  __ Drop(2);
 }
 
 

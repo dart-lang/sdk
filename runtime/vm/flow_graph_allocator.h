@@ -91,6 +91,7 @@ class FlowGraphAllocator : public ValueObject {
   // all SSA values.
   void BuildLiveRanges();
   Instruction* ConnectOutgoingPhiMoves(BlockEntryInstr* block);
+  void ProcessEnvironmentUses(BlockEntryInstr* block, Instruction* current);
   void ProcessOneInstruction(BlockEntryInstr* block, Instruction* instr);
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
