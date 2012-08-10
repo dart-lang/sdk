@@ -94,37 +94,6 @@ node_test: Fail
 svgelement_test: Fail
 svgelement2_test: Fail
 
-[ $runtime == opera ]
-# TODO(kasperl): All of the following failures should be investigated and
-# triaged into bug reports.
-callbacks_test: Fail
-cache_test: Fail
-audiocontext_test: Fail
-blob_constructor_test: Fail
-canvas_using_html_test: Fail
-canvas_test: Fail
-css_test: Fail
-cssstyledeclaration_test: Fail
-element_constructor_1_test: Fail
-exceptions_test: Fail
-element_test: Crash
-indexeddb_1_test: Fail
-indexeddb_3_test: Fail
-indexeddb_4_test: Fail
-mutationobserver_test: Fail
-performance_api_test: Fail
-serialized_script_value_test: Fail
-svg_3_test: Fail
-svgelement_test: Fail
-typed_arrays_1_test: Fail
-typed_arrays_arraybuffer_test: Fail
-websocket_test: Fail
-xhr_test: Fail
-fileapi_test: Skip
-js_interop_3_test: Skip
-js_interop_4_test: Skip
-isolates_test: Skip
-
 [ $runtime == ff ]
 audiocontext_test: Fail      # FF only has Audio element
 css_test: Fail               # No analog to WebKitCSSMatrix
@@ -185,6 +154,8 @@ js_interop_2_test: Fail
 *: Skip
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $runtime == opera ]
+*: Skip
 
 [ $compiler == dart2js && $runtime == drt ]
 fileapi_test: Skip # Issue 3022

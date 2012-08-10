@@ -40,14 +40,12 @@ date_time7_test: Skip
 [ $compiler == frog && $runtime == none ]
 *: Skip
 
-[ $runtime == opera ]
-# TODO(kasperl): Triage these tests.
-core_runtime_types_test: Fail
-date_time7_test: Fail
-unicode_test: Fail
-
 [ $runtime == ff || $runtime == ie ]
 unicode_test: Fail
+
+# TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
+[ $runtime == opera ]
+*: Skip
 
 [ $runtime == ie && ($system == linux || $system == mac) ]
 *: Skip
