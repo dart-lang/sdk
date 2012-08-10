@@ -858,12 +858,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(push_value);
-  Token::Kind token_kind =
-      (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
-  const String& name =
-      String::ZoneHandle(Symbols::New(Token::Str(token_kind)));
+  String& name = String::ZoneHandle();
+  if (node->kind() == Token::kSUB) {
+    name = Symbols::New("unary-");
+  } else {
+    name = Symbols::New(Token::Str(node->kind()));
+  }
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_pos(), owner()->try_index(), name, token_kind,
+      node->token_pos(), owner()->try_index(), name, node->kind(),
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }

@@ -447,6 +447,7 @@ struct MemberDesc {
     has_static = false;
     has_var = false;
     has_factory = false;
+    has_operator = false;
     type = NULL;
     name_pos = 0;
     name = NULL;
@@ -476,6 +477,7 @@ struct MemberDesc {
   bool has_static;
   bool has_var;
   bool has_factory;
+  bool has_operator;
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
@@ -2295,11 +2297,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
              "'external' method only allowed in class definition");
   }
 
-  if (members->FunctionNameExists(*method->name, method->kind)) {
-    ErrorMsg(method->name_pos,
-             "field or method '%s' already defined", method->name->ToCString());
-  }
-
   // Parse the formal parameters.
   const bool are_implicitly_final = method->has_const;
   const bool allow_explicit_default_values = true;
@@ -2327,6 +2324,25 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
     method->params.SetImplicitlyFinal();
   }
   ParseFormalParameterList(allow_explicit_default_values, &method->params);
+
+  // Now that we know the parameter list, we can distinguish between the
+  // unary and binary operator -.
+  if (method->has_operator &&
+      ((method->name->Equals(Token::Str(Token::kNEGATE))) ||
+      method->name->Equals("-")) &&
+      (method->params.num_fixed_parameters == 1)) {
+    // Patch up name for unary operator - so it does not clash with the
+    // name for binary operator -.
+    *method->name = Symbols::New("unary-");
+  }
+
+  if (members->FunctionNameExists(*method->name, method->kind)) {
+    ErrorMsg(method->name_pos,
+             "field or method '%s' already defined", method->name->ToCString());
+  }
+
+  // Mangle the name for getter and setter functions and check function
+  // arity.
   if (method->IsGetter() || method->IsSetter()) {
     int expected_num_parameters = 0;
     if (method->IsGetter()) {
@@ -2630,13 +2646,21 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 }
 
 
-void Parser::CheckOperatorArity(
-    const MemberDesc& member, Token::Kind operator_token) {
+void Parser::CheckOperatorArity(const MemberDesc& member,
+                                Token::Kind operator_token) {
   intptr_t expected_num_parameters;  // Includes receiver.
   if (operator_token == Token::kASSIGN_INDEX) {
     expected_num_parameters = 3;
+  } else if (operator_token == Token::kSUB) {
+    if (member.params.num_fixed_parameters == 1) {
+      // Unary operator minus (i.e. negate).
+      expected_num_parameters = 1;
+    } else {
+      expected_num_parameters = 2;
+    }
   } else if ((operator_token == Token::kNEGATE) ||
       (operator_token == Token::kBIT_NOT)) {
+    // TODO(hausner): Remove support for keyword 'negate'.
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;
@@ -2824,6 +2848,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       ErrorMsg("operator overloading functions cannot be static");
     }
     operator_token = CurrentToken();
+    member.has_operator = true;
     member.kind = RawFunction::kRegularFunction;
     member.name_pos = this->TokenPos();
     member.name =
@@ -2851,7 +2876,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
     ParseMethodOrConstructor(members, &member);
-    if (operator_token != Token::kILLEGAL) {
+    if (member.has_operator) {
       CheckOperatorArity(member, operator_token);
     }
   } else if (CurrentToken() ==  Token::kSEMICOLON ||

@@ -258,6 +258,8 @@ class Token {
     return attributes_[tok];
   }
 
+  // TODO(hausner): Remove the pseudo keyword 'negate' when old operator
+  // syntax for unary - is removed.
   static bool CanBeOverloaded(Kind tok) {
     ASSERT(tok < kNumTokens);
     return IsRelationalOperator(tok) ||
