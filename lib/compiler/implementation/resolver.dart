@@ -1195,6 +1195,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       AbstractFieldElement field = target;
       target = field.getter;
     }
+    if (node.isCall &&
+        (target === null ||
+         target.isGetter() ||
+         Elements.isClosureSend(node, target))) {
+      world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
+                                      mapping.getSelector(node));
+    }
     // TODO(ngeoffray): We should do the check in
     // visitExpressionStatement instead.
     if (target === compiler.assertMethod && !node.isCall) {

@@ -323,7 +323,11 @@ class Enqueuer {
 
   void forEach(f(WorkItem work)) {
     while (!queue.isEmpty()) {
-      f(queue.removeLast());
+      do {
+        f(queue.removeLast());
+      } while (!queue.isEmpty());
+      // TODO(ahe): we shouldn't register the field closure invocations here.
+      registerFieldClosureInvocations();
     }
   }
 }

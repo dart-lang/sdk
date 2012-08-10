@@ -130,6 +130,7 @@ class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
 
   static final SourceString MAIN = const SourceString('main');
+  static final SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
   static final SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
@@ -620,7 +621,6 @@ class Compiler implements DiagnosticListener {
     });
     world.queueIsClosed = true;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
-    world.registerFieldClosureInvocations();
   }
 
   void processRecompilationQueue(Enqueuer world) {

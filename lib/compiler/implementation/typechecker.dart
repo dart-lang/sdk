@@ -421,7 +421,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitSend(Send node) {
-    if (Elements.isClosureSend(node, elements)) {
+    Element element = elements[node];
+
+    if (Elements.isClosureSend(node, element)) {
       // TODO(karlklose): Finish implementation.
       return types.dynamicType;
     }
@@ -464,7 +466,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
         // TODO(karlklose): we cannot handle fields.
         return unhandledExpression();
       }
-      Element element = elements[node];
       if (element === null) return types.dynamicType;
       return computeType(element);
 
@@ -502,7 +503,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
           if (memberType.element === compiler.dynamicClass) return null;
           return memberType;
         } else {
-          Element element = elements[node];
           if (element === null) {
             fail(node, 'unresolved ${node.selector}');
           } else if (element.kind === ElementKind.FUNCTION) {

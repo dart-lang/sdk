@@ -5,39 +5,39 @@
 
 // simple test with no types in signature
 class A1 {
-  operator call() => 42;
+  call() => 42;
 }
 
 // same test, include return type
 class A2 {
-  int operator call() => 35;
+  int call() => 35;
 }
 
 class B {
-  call() => 28; // expect warning, should use 'operator call'
+  call() => 28;
 }
 
 // A call() operator can have any arity
 class C {
-  operator call(arg) => 7 * arg;
+  call(arg) => 7 * arg;
 }
 
 // Test named arguments
 class D {
-  operator call([arg=6]) => 7 * arg;
+  call([arg=6]) => 7 * arg;
 }
 
-// non-trvial method body combination of positional and named
+// Non-trivial method body combination of positional and named.
 class E {
-  String operator call(String str, [int count=1]) {
-    String result = "";
+  String call(String str, [int count=1]) {
+    StringBuffer buffer = new StringBuffer();
     for (var i = 0; i < count; i++) {
-      result += str;
-      if (i < count -1) {
-        result += ':';
+      buffer.add(str);
+      if (i < count - 1) {
+        buffer.add(":");
       }
     }
-    return result;
+    return buffer.toString();
   }
 }
 
