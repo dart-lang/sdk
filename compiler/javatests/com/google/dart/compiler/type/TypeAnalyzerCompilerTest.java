@@ -3355,6 +3355,66 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertTrue(libraryResult.getErrors().size() != 0);
   }
 
+  /**
+   * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
+   * accessible in static context.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inStatic_notPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "main() {",
+        "  unknown = 0;",
+        "  process(unknown);",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+  }
+  
+  /**
+   * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
+   * accessible in static context.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inInstance_notPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "class A {",
+        "  foo() {",
+        "    unknown = 0;",
+        "    process(unknown);",
+        "  }",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 13, 7));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inStatic_inPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "main() {",
+        "  Unknown.foo = 0;",
+        "  process(Unknown.foo);",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+  }
+
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,
       final Class<T> clazz,

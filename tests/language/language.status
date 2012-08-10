@@ -69,6 +69,9 @@ body_less_constructor_wrong_arg_negative_test: Fail  # Runtime only test, rewrit
 call_operator_test: Pass # Issue 1355
 cascade_test: Pass,Fail # Issue 3729  Some cases pass, but for the wrong reason
 char_escape_test: Pass # Issue 1654
+class_literal_test/04 : Skip # language change 1031
+class_literal_test/09 : Skip # language change 1031
+class_literal_test/16 : Skip # language change 1031
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
@@ -90,6 +93,8 @@ named_parameters_with_object_property_names_test: Fail # Issue 2137
 no_such_method_negative_test: Fail # Runtime only test, rewrite as multiteste
 override_field_test/03: Fail # still a valid test? Issue 3894
 override_field_test/04: Fail # still a valid test? Issue 3656
+prefix1_negative_test : Skip # language change 1031
+prefix5_negative_test : Skip # language change 1031
 private_member3_negative_test: Fail # Runtime only test?  rewrite as multitest
 pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356

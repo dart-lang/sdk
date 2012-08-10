@@ -1626,7 +1626,7 @@ public class ResolverTest extends ResolverTestCase {
         "  A.noField = 1;",
         "}"),
         errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 3, 22, 1),
-        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 5, 7));
   }
 
   public void test_invokeTypeAlias() throws Exception {

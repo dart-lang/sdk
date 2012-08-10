@@ -1066,8 +1066,9 @@ public class Resolver {
                             name, referencedElementName);
           }
         }
-        if (isStaticContextOrInitializer()) {
+        if (isStaticContextOrInitializer() && !isQualifier) {
           onError(x, ResolverErrorCode.CANNOT_BE_RESOLVED, name);
+          x.markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
         }
       } else {
         element = checkResolvedIdentifier(x, isQualifier, scope, name, element);
@@ -1211,7 +1212,7 @@ public class Resolver {
               break;
 
             case NONE:
-              onError(x.getName(), ResolverErrorCode.CANNOT_BE_RESOLVED,
+              onError(x.getName(), TypeErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;
 
@@ -1256,7 +1257,7 @@ public class Resolver {
               break;
 
             case NONE:
-              onError(x.getName(), ResolverErrorCode.CANNOT_BE_RESOLVED,
+              onError(x.getName(), TypeErrorCode.CANNOT_BE_RESOLVED,
                   x.getPropertyName());
               break;
 

@@ -38,7 +38,7 @@ Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail # co19 issue 132
 Language/08_Interfaces/2_Getters_and_Setters_A05_t01: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A05_t02: Fail # Issue 679
 Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail # co19 issue 132
-Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Fail # co19 issue 131
+Language/08_Interfaces/4_Superinterfaces/1_Inheritance_and_Overriding_A01_t02: Skip # co19 issue 131
 Language/08_Interfaces/Interfaces_A01_t01: Fail # co19 issue 154 (was Issue 3522)
 Language/09_Generics/09_Generics_A01_t04: Fail # co19 issue 142
 Language/09_Generics/09_Generics_A04_t01: Fail # co19 issue 142
@@ -58,10 +58,16 @@ Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t03: Fail
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t05: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/1_Ordinary_Invocation_A05_t06: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # co19 issue 155
+Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A02_t01: Skip # language change 1031
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A04_t02: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t01: Fail # Issue 3524
 Language/10_Expressions/15_Getter_Invocation_A04_t02: Fail # Issue 3524
+Language/10_Expressions/15_Getter_Invocation_A07_t04: Skip # language change 1031
+Language/10_Expressions/15_Getter_Invocation_A07_t05: Skip # language change 1031
+Language/10_Expressions/15_Getter_Invocation_A07_t06: Skip # language change 1031
+Language/10_Expressions/16_Assignment_A04_t03: Skip # language change 1031
+Language/10_Expressions/16_Assignment_A04_t04: Skip # language change 1031
 Language/10_Expressions/16_Assignment_A05_t02: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t04: Fail # Issue 3524
 Language/10_Expressions/16_Assignment_A05_t05: Fail # Issue 3525
@@ -94,6 +100,7 @@ Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t03: Fail # co19 Issue 109
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t20: Fail # co19 Issue 109
+Language/12_Libraries_and_Scripts/2_Imports_A02_t04: Skip # language change 1031
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/2_Imports_A07_t03: Fail # Issue 1774
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # co19 issue 109

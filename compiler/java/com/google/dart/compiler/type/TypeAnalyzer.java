@@ -1624,7 +1624,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
 
         case NONE:
-          return typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getName());
+          if (!node.isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+            typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getName());
+          }
+          return dynamicType;
 
         case DYNAMIC:
           return element.getType();
