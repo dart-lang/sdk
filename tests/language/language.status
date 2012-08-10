@@ -143,6 +143,11 @@ prefix_core_test: Fail # Issue 2264.
 *: Skip
 
 [ $compiler == dart2dart ]
+class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
+field1_negative_test: Fail, OK # Bad test: assumes eager loading.
+field6_negative_test: Fail, OK # Bad test: assumes eager loading.
+field7_negative_test: Fail, OK # Bad test: assumes eager loading.
+interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Tests that crash after reverting resolution of type variables in default clause.
 # https://chromiumcodereview.appspot.com/10824062/
 default_factory2_test/01: Fail
