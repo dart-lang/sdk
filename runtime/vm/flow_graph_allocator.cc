@@ -1496,9 +1496,11 @@ void FlowGraphAllocator::AllocateAnyRegister(LiveRange* unallocated) {
                         unallocated->vreg(), blocked_at));
 
   if (blocked_at < unallocated->End()) {
+    // Register is blocked before the end of the live range.  Split the range
+    // at latest at blocked_at position.
     LiveRange* tail = SplitBetween(unallocated,
                                    unallocated->Start(),
-                                   blocked_at);
+                                   blocked_at + 1);
     AddToUnallocated(tail);
   }
 
