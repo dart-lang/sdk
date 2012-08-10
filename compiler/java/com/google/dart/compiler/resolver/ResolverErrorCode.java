@@ -27,7 +27,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
-  CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
+  CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(ErrorSeverity.WARNING,
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
