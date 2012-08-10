@@ -8,27 +8,20 @@ class World {
 
   World() : subtypes = new Map<ClassElement, Set<ClassElement>>();
 
-  void populate(Compiler compiler, Collection<LibraryElement> libraries) {
+  void populate(Compiler compiler) {
     void addSubtypes(ClassElement cls) {
+      if (!cls.isResolved) {
+        compiler.internalErrorOnElement(
+            cls, 'Class "${cls.name.slowToString()}" is not resolved.');
+      }
       for (Type type in cls.allSupertypes) {
-        Set<Element> subtypesOfCls = subtypes.putIfAbsent(
-          type.element,
-          () => new Set<ClassElement>());
+        Set<Element> subtypesOfCls =
+          subtypes.putIfAbsent(type.element, () => new Set<ClassElement>());
         subtypesOfCls.add(cls);
       }
     }
 
-    libraries.forEach((LibraryElement library) {
-      for (Link<Element> link = library.topLevelElements;
-           !link.isEmpty();
-           link = link.tail) {
-        Element element = link.head;
-        if (!element.isClass()) continue;
-        ClassElement cls = element;
-        compiler.resolveClass(cls);
-        addSubtypes(cls);
-      }
-    });
+    compiler.resolverWorld.instantiatedClasses.forEach(addSubtypes);
 
     // Mark the world as populated.
     assert(compiler !== null);

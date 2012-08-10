@@ -580,10 +580,6 @@ class Compiler implements DiagnosticListener {
       });
     }
 
-    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
-    // should know this.
-    world.populate(this, libraries.getValues());
-
     log('Resolving...');
     phase = PHASE_RESOLVING;
     backend.enqueueHelpers(enqueuer.resolution);
@@ -594,6 +590,10 @@ class Compiler implements DiagnosticListener {
 
     log('Inferring types...');
     typesTask.onResolutionComplete();
+
+    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
+    // should know this.
+    world.populate(this);
 
     log('Compiling...');
     phase = PHASE_COMPILING;

@@ -499,6 +499,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
       _library.forEachExport((Element e) {
         if (e.getLibrary() == _library) {
           if (e.isClass()) {
+            e.ensureResolved(system.compiler);
             var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
             _types[type.canonicalName] = type;
           } else if (e.isTypedef()) {

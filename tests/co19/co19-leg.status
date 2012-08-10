@@ -230,6 +230,39 @@ LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled 
 LibTest/core/Math/max_A01_t03: Fail # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail # co19 issue 157
 
+
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # Bad test: assumes eager loading.
+
+
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A03_t01: Fail, Pass # issue 3333

@@ -132,6 +132,15 @@ type_checks_in_factory_method_test: Fail # Expect.equals(expected: <true>, actua
 type_dartc_test: Fail # Expect.equals(expected: <1>, actual: <0>) -- checked mode test.
 
 
+class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
+external_test/16: Fail, OK # Bad test: assumes eager loading.
+field1_negative_test: Fail, OK # Bad test: assumes eager loading.
+field6_negative_test: Fail, OK # Bad test: assumes eager loading.
+field7_negative_test: Fail, OK # Bad test: assumes eager loading.
+interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
+syntax_test/47: Fail, OK # Bad test: assumes eager loading.
+
+
 #
 # The following tests are all semantic tests that we can rely on dartc
 # catching for now.
