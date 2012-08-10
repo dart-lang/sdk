@@ -549,24 +549,98 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
                                                     BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&
-      (comp->value() != NULL) &&
+      !comp->IsEliminated() &&
       !comp->dst_type().IsMalformed() &&
-      comp->value()->StaticTypeIsMoreSpecificThan(comp->dst_type())) {
-    // TODO(regis): Eliminate type check by removing comp node from graph.
+      comp->value()->CompileTypeIsMoreSpecificThan(comp->dst_type())) {
+    comp->Eliminate();
     if (FLAG_trace_type_check_elimination) {
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        comp->token_pos(),
                                        comp->value(),
                                        comp->dst_type(),
                                        comp->dst_name(),
-                                       /*eliminated*/ true);
+                                       comp->IsEliminated());
     }
   }
 }
 
 
-void FlowGraphTypePropagator::VisitBind(BindInstr* instr) {
-  instr->computation()->Accept(this, instr);
+void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
+  if (graph_entry->start_env() == NULL) {
+    return;
+  }
+  // Visit incoming parameters.
+  for (intptr_t i = 0; i < graph_entry->start_env()->values().length(); i++) {
+    Value* val = graph_entry->start_env()->values()[i];
+    if (val->IsUse()) {
+      ParameterInstr* param = val->AsUse()->definition()->AsParameter();
+      if (param != NULL) {
+        VisitParameter(param);
+      }
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join_entry) {
+  if (join_entry->phis() != NULL) {
+    for (intptr_t i = 0; i < join_entry->phis()->length(); ++i) {
+      PhiInstr* phi = (*join_entry->phis())[i];
+      if (phi != NULL) {
+        VisitPhi(phi);
+      }
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
+  // No need to propagate the input types of the bound computation, as long as
+  // PhiInstr's are handled as part of JoinEntryInstr.
+  // Visit computation and possibly eliminate type check.
+  bind->computation()->Accept(this, bind);
+  // Cache propagated computation type.
+  AbstractType& type = AbstractType::Handle(bind->computation()->CompileType());
+  bool changed = bind->SetPropagatedType(type);
+  if (changed) {
+    still_changing_ = true;
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitPhi(PhiInstr* phi) {
+  // We could set the propagated type of the phi to the least upper bound of its
+  // input propagated types. However, keeping all propagated types allows us to
+  // optimize method dispatch.
+  // TODO(regis): Support a set of propagated types. For now, we compute the
+  // least specific of the input propagated types.
+  AbstractType& type = AbstractType::Handle(phi->LeastSpecificInputType());
+  bool changed = phi->SetPropagatedType(type);
+  if (changed) {
+    still_changing_ = true;
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
+  // TODO(regis): Once we inline functions, the propagated type of the formal
+  // parameter will reflect the compile type of the passed-in argument.
+  // For now, we do not known anything about this type and therefore set it to
+  // the DynamicType.
+  bool changed = param->SetPropagatedType(Type::Handle(Type::DynamicType()));
+  if (changed) {
+    still_changing_ = true;
+  }
+}
+
+
+void FlowGraphTypePropagator::PropagateTypes() {
+  // TODO(regis): Is there a way to make this more efficient, e.g. by visiting
+  // only blocks depending on blocks that have changed and not the whole graph.
+  do {
+    still_changing_ = false;
+    VisitBlocks();
+  } while (still_changing_);
 }
 
 
@@ -582,11 +656,6 @@ void FlowGraphAnalyzer::Analyze() {
       }
     }
   }
-}
-
-
-void FlowGraphTypePropagator::PropagateTypes() {
-  VisitBlocks();
 }
 
 }  // namespace dart

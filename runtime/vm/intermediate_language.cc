@@ -117,10 +117,10 @@ void FlowGraphVisitor::VisitBlocks() {
 }
 
 
-// Returns true if the static type of this value is more specific than the
+// Returns true if the compile type of this value is more specific than the
 // given dst_type.
-// TODO(regis): Should we support a set of static types?
-bool Value::StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
+// TODO(regis): Support a set of compile types for the given value.
+bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
   ASSERT(!dst_type.IsMalformed());  // Should be tested by caller.
   ASSERT(!dst_type.IsDynamicType());  // Should be tested by caller.
   ASSERT(!dst_type.IsObjectType());  // Should be tested by caller.
@@ -141,18 +141,18 @@ bool Value::StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
     return false;
   }
 
-  // Consider the static type of the value.
-  const AbstractType& static_type = AbstractType::Handle(StaticType());
-  ASSERT(!static_type.IsMalformed());
+  // Consider the compile type of the value.
+  const AbstractType& compile_type = AbstractType::Handle(CompileType());
+  ASSERT(!compile_type.IsMalformed());
 
-  // If the static type of the value is void, we are type checking the result of
-  // a void function, which was checked to be null at the return statement
+  // If the compile type of the value is void, we are type checking the result
+  // of a void function, which was checked to be null at the return statement
   // inside the function.
-  if (static_type.IsVoidType()) {
+  if (compile_type.IsVoidType()) {
     return true;
   }
 
-  // If the static type of the value is NullType, the type test is eliminated.
+  // If the compile type of the value is NullType, the type test is eliminated.
   // There are only three instances that can be of Class Null:
   // Object::null(), Object::sentinel(), and Object::transition_sentinel().
   // The inline code and run time code performing the type check will never
@@ -160,40 +160,53 @@ bool Value::StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
   // will always be eliminated here, because these sentinel values can only
   // be encountered as constants, never as actual value of a heap object
   // being type checked.
-  if (static_type.IsNullType()) {
+  if (compile_type.IsNullType()) {
     return true;
   }
 
   // The run time type of the value is guaranteed to be a subtype of the
-  // compile time static type of the value. However, establishing here that
-  // the static type is a subtype of the destination type does not guarantee
-  // that the run time type will also be a subtype of the destination type,
-  // because the subtype relation is not transitive.
+  // compile time type of the value. However, establishing here that
+  // the compile time type is a subtype of the destination type does not
+  // guarantee that the run time type will also be a subtype of the destination
+  // type, because the subtype relation is not transitive.
   // However, the 'more specific than' relation is transitive and is used
-  // here. In other words, if the static type of the value is more specific
+  // here. In other words, if the compile type of the value is more specific
   // than the destination type, the run time type of the value, which is
-  // guaranteed to be a subtype of the static type, is also guaranteed to be
+  // guaranteed to be a subtype of the compile type, is also guaranteed to be
   // a subtype of the destination type and the type check can therefore be
   // eliminated.
-  return static_type.IsMoreSpecificThan(dst_type, NULL);
+  return compile_type.IsMoreSpecificThan(dst_type, NULL);
 }
 
 
-RawAbstractType* PhiInstr::StaticType() const {
-  // TODO(regis): Return the least upper bound of the input static types.
-  // It is much simpler to compute the least specific of the input static types,
-  // and it may be good enough in practice.
-  // Even better: we could keep the set of the input static types intact.
-  AbstractType& least_specific_type =
-      AbstractType::Handle(InputAt(0)->StaticType());
+RawAbstractType* PhiInstr::CompileType() const {
+  if (HasPropagatedType()) {
+    return PropagatedType();
+  }
+  // If type propagation has not yet occured, we are reaching this phi via a
+  // back edge phi input. Return null as compile type so that this input is
+  // ignored in the first iteration of type propagation.
+  return AbstractType::null();
+}
+
+
+RawAbstractType* PhiInstr::LeastSpecificInputType() const {
+  AbstractType& least_specific_type = AbstractType::Handle();
   AbstractType& input_type = AbstractType::Handle();
-  for (intptr_t i = 1; i < InputCount(); i++) {
-    input_type = InputAt(i)->StaticType();
-    if (input_type.IsMoreSpecificThan(least_specific_type, NULL)) {
-      // Type least_specific_type is less specific than input_type. No change.
-    } else if (least_specific_type.IsMoreSpecificThan(input_type, NULL)) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
+    input_type = InputAt(i)->CompileType();
+    if (input_type.IsNull()) {
+      // This input is on a back edge and we are in the first iteration of type
+      // propagation. Ignore it.
+      continue;
+    }
+    ASSERT(!input_type.IsNull());
+    if (least_specific_type.IsNull() ||
+        least_specific_type.IsMoreSpecificThan(input_type, NULL)) {
       // Type input_type is less specific than the current least_specific_type.
       least_specific_type = input_type.raw();
+    } else if (input_type.IsMoreSpecificThan(least_specific_type, NULL)) {
+      // Type least_specific_type is less specific than input_type. No change.
     } else {
       // The types are unrelated. No need to continue.
       least_specific_type = Type::ObjectType();
@@ -204,13 +217,17 @@ RawAbstractType* PhiInstr::StaticType() const {
 }
 
 
-RawAbstractType* ParameterInstr::StaticType() const {
-  // TODO(regis): Can type feedback provide information about the static type
-  // of a passed-in parameter?
-  // Note that in checked mode, we could return the static type of the formal
-  // parameter. However, this would be wrong if ParameterInstr is used to type
-  // check the passed-in parameter, since the type check would then always be
-  // wrongly eliminated.
+RawAbstractType* ParameterInstr::CompileType() const {
+  // TODO(regis): Can type feedback provide information about the compile type
+  // of a passed-in parameter? In that case, it would be stored in the
+  // propagated_type_ field.
+  if (HasPropagatedType()) {
+    return PropagatedType();
+  }
+  // Note that returning the declared type of the formal parameter would be
+  // incorrect, because ParameterInstr is used as input to the type check
+  // verifying the run time type of the passed-in parameter and this check would
+  // always be wrongly eliminated.
   return Type::DynamicType();
 }
 
@@ -241,6 +258,16 @@ void StoreLocalComp::RecordAssignedVars(BitVector* assigned_vars,
 void Instruction::RecordAssignedVars(BitVector* assigned_vars,
                                      intptr_t fixed_parameter_count) {
   // Nothing to do for the base class.
+}
+
+
+RawAbstractType* BindInstr::CompileType() const {
+  if (HasPropagatedType()) {
+    return PropagatedType();
+  }
+  // The compile type may be requested when building the flow graph, i.e. before
+  // type propagation has occurred.
+  return computation()->CompileType();
 }
 
 
@@ -470,77 +497,76 @@ void Instruction::Goto(JoinEntryInstr* entry) {
 }
 
 
-// ==== Support for propagating static type.
-RawAbstractType* ConstantVal::StaticType() const {
+RawAbstractType* ConstantVal::CompileType() const {
+  if (value().IsNull()) {
+    return Type::NullType();
+  }
   if (value().IsInstance()) {
     return Instance::Cast(value()).GetType();
   } else {
-    UNREACHABLE();
+    ASSERT(value().IsAbstractTypeArguments());
     return AbstractType::null();
   }
 }
 
 
-RawAbstractType* UseVal::StaticType() const {
-  return definition()->StaticType();
+RawAbstractType* UseVal::CompileType() const {
+  return definition()->CompileType();
 }
 
 
-RawAbstractType* AssertAssignableComp::StaticType() const {
-  const AbstractType& value_static_type =
-      AbstractType::Handle(value()->StaticType());
-  if (value_static_type.IsMoreSpecificThan(dst_type(), NULL)) {
-    return value_static_type.raw();
+RawAbstractType* AssertAssignableComp::CompileType() const {
+  const AbstractType& value_compile_type =
+      AbstractType::Handle(value()->CompileType());
+  if (value_compile_type.IsMoreSpecificThan(dst_type(), NULL)) {
+    return value_compile_type.raw();
   }
   return dst_type().raw();
 }
 
 
-RawAbstractType* AssertBooleanComp::StaticType() const {
+RawAbstractType* AssertBooleanComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* CurrentContextComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* CurrentContextComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* StoreContextComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* StoreContextComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* ClosureCallComp::StaticType() const {
-  // Because of function subtyping rules, the static return type of a closure
-  // call cannot be relied upon for static type analysis. For example, a
+RawAbstractType* ClosureCallComp::CompileType() const {
+  // Because of function subtyping rules, the declared return type of a closure
+  // call cannot be relied upon for compile type analysis. For example, a
   // function returning Dynamic can be assigned to a closure variable declared
   // to return int and may actually return a double at run-time.
   return Type::DynamicType();
 }
 
 
-RawAbstractType* InstanceCallComp::StaticType() const {
+RawAbstractType* InstanceCallComp::CompileType() const {
   // TODO(regis): Return a more specific type than Dynamic for recognized
-  // combinations of receiver static type and method name.
+  // combinations of receiver type and method name.
   return Type::DynamicType();
 }
 
 
-RawAbstractType* PolymorphicInstanceCallComp::StaticType() const {
+RawAbstractType* PolymorphicInstanceCallComp::CompileType() const {
   return Type::DynamicType();
 }
 
 
-RawAbstractType* StaticCallComp::StaticType() const {
+RawAbstractType* StaticCallComp::CompileType() const {
   return function().result_type();
 }
 
 
-RawAbstractType* LoadLocalComp::StaticType() const {
-  // TODO(regis): Verify that the type of the receiver is properly set.
+RawAbstractType* LoadLocalComp::CompileType() const {
   if (FLAG_enable_type_checks) {
     return local().type().raw();
   }
@@ -548,27 +574,27 @@ RawAbstractType* LoadLocalComp::StaticType() const {
 }
 
 
-RawAbstractType* StoreLocalComp::StaticType() const {
-  return value()->StaticType();
+RawAbstractType* StoreLocalComp::CompileType() const {
+  return value()->CompileType();
 }
 
 
-RawAbstractType* StrictCompareComp::StaticType() const {
+RawAbstractType* StrictCompareComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* EqualityCompareComp::StaticType() const {
+RawAbstractType* EqualityCompareComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* RelationalOpComp::StaticType() const {
+RawAbstractType* RelationalOpComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* NativeCallComp::StaticType() const {
+RawAbstractType* NativeCallComp::CompileType() const {
   // The result type of the native function is identical to the result type of
   // the enclosing native Dart function. However, we prefer to check the type
   // of the value returned from the native call.
@@ -576,18 +602,17 @@ RawAbstractType* NativeCallComp::StaticType() const {
 }
 
 
-RawAbstractType* LoadIndexedComp::StaticType() const {
+RawAbstractType* LoadIndexedComp::CompileType() const {
   return Type::DynamicType();
 }
 
 
-RawAbstractType* StoreIndexedComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* StoreIndexedComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* LoadInstanceFieldComp::StaticType() const {
+RawAbstractType* LoadInstanceFieldComp::CompileType() const {
   if (FLAG_enable_type_checks) {
     return field().type();
   }
@@ -595,12 +620,12 @@ RawAbstractType* LoadInstanceFieldComp::StaticType() const {
 }
 
 
-RawAbstractType* StoreInstanceFieldComp::StaticType() const {
-  return value()->StaticType();
+RawAbstractType* StoreInstanceFieldComp::CompileType() const {
+  return value()->CompileType();
 }
 
 
-RawAbstractType* LoadStaticFieldComp::StaticType() const {
+RawAbstractType* LoadStaticFieldComp::CompileType() const {
   if (FLAG_enable_type_checks) {
     return field().type();
   }
@@ -608,127 +633,119 @@ RawAbstractType* LoadStaticFieldComp::StaticType() const {
 }
 
 
-RawAbstractType* StoreStaticFieldComp::StaticType() const {
-  return value()->StaticType();
+RawAbstractType* StoreStaticFieldComp::CompileType() const {
+  return value()->CompileType();
 }
 
 
-RawAbstractType* BooleanNegateComp::StaticType() const {
+RawAbstractType* BooleanNegateComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* InstanceOfComp::StaticType() const {
+RawAbstractType* InstanceOfComp::CompileType() const {
   return Type::BoolInterface();
 }
 
 
-RawAbstractType* CreateArrayComp::StaticType() const {
-  UNREACHABLE();
-  return AbstractType::null();
+RawAbstractType* CreateArrayComp::CompileType() const {
+  // TODO(regis): Be more specific.
+  return Type::DynamicType();
 }
 
 
-RawAbstractType* CreateClosureComp::StaticType() const {
+RawAbstractType* CreateClosureComp::CompileType() const {
   const Function& fun = function();
   const Class& signature_class = Class::Handle(fun.signature_class());
   return signature_class.SignatureType();
 }
 
 
-RawAbstractType* AllocateObjectComp::StaticType() const {
+RawAbstractType* AllocateObjectComp::CompileType() const {
   // TODO(regis): Be more specific.
   return Type::DynamicType();
 }
 
 
-RawAbstractType* AllocateObjectWithBoundsCheckComp::StaticType() const {
-  UNREACHABLE();
-  return AbstractType::null();
+RawAbstractType* AllocateObjectWithBoundsCheckComp::CompileType() const {
+  // TODO(regis): Be more specific.
+  return Type::DynamicType();
 }
 
 
-RawAbstractType* LoadVMFieldComp::StaticType() const {
-  ASSERT(!type().IsNull());
+RawAbstractType* LoadVMFieldComp::CompileType() const {
+  // Type may be null if the field is a VM field, e.g. context parent.
   return type().raw();
 }
 
 
-RawAbstractType* StoreVMFieldComp::StaticType() const {
-  return value()->StaticType();
+RawAbstractType* StoreVMFieldComp::CompileType() const {
+  return value()->CompileType();
 }
 
 
-RawAbstractType* InstantiateTypeArgumentsComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* InstantiateTypeArgumentsComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* ExtractConstructorTypeArgumentsComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* ExtractConstructorTypeArgumentsComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* ExtractConstructorInstantiatorComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* ExtractConstructorInstantiatorComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* AllocateContextComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* AllocateContextComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* ChainContextComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* ChainContextComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* CloneContextComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* CloneContextComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* CatchEntryComp::StaticType() const {
-  UNREACHABLE();
+RawAbstractType* CatchEntryComp::CompileType() const {
   return AbstractType::null();
 }
 
 
-RawAbstractType* CheckStackOverflowComp::StaticType() const {
-  UNREACHABLE();
-  return AbstractType::null();
+RawAbstractType* CheckStackOverflowComp::CompileType() const {
+  return Type::VoidType();
 }
 
 
-RawAbstractType* BinaryOpComp::StaticType() const {
+RawAbstractType* BinaryOpComp::CompileType() const {
   // TODO(srdjan): Compute based on input types (ICData).
   return Type::DynamicType();
 }
 
 
-RawAbstractType* DoubleBinaryOpComp::StaticType() const {
+RawAbstractType* DoubleBinaryOpComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
 
-RawAbstractType* UnarySmiOpComp::StaticType() const {
+RawAbstractType* UnarySmiOpComp::CompileType() const {
   return Type::IntInterface();
 }
 
 
-RawAbstractType* NumberNegateComp::StaticType() const {
+RawAbstractType* NumberNegateComp::CompileType() const {
   return Type::NumberInterface();
 }
 
 
-RawAbstractType* ToDoubleComp::StaticType() const {
+RawAbstractType* ToDoubleComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
@@ -1031,11 +1048,13 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  compiler->GenerateAssertAssignable(deopt_id(),
-                                     token_pos(),
-                                     try_index(),
-                                     dst_type(),
-                                     dst_name());
+  if (!IsEliminated()) {
+    compiler->GenerateAssertAssignable(deopt_id(),
+                                       token_pos(),
+                                       try_index(),
+                                       dst_type(),
+                                       dst_name());
+  }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
 

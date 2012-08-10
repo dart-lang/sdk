@@ -409,7 +409,7 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
 // Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the static type of the value is a subtype
+// destination type is Dynamic or if the compile type of the value is a subtype
 // of the destination type.
 bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
                                           Value* value,
@@ -441,7 +441,9 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
     return false;
   }
 
-  const bool eliminated = value->StaticTypeIsMoreSpecificThan(dst_type);
+  // Propagated types are not set yet.
+  // More checks will possibly be eliminated during type propagation.
+  const bool eliminated = value->CompileTypeIsMoreSpecificThan(dst_type);
   if (FLAG_trace_type_check_elimination) {
     FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,

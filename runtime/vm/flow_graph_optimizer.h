@@ -76,8 +76,9 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   FlowGraphTypePropagator(const ParsedFunction& parsed_function,
                           const GrowableArray<BlockEntryInstr*>& blocks)
       : FlowGraphVisitor(blocks),
-        parsed_function_(parsed_function) { }
-  virtual ~FlowGraphTypePropagator() {}
+        parsed_function_(parsed_function),
+        still_changing_(false) { }
+  virtual ~FlowGraphTypePropagator() { }
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
 
@@ -86,10 +87,15 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitAssertAssignable(AssertAssignableComp* comp,
                                      BindInstr* instr);
 
-  virtual void VisitBind(BindInstr* instr);
+  virtual void VisitGraphEntry(GraphEntryInstr* graph_entry);
+  virtual void VisitJoinEntry(JoinEntryInstr* join_entry);
+  virtual void VisitBind(BindInstr* bind);
+  virtual void VisitPhi(PhiInstr* phi);
+  virtual void VisitParameter(ParameterInstr* param);
 
  private:
   const ParsedFunction& parsed_function_;
+  bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
 };
 
