@@ -1753,14 +1753,8 @@ bool Class::TypeTest(
   }
   // In the case of a subtype test, each occurrence of DynamicType in type S is
   // interpreted as the bottom type, a subtype of all types.
-  // However, DynamicType is not more specific than any type.
   if (IsDynamicClass()) {
     return test_kind == kIsSubtypeOf;
-  }
-  // Check for NullType, which is not a subtype of any type, but is more
-  // specific than any type.
-  if (IsNullClass()) {
-    return test_kind == kIsMoreSpecificThan;
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {
