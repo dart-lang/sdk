@@ -59,6 +59,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   ASSERT(result == RAX);
   if (!compiler->is_optimizing()) {
+    __ Comment("Check function counter");
     // Count only in unoptimized code.
     // TODO(srdjan): Replace the counting code with a type feedback
     // collection and counting stub.
@@ -68,7 +69,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ incq(FieldAddress(temp, Function::usage_counter_offset()));
     if (FlowGraphCompiler::CanOptimize()) {
       // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
+      __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
       Label not_yet_hot, already_optimized;
       __ j(LESS, &not_yet_hot, Assembler::kNearJump);
