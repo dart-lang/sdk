@@ -10,18 +10,6 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-# Troubles with ctors, in work.
-audiocontext_test: Fail
-blob_constructor_test: Fail
-typed_arrays_1_test: Fail
-typed_arrays_2_test: Fail
-typed_arrays_3_test: Fail
-typed_arrays_4_test: Fail
-typed_arrays_5_test: Fail
-typed_arrays_dataview_test: Fail
-typed_arrays_range_checks_test: Fail
-transferables_test: Fail
-# End of troubles with ctors.
 #htmloptionscollection_test: Fail # TODO(asiva): investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows]
