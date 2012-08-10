@@ -18,6 +18,7 @@ Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t01: Fail # issue 1604 (call operator not implemented)
 Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # issue 1604 (call operator not implemented)
 Language/07_Classes/1_Instance_Methods/2_Operators_A07_t05: Fail # issue 1604 (call operator not implemented)
+Language/07_Classes/2_Getters_A01_t03: Fail # co19 issue 170 (getter is now legal under new syntax)
 Language/10_Expressions/05_Strings_A02_t01: Skip # co19 issue 90.
 Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # co19 issue 152.
 Language/10_Expressions/07_Maps_A01_t01: Skip # co19 issue 91: map literals illegal at statement beginning.

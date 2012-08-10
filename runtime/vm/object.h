@@ -1533,6 +1533,16 @@ class Function : public Object {
                     malformed_error);
   }
 
+  // Returns true if this function represents an explicit getter function.
+  bool IsGetterFunction() const {
+    return kind() == RawFunction::kGetterFunction;
+  }
+
+  // Returns true if this function represents an explicit setter function.
+  bool IsSetterFunction() const {
+    return kind() == RawFunction::kSetterFunction;
+  }
+
   // Returns true if this function represents a (possibly implicit) closure
   // function.
   bool IsClosureFunction() const {

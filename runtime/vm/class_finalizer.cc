@@ -1019,7 +1019,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
         }
       }
     }
-    if (function.kind() == RawFunction::kGetterFunction) {
+    if (function.IsGetterFunction()) {
       name = Field::NameFromGetter(function_name);
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {
@@ -1034,7 +1034,7 @@ void ClassFinalizer::ResolveAndFinalizeMemberTypes(const Class& cls) {
                     name.ToCString(),
                     super_class_name.ToCString());
       }
-    } else if (function.kind() == RawFunction::kSetterFunction) {
+    } else if (function.IsSetterFunction()) {
       name = Field::NameFromSetter(function_name);
       super_class = FindSuperOwnerOfFunction(cls, name);
       if (!super_class.IsNull()) {

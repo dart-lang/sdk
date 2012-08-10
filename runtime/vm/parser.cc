@@ -2104,9 +2104,18 @@ SequenceNode* Parser::ParseFunc(const Function& func,
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
         &Type::ZoneHandle(Type::DynamicType()));
   }
-  ASSERT(CurrentToken() == Token::kLPAREN);
+  ASSERT((CurrentToken() == Token::kLPAREN) || func.IsGetterFunction());
   const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, &params);
+  if (!func.IsGetterFunction()) {
+    ParseFormalParameterList(allow_explicit_default_values, &params);
+  } else {
+    // TODO(hausner): Remove this once we no longer support the old
+    // getter syntax with explicit empty parameter list.
+    if (CurrentToken() == Token::kLPAREN) {
+      ConsumeToken();
+      ExpectToken(Token::kRPAREN);
+    }
+  }
 
   // The number of parameters and their type are not yet set in local functions,
   // since they are not 'top-level' parsed.
@@ -2261,7 +2270,7 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
 
 void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
-  ASSERT(CurrentToken() == Token::kLPAREN);
+  ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
   intptr_t method_pos = this->TokenPos();
   ASSERT(method->type != NULL);
   ASSERT(method->name_pos > 0);
@@ -2323,7 +2332,16 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
   }
-  ParseFormalParameterList(allow_explicit_default_values, &method->params);
+  if (!method->IsGetter()) {
+    ParseFormalParameterList(allow_explicit_default_values, &method->params);
+  } else {
+    // TODO(hausner): Remove this once the old getter syntax with
+    // empty parameter list is no longer supported.
+    if (CurrentToken() == Token::kLPAREN) {
+      ConsumeToken();
+      ExpectToken(Token::kRPAREN);
+    }
+  }
 
   // Now that we know the parameter list, we can distinguish between the
   // unary and binary operator -.
@@ -2814,9 +2832,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->TokenPos();
     member.name = ExpectIdentifier("identifier expected");
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("'(' expected");
-    }
     // If the result type was not specified, it will be set to DynamicType.
   } else if ((CurrentToken() == Token::kSET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
@@ -2863,7 +2878,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   }
 
   ASSERT(member.name != NULL);
-  if (CurrentToken() == Token::kLPAREN) {
+  if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     if (members->is_interface() && member.has_static) {
       if (member.has_factory) {
         ErrorMsg("factory constructors are not allowed in interfaces");
