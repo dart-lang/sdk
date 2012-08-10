@@ -148,7 +148,7 @@ public class DartParser extends CompletionHooksParserBase {
   private static final String INTERFACE_KEYWORD = "interface";
   private static final String NATIVE_KEYWORD = "native";
   private static final String NEGATE_KEYWORD = "negate";
-  //private static final String ON_KEYWORD = "on";
+  private static final String ON_KEYWORD = "on";
   private static final String OPERATOR_KEYWORD = "operator";
   private static final String PREFIX_KEYWORD = "prefix";
   private static final String SETTER_KEYWORD = "set";
@@ -4404,67 +4404,65 @@ public class DartParser extends CompletionHooksParserBase {
     beginTryStatement();
     // Try.
     expect(Token.TRY);
-    // TODO(zundel): It would be nice here to setup 'CATCH' and 'FINALLY' as tokens for recovery
+    // TODO(zundel): It would be nice here to setup 'ON', 'CATCH' and 'FINALLY' as tokens for recovery
     DartBlock tryBlock = parseBlock();
 
     List<DartCatchBlock> catches = new ArrayList<DartCatchBlock>();
-    while (/*peekPseudoKeyword(0, ON_KEYWORD) ||*/ match(Token.CATCH)) {
+    while (peekPseudoKeyword(0, ON_KEYWORD) || match(Token.CATCH)) {
       // TODO(zundel): It would be nice here to setup 'FINALLY' as token for recovery
-//      if (peekPseudoKeyword(0, ON_KEYWORD)) {
-//        beginCatchClause();
-//        next();
-//        DartTypeNode exceptionType = new DartTypeNode(parseQualified());
-//        DartParameter exception = null;
-//        DartParameter stackTrace = null;
-//        if (optional(Token.CATCH)) {
-//          expect(Token.LPAREN);
-//          beginCatchParameter();
-//          DartIdentifier exceptionName = parseIdentifier();
-//          exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
-//          if (optional(Token.COMMA)) {
-//            beginCatchParameter();
-//            DartIdentifier stackName = parseIdentifier();
-//            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
-//          }
-//          expectCloseParen();
-//        } else {
-//          // Create a dummy identifier that the user cannot reliably reference.
-//          DartIdentifier exceptionName = new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis()));
-//          exception = new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE);
-//        }
-//        DartBlock block = parseBlock();
-//        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
-//      } else {
+      if (peekPseudoKeyword(0, ON_KEYWORD)) {
+        beginCatchClause();
+        next();
+        DartTypeNode exceptionType = new DartTypeNode(parseQualified());
+        DartParameter exception = null;
+        DartParameter stackTrace = null;
+        if (optional(Token.CATCH)) {
+          expect(Token.LPAREN);
+          beginCatchParameter();
+          DartIdentifier exceptionName = parseIdentifier();
+          exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
+          if (optional(Token.COMMA)) {
+            beginCatchParameter();
+            DartIdentifier stackName = parseIdentifier();
+            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
+          }
+          expectCloseParen();
+        } else {
+          // Create a dummy identifier that the user cannot reliably reference.
+          DartIdentifier exceptionName = new DartIdentifier("e" + Long.toHexString(System.currentTimeMillis()));
+          exception = new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE);
+        }
+        DartBlock block = parseBlock();
+        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+      } else {
         beginCatchClause();
         next();
         expect(Token.LPAREN);
-//        if (match(Token.IDENTIFIER) && (peek(1) == Token.COMMA || peek(1) == Token.RPAREN)) {
-//          beginCatchParameter();
-//          DartIdentifier exceptionName = parseIdentifier();
-//          // Create a dummy type with the right semantics.
-//          DartTypeNode exceptionType = new DartTypeNode(new DartIdentifier("Object"));
-//          DartParameter exception = done(new DartParameter(exceptionName, exceptionType, null, null, Modifiers.NONE));
-//          DartParameter stackTrace = null;
-//          if (optional(Token.COMMA)) {
-//            beginCatchParameter();
-//            DartIdentifier stackName = parseIdentifier();
-//            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
-//          }
-//          expectCloseParen();
-//          DartBlock block = parseBlock();
-//          catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
-//        } else {
-          DartParameter exception = parseCatchParameter();
-          DartParameter stackTrace = null;
-          if (optional(Token.COMMA)) {
+        DartParameter exception;
+        if (match(Token.IDENTIFIER) && (peek(1) == Token.COMMA || peek(1) == Token.RPAREN)) {
+          beginCatchParameter();
+          DartIdentifier exceptionName = parseIdentifier();
+          exception = done(new DartParameter(exceptionName, null , null, null, Modifiers.NONE));
+        } else {
+          // Old-style parameter
+          exception = parseCatchParameter();
+        }
+        DartParameter stackTrace = null;
+        if (optional(Token.COMMA)) {
+          if (match(Token.IDENTIFIER) && peek(1) == Token.RPAREN) {
+            beginCatchParameter();
+            DartIdentifier stackName = parseIdentifier();
+            stackTrace = done(new DartParameter(stackName, null, null, null, Modifiers.NONE));
+          } else {
+            // Old-style parameter
             stackTrace = parseCatchParameter();
           }
-          expectCloseParen();
-          DartBlock block = parseBlock();
-          catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
         }
-//      }
-//    }
+        expectCloseParen();
+        DartBlock block = parseBlock();
+        catches.add(done(new DartCatchBlock(block, exception, stackTrace)));
+      }
+    }
 
     // Finally.
     DartBlock finallyBlock = null;

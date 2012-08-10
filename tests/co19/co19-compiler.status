@@ -87,6 +87,8 @@ Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # co19 issue 140
 Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # co19 issue 140
 Language/11_Statements/05_For_A01_t11: Fail # Issue 3323
 Language/11_Statements/08_Switch_A01_t01: Fail # co19 issue 160
+Language/11_Statements/09_Try_A01_t14: Fail # out of date
+Language/11_Statements/09_Try_A01_t18: Fail # out of date
 Language/11_Statements/11_Labels_A03_t04: Fail # co19 issue 137
 Language/11_Statements/12_Break_A03_t05: Fail # co19 issue 138
 Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A02_t01: Fail # co19 Issue 109
