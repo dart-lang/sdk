@@ -30,6 +30,7 @@
 namespace dart {
 
 DEFINE_FLAG(bool, disassemble, false, "Disassemble dart code.");
+DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 #if defined(TARGET_ARCH_X64)
@@ -256,6 +257,91 @@ static bool CompileParsedFunctionHelper(
 }
 
 
+static void DisassembleCode(const Function& function, bool optimized) {
+  const char* function_fullname = function.ToFullyQualifiedCString();
+  OS::Print("Code for %sfunction '%s' {\n",
+            optimized ? "optimized " : "",
+            function_fullname);
+  const Code& code = Code::Handle(function.CurrentCode());
+  const Instructions& instructions =
+      Instructions::Handle(code.instructions());
+  uword start = instructions.EntryPoint();
+  Disassembler::Disassemble(start,
+                            start + instructions.size(),
+                            code.comments());
+  OS::Print("}\n");
+  OS::Print("Pointer offsets for function: {\n");
+  // Pointer offsets are stored in descending order.
+  for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
+    const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
+    Object& obj = Object::Handle();
+    obj = *reinterpret_cast<RawObject**>(addr);
+    OS::Print(" %" PRIdPTR " : 0x%" PRIxPTR " '%s'\n",
+              code.GetPointerOffsetAt(i), addr, obj.ToCString());
+  }
+  OS::Print("}\n");
+  OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
+  OS::Print("(pc\t\tkind\t\tid\ttok-ix\ttry/deopt-ix)\n");
+  const PcDescriptors& descriptors =
+      PcDescriptors::Handle(code.pc_descriptors());
+  OS::Print("%s\n", descriptors.ToCString());
+  OS::Print("}\n");
+  const Array& deopt_info_array = Array::Handle(code.deopt_info_array());
+  if (deopt_info_array.Length() > 0) {
+    OS::Print("DeoptInfo: {\n");
+    for (intptr_t i = 0; i < deopt_info_array.Length(); i++) {
+      OS::Print("  %d: %s\n",
+          i, Object::Handle(deopt_info_array.At(i)).ToCString());
+    }
+    OS::Print("}\n");
+  }
+  const Array& object_table = Array::Handle(code.object_table());
+  if (object_table.Length() > 0) {
+    OS::Print("Object Table: {\n");
+    for (intptr_t i = 0; i < object_table.Length(); i++) {
+      OS::Print("  %d: %s\n", i,
+          Object::Handle(object_table.At(i)).ToCString());
+    }
+    OS::Print("}\n");
+  }
+  OS::Print("Variable Descriptors for function '%s' {\n",
+            function_fullname);
+  const LocalVarDescriptors& var_descriptors =
+      LocalVarDescriptors::Handle(code.var_descriptors());
+  intptr_t var_desc_length =
+      var_descriptors.IsNull() ? 0 : var_descriptors.Length();
+  String& var_name = String::Handle();
+  for (intptr_t i = 0; i < var_desc_length; i++) {
+    var_name = var_descriptors.GetName(i);
+    RawLocalVarDescriptors::VarInfo var_info;
+    var_descriptors.GetInfo(i, &var_info);
+    if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
+      OS::Print("  saved CTX reg offset %" PRIdPTR "\n", var_info.index);
+    } else {
+      if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
+        OS::Print("  context level %" PRIdPTR " scope %d",
+                  var_info.index, var_info.scope_id);
+      } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
+        OS::Print("  stack var '%s' offset %" PRIdPTR,
+                  var_name.ToCString(), var_info.index);
+      } else {
+        ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
+        OS::Print("  context var '%s' level %d offset %" PRIdPTR,
+                  var_name.ToCString(), var_info.scope_id, var_info.index);
+      }
+      OS::Print(" (valid %" PRIdPTR "-%" PRIdPTR ")\n",
+                var_info.begin_pos, var_info.end_pos);
+    }
+  }
+  OS::Print("}\n");
+  OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
+  const ExceptionHandlers& handlers =
+        ExceptionHandlers::Handle(code.exception_handlers());
+  OS::Print("%s\n", handlers.ToCString());
+  OS::Print("}\n");
+}
+
+
 static RawError* CompileFunctionHelper(const Function& function,
                                        bool optimized) {
   Isolate* isolate = Isolate::Current();
@@ -300,87 +386,12 @@ static RawError* CompileFunctionHelper(const Function& function,
       Isolate::Current()->debugger()->NotifyCompilation(function);
     }
     if (FLAG_disassemble) {
-      const char* function_fullname = function.ToFullyQualifiedCString();
-      OS::Print("Code for %sfunction '%s' {\n",
-                optimized ? "optimized " : "",
-                function_fullname);
-      const Code& code = Code::Handle(function.CurrentCode());
-      const Instructions& instructions =
-          Instructions::Handle(code.instructions());
-      uword start = instructions.EntryPoint();
-      Disassembler::Disassemble(start,
-                                start + instructions.size(),
-                                code.comments());
-      OS::Print("}\n");
-      OS::Print("Pointer offsets for function: {\n");
-      // Pointer offsets are stored in descending order.
-      for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
-        const uword addr = code.GetPointerOffsetAt(i) + code.EntryPoint();
-        Object& obj = Object::Handle();
-        obj = *reinterpret_cast<RawObject**>(addr);
-        OS::Print(" %" PRIdPTR " : 0x%" PRIxPTR " '%s'\n",
-                  code.GetPointerOffsetAt(i), addr, obj.ToCString());
-      }
-      OS::Print("}\n");
-      OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
-      OS::Print("(pc\t\tkind\t\tid\ttok-ix\ttry/deopt-ix)\n");
-      const PcDescriptors& descriptors =
-          PcDescriptors::Handle(code.pc_descriptors());
-      OS::Print("%s\n", descriptors.ToCString());
-      OS::Print("}\n");
-      const Array& deopt_info_array = Array::Handle(code.deopt_info_array());
-      if (deopt_info_array.Length() > 0) {
-        OS::Print("DeoptInfo: {\n");
-        for (intptr_t i = 0; i < deopt_info_array.Length(); i++) {
-          OS::Print("  %d: %s\n",
-              i, Object::Handle(deopt_info_array.At(i)).ToCString());
-        }
-        OS::Print("}\n");
-      }
-      const Array& object_table = Array::Handle(code.object_table());
-      if (object_table.Length() > 0) {
-        OS::Print("Object Table: {\n");
-        for (intptr_t i = 0; i < object_table.Length(); i++) {
-          OS::Print("  %d: %s\n", i,
-              Object::Handle(object_table.At(i)).ToCString());
-        }
-        OS::Print("}\n");
-      }
-      OS::Print("Variable Descriptors for function '%s' {\n",
-                function_fullname);
-      const LocalVarDescriptors& var_descriptors =
-          LocalVarDescriptors::Handle(code.var_descriptors());
-      intptr_t var_desc_length =
-          var_descriptors.IsNull() ? 0 : var_descriptors.Length();
-      String& var_name = String::Handle();
-      for (intptr_t i = 0; i < var_desc_length; i++) {
-        var_name = var_descriptors.GetName(i);
-        RawLocalVarDescriptors::VarInfo var_info;
-        var_descriptors.GetInfo(i, &var_info);
-        if (var_info.kind == RawLocalVarDescriptors::kContextChain) {
-          OS::Print("  saved CTX reg offset %" PRIdPTR "\n", var_info.index);
-        } else {
-          if (var_info.kind == RawLocalVarDescriptors::kContextLevel) {
-            OS::Print("  context level %" PRIdPTR " scope %d",
-                      var_info.index, var_info.scope_id);
-          } else if (var_info.kind == RawLocalVarDescriptors::kStackVar) {
-            OS::Print("  stack var '%s' offset %" PRIdPTR,
-                      var_name.ToCString(), var_info.index);
-          } else {
-            ASSERT(var_info.kind == RawLocalVarDescriptors::kContextVar);
-            OS::Print("  context var '%s' level %d offset %" PRIdPTR,
-                      var_name.ToCString(), var_info.scope_id, var_info.index);
-          }
-          OS::Print(" (valid %" PRIdPTR "-%" PRIdPTR ")\n",
-                    var_info.begin_pos, var_info.end_pos);
-        }
-      }
-      OS::Print("}\n");
-      OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
-      const ExceptionHandlers& handlers =
-          ExceptionHandlers::Handle(code.exception_handlers());
-      OS::Print("%s\n", handlers.ToCString());
-      OS::Print("}\n");
+      DisassembleCode(function, optimized);
+    }
+    if (FLAG_disassemble_optimized && optimized) {
+      // Print unoptimized code along with the optimized code.
+      DisassembleCode(function, false);
+      DisassembleCode(function, true);
     }
     isolate->set_long_jump_base(base);
     return Error::null();
