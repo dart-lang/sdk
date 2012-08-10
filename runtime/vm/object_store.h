@@ -421,9 +421,6 @@ class ObjectStore {
   RawBool* false_value() const { return false_value_; }
   void set_false_value(const Bool& value) { false_value_ = value.raw(); }
 
-  RawArray* empty_array() const { return empty_array_; }
-  void set_empty_array(const Array& value) { empty_array_ = value.raw(); }
-
   RawContext* empty_context() const { return empty_context_; }
   void set_empty_context(const Context& value) {
     empty_context_ = value.raw();
@@ -514,7 +511,6 @@ class ObjectStore {
   RawClass* jsregexp_class_;
   RawBool* true_value_;
   RawBool* false_value_;
-  RawArray* empty_array_;
   RawArray* symbol_table_;
   RawArray* canonical_type_arguments_;
   RawLibrary* core_library_;

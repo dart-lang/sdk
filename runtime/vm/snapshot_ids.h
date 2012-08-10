@@ -13,6 +13,7 @@ namespace dart {
 enum {
   kNullObject = 0,
   kSentinelObject,
+  kEmptyArrayObject,
   kTrueValue,
   kFalseValue,
   kClassIdsOffset = kFalseValue,

@@ -293,6 +293,9 @@ static void MegamorphicLookup(Assembler* assembler) {
   Label loop, next_iteration;
   // Get functions_cache, since it is allocated lazily it maybe null.
   __ movl(EAX, FieldAddress(EAX, Class::functions_cache_offset()));
+  __ cmpl(EAX, raw_null);
+  __ j(EQUAL, &not_found, Assembler::kNearJump);
+
   // Iterate and search for identical name.
   __ leal(EBX, FieldAddress(EAX, Array::data_offset()));
 

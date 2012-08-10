@@ -1149,6 +1149,7 @@ class RawArray : public RawInstance {
   friend class RawImmutableArray;
   friend class SnapshotReader;
   friend class GrowableObjectArray;
+  friend class Object;
 };
 
 

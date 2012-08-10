@@ -59,6 +59,7 @@ cpp_vtable Smi::handle_vtable_ = 0;
 #endif
 #define RAW_NULL kHeapObjectTag
 RawObject* Object::null_ = reinterpret_cast<RawInstance*>(RAW_NULL);
+RawArray* Object::empty_array_ = reinterpret_cast<RawArray*>(RAW_NULL);
 RawInstance* Object::sentinel_ = reinterpret_cast<RawInstance*>(RAW_NULL);
 RawInstance* Object::transition_sentinel_ =
     reinterpret_cast<RawInstance*>(RAW_NULL);
@@ -185,47 +186,6 @@ static RawString* IdentifierPrettyName(const String& name) {
 }
 
 
-// TODO(asiva): Get rid of this function once we have predefined names for
-// the shared classes and set that up in the name field.
-const char* Object::GetSingletonClassName(intptr_t class_id) {
-  switch (class_id) {
-    case kClassCid: return "Class";
-    case kNullCid: return "Null";
-    case kDynamicCid: return "Dynamic";
-    case kVoidCid: return "void";
-    case kUnresolvedClassCid: return "UnresolvedClass";
-    case kTypeCid: return "Type";
-    case kTypeParameterCid: return "TypeParameter";
-    case kTypeArgumentsCid: return "TypeArguments";
-    case kInstantiatedTypeArgumentsCid: return "InstantiatedTypeArguments";
-    case kFunctionCid: return "Function";
-    case kFieldCid: return "Field";
-    case kLiteralTokenCid: return "LiteralToken";
-    case kTokenStreamCid: return "TokenStream";
-    case kScriptCid: return "Script";
-    case kLibraryCid: return "Library";
-    case kLibraryPrefixCid: return "LibraryPrefix";
-    case kCodeCid: return "Code";
-    case kInstructionsCid: return "Instructions";
-    case kPcDescriptorsCid: return "PcDescriptors";
-    case kStackmapCid: return "Stackmap";
-    case kLocalVarDescriptorsCid: return "LocalVarDescriptors";
-    case kExceptionHandlersCid: return "ExceptionHandlers";
-    case kContextCid: return "Context";
-    case kContextScopeCid: return "ContextScope";
-    case kICDataCid: return "ICData";
-    case kSubtypeTestCacheCid: return "SubtypeTestCache";
-    case kApiErrorCid: return "ApiError";
-    case kLanguageErrorCid: return "LanguageError";
-    case kUnhandledExceptionCid: return "UnhandledException";
-    case kUnwindErrorCid: return "UnwindError";
-    default: break;
-  }
-  UNREACHABLE();
-  return NULL;
-}
-
-
 void Object::InitOnce() {
   // TODO(iposva): NoGCScope needs to be added here.
   ASSERT(class_class() == null_);
@@ -239,7 +199,7 @@ void Object::InitOnce() {
 
   Isolate* isolate = Isolate::Current();
   Heap* heap = isolate->heap();
-  // Allocate and initialize the null instance, except its class_ field.
+  // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
   // clear the object.
   {
@@ -251,7 +211,7 @@ void Object::InitOnce() {
 
   // Initialize object_store empty array to null_ in order to be able to check
   // if the empty array was allocated (RAW_NULL is not available).
-  isolate->object_store()->set_empty_array(Array::Handle());
+  empty_array_ = Array::null();
 
   Class& cls = Class::Handle();
 
@@ -303,14 +263,6 @@ void Object::InitOnce() {
     transition_sentinel_ = transition_sentinel.raw();
   }
 
-  // The interface "Dynamic" is not a VM internal class. It is the type class of
-  // the "unknown type". For efficiency, we allocate it in the VM isolate.
-  // Therefore, it cannot have a heap allocated name (the name is hard coded,
-  // see GetSingletonClassName) and its array fields cannot be set to the empty
-  // array, but remain null.
-  //
-  // TODO(turnidge): Once the empty array is allocated in the vm
-  // isolate, use it here.
   cls = Class::New<Instance>(kDynamicCid);
   cls.set_is_finalized();
   cls.set_is_interface();
@@ -411,6 +363,57 @@ void Object::InitOnce() {
   isolate->object_store()->set_array_class(cls);
   cls = Class::New<OneByteString>();
   isolate->object_store()->set_one_byte_string_class(cls);
+
+  // Allocate and initialize the empty_array instance.
+  {
+    uword address = heap->Allocate(Array::InstanceSize(0), Heap::kOld);
+    empty_array_ = reinterpret_cast<RawArray*>(address + kHeapObjectTag);
+    InitializeObject(address, kArrayCid, Array::InstanceSize(0));
+    empty_array_->ptr()->length_ = Smi::New(0);
+  }
+}
+
+
+#define SET_CLASS_NAME(class_name, name)                                       \
+  cls = class_name##_class();                                                  \
+  str = Symbols::name();                                                       \
+  cls.set_name(str);                                                           \
+
+void Object::RegisterSingletonClassNames() {
+  Class& cls = Class::Handle();
+  String& str = String::Handle();
+
+  SET_CLASS_NAME(class, Class);
+  SET_CLASS_NAME(null, Null);
+  SET_CLASS_NAME(dynamic, Dynamic);
+  SET_CLASS_NAME(void, Void);
+  SET_CLASS_NAME(unresolved_class, UnresolvedClass);
+  SET_CLASS_NAME(type, Type);
+  SET_CLASS_NAME(type_parameter, TypeParameter);
+  SET_CLASS_NAME(type_arguments, TypeArguments);
+  SET_CLASS_NAME(instantiated_type_arguments, InstantiatedTypeArguments);
+  SET_CLASS_NAME(function, Function);
+  SET_CLASS_NAME(field, Field);
+  SET_CLASS_NAME(literal_token, LiteralToken);
+  SET_CLASS_NAME(token_stream, TokenStream);
+  SET_CLASS_NAME(script, Script);
+  SET_CLASS_NAME(library, LibraryClass);
+  SET_CLASS_NAME(library_prefix, LibraryPrefix);
+  SET_CLASS_NAME(code, Code);
+  SET_CLASS_NAME(instructions, Instructions);
+  SET_CLASS_NAME(pc_descriptors, PcDescriptors);
+  SET_CLASS_NAME(stackmap, Stackmap);
+  SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
+  SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
+  SET_CLASS_NAME(deopt_info, DeoptInfo);
+  SET_CLASS_NAME(context, Context);
+  SET_CLASS_NAME(context_scope, ContextScope);
+  SET_CLASS_NAME(icdata, ICData);
+  SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
+  SET_CLASS_NAME(api_error, ApiError);
+  SET_CLASS_NAME(language_error, LanguageError);
+  SET_CLASS_NAME(unhandled_exception, UnhandledException);
+  SET_CLASS_NAME(unwind_error, UnwindError);
 }
 
 
@@ -467,14 +470,6 @@ RawError* Object::Init(Isolate* isolate) {
   // need to set the offset of their type_arguments_ field, which is explicitly
   // declared in RawArray.
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
-
-  Array& empty_array = Array::Handle();
-  empty_array = Array::New(0, Heap::kOld);
-  object_store->set_empty_array(empty_array);
-
-  // Re-initialize fields of the array class now that the empty array
-  // has been created.
-  cls.InitEmptyFields();
 
   // Set up the growable object array class (Has to be done after the array
   // class is setup as one of its field is an array object).
@@ -835,10 +830,6 @@ void Object::InitFromSnapshot(Isolate* isolate) {
   cls = Class::New<Array>();
   object_store->set_array_class(cls);
 
-  Array& empty_array = Array::Handle();
-  empty_array = Array::New(0);
-  object_store->set_empty_array(empty_array);
-
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
 
@@ -1037,11 +1028,8 @@ RawObject* Object::Clone(const Object& src, Heap::Space space) {
 
 
 RawString* Class::Name() const {
-  if (raw_ptr()->name_ != String::null()) {
-    return raw_ptr()->name_;
-  }
-  ASSERT(class_class() != Class::null());  // class_class_ should be set up.
-  return Symbols::New(GetSingletonClassName(raw_ptr()->id_));
+  ASSERT(raw_ptr()->name_ != String::null());
+  return raw_ptr()->name_;
 }
 
 
@@ -1186,20 +1174,22 @@ RawClass* Class::New() {
 
 // Initialize class fields of type Array with empty array.
 void Class::InitEmptyFields() {
-  const Array& empty_array = Array::Handle(Array::Empty());
-  if (empty_array.IsNull()) {
+  if (Object::empty_array() == Array::null()) {
     // The empty array has not been initialized yet.
     return;
   }
-  StorePointer(&raw_ptr()->interfaces_, empty_array.raw());
-  // TODO(srdjan): Make functions_cache growable and start with a smaller size.
-  Array& fcache =
-      Array::Handle(Array::New(FunctionsCache::kNumEntries * 32, Heap::kOld));
-  StorePointer(&raw_ptr()->functions_cache_, fcache.raw());
-  StorePointer(&raw_ptr()->constants_, empty_array.raw());
-  StorePointer(&raw_ptr()->canonical_types_, empty_array.raw());
-  StorePointer(&raw_ptr()->functions_, empty_array.raw());
-  StorePointer(&raw_ptr()->fields_, empty_array.raw());
+  StorePointer(&raw_ptr()->interfaces_, Object::empty_array());
+  StorePointer(&raw_ptr()->constants_, Object::empty_array());
+  StorePointer(&raw_ptr()->canonical_types_, Object::empty_array());
+  StorePointer(&raw_ptr()->functions_, Object::empty_array());
+  StorePointer(&raw_ptr()->fields_, Object::empty_array());
+}
+
+
+void Class::InitFunctionsCache() const {
+  // TODO(srdjan): Make functions_cache growable and start with smaller size.
+  StorePointer(&raw_ptr()->functions_cache_,
+               Array::New(FunctionsCache::kNumEntries * 32, Heap::kOld));
 }
 
 
@@ -1564,12 +1554,13 @@ RawClass* Class::NewSignatureClass(const String& name,
   const intptr_t token_pos = signature_function.token_pos();
   Class& result = Class::Handle(New<Closure>(name, script, token_pos));
   const Type& super_type = Type::Handle(Type::ObjectType());
+  const Array& empty_array = Array::Handle(Object::empty_array());
   ASSERT(!super_type.IsNull());
   result.set_super_type(super_type);
   result.set_signature_function(signature_function);
   result.set_type_parameters(type_parameters);
-  result.SetFields(Array::Handle(Array::Empty()));
-  result.SetFunctions(Array::Handle(Array::Empty()));
+  result.SetFields(empty_array);
+  result.SetFunctions(empty_array);
   result.set_type_arguments_instance_field_offset(
       Closure::type_arguments_offset());
   // Implements interface "Function".
@@ -1623,9 +1614,10 @@ RawClass* Class::NewNativeWrapper(Library* library,
                                   int field_count) {
   Class& cls = Class::Handle(library->LookupClass(name));
   if (cls.IsNull()) {
+    const Array& empty_array = Array::Handle(Object::empty_array());
     cls = New<Instance>(name, Script::Handle(), Scanner::kDummyTokenIndex);
-    cls.SetFields(Array::Handle(Array::Empty()));
-    cls.SetFunctions(Array::Handle(Array::Empty()));
+    cls.SetFields(empty_array);
+    cls.SetFunctions(empty_array);
     // Set super class to Object.
     cls.set_super_type(Type::Handle(Type::ObjectType()));
     // Compute instance size.
@@ -4022,8 +4014,9 @@ RawFunction* Function::New(const String& name,
   ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
   const Function& result = Function::Handle(Function::New());
-  result.set_parameter_types(Array::Handle(Array::Empty()));
-  result.set_parameter_names(Array::Handle(Array::Empty()));
+  const Array& empty_array = Array::Handle(Object::empty_array());
+  result.set_parameter_types(empty_array);
+  result.set_parameter_names(empty_array);
   result.set_name(name);
   result.set_kind(kind);
   result.set_is_static(is_static);
@@ -6044,10 +6037,10 @@ RawLibrary* Library::NewLibraryHelper(const String& url,
   result.StorePointer(&result.raw_ptr()->name_, url.raw());
   result.StorePointer(&result.raw_ptr()->url_, url.raw());
   result.raw_ptr()->private_key_ = Scanner::AllocatePrivateKey(result);
-  result.raw_ptr()->dictionary_ = Array::Empty();
-  result.raw_ptr()->anonymous_classes_ = Array::Empty();
+  result.raw_ptr()->dictionary_ = Object::empty_array();
+  result.raw_ptr()->anonymous_classes_ = Object::empty_array();
   result.raw_ptr()->num_anonymous_ = 0;
-  result.raw_ptr()->imports_ = Array::Empty();
+  result.raw_ptr()->imports_ = Object::empty_array();
   result.raw_ptr()->loaded_scripts_ = Array::null();
   result.set_native_entry_resolver(NULL);
   result.raw_ptr()->corelib_imported_ = true;
@@ -7014,7 +7007,7 @@ Code::Comments& Code::Comments::New(intptr_t count) {
     FATAL1("Fatal error in Code::Comments::New: invalid count %ld\n", count);
   }
   if (count == 0) {
-    comments = new Comments(Array::Empty());
+    comments = new Comments(Object::empty_array());
   } else {
     comments = new Comments(Array::New(count * kNumberOfEntries));
   }
@@ -9980,17 +9973,12 @@ RawArray* Array::Grow(const Array& source, int new_length, Heap::Space space) {
 }
 
 
-RawArray* Array::Empty() {
-  return Isolate::Current()->object_store()->empty_array();
-}
-
-
 RawArray* Array::MakeArray(const GrowableObjectArray& growable_array) {
   intptr_t used_len = growable_array.Length();
   intptr_t capacity_len = growable_array.Capacity();
   Isolate* isolate = Isolate::Current();
   const Array& array = Array::Handle(isolate, growable_array.data());
-  const Array& new_array = Array::Handle(isolate, Array::Empty());
+  const Array& new_array = Array::Handle(isolate, Object::empty_array());
   intptr_t capacity_size = Array::InstanceSize(capacity_len);
   intptr_t used_size = Array::InstanceSize(used_len);
   NoGCScope no_gc;

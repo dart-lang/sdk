@@ -2930,13 +2930,13 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     if (cls.is_interface()) {
       ErrorMsg(classname_pos, "'%s' is already defined as interface",
                class_name.ToCString());
-    } else if (cls.functions() != Array::Empty()) {
+    } else if (cls.functions() != Object::empty_array()) {
       ErrorMsg(classname_pos, "class '%s' is already defined",
                class_name.ToCString());
     }
   }
   ASSERT(!cls.IsNull());
-  ASSERT(cls.functions() == Array::Empty());
+  ASSERT(cls.functions() == Object::empty_array());
   set_current_class(cls);
   ParseTypeParameters(cls);
   Type& super_type = Type::Handle();
@@ -3208,14 +3208,14 @@ void Parser::ParseInterfaceDefinition(
       ErrorMsg(interfacename_pos,
                "'%s' is already defined as class",
                interface_name.ToCString());
-    } else if (interface.functions() != Array::Empty()) {
+    } else if (interface.functions() != Object::empty_array()) {
       ErrorMsg(interfacename_pos,
                "interface '%s' is already defined",
                interface_name.ToCString());
     }
   }
   ASSERT(!interface.IsNull());
-  ASSERT(interface.functions() == Array::Empty());
+  ASSERT(interface.functions() == Object::empty_array());
   set_current_class(interface);
   ParseTypeParameters(interface);
 

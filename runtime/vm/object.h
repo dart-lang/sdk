@@ -235,6 +235,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static RawObject* null() { return null_; }
+  static RawArray* empty_array() { return empty_array_; }
 
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
@@ -284,8 +285,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
-  static const char* GetSingletonClassName(intptr_t class_id);
-
   static RawClass* CreateAndRegisterInterface(const char* cname,
                                               const Script& script,
                                               const Library& lib);
@@ -302,6 +301,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
+  static void RegisterSingletonClassNames();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawObject));
@@ -376,6 +376,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
+  static RawArray* empty_array_;
   static RawInstance* sentinel_;
   static RawInstance* transition_sentinel_;
 
@@ -686,6 +687,9 @@ class Class : public Object {
   RawArray* constants() const;
 
   void Finalize() const;
+
+  // Initialize the functions cache array.
+  void InitFunctionsCache() const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -3927,9 +3931,6 @@ class Array : public Instance {
   static RawArray* Grow(const Array& source,
                         int new_length,
                         Heap::Space space = Heap::kNew);
-
-  // Returns the preallocated empty array, used to initialize array fields.
-  static RawArray* Empty();
 
   // Return an Array object that contains all the elements currently present
   // in the specified Growable Object Array. This is done by first truncating

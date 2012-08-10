@@ -1663,6 +1663,10 @@ void FunctionsCache::AddCompiledFunction(const Function& function,
 #if 0
   ASSERT(function.HasCode());
   Array& cache = Array::Handle(class_.functions_cache());
+  if (cache.IsNull()) {
+    class_.InitFunctionsCache();
+    cache = class_.functions_cache();
+  }
   // Search for first free slot. Last entry is always NULL object.
   for (intptr_t i = 0; i < (cache.Length() - kNumEntries); i += kNumEntries) {
     if (Object::Handle(cache.At(i)).IsNull()) {
@@ -1692,6 +1696,9 @@ RawCode* FunctionsCache::LookupCode(const String& function_name,
                                     int num_arguments,
                                     int num_named_arguments) {
   const Array& cache = Array::Handle(class_.functions_cache());
+  if (cache.IsNull()) {
+    return Code::null();  // Functions cache has not been populated yet.
+  }
   String& test_name = String::Handle();
   for (intptr_t i = 0; i < cache.Length(); i += kNumEntries) {
     test_name ^= cache.At(i + FunctionsCache::kFunctionName);

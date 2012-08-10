@@ -21,7 +21,7 @@ TEST_CASE(Class) {
       Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // Class has no fields.
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   cls.SetFields(no_fields);
 
   // Create and populate the function arrays.
@@ -111,6 +111,8 @@ TEST_CASE(Class) {
   cls.set_interfaces(interfaces);
   cls.Finalize();
 
+  ASSERT(cls.functions_cache() == Array::null());
+  cls.InitFunctionsCache();
   const Array& array = Array::Handle(cls.functions_cache());
   array.SetAt(0, function_name);
   cls.set_functions_cache(array);
@@ -172,7 +174,7 @@ TEST_CASE(InstanceClass) {
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the EmptyClass.
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   empty_class.SetFields(no_fields);
   empty_class.Finalize();
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
@@ -203,7 +205,7 @@ TEST_CASE(Interface) {
   Script& script = Script::Handle();
   const Class& factory_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   // Finalizes the class.
   factory_class.SetFields(no_fields);
 
@@ -1765,7 +1767,7 @@ TEST_CASE(Array) {
   other_array.SetAt(2, array);
   EXPECT(!array.Equals(other_array));
 
-  EXPECT_EQ(0, Array::Handle(Array::Empty()).Length());
+  EXPECT_EQ(0, Array::Handle(Object::empty_array()).Length());
 }
 
 
