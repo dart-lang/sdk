@@ -433,12 +433,7 @@ RawFunction* Function::ReadFrom(SnapshotReader* reader,
   func.set_num_optional_parameters(reader->ReadIntptrValue());
   func.set_usage_counter(reader->ReadIntptrValue());
   func.set_deoptimization_counter(reader->ReadIntptrValue());
-  func.set_kind(static_cast<RawFunction::Kind >(reader->ReadIntptrValue()));
-  func.set_is_static(reader->Read<bool>());
-  func.set_is_const(reader->Read<bool>());
-  func.set_is_optimizable(reader->Read<bool>());
-  func.set_is_native(reader->Read<bool>());
-  func.set_is_abstract(reader->Read<bool>());
+  func.set_kind_tag(reader->ReadIntptrValue());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -473,12 +468,7 @@ void RawFunction::WriteTo(SnapshotWriter* writer,
   writer->WriteIntptrValue(ptr()->num_optional_parameters_);
   writer->WriteIntptrValue(ptr()->usage_counter_);
   writer->WriteIntptrValue(ptr()->deoptimization_counter_);
-  writer->WriteIntptrValue(GetKind());
-  writer->Write<bool>(IsStatic());
-  writer->Write<bool>(IsConst());
-  writer->Write<bool>(IsOptimizable());
-  writer->Write<bool>(IsNative());
-  writer->Write<bool>(IsAbstract());
+  writer->WriteIntptrValue(ptr()->kind_tag_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

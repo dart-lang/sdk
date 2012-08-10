@@ -1365,11 +1365,13 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
 
-  RawFunction::Kind kind() const { return raw()->GetKind(); }
+  RawFunction::Kind kind() const {
+    return KindBits::decode(raw_ptr()->kind_tag_);
+  }
 
-  bool is_static() const { return raw()->IsStatic(); }
-  bool is_const() const { return raw()->IsConst(); }
-  bool is_external() const { return raw()->IsExternal(); }
+  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_tag_); }
+  bool is_external() const { return ExternalBit::decode(raw_ptr()->kind_tag_); }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
@@ -1458,16 +1460,20 @@ class Function : public Object {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
-  bool is_optimizable() const { return raw()->IsOptimizable(); }
+  bool is_optimizable() const {
+    return OptimizableBit::decode(raw_ptr()->kind_tag_);
+  }
   void set_is_optimizable(bool value) const;
 
-  bool has_finally() const { return raw()->HasFinally(); }
+  bool has_finally() const {
+    return HasFinallyBit::decode(raw_ptr()->kind_tag_);
+  }
   void set_has_finally(bool value) const;
 
-  bool is_native() const { return raw()->IsNative(); }
+  bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
   void set_is_native(bool value) const;
 
-  bool is_abstract() const { return raw()->IsAbstract(); }
+  bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
 
   bool HasOptimizedCode() const;
@@ -1586,6 +1592,27 @@ class Function : public Object {
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
  private:
+  enum KindTagBits {
+    kStaticBit = 1,
+    kConstBit,
+    kOptimizableBit,
+    kHasFinallyBit,
+    kNativeBit,
+    kAbstractBit,
+    kExternalBit,
+    kKindTagBit,
+    kKindTagSize = 4,
+  };
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
+  class NativeBit : public BitField<bool, kNativeBit, 1> {};
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class KindBits :
+    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {}; // NOLINT
+
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
   void set_is_static(bool is_static) const;
@@ -1595,6 +1622,7 @@ class Function : public Object {
   void set_owner(const Class& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
+  void set_kind_tag(intptr_t value) const;
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,

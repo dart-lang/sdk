@@ -3620,28 +3620,37 @@ void Function::set_parameter_names(const Array& value) const {
 
 
 void Function::set_kind(RawFunction::Kind value) const {
-  raw()->SetKind(value);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = KindBits::update(value, bits);
 }
 
 
 void Function::set_is_static(bool is_static) const {
-  raw()->SetIsStatic(is_static);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = StaticBit::update(is_static, bits);
 }
 
 
 void Function::set_is_const(bool is_const) const {
-  raw()->SetIsConst(is_const);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = ConstBit::update(is_const, bits);
 }
 
 
 void Function::set_is_external(bool is_external) const {
-  raw()->SetIsExternal(is_external);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = ExternalBit::update(is_external, bits);
 }
 
 
 void Function::set_token_pos(intptr_t pos) const {
   ASSERT(pos >= 0);
   raw_ptr()->token_pos_ = pos;
+}
+
+
+void Function::set_kind_tag(intptr_t value) const {
+  raw_ptr()->kind_tag_ = value;
 }
 
 
@@ -3658,22 +3667,26 @@ void Function::set_num_optional_parameters(intptr_t n) const {
 
 
 void Function::set_is_optimizable(bool value) const {
-  raw()->SetIsOptimizable(value);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = OptimizableBit::update(value, bits);
 }
 
 
 void Function::set_has_finally(bool value) const {
-  raw()->SetHasFinally(value);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = HasFinallyBit::update(value, bits);
 }
 
 
 void Function::set_is_native(bool value) const {
-  raw()->SetIsNative(value);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = NativeBit::update(value, bits);
 }
 
 
 void Function::set_is_abstract(bool value) const {
-  raw()->SetIsAbstract(value);
+  uword bits = raw_ptr()->kind_tag_;
+  raw_ptr()->kind_tag_ = AbstractBit::update(value, bits);
 }
 
 
