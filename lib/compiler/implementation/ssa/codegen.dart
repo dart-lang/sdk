@@ -11,37 +11,18 @@ class SsaCodeGeneratorTask extends CompilerTask {
   NativeEmitter get nativeEmitter() => backend.emitter.nativeEmitter;
 
 
-  CodeBuffer buildJavaScriptFunction(FunctionElement element,
-                                     String parameters,
-                                     CodeBuffer body) {
-    String extraSpace = "";
-    // Members are emitted inside a JavaScript object literal. To line up the
-    // indentation we want the closing curly brace to be indented by one space.
-    // Example:
-    // defineClass("A", "B", ... , {
-    //  foo$1: function(..) {
-    //  },  /* <========== indent by 1. */
-    //  bar$2: function(..) {
-    //  },  /* <========== indent by 1. */
-    //
-    // For static functions this is not necessary:
-    // $.staticFun = function() {
-    //   ...
-    // };
-    if (element.isInstanceMember() ||
-        element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
-      extraSpace = " ";
-    }
-
+  js.Fun buildJavaScriptFunction(FunctionElement element,
+                                 List<js.Parameter> parameters,
+                                 js.Block body) {
     FunctionExpression expression = element.cachedNode;
-    CodeBuffer buffer = new CodeBuffer();
-    buffer.setSourceLocation(element, expression.getBeginToken());
-    buffer.add('function($parameters) {\n');
-    buffer.add(body);
-    buffer.add(extraSpace);
-    buffer.setSourceLocation(element, expression.getEndToken());
-    buffer.add('}');
-    return buffer;
+    js.Fun result = new js.Fun(parameters, body);
+    result.sourcePosition = expression.getBeginToken();
+    result.endSourcePosition = expression.getEndToken();
+    return result;
+  }
+
+  CodeBuffer prettyPrint(js.Node node, Element positionElement) {
+    return js.prettyPrint(node, compiler, positionElement);
   }
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
@@ -51,13 +32,17 @@ class SsaCodeGeneratorTask extends CompilerTask {
       parameterNames.forEach((element, name) {
         compiler.enqueuer.codegen.addToWorkList(element);
       });
-      String parameters = Strings.join(parameterNames.getValues(), ', ');
+      List<js.Parameter> parameters = <js.Parameter>[];
+      parameterNames.forEach((element, name) {
+        parameters.add(new js.Parameter(name));
+      });
+      String parametersString = Strings.join(parameterNames.getValues(), ", ");
       SsaOptimizedCodeGenerator codegen = new SsaOptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
       FunctionElement element = work.element;
-      CodeBuffer code;
+      js.Block body;
       ClassElement enclosingClass = element.getEnclosingClass();
       if (element.isInstanceMember()
           && enclosingClass.isNative()
@@ -68,14 +53,16 @@ class SsaCodeGeneratorTask extends CompilerTask {
         // and needs to know if the method is overridden.
         nativeEmitter.overriddenMethods.add(element);
         StringBuffer buffer = new StringBuffer();
+        String codeString = prettyPrint(codegen.body, work.element).toString();
         native.generateMethodWithPrototypeCheckForElement(
-            compiler, buffer, element, '${codegen.buffer}', parameters);
-        code = new CodeBuffer();
-        code.add(buffer);
+            compiler, buffer, element, codeString, parametersString);
+        js.Node nativeCode = new js.LiteralStatement(buffer.toString());
+        body = new js.Block(<js.Statement>[nativeCode]);
       } else {
-        code = codegen.buffer;
+        body = codegen.body;
       }
-      return buildJavaScriptFunction(element, parameters, code);
+      js.Fun fun = buildJavaScriptFunction(element, parameters, body);
+      return prettyPrint(fun, work.element);
     });
   }
 
@@ -84,16 +71,20 @@ class SsaCodeGeneratorTask extends CompilerTask {
       compiler.tracer.traceGraph("codegen-bailout", graph);
 
       Map<Element, String> parameterNames = getParameterNames(work);
-      String parameters = Strings.join(parameterNames.getValues(), ', ');
+      List<js.Parameter> parameters = <js.Parameter>[];
+      parameterNames.forEach((element, name) {
+        parameters.add(new js.Parameter(name));
+      });
       SsaUnoptimizedCodeGenerator codegen = new SsaUnoptimizedCodeGenerator(
           backend, work, parameters, parameterNames);
       codegen.visitGraph(graph);
 
-      CodeBuffer code = new CodeBuffer();
-      code.add(codegen.setup);
-      code.add(codegen.buffer);
-      return buildJavaScriptFunction(
-          work.element, codegen.newParameters.toString(), code);
+      js.Block body = new js.Block(<js.Statement>[]);
+      body.statements.add(codegen.setup);
+      body.statements.add(codegen.body);
+      js.Fun fun =
+          buildJavaScriptFunction(work.element, codegen.newParameters, body);
+      return prettyPrint(fun, work.element);
     });
   }
 
@@ -117,27 +108,6 @@ typedef void ElementAction(Element element);
 
 class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   /**
-   * Current state for generating simple (non-local-control) code.
-   * It is generated as either statements (indented and ';'-terminated),
-   * expressions (comma separated) or declarations (also comma separated,
-   * but expected to be preceeded by a 'var' so it declares its variables);
-   */
-  static final int STATE_STATEMENT = 0;
-  static final int STATE_FIRST_EXPRESSION = 1;
-  static final int STATE_FIRST_DECLARATION = 2;
-  static final int STATE_EXPRESSION = 3;
-  static final int STATE_DECLARATION = 4;
-
-  /**
-   * When analyzing a [HStatementGraph] we try to recognize if it has
-   * the following properties.
-   */
-  static final int ONE_STATEMENT = 0;
-  static final int ONE_EXPRESSION = 1;
-  static final int EMPTY = 2;
-  static final int MULTIPLE_STATEMENTS = 3;
-
-  /**
    * Returned by [expressionType] to tell how code can be generated for
    * a subgraph.
    * - [TYPE_STATEMENT] means that the graph must be generated as a statement,
@@ -153,16 +123,25 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   static final int TYPE_EXPRESSION = 1;
   static final int TYPE_DECLARATION = 2;
 
+  /**
+   * Whether we are currently generating expressions instead of statements.
+   * This includes declarations, which are generated as expressions.
+   */
+  bool isGeneratingExpression = false;
+
   final JavaScriptBackend backend;
   final WorkItem work;
-  final CodeBuffer buffer;
-  final String parameters;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
   final Map<Element, ElementAction> breakAction;
   final Map<Element, ElementAction> continueAction;
   final Map<Element, String> parameterNames;
+
+  js.Block currentContainer;
+  js.Block get body() => currentContainer;
+  List<js.Expression> expressionStack;
+  List<js.Block> oldContainerStack;
 
   /**
    * Contains the names of the instructions, as well as the parallel
@@ -184,14 +163,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   Element equalsNullElement;
   Element boolifiedEqualsNullElement;
   int indent = 0;
-  int expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
-  JSBinaryOperatorPrecedence unsignedShiftPrecedences;
   HGraph currentGraph;
-  /**
-   * Whether the code-generation should try to generate an expression
-   * instead of a sequence of statements.
-   */
-  int generationState = STATE_STATEMENT;
   HBasicBlock currentBlock;
 
   // Records a block-information that is being handled specially.
@@ -222,13 +194,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool hasNonBitOpUser(HInstruction instruction, Set<HPhi> phiSet) {
-    for (HInstruction use in instruction.usedBy) {
-      if (use is HPhi) {
-        if (!phiSet.contains(use)) {
-          phiSet.add(use);
-          if (hasNonBitOpUser(use, phiSet)) return true;
+    for (HInstruction user in instruction.usedBy) {
+      if (user is HPhi) {
+        if (!phiSet.contains(user)) {
+          phiSet.add(user);
+          if (hasNonBitOpUser(user, phiSet)) return true;
         }
-      } else if (use is! HBitNot && use is! HBinaryBitOp) {
+      } else if (user is! HBitNot && user is! HBinaryBitOp) {
         return true;
       }
     }
@@ -249,19 +221,71 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
 
+  /**
+   * If the [instruction] is not `null` it will be used to attach the position
+   * to the [statement].
+   */
+  void pushStatement(js.Statement statement, [HInstruction instruction]) {
+    assert(expressionStack.isEmpty());
+    if (instruction != null) {
+      attachLocation(statement, instruction);
+    }
+    currentContainer.statements.add(statement);
+  }
+
+  /**
+   * If the [instruction] is not `null` it will be used to attach the position
+   * to the [expression].
+   */
+  pushExpressionAsStatement(js.Expression expression,
+                            [HInstruction instruction]) {
+    pushStatement(new js.ExpressionStatement(expression), instruction);
+  }
+
+  /**
+   * If the [instruction] is not `null` it will be used to attach the position
+   * to the [expression].
+   */
+  push(js.Expression expression, [HInstruction instruction]) {
+    if (instruction != null) {
+      attachLocation(expression, instruction);
+    }
+    expressionStack.add(expression);
+  }
+
+  js.Expression pop() {
+    return expressionStack.removeLast();
+  }
+
+  attachLocationToLast(HInstruction instruction) {
+    attachLocation(expressionStack.last(), instruction);
+  }
+
+  js.Node attachLocation(js.Node jsNode, HInstruction instruction) {
+    if (instruction.sourcePosition !== null) {
+      jsNode.sourcePosition = instruction.sourcePosition;
+    }
+    return jsNode;
+  }
+
+  js.Node attachLocationRange(js.Node jsNode, Node node) {
+    jsNode.sourcePosition = node.getBeginToken();
+    jsNode.endSourcePosition = node.getEndToken();
+    return jsNode;
+  }
+
   SsaCodeGenerator(this.backend,
                    this.work,
-                   this.parameters,
                    this.parameterNames)
     : declaredVariables = new Set<String>(),
       delayedVariableDeclarations = new Set<String>(),
-      buffer = new CodeBuffer(),
+      currentContainer = new js.Block.empty(),
+      expressionStack = <js.Expression>[],
+      oldContainerStack = <js.Block>[],
       generateAtUseSite = new Set<HInstruction>(),
       controlFlowOperators = new Set<HInstruction>(),
       breakAction = new Map<Element, ElementAction>(),
-      continueAction = new Map<Element, ElementAction>(),
-      unsignedShiftPrecedences = JSPrecedence.binary['>>>'] {
-  }
+      continueAction = new Map<Element, ElementAction>();
 
   abstract visitTypeGuard(HTypeGuard node);
   abstract visitBailoutTarget(HBailoutTarget node);
@@ -276,27 +300,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   abstract preLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
   abstract startLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
   abstract endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
-
-  void beginExpression(int precedence) {
-    if (precedence < expectedPrecedence) {
-      buffer.add('(');
-    }
-  }
-
-  void endExpression(int precedence) {
-    if (precedence < expectedPrecedence) {
-      buffer.add(')');
-    }
-  }
-
-  void withPrecedence(int precedence, void action()) {
-    int oldPrecedence = expectedPrecedence;
-    beginExpression(precedence);
-    expectedPrecedence = precedence;
-    action();
-    expectedPrecedence = oldPrecedence;
-    endExpression(precedence);
-  }
 
   void preGenerateMethod(HGraph graph) {
     new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
@@ -323,10 +326,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HBasicBlock start = beginGraph(graph);
     visitBasicBlock(start);
     if (!delayedVariableDeclarations.isEmpty()) {
-      addIndented("var ");
-      buffer.add(Strings.join(
-          new List<String>.from(delayedVariableDeclarations), ', '));
-      buffer.add(";\n");
+      List<js.VariableInitialization> declarations =
+          <js.VariableInitialization>[];
+      delayedVariableDeclarations.forEach((String name) {
+        declarations.add(new js.VariableInitialization(
+            new js.VariableDeclaration(name), null));
+      });
+      pushExpressionAsStatement(new js.VariableDeclarationList(declarations));
     }
     endGraph(graph);
   }
@@ -423,267 +429,213 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
    * the condition.
    */
   void generateStatements(HBlockInformation block) {
-    int oldState = generationState;
-    generationState = STATE_STATEMENT;
     if (block is HStatementInformation) {
       block.accept(this);
     } else {
       HSubExpressionBlockInformation expression = block;
       visitSubGraph(expression.subExpression);
     }
-    generationState = oldState;
+  }
+
+  js.Block generateStatementsInNewBlock(HBlockInformation block) {
+    js.Block result = new js.Block.empty();
+    js.Block oldContainer = currentContainer;
+    currentContainer = result;
+    generateStatements(block);
+    currentContainer = oldContainer;
+    return result;
+  }
+
+  /**
+   * If the [block] only contains one statement returns that statement. If the
+   * that statement itself is a block, recursively calls this method.
+   *
+   * If the block is empty, returns a new instance of [js.NOP].
+   */
+  js.Statement unwrapStatement(js.Block block) {
+    int len = block.statements.length;
+    if (len == 0) return new js.EmptyStatement();
+    if (len == 1) {
+      js.Statement result = block.statements[0];
+      if (result is Block) return unwrapStatement(result);
+      return result;
+    }
+    return block;
   }
 
   /**
    * Generate expressions from block information.
    */
-  void generateExpression(HExpressionInformation expression) {
+  js.Expression generateExpression(HExpressionInformation expression) {
     // Currently we only handle sub-expression graphs.
     assert(expression is HSubExpressionBlockInformation);
-    // [visitSubGraph] will reset the [expectedPrecedence]. Make sure we don't
-    // need parenthesis. I.e., this only expects to be called for top-level
-    // expressions, not sub-expressions.
-    assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE
-        || expectedPrecedence == JSPrecedence.EXPRESSION_PRECEDENCE);
 
+    bool oldIsGeneratingExpression = isGeneratingExpression;
+    isGeneratingExpression = true;
+    List<js.Expression> oldExpressionStack = expressionStack;
+    List<js.Expression> sequenceElements = <js.Expression>[];
+    expressionStack = sequenceElements;
     HSubExpressionBlockInformation expressionSubGraph = expression;
-
-    int oldState = generationState;
-    generationState = STATE_FIRST_EXPRESSION;
     visitSubGraph(expressionSubGraph.subExpression);
-    generationState = oldState;
-  }
-
-  void generateDeclaration(HExpressionInformation expression) {
-    // Currently we only handle sub-expression graphs.
-    assert(expression is HSubExpressionBlockInformation);
-    HSubExpressionBlockInformation expressionSubGraph = expression;
-
-    int oldState = generationState;
-    generationState = STATE_FIRST_DECLARATION;
-    visitSubGraph(expressionSubGraph.subExpression);
-    generationState = oldState;
-  }
-
-  void generateCondition(HBlockInformation condition) {
-    generateExpression(condition);
+    expressionStack = oldExpressionStack;
+    isGeneratingExpression = oldIsGeneratingExpression;
+    if (sequenceElements.isEmpty()) {
+      // Happens when the initializer, condition or update of a loop is empty.
+      return null;
+    } else if (sequenceElements.length == 1) {
+      return sequenceElements[0];
+    } else {
+      return new js.Sequence(sequenceElements);
+    }
   }
 
   /**
     * Only visits the arguments starting at inputs[HInvoke.ARGUMENTS_OFFSET].
     */
-  void visitArguments(List<HInstruction> inputs) {
+  List<js.Expression> visitArguments(List<HInstruction> inputs) {
     assert(inputs.length >= HInvoke.ARGUMENTS_OFFSET);
-    buffer.add('(');
+    List<js.Expression> result = <js.Expression>[];
     for (int i = HInvoke.ARGUMENTS_OFFSET; i < inputs.length; i++) {
-      if (i != HInvoke.ARGUMENTS_OFFSET) buffer.add(', ');
-      use(inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(inputs[i]);
+      result.add(pop());
     }
-    buffer.add(')');
-  }
-
-  /**
-   * Whether we are currently generating expressions instead of statements.
-   * This includes declarations, which are generated as expressions.
-   */
-  bool isGeneratingExpression() {
-    return generationState != STATE_STATEMENT;
-  }
-
-  /**
-   * Whether we are generating a declaration.
-   */
-  bool isGeneratingDeclaration() {
-    return (generationState == STATE_DECLARATION ||
-            generationState == STATE_FIRST_DECLARATION);
-  }
-
-  /**
-   * Called before writing an expression.
-   * Ensures that expressions are comma spearated.
-   */
-  void addExpressionSeparator() {
-    if (generationState == STATE_FIRST_EXPRESSION) {
-      generationState = STATE_EXPRESSION;
-    } else if (generationState != STATE_FIRST_DECLARATION) {
-      buffer.add(", ");
-    }
-    // If the state is [STATE_FIRST_DECLARATION] the potential
-    // declaration of the variable will be done by the instruction.
+    return result;
   }
 
   bool isVariableDeclared(String variableName) {
     return declaredVariables.contains(variableName);
   }
 
-  void declareVariable(String variableName) {
-    if (isGeneratingExpression()) {
-      if (generationState == STATE_FIRST_DECLARATION) {
-        if (!isVariableDeclared(variableName)) {
-          declaredVariables.add(variableName);
-          buffer.add("var ");
-          generationState = STATE_DECLARATION;
-        } else {
-          generationState = STATE_EXPRESSION;
+  js.Expression generateExpressionAssignment(String variableName,
+                                             js.Expression value) {
+    if (value is js.Binary) {
+      js.Binary binary = value;
+      String op = binary.op;
+      if (op == '+' || op == '-' || op == '/' || op == '*' || op == '%' ||
+          op == '^' || op == '&' || op == '|') {
+        if (binary.left is js.VariableUse &&
+            (binary.left as js.VariableUse).name == variableName) {
+          // We know now, that we can shorten x = x + y into x += y.
+          // Also check for the shortcut where y equals 1: x++ and x--.
+          if ((op == '+' || op == '-') &&
+              binary.right is js.LiteralNumber &&
+              (binary.right as js.LiteralNumber).value == "1") {
+            return new js.Prefix(op == '+' ? '++' : '--', binary.left);
+          }
+          return new js.Assignment.compound(binary.left, op, binary.right);
         }
+      }
+    }
+    return new js.Assignment(new js.VariableUse(variableName), value);
+  }
 
-      } else if (!isVariableDeclared(variableName)) {
-        if (!isGeneratingDeclaration()) {
-          delayedVariableDeclarations.add(variableName);
-        }
-        // No matter if we are declaring the variable now or if we are
-        // delaying the declaration we can treat the variable as
-        // being declared from this point on.
+  void assignVariable(String variableName, js.Expression value) {
+    if (isGeneratingExpression) {
+      if (!isVariableDeclared(variableName)) {
+        delayedVariableDeclarations.add(variableName);
+        // We can treat the variable as being declared from this point on.
         declaredVariables.add(variableName);
       }
-    } else if (!isVariableDeclared(variableName)) {
+      push(generateExpressionAssignment(variableName, value));
+    } else if (!isVariableDeclared(variableName) ||
+               delayedVariableDeclarations.contains(variableName)) {
       declaredVariables.add(variableName);
-      buffer.add("var ");
+      delayedVariableDeclarations.remove(variableName);
+      js.VariableDeclaration decl = new js.VariableDeclaration(variableName);
+      js.VariableInitialization initialization =
+          new js.VariableInitialization(decl, value);
+
+      pushExpressionAsStatement(new js.VariableDeclarationList(
+          <js.VariableInitialization>[initialization]));
+    } else {
+      pushExpressionAsStatement(
+          generateExpressionAssignment(variableName, value));
     }
-    buffer.add(variableName);
-  }
-
-  void declareInstruction(HInstruction instruction) {
-    declareVariable(variableNames.getName(instruction));
-  }
-
-  // For simple updates of the form 'i = i op constant' generate
-  // 'i op= constant' instead.
-  bool handleSimpleUpdateDefinition(HInstruction instruction, String name) {
-    // If the variable is not declared the short update syntax cannot
-    // be used since it is a declaration and not an update.
-    if (!isVariableDeclared(name)) return false;
-
-    // Check that the operation is one of +, *, - or /. Record whether
-    // or not the operation is commutative.
-    var isCommutative = false;
-    if (instruction is HAdd || instruction is HMultiply) {
-      isCommutative = true;
-    } else if (instruction is !HSubtract && instruction is !HDivide) {
-      return false;
-    }
-
-    // Is it a builtin operation involving +, -, /, or *?
-    HBinaryArithmetic binaryInstruction = instruction;
-    assert(binaryInstruction.inputs.length == 3);
-    if (binaryInstruction.builtin) {
-      var left = binaryInstruction.left;
-      var right = binaryInstruction.right;
-      if (isCommutative && variableNames.getName(right) == name) {
-        var tmp = right;
-        right = left;
-        left = tmp;
-      }
-
-      // Check that left has the same name as the definition and emit
-      // the short update definition if it is.
-      if (variableNames.getName(left) == name) {
-        // Check if the right operand is constant one.
-        bool rightIsOne = false;
-        if (right.isConstantNumber()) {
-          HConstant rightConstant = right;
-          NumConstant numConstant = rightConstant.constant;
-          rightIsOne = (numConstant.value == 1);
-        }
-        if (binaryInstruction is HAdd && rightIsOne) {
-          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-          buffer.add('++');
-          declareVariable(name);
-          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
-        } else if (binaryInstruction is HSubtract && rightIsOne) {
-          beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-          buffer.add('--');
-          declareVariable(name);
-          endExpression(JSPrecedence.PREFIX_PRECEDENCE);
-        } else {
-          var operation = binaryInstruction.operation.name;
-          beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-          declareVariable(name);
-          buffer.add(' ${operation}= ');
-          use(right, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-          endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-        }
-        return true;
-      }
-    }
-    return false;
-  }
-
-  // For simple type checks like i = intTypeCheck(i), we don't have to
-  // emit an assignment, because the intTypeCheck just returns its
-  // argument.
-  bool handleTypeConversion(instruction, name) {
-    if (instruction is !HTypeConversion) return false;
-    String inputName = variableNames.getName(instruction.checkedInput);
-    if (name != inputName) return false;
-    visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
-    return true;
   }
 
   void define(HInstruction instruction) {
-    if (isGeneratingExpression()) {
-      addExpressionSeparator();
-    } else {
-      assert(expectedPrecedence == JSPrecedence.STATEMENT_PRECEDENCE);
-      addIndentation();
-    }
-    if (!instruction.isControlFlow() && variableNames.hasName(instruction)) {
-      var name = variableNames.getName(instruction);
-      if (!handleSimpleUpdateDefinition(instruction, name)
-          && !handleTypeConversion(instruction, name)) {
-        withPrecedence(JSPrecedence.ASSIGNMENT_PRECEDENCE, () {
-          declareInstruction(instruction);
-          buffer.add(" = ");
-          visit(instruction, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-        });
+    // For simple type checks like i = intTypeCheck(i), we don't have to
+    // emit an assignment, because the intTypeCheck just returns its
+    // argument.
+    bool needsAssignment = true;
+    if (instruction is HTypeConversion) {
+      String inputName = variableNames.getName(instruction.checkedInput);
+      if (variableNames.getName(instruction) == inputName) {
+        needsAssignment = false;
       }
-    } else {
-      visit(instruction, expectedPrecedence);
     }
-    if (!isGeneratingExpression()) buffer.add(';\n');
+
+    if (needsAssignment &&
+        !instruction.isControlFlow() && variableNames.hasName(instruction)) {
+      visitExpression(instruction);
+      assignVariable(variableNames.getName(instruction), pop());
+      return;
+    }
+
+    if (isGeneratingExpression) {
+      visitExpression(instruction);
+    } else {
+      visitStatement(instruction);
+    }
   }
 
-  void use(HInstruction argument, int expectedPrecedenceForArgument) {
+  void use(HInstruction argument) {
     if (isGenerateAtUseSite(argument)) {
-      visit(argument, expectedPrecedenceForArgument);
+      visitExpression(argument);
     } else if (argument is HCheck && argument.isControlFlow()) {
       // A [HCheck] that has control flow can never be used as an
       // expression and may not have a name. Therefore we just use the
       // checked instruction.
       HCheck check = argument;
-      use(check.checkedInput, expectedPrecedenceForArgument);
+      use(check.checkedInput);
     } else {
-      buffer.add(variableNames.getName(argument));
+      push(new js.VariableUse(variableNames.getName(argument)), argument);
     }
   }
 
-  visit(HInstruction node, int expectedPrecedenceForNode) {
-    int oldPrecedence = this.expectedPrecedence;
-    this.expectedPrecedence = expectedPrecedenceForNode;
-    if (node.sourcePosition !== null) {
-      buffer.setSourceLocation(work.element, node.sourcePosition);
-    }
+  visit(HInstruction node) {
     node.accept(this);
-    this.expectedPrecedence = oldPrecedence;
+  }
+
+  visitExpression(HInstruction node) {
+    bool oldIsGeneratingExpression = isGeneratingExpression;
+    isGeneratingExpression = true;
+    visit(node);
+    isGeneratingExpression = oldIsGeneratingExpression;
+  }
+
+  visitStatement(HInstruction node) {
+    assert(!isGeneratingExpression);
+    visit(node);
+    if (!expressionStack.isEmpty()) {
+      assert(expressionStack.length == 1);
+      pushExpressionAsStatement(pop());
+    }
   }
 
   void continueAsBreak(LabelElement target) {
-    addIndented("break ");
-    writeContinueLabel(target);
-    buffer.add(";\n");
+    pushStatement(new js.Break(compiler.namer.continueLabelName(target)));
   }
 
   void implicitContinueAsBreak(TargetElement target) {
-    addIndented("break ");
-    writeImplicitContinueLabel(target);
-    buffer.add(";\n");
+    pushStatement(new js.Break(
+        compiler.namer.implicitContinueLabelName(target)));
   }
 
   void implicitBreakWithLabel(TargetElement target) {
-    addIndented("break ");
-    writeImplicitLabel(target);
-    buffer.add(";\n");
+    pushStatement(new js.Break(compiler.namer.implicitBreakLabelName(target)));
   }
+
+  js.Statement wrapIntoLabels(js.Statement result, List<LabelElement> labels) {
+    for (LabelElement label in labels) {
+      if (label.isTarget) {
+        String breakLabelString = compiler.namer.breakLabelName(label);
+        result = new js.LabeledStatement(breakLabelString, result);
+      }
+    }
+    return result;
+  }
+
 
   // The regular [visitIf] method implements the needed logic.
   bool visitIfInfo(HIfBlockInformation info) => false;
@@ -693,37 +645,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (!isExpression) {
       generateStatements(info.expression);
     }
-    addIndentation();
-    for (LabelElement label in info.labels) {
-      if (label.isTarget) {
-        writeLabel(label);
-        buffer.add(":");
-      }
-    }
-    buffer.add("switch (");
+
     if (isExpression) {
-      generateExpression(info.expression);
+      push(generateExpression(info.expression));
     } else {
-      use(info.expression.conditionExpression,
-          JSPrecedence.EXPRESSION_PRECEDENCE);
+      use(info.expression.conditionExpression);
     }
-    buffer.add(") {\n");
-    indent++;
+    js.Expression key = pop();
+    List<js.SwitchClause> cases = <js.SwitchClause>[];
+
+    js.Block oldContainer = currentContainer;
     for (int i = 0; i < info.matchExpressions.length; i++) {
       for (Constant constant in info.matchExpressions[i]) {
-        addIndented("case ");
         generateConstant(constant);
-        buffer.add(":\n");
+        currentContainer = new js.Block.empty();
+        cases.add(new js.Case(pop(), currentContainer));
       }
       if (i == info.matchExpressions.length - 1 && info.hasDefault) {
-        addIndented("default:\n");
+        currentContainer = new js.Block.empty();
+        cases.add(new js.Default(currentContainer));
       }
-      indent++;
       generateStatements(info.statements[i]);
-      indent--;
     }
-    indent--;
-    addIndented("}\n");
+    currentContainer = oldContainer;
+
+    js.Statement result = new js.Switch(key, cases);
+    pushStatement(wrapIntoLabels(result, info.labels));
     return true;
   }
 
@@ -745,31 +692,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   bool visitTryInfo(HTryBlockInformation info) {
-    addIndented("try {\n");
-    indent++;
-    generateStatements(info.body);
-    indent--;
-    addIndented("}");
+    js.Block body = generateStatementsInNewBlock(info.body);
+    js.Catch catchPart = null;
+    js.Block finallyPart = null;
     if (info.catchBlock !== null) {
-      // Printing the catch part.
       HParameterValue exception = info.catchVariable;
       String name = variableNames.getName(exception);
       parameterNames[exception.sourceElement] = name;
-      buffer.add(' catch ($name) {\n');
-      indent++;
-      generateStatements(info.catchBlock);
-      parameterNames.remove(exception.sourceElement);
-      indent--;
-      addIndented('}');
+      js.VariableDeclaration decl = new js.VariableDeclaration(name);
+      js.Block catchBlock = generateStatementsInNewBlock(info.catchBlock);
+      catchPart = new js.Catch(decl, catchBlock);
     }
     if (info.finallyBlock != null) {
-      buffer.add(" finally {\n");
-      indent++;
-      generateStatements(info.finallyBlock);
-      indent--;
-      addIndented("}");
+      finallyPart = generateStatementsInNewBlock(info.finallyBlock);
     }
-    buffer.add("\n");
+    pushStatement(new js.Try(body, catchPart, finallyPart));
     return true;
   }
 
@@ -787,7 +724,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   bool visitLoopInfo(HLoopBlockInformation info) {
     HExpressionInformation condition = info.condition;
     bool isConditionExpression = isJSCondition(condition);
-    buffer.setSourceLocation(work.element, info.sourcePosition.getBeginToken());
+
+    js.Loop loop;
 
     switch (info.kind) {
       // Treate all three "test-first" loops the same way.
@@ -803,55 +741,86 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             initialization = null;
           }
         }
-        for (LabelElement label in info.labels) {
-          if (label.isTarget) {
-            writeLabel(label);
-            buffer.add(":");
-          }
-        }
         if (isConditionExpression &&
             info.updates !== null && isJSExpression(info.updates)) {
           // If we have an updates graph, and it's expressible as an
           // expression, generate a for-loop.
-          addIndented("for (");
+          js.Expression jsInitialization = null;
           if (initialization !== null) {
-            if (initializationType != TYPE_DECLARATION) {
-              generateExpression(initialization);
-            } else {
-              generateDeclaration(initialization);
+            int delayedVariablesCount = delayedVariableDeclarations.length;
+            jsInitialization = generateExpression(initialization);
+            if (delayedVariablesCount < delayedVariableDeclarations.length) {
+              // We just added a new delayed variable-declaration. See if we
+              // can put in a 'var' in front of the initialization to make it
+              // go away.
+              List<js.Expression> expressions;
+              if (jsInitialization is js.Sequence) {
+                expressions = jsInitialization.expressions;
+              } else {
+                expressions = <js.Expression>[jsInitialization];
+              }
+              bool canTransformToVariableDeclaration = true;
+              for (js.Expression expression in expressions) {
+                bool expressionIsVariableAssignment = false;
+                if (expression is js.Assignment) {
+                  js.Assignment assignment = expression;
+                  if (assignment.leftHandSide is js.VariableUse &&
+                      assignment.compoundTarget == null) {
+                    expressionIsVariableAssignment = true;
+                  }
+                }
+                if (!expressionIsVariableAssignment) {
+                  canTransformToVariableDeclaration = false;
+                  break;
+                }
+              }
+              if (canTransformToVariableDeclaration) {
+                List<js.VariableInitialization> inits =
+                    <js.VariableInitialization>[];
+                for (js.Assignment assignment in expressions) {
+                  String id = (assignment.leftHandSide as js.VariableUse).name;
+                  js.Node declaration = new js.VariableDeclaration(id);
+                  inits.add(new js.VariableInitialization(declaration,
+                                                          assignment.value));
+                  delayedVariableDeclarations.remove(id);
+                }
+                jsInitialization = new js.VariableDeclarationList(inits);
+              }
             }
           }
-          buffer.add("; ");
-          generateCondition(condition);
-          buffer.add("; ");
-          generateExpression(info.updates);
-          buffer.add(") {\n");
-          indent++;
+          js.Expression jsCondition = generateExpression(condition);
+          js.Expression jsUpdates = generateExpression(info.updates);
           // The body might be labeled. Ignore this when recursing on the
           // subgraph.
           // TODO(lrn): Remove this extra labeling when handling all loops
           // using subgraphs.
+          js.Block oldContainer = currentContainer;
+          js.Statement body = new js.Block.empty();
+          currentContainer = body;
           visitBodyIgnoreLabels(info);
-
-          indent--;
+          currentContainer = oldContainer;
+          body = unwrapStatement(body);
+          loop = new js.For(jsInitialization, jsCondition, jsUpdates, body);
         } else {
           // We have either no update graph, or it's too complex to
           // put in an expression.
           if (initialization !== null) {
             generateStatements(initialization);
           }
-          addIndented("while (");
+          js.Expression jsCondition;
+          js.Block oldContainer = currentContainer;
+          js.Statement body = new js.Block.empty();
           if (isConditionExpression) {
-            generateCondition(condition);
-            buffer.add(") {\n");
-            indent++;
+            jsCondition = generateExpression(condition);
+            currentContainer = body;
           } else {
-            buffer.add("true) {\n");
-            indent++;
+            jsCondition = new js.LiteralBool(true);
+            currentContainer = body;
             generateStatements(condition);
-            addIndented("if (!");
-            use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
-            buffer.add(") break;\n");
+            use(condition.conditionExpression);
+            js.Expression ifTest = new js.Prefix("!", pop());
+            js.Break jsBreak = new js.Break(null);
+            pushStatement(new js.If.then(ifTest, jsBreak));
           }
           if (info.updates !== null) {
             wrapLoopBodyForContinue(info);
@@ -859,9 +828,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           } else {
             visitBodyIgnoreLabels(info);
           }
-          indent--;
+          currentContainer = oldContainer;
+          body = unwrapStatement(body);
+          loop = new js.While(jsCondition, body);
         }
-        addIndented("}\n");
         break;
       }
       case HLoopBlockInformation.DO_WHILE_LOOP: {
@@ -869,15 +839,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         if (info.initializer !== null) {
           generateStatements(info.initializer);
         }
-        addIndentation();
-        for (LabelElement label in info.labels) {
-          if (label.isTarget) {
-            writeLabel(label);
-            buffer.add(":");
-          }
-        }
-        buffer.add("do {\n");
-        indent++;
+        js.Block oldContainer = currentContainer;
+        js.Statement body = new js.Block.empty();
+        currentContainer = body;
         if (!isConditionExpression || info.updates !== null) {
           wrapLoopBodyForContinue(info);
         } else {
@@ -887,17 +851,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           generateStatements(info.updates);
         }
         if (isConditionExpression) {
-          indent--;
-          addIndented("} while (");
-          generateExpression(condition);
-          buffer.add(");\n");
+          push(generateExpression(condition));
         } else {
           generateStatements(condition);
-          indent--;
-          addIndented("} while (");
-          use(condition.conditionExpression, JSPrecedence.PREFIX_PRECEDENCE);
-          buffer.add(");\n");
+          use(condition.conditionExpression);
         }
+        js.Expression jsCondition = pop();
+        currentContainer = oldContainer;
+        body = unwrapStatement(body);
+        loop = new js.Do(body, jsCondition);
         break;
       }
       default:
@@ -905,14 +867,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
           'Unexpected loop kind: ${info.kind}',
           instruction: condition.conditionExpression);
     }
-    buffer.setSourceLocation(work.element, info.sourcePosition.getEndToken());
+    attachLocationRange(loop, info.sourcePosition);
+    pushStatement(wrapIntoLabels(loop, info.labels));
     return true;
   }
 
   bool visitLabeledBlockInfo(HLabeledBlockInformation labeledBlockInfo) {
     preLabeledBlock(labeledBlockInfo);
-    addIndentation();
     Link<Element> continueOverrides = const EmptyLink<Element>();
+
+    js.Block oldContainer = currentContainer;
+    js.Block body = new js.Block.empty();
+    js.Statement result = body;
+
+    currentContainer = body;
+
     // If [labeledBlockInfo.isContinue], the block is an artificial
     // block around the body of a loop with an update block, so that
     // continues of the loop can be written as breaks of the body
@@ -920,8 +889,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (labeledBlockInfo.isContinue) {
       for (LabelElement label in labeledBlockInfo.labels) {
         if (label.isContinueTarget) {
-          writeContinueLabel(label);
-          buffer.add(':');
+          String labelName = compiler.namer.continueLabelName(label);
+          result = new js.LabeledStatement(labelName, result);
           continueAction[label] = continueAsBreak;
           continueOverrides = continueOverrides.prepend(label);
         }
@@ -930,15 +899,15 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // TODO(lrn): Consider recording whether the target is in fact
       // a target of an unlabeled continue, and not generate this if it isn't.
       TargetElement target = labeledBlockInfo.target;
-      writeImplicitContinueLabel(target);
-      buffer.add(':');
+      String labelName = compiler.namer.implicitContinueLabelName(target);
+      result = new js.LabeledStatement(labelName, result);
       continueAction[target] = implicitContinueAsBreak;
       continueOverrides = continueOverrides.prepend(target);
     } else {
       for (LabelElement label in labeledBlockInfo.labels) {
         if (label.isBreakTarget) {
-          writeLabel(label);
-          buffer.add(':');
+          String labelName = compiler.namer.breakLabelName(label);
+          result = new js.LabeledStatement(labelName, result);
         }
       }
       TargetElement target = labeledBlockInfo.target;
@@ -946,20 +915,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         // This is an extra block around a switch that is generated
         // as a nested if/else chain. We add an extra break target
         // so that case code can break.
-        writeImplicitLabel(target);
-        buffer.add(':');
+        String labelName = compiler.namer.implicitBreakLabelName(target);
+        result = new js.LabeledStatement(labelName, result);
         breakAction[target] = implicitBreakWithLabel;
       }
     }
-    buffer.add('{\n');
-    indent++;
 
+    currentContainer = body;
     startLabeledBlock(labeledBlockInfo);
     generateStatements(labeledBlockInfo.body);
     endLabeledBlock(labeledBlockInfo);
-
-    indent--;
-    addIndented('}\n');
 
     if (labeledBlockInfo.isContinue) {
       while (!continueOverrides.isEmpty()) {
@@ -969,6 +934,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     } else {
       breakAction.remove(labeledBlockInfo.target);
     }
+
+    currentContainer = oldContainer;
+    pushStatement(result);
     return true;
   }
 
@@ -977,27 +945,29 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   void wrapLoopBodyForContinue(HLoopBlockInformation info) {
     TargetElement target = info.target;
     if (target !== null && target.isContinueTarget) {
-      addIndentation();
+      js.Block oldContainer = currentContainer;
+      js.Block body = new js.Block.empty();
+      currentContainer = body;
+      js.Statement result = body;
       for (LabelElement label in info.labels) {
         if (label.isContinueTarget) {
-          writeContinueLabel(label);
-          buffer.add(":");
+          String labelName = compiler.namer.continueLabelName(label);
+          result = new js.LabeledStatement(labelName, result);
           continueAction[label] = continueAsBreak;
         }
       }
-      writeImplicitContinueLabel(target);
-      buffer.add(":{\n");
+      String labelName = compiler.namer.implicitContinueLabelName(target);
+      result = new js.LabeledStatement(labelName, result);
       continueAction[info.target] = implicitContinueAsBreak;
-      indent++;
       visitBodyIgnoreLabels(info);
-      indent--;
-      addIndented("}\n");
       continueAction.remove(info.target);
       for (LabelElement label in info.labels) {
         if (label.isContinueTarget) {
           continueAction.remove(label);
         }
       }
+      currentContainer = oldContainer;
+      pushStatement(result);
     } else {
       // Loop body contains no continues, so we don't need a break target.
       generateStatements(info.body);
@@ -1047,16 +1017,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void emitAssignment(String destination, String source) {
-    if (isGeneratingExpression()) {
-      addExpressionSeparator();
-    } else {
-      addIndentation();
-    }
-    declareVariable(destination);
-    buffer.add(' = $source');
-    if (!isGeneratingExpression()) {
-      buffer.add(';\n');
-    }
+    assignVariable(destination, new js.VariableUse(source));
   }
 
   /**
@@ -1149,20 +1110,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     sequentializeCopies(handler.copies);
 
     for (Copy copy in handler.assignments) {
-      if (isGeneratingExpression()) {
-        addExpressionSeparator();
-      } else {
-        addIndentation();
-      }
       String name = variableNames.getName(copy.destination);
-      if (!handleSimpleUpdateDefinition(copy.source, name)) {
-        declareVariable(name);
-        buffer.add(' = ');
-        use(copy.source, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      }
-      if (!isGeneratingExpression()) {
-        buffer.add(';\n');
-      }
+      use(copy.source);
+      assignVariable(name, pop());
     }
   }
 
@@ -1170,28 +1120,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     HInstruction instruction = node.first;
     while (instruction !== node.last) {
       if (instruction is HTypeGuard || instruction is HBailoutTarget) {
-        visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+        visit(instruction);
       } else if (!isGenerateAtUseSite(instruction)) {
-        expectedPrecedence = JSPrecedence.STATEMENT_PRECEDENCE;
         define(instruction);
       }
       instruction = instruction.next;
     }
     assignPhisOfSuccessors(node);
-    if (instruction is HLoopBranch && isGeneratingExpression()) {
-      addExpressionSeparator();
-    }
-    visit(instruction, JSPrecedence.STATEMENT_PRECEDENCE);
+    visit(instruction);
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {
     if (node.builtin) {
-      JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary[op];
-      beginExpression(operatorPrecedences.precedence);
-      use(node.left, operatorPrecedences.left);
-      buffer.add(' $op ');
-      use(node.right, operatorPrecedences.right);
-      endExpression(operatorPrecedences.precedence);
+      use(node.left);
+      js.Expression jsLeft = pop();
+      use(node.right);
+      push(new js.Binary(op, jsLeft, pop()), node);
     } else {
       visitInvokeStatic(node);
     }
@@ -1200,25 +1144,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
+    visitInvokeBinary(node, op);
     if (node.builtin && requiresUintConversion(node)) {
-      beginExpression(unsignedShiftPrecedences.precedence);
-      int oldPrecedence = this.expectedPrecedence;
-      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
-      visitInvokeBinary(node, op);
-      buffer.add(' >>> 0');
-      this.expectedPrecedence = oldPrecedence;
-      endExpression(unsignedShiftPrecedences.precedence);
-    } else {
-      visitInvokeBinary(node, op);
+      push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
 
   visitInvokeUnary(HInvokeUnary node, String op) {
     if (node.builtin) {
-      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-      buffer.add('$op');
-      use(node.operand, JSPrecedence.PREFIX_PRECEDENCE);
-      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      use(node.operand);
+      push(new js.Prefix(op, pop()), node);
     } else {
       visitInvokeStatic(node);
     }
@@ -1227,49 +1162,32 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // We want the outcome of bit-operations to be positive. We use the unsigned
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
+    visitInvokeUnary(node, op);
     if (node.builtin && requiresUintConversion(node)) {
-      beginExpression(unsignedShiftPrecedences.precedence);
-      int oldPrecedence = this.expectedPrecedence;
-      this.expectedPrecedence = JSPrecedence.SHIFT_PRECEDENCE;
-      visitInvokeUnary(node, op);
-      buffer.add(' >>> 0');
-      this.expectedPrecedence = oldPrecedence;
-      endExpression(unsignedShiftPrecedences.precedence);
-    } else {
-      visitInvokeUnary(node, op);
+      push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
 
   void emitIdentityComparison(HInstruction left, HInstruction right) {
     String op = singleIdentityComparison(left, right);
     if (op != null) {
-      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' $op ');
-      use(right, JSPrecedence.RELATIONAL_PRECEDENCE);
-      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      use(left);
+      js.Expression jsLeft = pop();
+      use(right);
+      push(new js.Binary(op, jsLeft, pop()));
     } else {
       assert(NullConstant.JsNull == 'null');
-      withPrecedence(JSPrecedence.CONDITIONAL_PRECEDENCE, () {
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(' == null');
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(' ? ');
-        this.expectedPrecedence = JSPrecedence.ASSIGNMENT_PRECEDENCE;
-        withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
-          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' == null');
-          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(" : ");
-          beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-          use(left, JSPrecedence.EQUALITY_PRECEDENCE);
-          buffer.add(' === ');
-          use(right, JSPrecedence.EQUALITY_PRECEDENCE);
-          endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        });
-      });
+      use(left);
+      js.Binary leftEqualsNull =
+          new js.Binary("==", pop(), new js.LiteralNull());
+      use(right);
+      js.Binary rightEqualsNull =
+          new js.Binary("==", pop(), new js.LiteralNull());
+      use(right);
+      use(left);
+      js.Binary tripleEq = new js.Binary("===", pop(), pop());
+
+      push(new js.Conditional(leftEqualsNull, rightEqualsNull, tripleEq));
     }
   }
 
@@ -1310,11 +1228,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitGreaterEqual(HGreaterEqual node) => visitInvokeBinary(node, '>=');
 
   visitBoolify(HBoolify node) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
     assert(node.inputs.length == 1);
-    use(node.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(' === true');
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(node.inputs[0]);
+    push(new js.Binary('===', pop(), new js.LiteralBool(true)), node);
   }
 
   visitExit(HExit node) {
@@ -1342,25 +1258,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     visitBasicBlock(dominated[0]);
   }
 
-  // Used to write the name of labels.
-  void writeLabel(LabelElement label) {
-    buffer.add('\$${label.labelName}\$${label.target.nestingLevel}');
-  }
-
-  void writeImplicitLabel(TargetElement target) {
-    buffer.add('\$${target.nestingLevel}');
-  }
-
-  // We sometimes handle continue targets differently from break targets,
-  // so we have special continue-only labels.
-  void writeContinueLabel(LabelElement label) {
-    buffer.add('c\$${label.labelName}\$${label.target.nestingLevel}');
-  }
-
-  void writeImplicitContinueLabel(TargetElement target) {
-    buffer.add('c\$${target.nestingLevel}');
-  }
-
   /**
    * Checks if [map] contains an [ElementAction] for [element], and
    * if so calls that action and returns true.
@@ -1378,14 +1275,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(breakAction, label)) {
-        addIndented("break ");
-        writeLabel(label);
-        buffer.add(";\n");
+        pushStatement(new js.Break(compiler.namer.breakLabelName(label)), node);
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(breakAction, target)) {
-        addIndented("break;\n");
+        pushStatement(new js.Break(null), node);
       }
     }
   }
@@ -1395,14 +1290,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (node.label !== null) {
       LabelElement label = node.label;
       if (!tryCallAction(continueAction, label)) {
-        addIndented("continue ");
-        writeLabel(label);
-        buffer.add(";\n");
+        // TODO(floitsch): should this really be the breakLabelName?
+        pushStatement(new js.Continue(compiler.namer.breakLabelName(label)),
+                      node);
       }
     } else {
       TargetElement target = node.target;
       if (!tryCallAction(continueAction, target)) {
-        addIndented("continue;\n");
+        pushStatement(new js.Continue(null), node);
       }
     }
   }
@@ -1412,61 +1307,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // information in [visitTryInfo], or not at all, in the case of the bailout
     // generator.
     compiler.internalError('visitTry should not be called', instruction: node);
-  }
-
-  /**
-   * Analyzes the given [graph] to know whether it is empty, or
-   * contains one statement, one expression, or multiple statements.
-   */
-  int analyzeGraphForCodegen(HStatementInformation graph) {
-    HBasicBlock start = graph.start;
-    HBasicBlock end = graph.end;
-    // Only deal with single blocks for now. TODO(ngeoffray): analyze
-    // all blocks.
-    if (start !== end) return MULTIPLE_STATEMENTS;
-
-    int kind = EMPTY;
-    bool updateKind(int newKind) {
-      if (kind != EMPTY) return false;
-      kind = newKind;
-      return true;
-    }
-
-    for (HInstruction instruction = start.first;
-         instruction != start.last;
-         instruction = instruction.next) {
-      if (instruction.isStatement) {
-        if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
-      } else if (!isGenerateAtUseSite(instruction)) {
-        if (!updateKind(ONE_EXPRESSION)) return MULTIPLE_STATEMENTS;
-      }
-    }
-
-    HInstruction last = start.last;
-    if (last is !HGoto) {
-      if (!updateKind(last.isStatement ? ONE_STATEMENT : ONE_EXPRESSION)) {
-        return MULTIPLE_STATEMENTS;
-      }
-    }
-
-    CopyHandler handler = variableNames.getCopyHandler(start);
-    if (handler !== null && !handler.isEmpty()) {
-      if (handler.assignments.length > 1) return MULTIPLE_STATEMENTS;
-      if (handler.assignments.length == 1) {
-        if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
-      }
-      // If the block has a copy where the destination and source are
-      // different, we will emit that copy, and therefore the block is
-      // not empty.
-      for (Copy copy in handler.copies) {
-        String sourceName = variableNames.getName(copy.source);
-        String destinationName = variableNames.getName(copy.destination);
-        if (sourceName != destinationName) {
-          if (!updateKind(ONE_STATEMENT)) return MULTIPLE_STATEMENTS;
-        }
-      }
-    }
-    return kind;
   }
 
   bool tryControlFlowOperation(HIf node) {
@@ -1489,195 +1329,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateIf(HIf node, HIfBlockInformation info) {
+    use(node.inputs[0]);
+    js.Expression test = pop();
+
     HStatementInformation thenGraph = info.thenGraph;
     HStatementInformation elseGraph = info.elseGraph;
-    int thenKind = analyzeGraphForCodegen(thenGraph);
-    int elseKind = analyzeGraphForCodegen(elseGraph);
+    js.Statement thenPart =
+        unwrapStatement(generateStatementsInNewBlock(thenGraph));
+    js.Statement elsePart =
+        unwrapStatement(generateStatementsInNewBlock(elseGraph));
 
-    void visitWithoutIndent(HStatementInformation toVisit) {
-      int oldIndent = indent;
-      indent = 0;
-      generateStatements(toVisit);
-      indent = oldIndent;
-    }
-
-    void visitExpression(HStatementInformation toVisit) {
-      // [generateExpression] only works if the [expectedPrecedence] is a
-      // statement or an expression. We therefore have to duplicate some
-      // work here.
-      assert(toVisit.start == toVisit.end);
-      assert(toVisit.start.last is HGoto);
-      // Find the expression (there must only be one).
-      HInstruction expression = toVisit.start.first;
-      while (generateAtUseSite.contains(expression)) {
-        expression = expression.next;
-      }
-      assert(() {
-        HInstruction remaining = expression.next;
-        while (remaining is !HGoto) {
-          if (!generateAtUseSite.contains(remaining)) return false;
-          remaining = remaining.next;
-        }
-        return true;
-      });
-
-      int oldState = generationState;
-      generationState = STATE_FIRST_EXPRESSION;
-      define(expression);
-      generationState = oldState;
-    }
-
-    void visitWithIndent(HStatementInformation toVisit) {
-      buffer.add('{\n');
-      indent++;
-      generateStatements(toVisit);
-      indent--;
-      addIndented('}');
-    }
-
-    void emitIf() {
-      addIndented('if (');
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(') ');
-    }
-
-    JSBinaryOperatorPrecedence operatorPrecedence = JSPrecedence.binary['&&'];
-    void generateAnd(HStatementInformation toVisit, Function condition) {
-      addIndentation();
-      beginExpression(operatorPrecedence.precedence);
-      var oldPrecedence = expectedPrecedence;
-      expectedPrecedence = operatorPrecedence.left;
-      condition();
-      buffer.add(" && ");
-      expectedPrecedence = operatorPrecedence.right;
-      visitExpression(toVisit);
-      expectedPrecedence = oldPrecedence;
-      endExpression(operatorPrecedence.precedence);
-      buffer.add(";\n");
-    }
-
-    List<HBasicBlock> thenSuccessors = thenGraph.end.successors;
-    bool thenGraphHasSuccessor = thenSuccessors.length != 0
-        && thenSuccessors[0] !== currentGraph.exit;
-
-    switch (thenKind) {
-      case EMPTY:
-        switch (elseKind) {
-          case EMPTY:
-            if (isGenerateAtUseSite(node.inputs[0])) {
-              addIndentation();
-              use(node.inputs[0], JSPrecedence.STATEMENT_PRECEDENCE);
-              buffer.add(';\n');
-            }
-            break;
-
-          case ONE_EXPRESSION:
-            generateAnd(elseGraph, () { generateNot(node.inputs[0]); });
-            break;
-
-          case ONE_STATEMENT:
-            addIndented('if (');
-            generateNot(node.inputs[0]);
-            buffer.add(') ');
-            visitWithoutIndent(elseGraph);
-            break;
-
-          case MULTIPLE_STATEMENTS:
-            addIndented('if (');
-            generateNot(node.inputs[0]);
-            buffer.add(') ');
-            visitWithIndent(elseGraph);
-            buffer.add('\n');
-            break;
-        }
-
-        break;
-
-      case ONE_EXPRESSION:
-      case ONE_STATEMENT:
-        switch (elseKind) {
-          case EMPTY:
-            if (thenKind == ONE_EXPRESSION) {
-              int precedence = operatorPrecedence.left;
-              generateAnd(thenGraph, () { use(node.inputs[0], precedence); });
-            } else {
-              emitIf();
-              visitWithoutIndent(thenGraph);
-            }
-            break;
-
-          case ONE_EXPRESSION:
-          case ONE_STATEMENT:
-            // TODO(ngeoffray): Generate a conditional.
-            emitIf();
-            visitWithoutIndent(thenGraph);
-            if (thenGraphHasSuccessor) {
-              addIndented('else ');
-              visitWithoutIndent(elseGraph);
-            } else {
-              generateStatements(elseGraph);
-            }
-            break;
-
-          case MULTIPLE_STATEMENTS:
-            emitIf();
-            visitWithoutIndent(thenGraph);
-            if (thenGraphHasSuccessor) {
-              addIndented('else ');
-              visitWithIndent(elseGraph);
-              buffer.add('\n');
-            } else {
-              generateStatements(elseGraph);
-            }
-            break;
-        }
-        break;
-
-      case MULTIPLE_STATEMENTS:
-        emitIf();
-        visitWithIndent(thenGraph);
-
-        switch (elseKind) {
-          case EMPTY:
-            buffer.add('\n');
-            break;
-
-          case ONE_EXPRESSION:
-          case ONE_STATEMENT:
-            if (thenGraphHasSuccessor) {
-              buffer.add(' else ');
-              visitWithoutIndent(elseGraph);
-            } else {
-              buffer.add('\n');
-              generateStatements(elseGraph);
-            }
-            break;
-
-          case MULTIPLE_STATEMENTS:
-            if (thenGraphHasSuccessor) {
-              buffer.add(' else ');
-              visitWithIndent(elseGraph);
-              buffer.add('\n');
-            } else {
-              buffer.add('\n');
-              generateStatements(elseGraph);
-            }
-            break;
-        }
-        break;
-    }
+    pushStatement(new js.If(test, thenPart, elsePart), node);
   }
-
 
   visitIf(HIf node) {
     if (tryControlFlowOperation(node)) return;
-
-    if (subGraph !== null && node.block === subGraph.end) {
-      if (isGeneratingExpression()) {
-        use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
-      }
-      return;
-    }
 
     HInstruction condition = node.inputs[0];
     HIfBlockInformation info = node.blockInformation.body;
@@ -1711,25 +1377,30 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
   }
 
+  js.Call jsPropertyCall(js.Expression receiver,
+                         String fieldName,
+                         List<js.Expression> arguments) {
+    return new js.Call(new js.PropertyAccess.field(receiver, fieldName),
+                       arguments);
+  }
+
   visitInvokeDynamicMethod(HInvokeDynamicMethod node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
+    use(node.receiver);
+    js.Expression object = pop();
+    String methodName;
+    List<js.Expression> arguments;
+
     // Avoid adding the generative constructor name to the list of
     // seen selectors.
     if (node.inputs[0] is HForeignNew) {
-      HForeignNew foreignNew = node.inputs[0];
-      // Remove 'this' from the number of arguments.
-      int argumentCount = node.inputs.length - 1;
-
       // TODO(ahe): The constructor name was statically resolved in
       // SsaBuilder.buildFactory. Is there a cleaner way to do this?
-      node.name.printOn(buffer);
-      visitArguments(node.inputs);
+      methodName = node.name.slowToString();
+      arguments = visitArguments(node.inputs);
     } else {
-      buffer.add(compiler.namer.instanceMethodInvocationName(
-          currentLibrary, node.name, node.selector));
-      visitArguments(node.inputs);
+      methodName = compiler.namer.instanceMethodInvocationName(
+          currentLibrary, node.name, node.selector);
+      arguments = visitArguments(node.inputs);
       bool inLoop = node.block.enclosingLoopHeader !== null;
 
       // Register this invocation to collect the types used at all call sites.
@@ -1746,7 +1417,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         world.registerDynamicInvocation(node.name, selector);
       }
     }
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
+    push(jsPropertyCall(object, methodName, arguments), node);
   }
 
   Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
@@ -1761,94 +1432,87 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(compiler.namer.setterName(currentLibrary, node.name));
-    visitArguments(node.inputs);
+    use(node.receiver);
+    push(jsPropertyCall(pop(),
+                        compiler.namer.setterName(currentLibrary, node.name),
+                        visitArguments(node.inputs)),
+         node);
     world.registerDynamicSetter(
         node.name, getOptimizedSelectorFor(node, Selector.SETTER));
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(compiler.namer.getterName(currentLibrary, node.name));
-    visitArguments(node.inputs);
+    use(node.receiver);
+    push(jsPropertyCall(pop(),
+                        compiler.namer.getterName(currentLibrary, node.name),
+                        visitArguments(node.inputs)),
+         node);
     world.registerDynamicGetter(
         node.name, getOptimizedSelectorFor(node, Selector.GETTER));
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeClosure(HInvokeClosure node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(compiler.namer.closureInvocationName(node.selector));
-    visitArguments(node.inputs);
+    use(node.receiver);
+    push(jsPropertyCall(pop(),
+                        compiler.namer.closureInvocationName(node.selector),
+                        visitArguments(node.inputs)),
+         node);
     // TODO(floitsch): we should have a separate list for closure invocations.
     world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
                                     node.selector);
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    use(node.target, JSPrecedence.CALL_PRECEDENCE);
-    visitArguments(node.inputs);
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
+    use(node.target);
+    push(new js.Call(pop(), visitArguments(node.inputs)), node);
   }
 
   visitInvokeSuper(HInvokeSuper node) {
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
     Element superMethod = node.element;
     Element superClass = superMethod.getEnclosingClass();
     // Remove the element and 'this'.
     int argumentCount = node.inputs.length - 2;
     String className = compiler.namer.isolateAccess(superClass);
-    if (superMethod.kind == ElementKind.FUNCTION ||
-        superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
-      String methodName = compiler.namer.instanceMethodName(
-          currentLibrary, superMethod.name, argumentCount);
-      buffer.add('$className.prototype.$methodName.call');
-      visitArguments(node.inputs);
-    } else if (superMethod.kind == ElementKind.FIELD) {
+    if (superMethod.kind == ElementKind.FIELD) {
       ClassElement currentClass = work.element.getEnclosingClass();
+      String fieldName;
       if (currentClass.isShadowedByField(superMethod)) {
-        buffer.add('this.${compiler.namer.shadowedFieldName(superMethod)}');
+        fieldName = compiler.namer.shadowedFieldName(superMethod);
       } else {
         LibraryElement library = superMethod.getLibrary();
         SourceString name = superMethod.name;
-        buffer.add('this.${compiler.namer.instanceFieldName(library, name)}');
+        fieldName = compiler.namer.instanceFieldName(library, name);
       }
+      push(new js.PropertyAccess.field(new js.This(), fieldName), node);
     } else {
-      assert(superMethod.kind == ElementKind.GETTER ||
-             superMethod.kind == ElementKind.SETTER);
       String methodName;
-      if (superMethod.kind == ElementKind.GETTER) {
+      if (superMethod.kind == ElementKind.FUNCTION ||
+          superMethod.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
+        methodName = compiler.namer.instanceMethodName(
+            currentLibrary, superMethod.name, argumentCount);
+      } else if (superMethod.kind == ElementKind.GETTER) {
         methodName =
             compiler.namer.getterName(currentLibrary, superMethod.name);
       } else {
+        assert(superMethod.kind == ElementKind.SETTER);
         methodName =
             compiler.namer.setterName(currentLibrary, superMethod.name);
       }
-      buffer.add('$className.prototype.$methodName.call');
-      visitArguments(node.inputs);
+      js.VariableUse classReference = new js.VariableUse(className);
+      js.PropertyAccess prototype =
+          new js.PropertyAccess.field(classReference, "prototype");
+      js.PropertyAccess method =
+          new js.PropertyAccess.field(prototype, methodName);
+      push(jsPropertyCall(method, "call", visitArguments(node.inputs)), node);
     }
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
     world.registerStaticUse(superMethod);
   }
 
   visitFieldGet(HFieldGet node) {
     String name =
         compiler.namer.instanceFieldName(node.library, node.fieldName);
-    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(name);
-    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    use(node.receiver);
+    push(new js.PropertyAccess.field(pop(), name), node);
     if (node.element == null) {
       // If we don't have an element we register a dynamic field getter.
       // This might lead to unnecessary getters, but these cases should be
@@ -1886,10 +1550,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
     String name =
         compiler.namer.instanceFieldName(node.library, node.fieldName);
-    beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    use(node.receiver, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(name);
     if (node.element == null) {
       // If we don't have an element we register a dynamic field setter.
       // This might lead to unnecessary setters, but these cases should be
@@ -1918,36 +1578,39 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         }
       }
     }
-    buffer.add(' = ');
-    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    use(node.receiver);
+    js.Expression receiver = pop();
+    use(node.value);
+    push(new js.Assignment(new js.PropertyAccess.field(receiver, name), pop()),
+         node);
   }
 
   visitLocalGet(HLocalGet node) {
-    use(node.receiver, JSPrecedence.EXPRESSION_PRECEDENCE);
+    use(node.receiver);
   }
 
   visitLocalSet(HLocalSet node) {
-    declareInstruction(node.receiver);
-    buffer.add(' = ');
-    use(node.value, JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    use(node.value);
+    assignVariable(variableNames.getName(node.receiver), pop());
   }
 
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    List<String> parts = code.split('#');
-    if (parts.length != inputs.length + 1) {
-      compiler.internalError(
-          'Wrong number of arguments for JS', instruction: node);
+    if (node.isStatement) {
+      if (!inputs.isEmpty()) {
+        compiler.internalError("foreign statement with inputs: $code",
+                               instruction: node);
+      }
+      pushStatement(new js.LiteralStatement(code), node);
+    } else {
+      List<js.Expression> data = <js.Expression>[];
+      for (int i = 0; i < inputs.length; i++) {
+        use(inputs[i]);
+        data.add(pop());
+      }
+      push(new js.LiteralExpression.withData(code, data), node);
     }
-    beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
-    buffer.add(parts[0]);
-    for (int i = 0; i < inputs.length; i++) {
-      use(inputs[i], JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(parts[i + 1]);
-    }
-    endExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
   }
 
   visitForeignNew(HForeignNew node) {
@@ -1961,40 +1624,45 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         j++;
       });
     String jsClassReference = compiler.namer.isolateAccess(node.element);
-    beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('new $jsClassReference(');
-    // We can't use 'visitArguments', since our arguments start at input[0].
     List<HInstruction> inputs = node.inputs;
+    // We can't use 'visitArguments', since our arguments start at input[0].
+    List<js.Expression> arguments = <js.Expression>[];
     for (int i = 0; i < inputs.length; i++) {
-      if (i != 0) buffer.add(', ');
-      use(inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(inputs[i]);
+      arguments.add(pop());
     }
-    buffer.add(')');
-    endExpression(JSPrecedence.MEMBER_PRECEDENCE);
+    // TODO(floitsch): jsClassReference is an Access. We shouldn't treat it
+    // as if it was a string.
+    push(new js.New(new js.VariableUse(jsClassReference), arguments), node);
   }
 
   void generateConstant(Constant constant) {
-    // TODO(floitsch): the compile-time constant handler and the codegen
-    // need to work together to avoid the parenthesis. See r4928 for an
-    // implementation that still dealt with precedence.
     ConstantHandler handler = compiler.constantHandler;
     String name = handler.getNameForConstant(constant);
     if (name === null) {
       assert(!constant.isObject());
-      if (constant.isNum()
-          && expectedPrecedence == JSPrecedence.MEMBER_PRECEDENCE) {
-        buffer.add('(');
+      if (constant.isBool()) {
+        push(new js.LiteralBool((constant as BoolConstant).value));
+      } else if (constant.isNum()) {
+        // TODO(floitsch): get rid of the code buffer.
+        CodeBuffer buffer = new CodeBuffer();
         handler.writeConstant(buffer, constant);
-        buffer.add(')');
+        push(new js.LiteralNumber(buffer.toString()));
+      } else if (constant.isNull()) {
+        push(new js.LiteralNull());
+      } else if (constant.isString()) {
+        // TODO(floitsch): get rid of the code buffer.
+        CodeBuffer buffer = new CodeBuffer();
+        handler.writeConstant(buffer, constant);
+        push(new js.LiteralString(buffer.toString()));
       } else {
-        handler.writeConstant(buffer, constant);
+        compiler.internalError("Forgot constant $constant");
       }
     } else {
-      buffer.add(compiler.namer.CURRENT_ISOLATE);
-      buffer.add(".");
-      buffer.add(name);
+      js.VariableUse currentIsolateUse =
+          new js.VariableUse(compiler.namer.CURRENT_ISOLATE);
+      push(new js.PropertyAccess.field(currentIsolateUse, name));
     }
-
   }
 
   visitConstant(HConstant node) {
@@ -2012,13 +1680,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // condition will be generated as the expression.
       // Otherwise, we don't generate the expression, and leave that
       // to the code that called [visitSubGraph].
-      if (isGeneratingExpression()) {
-        use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      if (isGeneratingExpression) {
+        use(node.inputs[0]);
       }
       return;
     }
     HBasicBlock branchBlock = currentBlock;
-    addIndentation();
     handleLoopCondition(node);
     List<HBasicBlock> dominated = currentBlock.dominatedBlocks;
     // For a do while loop, the body has already been visited.
@@ -2043,6 +1710,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitNot(HNot node) {
     assert(node.inputs.length == 1);
     generateNot(node.inputs[0]);
+    attachLocationToLast(node);
   }
 
 
@@ -2054,10 +1722,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     }
 
     if (input is HBoolify && isGenerateAtUseSite(input)) {
-      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      use(input.inputs[0], JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(' !== true');
-      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+      use(input.inputs[0]);
+      push(new js.Binary("!==", pop(), new js.LiteralBool(true)), input);
     } else if (isBuiltinRelational(input) &&
                isGenerateAtUseSite(input) &&
                input.inputs[0].propagatedType.isUseful() &&
@@ -2080,10 +1746,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       visitInvokeBinary(input,
                         inverseOperator[relational.operation.name.stringValue]);
     } else {
-      beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-      buffer.add('!');
-      use(input, JSPrecedence.PREFIX_PRECEDENCE);
-      endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+      use(input);
+      push(new js.Prefix("!", pop()));
     }
   }
 
@@ -2091,7 +1755,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   visitLocalValue(HLocalValue node) {
     assert(isGenerateAtUseSite(node));
-    buffer.add(variableNames.getName(node));
+    push(new js.VariableUse(variableNames.getName(node)), node);
   }
 
   visitPhi(HPhi node) {
@@ -2102,117 +1766,113 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     assert(controlFlowOperators.contains(ifBlock.last));
     HInstruction input = ifBlock.last.inputs[0];
     if (input.isConstantFalse()) {
-      use(node.inputs[1], expectedPrecedence);
+      use(node.inputs[1]);
     } else if (input.isConstantTrue()) {
-      use(node.inputs[0], expectedPrecedence);
+      use(node.inputs[0]);
     } else if (node.inputs[1].isConstantBoolean()) {
       String operation = node.inputs[1].isConstantFalse() ? '&&' : '||';
-      JSBinaryOperatorPrecedence operatorPrecedence =
-          JSPrecedence.binary[operation];
-      beginExpression(operatorPrecedence.precedence);
       if (operation == '||') {
         if (input is HNot) {
-          use(input.inputs[0], operatorPrecedence.left);
+          use(input.inputs[0]);
         } else {
           generateNot(input);
         }
       } else {
-        use(input, operatorPrecedence.left);
+        use(input);
       }
-      buffer.add(" $operation ");
-      use(node.inputs[0], operatorPrecedence.right);
-      endExpression(operatorPrecedence.precedence);
+      js.Expression left = pop();
+      use(node.inputs[0]);
+      push(new js.Binary(operation, left, pop()));
     } else {
-      beginExpression(JSPrecedence.CONDITIONAL_PRECEDENCE);
-      use(input, JSPrecedence.LOGICAL_OR_PRECEDENCE);
-      buffer.add(' ? ');
-      use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      buffer.add(' : ');
-      use(node.inputs[1], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      endExpression(JSPrecedence.CONDITIONAL_PRECEDENCE);
+      use(input);
+      js.Expression test = pop();
+      use(node.inputs[0]);
+      js.Expression then = pop();
+      use(node.inputs[1]);
+      push(new js.Conditional(test, then, pop()));
     }
   }
 
   visitReturn(HReturn node) {
-    addIndentation();
     assert(node.inputs.length == 1);
     HInstruction input = node.inputs[0];
     if (input.isConstantNull()) {
-      buffer.add('return;\n');
+      pushStatement(new js.Return(null), node);
     } else {
-      buffer.add('return ');
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(';\n');
+      use(node.inputs[0]);
+      pushStatement(new js.Return(pop()), node);
     }
   }
 
   visitThis(HThis node) {
-    buffer.add('this');
+    push(new js.This());
   }
 
   visitThrow(HThrow node) {
-    addIndentation();
     if (node.isRethrow) {
-      buffer.add('throw ');
-      use(node.inputs[0], JSPrecedence.EXPRESSION_PRECEDENCE);
+      use(node.inputs[0]);
+      pushStatement(new js.Throw(pop()), node);
     } else {
       generateThrowWithHelper('captureStackTrace', node.inputs[0]);
     }
-    buffer.add(';\n');
   }
 
   visitBoundsCheck(HBoundsCheck node) {
     // TODO(ngeoffray): Separate the two checks of the bounds check, so,
     // e.g., the zero checks can be shared if possible.
 
-    // If the checks always succeede, we would have removed the bounds check
+    // If the checks always succeeds, we would have removed the bounds check
     // completely.
     assert(node.staticChecks != HBoundsCheck.ALWAYS_TRUE);
     if (node.staticChecks != HBoundsCheck.ALWAYS_FALSE) {
-      buffer.add('if (');
+      js.Binary under;
       if (node.staticChecks != HBoundsCheck.ALWAYS_ABOVE_ZERO) {
         assert(node.staticChecks == HBoundsCheck.FULL_CHECK);
-        use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
-        buffer.add(' < 0 || ');
+        use(node.index);
+        under = new js.Binary("<", pop(), new js.LiteralNumber("0"));
       }
-      use(node.index, JSPrecedence.RELATIONAL_PRECEDENCE);
-      buffer.add(' >= ');
-      use(node.length, JSPrecedence.SHIFT_PRECEDENCE);
-      buffer.add(") ");
+      use(node.index);
+      js.Expression index = pop();
+      use(node.length);
+      js.Binary over = new js.Binary(">=", index, pop());
+      js.Binary underOver =
+          under == null ? over : new js.Binary("||", under, over);
+      js.Statement thenBody = new js.Block.empty();
+      js.Block oldContainer = currentContainer;
+      currentContainer = thenBody;
+      generateThrowWithHelper('ioore', node.index);
+      currentContainer = oldContainer;
+      thenBody = unwrapStatement(thenBody);
+      pushStatement(new js.If.then(underOver, thenBody), node);
+    } else {
+      generateThrowWithHelper('ioore', node.index);
     }
-    generateThrowWithHelper('ioore', node.index);
   }
 
   visitIntegerCheck(HIntegerCheck node) {
     if (!node.alwaysFalse) {
-      buffer.add('if (');
       checkInt(node.value, '!==');
-      buffer.add(') ');
+      js.Expression test = pop();
+      js.Statement thenBody = new js.Block.empty();
+      js.Block oldContainer = currentContainer;
+      currentContainer = thenBody;
+      generateThrowWithHelper('iae', node.value);
+      currentContainer = oldContainer;
+      thenBody = unwrapStatement(thenBody);
+      pushStatement(new js.If.then(test, thenBody), node);
+    } else {
+      generateThrowWithHelper('iae', node.value);
     }
-    generateThrowWithHelper('iae', node.value);
   }
 
   void generateThrowWithHelper(String helperName, HInstruction argument) {
     Element helper = compiler.findHelper(new SourceString(helperName));
     world.registerStaticUse(helper);
-    buffer.add('throw ');
-    beginExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
-    beginExpression(JSPrecedence.CALL_PRECEDENCE);
-    buffer.add(compiler.namer.isolateAccess(helper));
-    visitArguments([null, argument]);
-    endExpression(JSPrecedence.CALL_PRECEDENCE);
-    endExpression(JSPrecedence.EXPRESSION_PRECEDENCE);
-  }
-
-  void addIndentation() {
-    for (int i = 0; i < indent; i++) {
-      buffer.add('  ');
-    }
-  }
-
-  void addIndented(String text) {
-    addIndentation();
-    buffer.add(text);
+    js.VariableUse jsHelper =
+        new js.VariableUse(compiler.namer.isolateAccess(helper));
+    js.Call value = new js.Call(jsHelper, visitArguments([null, argument]));
+    attachLocation(value, argument);
+    pushStatement(new js.Throw(value));
   }
 
   void visitSwitch(HSwitch node) {
@@ -2221,35 +1881,27 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitStatic(HStatic node) {
     world.registerStaticUse(node.element);
-    buffer.add(compiler.namer.isolateAccess(node.element));
+    push(new js.VariableUse(compiler.namer.isolateAccess(node.element)));
   }
 
   void visitStaticStore(HStaticStore node) {
     world.registerStaticUse(node.element);
-    beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    buffer.add(compiler.namer.isolateAccess(node.element));
-    buffer.add(' = ');
-    use(node.inputs[0], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-    endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+    js.VariableUse variableUse =
+        new js.VariableUse(compiler.namer.isolateAccess(node.element));
+    use(node.inputs[0]);
+    push(new js.Assignment(variableUse, pop()), node);
   }
 
   void visitStringConcat(HStringConcat node) {
     if (isEmptyString(node.left)) {
-      useStringified(node.right, expectedPrecedence);
+      useStringified(node.right);
    } else if (isEmptyString(node.right)) {
-      useStringified(node.left, expectedPrecedence);
+      useStringified(node.left);
     } else {
-      JSBinaryOperatorPrecedence operatorPrecedences = JSPrecedence.binary['+'];
-      beginExpression(operatorPrecedences.precedence);
-      useStringified(node.left, operatorPrecedences.left);
-      buffer.add(' + ');
-      // If the right hand side is a string concatenation itself it is
-      // safe to make it left associative.
-      int rightPrecedence = (node.right is HStringConcat)
-          ? JSPrecedence.ADDITIVE_PRECEDENCE
-          : operatorPrecedences.right;
-      useStringified(node.right, rightPrecedence);
-      endExpression(operatorPrecedences.precedence);
+      useStringified(node.left);
+      js.Expression left = pop();
+      useStringified(node.right);
+      push(new js.Binary("+", left, pop()), node);
     }
   }
 
@@ -2260,16 +1912,16 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return string.value.length == 0;
   }
 
-  void useStringified(HInstruction node, int precedence) {
+  void useStringified(HInstruction node) {
     if (node.isString()) {
-      use(node, precedence);
+      use(node);
     } else {
       Element convertToString = compiler.findHelper(const SourceString("S"));
       world.registerStaticUse(convertToString);
-      buffer.add(compiler.namer.isolateAccess(convertToString));
-      buffer.add('(');
-      use(node, JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(')');
+      js.VariableUse variableUse =
+          new js.VariableUse(compiler.namer.isolateAccess(convertToString));
+      use(node);
+      push(new js.Call(variableUse, <js.Expression>[pop()]), node);
     }
   }
 
@@ -2278,23 +1930,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void generateArrayLiteral(HLiteralList node) {
-    buffer.add('[');
     int len = node.inputs.length;
+    List<js.ArrayElement> elements = <js.ArrayElement>[];
     for (int i = 0; i < len; i++) {
-      if (i != 0) buffer.add(', ');
-      use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(node.inputs[i]);
+      elements.add(new js.ArrayElement(i, pop()));
     }
-    buffer.add(']');
+    push(new js.ArrayInitializer(len, elements), node);
   }
 
   void visitIndex(HIndex node) {
     if (node.builtin) {
-      beginExpression(JSPrecedence.MEMBER_PRECEDENCE);
-      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('[');
-      use(node.inputs[2], JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add(']');
-      endExpression(JSPrecedence.MEMBER_PRECEDENCE);
+      use(node.inputs[1]);
+      js.Expression receiver = pop();
+      use(node.inputs[2]);
+      push(new js.PropertyAccess(receiver, pop()), node);
     } else {
       visitInvokeStatic(node);
     }
@@ -2302,13 +1952,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   void visitIndexAssign(HIndexAssign node) {
     if (node.builtin) {
-      beginExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
-      buffer.add('[');
-      use(node.inputs[2], JSPrecedence.EXPRESSION_PRECEDENCE);
-      buffer.add('] = ');
-      use(node.inputs[3], JSPrecedence.ASSIGNMENT_PRECEDENCE);
-      endExpression(JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(node.inputs[1]);
+      js.Expression receiver = pop();
+      use(node.inputs[2]);
+      js.Expression index = pop();
+      use(node.inputs[3]);
+      push(new js.Assignment(new js.PropertyAccess(receiver, index), pop()),
+           node);
     } else {
       visitInvokeStatic(node);
     }
@@ -2345,24 +1995,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     String builtin = builtinJsName(node);
     if (builtin !== null) {
       if (builtin == '+') {
-        beginExpression(JSPrecedence.ADDITIVE_PRECEDENCE);
-        use(node.inputs[1], JSPrecedence.ADDITIVE_PRECEDENCE);
-        buffer.add(' + ');
-        use(node.inputs[2], JSPrecedence.MULTIPLICATIVE_PRECEDENCE);
-        endExpression(JSPrecedence.ADDITIVE_PRECEDENCE);
+        use(node.inputs[1]);
+        js.Expression left = pop();
+        use(node.inputs[2]);
+        push(new js.Binary("+", left, pop()), node);
       } else {
-        beginExpression(JSPrecedence.CALL_PRECEDENCE);
-        use(node.inputs[1], JSPrecedence.MEMBER_PRECEDENCE);
-        buffer.add('.');
-        buffer.add(builtin);
-        if (node.getter) return;
-        buffer.add('(');
-        for (int i = 2; i < node.inputs.length; i++) {
-          if (i != 2) buffer.add(', ');
-          use(node.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+        use(node.inputs[1]);
+        js.PropertyAccess access = new js.PropertyAccess.field(pop(), builtin);
+        if (node.getter) {
+          push(access, node);
+          return;
         }
-        buffer.add(")");
-        endExpression(JSPrecedence.CALL_PRECEDENCE);
+        List<js.Expression> arguments = <js.Expression>[];
+        for (int i = 2; i < node.inputs.length; i++) {
+          use(node.inputs[i]);
+          arguments.add(pop());
+        }
+        push(new js.Call(access, arguments), node);
       }
     } else {
       return visitInvokeStatic(node);
@@ -2370,144 +2019,104 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void checkInt(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    use(input, JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(' $cmp (');
-    use(input, JSPrecedence.BITWISE_OR_PRECEDENCE);
-    buffer.add(' | 0)');
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input);
+    js.Expression left = pop();
+    use(input);
+    js.Expression or0 = new js.Binary("|", pop(), new js.LiteralNumber("0"));
+    push(new js.Binary(cmp, left, or0));
   }
 
-  void checkNum(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add('typeof ');
-    use(input, JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(" $cmp 'number'");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+  void checkTypeOf(HInstruction input, String cmp, String typeName) {
+    use(input);
+    js.Expression typeOf = new js.Prefix("typeof", pop());
+    push(new js.Binary(cmp, typeOf, new js.LiteralString("'$typeName'")));
   }
 
-  void checkDouble(HInstruction input, String cmp) {
-    checkNum(input, cmp);
-  }
+  void checkNum(HInstruction input, String cmp)
+      => checkTypeOf(input, cmp, 'number');
 
-  void checkString(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add('typeof ');
-    use(input, JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(" $cmp 'string'");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-  }
+  void checkDouble(HInstruction input, String cmp)  => checkNum(input, cmp);
 
-  void checkBool(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add('typeof ');
-    use(input, JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(" $cmp 'boolean'");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-  }
+  void checkString(HInstruction input, String cmp)
+      => checkTypeOf(input, cmp, 'string');
+
+  void checkBool(HInstruction input, String cmp)
+      => checkTypeOf(input, cmp, 'boolean');
 
   void checkObject(HInstruction input, String cmp) {
     assert(NullConstant.JsNull == 'null');
     if (cmp == "===") {
-      withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add('typeof ');
-        use(input, JSPrecedence.PREFIX_PRECEDENCE);
-        buffer.add(" === 'object'");
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(" && ");
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        use(input, JSPrecedence.PREFIX_PRECEDENCE);
-        buffer.add(" !== null");
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      });
+      checkTypeOf(input, '===', 'object');
+      js.Expression left = pop();
+      use(input);
+      js.Expression notNull = new js.Binary("!==", pop(), new js.LiteralNull());
+      push(new js.Binary("&&", left, notNull));
     } else {
       assert(cmp == "!==");
-      withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add('typeof ');
-        use(input, JSPrecedence.PREFIX_PRECEDENCE);
-        buffer.add(" !== 'object'");
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        buffer.add(" || ");
-        beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-        use(input, JSPrecedence.PREFIX_PRECEDENCE);
-        buffer.add(" === null");
-        endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      });
+      checkTypeOf(input, '!==', 'object');
+      js.Expression left = pop();
+      use(input);
+      js.Expression eqNull = new js.Binary("===", pop(), new js.LiteralNull());
+      push(new js.Binary("||", left, eqNull));
     }
   }
 
   void checkArray(HInstruction input, String cmp) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    use(input, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.constructor $cmp Array');
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input);
+    js.PropertyAccess constructor =
+        new js.PropertyAccess.field(pop(), 'constructor');
+    push(new js.Binary(cmp, constructor, new js.VariableUse('Array')));
+  }
+
+  void checkFieldExists(HInstruction input, String fieldName) {
+    use(input);
+    js.PropertyAccess field = new js.PropertyAccess.field(pop(), fieldName);
+    // Double negate to boolify the result.
+    push(new js.Prefix('!', new js.Prefix('!', field)));
   }
 
   void checkImmutableArray(HInstruction input) {
-    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add('!!');
-    use(input, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.immutable\$list');
-    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    checkFieldExists(input, 'immutable\$list');
   }
 
   void checkExtendableArray(HInstruction input) {
-    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add('!!');
-    use(input, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.fixed\$length');
-    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    checkFieldExists(input, 'fixed\$length');
   }
 
   void checkFixedArray(HInstruction input) {
-    beginExpression(JSPrecedence.PREFIX_PRECEDENCE);
-    use(input, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.fixed\$length');
-    endExpression(JSPrecedence.PREFIX_PRECEDENCE);
+    checkFieldExists(input, 'fixed\$length');
   }
 
   void checkNull(HInstruction input) {
-    beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-    use(input, JSPrecedence.EQUALITY_PRECEDENCE);
-    buffer.add(" == null");
-    endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
+    use(input);
+    push(new js.Binary('==', pop(), new js.LiteralNull()));
   }
 
   void checkFunction(HInstruction input, Element element) {
-    withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
-      beginExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add('typeof ');
-      use(input, JSPrecedence.PREFIX_PRECEDENCE);
-      buffer.add(" === 'function'");
-      endExpression(JSPrecedence.EQUALITY_PRECEDENCE);
-      buffer.add(" || ");
-      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-      checkObject(input, '===');
-      buffer.add(" && ");
-      checkType(input, element);
-      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-    });
+    checkTypeOf(input, '===', 'function');
+    js.Expression functionTest = pop();
+    checkObject(input, '===');
+    js.Expression objectTest = pop();
+    checkType(input, element);
+    push(new js.Binary('||',
+                       functionTest,
+                       new js.Binary('&&', objectTest, pop())));
   }
 
   void checkType(HInstruction input, Element element, [bool negative = false]) {
     world.registerIsCheck(element);
-    bool requiresNativeIsCheck =
-        backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-    if (!requiresNativeIsCheck) {
-      if (negative) {
-        buffer.add('!');
-      } else {
-        buffer.add('!!');
-      }
-    } else if (negative) {
-      buffer.add('!');
+    use(input);
+    js.PropertyAccess field =
+        new js.PropertyAccess.field(pop(), compiler.namer.operatorIs(element));
+    if (backend.emitter.nativeEmitter.requiresNativeIsCheck(element)) {
+      push(new js.Call(field, <js.Expression>[]));
+      if (negative) push(new js.Prefix('!', pop()));
+    } else {
+      // We always negate at least once so that the result is boolified.
+      push(new js.Prefix('!', field));
+      // If the result is not negated, put another '!' in front.
+      if (!negative) push(new js.Prefix('!', pop()));
     }
-    use(input, JSPrecedence.MEMBER_PRECEDENCE);
-    buffer.add('.');
-    buffer.add(compiler.namer.operatorIs(element));
-    if (requiresNativeIsCheck) buffer.add('()');
   }
 
   void handleStringSupertypeCheck(HInstruction input, Element element) {
@@ -2515,15 +2124,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // would need to check for List too.
     assert(element !== compiler.listClass
            && !Elements.isListSupertype(element, compiler));
-    withPrecedence(JSPrecedence.LOGICAL_OR_PRECEDENCE, () {
-      checkString(input, '===');
-      buffer.add(' || ');
-      withPrecedence(JSPrecedence.LOGICAL_AND_PRECEDENCE, () {
-        checkObject(input, '===');
-        buffer.add(' && ');
-        checkType(input, element);
-      });
-    });
+    checkString(input, '===');
+    js.Expression stringTest = pop();
+    checkObject(input, '===');
+    js.Expression objectTest = pop();
+    checkType(input, element);
+    push(new js.Binary('||',
+                       stringTest,
+                       new js.Binary('&&', objectTest, pop())));
   }
 
   void handleListOrSupertypeCheck(HInstruction input, Element element) {
@@ -2531,16 +2139,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     // would need to check for String too.
     assert(element !== compiler.stringClass
            && !Elements.isStringSupertype(element, compiler));
-    beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
     checkObject(input, '===');
-    buffer.add(' && (');
-    beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+    js.Expression objectTest = pop();
     checkArray(input, '===');
-    buffer.add(' || ');
+    js.Expression arrayTest = pop();
     checkType(input, element);
-    buffer.add(')');
-    endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
-    endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+    push(new js.Binary('&&',
+                       objectTest,
+                       new js.Binary('||', arrayTest, pop())));
   }
 
   void visitIs(HIs node) {
@@ -2555,70 +2161,70 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     ClassElement objectClass = compiler.objectClass;
     HInstruction input = node.expression;
 
-    int oldPrecedence;
-    if (node.nullOk) {
-      oldPrecedence = expectedPrecedence;
-      beginExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
-      expectedPrecedence = JSPrecedence.LOGICAL_OR_PRECEDENCE;
-      checkNull(input);
-      buffer.add(' || ');
-    }
     if (element === objectClass || element === compiler.dynamicClass) {
       // The constant folder also does this optimization, but we make
       // it safe by assuming it may have not run.
-      buffer.add('true');
+      push(new js.LiteralBool(true), node);
     } else if (element == compiler.stringClass) {
       checkString(input, '===');
+      attachLocationToLast(node);
     } else if (element == compiler.doubleClass) {
       checkDouble(input, '===');
+      attachLocationToLast(node);
     } else if (element == compiler.numClass) {
       checkNum(input, '===');
+      attachLocationToLast(node);
     } else if (element == compiler.boolClass) {
       checkBool(input, '===');
+      attachLocationToLast(node);
     } else if (element == compiler.functionClass) {
       checkFunction(input, element);
+      attachLocationToLast(node);
     } else if (element == compiler.intClass) {
-      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkNum(input, '===');
-      buffer.add(' && ');
+      js.Expression numTest = pop();
       checkInt(input, '===');
-      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      push(new js.Binary('&&', numTest, pop()), node);
     } else if (Elements.isStringSupertype(element, compiler)) {
       handleStringSupertypeCheck(input, element);
+      attachLocationToLast(node);
     } else if (element === compiler.listClass
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, element);
+      attachLocationToLast(node);
     } else if (input.propagatedType.canBePrimitive()
                || input.propagatedType.canBeNull()) {
-      beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
       checkObject(input, '===');
-      buffer.add(' && ');
+      js.Expression objectTest = pop();
       checkType(input, element);
-      endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+      push(new js.Binary('&&', objectTest, pop()), node);
     } else {
       checkType(input, element);
+      attachLocationToLast(node);
     }
     if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
       InterfaceType interfaceType = type;
       ClassElement cls = type.element;
       Link<Type> arguments = interfaceType.arguments;
-      buffer.add(' && ');
+      js.Expression result = pop();
       checkObject(node.typeInfoCall, '===');
+      result = new js.Binary('&&', result, pop());
       for (TypeVariableType typeVariable in cls.typeVariables) {
-        buffer.add(' && ');
-        beginExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
-        use(node.typeInfoCall, JSPrecedence.EQUALITY_PRECEDENCE);
+        use(node.typeInfoCall);
         // TODO(johnniwinther): Retrieve the type name properly and not through
         // [toString]. Note: Two cases below [typeVariable] and
         // [arguments.head].
-        buffer.add(
-            ".${typeVariable} === '${arguments.head}'");
-        endExpression(JSPrecedence.LOGICAL_AND_PRECEDENCE);
+        js.PropertyAccess field =
+            new js.PropertyAccess.field(pop(), typeVariable.toString());
+        js.Expression genericName = new js.LiteralString("'${arguments.head}'");
+        js.Binary eqTest = new js.Binary('===', field, genericName);
+        result = new js.Binary('&&', result, eqTest);
       }
+      push(result, node);
     }
     if (node.nullOk) {
-      expectedPrecedence = oldPrecedence;
-      endExpression(JSPrecedence.LOGICAL_OR_PRECEDENCE);
+      checkNull(input);
+      push(new js.Binary('||', pop(), pop()), node);
     }
   }
 
@@ -2659,18 +2265,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       String additionalArgument;
       bool nativeCheck =
           backend.emitter.nativeEmitter.requiresNativeIsCheck(element);
-      beginExpression(JSPrecedence.CALL_PRECEDENCE);
 
       if (node.isArgumentTypeCheck) {
-        buffer.add('if (');
         if (element == compiler.intClass) {
           checkInt(node.checkedInput, '!==');
         } else {
           assert(element == compiler.numClass);
           checkNum(node.checkedInput, '!==');
         }
-        buffer.add(') ');
+        js.Expression test = pop();
+        js.Block oldContainer = currentContainer;
+        js.Statement body = new js.Block.empty();
+        currentContainer = body;
         generateThrowWithHelper('iae', node.checkedInput);
+        currentContainer = oldContainer;
+        body = unwrapStatement(body);
+        pushStatement(new js.If.then(test, body), node);
         return;
       }
 
@@ -2715,21 +2325,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       }
       Element helperElement = compiler.findHelper(helper);
       world.registerStaticUse(helperElement);
-      buffer.add(compiler.namer.isolateAccess(helperElement));
-      buffer.add('(');
-      use(node.checkedInput, JSPrecedence.EXPRESSION_PRECEDENCE);
-      if (additionalArgument !== null) buffer.add(", '$additionalArgument'");
-      buffer.add(')');
-      endExpression(JSPrecedence.CALL_PRECEDENCE);
+      List<js.Expression> arguments = <js.Expression>[];
+      use(node.checkedInput);
+      arguments.add(pop());
+      if (additionalArgument !== null) {
+        arguments.add(new js.LiteralString("'$additionalArgument'"));
+      }
+      String helperName = compiler.namer.isolateAccess(helperElement);
+      push(new js.Call(new js.VariableUse(helperName), arguments));
     } else {
-      use(node.checkedInput, expectedPrecedence);
+      use(node.checkedInput);
     }
   }
 }
 
 class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   SsaOptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameters, parameterNames) {
+    : super(backend, work, parameterNames) {
     // Declare the parameter names only for the optimized version. The
     // unoptimized version has different parameters.
     parameterNames.forEach((Element element, String name) {
@@ -2742,7 +2354,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   HBasicBlock beginGraph(HGraph graph) => graph.entry;
   void endGraph(HGraph graph) {}
 
-  void bailout(HTypeGuard guard, String reason) {
+  js.Statement bailout(HTypeGuard guard, String reason) {
     if (maxBailoutParameters === null) {
       maxBailoutParameters = 0;
       work.guards.forEach((HTypeGuard workGuard) {
@@ -2757,114 +2369,120 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
     HBailoutTarget target = guard.bailoutTarget;
     Namer namer = compiler.namer;
     Element element = work.element;
-    buffer.add('return ');
-    if (element.isInstanceMember()) {
-      // TODO(ngeoffray): This does not work in case we come from a
-      // super call. We must make bailout names unique.
-      buffer.add('this.${namer.getBailoutName(element)}');
-    } else {
-      buffer.add(namer.isolateBailoutAccess(element));
-    }
-    buffer.add('(${guard.state}');
+    List<js.Expression> arguments = <js.Expression>[];
+    arguments.add(new js.LiteralNumber("${guard.state}"));
     // TODO(ngeoffray): try to put a variable at a deterministic
     // location, so that multiple bailout calls put the variable at
     // the same parameter index.
     int i = 0;
     for (; i < target.inputs.length; i++) {
       assert(guard.inputs.indexOf(target.inputs[i]) >= 0);
-      buffer.add(', ');
-      use(target.inputs[i], JSPrecedence.ASSIGNMENT_PRECEDENCE);
+      use(target.inputs[i]);
+      arguments.add(pop());
     }
     // Make sure we call the bailout method with the number of
     // arguments it expects. This avoids having the underlying
     // JS engine fill them in for us.
     for (; i < maxBailoutParameters; i++) {
-      buffer.add(', 0');
+      arguments.add(new js.LiteralNumber('0'));
     }
-    buffer.add(')');
+
+    js.Expression bailoutTarget;
+    if (element.isInstanceMember()) {
+      // TODO(ngeoffray): This does not work in case we come from a
+      // super call. We must make bailout names unique.
+      String bailoutName = namer.getBailoutName(element);
+      bailoutTarget = new js.PropertyAccess.field(new js.This(), bailoutName);
+    } else {
+      bailoutTarget = new js.VariableUse(namer.isolateBailoutAccess(element));
+    }
+    js.Call call = new js.Call(bailoutTarget, arguments);
+    attachLocation(call, guard);
+    return new js.Return(call);
   }
 
   void visitTypeGuard(HTypeGuard node) {
-    addIndentation();
     HInstruction input = node.guarded;
     Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
     if (node.isInteger()) {
       // if (input is !int) bailout
-      buffer.add('if (');
       checkInt(input, '!==');
-      buffer.add(') ');
-      bailout(node, 'Not an integer');
+      pushStatement(new js.If.then(pop(), bailout(node, 'Not an integer')),
+                    node);
     } else if (node.isNumber()) {
       // if (input is !num) bailout
-      buffer.add('if (');
       checkNum(input, '!==');
-      buffer.add(') ');
-      bailout(node, 'Not a number');
+      pushStatement(new js.If.then(pop(), bailout(node, 'Not a number')), node);
     } else if (node.isBoolean()) {
       // if (input is !bool) bailout
-      buffer.add('if (');
       checkBool(input, '!==');
-      buffer.add(') ');
-      bailout(node, 'Not a boolean');
+      pushStatement(new js.If.then(pop(), bailout(node, 'Not a boolean')),
+                    node);
     } else if (node.isString()) {
       // if (input is !string) bailout
-      buffer.add('if (');
       checkString(input, '!==');
-      buffer.add(') ');
-      bailout(node, 'Not a string');
+      pushStatement(new js.If.then(pop(), bailout(node, 'Not a string')), node);
     } else if (node.isExtendableArray()) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
-      buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add('||');
+      js.Expression objectTest = pop();
       checkArray(input, '!==');
-      buffer.add('||');
+      js.Expression arrayTest = pop();
       checkFixedArray(input);
-      buffer.add(') ');
-      bailout(node, 'Not an extendable array');
+      js.Expression test = new js.Binary('||', objectTest, arrayTest);
+      test = new js.Binary('||', test, pop());
+      pushStatement(new js.If.then(test,
+                                   bailout(node, 'Not an extendable array')),
+                    node);
     } else if (node.isMutableArray()) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
       //         && input is !JsIndexingBehavior)) bailout
-      buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || ((');
+      js.Expression objectTest = pop();
       checkArray(input, '!==');
-      buffer.add(' || ');
+      js.Expression arrayTest = pop();
       checkImmutableArray(input);
-      buffer.add(') && ');
+      js.Binary notArrayOrImmutable = new js.Binary('||', arrayTest, pop());
       checkType(input, indexingBehavior, negative: true);
-      buffer.add(')) ');
-      bailout(node, 'Not a mutable array');
+      js.Binary notIndexing = new js.Binary('&&', notArrayOrImmutable, pop());
+      pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
+                                   bailout(node, 'Not a mutable array')),
+                    node);
     } else if (node.isReadableArray()) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
-      buffer.add('if (');
       checkObject(input, '!==');
-      buffer.add(' || (');
+      js.Expression objectTest = pop();
       checkArray(input, '!==');
-      buffer.add(' && ');
+      js.Expression arrayTest = pop();
       checkType(input, indexingBehavior, negative: true);
-      buffer.add(')) ');
-      bailout(node, 'Not an array');
+      js.Expression notIndexing = new js.Binary('&&', arrayTest, pop());
+      pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
+                                   bailout(node, 'Not an array')),
+                    node);
     } else if (node.isIndexablePrimitive()) {
       // if (input is !String
       //     && (input is !Object
       //         || (input is !Array && input is !JsIndexingBehavior))) bailout
-      buffer.add('if (');
       checkString(input, '!==');
-      buffer.add(' && (');
+      js.Expression stringTest = pop();
       checkObject(input, '!==');
-      buffer.add(' || (');
+      js.Expression objectTest = pop();
       checkArray(input, '!==');
-      buffer.add(' && ');
+      js.Expression arrayTest = pop();
       checkType(input, indexingBehavior, negative: true);
-      buffer.add('))) ');
-      bailout(node, 'Not a string or array');
+      js.Binary notIndexingTest = new js.Binary('&&', arrayTest, pop());
+      js.Binary notObjectOrIndexingTest =
+          new js.Binary('||', objectTest, notIndexingTest);
+      js.Binary condition =
+          new js.Binary('&&', stringTest, notObjectOrIndexingTest);
+      pushStatement(new js.If.then(condition,
+                                   bailout(node, 'Not a string or array')),
+                    node);
     } else {
       compiler.internalError('Unexpected type guard', instruction: input);
     }
-    buffer.add(';\n');
   }
 
   void visitBailoutTarget(HBailoutTarget target) {
@@ -2872,25 +2490,24 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   }
 
   void beginLoop(HBasicBlock block) {
-    addIndentation();
-    HLoopInformation info = block.loopInformation;
-    for (LabelElement label in info.labels) {
-      writeLabel(label);
-      buffer.add(":");
-    }
-    buffer.add('while (true) {\n');
-    indent++;
+    oldContainerStack.add(currentContainer);
+    currentContainer = new js.Block.empty();
   }
 
   void endLoop(HBasicBlock block) {
-    indent--;
-    addIndented('}\n');  // Close 'while' loop.
+    js.Statement body = currentContainer;
+    currentContainer = oldContainerStack.removeLast();
+    body = unwrapStatement(body);
+    js.While loop = new js.While(new js.LiteralBool(true), body);
+
+    HLoopInformation info = block.loopInformation;
+    attachLocationRange(loop, info.loopBlockInformation.sourcePosition);
+    pushStatement(wrapIntoLabels(loop, info.labels));
   }
 
   void handleLoopCondition(HLoopBranch node) {
-    buffer.add('if (!');
-    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(') break;\n');
+    use(node.inputs[0]);
+    pushStatement(new js.If.then(pop(), new js.Break(null)), node);
   }
 
 
@@ -2906,8 +2523,10 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
 
 class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
-  final CodeBuffer setup;
-  final CodeBuffer newParameters;
+  js.Statement setup;
+  js.Switch currentBailoutSwitch;
+  final List<js.Switch> oldBailoutSwitches;
+  final List<js.Parameter> newParameters;
   final List<String> labels;
   int labelId = 0;
   /**
@@ -2921,9 +2540,10 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   HInstruction savedFirstInstruction;
 
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
-    : super(backend, work, parameters, parameterNames),
-      setup = new CodeBuffer(),
-      newParameters = new CodeBuffer(),
+    : super(backend, work, parameterNames),
+      setup = new js.EmptyStatement(),
+      oldBailoutSwitches = <js.Switch>[],
+      newParameters = <js.Parameter>[],
       labels = <String>[],
       defaultClauseUsedInBailoutStack = <bool>[];
 
@@ -2946,7 +2566,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     propagator.visitGraph(graph);
     // TODO(ngeoffray): We could avoid generating the state at the
     // call site for non-complex bailout methods.
-    newParameters.add('state');
+    newParameters.add(new js.Parameter('state'));
 
     if (propagator.hasComplexBailoutTargets) {
       // Use generic parameters that will be assigned to
@@ -2954,7 +2574,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       for (int i = 0; i < propagator.maxBailoutParameters; i++) {
         String name = 'env$i';
         declaredVariables.add(name);
-        newParameters.add(', $name');
+        newParameters.add(new js.Parameter(name));
       }
 
       startBailoutSwitch();
@@ -2962,7 +2582,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
       // The setup phase of a bailout function sets up the environment for
       // each bailout target. Each bailout target will populate this
       // setup phase. It is put at the beginning of the function.
-      setup.add('  switch (state) {\n');
+      setup = new js.Switch(new js.VariableUse('state'), <js.SwitchClause>[]);
       return graph.entry;
     } else {
       // We have a simple bailout target, so we can reuse the names that
@@ -2971,7 +2591,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
         input = unwrap(input);
         String name = variableNames.getName(input);
         declaredVariables.add(name);
-        newParameters.add(', $name');
+        newParameters.add(new js.Parameter(name));
       }
 
       // We change the first instruction of the first guard to be the
@@ -2997,10 +2617,7 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   void endGraph(HGraph graph) {
     if (propagator.hasComplexBailoutTargets) {
-      indent--; // Close original case.
-      indent--;
-      addIndented('}\n');  // Close 'switch'.
-      setup.add('  }\n');
+      endBailoutSwitch();
     } else {
       // Put back the original first instruction of the block.
       propagator.firstBailoutTarget.block.first = savedFirstInstruction;
@@ -3031,110 +2648,125 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   void visitBailoutTarget(HBailoutTarget node) {
     if (!propagator.hasComplexBailoutTargets) return;
 
-    indent--;
-    addIndented('case ${node.state}:\n');
-    indent++;
-    addIndented('state = 0;\n');
-
-    setup.add('    case ${node.state}:\n');
+    js.Block nextBlock = new js.Block.empty();
+    js.Case clause = new js.Case(new js.LiteralNumber('${node.state}'),
+                                 nextBlock);
+    currentBailoutSwitch.cases.add(clause);
+    currentContainer = nextBlock;
+    pushExpressionAsStatement(new js.Assignment(new js.VariableUse('state'),
+                                                new js.LiteralNumber('0')));
+    js.Block setupBlock = new js.Block.empty();
     int i = 0;
     for (HInstruction input in node.inputs) {
       input = unwrap(input);
       String name = variableNames.getName(input);
-      setup.add('      ');
       if (!isVariableDeclared(name)) {
         declaredVariables.add(name);
-        setup.add('var ');
+        js.VariableInitialization init =
+            new js.VariableInitialization(new js.VariableDeclaration(name),
+                                          new js.VariableUse('env$i'));
+        js.Expression varList =
+            new js.VariableDeclarationList(<js.VariableInitialization>[init]);
+        setupBlock.statements.add(new js.ExpressionStatement(varList));
+      } else {
+        js.Expression target = new js.VariableUse(name);
+        js.Expression source = new js.VariableUse('env$i');
+        js.Expression assignment = new js.Assignment(target, source);
+        setupBlock.statements.add(new js.ExpressionStatement(assignment));
       }
-      setup.add('$name = env$i;\n');
       i++;
     }
-    setup.add('      break;\n');
+    setupBlock.statements.add(new js.Break(null));
+    js.Case setupClause =
+        new js.Case(new js.LiteralNumber('${node.state}'), setupBlock);
+    (setup as js.Switch).cases.add(setupClause);
   }
 
   void startBailoutCase(List<HBailoutTarget> bailouts1,
-                        List<HBailoutTarget> bailouts2) {
-    indent--;
+                        [List<HBailoutTarget> bailouts2 = const []]) {
     if (!defaultClauseUsedInBailoutStack.last() &&
         bailouts1.length + bailouts2.length >= 2) {
-      addIndented('default:\n');
+      currentContainer = new js.Block.empty();
+      currentBailoutSwitch.cases.add(new js.Default(currentContainer));
       int len = defaultClauseUsedInBailoutStack.length;
       defaultClauseUsedInBailoutStack[len - 1] = true;
     } else {
-      handleBailoutCase(bailouts1);
-      handleBailoutCase(bailouts2);
+      _handleBailoutCase(bailouts1);
+      _handleBailoutCase(bailouts2);
+      currentContainer = currentBailoutSwitch.cases.last().body;
     }
-    indent++;
   }
 
-  void handleBailoutCase(List<HBailoutTarget> targets) {
-    if (!defaultClauseUsedInBailoutStack.last() && targets.length >= 2) {
-      addIndented('default:\n');
-      int len = defaultClauseUsedInBailoutStack.length;
-      defaultClauseUsedInBailoutStack[len - 1] = true;
-    } else {
-      for (int i = 0, len = targets.length; i < len; i++) {
-        addIndented('case ${targets[i].state}:\n');
-      }
+  void _handleBailoutCase(List<HBailoutTarget> targets) {
+    for (int i = 0, len = targets.length; i < len; i++) {
+      js.LiteralNumber expr = new js.LiteralNumber('${targets[i].state}');
+      currentBailoutSwitch.cases.add(new js.Case(expr, new js.Block.empty()));
     }
   }
 
   void startBailoutSwitch() {
     defaultClauseUsedInBailoutStack.add(false);
-    addIndented('switch (state) {\n');
-    indent++;
-    addIndented('case 0:\n');
-    indent++;
+    oldBailoutSwitches.add(currentBailoutSwitch);
+    List<js.SwitchClause> cases = <js.SwitchClause>[];
+    js.Block firstBlock = new js.Block.empty();
+    cases.add(new js.Case(new js.LiteralNumber("0"), firstBlock));
+    currentBailoutSwitch = new js.Switch(new js.VariableUse('state'), cases);
+    pushStatement(currentBailoutSwitch);
+    oldContainerStack.add(currentContainer);
+    currentContainer = firstBlock;
   }
 
-  void endBailoutSwitch() {
-    indent--; // Close 'case'.
-    indent--;
-    addIndented('}\n');  // Close 'switch'.
+  js.Switch endBailoutSwitch() {
+    js.Switch result = currentBailoutSwitch;
+    currentBailoutSwitch = oldBailoutSwitches.removeLast();
     defaultClauseUsedInBailoutStack.removeLast();
+    currentContainer = oldContainerStack.removeLast();
+    return result;
   }
 
   void beginLoop(HBasicBlock block) {
-    String newLabel = pushLabel();
+    String loopLabel = pushLabel();
     if (block.hasBailoutTargets()) {
-      startBailoutCase(block.bailoutTargets, const <HBailoutTarget>[]);
+      startBailoutCase(block.bailoutTargets);
     }
-
-    addIndentation();
-    HLoopInformation loopInformation = block.loopInformation;
-    for (LabelElement label in loopInformation.labels) {
-      writeLabel(label);
-      buffer.add(":");
-    }
-    buffer.add('$newLabel: while (true) {\n');
-    indent++;
-
+    oldContainerStack.add(currentContainer);
+    currentContainer = new js.Block.empty();
     if (block.hasBailoutTargets()) {
       startBailoutSwitch();
+      HLoopInformation loopInformation = block.loopInformation;
       if (loopInformation.target !== null) {
         breakAction[loopInformation.target] = (TargetElement target) {
-          addIndented("break $newLabel;\n");
+          pushStatement(new js.Break(loopLabel));
         };
       }
     }
   }
 
   void endLoop(HBasicBlock block) {
-    popLabel();
+    String loopLabel = popLabel();
+
     HBasicBlock header = block.isLoopHeader() ? block : block.parentLoopHeader;
+    HLoopInformation info = header.loopInformation;
     if (header.hasBailoutTargets()) {
       endBailoutSwitch();
-      HLoopInformation info = header.loopInformation;
       if (info.target != null) breakAction.remove(info.target);
     }
-    indent--;
-    addIndented('}\n');  // Close 'while'.
+
+    js.Statement body = unwrapStatement(currentContainer);
+    currentContainer = oldContainerStack.removeLast();
+
+    js.Statement result = new js.While(new js.LiteralBool(true), body);
+    attachLocationRange(result, info.loopBlockInformation.sourcePosition);
+    result = new js.LabeledStatement(loopLabel, result);
+    result = wrapIntoLabels(result, info.labels);
+    pushStatement(result);
   }
 
   void handleLoopCondition(HLoopBranch node) {
-    buffer.add('if (!');
-    use(node.inputs[0], JSPrecedence.PREFIX_PRECEDENCE);
-    buffer.add(') break ${currentLabel()};\n');
+    use(node.inputs[0]);
+    pushStatement(new js.If.then(new js.Prefix('!', pop()),
+                                 new js.Break(currentLabel())),
+                  node);
   }
 
   void generateIf(HIf node, HIfBlockInformation info) {
@@ -3143,50 +2775,53 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
     bool thenHasGuards = thenGraph.start.hasBailoutTargets();
     bool elseHasGuards = elseGraph.start.hasBailoutTargets();
     bool hasGuards = thenHasGuards || elseHasGuards;
-    if (!hasGuards) return super.generateIf(node, info);
-
-    int elseKind = analyzeGraphForCodegen(elseGraph);
-    bool emptyElse = elseKind == SsaCodeGenerator.EMPTY;
+    if (!hasGuards) {
+      super.generateIf(node, info);
+      return;
+    }
 
     startBailoutCase(thenGraph.start.bailoutTargets,
-        emptyElse ? const <HBailoutTarget>[] : elseGraph.start.bailoutTargets);
+                     elseGraph.start.bailoutTargets);
 
-    addIndented('if (');
-    int precedence = JSPrecedence.EXPRESSION_PRECEDENCE;
+    use(node.inputs[0]);
+    js.Binary stateEquals0 =
+        new js.Binary('===',
+                      new js.VariableUse('state'), new js.LiteralNumber('0'));
+    js.Expression condition = new js.Binary('&&', stateEquals0, pop());
     // TODO(ngeoffray): Put the condition initialization in the
     // [setup] buffer.
     List<HBailoutTarget> targets = node.thenBlock.bailoutTargets;
     for (int i = 0, len = targets.length; i < len; i++) {
-      buffer.add('state == ${targets[i].state} || ');
+      js.VariableUse stateRef = new js.VariableUse('state');
+      js.Expression targetState = new js.LiteralNumber('${targets[i].state}');
+      js.Binary stateTest = new js.Binary('===', stateRef, targetState);
+      condition = new js.Binary('||', stateTest, condition);
     }
-    buffer.add('(state == 0 && ');
-    precedence = JSPrecedence.BITWISE_OR_PRECEDENCE;
-    use(node.inputs[0], precedence);
 
-    buffer.add(')) {\n');
-
-    indent++;
+    js.Statement thenBody = new js.Block.empty();
+    js.Block oldContainer = currentContainer;
+    currentContainer = thenBody;
     if (thenHasGuards) startBailoutSwitch();
     generateStatements(thenGraph);
     if (thenHasGuards) endBailoutSwitch();
-    indent--;
+    thenBody = unwrapStatement(thenBody);
 
-    if (!emptyElse) {
-      addIndented('} else {\n');
-      indent++;
-      if (elseHasGuards) startBailoutSwitch();
-      generateStatements(elseGraph);
-      if (elseHasGuards) endBailoutSwitch();
-      indent--;
-    }
+    js.Statement elseBody = null;
+    elseBody = new js.Block.empty();
+    currentContainer = elseBody;
+    if (elseHasGuards) startBailoutSwitch();
+    generateStatements(elseGraph);
+    if (elseHasGuards) endBailoutSwitch();
+    elseBody = unwrapStatement(elseBody);
 
-    addIndented('}\n');
+    currentContainer = oldContainer;
+    pushStatement(new js.If(condition, thenBody, elseBody), node);
   }
 
   void preLabeledBlock(HLabeledBlockInformation labeledBlockInfo) {
     if (labeledBlockInfo.body.start.hasBailoutTargets()) {
       indent--;
-      handleBailoutCase(labeledBlockInfo.body.start.bailoutTargets);
+      startBailoutCase(labeledBlockInfo.body.start.bailoutTargets);
       indent++;
     }
   }

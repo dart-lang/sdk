@@ -4,6 +4,7 @@
 
 #library('ssa');
 
+#import('../js/js.dart', prefix: 'js');
 #import('../leg.dart');
 #import('../source_file.dart');
 #import('../source_map_builder.dart');

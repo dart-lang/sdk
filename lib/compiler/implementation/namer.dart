@@ -44,6 +44,24 @@ class Namer {
                                         selector);
   }
 
+  String breakLabelName(LabelElement label) {
+    return '\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  String implicitBreakLabelName(TargetElement target) {
+    return '\$${target.nestingLevel}';
+  }
+
+  // We sometimes handle continue targets differently from break targets,
+  // so we have special continue-only labels.
+  String continueLabelName(LabelElement label) {
+    return 'c\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  String implicitContinueLabelName(TargetElement target) {
+    return 'c\$${target.nestingLevel}';
+  }
+
   /** Returns a non-unique name for the given closure element. */
   String closureName(Element element) {
     List<String> parts = <String>[];
