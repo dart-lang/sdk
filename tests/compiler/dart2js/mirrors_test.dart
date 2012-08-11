@@ -218,14 +218,14 @@ void testBar(MirrorSystem system, LibraryMirror helperLibrary,
 // class Baz<E,F extends Foo> implements Bar<E> {
 //   Baz();
 //   const Baz.named();
-//   factory Baz.factory();
+//   factory Baz.factory() => new Baz<E,F>();
 //
-//   method1(e) {}
-//   static void method2(E e, [F f = null]) {}
-//   void method3(E func1(F f), Func<E,F> func2) {}
+//   static method1(e) {}
+//   void method2(E e, [F f = null]) {}
+//   Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
 //
-//   bool operator==(Object other) => return false;
-//   Baz<E,F> operator negate() => this;
+//   bool operator==(Object other) => false;
+//   int operator negate() => 0;
 // }
 void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
              Map<Object,TypeMirror> types) {
@@ -324,7 +324,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                 "Unexpected number of declared members");
 
   ////////////////////////////////////////////////////////////////////////////
-  // method1(e) {}
+  // static method1(e) {}
   ////////////////////////////////////////////////////////////////////////////
   var method1 = findMirror(bazClassMembers, "method1");
   Expect.isNotNull(method1, "method1 not found");
@@ -339,7 +339,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method1.isField, "Method is field");
   Expect.isTrue(method1.isMethod, "Method is not method");
   Expect.isFalse(method1.isPrivate, "Method is private");
-  Expect.isFalse(method1.isStatic, "Method is static");
+  Expect.isTrue(method1.isStatic, "Method is not static");
   Expect.isTrue(method1 is MethodMirror, "Method is not MethodMirror");
   Expect.isFalse(method1.isConst, "Method is const");
   Expect.isFalse(method1.isFactory, "Method is factory");
@@ -393,7 +393,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method2.isField, "Method is field");
   Expect.isTrue(method2.isMethod, "Method is not method");
   Expect.isFalse(method2.isPrivate, "Method is private");
-  Expect.isTrue(method2.isStatic, "Method is not static");
+  Expect.isFalse(method2.isStatic, "Method is static");
   Expect.isTrue(method2 is MethodMirror, "Method is not MethodMirror");
   Expect.isFalse(method2.isConst, "Method is const");
   Expect.isFalse(method2.isFactory, "Method is factory");
@@ -445,7 +445,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isTrue(method2Parameter2.isOptional, "Parameter is not optional");
 
   ////////////////////////////////////////////////////////////////////////////
-  // void method3(E func1(F f), Func<E,F> func2) {}
+  // Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
   ////////////////////////////////////////////////////////////////////////////
   var method3 = findMirror(bazClassMembers, "method3");
   Expect.isNotNull(method3, "method3 not found");
@@ -472,7 +472,13 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isNull(method3.operatorName,
                 "Method operatorName is non-null");
 
-  Expect.equals(voidType, method3.returnType, "Return type is not void");
+  var method3ReturnType = method3.returnType;
+  Expect.isNotNull(method3ReturnType, "Return type is null");
+  Expect.isTrue(method3ReturnType is InterfaceMirror,
+                "Return type is not interface");
+  Expect.equals(bazClass, method3ReturnType.declaration,
+                "Return type is not Baz");
+  // TODO(johnniwinther): Test type arguments of [method3ReturnType].
 
   var method3Parameters = method3.parameters;
   Expect.isNotNull(method3Parameters, "Method parameters is null");
@@ -567,7 +573,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
   Expect.isFalse(method3Parameter2.isOptional, "Parameter is optional");
 
   ////////////////////////////////////////////////////////////////////////////
-  // bool operator==(Object other) => return false;
+  // bool operator==(Object other) => false;
   ////////////////////////////////////////////////////////////////////////////
   var operator_eq = findMirror(bazClassMembers, "operator", operatorName: '==');
   Expect.isNotNull(operator_eq, "operator == not found");
@@ -596,7 +602,7 @@ void testBaz(MirrorSystem system, LibraryMirror helperLibrary,
                       "Unexpected operatorName");
 
   ////////////////////////////////////////////////////////////////////////////
-  // Baz<E,F> operator negate() => this;
+  // int operator negate() => 0;
   ////////////////////////////////////////////////////////////////////////////
   var operator_negate = findMirror(bazClassMembers, "operator",
                            operatorName: 'negate');

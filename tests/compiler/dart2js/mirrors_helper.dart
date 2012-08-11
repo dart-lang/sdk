@@ -25,20 +25,20 @@ interface Bar<E> {
 class Baz<E,F extends Foo> implements Bar<E> {
   Baz();
   const Baz.named();
-  factory Baz.factory();
+  factory Baz.factory() => new Baz<E,F>();
 
-  method1(e) {}
-  static void method2(E e, [F f = null]) {}
-  void method3(E func1(F f), Func<E,F> func2) {}
+  static method1(e) {}
+  void method2(E e, [F f = null]) {}
+  Baz<E,F> method3(E func1(F f), Func<E,F> func2) => null;
 
-  bool operator==(Object other) => return false;
-  Baz<E,F> operator negate() => this;
+  bool operator==(Object other) => false;
+  int operator negate() => 0;
 }
 
 class Boz extends Foo {
   var field1;
   int _field2;
-  final String field3;
+  final String field3 = "field3";
 
   int get field2() => _field2;
   void set field2(int value) {
