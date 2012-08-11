@@ -445,9 +445,6 @@ class ObjectStore {
   // Visit all object pointers.
   void VisitObjectPointers(ObjectPointerVisitor* visitor);
 
-  RawType* GetType(int index);
-  int GetTypeIndex(const RawType* raw_type);
-
   // Called to initialize objects required by the vm but which invoke
   // dart code.  If an error occurs then false is returned and error
   // information is stored in sticky_error().

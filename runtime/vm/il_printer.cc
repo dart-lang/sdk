@@ -221,7 +221,7 @@ void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(function().name()).ToCString());
+  f->Print("%s ", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -400,6 +400,17 @@ void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
   if (start_env_ != NULL) {
+    f->Print("\n{\n");
+    const GrowableArray<Value*>& values = start_env_->values();
+    for (intptr_t i = 0; i < values.length(); i++) {
+      if (values[i]->IsUse()) {
+        Definition* def = values[i]->AsUse()->definition();
+        f->Print("  ", i);
+        def->PrintTo(f);
+        f->Print("\n");
+      }
+    }
+    f->Print("} ");
     start_env_->PrintTo(f);
   }
 }
@@ -421,6 +432,14 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
+  if (def.HasPropagatedType()) {
+    String& name = String::Handle();
+    name = AbstractType::Handle(def.PropagatedType()).Name();
+    f->Print(" {PT: %s}", name.ToCString());
+  }
+}
+
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
@@ -428,6 +447,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     if (i < inputs_.length() - 1) f->Print(", ");
   }
   f->Print(")");
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -435,6 +455,7 @@ void ParameterInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- parameter(%d)",
            HasSSATemp() ? ssa_temp_index() : temp_index(),
            index());
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -461,6 +482,7 @@ void BindInstr::PrintTo(BufferFormatter* f) const {
     f->Print("    t%d <- ", temp_index());
   }
   computation()->PrintTo(f);
+  PrintPropagatedType(f, *this);
 }
 
 

@@ -438,6 +438,12 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static intptr_t GetCid(const Value& v) {
+  const AbstractType& type = AbstractType::Handle(v.CompileType());
+  return Class::Handle(type.type_class()).id();
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -447,16 +453,22 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 intptr_t try_index) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        try_index,
-                                        kDeoptSmiCompareSmi,
-                                        left,
-                                        right);
-  __ movl(temp, left);
-  __ orl(temp, right);
-  __ testl(temp, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
+  const bool left_is_smi = (branch == NULL) ?
+      false : (GetCid(*branch->left()) == kSmiCid);
+  const bool right_is_smi = (branch == NULL) ?
+      false : (GetCid(*branch->right()) == kSmiCid);
+  if (!left_is_smi || !right_is_smi) {
+    Register temp = locs.temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id,
+                                          try_index,
+                                          kDeoptSmiCompareSmi,
+                                          left,
+                                          right);
+    __ movl(temp, left);
+    __ orl(temp, right);
+    __ testl(temp, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+  }
 
   Condition true_condition = TokenKindToSmiCondition(kind);
   __ cmpl(left, right);
@@ -1429,18 +1441,40 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
   ASSERT(left == result);
-  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                        comp->instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
-                                        temp,
-                                        right);
-  // TODO(vegorov): for many binary operations this pattern can be rearranged
-  // to save one move.
-  __ movl(temp, left);
-  __ orl(left, right);
-  __ testl(left, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
-  __ movl(left, temp);
+  const bool left_is_smi = (GetCid(*comp->left()) == kSmiCid);
+  const bool right_is_smi = (GetCid(*comp->right()) == kSmiCid);
+  bool can_deopt;
+  switch (comp->op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      can_deopt = !(right_is_smi && left_is_smi);
+      break;
+    default:
+      can_deopt = true;
+  }
+  Label* deopt = NULL;
+  if (can_deopt) {
+    deopt  = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
+                                    comp->instance_call()->try_index(),
+                                    kDeoptSmiBinaryOp,
+                                    temp,
+                                    right);
+  }
+  if (left_is_smi && right_is_smi) {
+    if (can_deopt) {
+      // Preserve left for deopt.
+      __ movl(temp, left);
+    }
+  } else {
+    // TODO(vegorov): for many binary operations this pattern can be rearranged
+    // to save one move.
+    __ movl(temp, left);
+    __ orl(left, right);
+    __ testl(left, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+    __ movl(left, temp);
+  }
   switch (comp->op_kind()) {
     case Token::kADD: {
       __ addl(left, right);

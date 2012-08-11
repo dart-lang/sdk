@@ -11,6 +11,7 @@
 #include "vm/flow_graph_compiler.h"
 #include "vm/locations.h"
 #include "vm/object.h"
+#include "vm/object_store.h"
 #include "vm/os.h"
 #include "vm/scopes.h"
 #include "vm/stub_code.h"
@@ -767,13 +768,25 @@ RawAbstractType* CatchEntryComp::CompileType() const {
 
 
 RawAbstractType* CheckStackOverflowComp::CompileType() const {
-  return Type::VoidType();
+  return AbstractType::null();
 }
 
 
 RawAbstractType* BinaryOpComp::CompileType() const {
-  // TODO(srdjan): Compute based on input types (ICData).
-  return Type::DynamicType();
+  // TODO(srdjan): Add mint, smi and double type to object store.
+  // TODO(srdjan): Convert to use with class-ids instead of types.
+  if (operands_type() == kMintOperands) {
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    return Type::NewNonParameterizedType(
+        Class::Handle(object_store->mint_class()));
+  } else if (op_kind() == Token::kSHL) {
+    return Type::IntInterface();
+  } else {
+    ASSERT(operands_type() == kSmiOperands);
+    ObjectStore* object_store = Isolate::Current()->object_store();
+    return Type::NewNonParameterizedType(
+        Class::Handle(object_store->smi_class()));
+  }
 }
 
 
