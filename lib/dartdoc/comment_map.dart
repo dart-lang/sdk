@@ -27,8 +27,8 @@ class CommentMap {
   String find(Location span) {
     if (span == null) return null;
 
-    _ensureFileParsed(span.source());
-    final comment = _comments[span.source().uri().toString()][span.start()];
+    _ensureFileParsed(span.source);
+    final comment = _comments[span.source.uri.toString()][span.start];
     if (comment == null) return '';
     return comment;
   }
@@ -39,20 +39,20 @@ class CommentMap {
    */
   String findLibrary(Source source) {
     _ensureFileParsed(source);
-    final comment = _libraryComments[source.uri().toString()];
+    final comment = _libraryComments[source.uri.toString()];
     if (comment == null) return '';
     return comment;
   }
 
   _ensureFileParsed(Source source) {
-    _comments.putIfAbsent(source.uri().toString(), () =>
+    _comments.putIfAbsent(source.uri.toString(), () =>
         _parseComments(source));
   }
 
   _parseComments(Source source) {
     final comments = new Map<int, String>();
 
-    final scanner = new dart2js.StringScanner(source.text(), true);
+    final scanner = new dart2js.StringScanner(source.text, true);
     var lastComment = null;
 
     var token = scanner.tokenize();
@@ -76,7 +76,7 @@ class CommentMap {
         // Look for #library() to find the library comment.
         final next = token.next;
         if ((lastComment != null) && (next.stringValue == 'library')) {
-          _libraryComments[source.uri().toString()] = lastComment;
+          _libraryComments[source.uri.toString()] = lastComment;
           lastComment = null;
         }
       } else if (lastComment != null) {

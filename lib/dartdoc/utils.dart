@@ -50,8 +50,8 @@ String unindent(String text, int indentation) {
 List<Mirror> orderByName(Collection<Mirror> list) {
   final elements = new List<Mirror>.from(list);
   elements.sort((a,b) {
-    String aName = a.simpleName();
-    String bName = b.simpleName();
+    String aName = a.simpleName;
+    String bName = b.simpleName;
     bool doma = aName.startsWith(@"$dom");
     bool domb = bName.startsWith(@"$dom");
     return doma == domb ? aName.compareTo(bName) : doma ? 1 : -1;

@@ -157,22 +157,22 @@ class Htmldoc extends doc.Dartdoc {
   }
 
   String getRecordedLibraryComment(LibraryMirror library) {
-    if (library.simpleName() == HTML_LIBRARY_NAME) {
+    if (library.simpleName == HTML_LIBRARY_NAME) {
       return libraryComment;
     }
     return null;
   }
 
   String getRecordedTypeComment(TypeMirror type) {
-    if (typeComments.containsKey(type.qualifiedName())) {
-      return typeComments[type.qualifiedName()];
+    if (typeComments.containsKey(type.qualifiedName)) {
+      return typeComments[type.qualifiedName];
     }
     return null;
   }
 
   String getRecordedMemberComment(MemberMirror member) {
-    if (memberComments.containsKey(member.qualifiedName())) {
-      return memberComments[member.qualifiedName()];
+    if (memberComments.containsKey(member.qualifiedName)) {
+      return memberComments[member.qualifiedName];
     }
     return null;
   }
@@ -208,7 +208,7 @@ class Htmldoc extends doc.Dartdoc {
       // This is not a handwritten comment.
       return;
     }
-    typeComments[type.qualifiedName()] = comment;
+    typeComments[type.qualifiedName] = comment;
   }
 
   void recordMemberComment(MemberMirror member, String comment) {
@@ -216,7 +216,7 @@ class Htmldoc extends doc.Dartdoc {
       // This is not a handwritten comment.
       return;
     }
-    memberComments[member.qualifiedName()] = comment;
+    memberComments[member.qualifiedName] = comment;
   }
 }
 
@@ -324,21 +324,21 @@ class Apidoc extends doc.Dartdoc {
   void docIndexLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName() == 'dart:nativewrappers') return;
+    if (library.simpleName == 'dart:nativewrappers') return;
     super.docIndexLibrary(library);
   }
 
   void docLibraryNavigationJson(LibraryMirror library, Map libraryMap) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName() == 'dart:nativewrappers') return;
+    if (library.simpleName == 'dart:nativewrappers') return;
     super.docLibraryNavigationJson(library, libraryMap);
   }
 
   void docLibrary(LibraryMirror library) {
     // TODO(rnystrom): Hackish. The IO libraries reference this but we don't
     // want it in the docs.
-    if (library.simpleName() == 'dart:nativewrappers') return;
+    if (library.simpleName == 'dart:nativewrappers') return;
     super.docLibrary(library);
   }
 
@@ -349,7 +349,7 @@ class Apidoc extends doc.Dartdoc {
   }
 
   String getLibraryComment(LibraryMirror library) {
-    if (library.simpleName() == HTML_LIBRARY_NAME) {
+    if (library.simpleName == HTML_LIBRARY_NAME) {
       return htmldoc.libraryComment;
     }
     return super.getLibraryComment(library);
@@ -437,10 +437,10 @@ class Apidoc extends doc.Dartdoc {
    * scraped from MDN.
    */
   includeMdnTypeComment(TypeMirror type) {
-    if (type.library().simpleName() == HTML_LIBRARY_NAME) {
+    if (type.library.simpleName == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
-      final domTypes = _diff.htmlTypesToDom[type.qualifiedName()];
+      final domTypes = _diff.htmlTypesToDom[type.qualifiedName];
 
       // Couldn't find a DOM type.
       if ((domTypes == null) || (domTypes.length != 1)) return null;
@@ -449,12 +449,12 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       type = domTypes.iterator().next();
-    } else if (type.library().simpleName() != DOM_LIBRARY_NAME) {
+    } else if (type.library.simpleName != DOM_LIBRARY_NAME) {
       // Not a DOM type.
       return null;
     }
 
-    final mdnType = mdn[type.simpleName()];
+    final mdnType = mdn[type.simpleName];
     if (mdnType == null) return null;
     if (mdnType['skipped'] != null) return null;
 
@@ -469,10 +469,10 @@ class Apidoc extends doc.Dartdoc {
    */
   includeMdnMemberComment(MemberMirror member) {
     var library = findLibrary(member);
-    if (library.simpleName() == HTML_LIBRARY_NAME) {
+    if (library.simpleName == HTML_LIBRARY_NAME) {
       // If it's an HTML type, try to map it to a base DOM type so we can find
       // the MDN docs.
-      final domMembers = _diff.htmlToDom[member.qualifiedName()];
+      final domMembers = _diff.htmlToDom[member.qualifiedName];
 
       // Couldn't find a DOM type.
       if ((domMembers == null) || (domMembers.length != 1)) return null;
@@ -481,7 +481,7 @@ class Apidoc extends doc.Dartdoc {
       // TODO(rnystrom): Shame there isn't a simpler way to get the one item
       // out of a singleton Set.
       member = domMembers.iterator().next();
-    } else if (library.simpleName() != DOM_LIBRARY_NAME) {
+    } else if (library.simpleName != DOM_LIBRARY_NAME) {
       // Not a DOM type.
       return null;
     }
@@ -489,9 +489,9 @@ class Apidoc extends doc.Dartdoc {
     // Ignore top-level functions.
     if (member.isTopLevel) return null;
 
-    final mdnType = mdn[member.surroundingDeclaration().simpleName()];
+    final mdnType = mdn[member.surroundingDeclaration.simpleName];
     if (mdnType == null) return null;
-    var nameToFind = member.simpleName();
+    var nameToFind = member.simpleName;
     var mdnMember = null;
     for (final candidateMember in mdnType['members']) {
       if (candidateMember['name'] == nameToFind) {
@@ -512,8 +512,8 @@ class Apidoc extends doc.Dartdoc {
    * different library than [member].
    */
   String _linkMember(MemberMirror member) {
-    final typeName = member.surroundingDeclaration().simpleName();
-    var memberName = '$typeName.${member.simpleName()}';
+    final typeName = member.surroundingDeclaration.simpleName;
+    var memberName = '$typeName.${member.simpleName}';
     if (member is MethodMirror && (member.isConstructor || member.isFactory)) {
       final separator = member.constructorName == '' ? '' : '.';
       memberName = 'new $typeName$separator${member.constructorName}';

@@ -36,29 +36,29 @@ HtmlDiff diff;
 /** Whether or not a domType represents the same type as an htmlType. */
 bool sameType(MemberMirror domMember, MemberMirror htmlMember) {
   TypeMirror domType = domMember is FieldMirror
-      ? domMember.type()
-      : domMember.returnType();
+      ? domMember.type
+      : domMember.returnType;
   TypeMirror htmlType = htmlMember is FieldMirror
-      ? htmlMember.type()
-      : htmlMember.returnType();
+      ? htmlMember.type
+      : htmlMember.returnType;
   if (domType.isVoid || htmlType.isVoid) {
     return domType.isVoid && htmlType.isVoid;
   }
 
-  final htmlTypes = diff.domTypesToHtml[domType.qualifiedName()];
+  final htmlTypes = diff.domTypesToHtml[domType.qualifiedName];
   return htmlTypes != null && htmlTypes.some((t) => t == htmlType);
 }
 
 /** Returns the name of a member, including `get:` if it's a field. */
-String memberName(MemberMirror m) => m.simpleName();
+String memberName(MemberMirror m) => m.simpleName;
 
 /**
  * Returns a string describing the name of a member. If [type] is passed, it's
  * used in place of the member's real type name.
  */
 String memberDesc(MemberMirror m, [ObjectMirror type = null]) {
-  if (type == null) type = m.surroundingDeclaration();
-  return '${type.simpleName()}.${memberName(m)}';
+  if (type == null) type = m.surroundingDeclaration;
+  return '${type.simpleName}.${memberName(m)}';
 }
 
 /**
@@ -66,8 +66,8 @@ String memberDesc(MemberMirror m, [ObjectMirror type = null]) {
  * its `dart:html` typename is used instead.
  */
 String htmlishMemberDesc(MemberMirror m) {
-  var type = m.surroundingDeclaration();
-  final htmlTypes = diff.domTypesToHtml[type.qualifiedName()];
+  var type = m.surroundingDeclaration;
+  final htmlTypes = diff.domTypesToHtml[type.qualifiedName];
   if (htmlTypes != null && htmlTypes.length == 1) {
     type = htmlTypes.iterator().next();
   }
@@ -104,12 +104,12 @@ void main() {
 
   final removed = <String>[];
 
-  for (InterfaceMirror type in HtmlDiff.dom.types().getValues()) {
-    if (type.declaredMembers().getValues().every((m) =>
+  for (InterfaceMirror type in HtmlDiff.dom.types.getValues()) {
+    if (type.declaredMembers.getValues().every((m) =>
           !diff.domToHtml.containsKey(m))) {
-      removed.add('${type.simpleName()}.*');
+      removed.add('${type.simpleName}.*');
     } else {
-      for (MemberMirror member in type.declaredMembers().getValues()) {
+      for (MemberMirror member in type.declaredMembers.getValues()) {
         if (!diff.domToHtml.containsKey(member)) {
             removed.add(htmlishMemberDesc(member));
         }

@@ -89,10 +89,10 @@ class HtmlDiff {
             const Path(DOM_LIBRARY_NAME),
             const Path(HTML_LIBRARY_NAME)
         ], libDir);
-    _mirrors = _compilation.mirrors();
+    _mirrors = _compilation.mirrors;
 
     // Find 'dart:dom_deprecated' by its library tag 'dom'.
-    dom = findMirror(_mirrors.libraries(), DOM_LIBRARY_NAME);
+    dom = findMirror(_mirrors.libraries, DOM_LIBRARY_NAME);
   }
 
   HtmlDiff([bool printWarnings = false]) :
@@ -117,22 +117,22 @@ class HtmlDiff {
    * [HtmlDiff.initialize] should be called.
    */
   void run() {
-    LibraryMirror htmlLib = findMirror(_mirrors.libraries(), HTML_LIBRARY_NAME);
+    LibraryMirror htmlLib = findMirror(_mirrors.libraries, HTML_LIBRARY_NAME);
     if (htmlLib === null) {
       warn('Could not find $HTML_LIBRARY_NAME');
       return;
     }
-    for (InterfaceMirror htmlType in htmlLib.types().getValues()) {
+    for (InterfaceMirror htmlType in htmlLib.types.getValues()) {
       final domTypes = htmlToDomTypes(htmlType);
       if (domTypes.isEmpty()) continue;
 
-      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName(),
+      htmlTypesToDom.putIfAbsent(htmlType.qualifiedName,
           () => new Set()).addAll(domTypes);
       domTypes.forEach((t) =>
-          domTypesToHtml.putIfAbsent(t.qualifiedName(),
+          domTypesToHtml.putIfAbsent(t.qualifiedName,
             () => new Set()).add(htmlType));
 
-      htmlType.declaredMembers().forEach(
+      htmlType.declaredMembers.forEach(
           (_, m) => _addMemberDiff(m, domTypes));
     }
   }
@@ -147,14 +147,14 @@ class HtmlDiff {
     var domMembers = htmlToDomMembers(htmlMember, domTypes);
     if (htmlMember == null && !domMembers.isEmpty()) {
       warn('$HTML_LIBRARY_NAME member '
-           '${htmlMember.surroundingDeclaration().simpleName()}.'
-           '${htmlMember.simpleName()} has no corresponding '
+           '${htmlMember.surroundingDeclaration.simpleName}.'
+           '${htmlMember.simpleName} has no corresponding '
            '$HTML_LIBRARY_NAME member.');
     }
 
     if (htmlMember == null) return;
     if (!domMembers.isEmpty()) {
-      htmlToDom[htmlMember.qualifiedName()] = domMembers;
+      htmlToDom[htmlMember.qualifiedName] = domMembers;
     }
     domMembers.forEach((m) =>
         domToHtml.putIfAbsent(m, () => new Set()).add(htmlMember));
@@ -166,8 +166,8 @@ class HtmlDiff {
    * correspondence is found.
    */
   List<InterfaceMirror> htmlToDomTypes(InterfaceMirror htmlType) {
-    if (htmlType.simpleName() == null) return [];
-    final tags = _getTags(comments.find(htmlType.location()));
+    if (htmlType.simpleName == null) return [];
+    final tags = _getTags(comments.find(htmlType.location));
     if (tags.containsKey('domName')) {
       var domNames = <String>[];
       for (var s in tags['domName'].split(',')) {
@@ -176,7 +176,7 @@ class HtmlDiff {
       if (domNames.length == 1 && domNames[0] == 'none') return [];
       var domTypes = <InterfaceMirror>[];
       for (var domName in domNames) {
-        final domType = findMirror(dom.types(), domName);
+        final domType = findMirror(dom.types, domName);
         if (domType == null) {
           warn('no $DOM_LIBRARY_NAME type named $domName');
         } else {
@@ -198,7 +198,7 @@ class HtmlDiff {
   Set<MemberMirror> htmlToDomMembers(MemberMirror htmlMember,
                                      List<InterfaceMirror> domTypes) {
     if (htmlMember.isPrivate) return new Set();
-    final tags = _getTags(comments.find(htmlMember.location()));
+    final tags = _getTags(comments.find(htmlMember.location));
     if (tags.containsKey('domName')) {
       var domNames = <String>[];
       for (var s in tags['domName'].split(',')) {
@@ -214,7 +214,7 @@ class HtmlDiff {
           } else {
             final options = <String>[];
             for (var t in domTypes) {
-              options.add('${t.simpleName()}.${name}');
+              options.add('${t.simpleName}.${name}');
             }
             Strings.join(options, ' or ');
             warn('no member $options');
@@ -245,7 +245,7 @@ class HtmlDiff {
       }
       final members = new Set<MemberMirror>();
       defaultTypes.forEach((t) {
-        MemberMirror member = findMirror(t.declaredMembers(), name);
+        MemberMirror member = findMirror(t.declaredMembers, name);
         if (member !== null) {
           members.add(member);
         }
@@ -261,10 +261,10 @@ class HtmlDiff {
 
     var typeName = splitName[0];
 
-    InterfaceMirror type = findMirror(dom.types(), typeName);
+    InterfaceMirror type = findMirror(dom.types, typeName);
     if (type == null) return new Set();
 
-    MemberMirror member = findMirror(type.declaredMembers(), splitName[1]);
+    MemberMirror member = findMirror(type.declaredMembers, splitName[1]);
     if (member == null) return new Set();
 
     return new Set.from([member]);

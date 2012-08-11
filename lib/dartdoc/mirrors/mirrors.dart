@@ -38,7 +38,7 @@ class Compilation {
   /**
    * Returns the mirror system for this compilation.
    */
-  abstract MirrorSystem mirrors();
+  final MirrorSystem mirrors;
 
   /**
    * Returns a future for the compiled JavaScript code.
@@ -53,7 +53,7 @@ interface MirrorSystem {
   /**
    * Returns an unmodifiable map of all libraries in this mirror system.
    */
-  Map<Object, LibraryMirror> libraries();
+  final Map<Object, LibraryMirror> libraries;
 }
 
 
@@ -66,14 +66,14 @@ interface Mirror extends Hashable {
    * the declared single identifier name of the entity, such as 'method' for
    * a method [:void method() {...}:].
    */
-  String simpleName();
+  final String simpleName;
 
   /**
    * Returns the name of this entity qualified by is enclosing context. For
    * instance, the qualified name of a method 'method' in class 'Class' in
    * library 'library' is 'library.Class.method'.
    */
-  String qualifiedName();
+  final String qualifiedName;
 
   /**
    * Returns the mirror system which contains this mirror.
@@ -90,7 +90,7 @@ interface ObjectMirror extends Mirror {
    * Returns an unmodifiable map of the members of declared in this type or
    * library.
    */
-  Map<Object, MemberMirror> declaredMembers();
+  final Map<Object, MemberMirror> declaredMembers;
 }
 
 /**
@@ -100,17 +100,17 @@ interface LibraryMirror extends ObjectMirror {
   /**
    * The name of the library, as given in #library().
    */
-  String simpleName();
+  final String simpleName;
 
   /**
    * Returns an iterable over all types in the library.
    */
-  Map<Object, InterfaceMirror> types();
+  final Map<Object, InterfaceMirror> types;
 
   /**
    * Returns the source location for this library.
    */
-  Location location();
+  final Location location;
 }
 
 /**
@@ -120,12 +120,12 @@ interface TypeMirror extends Mirror {
   /**
    * Returns the source location for this type.
    */
-  Location location();
+  final Location location;
 
   /**
    * Returns the library in which this member resides.
    */
-  LibraryMirror library();
+  final LibraryMirror library;
 
   /**
    * Is [:true:] iff this type is the [:Object:] type.
@@ -171,12 +171,12 @@ interface InterfaceMirror extends TypeMirror, ObjectMirror {
    * Returns the super class of this type, or null if this type is [Object] or a
    * typedef.
    */
-  InterfaceMirror superclass();
+  final InterfaceMirror superclass;
 
   /**
    * Returns an iterable over the interfaces directly implemented by this type.
    */
-  Map<Object, InterfaceMirror> interfaces();
+  final Map<Object, InterfaceMirror> interfaces;
 
   /**
    * Is [:true:] iff this type is a class.
@@ -201,29 +201,22 @@ interface InterfaceMirror extends TypeMirror, ObjectMirror {
   /**
    * Returns a list of the type arguments for this type.
    */
-  // Return a list instead of a map since the order of type arguments matters.
-  // Also, there is no clear candidate for the keys, other than the indices,
-  // which again is an argument for returning a list.
-  List<TypeMirror> typeArguments();
+  final List<TypeMirror> typeArguments;
 
   /**
    * Returns the list of type variables for this type.
    */
-  // Return a list instead of a map since the order of type variable matters.
-  // Even though the type variable name is a candidate for the key, the index
-  // of a type variable has a more stable semantics, which is an argument for
-  // returning a list instead of a map.
-  List<TypeVariableMirror> typeVariables();
+  final List<TypeVariableMirror> typeVariables;
 
   /**
    * Returns an immutable map of the constructors in this interface.
    */
-  Map<Object, MethodMirror> constructors();
+  final Map<Object, MethodMirror> constructors;
 
   /**
    * Returns the default type for this interface.
    */
-  InterfaceMirror defaultType();
+  final InterfaceMirror defaultType;
 }
 
 /**
@@ -237,12 +230,12 @@ interface TypeVariableMirror extends TypeMirror {
   // Should not be called [declaration] as we then would have two [TypeMirror]
   // subtypes ([InterfaceMirror] and [TypeVariableMirror]) which have
   // [declaration()] methods but with different semantics.
-  InterfaceMirror declarer();
+  final InterfaceMirror declarer;
 
   /**
    * Returns the bound of the type parameter.
    */
-  TypeMirror bound();
+  final TypeMirror bound;
 }
 
 /**
@@ -252,17 +245,17 @@ interface FunctionTypeMirror extends InterfaceMirror {
   /**
    * Returns the return type of this function type.
    */
-  TypeMirror returnType();
+  final TypeMirror returnType;
 
   /**
    * Returns the parameters for this function type.
    */
-  List<ParameterMirror> parameters();
+  final List<ParameterMirror> parameters;
 
   /**
    * Returns the call method for this function type.
    */
-  MethodMirror callMethod();
+  final MethodMirror callMethod;
 }
 
 /**
@@ -273,7 +266,7 @@ interface TypedefMirror extends InterfaceMirror {
    * Returns the defining type for this typedef. For instance [:void f(int):]
    * for a [:typedef void f(int):].
    */
-  TypeMirror definition();
+  final TypeMirror definition;
 }
 
 /**
@@ -283,13 +276,13 @@ interface MemberMirror extends Mirror {
   /**
    * Returns the source location for this member.
    */
-  Location location();
+  final Location location;
 
   /**
    * Returns a mirror on the declaration immediately surrounding the reflectee.
    * This could be a class, interface, library or another method or function.
    */
-  ObjectMirror surroundingDeclaration();
+  final ObjectMirror surroundingDeclaration;
 
   /**
    * Returns true if this is a top level member, i.e. a member not within a
@@ -336,7 +329,7 @@ interface FieldMirror extends MemberMirror {
   /**
    * Returns the type of this field.
    */
-  TypeMirror type();
+  final TypeMirror type;
 }
 
 /**
@@ -347,12 +340,12 @@ interface MethodMirror extends MemberMirror {
   /**
    * Returns the list of parameters for this method.
    */
-  List<ParameterMirror> parameters();
+  final List<ParameterMirror> parameters;
 
   /**
    * Returns the return type of this method.
    */
-  TypeMirror returnType();
+  final TypeMirror returnType;
 
   /**
    * Is [:true:] if this method is a constant constructor.
@@ -399,34 +392,34 @@ interface ParameterMirror extends Mirror {
   /**
    * Returns the type of this parameter.
    */
-  TypeMirror type();
+  final TypeMirror type;
 
   /**
    * Returns the default value for this parameter.
    */
-  String defaultValue();
+  final String defaultValue;
 
   /**
    * Returns true if this parameter has a default value.
    */
-  bool hasDefaultValue();
+  final bool hasDefaultValue;
 
   /**
    * Returns true if this parameter is optional.
    */
-  bool isOptional();
+  final bool isOptional;
 
   /**
    * Returns [:true:] iff this parameter is an initializing formal of a
    * constructor. That is, if it is of the form [:this.x:] where [:x:] is a
    * field.
    */
-  bool isInitializingFormal();
+  final bool isInitializingFormal;
 
   /**
    * Returns the initialized field, if this parameter is an initializing formal.
    */
-  FieldMirror initializedField();
+  final FieldMirror initializedField;
 }
 
 /**
@@ -438,24 +431,24 @@ interface Location {
   /**
    * The character position where the location begins.
    */
-  int start();
+  final int start;
 
   /**
    * The character position where the location ends.
    */
-  int end();
+  final int end;
 
   /**
    * Returns the [Source] in which this [Location] indexes.
    * If [:loc:] is a location, [:loc.source().text()[loc.start()] is where it
    * starts, and [:loc.source().text()[loc.end()] is where it ends.
    */
-  Source source();
+  final Source source;
 
   /**
    * The text of the location span.
    */
-  String text();
+  final String text;
 }
 
 /**
@@ -466,10 +459,10 @@ interface Source {
   /**
    * Returns the URI where the source originated.
    */
-  Uri uri();
+  final Uri uri;
 
   /**
    * Returns the text of this source.
    */
-  String text();
+  final String text;
 }
