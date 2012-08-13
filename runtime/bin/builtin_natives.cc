@@ -65,7 +65,12 @@
   V(Socket_GetRemotePeer, 1)                                                   \
   V(Socket_GetError, 1)                                                        \
   V(Socket_GetStdioHandle, 2)                                                  \
-  V(Socket_NewServicePort, 0)
+  V(Socket_NewServicePort, 0)                                                  \
+  V(TlsSocket_Connect, 1)                                                      \
+  V(TlsSocket_Destroy, 1)                                                      \
+  V(TlsSocket_Init, 1)                                                         \
+  V(TlsSocket_ProcessBuffer, 2)                                                \
+  V(TlsSocket_RegisterHandshakeCallbacks, 3)
 
 
 BUILTIN_NATIVE_LIST(DECLARE_FUNCTION);

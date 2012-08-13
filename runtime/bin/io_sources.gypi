@@ -43,6 +43,8 @@
     'stream_util.dart',
     'string_stream.dart',
     'timer_impl.dart',
+    'tls_socket.dart',
+    'tls_socket_impl.dart',
     'websocket.dart',
     'websocket_impl.dart',
   ],

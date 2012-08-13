@@ -294,6 +294,7 @@
           'link_settings': {
             'libraries': [
               '-ldl',
+              '-lssl',
             ],
           },
         }],
