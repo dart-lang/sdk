@@ -270,8 +270,8 @@ type_variable_bounds2_test/00: Fail # See above
 type_variable_bounds2_test/03: Fail # See above
 type_variable_bounds2_test/05: Fail # See above
 try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
+const_test: Fail # For constructs like c[0]++, for some reason operator[] doesn't make into resolved elements.
 # Should be triaged.
-const_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
 field2_negative_test: Fail
