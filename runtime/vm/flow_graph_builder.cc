@@ -28,6 +28,7 @@ DEFINE_FLAG(bool, print_flow_graph, false, "Print the IR flow graph.");
 DEFINE_FLAG(bool, trace_type_check_elimination, false,
             "Trace type check elimination at compile time.");
 DECLARE_FLAG(bool, enable_type_checks);
+DECLARE_FLAG(bool, use_ssa);
 
 
 FlowGraphBuilder::FlowGraphBuilder(const ParsedFunction& parsed_function)
@@ -2195,11 +2196,22 @@ void EffectGraphVisitor::VisitSequenceNode(SequenceNode* node) {
                             NULL,
                             parameter.type(),
                             parameter.name())) {
-        Value* load = Bind(BuildLoadLocal(parameter));
-        Do(BuildAssertAssignable(parameter.token_pos(),
-                                 load,
-                                 parameter.type(),
-                                 parameter.name()));
+        Value* parameter_value = Bind(BuildLoadLocal(parameter));
+        AssertAssignableComp* assert_assignable =
+            BuildAssertAssignable(parameter.token_pos(),
+                                  parameter_value,
+                                  parameter.type(),
+                                  parameter.name());
+        if (FLAG_use_ssa) {
+          parameter_value = Bind(assert_assignable);
+          // Store the type checked argument back to its corresponding local
+          // variable so that ssa renaming detects the dependency and makes use
+          // of the checked type in type propagation.
+          Do(BuildStoreLocal(parameter, parameter_value));
+        } else {
+          // No need to store the check parameter value back when not using ssa.
+          Do(assert_assignable);
+        }
       }
       pos++;
     }

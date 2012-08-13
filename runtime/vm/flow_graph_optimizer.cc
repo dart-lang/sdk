@@ -7,6 +7,8 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/il_printer.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
+#include "vm/scopes.h"
 
 namespace dart {
 
@@ -599,6 +601,7 @@ void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
     if (val->IsUse()) {
       ParameterInstr* param = val->AsUse()->definition()->AsParameter();
       if (param != NULL) {
+        ASSERT(param->index() == i);
         VisitParameter(param);
       }
     }
@@ -649,9 +652,20 @@ void FlowGraphTypePropagator::VisitPhi(PhiInstr* phi) {
 void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   // TODO(regis): Once we inline functions, the propagated type of the formal
   // parameter will reflect the compile type of the passed-in argument.
-  // For now, we do not known anything about this type and therefore set it to
-  // the DynamicType.
-  bool changed = param->SetPropagatedType(Type::Handle(Type::DynamicType()));
+  // For now, we do not know anything about the argument type and therefore set
+  // it to the DynamicType, unless the argument is a compiler generated value,
+  // i.e. the receiver argument or the constructor phase argument.
+  AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
+  if (param->index() < 2) {
+    const Function& function = parsed_function().function();
+    if (((param->index() == 0) && function.IsDynamicFunction()) ||
+        ((param->index() == 1) && function.IsConstructor())) {
+      // Parameter is the receiver or the constructor phase.
+      LocalScope* scope = parsed_function().node_sequence()->scope();
+      param_type = scope->VariableAt(param->index())->type().raw();
+    }
+  }
+  bool changed = param->SetPropagatedType(param_type);
   if (changed) {
     still_changing_ = true;
   }
