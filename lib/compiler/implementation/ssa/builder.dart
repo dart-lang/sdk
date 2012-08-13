@@ -988,7 +988,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.isResolved);
+        assert(superClass.resolutionState == ClassElement.STATE_DONE);
         FunctionElement target = superClass.lookupConstructor(superClass.name);
         if (target === null) {
           compiler.internalError("no default constructor available");

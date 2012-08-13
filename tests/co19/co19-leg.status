@@ -12,6 +12,37 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t01: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t02: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t06: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t07: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t06: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # TODO(ahe): I'm working on these.
+
+
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
@@ -25,13 +56,6 @@ LibTest/core/double/operator_remainder_A01_t04: Fail
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
 Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
-
-# This test sometimes passes (as a negative test), sometimes it
-# crashes. The problem is that there is a stack overflow in
-# dart2js. The reason for the test sometimes passing is VM issue
-# 3874. The stack overflow is addressed in
-# https://chromiumcodereview.appspot.com/10661029/.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Crash, Pass
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
@@ -227,8 +251,15 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
-LibTest/core/Math/max_A01_t03: Fail # co19 issue 157
-LibTest/core/Math/min_A01_t03: Fail # co19 issue 157
+LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
+LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
+
+# Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK # Bad test, fixed in r295.
+Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Pass # TODO(ahe): Passing for wrong reasons.
+
+# Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail, OK # Bad test, fixed in r295.
+Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Pass # TODO(ahe): Passing for wrong reasons.
+
 
 
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # Bad test: assumes eager loading.
@@ -604,10 +635,6 @@ Language/07_Classes/9_Superinterfaces_A04_t01: Fail # @compile-error
 Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail # @compile-error
 Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail # @compile-error
 Language/08_Interfaces/1_Methods_A01_t01: Fail # @compile-error
-Language/08_Interfaces/1_Methods_A03_t01: Fail # @compile-error
-Language/08_Interfaces/1_Methods_A03_t02: Fail # @compile-error
-Language/08_Interfaces/1_Methods_A03_t03: Fail # @compile-error
-Language/08_Interfaces/1_Methods_A03_t04: Fail # @compile-error
 Language/08_Interfaces/1_Methods_A04_t01: Fail # @compile-error
 Language/08_Interfaces/1_Methods_A04_t02: Fail # @compile-error
 Language/08_Interfaces/1_Methods_A04_t03: Fail # @compile-error
@@ -617,16 +644,10 @@ Language/08_Interfaces/1_Methods_A05_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail # @compile-error
@@ -762,6 +783,7 @@ Language/12_Libraries_and_Scripts/2_Imports_A07_t02: Fail # @compile-error
 Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail # @compile-error
 Language/12_Libraries_and_Scripts/3_Includes_A01_t01: Fail # @compile-error
 Language/12_Libraries_and_Scripts/3_Includes_A03_t03: Fail # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # @compile-error
 Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # @compile-error
 Language/13_Types/7_Type_Void_A01_t02: Fail # @compile-error

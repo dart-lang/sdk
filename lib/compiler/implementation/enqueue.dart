@@ -214,9 +214,7 @@ class Enqueuer {
       while (cls !== null) {
         if (seenClasses.contains(cls)) return;
         seenClasses.add(cls);
-        // TODO(ahe): Don't call resolveType, instead, call this method
-        // when resolveType is called.
-        compiler.resolveClass(cls);
+        cls.ensureResolved(compiler);
         cls.members.forEach(processInstantiatedClassMember);
         cls = cls.superclass;
       }

@@ -148,6 +148,8 @@ class Compiler implements DiagnosticListener {
 
   bool compilationFailed = false;
 
+  bool hasCrashed = false;
+
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
             this.enableUserAssertions = false,
@@ -203,6 +205,8 @@ class Compiler implements DiagnosticListener {
   }
 
   void unhandledExceptionOnElement(Element element) {
+    if (hasCrashed) return;
+    hasCrashed = true;
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
@@ -763,10 +767,6 @@ class Compiler implements DiagnosticListener {
   void registerInstantiatedClass(ClassElement cls) {
     enqueuer.resolution.registerInstantiatedClass(cls);
     enqueuer.codegen.registerInstantiatedClass(cls);
-  }
-
-  void resolveClass(ClassElement element) {
-    withCurrentElement(element, () => resolver.resolveClass(element));
   }
 
   Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {

@@ -1130,7 +1130,7 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.isResolved);
+        assert(superClass.resolutionState == ClassElement.STATE_DONE);
         FunctionElement targetConstructor =
             superClass.lookupConstructor(superClass.name);
         if (targetConstructor === null) {

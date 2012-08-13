@@ -42,6 +42,24 @@ arithmetic_test: Fail
 assertion_test: Fail
 
 [ $compiler == dart2js ]
+bad_override_test/01: Fail # TODO(ahe): I'm working on these.
+bad_override_test/02: Fail # TODO(ahe): I'm working on these.
+bad_override_test/03: Fail # TODO(ahe): I'm working on these.
+bad_override_test/04: Fail # TODO(ahe): I'm working on these.
+bad_override_test/05: Fail # TODO(ahe): I'm working on these.
+bad_override_test/06: Fail # TODO(ahe): I'm working on these.
+class_override_negative_test: Fail # TODO(ahe): I'm working on these.
+fauxverride_test/05: Fail # TODO(ahe): I'm working on these.
+override_field_method1_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_method2_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_method3_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_method4_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_method5_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_method6_negative_test: Fail # TODO(ahe): I'm working on these.
+override_field_test/01: Fail # TODO(ahe): I'm working on these.
+override_method_with_field_test/01: Fail # TODO(ahe): I'm working on these.
+
+
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 

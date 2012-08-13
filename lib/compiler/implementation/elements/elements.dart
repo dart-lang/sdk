@@ -483,8 +483,9 @@ class TypedefElement extends Element implements TypeDeclarationElement {
 
   Type computeType(Compiler compiler) {
     if (cachedType !== null) return cachedType;
-    cachedType = compiler.computeFunctionType(
-        this, compiler.resolveTypedef(this));
+    cachedType = new FunctionType(null, null, this);
+    cachedType.initializeFrom(
+        compiler.computeFunctionType(this, compiler.resolveTypedef(this)));
     return cachedType;
   }
 
@@ -979,6 +980,10 @@ abstract class TypeDeclarationElement implements Element {
 
 class ClassElement extends ContainerElement
     implements TypeDeclarationElement {
+  static final int STATE_NOT_STARTED = 0;
+  static final int STATE_STARTED = 1;
+  static final int STATE_DONE = 2;
+
   final int id;
   InterfaceType type;
   Type supertype;
@@ -986,13 +991,25 @@ class ClassElement extends ContainerElement
   Link<Element> members = const EmptyLink<Element>();
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
-  Link<Type> interfaces = const EmptyLink<Type>();
-
-  LinkedHashMap<SourceString, TypeVariableElement> typeParameters;
+  Link<Type> interfaces;
   SourceString nativeName;
 
-  bool isResolved = false;
-  bool isBeingResolved = false;
+  int _supertypeLoadState = STATE_NOT_STARTED;
+  int get supertypeLoadState() => _supertypeLoadState;
+  void set supertypeLoadState(int state) {
+    assert(state == _supertypeLoadState + 1);
+    assert(state <= STATE_DONE);
+    _supertypeLoadState = state;
+  }
+
+  int _resolutionState = STATE_NOT_STARTED;
+  int get resolutionState() => _resolutionState;
+  void set resolutionState(int state) {
+    assert(state == _resolutionState + 1);
+    assert(state <= STATE_DONE);
+    _resolutionState = state;
+  }
+
   // backendMembers are members that have been added by the backend to simplify
   // compilation. They don't have any user-side counter-part.
   Link<Element> backendMembers = const EmptyLink<Element>();
@@ -1030,7 +1047,9 @@ class ClassElement extends ContainerElement
   Link<Type> get typeVariables() => type.arguments;
 
   ClassElement ensureResolved(Compiler compiler) {
-    compiler.resolveClass(this);
+    if (resolutionState == STATE_NOT_STARTED) {
+      compiler.resolver.resolveClass(this);
+    }
     return this;
   }
 
@@ -1117,7 +1136,7 @@ class ClassElement extends ContainerElement
    * The returned element may not be resolved yet.
    */
   ClassElement get superclass() {
-    assert(isResolved);
+    assert(supertypeLoadState == STATE_DONE);
     return supertype === null ? null : supertype.element;
   }
 
@@ -1201,38 +1220,8 @@ class ClassElement extends ContainerElement
   Scope buildScope() =>
       new ClassScope(enclosingElement.buildScope(), this);
 
-  void cloneMembersTo(Element target, DiagnosticListener listener) {
-    target.type = type;
-    target.supertype = supertype;
-    target.defaultClass = defaultClass;
-    target.interfaces = interfaces;
-    if (typeParameters !== null) {
-      target.typeParameters =
-          new LinkedHashMap<SourceString, TypeVariableElement>();
-      typeParameters.forEach((SourceString name, TypeVariableElement type) {
-        target.typeParameters[name] = type.cloneTo(target, listener);
-      });
-    }
-    target.nativeName = nativeName;
-    target.isResolved = isResolved;
-    target.isBeingResolved = isBeingResolved;
-    target.allSupertypes = allSupertypes;
-    if (!backendMembers.isEmpty()) {
-      listener.cancel("Cloning backend-modified class.", element: this);
-    }
-
-    Link<Element> elementList = this.members;
-    while (!elementList.isEmpty()) {
-      target.addMember(elementList.head.cloneTo(target, listener), listener);
-      elementList = elementList.tail;
-    }
-  }
-
   ClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
-    // TODO(lrn): Is copying id acceptable?
-    ClassElement result = new ClassElement(name, enclosing, id);
-    cloneMembersTo(result, listener);
-    return result;
+    listener.internalErrorOnElement(this, 'unsupported operation');
   }
 }
 

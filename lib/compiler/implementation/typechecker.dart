@@ -93,11 +93,11 @@ class InterfaceType implements Type {
 
 class FunctionType implements Type {
   final Element element;
-  final Type returnType;
-  final Link<Type> parameterTypes;
+  Type returnType;
+  Link<Type> parameterTypes;
 
-  const FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
-                     Element this.element);
+  FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
+               Element this.element);
 
   toString() {
     StringBuffer sb = new StringBuffer();
@@ -114,6 +114,13 @@ class FunctionType implements Type {
     int arity = 0;
     parameterTypes.forEach((_) { arity++; });
     return arity;
+  }
+
+  void initializeFrom(FunctionType other) {
+    assert(returnType === null);
+    assert(parameterTypes === null);
+    returnType = other.returnType;
+    parameterTypes = other.parameterTypes;
   }
 }
 

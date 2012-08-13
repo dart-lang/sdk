@@ -37,9 +37,30 @@ class PartialClassElement extends ClassElement {
 
   PartialClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
     parseNode(listener);
+    // TODO(lrn): Is copying id acceptable?
+    // TODO(ahe): No.
     PartialClassElement result =
         new PartialClassElement(name, beginToken, endToken, enclosing, id);
-    cloneMembersTo(result, listener);
+
+    assert(this.supertypeLoadState == ClassElement.STATE_NOT_STARTED);
+    assert(this.resolutionState == ClassElement.STATE_NOT_STARTED);
+    assert(this.type === null);
+    assert(this.supertype === null);
+    assert(this.defaultClass === null);
+    assert(this.interfaces === null);
+    assert(this.allSupertypes === null);
+    assert(this.backendMembers.isEmpty());
+
+    // Native is only used in DOM/HTML library for which we don't
+    // support patching.
+    assert(this.nativeName === null);
+
+    Link<Element> elementList = this.members;
+    while (!elementList.isEmpty()) {
+      result.addMember(elementList.head.cloneTo(result, listener), listener);
+      elementList = elementList.tail;
+    }
+
     result.cachedNode = cachedNode;
     return result;
   }

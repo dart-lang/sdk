@@ -11,6 +11,7 @@
 #import('../../../lib/compiler/implementation/source_file.dart');
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
+#import('../../../lib/compiler/compiler.dart', prefix: 'api');
 #import("parser_helper.dart");
 
 class WarningMessage {
@@ -105,6 +106,15 @@ class MockCompiler extends Compiler {
     errors.add(new WarningMessage(node, message.message));
   }
 
+  void reportMessage(SourceSpan span, var message, api.Diagnostic kind) {
+    var diagnostic = new WarningMessage(null, message.message);
+    if (kind === api.Diagnostic.ERROR) {
+      errors.add(diagnostic);
+    } else {
+      warnings.add(diagnostic);
+    }
+  }
+
   void reportDiagnostic(SourceSpan span, String message, var kind) {
     print(message);
   }
@@ -129,10 +139,6 @@ class MockCompiler extends Compiler {
     }
     visitor.visit(tree);
     visitor.scope = new TopScope(element.getLibrary());
-    // Resolve the type annotations encountered in the code.
-    while (!resolver.toResolve.isEmpty()) {
-      resolver.toResolve.removeFirst().ensureResolved(this);
-    }
     return visitor.mapping;
   }
 
