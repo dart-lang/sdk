@@ -222,10 +222,8 @@ bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
 
 
 RawAbstractType* PhiInstr::CompileType() const {
-  if (HasPropagatedType()) {
-    return PropagatedType();
-  }
-  // If type propagation has not yet occured, we are reaching this phi via a
+  ASSERT(!HasPropagatedType());
+  // Since type propagation has not yet occured, we are reaching this phi via a
   // back edge phi input. Return null as compile type so that this input is
   // ignored in the first iteration of type propagation.
   return AbstractType::null();
@@ -260,12 +258,7 @@ RawAbstractType* PhiInstr::LeastSpecificInputType() const {
 
 
 RawAbstractType* ParameterInstr::CompileType() const {
-  // TODO(regis): Can type feedback provide information about the compile type
-  // of a passed-in parameter? In that case, it would be stored in the
-  // propagated_type_ field.
-  if (HasPropagatedType()) {
-    return PropagatedType();
-  }
+  ASSERT(!HasPropagatedType());
   // Note that returning the declared type of the formal parameter would be
   // incorrect, because ParameterInstr is used as input to the type check
   // verifying the run time type of the passed-in parameter and this check would
@@ -326,9 +319,7 @@ void Definition::ReplaceUsesWith(Definition* other) {
 
 
 RawAbstractType* BindInstr::CompileType() const {
-  if (HasPropagatedType()) {
-    return PropagatedType();
-  }
+  ASSERT(!HasPropagatedType());
   // The compile type may be requested when building the flow graph, i.e. before
   // type propagation has occurred.
   return computation()->CompileType();
@@ -575,7 +566,15 @@ RawAbstractType* ConstantVal::CompileType() const {
 
 
 RawAbstractType* UseVal::CompileType() const {
-  return definition()->CompileType();
+  if (definition()->HasPropagatedType()) {
+    return definition()->PropagatedType();
+  }
+  // The compile type may be requested when building the flow graph, i.e. before
+  // type propagation has occurred. To avoid repeatedly computing the compile
+  // type of the definition, we store it as initial propagated type.
+  AbstractType& type = AbstractType::Handle(definition()->CompileType());
+  definition()->SetPropagatedType(type);
+  return type.raw();
 }
 
 
