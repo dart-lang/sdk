@@ -5,7 +5,7 @@
 // Patch file for dart:math library.
 
 // Imports checkNum etc. used below.
-#import("../js_helper.dart");
+#import("js_helper.dart");
 
 // TODO(lrn): Consider not using the JS function directly, but instead calling
 // helper functions in the "js_helper" library. Then we can stop enabling JS

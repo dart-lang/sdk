@@ -15,7 +15,7 @@
 #source('../../../../corelib/src/double.dart');
 #source('../../../../corelib/src/duration.dart');
 #source('../../../../corelib/src/exceptions.dart');
-#source('../../../../corelib/unified/core/expando.dart');
+#source('../../../../corelib/src/expando.dart');
 #source('../../../../corelib/src/expect.dart');
 #source('../../../../corelib/src/function.dart');
 #source('../../../../corelib/src/future.dart');
@@ -37,6 +37,7 @@
 #source('../../../../corelib/src/string_buffer.dart');
 #source('../../../../corelib/src/strings.dart');
 #source('mock.dart');
+#source('clock.dart');
 
 void print(var obj) {
   if (obj is String) {

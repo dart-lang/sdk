@@ -124,8 +124,7 @@ LibTest/isolate/isolate_api/spawnUri_A01_t04: Fail # Runtime error: UnsupportedO
 LibTest/isolate/isolate_api/spawnUri_A01_t05: Fail # Runtime error: UnsupportedOperationException: Currently spawnUri is not supported without web workers.
 LibTest/isolate/SendPort/send_A02_t04: Fail # Runtime error: TypeError: Cannot call method 'toSendPort$0' of undefined.
 LibTest/isolate/isolate_api/spawnFunction_A02_t01: Fail # Runtime error: Expect.throws() fails.
-LibTest/core/Clock/frequency_A01_t01: Fail, OK # Clock is deprecated.
-LibTest/core/Clock/now_A01_t01: Fail, OK # Clock is deprecated.
+
 
 # These test cases use the deprecated Isolate API and should be updated to
 # use spawnFunction: issue ...
