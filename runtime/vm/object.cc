@@ -430,24 +430,20 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
 
 void Object::RegisterClass(const Class& cls,
                            const char* cname,
-                           const Script& script,
                            const Library& lib) {
   const String& name = String::Handle(Symbols::New(cname));
   cls.set_name(name);
-  cls.set_script(script);
   lib.AddClass(cls);
 }
 
 
 void Object::RegisterPrivateClass(const Class& cls,
                                   const char* public_class_name,
-                                  const Script& script,
                                   const Library& lib) {
   String& str = String::Handle();
   str = Symbols::New(public_class_name);
   str = lib.PrivateName(str);
   cls.set_name(str);
-  cls.set_script(script);
   lib.AddClass(cls);
 }
 
@@ -511,95 +507,96 @@ RawError* Object::Init(Isolate* isolate) {
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
+  const Script& impl_script = Script::Handle(
+      Bootstrap::LoadCoreImplScript(false));
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  RegisterClass(cls, "IntegerImplementation", impl_script, core_impl_lib);
+  RegisterClass(cls, "IntegerImplementation", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  RegisterClass(cls, "Smi", impl_script, core_impl_lib);
+  RegisterClass(cls, "Smi", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  RegisterClass(cls, "Mint", impl_script, core_impl_lib);
+  RegisterClass(cls, "Mint", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  RegisterClass(cls, "Bigint", impl_script, core_impl_lib);
+  RegisterClass(cls, "Bigint", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  RegisterClass(cls, "Double", impl_script, core_impl_lib);
+  RegisterClass(cls, "Double", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  RegisterClass(cls, "Bool", impl_script, core_impl_lib);
+  RegisterClass(cls, "Bool", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  RegisterClass(cls, "ObjectArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "ObjectArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterClass(cls, "GrowableObjectArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "GrowableObjectArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  RegisterClass(cls, "ImmutableArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "ImmutableArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  RegisterClass(cls, "OneByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "OneByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
-  RegisterClass(cls, "TwoByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "TwoByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
-  RegisterClass(cls, "FourByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "FourByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
-  RegisterClass(cls, "ExternalOneByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalOneByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
-  RegisterClass(cls, "ExternalTwoByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalTwoByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
-  RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalFourByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, "Stacktrace", impl_script, core_impl_lib);
+  RegisterClass(cls, "Stacktrace", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  RegisterClass(cls, "JSSyntaxRegExp", impl_script, core_impl_lib);
+  RegisterClass(cls, "JSSyntaxRegExp", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  const Script& script = Script::Handle(Bootstrap::LoadScript());
+  const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
   // Allocate and initialize the Object class and type.  The Object
   // class and ByteArray subclasses are the only pre-allocated,
@@ -616,83 +613,83 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_Int8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int8Array", core_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint8Array", core_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_Int16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int16Array", core_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint16Array", core_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_Int32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int32Array", core_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint32Array", core_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_Int64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int64Array", core_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint64Array", core_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_Float32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Float32Array", core_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_Float64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Float64Array", core_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt8Array", core_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint8Array", core_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt16Array", core_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint16Array", core_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt32Array", core_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint32Array", core_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt64Array", core_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint64Array", core_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalFloat32Array", core_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalFloat64Array", core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -778,11 +775,21 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
+  error = core_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   error = Bootstrap::Compile(core_impl_lib, impl_script);
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript());
+  patch_script = Bootstrap::LoadCoreImplScript(true);
+  error = core_impl_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
   Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
@@ -790,7 +797,13 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
+  patch_script = Bootstrap::LoadMathScript(true);
+  error = math_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& isolate_script = Script::Handle(
+      Bootstrap::LoadIsolateScript(false));
   Library::InitIsolateLibrary(isolate);
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
@@ -798,11 +811,22 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& mirrors_script = Script::Handle(Bootstrap::LoadMirrorsScript());
+  patch_script = Bootstrap::LoadIsolateScript(true);
+  error = isolate_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& mirrors_script = Script::Handle(
+      Bootstrap::LoadMirrorsScript(false));
   Library::InitMirrorsLibrary(isolate);
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
   ASSERT(!mirrors_lib.IsNull());
   error = Bootstrap::Compile(mirrors_lib, mirrors_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadMirrorsScript(true);
+  error = mirrors_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -6169,9 +6193,8 @@ RawString* Library::CheckForDuplicateDefinition() {
 }
 
 
-RawError* Library::Patch(const String& url, const String& source) const {
-  const Script& script = Script::Handle(
-      Script::New(url, source, RawScript::kPatchTag));
+RawError* Library::Patch(const Script& script) const {
+  ASSERT(script.kind() == RawScript::kPatchTag);
   return Compiler::Compile(*this, script);
 }
 

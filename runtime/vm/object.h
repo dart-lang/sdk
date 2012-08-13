@@ -285,19 +285,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
-  static RawClass* CreateAndRegisterInterface(const char* cname,
-                                              const Script& script,
-                                              const Library& lib);
-  static void RegisterClass(const Class& cls,
-                            const char* cname,
-                            const Script& script,
-                            const Library& lib);
-
-  static void RegisterPrivateClass(const Class& cls,
-                                   const char* cname,
-                                   const Script& script,
-                                   const Library& lib);
-
   static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
@@ -364,6 +351,16 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
 
  private:
   static void InitializeObject(uword address, intptr_t id, intptr_t size);
+
+  static RawClass* CreateAndRegisterInterface(const char* cname,
+                                              const Script& script,
+                                              const Library& lib);
+  static void RegisterClass(const Class& cls,
+                            const char* cname,
+                            const Library& lib);
+  static void RegisterPrivateClass(const Class& cls,
+                                   const char* cname,
+                                   const Library& lib);
 
   cpp_vtable* vtable_address() const {
     uword vtable_addr = reinterpret_cast<uword>(this);
@@ -464,6 +461,7 @@ class Class : public Object {
   RawString* UserVisibleName() const;
 
   RawScript* script() const { return raw_ptr()->script_; }
+  void set_script(const Script& value) const;
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
@@ -712,7 +710,6 @@ class Class : public Object {
 
  private:
   void set_name(const String& value) const;
-  void set_script(const Script& value) const;
   void set_token_pos(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
@@ -1995,7 +1992,7 @@ class Library : public Object {
     raw_ptr()->native_entry_resolver_ = value;
   }
 
-  RawError* Patch(const String& url, const String& source) const;
+  RawError* Patch(const Script& script) const;
 
   RawString* PrivateName(const String& name) const;
 

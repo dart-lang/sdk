@@ -2949,6 +2949,8 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       ErrorMsg(classname_pos, "class '%s' is already defined",
                class_name.ToCString());
     }
+    // Pre-registered classes need their scripts connected at this time.
+    cls.set_script(script_);
   }
   ASSERT(!cls.IsNull());
   ASSERT(cls.functions() == Object::empty_array());

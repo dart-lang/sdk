@@ -5508,15 +5508,19 @@ TEST_CASE(ParsePatchLibrary) {
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
 
-  Dart_Handle lib_url = Dart_NewString("theLibrary");
+  Dart_Handle url = Dart_NewString("theLibrary");
   Dart_Handle source = Dart_NewString(kLibraryChars);
-  result = Dart_LoadLibrary(lib_url, source);
+  result = Dart_LoadLibrary(url, source);
   EXPECT_VALID(result);
 
-  const String& url = String::Handle(String::New("theLibrary"));
+  const String& patch_url = String::Handle(String::New("theLibrary patch"));
   const String& patch_source = String::Handle(String::New(kPatchChars));
-  const Library& lib = Library::Handle(Library::LookupLibrary(url));
-  const Error& err = Error::Handle(lib.Patch(url, patch_source));
+  const Script& patch_script = Script::Handle(Script::New(
+      patch_url, patch_source, RawScript::kPatchTag));
+
+  const String& lib_url = String::Handle(String::New("theLibrary"));
+  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  const Error& err = Error::Handle(lib.Patch(patch_script));
   if (!err.IsNull()) {
     OS::Print("Patching error: %s\n", err.ToErrorCString());
     EXPECT(false);

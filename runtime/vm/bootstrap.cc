@@ -16,55 +16,49 @@ namespace dart {
 DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
 
 
-RawScript* Bootstrap::LoadScript() {
-  const String& url = String::Handle(String::New("bootstrap", Heap::kOld));
-  const String& src = String::Handle(String::New(corelib_source_, Heap::kOld));
-
-  const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
-  return result.raw();
+RawScript* Bootstrap::LoadScript(const char* url,
+                                 const char* source,
+                                 bool patch) {
+  return Script::New(String::Handle(String::New(url, Heap::kOld)),
+                     String::Handle(String::New(source, Heap::kOld)),
+                     patch ? RawScript::kPatchTag : RawScript::kSourceTag);
 }
 
 
-RawScript* Bootstrap::LoadImplScript() {
-  const String& url = String::Handle(String::New("bootstrap_impl",
-                                                 Heap::kOld));
-  const String& src = String::Handle(String::New(corelib_impl_source_,
-                                                 Heap::kOld));
-
-  const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
-  return result.raw();
+RawScript* Bootstrap::LoadCoreScript(bool patch) {
+  // TODO(iposva): Use proper library name.
+  const char* url = patch ? "dart:core-patch" : "bootstrap";
+  const char* source = patch ? corelib_patch_ : corelib_source_;
+  return LoadScript(url, source, patch);
 }
 
 
-RawScript* Bootstrap::LoadMathScript() {
-  const String& url = String::Handle(String::New("dart:math", Heap::kOld));
-  const String& src = String::Handle(String::New(math_source_, Heap::kOld));
-
-  const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
-  return result.raw();
+RawScript* Bootstrap::LoadCoreImplScript(bool patch) {
+  // TODO(iposva): Use proper library name.
+  const char* url = patch ? "dart:coreimpl-patch" : "bootstrap_impl";
+  const char* source = patch ? corelib_impl_patch_ : corelib_impl_source_;
+  return LoadScript(url, source, patch);
 }
 
 
-RawScript* Bootstrap::LoadIsolateScript()  {
-  const String& url = String::Handle(String::New("dart:isolate", Heap::kOld));
-  const String& src = String::Handle(String::New(isolate_source_, Heap::kOld));
-
-  const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
-  return result.raw();
+RawScript* Bootstrap::LoadMathScript(bool patch) {
+  const char* url = patch ? "dart:math-patch" : "dart:math";
+  const char* source = patch ? math_patch_ : math_source_;
+  return LoadScript(url, source, patch);
 }
 
 
-RawScript* Bootstrap::LoadMirrorsScript()  {
-  const String& url = String::Handle(String::New("dart:mirrors", Heap::kOld));
-  const String& src = String::Handle(String::New(mirrors_source_, Heap::kOld));
+RawScript* Bootstrap::LoadIsolateScript(bool patch)  {
+  const char* url = patch ? "dart:isolate-patch" : "dart:isolate";
+  const char* source = patch ? isolate_patch_ : isolate_source_;
+  return LoadScript(url, source, patch);
+}
 
-  const Script& result =
-      Script::Handle(Script::New(url, src, RawScript::kSourceTag));
-  return result.raw();
+
+RawScript* Bootstrap::LoadMirrorsScript(bool patch)  {
+  const char* url = patch ? "dart:mirrors-patch" : "dart:mirrors";
+  const char* source = patch ? mirrors_patch_ : mirrors_source_;
+  return LoadScript(url, source, patch);
 }
 
 
