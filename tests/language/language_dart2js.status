@@ -39,7 +39,7 @@ void_type_test: Fail # does not detect type error in checked mode.
 arithmetic_test: Fail
 
 [ $compiler == dart2js && $unchecked ]
-assertion_test: Fail, OK
+assertion_test: Fail
 
 [ $compiler == dart2js ]
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
@@ -140,99 +140,98 @@ syntax_test/47: Fail, OK # Bad test: assumes eager loading.
 
 
 #
-# The following tests are all semantic tests that we can rely on dartc
-# catching for now.
+# The following tests are all negative tests that should be fixed.
 #
-abstract_static_negative_test: Fail, OK # Negative language test.
-abstract_syntax_test/01: Fail, OK # Negative language test.
-abstract_syntax_test/02: Fail, OK # Negative language test.
-assign_top_method_negative_test: Fail, OK # Negative language test.
-class_extends_negative_test: Fail, OK # Negative language test.
-const_constructor_syntax_test/01: Fail, OK # Negative language test.
-const_constructor_syntax_test/02: Fail, OK # Negative language test.
-const_constructor_syntax_test/03: Fail, OK # Negative language test.
-const_constructor_syntax_test/04: Fail, OK # Negative language test.
-const_factory_negative_test: Fail, OK # Negative language test.
-const_field_negative_test: Fail, OK # Negative language test.
-const_init4_negative_test: Fail, OK # Negative language test.
-const_init_negative_test: Fail, OK # Negative language test.
-const_syntax_test/01: Fail, OK # Negative language test.
-const_syntax_test/02: Fail, OK # Negative language test.
-const_syntax_test/03: Fail, OK # Negative language test.
-constructor2_negative_test: Fail, OK # Negative language test.
-constructor_duplicate_initializers_test/02: Fail, OK # Negative language test.
+abstract_static_negative_test: Fail # Negative language test.
+abstract_syntax_test/01: Fail # Negative language test.
+abstract_syntax_test/02: Fail # Negative language test.
+assign_top_method_negative_test: Fail # Negative language test.
+class_extends_negative_test: Fail # Negative language test.
+const_constructor_syntax_test/01: Fail # Negative language test.
+const_constructor_syntax_test/02: Fail # Negative language test.
+const_constructor_syntax_test/03: Fail # Negative language test.
+const_constructor_syntax_test/04: Fail # Negative language test.
+const_factory_negative_test: Fail # Negative language test.
+const_field_negative_test: Fail # Negative language test.
+const_init4_negative_test: Fail # Negative language test.
+const_init_negative_test: Fail # Negative language test.
+const_syntax_test/01: Fail # Negative language test.
+const_syntax_test/02: Fail # Negative language test.
+const_syntax_test/03: Fail # Negative language test.
+constructor2_negative_test: Fail # Negative language test.
+constructor_duplicate_initializers_test/02: Fail # Negative language test.
 constructor_negative_test: Pass # For the wrong reason.
-constructor_return_negative_test: Fail, OK # Negative language test.
-constructor_return_with_arrow_negative_test: Fail, OK # Negative language test.
-constructor_return_with_init_and_arrow_negative_test: Fail, OK # Negative language test.
-constructor_return_with_init_negative_test: Fail, OK # Negative language test.
-duplicate_constructor_test/01: Fail, OK # Negative language test.
-duplicate_implements_test/01: Fail, OK # Negative language test.
-duplicate_implements_test/02: Fail, OK # Negative language test.
-duplicate_implements_test/03: Fail, OK # Negative language test.
-duplicate_implements_test/04: Fail, OK # Negative language test.
-empty_body_member_negative_test: Fail, OK # Negative language test.
-factory2_negative_test: Fail, OK # Negative language test.
-factory3_negative_test: Fail, OK # Negative language test.
-factory_negative_test: Fail, OK # Negative language test.
-field2_negative_test: Fail, OK # Negative language test.
-field3_negative_test: Fail, OK # Negative language test.
-field4_negative_test: Fail, OK # Negative language test.
-field5_negative_test: Fail, OK # Negative language test.
-field6a_negative_test: Fail, OK # Negative language test.
-field7a_negative_test: Fail, OK # Negative language test.
-final_for_in_variable_test/01: Fail, OK # Negative language test
-final_param_negative_test: Fail, OK # Negative language test.
-final_var_negative_test: Fail, OK # Negative language test.
-getter_declaration_negative_test: Fail, OK # Negative language test.
+constructor_return_negative_test: Fail # Negative language test.
+constructor_return_with_arrow_negative_test: Fail # Negative language test.
+constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
+constructor_return_with_init_negative_test: Fail # Negative language test.
+duplicate_constructor_test/01: Fail # Negative language test.
+duplicate_implements_test/01: Fail # Negative language test.
+duplicate_implements_test/02: Fail # Negative language test.
+duplicate_implements_test/03: Fail # Negative language test.
+duplicate_implements_test/04: Fail # Negative language test.
+empty_body_member_negative_test: Fail # Negative language test.
+factory2_negative_test: Fail # Negative language test.
+factory3_negative_test: Fail # Negative language test.
+factory_negative_test: Fail # Negative language test.
+field2_negative_test: Fail # Negative language test.
+field3_negative_test: Fail # Negative language test.
+field4_negative_test: Fail # Negative language test.
+field5_negative_test: Fail # Negative language test.
+field6a_negative_test: Fail # Negative language test.
+field7a_negative_test: Fail # Negative language test.
+final_for_in_variable_test/01: Fail # Negative language test
+final_param_negative_test: Fail # Negative language test.
+final_var_negative_test: Fail # Negative language test.
+getter_declaration_negative_test: Fail # Negative language test.
 instantiate_type_variable_negative_test: Pass  # For the wrong reason.
-interface_factory3_negative_test: Fail, OK # Negative language test.
-interface_factory_constructor_negative_test: Fail, OK # Negative language test.
-interface_static_method_negative_test: Fail, OK # Negative language test.
-list_literal1_negative_test: Fail, OK # Negative language test.
-list_literal2_negative_test: Fail, OK # Negative language test.
-map_literal1_negative_test: Fail, OK # Negative language test.
-map_literal2_negative_test: Fail, OK # Negative language test.
-new_expression_type_args_frog_test/02: Fail, OK # Negative language test.
-non_const_super_negative_test: Fail, OK # Negative language test.
-number_identifier_negative_test: Fail, OK # Negative language test.
-operator1_negative_test: Fail, OK # Negative language test.
-override_field_test/04: Fail, OK # Broken test.
+interface_factory3_negative_test: Fail # Negative language test.
+interface_factory_constructor_negative_test: Fail # Negative language test.
+interface_static_method_negative_test: Fail # Negative language test.
+list_literal1_negative_test: Fail # Negative language test.
+list_literal2_negative_test: Fail # Negative language test.
+map_literal1_negative_test: Fail # Negative language test.
+map_literal2_negative_test: Fail # Negative language test.
+new_expression_type_args_frog_test/02: Fail # Negative language test.
+non_const_super_negative_test: Fail # Negative language test.
+number_identifier_negative_test: Fail # Negative language test.
+operator1_negative_test: Fail # Negative language test.
+override_field_test/04: Fail # Broken test.
 prefix16_test: Fail
-prefix18_negative_test: Fail, OK # Negative language test.
-prefix20_negative_test: Fail, OK # Negative language test.
-prefix23_negative_test: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/01: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/03: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/05: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/06: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/07: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/08: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/09: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/10: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/11: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/12: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/13: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/14: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/15: Fail, OK # Negative language test.
-pseudo_kw_illegal_test/16: Fail, OK # Negative language test.
-scope_negative_test: Fail, OK # Negative language test.
-setter_declaration2_negative_test: Fail, OK # Negative language test.
-setter_declaration_negative_test: Fail, OK # Negative language test.
-static_field_test/01: Fail, OK # Negative language test.
-static_field_test/03: Fail, OK # Negative language test.
-static_final_field2_negative_test: Fail, OK # Negative language test.too
-static_final_field_negative_test: Fail, OK # Negative language test.
-static_top_level_test/00: Fail, OK # Negative language test.
-static_top_level_test/01: Fail, OK # Negative language test.
-static_top_level_test/02: Fail, OK # Negative language test.
-static_top_level_test/03: Fail, OK # Negative language test.
-static_top_level_test/04: Fail, OK # Negative language test.
-static_top_level_test/05: Fail, OK # Negative language test.
-string_interpolation7_negative_test: Fail, OK # Negative language test.
-throw7_negative_test: Fail, OK # Negative language test.
+prefix18_negative_test: Fail # Negative language test.
+prefix20_negative_test: Fail # Negative language test.
+prefix23_negative_test: Fail # Negative language test.
+pseudo_kw_illegal_test/01: Fail # Negative language test.
+pseudo_kw_illegal_test/03: Fail # Negative language test.
+pseudo_kw_illegal_test/05: Fail # Negative language test.
+pseudo_kw_illegal_test/06: Fail # Negative language test.
+pseudo_kw_illegal_test/07: Fail # Negative language test.
+pseudo_kw_illegal_test/08: Fail # Negative language test.
+pseudo_kw_illegal_test/09: Fail # Negative language test.
+pseudo_kw_illegal_test/10: Fail # Negative language test.
+pseudo_kw_illegal_test/11: Fail # Negative language test.
+pseudo_kw_illegal_test/12: Fail # Negative language test.
+pseudo_kw_illegal_test/13: Fail # Negative language test.
+pseudo_kw_illegal_test/14: Fail # Negative language test.
+pseudo_kw_illegal_test/15: Fail # Negative language test.
+pseudo_kw_illegal_test/16: Fail # Negative language test.
+scope_negative_test: Fail # Negative language test.
+setter_declaration2_negative_test: Fail # Negative language test.
+setter_declaration_negative_test: Fail # Negative language test.
+static_field_test/01: Fail # Negative language test.
+static_field_test/03: Fail # Negative language test.
+static_final_field2_negative_test: Fail # Negative language test.too
+static_final_field_negative_test: Fail # Negative language test.
+static_top_level_test/00: Fail # Negative language test.
+static_top_level_test/01: Fail # Negative language test.
+static_top_level_test/02: Fail # Negative language test.
+static_top_level_test/03: Fail # Negative language test.
+static_top_level_test/04: Fail # Negative language test.
+static_top_level_test/05: Fail # Negative language test.
+string_interpolation7_negative_test: Fail # Negative language test.
+throw7_negative_test: Fail # Negative language test.
 try_catch_test: Fail # Uses new catch syntax.
-try_catch_syntax_test/08: Fail, OK # Negative language test.
+try_catch_syntax_test/08: Fail # Negative language test.
 
 disable_privacy_test: Fail, OK # VM specific test.
 numbers_test: Fail, OK # (unintended?) VM specific test.
