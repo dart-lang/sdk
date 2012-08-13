@@ -52,7 +52,9 @@
 // for more information on predefined macros:
 //   - http://msdn.microsoft.com/en-us/library/b0084kay.aspx
 //   - with gcc, run: "echo | gcc -E -dM -"
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(__ANDROID__)
+#define TARGET_OS_ANDROID
+#elif defined(__linux__) || defined(__FreeBSD__)
 #define TARGET_OS_LINUX 1
 #elif defined(__APPLE__)
 #define TARGET_OS_MACOS 1
@@ -325,12 +327,13 @@ inline D bit_copy(const S& source) {
 // to be used in error quite often. To avoid problems we disallow the direct
 // use of memcpy here.
 //
-// On Windows the basic libraries use memcpy and therefore compilation will
-// fail if memcpy is overwritten even if user code does not use memcpy.
+// On Android and Windows the basic libraries use memcpy and therefore
+// compilation will fail if memcpy is overwritten even if user code does not
+// use memcpy.
 #if defined(memcpy)
 #undef memcpy
 #endif
-#if !defined(TARGET_OS_WINDOWS)
+#if !( defined(TARGET_OS_ANDROID) || defined(TARGET_OS_WINDOWS) )
 #define memcpy "Please use memmove instead of memcpy."
 #endif
 

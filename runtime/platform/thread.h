@@ -8,7 +8,9 @@
 #include "platform/globals.h"
 
 // Declare the OS-specific types ahead of defining the generic classes.
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
+#include "platform/thread_android.h"
+#elif defined(TARGET_OS_LINUX)
 #include "platform/thread_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "platform/thread_macos.h"

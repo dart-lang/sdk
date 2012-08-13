@@ -26,7 +26,9 @@ enum MessageFlags {
 
 
 // The event handler delegation class is OS specific.
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
+#include "bin/eventhandler_android.h"
+#elif defined(TARGET_OS_LINUX)
 #include "bin/eventhandler_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/eventhandler_macos.h"
