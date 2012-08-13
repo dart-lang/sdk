@@ -662,7 +662,7 @@ class ForeignElement extends Element {
   }
 
   ForeignElement cloneTo(Element enclosing, DiagnosticListener listener) {
-    ForeignElement result = new ForeignElement(name, kind, enclosing);
+    ForeignElement result = new ForeignElement(name, enclosing);
     return result;
   }
 }
