@@ -241,7 +241,7 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Triaged.
-function_type_this_parameter_test: Fail # NPE in private identifiers rename.
+function_type_this_parameter_test: Crash # NPE in private identifiers rename.
 method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
