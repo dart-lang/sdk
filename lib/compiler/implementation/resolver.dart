@@ -237,6 +237,8 @@ class ResolverTask extends CompilerTask {
         cls.supertypeLoadState = ClassElement.STATE_DONE;
         cls.allSupertypes = const EmptyLink<Type>().prepend(
             compiler.objectClass.computeType(compiler));
+        // TODO(ahe): We should also set cls.supertype here to avoid
+        // creating a malformed class hierarchy.
         return;
       }
       cls.supertypeLoadState = ClassElement.STATE_STARTED;

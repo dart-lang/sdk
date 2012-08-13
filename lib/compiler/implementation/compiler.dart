@@ -626,6 +626,7 @@ class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
+    if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
   }
 
