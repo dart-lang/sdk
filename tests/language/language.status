@@ -173,25 +173,6 @@ type_variable_scope_test/02: Fail
 type_variable_scope_test/03: Fail
 type_variable_scope_test/04: Fail
 type_variable_scope_test/05: Fail
-# Passes VMOptions, should be supported in test framework.
-assertion_test: Fail
-bootstrap_test: Fail
-ct_const2_test: Fail, Pass
-disable_privacy_test: Fail
-factory3_test: Fail
-function_field_test: Fail
-function_type_alias2_test: Fail
-generic_test: Fail
-generics2_test: Fail
-hello_dart_test: Fail
-implicit_closure1_test: Fail
-implicit_closure_test: Fail, Pass
-issue1363_test: Fail
-list_literal4_test: Fail
-map_literal4_test: Fail
-static_implicit_closure_test: Fail, Pass
-static_initializer_type_error_test: Fail
-type_checks_in_factory_method_test: Fail
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
 # chokes on things like typedef(x) => "typedef $x" and alike.
@@ -241,7 +222,6 @@ function_type_alias5_test/00: Fail
 function_type_alias5_test/01: Fail
 function_type_alias5_test/02: Fail
 function_type_alias7_test/00: Fail
-function_type_alias_test: Fail
 function_type_parameter2_test: Fail
 function_type_parameter_test: Fail
 get_set_syntax_test/none: Fail
@@ -249,7 +229,6 @@ implicit_scope_test: Fail
 instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
-named_parameters_type_test: Fail
 numbers_test: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
@@ -272,6 +251,8 @@ type_variable_bounds2_test/05: Fail # See above
 try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
 const_test: Fail # For constructs like c[0]++, for some reason operator[] doesn't make into resolved elements.
 # Should be triaged.
+ct_const2_test: Fail, Pass
+disable_privacy_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
 field2_negative_test: Fail
@@ -284,14 +265,16 @@ field_optimization_test: Fail
 field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
+function_field_test: Fail
+generic_test: Fail
 getters_setters2_test/03: Fail
+implicit_closure_test: Fail, Pass
 implied_interface_test: Fail
 interface_factory_constructor_negative_test: Fail
 interface_static_method_negative_test: Fail
 interface_test: Fail
 library5_test: Fail
 library_same_name_used_test: Fail
-named_parameters_type_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
@@ -299,6 +282,7 @@ prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
+static_implicit_closure_test: Fail, Pass
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
 static_top_level_test/02: Fail
@@ -307,7 +291,6 @@ static_top_level_test/04: Fail
 static_top_level_test/05: Fail
 string_interpolation7_test: Fail
 switch_label_test: Fail
-typed_message_test: Fail
 type_variable_bounds2_test/02: Fail
 type_variable_bounds2_test/06: Fail
 type_variable_bounds_test/02: Fail

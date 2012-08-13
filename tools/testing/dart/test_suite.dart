@@ -417,12 +417,14 @@ class StandardTestSuite implements TestSuite {
       }
     }
 
-    var argumentLists = argumentListsFromFile(info.filePath,
-                                              info.optionsFromFile);
+    var commonArguments = commonArgumentsFromFile(info.filePath,
+                                                  info.optionsFromFile);
 
-    for (var args in argumentLists) {
+    List<List<String>> vmOptionsList = getVmOptions(info.optionsFromFile);
+    Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
+    for (var vmOptions in vmOptionsList) {
       doTest(new TestCase('$suiteName/$testName',
-                          makeCommands(info, args),
+                          makeCommands(info, vmOptions, commonArguments),
                           configuration,
                           completeHandler,
                           expectations,
@@ -431,7 +433,7 @@ class StandardTestSuite implements TestSuite {
     }
   }
 
-  List<Command> makeCommands(TestInformation info, var args) {
+  List<Command> makeCommands(TestInformation info, var vmOptions, var args) {
     switch (configuration['compiler']) {
     case 'dart2js':
       args = new List.from(args);
@@ -445,23 +447,35 @@ class StandardTestSuite implements TestSuite {
       return commands;
 
     case 'dart2dart':
-      args = new List.from(args);
-      args.add('--output-type=dart');
+      var compilerArguments = new List.from(args);
+      compilerArguments.add('--output-type=dart');
       String tempDir = createOutputDirectory(info.filePath, '');
-      args.add('--out=$tempDir/out.dart');
-      List<Command> commands = <Command>[new Command(shellPath(), args)];
+      compilerArguments.add('--out=$tempDir/out.dart');
+      List<Command> commands =
+          <Command>[new Command(shellPath(), compilerArguments)];
       if (configuration['runtime'] == 'vm') {
         // TODO(antonm): support checked.
+        var vmArguments = new List.from(vmOptions);
+        vmArguments.addAll(
+            ['--enable_checked_mode', '$tempDir/out.dart']);
         commands.add(new Command(
             TestUtils.vmFileName(configuration),
-            ['--enable_checked_mode', '$tempDir/out.dart']));
+            vmArguments));
       } else {
         throw 'Unsupported runtime ${configuration["runtime"]} for dart2dart';
       }
       return commands;
 
-    default:
+    case 'none':
+      var arguments = new List.from(vmOptions);
+      arguments.addAll(args);
+      return <Command>[new Command(shellPath(), arguments)];
+
+    case 'dartc':
       return <Command>[new Command(shellPath(), args)];
+
+    default:
+      throw 'Unknown compiler ${configuration["compiler"]}';
     }
   }
 
@@ -827,8 +841,7 @@ class StandardTestSuite implements TestSuite {
   void completeHandler(TestCase testCase) {
   }
 
-  List<List<String>> argumentListsFromFile(Path filePath,
-                                           Map optionsFromFile) {
+  List<String> commonArgumentsFromFile(Path filePath, Map optionsFromFile) {
     List args = TestUtils.standardOptions(configuration);
     args.addAll(additionalOptions(filePath));
     if (configuration['compiler'] == 'dartc') {
@@ -858,15 +871,7 @@ class StandardTestSuite implements TestSuite {
       args.addAll(dartOptions);
     }
 
-    var result = new List<List<String>>();
-    Expect.isFalse(vmOptionsList.isEmpty(), "empty vmOptionsList");
-    for (var vmOptions in vmOptionsList) {
-      var options = new List<String>.from(vmOptions);
-      options.addAll(args);
-      result.add(options);
-    }
-
-    return result;
+    return args;
   }
 
   /**
@@ -1031,11 +1036,11 @@ class StandardTestSuite implements TestSuite {
   }
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
-    if (configuration['compiler'] == 'dart2js') {
-      return [[]];
-    } else {
-      return optionsFromFile['vmOptions'];
-    }
+    bool needsVmOptions =
+        Contains(configuration['compiler'], const ['none', 'dart2dart']) &&
+        Contains(configuration['runtime'], const ['vm', 'drt', 'dartium']);
+    if (!needsVmOptions) return [[]];
+    return optionsFromFile['vmOptions'];
   }
 }
 
