@@ -1522,6 +1522,16 @@ class PartialFunctionElement extends FunctionElement {
     if (patch !== null) return patch.position();
     return findMyName(beginToken);
   }
+
+  PartialFunctionElement cloneTo(Element enclosing,
+                                 DiagnosticListener listener) {
+    if (patch !== null) {
+      listener.cancel("Cloning a patched function.", element: this);
+    }
+    PartialFunctionElement result = new PartialFunctionElement(
+        name, beginToken, getOrSet, endToken, kind, modifiers, enclosing);
+    return result;
+  }
 }
 
 class PartialFieldListElement extends VariableListElement {
@@ -1551,6 +1561,13 @@ class PartialFieldListElement extends VariableListElement {
   }
 
   Token position() => beginToken; // findMyName doesn't work. I'm nameless.
+
+  PartialFieldListElement cloneTo(Element enclosing,
+                                  DiagnosticListener listener) {
+    PartialFieldListElement result = new PartialFieldListElement(
+        beginToken, endToken, modifiers, enclosing);
+    return result;
+  }
 }
 
 class PartialTypedefElement extends TypedefElement {
@@ -1568,6 +1585,13 @@ class PartialTypedefElement extends TypedefElement {
   }
 
   position() => findMyName(token);
+
+  PartialTypedefElement cloneTo(Element enclosing,
+                                DiagnosticListener listener) {
+    PartialTypedefElement result =
+        new PartialTypedefElement(name, enclosing, token);
+    return result;
+  }
 }
 
 Node parse(DiagnosticListener diagnosticListener,

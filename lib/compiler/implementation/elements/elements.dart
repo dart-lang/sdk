@@ -83,6 +83,8 @@ class ElementKind {
     const ElementKind('abstract_field', ElementCategory.VARIABLE);
   static final ElementKind LIBRARY =
     const ElementKind('library', ElementCategory.NONE);
+  static final ElementKind COMPILATION_UNIT_OVERRIDE =
+    const ElementKind('compilation_unit_override', ElementCategory.NONE);
   static final ElementKind PREFIX =
     const ElementKind('prefix', ElementCategory.PREFIX);
   static final ElementKind TYPEDEF =
@@ -103,6 +105,12 @@ class Element implements Hashable {
   final ElementKind kind;
   final Element enclosingElement;
   Link<Node> metadata = const EmptyLink<Node>();
+
+
+  Element(this.name, this.kind, this.enclosingElement) {
+    assert(getLibrary() !== null);
+  }
+
   Modifiers get modifiers() => null;
 
   Node parseNode(DiagnosticListener listener) {
@@ -123,6 +131,10 @@ class Element implements Hashable {
   bool isMember() {
     // Check that this element is defined in the scope of a Class.
     Element enclosing = enclosingElement;
+    if (enclosing !== null &&
+        enclosing.kind === ElementKind.COMPILATION_UNIT_OVERRIDE) {
+      enclosing = enclosing.enclosingElement;
+    }
     // TODO(lrn): Skip any synthetic elements inserted, e.g.,
     // a compilation unit override.
     return enclosing !== null && enclosing.isClass();
@@ -134,8 +146,15 @@ class Element implements Hashable {
       kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
   bool isCompilationUnit() {
     return kind === ElementKind.COMPILATION_UNIT ||
-           kind === ElementKind.LIBRARY;
+           kind === ElementKind.LIBRARY ||
+           kind === ElementKind.COMPILATION_UNIT_OVERRIDE;
   }
+  /**
+   * Provides the compilation unit corresponding to this element.
+   * Returns non-null for elements where [isCompilationUnit] returns true,
+   * but may not return the current [Element].
+   */
+  CompilationUnitElement asCompilationUnit() => null;
   bool isClass() => kind === ElementKind.CLASS;
   bool isPrefix() => kind === ElementKind.PREFIX;
   bool isVariable() => kind === ElementKind.VARIABLE;
@@ -173,21 +192,21 @@ class Element implements Hashable {
     return token;
   }
 
-  Element(this.name, this.kind, this.enclosingElement) {
-    assert(getLibrary() !== null);
-  }
-
   // TODO(kasperl): This is a very bad hash code for the element and
   // there's no reason why two elements with the same name should have
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name === null ? 0 : name.hashCode();
+
+  Script getScript() {
+    return getCompilationUnit().script;
+  }
 
   CompilationUnitElement getCompilationUnit() {
     Element element = this;
     while (element !== null && !element.isCompilationUnit()) {
       element = element.enclosingElement;
     }
-    return element;
+    return element.asCompilationUnit();
   }
 
   LibraryElement getLibrary() {
@@ -252,6 +271,10 @@ class Element implements Hashable {
   bool isNative() => _isNative;
 
   FunctionElement asFunctionElement() => null;
+
+  Element cloneTo(Element enclosing, DiagnosticListener listener) {
+    listener.cancel("Unimplemented cloneTo", element: this);
+  }
 }
 
 class ContainerElement extends Element {
@@ -312,6 +335,8 @@ class CompilationUnitElement extends ContainerElement {
     : this.script = script,
       super(new SourceString(script.name), ElementKind.LIBRARY, null);
 
+  CompilationUnitElement asCompilationUnit() => this;
+
   void addMember(Element element, DiagnosticListener listener) {
     LibraryElement library = enclosingElement;
     library.addMember(element, listener);
@@ -326,6 +351,19 @@ class CompilationUnitElement extends ContainerElement {
   void addTag(ScriptTag tag, DiagnosticListener listener) {
     listener.cancel("script tags not allowed here", node: tag);
   }
+}
+
+class CompilationUnitOverrideElement extends Element {
+  final CompilationUnitElement compilationUnit;
+
+  CompilationUnitOverrideElement(CompilationUnitElement compilationUnit,
+                                 Element enclosing)
+      : this.compilationUnit = compilationUnit,
+        super(compilationUnit.name,
+              ElementKind.COMPILATION_UNIT_OVERRIDE,
+              enclosing);
+
+  CompilationUnitElement asCompilationUnit() => compilationUnit;
 }
 
 class LibraryElement extends CompilationUnitElement {
@@ -420,23 +458,20 @@ class LibraryElement extends CompilationUnitElement {
 class PrefixElement extends Element {
   Map<SourceString, Element> imported;
   Token firstPosition;
-  final CompilationUnitElement patchSource;
 
-  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition,
-                [this.patchSource])
-    : imported = new Map<SourceString, Element>(),
-      super(prefix, ElementKind.PREFIX, enclosing);
-
-  CompilationUnitElement getCompilationUnit() {
-    if (patchSource !== null) return patchSource;
-    return super.getCompilationUnit();
-  }
+  PrefixElement(SourceString prefix, Element enclosing, this.firstPosition)
+      : imported = new Map<SourceString, Element>(),
+        super(prefix, ElementKind.PREFIX, enclosing);
 
   lookupLocalMember(SourceString memberName) => imported[memberName];
 
   Type computeType(Compiler compiler) => compiler.types.dynamicType;
 
   Token position() => firstPosition;
+
+  PrefixElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    return new PrefixElement(name, enclosing, firstPosition);
+  }
 }
 
 class TypedefElement extends Element implements TypeDeclarationElement {
@@ -457,6 +492,11 @@ class TypedefElement extends Element implements TypeDeclarationElement {
 
   Scope buildScope() =>
       new TypeDeclarationScope(enclosingElement.buildScope(), this);
+
+  TypedefElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    TypedefElement result = new TypedefElement(name, enclosing);
+    return result;
+  }
 }
 
 class VariableElement extends Element {
@@ -503,6 +543,14 @@ class VariableElement extends Element {
   // Note: cachedNode.getBeginToken() will not be correct in all
   // cases, for example, for function typed parameters.
   Token position() => findMyName(variables.position());
+
+  VariableElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    VariableListElement clonedVariables =
+        variables.cloneTo(enclosing, listener);
+    VariableElement result = new VariableElement(
+        name, clonedVariables, kind, enclosing, cachedNode);
+    return result;
+  }
 }
 
 /**
@@ -518,6 +566,15 @@ class FieldParameterElement extends VariableElement {
                         Element enclosing,
                         Node node)
       : super(name, variables, ElementKind.FIELD_PARAMETER, enclosing, node);
+
+  FieldParameterElement cloneTo(Element enclosing,
+                                DiagnosticListener listener) {
+    FieldParameterElement result =
+      new FieldParameterElement(name, fieldElement,
+                                variables.cloneTo(enclosing, listener),
+                                enclosing, cachedNode);
+    return result;
+  }
 }
 
 // This element represents a list of variable or field declaration.
@@ -580,6 +637,16 @@ class VariableListElement extends Element {
   }
 
   Token position() => cachedNode.getBeginToken();
+
+  VariableListElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    VariableListElement result;
+    if (cachedNode !== null) {
+      result = new VariableListElement(cachedNode, kind, enclosing);
+    } else {
+      result = new VariableListElement(kind, modifiers, enclosing);
+    }
+    return result;
+  }
 }
 
 class ForeignElement extends Element {
@@ -592,6 +659,11 @@ class ForeignElement extends Element {
 
   parseNode(DiagnosticListener listener) {
     throw "internal error: ForeignElement has no node";
+  }
+
+  ForeignElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    ForeignElement result = new ForeignElement(name, kind, enclosing);
+    return result;
   }
 }
 
@@ -636,6 +708,11 @@ class AbstractFieldElement extends Element {
           setter.modifiers.nodes,
           setter.modifiers.flags | Modifiers.FLAG_ABSTRACT);
     }
+  }
+
+  AbstractFieldElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    listener.cancel("Cannot clone synthetic AbstractFieldElement",
+                    element: this);
   }
 }
 
@@ -721,9 +798,9 @@ class FunctionElement extends Element {
     defaultImplementation = this;
   }
 
-  CompilationUnitElement getCompilationUnit() {
-    if (patch !== null) return patch.getCompilationUnit();
-    return super.getCompilationUnit();
+  Script getScript() {
+    if (patch !== null) return patch.getScript();
+    return super.getScript();
   }
 
   bool get isPatched() => patch !== null;
@@ -791,7 +868,16 @@ class FunctionElement extends Element {
   Token position() => cachedNode.getBeginToken();
 
   FunctionElement asFunctionElement() => this;
+
+  FunctionElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    FunctionElement result = new FunctionElement.tooMuchOverloading(
+        name, cachedNode, kind, modifiers, enclosing, functionSignature);
+    result.defaultImplementation = defaultImplementation;
+    result.type = type;
+    return result;
+  }
 }
+
 
 class ConstructorBodyElement extends FunctionElement {
   FunctionElement constructor;
@@ -819,6 +905,13 @@ class ConstructorBodyElement extends FunctionElement {
   }
 
   Token position() => constructor.position();
+
+  ConstructorBodyElement cloneTo(Element enclosing,
+                                 DiagnosticListener listener) {
+    ConstructorBodyElement result =
+      new ConstructorBodyElement(constructor.cloneTo(enclosing, listener));
+    return result;
+  }
 }
 
 class SynthesizedConstructorElement extends FunctionElement {
@@ -827,6 +920,11 @@ class SynthesizedConstructorElement extends FunctionElement {
             null, enclosing);
 
   Token position() => enclosingElement.position();
+
+  SynthesizedConstructorElement cloneTo(Element enclosing,
+                                        DiagnosticListener listener) {
+    return new SynthesizedConstructorElement(enclosing);
+  }
 }
 
 class VoidElement extends Element {
@@ -889,6 +987,10 @@ class ClassElement extends ContainerElement
   Map<SourceString, Element> localMembers;
   Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
+
+  LinkedHashMap<SourceString, TypeVariableElement> typeParameters;
+  SourceString nativeName;
+
   bool isResolved = false;
   bool isBeingResolved = false;
   // backendMembers are members that have been added by the backend to simplify
@@ -896,9 +998,8 @@ class ClassElement extends ContainerElement
   Link<Element> backendMembers = const EmptyLink<Element>();
 
   Link<Type> allSupertypes;
-  ClassElement patch = null;
 
-  ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
+  ClassElement(SourceString name, Element enclosing, this.id)
     : localMembers = new Map<SourceString, Element>(),
       constructors = new Map<SourceString, Element>(),
       super(name, ElementKind.CLASS, enclosing);
@@ -986,7 +1087,7 @@ class ClassElement extends ContainerElement
       Element foundMember = lookupClass.lookupMember(fieldName);
       if (foundMember == fieldMember) return false;
       if (foundMember.isField()) return true;
-      lookupClass = (foundMember.enclosingElement as ClassElement).superclass;
+      lookupClass = foundMember.getEnclosingClass().superclass;
     }
   }
 
@@ -1095,11 +1196,44 @@ class ClassElement extends ContainerElement
 
   bool isInterface() => false;
   bool isNative() => nativeName != null;
-  SourceString nativeName;
   int hashCode() => id;
 
   Scope buildScope() =>
       new ClassScope(enclosingElement.buildScope(), this);
+
+  void cloneMembersTo(Element target, DiagnosticListener listener) {
+    target.type = type;
+    target.supertype = supertype;
+    target.defaultClass = defaultClass;
+    target.interfaces = interfaces;
+    if (typeParameters !== null) {
+      target.typeParameters =
+          new LinkedHashMap<SourceString, TypeVariableElement>();
+      typeParameters.forEach((SourceString name, TypeVariableElement type) {
+        target.typeParameters[name] = type.cloneTo(target, listener);
+      });
+    }
+    target.nativeName = nativeName;
+    target.isResolved = isResolved;
+    target.isBeingResolved = isBeingResolved;
+    target.allSupertypes = allSupertypes;
+    if (!backendMembers.isEmpty()) {
+      listener.cancel("Cloning backend-modified class.", element: this);
+    }
+
+    Link<Element> elementList = this.members;
+    while (!elementList.isEmpty()) {
+      target.addMember(elementList.head.cloneTo(target, listener), listener);
+      elementList = elementList.tail;
+    }
+  }
+
+  ClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    // TODO(lrn): Is copying id acceptable?
+    ClassElement result = new ClassElement(name, enclosing, id);
+    cloneMembersTo(result, listener);
+    return result;
+  }
 }
 
 class Elements {
@@ -1219,7 +1353,6 @@ class Elements {
   }
 }
 
-
 class LabelElement extends Element {
   // We store the original label here so it can be returned by [parseNode].
   final Label label;
@@ -1290,4 +1423,10 @@ class TypeVariableElement extends Element {
   Node parseNode(compiler) => cachedNode;
 
   String toString() => "${enclosingElement.toString()}.${name.slowToString()}";
+
+  TypeVariableElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    TypeVariableElement result =
+        new TypeVariableElement(name, enclosing, node, type, bound);
+    return result;
+  }
 }

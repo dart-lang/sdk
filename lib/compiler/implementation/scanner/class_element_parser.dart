@@ -16,9 +16,9 @@ class PartialClassElement extends ClassElement {
   PartialClassElement(SourceString name,
                       Token this.beginToken,
                       Token this.endToken,
-                      CompilationUnitElement enclosing,
+                      Element enclosing,
                       int id)
-    : super(name, enclosing, id);
+      : super(name, enclosing, id);
 
   ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;
@@ -34,6 +34,15 @@ class PartialClassElement extends ClassElement {
   Token position() => beginToken;
 
   bool isInterface() => beginToken.stringValue === "interface";
+
+  PartialClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    parseNode(listener);
+    PartialClassElement result =
+        new PartialClassElement(name, beginToken, endToken, enclosing, id);
+    cloneMembersTo(result, listener);
+    result.cachedNode = cachedNode;
+    return result;
+  }
 }
 
 class MemberListener extends NodeListener {
@@ -41,8 +50,8 @@ class MemberListener extends NodeListener {
 
   MemberListener(DiagnosticListener listener,
                  Element enclosingElement)
-    : this.enclosingElement = enclosingElement,
-      super(listener, enclosingElement.getCompilationUnit());
+      : this.enclosingElement = enclosingElement,
+        super(listener, enclosingElement.getCompilationUnit());
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement === null ||

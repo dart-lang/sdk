@@ -405,9 +405,10 @@ class Compiler implements DiagnosticListener {
       Element patchElement = patches.head;
       Element originalElement = lookup(patchElement.name);
       if (patchElement.isAccessor()) {
-        // Skip accessors. An accessor always has an abstract field,
-        // representing the accessor in the lookup scope. We can thus skip the
-        // accessors and just handle the abstract field.
+        // TODO(lrn): When we change to always add accessors to members, and
+        // not add abstract fields, the logic here should be reversed.
+        // For now, access getters through the abstract field and skip
+        // any accessors.
       } else if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
         // Getters and setters are kept inside a synthetic field.
         if (originalElement !== null &&
@@ -419,7 +420,7 @@ class Compiler implements DiagnosticListener {
         AbstractFieldElement originalField = originalElement;
         if (patchField.getter !== null) {
           if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter),
+            original.addGetterOrSetter(clonePatch(patchField.getter, original),
                                        originalField,
                                        this);
             if (originalField === null && patchField.setter !== null) {
@@ -432,7 +433,7 @@ class Compiler implements DiagnosticListener {
         }
         if (patchField.setter !== null) {
           if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter),
+            original.addGetterOrSetter(clonePatch(patchField.setter, original),
                                        originalField,
                                        this);
           } else {
@@ -444,7 +445,7 @@ class Compiler implements DiagnosticListener {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
         }
-        original.addMember(clonePatch(patchElement), this);
+        original.addMember(clonePatch(patchElement, original), this);
       } else {
         patchMember(originalElement, patchElement);
       }
@@ -458,7 +459,7 @@ class Compiler implements DiagnosticListener {
     return !element.metadata.isEmpty();
   }
 
-  Element clonePatch(Element patchElement) {
+  Element clonePatch(Element patchElement, Element enclosing) {
     // The original library does not have an element with the same name
     // as the patch library element.
     // In this case, the patch library element must not be marked as "patch",
@@ -467,9 +468,10 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot add non-private member '"
                     "${patchElement.name.slowToString()}' from patch.");
     }
-    // TODO(lrn): Create a copy of patchElement that isn't added to any
-    // object/library yet, but which takes its source from patchElement.
-    throw "Adding members from patch is unsupported";
+    Element override =
+        new CompilationUnitOverrideElement(patchElement.getCompilationUnit(),
+                                           enclosing);
+    return patchElement.cloneTo(override, this);
   }
 
   void patchMember(Element originalElement, Element patchElement) {
