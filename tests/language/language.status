@@ -296,7 +296,6 @@ implicit_this_test/03: Fail
 implicit_this_test/04: Fail
 implicit_this_test/none: Fail
 implied_interface_test: Fail
-incr_op_test: Fail
 interface_factory_constructor_negative_test: Fail
 interface_inherit_field_test: Fail
 interface_static_method_negative_test: Fail

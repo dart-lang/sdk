@@ -295,11 +295,23 @@ class Unparser implements Visitor {
       unparseIndexedSet(node);
     } else {
       if (node.isPrefix) {
-        add(node.assignmentOperator.token.value);
+        sb.add(' ');
+        add(node.assignmentOperator.source);
       }
-      unparseSendPart(node);
+      if (node.receiver !== null && rename(node.receiver) != '') {
+        visit(node.receiver);
+        CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
+        if (asCascadeReceiver !== null) {
+          add(asCascadeReceiver.cascadeOperator.value);
+        } else {
+          sb.add('.');
+        }
+      }
+      visit(node.selector);
       if (!node.isPrefix) {
-        add(node.assignmentOperator.token.value);
+        SourceString source = node.assignmentOperator.source;
+        add(source);
+        if (source.slowToString() != '=') sb.add(' ');
       }
       visit(node.argumentsNode);
     }

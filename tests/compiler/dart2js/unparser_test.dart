@@ -99,8 +99,8 @@ testGenericTypes() {
 }
 
 testForLoop() {
-  testUnparse('for(;i<100;i++){}');
-  testUnparse('for(i=0;i<100;i++){}');
+  testUnparse('for(;i<100;i++ ){}');
+  testUnparse('for(i=0;i<100;i++ ){}');
 }
 
 testEmptyList() {
@@ -123,7 +123,7 @@ testNativeMethods() {
 }
 
 testPrefixIncrements() {
-  testUnparse('++i;');
+  testUnparse(' ++i;');
   testUnparse('++a[i];');
   testUnparse('++a[++b[i]];');
 }
