@@ -32,4 +32,7 @@ main() {
 
   // Dynamic size set.
   new CollectionTest(new Set.from(TEST_ELEMENTS));
+
+  // Queue.
+  new CollectionTest(new Queue.from(TEST_ELEMENTS));
 }
