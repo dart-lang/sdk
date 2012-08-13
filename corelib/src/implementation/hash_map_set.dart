@@ -350,11 +350,6 @@ class HashSetImplementation<E extends Hashable> implements HashSet<E> {
     return result;
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
   Set<E> filter(bool f(E element)) {
     Set<E> result = new Set<E>();
     _backingMap.forEach(void _(E key, E value) {

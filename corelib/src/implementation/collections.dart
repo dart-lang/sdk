@@ -35,15 +35,6 @@ class Collections {
     return destination;
   }
 
-  static Dynamic reduce(Iterable iterable,
-                        Dynamic initialValue,
-                        Dynamic combine(Dynamic previousValue, element)) {
-    for (final element in iterable) {
-      initialValue = combine(initialValue, element);
-    }
-    return initialValue;
-  }
-
   static List filter(Iterable source, List destination, bool f(o)) {
     for (final e in source) {
       if (f(e)) destination.add(e);

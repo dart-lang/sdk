@@ -88,11 +88,6 @@ class ObjectArray<E> implements List<E> {
     return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
   }
 
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
-  }
-
   Collection<E> filter(bool f(E element)) {
     return Collections.filter(this, new GrowableObjectArray<E>(), f);
   }
@@ -223,11 +218,6 @@ class ImmutableArray<E> implements List<E> {
 
   Collection map(f(E element)) {
     return Collections.map(this, new GrowableObjectArray.withCapacity(length), f);
-  }
-
-  Dynamic reduce(Dynamic initialValue,
-                 Dynamic combine(Dynamic previousValue, E element)) {
-    return Collections.reduce(this, initialValue, combine);
   }
 
   Collection<E> filter(bool f(E element)) {
