@@ -407,6 +407,15 @@ main() {
         expect(results['meow'], equals('kitty'));
         expect(results.rest, orderedEquals(['--meow']));
       });
+
+      test('handles options with case-sensitivity', () {
+        var parser = new ArgParser();
+        parser.addFlag('recurse', defaultsTo: false, abbr:'R');
+        var results = parser.parse(['-R']);
+        expect(results['recurse'], isTrue);
+        expect(results.rest, [ ]);
+        throwsFormat(parser, ['-r']);
+      });
     });
   });
 
