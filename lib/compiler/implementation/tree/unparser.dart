@@ -10,6 +10,8 @@ class Unparser implements Visitor {
   StringBuffer sb;
 
   Unparser() {
+    // TODO(smok): Move this to initializer once dart2js stops complaining
+    // about closures in initializers.
     rename = (Node node) => null;
   }
   Unparser.withRenamer(this.rename);
@@ -271,7 +273,7 @@ class Unparser implements Visitor {
     unparseSendReceiver(node);
     if (node.isIndex) {
       sb.add('[');
-      sb.add(node.arguments.head);
+      visit(node.arguments.head);
       sb.add(']');
       if (!node.isPrefix) visit(node.assignmentOperator);
       unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
