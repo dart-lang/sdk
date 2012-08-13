@@ -2210,6 +2210,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertInferredElementTypeString(testUnit, "v1", "String");
   }
 
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4410
+   */
+  public void test_typesPropagation_assertIsType() throws Exception {
+    analyzeLibrary(
+        "f(var v) {",
+        "  if (true) {",
+        "    var v1 = v;",
+        "    assert(v is String);",
+        "    var v2 = v;",
+        "    {",
+        "      var v3 = v;",
+        "    }",
+        "    var v4 = v;",
+        "  }",
+        "  var v5 = v;",
+        "}",
+        "");
+    // we don't know type initially
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    // after "assert" all next statements know type
+    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v3", "String");
+    // type is set to unknown only when we exit control Block, not just any Block
+    assertInferredElementTypeString(testUnit, "v4", "String");
+    // we exited "if" Block, so "assert" may be was not executed, so we don't know type
+    assertInferredElementTypeString(testUnit, "v5", "<dynamic>");
+  }
+
   public void test_typesPropagation_field_inClass_final() throws Exception {
     analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",

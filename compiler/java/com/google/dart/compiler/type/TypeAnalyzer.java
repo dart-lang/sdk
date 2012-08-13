@@ -182,6 +182,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
     private final boolean memberWarningForInferredTypes;
+    private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -606,49 +607,58 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void visitConditionalNode(DartExpression condition, DartNode node) {
       final VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
       try {
-        if (condition != null) {
-          condition.accept(new ASTVisitor<Void>() {
-            boolean negation = false;
-            @Override
-            public Void visitUnaryExpression(DartUnaryExpression node) {
-              boolean negationOld = negation;
-              try {
-                if (node.getOperator() == Token.NOT) {
-                  negation = !negation;
-                }
-                return super.visitUnaryExpression(node);
-              } finally {
-                negation = negationOld;
-              }
-            }
-
-            @Override
-            public Void visitBinaryExpression(DartBinaryExpression node) {
-              // apply "as" always
-              // apply "is" only if not negated
-              if (node.getOperator() == Token.AS || node.getOperator() == Token.IS && !negation) {
-                DartExpression arg1 = node.getArg1();
-                DartExpression arg2 = node.getArg2();
-                if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
-                    && arg2 instanceof DartTypeExpression) {
-                  VariableElement variableElement = (VariableElement) arg1.getElement();
-                  Type rhsType = arg2.getType();
-                  Type varType = Types.makeInferred(rhsType);
-                  variableRestorer.setType(variableElement, varType);
-                }
-              }
-              // operator || means that we can not be sure about types
-              if (node.getOperator() == Token.OR) {
-                return null;
-              }
-              // continue
-              return super.visitBinaryExpression(node);
-            }
-          });
-        }
+        inferVariableTypesFromIsConditions(condition, variableRestorer);
         typeOf(node);
       } finally {
         variableRestorer.restore();
+      }
+    }
+
+    /**
+     * Helper for setting {@link Type}s of {@link VariableElement}s when given "condition" is
+     * satisfied.
+     */
+    private void inferVariableTypesFromIsConditions(DartExpression condition,
+        final VariableElementsRestorer variableRestorer) {
+      if (condition != null) {
+        condition.accept(new ASTVisitor<Void>() {
+          boolean negation = false;
+          @Override
+          public Void visitUnaryExpression(DartUnaryExpression node) {
+            boolean negationOld = negation;
+            try {
+              if (node.getOperator() == Token.NOT) {
+                negation = !negation;
+              }
+              return super.visitUnaryExpression(node);
+            } finally {
+              negation = negationOld;
+            }
+          }
+
+          @Override
+          public Void visitBinaryExpression(DartBinaryExpression node) {
+            // apply "as" always
+            // apply "is" only if not negated
+            if (node.getOperator() == Token.AS || node.getOperator() == Token.IS && !negation) {
+              DartExpression arg1 = node.getArg1();
+              DartExpression arg2 = node.getArg2();
+              if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
+                  && arg2 instanceof DartTypeExpression) {
+                VariableElement variableElement = (VariableElement) arg1.getElement();
+                Type rhsType = arg2.getType();
+                Type varType = Types.makeInferred(rhsType);
+                variableRestorer.setType(variableElement, varType);
+              }
+            }
+            // operator || means that we can not be sure about types
+            if (node.getOperator() == Token.OR) {
+              return null;
+            }
+            // continue
+            return super.visitBinaryExpression(node);
+          }
+        });
       }
     }
 
@@ -1204,7 +1214,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitBlock(DartBlock node) {
-      return typeAsVoid(node);
+      try {
+        return typeAsVoid(node);
+      } finally {
+        VariableElementsRestorer variableRestorer = restoreOnBlockExit.remove(node);
+        if (variableRestorer != null) {
+          variableRestorer.restore();
+        }
+      }
     }
 
     @Override
@@ -2288,6 +2305,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (node.getArguments().size() == 1) {
           DartExpression condition = node.getArguments().get(0);
           checkAssertCondition(condition);
+          // infer types, which are valid until the end of the enclosing control block
+          if (node.getParent() instanceof DartExprStmt
+              && node.getParent().getParent() instanceof DartBlock) {
+            DartBlock restoreBlock = getBlockForAssertTypesInference(node);
+            VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
+            restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            inferVariableTypesFromIsConditions(condition, variableRestorer);
+          }
         } else {
           onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
         }
@@ -2322,6 +2347,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type returnType = checkInvocation(node, target, name, type);
       returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
       return returnType;
+    }
+
+    private static DartBlock getBlockForAssertTypesInference(DartNode node) {
+      while (node != null) {
+        if (node instanceof DartBlock) {
+          DartBlock block = (DartBlock) node;
+          DartNode p = block.getParent();
+          if (p instanceof DartIfStatement || p instanceof DartForStatement
+              || p instanceof DartForInStatement || p instanceof DartDoWhileStatement) {
+            return block;
+          }
+        }
+        node = node.getParent();
+      }
+      return null;
     }
 
     /**
