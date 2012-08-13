@@ -166,7 +166,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Tests that crash after reverting resolution of type variables in default clause.
 # https://chromiumcodereview.appspot.com/10824062/
 default_factory2_test/01: Fail
-function_type_alias6_test: Crash, Timeout
 type_variable_scope_test/00: Fail
 type_variable_scope_test/01: Fail
 type_variable_scope_test/02: Fail
@@ -252,6 +251,13 @@ type_variable_bounds2_test/05: Fail # See above
 try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
 const_test: Fail # For constructs like c[0]++, for some reason operator[] doesn't make into resolved elements.
 # Should be triaged.
+bad_override_test/01: Fail
+bad_override_test/02: Fail
+bad_override_test/03: Fail
+bad_override_test/04: Fail
+bad_override_test/05: Fail
+bad_override_test/06: Fail
+class_override_negative_test: Fail
 ct_const2_test: Fail, Pass
 disable_privacy_test: Fail
 empty_body_member_negative_test: Fail
@@ -279,6 +285,8 @@ library_same_name_used_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
+override_field_test/01: Fail
+override_field_method3_negative_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
