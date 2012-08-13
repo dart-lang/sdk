@@ -1154,7 +1154,7 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!IsEliminated()) {
+  if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(deopt_id(),
                                        token_pos(),
                                        try_index(),
