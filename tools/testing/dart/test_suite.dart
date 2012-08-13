@@ -467,12 +467,10 @@ class StandardTestSuite implements TestSuite {
       return commands;
 
     case 'none':
+    case 'dartc':
       var arguments = new List.from(vmOptions);
       arguments.addAll(args);
       return <Command>[new Command(shellPath(), arguments)];
-
-    case 'dartc':
-      return <Command>[new Command(shellPath(), args)];
 
     default:
       throw 'Unknown compiler ${configuration["compiler"]}';
