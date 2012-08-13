@@ -37,6 +37,12 @@ String compileAll(String code) {
   return compiler.assembledCode;
 }
 
+Element findElement(var compiler, String name) {
+  var element = compiler.mainApp.find(buildSourceString(name));
+  Expect.isNotNull(element, 'Could not locate $name.');
+  return element;
+}
+
 String anyIdentifier = "[a-zA-Z][a-zA-Z0-9]*";
 
 String getIntTypeCheck(String variable) {

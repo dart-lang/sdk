@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('dart:uri');
+
 #import("../../../lib/compiler/implementation/leg.dart");
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
+#import("compiler_helper.dart");
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
@@ -69,6 +72,7 @@ main() {
   testThis();
   testSuperCalls();
   testTypeVariables();
+  testToString();
 }
 
 testTypeVariables() {
@@ -717,4 +721,19 @@ List<String> asSortedStrings(Link link) {
   for (; !link.isEmpty(); link = link.tail) result.add(link.head.toString());
   result.sort((s1, s2) => s1.compareTo(s2));
   return result;
+}
+
+testToString() {
+  Uri uri = new Uri.fromComponents(scheme: 'source');
+  MockCompiler compiler = compilerFor(
+      @"class C { toString() => 'C'; } main() { '${new C()}'; }",
+      uri);
+  compiler.runCompiler(uri);
+
+  Element toStringMethod = findElement(compiler, 'C')
+      .lookupLocalMember(buildSourceString('toString'));
+  Expect.isNotNull(toStringMethod);
+
+  Expect.isNotNull(
+      compiler.enqueuer.resolution.getCachedElements(toStringMethod));
 }

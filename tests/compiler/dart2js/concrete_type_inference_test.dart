@@ -7,12 +7,6 @@
 #import('compiler_helper.dart');
 #import('parser_helper.dart');
 
-findElement(var compiler, String name) {
-  var element = compiler.mainApp.find(buildSourceString(name));
-  Expect.isNotNull(element, 'Could not locate $name.');
-  return element;
-}
-
 void compileAndFind(String code, String name,
                     check(compiler, element)) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
