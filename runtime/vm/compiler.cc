@@ -174,6 +174,9 @@ static bool CompileParsedFunctionHelper(
         FlowGraphTypePropagator propagator(parsed_function, block_order);
         propagator.PropagateTypes();
 
+        // Do optimizations that depend on the propagated type information.
+        optimizer.OptimizeComputations();
+
         if (use_ssa) {
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(block_order, &graph_builder);
@@ -383,8 +386,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     }
     if (FLAG_disassemble) {
       DisassembleCode(function, optimized);
-    }
-    if (FLAG_disassemble_optimized && optimized) {
+    } else if (FLAG_disassemble_optimized && optimized) {
       // Print unoptimized code along with the optimized code.
       DisassembleCode(function, false);
       DisassembleCode(function, true);

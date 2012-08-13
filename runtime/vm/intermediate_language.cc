@@ -308,6 +308,23 @@ void Instruction::RecordAssignedVars(BitVector* assigned_vars,
 }
 
 
+void Definition::ReplaceUsesWith(Definition* other) {
+  UseVal* head = use_list();
+  if (head == NULL) return;
+
+  UseVal* current = head;
+  while (current->next_use() != NULL) {
+    current->definition_ = other;
+    current = current->next_use();
+  }
+  current->definition_ = other;
+
+  current->next_use_ = other->use_list();
+  other->use_list()->previous_use_ = current;
+  other->set_use_list(head);
+}
+
+
 RawAbstractType* BindInstr::CompileType() const {
   if (HasPropagatedType()) {
     return PropagatedType();
@@ -633,12 +650,16 @@ RawAbstractType* StrictCompareComp::CompileType() const {
 
 
 RawAbstractType* EqualityCompareComp::CompileType() const {
-  return Type::BoolInterface();
+  return receiver_class_id() != kObjectCid
+      ? Type::BoolInterface()
+      : Type::DynamicType();
 }
 
 
 RawAbstractType* RelationalOpComp::CompileType() const {
-  return Type::BoolInterface();
+  return operands_class_id() != kObjectCid
+      ? Type::BoolInterface()
+      : Type::DynamicType();
 }
 
 
@@ -1008,6 +1029,32 @@ LocationSummary* StoreContextComp::MakeLocationSummary() const {
 void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Nothing to do.  Context register were loaded by register allocator.
   ASSERT(locs()->in(0).reg() == CTX);
+}
+
+
+Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
+  UseVal* left_use = left()->AsUse();
+  UseVal* right_use = right()->AsUse();
+  if (right_use == NULL || left_use == NULL) return NULL;
+  Definition* left = left_use->definition();
+  BindInstr* right = right_use->definition()->AsBind();
+  if (right == NULL) return NULL;
+  ConstantVal* right_constant = right->computation()->AsConstant();
+  if (right_constant == NULL) return NULL;
+  // TODO(fschneider): Handle other cases: e === false and e !== true/false.
+  const AbstractType& left_type =
+      AbstractType::Handle(left->HasPropagatedType()
+                           ? left->PropagatedType()
+                           : left->CompileType());
+  if ((left_type.raw() == Type::BoolInterface()) &&
+      (kind() == Token::kEQ_STRICT) &&
+      (right_constant->value().raw() == Bool::True())) {
+    // Remove the constant from the graph.
+    right->RemoveFromGraph();
+    // Return left subexpression as the replacement for this instruction.
+    return left;
+  }
+  return NULL;
 }
 
 

@@ -112,6 +112,7 @@ class BindInstr;
 class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
+class Definition;
 class Instruction;
 class PushArgumentInstr;
 class Value;
@@ -146,6 +147,10 @@ class Computation : public ZoneAllocated {
 
   // Returns true, if this computation can deoptimize.
   virtual bool CanDeoptimize() const  = 0;
+
+  // Optimize this computation. Returns a replacement for the instruction
+  // that wraps this computation or NULL if nothing to replace.
+  virtual Definition* TryReplace(BindInstr* instr) { return NULL; }
 
   // Compile time type of the computation, which typically depends on the
   // compile time types (and possibly propagated types) of its inputs.
@@ -353,6 +358,8 @@ class UseVal : public Value {
   Definition* definition_;
   UseVal* next_use_;
   UseVal* previous_use_;
+
+  friend class Definition;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -649,6 +656,8 @@ class StrictCompareComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual Definition* TryReplace(BindInstr* instr);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
@@ -2377,6 +2386,8 @@ class Definition : public Instruction {
     ASSERT(head == NULL || head->previous_use() == NULL);
     use_list_ = head;
   }
+
+  void ReplaceUsesWith(Definition* other);
 
  private:
   intptr_t temp_index_;

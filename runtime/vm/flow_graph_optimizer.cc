@@ -12,11 +12,35 @@ namespace dart {
 
 DECLARE_FLAG(bool, eliminate_type_checks);
 DECLARE_FLAG(bool, enable_type_checks);
-DECLARE_FLAG(bool, trace_optimization);
+DEFINE_FLAG(bool, trace_optimization, false, "Print optimization details.");
 DECLARE_FLAG(bool, trace_type_check_elimination);
 
 void FlowGraphOptimizer::ApplyICData() {
   VisitBlocks();
+}
+
+
+void FlowGraphOptimizer::OptimizeComputations() {
+  for (intptr_t i = 0; i < block_order_.length(); ++i) {
+    BlockEntryInstr* entry = block_order_[i];
+    entry->Accept(this);
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      BindInstr* instr = it.Current()->AsBind();
+      if (instr != NULL) {
+        Definition* result = instr->computation()->TryReplace(instr);
+        if (result != NULL) {
+          // Replace uses and remove the current instructions via the iterator.
+          instr->ReplaceUsesWith(result);
+          it.RemoveCurrentFromGraph();
+          if (FLAG_trace_optimization) {
+            OS::Print("Replacing v%d with v%d\n",
+                      instr->ssa_temp_index(),
+                      result->ssa_temp_index());
+          }
+        }
+      }
+    }
+  }
 }
 
 
