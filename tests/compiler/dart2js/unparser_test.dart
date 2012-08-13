@@ -124,8 +124,8 @@ testNativeMethods() {
 
 testPrefixIncrements() {
   testUnparse(' ++i;');
-  testUnparse('++a[i];');
-  testUnparse('++a[++b[i]];');
+  testUnparse(' ++a[i];');
+  testUnparse(' ++a[ ++b[i]];');
 }
 
 testConstModifier() {
