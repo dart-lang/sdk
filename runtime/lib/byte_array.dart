@@ -812,6 +812,11 @@ abstract class _ByteArrayBase {
                            f);
   }
 
+  Dynamic reduce(Dynamic initialValue,
+                 Dynamic combine(Dynamic initialValue, element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   Collection filter(bool f(element)) {
     return Collections.filter(this, new GrowableObjectArray(), f);
   }
@@ -2284,6 +2289,11 @@ class _ByteArrayViewBase {
     return Collections.map(this,
                            new GrowableObjectArray.withCapacity(length),
                            f);
+  }
+
+  Dynamic reduce(Dynamic initialValue,
+                 Dynamic combine(Dynamic initialValue, element)) {
+    return Collections.reduce(this, initialValue, combine);
   }
 
   Collection filter(bool f(element)) {

@@ -167,6 +167,14 @@ map(receiver, f) {
   }
 }
 
+reduce(receiver, initialValue, f) {
+  if (!isJsArray(receiver)) {
+    return UNINTERCEPTED(receiver.reduce(initialValue, f));
+  } else {
+    return Collections.reduce(receiver, initialValue, f);
+  }
+}
+
 getRange(receiver, start, length) {
   if (!isJsArray(receiver)) {
     return UNINTERCEPTED(receiver.getRange(start, length));
