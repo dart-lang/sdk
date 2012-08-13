@@ -249,7 +249,6 @@ type_variable_bounds2_test/00: Fail # See above
 type_variable_bounds2_test/03: Fail # See above
 type_variable_bounds2_test/05: Fail # See above
 try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
-const_test: Fail # For constructs like c[0]++, for some reason operator[] doesn't make into resolved elements.
 # Should be triaged.
 bad_override_test/01: Fail
 bad_override_test/02: Fail
@@ -276,12 +275,10 @@ function_field_test: Fail
 generic_test: Fail
 getters_setters2_test/03: Fail
 implicit_closure_test: Fail, Pass
-implied_interface_test: Fail
 interface_factory_constructor_negative_test: Fail
 interface_static_method_negative_test: Fail
 interface_test: Fail
 library5_test: Fail
-library_same_name_used_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
@@ -298,7 +295,6 @@ static_top_level_test/02: Fail
 static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
-string_interpolation7_test: Fail
 switch_label_test: Fail
 type_variable_bounds2_test/02: Fail
 type_variable_bounds2_test/06: Fail
