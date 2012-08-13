@@ -180,6 +180,11 @@ class GrowableObjectArray<T> implements List<T> {
                            new GrowableObjectArray.withCapacity(length), f);
   }
 
+  Dynamic reduce(Dynamic initialValue,
+                 Dynamic combine(Dynamic previousValue, E element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
+
   Collection<T> filter(bool f(T element)) {
     return Collections.filter(this, new GrowableObjectArray<T>(), f);
   }
