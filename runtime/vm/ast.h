@@ -396,6 +396,8 @@ class ClosureNode : public AstNode {
     }
   }
 
+  virtual const Instance* EvalConstExpr() const;
+
   DECLARE_COMMON_NODE_FUNCTIONS(ClosureNode);
 
  private:
