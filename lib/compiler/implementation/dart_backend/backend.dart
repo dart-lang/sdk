@@ -131,34 +131,41 @@ bool isDartCoreLib(Compiler compiler, LibraryElement libraryElement) {
  */
 class ReferencedElementCollector extends AbstractVisitor {
   final Compiler compiler;
-  final Element element;
+  final Element rootElement;
   final TreeElements treeElements;
   final Set<TypedefElement> typedefs;
   final Set<ClassElement> classes;
 
   ReferencedElementCollector(
       this.compiler,
-      this.element, this.treeElements,
+      this.rootElement, this.treeElements,
       this.typedefs, this.classes);
+
+  void collectElement(Element element) {
+    new ReferencedElementCollector(
+        compiler, element, new TreeElementMapping(), typedefs, classes)
+    .collect();
+  }
 
   visitNode(Node node) { node.visitChildren(this); }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
-    final type = compiler.resolveTypeAnnotation(element, typeAnnotation);
+    final type = compiler.resolveTypeAnnotation(rootElement, typeAnnotation);
     Element typeElement = type.element;
     if (typeElement.isTypedef() && !typedefs.contains(typeElement)) {
       typedefs.add(typeElement);
-      new ReferencedElementCollector(
-          compiler, typeElement, new TreeElementMapping(), typedefs, classes)
-      .collect();
+      collectElement(typeElement);
     }
-    if (typeElement.isClass()) classes.add(typeElement);
+    if (typeElement.isClass() && !classes.contains(typeElement)) {
+      classes.add(typeElement);
+      collectElement(typeElement);
+    }
     typeAnnotation.visitChildren(this);
   }
 
   void collect() {
-    compiler.withCurrentElement(element, () {
-      element.parseNode(compiler).accept(this);
+    compiler.withCurrentElement(rootElement, () {
+      rootElement.parseNode(compiler).accept(this);
     });
   }
 }

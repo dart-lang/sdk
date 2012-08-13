@@ -166,7 +166,6 @@ interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 # Tests that crash after reverting resolution of type variables in default clause.
 # https://chromiumcodereview.appspot.com/10824062/
 default_factory2_test/01: Fail
-default_factory3_test: Fail
 function_type_alias6_test: Crash, Timeout
 type_variable_scope_test/00: Fail
 type_variable_scope_test/01: Fail
@@ -222,11 +221,6 @@ assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
 assign_static_type_test/04: Fail
 assign_static_type_test/05: Fail
-cyclic_type_variable_test/01: Fail
-cyclic_type_variable_test/02: Fail
-cyclic_type_variable_test/03: Fail
-cyclic_type_variable_test/04: Fail
-cyclic_type_variable_test/none: Fail
 final_syntax_test/03: Fail
 final_syntax_test/04: Fail
 # Call operator is not supported by dart2js frontend.
@@ -271,6 +265,7 @@ super_first_constructor_test: Fail
 method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
+syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
 type_variable_bounds2_test/00: Fail # See above
 type_variable_bounds2_test/03: Fail # See above
 type_variable_bounds2_test/05: Fail # See above
@@ -290,14 +285,8 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 getters_setters2_test/03: Fail
-implicit_this_test/01: Fail
-implicit_this_test/02: Fail
-implicit_this_test/03: Fail
-implicit_this_test/04: Fail
-implicit_this_test/none: Fail
 implied_interface_test: Fail
 interface_factory_constructor_negative_test: Fail
-interface_inherit_field_test: Fail
 interface_static_method_negative_test: Fail
 interface_test: Fail
 library5_test: Fail
@@ -306,7 +295,6 @@ named_parameters_type_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
-prefix14_test: Fail
 prefix15_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
@@ -319,7 +307,6 @@ static_top_level_test/04: Fail
 static_top_level_test/05: Fail
 string_interpolation7_test: Fail
 switch_label_test: Fail
-syntax_test/none: Fail
 typed_message_test: Fail
 type_variable_bounds2_test/02: Fail
 type_variable_bounds2_test/06: Fail
