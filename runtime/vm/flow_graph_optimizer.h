@@ -86,6 +86,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   virtual void VisitAssertAssignable(AssertAssignableComp* comp,
                                      BindInstr* instr);
+  virtual void VisitAssertBoolean(AssertBooleanComp* comp,
+                                  BindInstr* instr);
 
   virtual void VisitGraphEntry(GraphEntryInstr* graph_entry);
   virtual void VisitJoinEntry(JoinEntryInstr* join_entry);

@@ -403,7 +403,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
         try_index_(try_index),
         dst_type_(dst_type),
         dst_name_(dst_name),
-        eliminated_(false) {
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     ASSERT(instantiator != NULL);
     ASSERT(instantiator_type_arguments != NULL);
@@ -425,12 +425,12 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
-  bool IsEliminated() const {
-    return eliminated_;
+  bool is_eliminated() const {
+    return is_eliminated_;
   }
-  void Eliminate() {
-    ASSERT(!eliminated_);
-    eliminated_ = true;
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -442,7 +442,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const intptr_t try_index_;
   const AbstractType& dst_type_;
   const String& dst_name_;
-  bool eliminated_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableComp);
 };
@@ -454,7 +454,8 @@ class AssertBooleanComp : public TemplateComputation<1> {
                     intptr_t try_index,
                     Value* value)
       : token_pos_(token_pos),
-        try_index_(try_index) {
+        try_index_(try_index),
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
@@ -465,11 +466,22 @@ class AssertBooleanComp : public TemplateComputation<1> {
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
 
+  bool is_eliminated() const {
+    return is_eliminated_;
+  }
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
   virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
 };

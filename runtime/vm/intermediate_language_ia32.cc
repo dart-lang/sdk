@@ -204,23 +204,25 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register obj = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  // Check that the type of the value is allowed in conditional context.
-  // Call the runtime if the object is not bool::true or bool::false.
-  Label done;
-  __ CompareObject(obj, compiler->bool_true());
-  __ j(EQUAL, &done, Assembler::kNearJump);
-  __ CompareObject(obj, compiler->bool_false());
-  __ j(EQUAL, &done, Assembler::kNearJump);
+  if (!is_eliminated()) {
+    // Check that the type of the value is allowed in conditional context.
+    // Call the runtime if the object is not bool::true or bool::false.
+    Label done;
+    __ CompareObject(obj, compiler->bool_true());
+    __ j(EQUAL, &done, Assembler::kNearJump);
+    __ CompareObject(obj, compiler->bool_false());
+    __ j(EQUAL, &done, Assembler::kNearJump);
 
-  __ pushl(obj);  // Push the source object.
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
-                                try_index(),
-                                kConditionTypeErrorRuntimeEntry);
-  // We should never return here.
-  __ int3();
+    __ pushl(obj);  // Push the source object.
+    compiler->GenerateCallRuntime(deopt_id(),
+                                  token_pos(),
+                                  try_index(),
+                                  kConditionTypeErrorRuntimeEntry);
+    // We should never return here.
+    __ int3();
 
-  __ Bind(&done);
+    __ Bind(&done);
+  }
   ASSERT(obj == result);
 }
 

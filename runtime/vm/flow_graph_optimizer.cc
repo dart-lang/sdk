@@ -9,6 +9,7 @@
 #include "vm/object_store.h"
 #include "vm/parser.h"
 #include "vm/scopes.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -575,17 +576,37 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
                                                     BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&
-      !comp->IsEliminated() &&
+      !comp->is_eliminated() &&
       !comp->dst_type().IsMalformed() &&
       comp->value()->CompileTypeIsMoreSpecificThan(comp->dst_type())) {
-    comp->Eliminate();
+    comp->eliminate();
     if (FLAG_trace_type_check_elimination) {
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        comp->token_pos(),
                                        comp->value(),
                                        comp->dst_type(),
                                        comp->dst_name(),
-                                       comp->IsEliminated());
+                                       comp->is_eliminated());
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
+                                                 BindInstr* instr) {
+  if (FLAG_eliminate_type_checks &&
+      !comp->is_eliminated() &&
+      comp->value()->CompileTypeIsMoreSpecificThan(
+          Type::Handle(Type::BoolInterface()))) {
+    comp->eliminate();
+    if (FLAG_trace_type_check_elimination) {
+      const String& name = String::Handle(Symbols::New("boolean expression"));
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       Type::Handle(Type::BoolInterface()),
+                                       name,
+                                       comp->is_eliminated());
     }
   }
 }

@@ -168,13 +168,19 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'%s",
            String::Handle(dst_type().Name()).ToCString(),
            dst_name().ToCString(),
-           IsEliminated() ? " eliminated" : "");
+           is_eliminated() ? " eliminated" : "");
   f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
+}
+
+
+void AssertBooleanComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print("%s", is_eliminated() ? " eliminated" : "");
 }
 
 
