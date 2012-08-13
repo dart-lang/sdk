@@ -27,6 +27,9 @@ void startRootIsolate(entry) {
   // by having a "default" isolate (the first one created).
   _globalState.currentContext = rootContext;
 
+  if (_window != null)  {
+    rootContext.eval(() => _setTimerFactoryClosure( _timerFactory));
+  }
   rootContext.eval(entry);
   _globalState.topEventLoop.run();
 }

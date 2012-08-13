@@ -2,12 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class BailoutException {
-  final String reason;
-
-  const BailoutException(this.reason);
-}
-
 class DartBackend extends Backend {
   final List<CompilerTask> tasks;
   final UnparseValidator unparseValidator;
@@ -40,7 +34,7 @@ class DartBackend extends Backend {
    */
   void addMemberToClass(Element element, ClassElement classElement) {
     // ${element} should have ${classElement} as enclosing.
-    assert(element.enclosingElement == classElement);
+    assert(element.isMember());
     Set<Element> resolvedElementsInClass = resolvedClassMembers.putIfAbsent(
         classElement, () => new Set<Element>());
     resolvedElementsInClass.add(element);
@@ -50,11 +44,6 @@ class DartBackend extends Backend {
     resolvedElements.forEach((element, treeElements) {
       unparseValidator.check(element);
     });
-
-    // TODO(antonm): Eventually bailouts will be proper errors.
-    void bailout(String reason) {
-      throw new BailoutException(reason);
-    }
 
     /**
      * Tells whether we should output given element. Corelib classes like
@@ -69,34 +58,52 @@ class DartBackend extends Backend {
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
       !isDartCoreLib(compiler, element.getLibrary());
 
-    try {
-      Emitter emitter = new Emitter(compiler);
-      resolvedElements.forEach((element, treeElements) {
-        if (!shouldOutput(element)) return;
-        if (element.isMember()) {
-          var enclosingClass = element.enclosingElement;
-          assert(enclosingClass.isClass());
-          assert(enclosingClass.isTopLevel());
-          addMemberToClass(element, enclosingClass);
-          return;
-        }
-        if (!element.isTopLevel()) {
-          bailout('Cannot process non top-level $element');
-        }
+    Set<TypedefElement> typedefs = new Set<TypedefElement>();
+    Set<ClassElement> classes = new Set<ClassElement>();
+    PlaceholderCollector collector = new PlaceholderCollector(compiler);
+    resolvedElements.forEach((element, treeElements) {
+      if (!shouldOutput(element)) return;
+      if (element is AbstractFieldElement) return;
+      collector.collect(element, treeElements);
+      new ReferencedElementCollector(
+          compiler, element, treeElements, typedefs, classes)
+      .collect();
+    });
+    final emptyTreeElements = new TreeElementMapping();
+    collectElement(element) { collector.collect(element, emptyTreeElements); }
+    typedefs.forEach(collectElement);
+    classes.forEach(collectElement);
 
-        emitter.outputElement(element);
-      });
+    ConflictingRenamer renamer =
+        new ConflictingRenamer(compiler, collector.placeholders);
+    Emitter emitter = new Emitter(compiler, renamer);
+    resolvedElements.forEach((element, treeElements) {
+      if (!shouldOutput(element)) return;
+      if (element.isMember()) {
+        ClassElement enclosingClass = element.getEnclosingClass();
+        assert(enclosingClass.isClass());
+        assert(enclosingClass.isTopLevel());
+        addMemberToClass(element, enclosingClass);
+        return;
+      }
+      if (!element.isTopLevel()) {
+        compiler.cancel(reason: 'Cannot process $element', element: element);
+      }
 
-      // Now output resolved classes with inner elements we met before.
-      resolvedClassMembers.forEach(emitter.outputClass);
-      compiler.assembledCode = emitter.toString();
-    } catch (BailoutException e) {
-      compiler.assembledCode = '''
-main() {
-  final bailout_reason = "${e.reason}";
-}
-''';
-    }
+      emitter.outputElement(element);
+    });
+
+    typedefs.forEach(emitter.outputElement);
+    final emptySet = new Set<Element>();
+    classes.forEach((classElement) {
+      if (!shouldOutput(classElement)) return;
+      if (resolvedClassMembers.containsKey(classElement)) return;
+      emitter.outputClass(classElement, emptySet);
+    });
+
+    // Now output resolved classes with inner elements we met before.
+    resolvedClassMembers.forEach(emitter.outputClass);
+    compiler.assembledCode = emitter.toString();
   }
 
   log(String message) => compiler.log('[DartBackend] $message');
@@ -114,4 +121,51 @@ bool isDartCoreLib(Compiler compiler, LibraryElement libraryElement) {
     }
   }
   return false;
+}
+
+/**
+ * Some elements are not recorded by resolver now,
+ * for example, typedefs or classes which are only
+ * used in signatures, as/is operators or in super clauses
+ * (just to name a few).  Retraverse AST to pick those up.
+ */
+class ReferencedElementCollector extends AbstractVisitor {
+  final Compiler compiler;
+  final Element rootElement;
+  final TreeElements treeElements;
+  final Set<TypedefElement> typedefs;
+  final Set<ClassElement> classes;
+
+  ReferencedElementCollector(
+      this.compiler,
+      this.rootElement, this.treeElements,
+      this.typedefs, this.classes);
+
+  void collectElement(Element element) {
+    new ReferencedElementCollector(
+        compiler, element, new TreeElementMapping(), typedefs, classes)
+    .collect();
+  }
+
+  visitNode(Node node) { node.visitChildren(this); }
+
+  visitTypeAnnotation(TypeAnnotation typeAnnotation) {
+    final type = compiler.resolveTypeAnnotation(rootElement, typeAnnotation);
+    Element typeElement = type.element;
+    if (typeElement.isTypedef() && !typedefs.contains(typeElement)) {
+      typedefs.add(typeElement);
+      collectElement(typeElement);
+    }
+    if (typeElement.isClass() && !classes.contains(typeElement)) {
+      classes.add(typeElement);
+      collectElement(typeElement);
+    }
+    typeAnnotation.visitChildren(this);
+  }
+
+  void collect() {
+    compiler.withCurrentElement(rootElement, () {
+      rootElement.parseNode(compiler).accept(this);
+    });
+  }
 }

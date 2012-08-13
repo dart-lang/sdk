@@ -6,7 +6,7 @@
 
 final String TEST_ONE = @"""
 foo(a) {
-  int c = foo(1);
+  int c = foo(true);
   if (a) c = foo(2);
   return c;
 }

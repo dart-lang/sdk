@@ -80,12 +80,18 @@ class Enqueuer {
     }
     if (!isResolutionQueue &&
         element.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-      registerInstantiatedClass(element.enclosingElement);
+      registerInstantiatedClass(element.getEnclosingClass());
     }
     if (elements === null) {
       elements = getCachedElements(element);
     }
     queue.add(new WorkItem(element, elements));
+  }
+
+  void eagerRecompile(Element element) {
+    universe.generatedCode.remove(element);
+    universe.generatedBailoutCode.remove(element);
+    addToWorkList(element);
   }
 
   bool canBeRecompiled(Element element) {
@@ -208,9 +214,7 @@ class Enqueuer {
       while (cls !== null) {
         if (seenClasses.contains(cls)) return;
         seenClasses.add(cls);
-        // TODO(ahe): Don't call resolveType, instead, call this method
-        // when resolveType is called.
-        compiler.resolveClass(cls);
+        cls.ensureResolved(compiler);
         cls.members.forEach(processInstantiatedClassMember);
         cls = cls.superclass;
       }
@@ -317,7 +321,11 @@ class Enqueuer {
 
   void forEach(f(WorkItem work)) {
     while (!queue.isEmpty()) {
-      f(queue.removeLast());
+      do {
+        f(queue.removeLast());
+      } while (!queue.isEmpty());
+      // TODO(ahe): we shouldn't register the field closure invocations here.
+      registerFieldClosureInvocations();
     }
   }
 }

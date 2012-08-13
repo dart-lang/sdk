@@ -123,27 +123,6 @@ public class LibraryParserTest extends TestCase {
     assertHasNative(unit, "impl.js");
   }
 
-  public void testResource() {
-      //"library { import = ['foo.lib', 'bar.lib'] source = ['this.dart', 'that.dart'] resource = [ 'some.html', 'myimage.gif' ] }";
-    String text =
-        "#library(\"testLibrary\");\n" 
-      + "#import(\"foo.dart\");\n" 
-      + "#import(\"bar.dart\");\n" 
-      + "#source(\"this.dart\");\n" 
-      + "#source(\"that.dart\");\n" 
-      + "#resource(\"some.html\");\n" 
-      + "#resource(\"myimage.gif\");\n"; 
-      
-    LibraryUnit unit = parse(text);
-
-    assertHasImport(unit, "foo.dart");
-    assertHasImport(unit, "bar.dart");
-    assertHasSource(unit, "this.dart");
-    assertHasSource(unit, "that.dart");
-    assertHasResource(unit, "some.html");
-    assertHasResource(unit, "myimage.gif");
-  }
-
   private void assertHasImport(LibraryUnit unit, String name) {
     assertHas(unit.getImportPaths(), name);
   }
@@ -154,10 +133,6 @@ public class LibraryParserTest extends TestCase {
 
   private void assertHasSource(LibraryUnit unit, String name) {
     assertHas(unit.getSourcePaths(), name);
-  }
-
-  private void assertHasResource(LibraryUnit unit, String name) {
-    assertHas(unit.getResourcePaths(), name);
   }
 
   private void assertHasNative(LibraryUnit unit, String name) {

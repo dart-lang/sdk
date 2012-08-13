@@ -16,9 +16,9 @@ class PartialClassElement extends ClassElement {
   PartialClassElement(SourceString name,
                       Token this.beginToken,
                       Token this.endToken,
-                      CompilationUnitElement enclosing,
+                      Element enclosing,
                       int id)
-    : super(name, enclosing, id);
+      : super(name, enclosing, id);
 
   ClassNode parseNode(DiagnosticListener diagnosticListener) {
     if (cachedNode != null) return cachedNode;
@@ -34,6 +34,36 @@ class PartialClassElement extends ClassElement {
   Token position() => beginToken;
 
   bool isInterface() => beginToken.stringValue === "interface";
+
+  PartialClassElement cloneTo(Element enclosing, DiagnosticListener listener) {
+    parseNode(listener);
+    // TODO(lrn): Is copying id acceptable?
+    // TODO(ahe): No.
+    PartialClassElement result =
+        new PartialClassElement(name, beginToken, endToken, enclosing, id);
+
+    assert(this.supertypeLoadState == ClassElement.STATE_NOT_STARTED);
+    assert(this.resolutionState == ClassElement.STATE_NOT_STARTED);
+    assert(this.type === null);
+    assert(this.supertype === null);
+    assert(this.defaultClass === null);
+    assert(this.interfaces === null);
+    assert(this.allSupertypes === null);
+    assert(this.backendMembers.isEmpty());
+
+    // Native is only used in DOM/HTML library for which we don't
+    // support patching.
+    assert(this.nativeName === null);
+
+    Link<Element> elementList = this.members;
+    while (!elementList.isEmpty()) {
+      result.addMember(elementList.head.cloneTo(result, listener), listener);
+      elementList = elementList.tail;
+    }
+
+    result.cachedNode = cachedNode;
+    return result;
+  }
 }
 
 class MemberListener extends NodeListener {
@@ -41,8 +71,8 @@ class MemberListener extends NodeListener {
 
   MemberListener(DiagnosticListener listener,
                  Element enclosingElement)
-    : this.enclosingElement = enclosingElement,
-      super(listener, enclosingElement.getCompilationUnit());
+      : this.enclosingElement = enclosingElement,
+        super(listener, enclosingElement.getCompilationUnit());
 
   bool isConstructorName(Node nameNode) {
     if (enclosingElement === null ||

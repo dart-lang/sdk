@@ -7,7 +7,8 @@
 main() {
   Expect.isTrue(Platform.numberOfProcessors > 0);
   var os = Platform.operatingSystem;
-  Expect.isTrue(os == "linux" || os == "macos" || os == "windows");
+  Expect.isTrue(os == "android" || os == "linux" || os == "macos" ||
+      os == "windows");
   var sep = Platform.pathSeparator;
   Expect.isTrue(sep == '/' || (os == 'windows' && sep == '\\'));
   var hostname = Platform.localHostname;

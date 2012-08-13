@@ -8,7 +8,6 @@ import com.google.dart.compiler.CompilerTestCase;
 import com.google.dart.compiler.ast.DartDirective;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartLibraryDirective;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartUnit;
 
@@ -105,10 +104,6 @@ public abstract class AbstractParserTest extends CompilerTestCase {
     directive = iter.next();
     assertEquals(DartSourceDirective.class, directive.getClass());
     assertEquals("ListObjectLiterals.dart", ((DartSourceDirective) directive).getSourceUri().getValue());
-
-    directive = iter.next();
-    assertEquals(DartResourceDirective.class, directive.getClass());
-    assertEquals("myimage.gif", ((DartResourceDirective) directive).getResourceUri().getValue());
   }
 
   public void testDirectives2() {
@@ -130,10 +125,6 @@ public abstract class AbstractParserTest extends CompilerTestCase {
     directive = iter.next();
     assertEquals(DartSourceDirective.class, directive.getClass());
     assertEquals("SomeClass.dart", ((DartSourceDirective) directive).getSourceUri().getValue());
-
-    directive = iter.next();
-    assertEquals(DartResourceDirective.class, directive.getClass());
-    assertEquals("myimage2.gif", ((DartResourceDirective) directive).getResourceUri().getValue());
   }
 
   public abstract void testStringsErrors();

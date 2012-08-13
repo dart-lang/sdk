@@ -99,8 +99,8 @@ testGenericTypes() {
 }
 
 testForLoop() {
-  testUnparse('for(;i<100;i++){}');
-  testUnparse('for(i=0;i<100;i++){}');
+  testUnparse('for(;i<100;i++ ){}');
+  testUnparse('for(i=0;i<100;i++ ){}');
 }
 
 testEmptyList() {
@@ -123,9 +123,9 @@ testNativeMethods() {
 }
 
 testPrefixIncrements() {
-  testUnparse('++i;');
-  testUnparse('++a[i];');
-  testUnparse('++a[++b[i]];');
+  testUnparse(' ++i;');
+  testUnparse(' ++a[i];');
+  testUnparse(' ++a[ ++b[i]];');
 }
 
 testConstModifier() {
@@ -187,16 +187,9 @@ testVariableDefinitions() {
   // Class member of typedef-ed function type.
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
-  testDart2Dart('typedef void foofunc(arg);'
-      'class A {'
-        'final foofunc handler;'
-        'A(foofunc this.handler);'
-      '}'
-      'main() {new A((arg) {});}', (result) {
-        Expect.equals(
-            'main(){new A((arg){});}'
-            'class A{A(foofunc this.handler);final foofunc handler;}', result);
-      });
+  testDart2Dart(
+    'main(){new A((arg){});}typedef void foofunc(arg);'
+    'class A{A(foofunc this.handler);final foofunc handler;}');
 }
 
 testGetSet() {
@@ -415,21 +408,21 @@ main() {
   testNativeMethods();
   testPrefixIncrements();
   testConstModifier();
-  testStaticInvocation();
   testSimpleFileUnparse();
+  testTopLevelField();
   testSimpleObjectInstantiation();
   testSimpleTopLevelClass();
   testClassWithSynthesizedConstructor();
   testClassWithMethod();
+  testExtendsImplements();
   testVariableDefinitions();
   testGetSet();
   testFactoryConstructor();
-  testTopLevelField();
   testAbstractClass();
-  testConflictLibraryClassRename();
-  testNoConflictSendsRename();
   testConflictSendsRename();
-  // Disabled with revert of https://chromiumcodereview.appspot.com/10824062/
-  // testDefaultClassWithArgs();
+  testNoConflictSendsRename();
+  testConflictLibraryClassRename();
+  testDefaultClassWithArgs();
   testClassExtendsWithArgs();
+  testStaticInvocation();
 }

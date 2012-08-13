@@ -727,7 +727,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  new func();",
         "}",
         "");
-    assertErrors(libraryResult.getErrors(), errEx(ResolverErrorCode.NOT_A_TYPE, 4, 7, 4));
+    assertErrors(libraryResult.getErrors(), errEx(TypeErrorCode.NOT_A_TYPE, 4, 7, 4));
   }
 
   /**
@@ -1778,12 +1778,12 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
           errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
     }
-    // use CompilerConfiguration
+    // use CompilerConfiguration to suppress
     {
       compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
         @Override
-        public boolean suppressNoMemberWarningForInferredTypes() {
-          return true;
+        public boolean memberWarningForInferredTypes() {
+          return false;
         }
       });
       AnalyzeLibraryResult result = analyzeLibrary(
@@ -2208,6 +2208,36 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "}",
         "");
     assertInferredElementTypeString(testUnit, "v1", "String");
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4410
+   */
+  public void test_typesPropagation_assertIsType() throws Exception {
+    analyzeLibrary(
+        "f(var v) {",
+        "  if (true) {",
+        "    var v1 = v;",
+        "    assert(v is String);",
+        "    var v2 = v;",
+        "    {",
+        "      var v3 = v;",
+        "    }",
+        "    var v4 = v;",
+        "  }",
+        "  var v5 = v;",
+        "}",
+        "");
+    // we don't know type initially
+    assertInferredElementTypeString(testUnit, "v1", "<dynamic>");
+    // after "assert" all next statements know type
+    assertInferredElementTypeString(testUnit, "v2", "String");
+    assertInferredElementTypeString(testUnit, "v3", "String");
+    // type is set to unknown only when we exit control Block, not just any Block
+    assertInferredElementTypeString(testUnit, "v4", "String");
+    // we exited "if" Block, so "assert" may be was not executed, so we don't know type
+    assertInferredElementTypeString(testUnit, "v5", "<dynamic>");
   }
 
   public void test_typesPropagation_field_inClass_final() throws Exception {
@@ -3353,6 +3383,89 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     // has some errors, no exception
     assertTrue(libraryResult.getErrors().size() != 0);
+  }
+
+  /**
+   * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
+   * accessible in static context.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inStatic_notPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "main() {",
+        "  unknown = 0;",
+        "  process(unknown);",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
+        errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+  }
+  
+  /**
+   * If "unknown" is separate identifier, it is handled as "this.unknown", but "this" is not
+   * accessible in static context.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inInstance_notPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "class A {",
+        "  foo() {",
+        "    unknown = 0;",
+        "    process(unknown);",
+        "  }",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 5, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 6, 13, 7));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3084
+   */
+  public void test_unresolvedIdentifier_inStatic_inPropertyAccess() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "process(x) {}",
+        "main() {",
+        "  Unknown.foo = 0;",
+        "  process(Unknown.foo);",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 4, 3, 7),
+        errEx(TypeErrorCode.CANNOT_BE_RESOLVED, 5, 11, 7));
+  }
+  
+  /**
+   * Unresolved constructor is warning.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3800
+   */
+  public void test_unresolvedConstructor() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "main() {",
+        "  new A(); // OK",
+        "  new A.noSuchConstructor(); // warning",
+        "  new B(); // warning",
+        "  new B.noSuchConstructor(); // warning",
+        "}"));
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 5, 7, 19),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
+        errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
   }
 
   private static <T extends DartNode> T findNode(

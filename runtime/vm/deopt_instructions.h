@@ -6,6 +6,7 @@
 #define VM_DEOPT_INSTRUCTIONS_H_
 
 #include "vm/allocation.h"
+#include "vm/assembler.h"
 #include "vm/growable_array.h"
 #include "vm/object.h"
 
@@ -14,6 +15,57 @@ namespace dart {
 class Location;
 class Value;
 
+// Holds all data relevant for execution of deoptimization instructions.
+class DeoptimizationContext : public ValueObject {
+ public:
+  // 'to_frame_start' points to the return address just below the frame's
+  // stack pointer. 'num_args' is 0 if there are no arguments or if there
+  // are optional arguments.
+  DeoptimizationContext(intptr_t* to_frame_start,
+                        intptr_t to_frame_size,
+                        const Array& object_table,
+                        intptr_t num_args);
+
+  intptr_t* GetFromFrameAddressAt(intptr_t index) const {
+    ASSERT((0 <= index) && (index < from_frame_size_));
+    return &from_frame_[index];
+  }
+
+  intptr_t* GetToFrameAddressAt(intptr_t index) const {
+    ASSERT((0 <= index) && (index < to_frame_size_));
+    return &to_frame_[index];
+  }
+
+  intptr_t* GetFromFpAddress() const;
+  intptr_t* GetFromPcAddress() const;
+
+  RawObject* ObjectAt(intptr_t index) const {
+    return object_table_.At(index);
+  }
+
+  intptr_t RegisterValue(Register reg) const {
+    return registers_copy_[reg];
+  }
+
+  Isolate* isolate() const { return isolate_; }
+
+  intptr_t from_frame_size() const { return from_frame_size_; }
+
+ private:
+  const Array& object_table_;
+  intptr_t* to_frame_;
+  const intptr_t to_frame_size_;
+  intptr_t* from_frame_;
+  intptr_t from_frame_size_;
+  intptr_t* registers_copy_;
+  const intptr_t num_args_;
+  Isolate* isolate_;
+
+  DISALLOW_COPY_AND_ASSIGN(DeoptimizationContext);
+};
+
+
+
 // Represents one deopt instruction, e.g, setup return address, store object,
 // store register, etc. The target is defined by instruction's position in
 // the deopt-info array.
@@ -21,7 +73,13 @@ class DeoptInstr : public ZoneAllocated {
  public:
   static DeoptInstr* Create(intptr_t kind_as_int, intptr_t from_index);
 
+  DeoptInstr() {}
+  virtual ~DeoptInstr() {}
+
   virtual const char* ToCString() const = 0;
+
+  virtual void Execute(DeoptimizationContext* deopt_context,
+                       intptr_t to_index) = 0;
 
  protected:
   enum Kind {
@@ -33,8 +91,6 @@ class DeoptInstr : public ZoneAllocated {
     kSetCallerFp,
     kSetCallerPc,
   };
-
-  DeoptInstr() {}
 
   virtual DeoptInstr::Kind kind() const = 0;
   virtual intptr_t from_index() const = 0;

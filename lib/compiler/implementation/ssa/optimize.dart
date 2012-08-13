@@ -1191,7 +1191,7 @@ class BaseRecompilationVisitor extends HBaseVisitor {
     if (other != null &&
         other.isConstantNumber() &&
         field.element != null &&
-        field.element.enclosingElement.isClass()) {
+        field.element.isMember()) {
       // Calculate the field type from the information available.  If
       // we have type information for the field and it contains NUMBER
       // we use it as a candidate for recompilation.

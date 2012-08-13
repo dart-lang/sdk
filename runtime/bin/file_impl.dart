@@ -217,22 +217,23 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
 
 
   void close() {
+    _streamMarkedClosed = true;
     if (_file == null) {
       _pendingOperations.add(_PendingOperation.CLOSE);
-    } else if (!_streamMarkedClosed) {
+    } else if (!_closeCallbackScheduled) {
       _file.close().then((ignore) {
         if (_onClosed != null) _onClosed();
       });
-      _streamMarkedClosed = true;
+      _closeCallbackScheduled = true;
     }
   }
 
   void set onNoPendingWrites(void callback()) {
     _onNoPendingWrites = callback;
-    if (((_pendingOperations == null) || (_pendingOperations.length == 0)) &&
-        (outstandingWrites == 0) &&
+    if ((_pendingOperations == null || _pendingOperations.length == 0) &&
+        outstandingWrites == 0 &&
         !_streamMarkedClosed &&
-        (_onNoPendingWrites != null)) {
+        _onNoPendingWrites != null) {
       new Timer(0, (t) {
         if (_onNoPendingWrites != null) {
           _onNoPendingWrites();
@@ -266,9 +267,9 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     var writeListFuture = _file.writeList(buffer, offset, len);
     writeListFuture.then((ignore) {
         outstandingWrites--;
-        if ((outstandingWrites == 0) &&
+        if (outstandingWrites == 0 &&
             !_streamMarkedClosed &&
-            (_onNoPendingWrites != null)) {
+            _onNoPendingWrites != null) {
           _onNoPendingWrites();
         }
     });
@@ -279,15 +280,17 @@ class _FileOutputStream extends _BaseOutputStream implements OutputStream {
     });
   }
 
+  bool get closed() => _streamMarkedClosed;
+
   RandomAccessFile _file;
 
   // When this is set to true the stream is marked closed. When a
   // stream is marked closed no more data can be written.
   bool _streamMarkedClosed = false;
 
-  // When this is set to true the close callback has been called and
-  // the stream is fully closed.
-  bool _closeCallbackCalled = false;
+  // When this is set to true, the close callback has been scheduled and the
+  // stream will be fully closed once it's called.
+  bool _closeCallbackScheduled = false;
 
   // Number of writes that have not yet completed.
   int outstandingWrites = 0;

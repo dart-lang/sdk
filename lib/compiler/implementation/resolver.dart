@@ -36,14 +36,12 @@ class TreeElementMapping implements TreeElements {
 }
 
 class ResolverTask extends CompilerTask {
-  Queue<ClassElement> toResolve;
-
   // Caches the elements of analyzed constructors to make them available
   // for inlining in later tasks.
   Map<FunctionElement, TreeElements> constructorElements;
 
   ResolverTask(Compiler compiler)
-    : super(compiler), toResolve = new Queue<ClassElement>(),
+    : super(compiler),
       constructorElements = new Map<FunctionElement, TreeElements>();
 
   String get name() => 'Resolver';
@@ -86,7 +84,7 @@ class ResolverTask extends CompilerTask {
     Link<Node> initializers = node.initializers.nodes;
     if (!initializers.isEmpty() &&
         Initializers.isConstructorRedirect(initializers.head)) {
-      final ClassElement classElement = constructor.enclosingElement;
+      final ClassElement classElement = constructor.getEnclosingClass();
       final SourceString constructorName =
           getConstructorName(initializers.head);
       final SourceString className = classElement.name;
@@ -141,11 +139,6 @@ class ResolverTask extends CompilerTask {
       }
       visitBody(visitor, tree.body);
 
-      // Resolve the type annotations encountered in the method.
-      while (!toResolve.isEmpty()) {
-        ClassElement classElement = toResolve.removeFirst();
-        classElement.ensureResolved(compiler);
-      }
       if (isConstructor) {
         constructorElements[element] = visitor.mapping;
       }
@@ -160,7 +153,7 @@ class ResolverTask extends CompilerTask {
   void resolveConstructorImplementation(FunctionElement constructor,
                                         FunctionExpression node) {
     if (constructor.defaultImplementation !== constructor) return;
-    ClassElement intrface = constructor.enclosingElement;
+    ClassElement intrface = constructor.getEnclosingClass();
     if (!intrface.isInterface()) return;
     Type defaultType = intrface.defaultClass;
     if (defaultType === null) {
@@ -168,6 +161,8 @@ class ResolverTask extends CompilerTask {
     }
     ClassElement defaultClass = defaultType.element;
     defaultClass.ensureResolved(compiler);
+    assert(defaultClass.resolutionState == ClassElement.STATE_DONE);
+    assert(defaultClass.supertypeLoadState == ClassElement.STATE_DONE);
     if (defaultClass.isInterface()) {
       error(node, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
             [defaultClass.name]);
@@ -225,27 +220,65 @@ class ResolverTask extends CompilerTask {
     return result;
   }
 
+  /**
+   * Load and resolve the supertypes of [cls].
+   *
+   * Warning: do not call this method directly. It should only be
+   * called by [resolveClass] and [ClassSupertypeResolver].
+   */
+  void loadSupertypes(ClassElement cls, Node from) {
+    compiler.withCurrentElement(cls, () => measure(() {
+      if (cls.supertypeLoadState == ClassElement.STATE_DONE) return;
+      if (cls.supertypeLoadState == ClassElement.STATE_STARTED) {
+        compiler.reportMessage(
+          compiler.spanFromNode(from),
+          MessageKind.CYCLIC_CLASS_HIERARCHY.error([cls.name]),
+          api.Diagnostic.ERROR);
+        cls.supertypeLoadState = ClassElement.STATE_DONE;
+        cls.allSupertypes = const EmptyLink<Type>().prepend(
+            compiler.objectClass.computeType(compiler));
+        // TODO(ahe): We should also set cls.supertype here to avoid
+        // creating a malformed class hierarchy.
+        return;
+      }
+      cls.supertypeLoadState = ClassElement.STATE_STARTED;
+      compiler.withCurrentElement(cls, () {
+        // TODO(ahe): Cache the node in cls.
+        cls.parseNode(compiler).accept(new ClassSupertypeResolver(compiler,
+                                                                  cls));
+        if (cls.supertypeLoadState != ClassElement.STATE_DONE) {
+          cls.supertypeLoadState = ClassElement.STATE_DONE;
+        }
+      });
+    }));
+  }
+
+  /**
+   * Resolve the class [element].
+   *
+   * Before calling this method, [element] was constructed by the
+   * scanner and most fields are null or empty. This method fills in
+   * these fields and also ensure that the supertypes of [element] are
+   * resolved.
+   *
+   * Warning: Do not call this method directly. Instead use
+   * [:element.ensureResolved(compiler):].
+   */
   void resolveClass(ClassElement element) {
-    if (element.isResolved || element.isBeingResolved) return;
-    element.isBeingResolved = true;
-    measure(() {
+    assert(element.resolutionState == ClassElement.STATE_NOT_STARTED);
+    element.resolutionState = ClassElement.STATE_STARTED;
+    compiler.withCurrentElement(element, () => measure(() {
       ClassNode tree = element.parseNode(compiler);
+      loadSupertypes(element, tree);
+
       ClassResolverVisitor visitor =
         new ClassResolverVisitor(compiler, element);
       visitor.visit(tree);
-      element.isBeingResolved = false;
-      element.isResolved = true;
-
-      while (!toResolve.isEmpty()) {
-        ClassElement classElement = toResolve.removeFirst();
-        classElement.ensureResolved(compiler);
-      }
-
-      checkMembers(element);
-    });
+      element.resolutionState = ClassElement.STATE_DONE;
+    }));
   }
 
-  checkMembers(ClassElement cls) {
+  void checkMembers(ClassElement cls) {
     if (cls === compiler.objectClass) return;
     cls.forEachMember((holder, member) {
       checkAbstractField(member);
@@ -287,7 +320,6 @@ class ResolverTask extends CompilerTask {
         contextMessage.error(),
         api.Diagnostic.INFO);
   }
-
 
   void checkValidOverride(Element member, Element superMember) {
     if (superMember === null) return;
@@ -404,7 +436,7 @@ class InitializerResolver {
     // Lookup target field.
     Element target;
     if (isFieldInitializer(init)) {
-      final ClassElement classElement = constructor.enclosingElement;
+      final ClassElement classElement = constructor.getEnclosingClass();
       target = classElement.lookupLocalMember(name);
       if (target === null) {
         error(selector, MessageKind.CANNOT_RESOLVE, [name]);
@@ -446,11 +478,11 @@ class InitializerResolver {
   void resolveImplicitSuperConstructorSend(FunctionElement constructor,
                                            FunctionExpression functionNode) {
     // If the class has a super resolve the implicit super call.
-    ClassElement classElement = constructor.enclosingElement;
+    ClassElement classElement = constructor.getEnclosingClass();
     ClassElement superClass = classElement.superclass;
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
-      assert(superClass.isResolved);
+      assert(superClass.resolutionState == ClassElement.STATE_DONE);
       var element = resolveSuperOrThis(constructor, true, true,
                                        const SourceString(''),
                                        Selector.INVOCATION_0, functionNode);
@@ -464,7 +496,7 @@ class InitializerResolver {
                              SourceString constructorName,
                              Selector selector,
                              Node diagnosticNode) {
-    ClassElement lookupTarget = constructor.enclosingElement;
+    ClassElement lookupTarget = constructor.getEnclosingClass();
     bool validTarget = true;
     FunctionElement result;
     if (isSuperCall) {
@@ -769,7 +801,7 @@ class TypeResolver {
         type = element.computeType(compiler);
       } else if (element.isClass()) {
         ClassElement cls = element;
-        if (!cls.isResolved) compiler.resolveClass(cls);
+        cls.ensureResolved(compiler);
         Link<Type> arguments =
             resolveTypeArguments(node, cls.typeVariables, scope,
                                  onFailure, whenResolved);
@@ -837,7 +869,9 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       this.enclosingElement = element,
       inInstanceContext = element.isInstanceMember()
           || element.isGenerativeConstructor(),
-      this.currentClass = element.isMember() ? element.enclosingElement : null,
+      this.currentClass = element.isMember() ?
+                              element.getEnclosingClass() :
+                              null,
       this.statementScope = new StatementScope(),
       typeResolver = new TypeResolver(compiler),
       scope = element.buildEnclosingScope(),
@@ -1193,6 +1227,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       AbstractFieldElement field = target;
       target = field.getter;
     }
+    if (node.isCall &&
+        (target === null ||
+         target.isGetter() ||
+         Elements.isClosureSend(node, target))) {
+      world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
+                                      mapping.getSelector(node));
+    }
     // TODO(ngeoffray): We should do the check in
     // visitExpressionStatement instead.
     if (target === compiler.assertMethod && !node.isCall) {
@@ -1360,7 +1401,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       compiler.resolver.resolveConstructorImplementation(constructor, tree);
     });
     world.registerStaticUse(constructor.defaultImplementation);
-    ClassElement cls = constructor.defaultImplementation.enclosingElement;
+    ClassElement cls = constructor.defaultImplementation.getEnclosingClass();
     world.registerInstantiatedClass(cls);
     cls.forEachInstanceField(
         includeBackendMembers: false,
@@ -1435,6 +1476,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
+    world.registerDynamicInvocation(
+        const SourceString('toString'), Selector.INVOCATION_0);
     node.visitChildren(this);
   }
 
@@ -1664,7 +1707,7 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
 
   TypeDefinitionVisitor(Compiler compiler, TypeDeclarationElement element)
       : this.element = element,
-        scope = element.enclosingElement.buildScope(),
+        scope = element.buildEnclosingScope(),
         typeResolver = new TypeResolver(compiler),
         super(compiler);
 
@@ -1709,6 +1752,18 @@ class TypeDefinitionVisitor extends CommonResolverVisitor<Type> {
   }
 }
 
+/**
+ * The implementation of [ResolverTask.resolveClass].
+ *
+ * This visitor has to be extra careful as it is building the basic
+ * element information, and cannot safely look at other elements as
+ * this may lead to cycles.
+ *
+ * This visitor can assume that the supertypes have already been
+ * resolved, but it cannot call [ResolverTask.resolveClass] directly
+ * or indirectly (through [ClassElement.ensureResolved]) for any other
+ * types.
+ */
 class ClassResolverVisitor extends TypeDefinitionVisitor {
   ClassElement get element() => super.element;
 
@@ -1717,7 +1772,7 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
 
   Type visitClassNode(ClassNode node) {
     compiler.ensure(element !== null);
-    compiler.ensure(!element.isResolved);
+    compiler.ensure(element.resolutionState == ClassElement.STATE_STARTED);
 
     InterfaceType type = element.computeType(compiler);
     scope = new TypeDeclarationScope(scope, element);
@@ -1741,22 +1796,20 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       if (objectElement === null) {
         compiler.internalError("Internal error: cannot resolve Object",
                                node: node);
-      } else if (!objectElement.isResolved) {
-        compiler.resolver.toResolve.add(objectElement);
+      } else {
+        objectElement.ensureResolved(compiler);
       }
       // TODO(ahe): This should be objectElement.computeType(...).
       element.supertype = new InterfaceType(objectElement);
     }
-    if (node.defaultClause !== null) {
-      element.defaultClass = visit(node.defaultClause);
-    }
+    assert(element.interfaces === null);
+    Link<Type> interfaces = const EmptyLink<Type>();
     for (Link<Node> link = node.interfaces.nodes;
          !link.isEmpty();
          link = link.tail) {
       Type interfaceType = visit(link.head);
       if (interfaceType !== null && interfaceType.element.isExtendable()) {
-        element.interfaces =
-            element.interfaces.prepend(interfaceType);
+        interfaces = interfaces.prepend(interfaceType);
         if (isBlackListed(interfaceType)) {
           error(link.head, MessageKind.CANNOT_IMPLEMENT, [interfaceType]);
         }
@@ -1764,7 +1817,12 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
         error(link.head, MessageKind.TYPE_NAME_EXPECTED);
       }
     }
-    calculateAllSupertypes(element, new Set<ClassElement>());
+    element.interfaces = interfaces;
+    calculateAllSupertypes(element);
+
+    if (node.defaultClause !== null) {
+      element.defaultClass = visit(node.defaultClause);
+    }
     addDefaultConstructorIfNeeded(element);
     return element.computeType(compiler);
   }
@@ -1782,9 +1840,6 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
       error(node, MessageKind.NOT_A_TYPE, [node]);
       return null;
     } else {
-      if (element.isClass()) {
-        compiler.resolver.toResolve.add(element);
-      }
       if (element.isTypeVariable()) {
         TypeVariableElement variableElement = element;
         return variableElement.type;
@@ -1819,53 +1874,28 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
     return e.computeType(compiler);
   }
 
-  Link<Type> getOrCalculateAllSupertypes(ClassElement cls,
-                                         [Set<ClassElement> seen]) {
-    Link<Type> allSupertypes = cls.allSupertypes;
-    if (allSupertypes !== null) return allSupertypes;
-    if (seen === null) {
-      seen = new Set<ClassElement>();
-    }
-    if (seen.contains(cls)) {
-      error(cls.parseNode(compiler),
-            MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [cls.name]);
-      cls.allSupertypes = const EmptyLink<Type>();
-    } else {
-      cls.ensureResolved(compiler);
-      calculateAllSupertypes(cls, seen);
-    }
-    return cls.allSupertypes;
-  }
-
-  void calculateAllSupertypes(ClassElement cls, Set<ClassElement> seen) {
+  void calculateAllSupertypes(ClassElement cls) {
     // TODO(karlklose): substitute type variables.
     // TODO(karlklose): check if type arguments match, if a classelement occurs
     //                  more than once in the supertypes.
     if (cls.allSupertypes !== null) return;
     final Type supertype = cls.supertype;
-    if (seen.contains(cls)) {
-      error(cls.parseNode(compiler),
-            MessageKind.CYCLIC_CLASS_HIERARCHY,
-            [cls.name]);
-      cls.allSupertypes = const EmptyLink<Type>();
-    } else if (supertype != null) {
-      seen.add(cls);
-      Link<Type> superSupertypes =
-          getOrCalculateAllSupertypes(supertype.element, seen);
+    if (supertype != null) {
+      Link<Type> superSupertypes = supertype.element.allSupertypes;
+      assert(superSupertypes !== null);
       Link<Type> supertypes = new Link<Type>(supertype, superSupertypes);
       for (Link<Type> interfaces = cls.interfaces;
            !interfaces.isEmpty();
            interfaces = interfaces.tail) {
         Element element = interfaces.head.element;
-        Link<Type> interfaceSupertypes =
-            getOrCalculateAllSupertypes(element, seen);
+        Link<Type> interfaceSupertypes = element.allSupertypes;
+        assert(interfaceSupertypes !== null);
         supertypes = supertypes.reversePrependAll(interfaceSupertypes);
         supertypes = supertypes.prepend(interfaces.head);
       }
-      seen.remove(cls);
       cls.allSupertypes = supertypes;
     } else {
+      assert(cls === compiler.objectClass);
       cls.allSupertypes = const EmptyLink<Type>();
     }
   }
@@ -1906,6 +1936,79 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
   }
 }
 
+class ClassSupertypeResolver extends CommonResolverVisitor {
+  Scope context;
+  ClassElement classElement;
+
+  ClassSupertypeResolver(Compiler compiler, ClassElement cls)
+    : context = new TopScope(cls.getLibrary()),
+      this.classElement = cls,
+      super(compiler);
+
+  void loadSupertype(ClassElement element, Node from) {
+    compiler.resolver.loadSupertypes(element, from);
+    element.ensureResolved(compiler);
+  }
+
+  void visitClassNode(ClassNode node) {
+    if (node.superclass === null) {
+      if (classElement !== compiler.objectClass) {
+        loadSupertype(compiler.objectClass, node);
+      }
+    } else {
+      node.superclass.accept(this);
+    }
+    for (Link<Node> link = node.interfaces.nodes;
+         !link.isEmpty();
+         link = link.tail) {
+      link.head.accept(this);
+    }
+  }
+
+  void visitTypeAnnotation(TypeAnnotation node) {
+    node.typeName.accept(this);
+  }
+
+  void visitIdentifier(Identifier node) {
+    Element element = context.lookup(node.source);
+    if (element === null) {
+      error(node, MessageKind.CANNOT_RESOLVE_TYPE, [node]);
+    } else if (!element.impliesType()) {
+      error(node, MessageKind.NOT_A_TYPE, [node]);
+    } else {
+      if (element.isClass()) {
+        loadSupertype(element, node);
+      } else {
+        compiler.reportMessage(
+          compiler.spanFromNode(node),
+          MessageKind.TYPE_NAME_EXPECTED.error([]),
+          api.Diagnostic.ERROR);
+      }
+    }
+  }
+
+  void visitSend(Send node) {
+    Identifier prefix = node.receiver.asIdentifier();
+    if (prefix === null) {
+      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      return;
+    }
+    Element element = context.lookup(prefix.source);
+    if (element === null || element.kind !== ElementKind.PREFIX) {
+      error(node.receiver, MessageKind.NOT_A_PREFIX, [node.receiver]);
+      return;
+    }
+    PrefixElement prefixElement = element;
+    Identifier selector = node.selector.asIdentifier();
+    var e = prefixElement.lookupLocalMember(selector.source);
+    if (e === null || !e.impliesType()) {
+      error(node.selector, MessageKind.CANNOT_RESOLVE_TYPE, [node.selector]);
+      return;
+    }
+    loadSupertype(e, node);
+  }
+}
+
 class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
   VariableDefinitions definitions;
   ResolverVisitor resolver;
@@ -1914,8 +2017,7 @@ class VariableDefinitionsVisitor extends CommonResolverVisitor<SourceString> {
 
   VariableDefinitionsVisitor(Compiler compiler,
                              this.definitions, this.resolver, this.kind)
-    : super(compiler)
-  {
+      : super(compiler) {
     variables = new VariableListElement.node(
         definitions, ElementKind.VARIABLE_LIST, resolver.scope.element);
   }
@@ -2102,7 +2204,7 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
   // TODO(ahe): This is temporary.
   ClassElement get currentClass() {
     return enclosingElement.isMember()
-      ? enclosingElement.enclosingElement : null;
+      ? enclosingElement.getEnclosingClass() : null;
   }
 }
 
@@ -2120,7 +2222,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (e !== null && e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      compiler.resolver.toResolve.add(cls);
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(selector, MessageKind.CANNOT_INSTANTIATE_INTERFACE, [cls.name]);
       }
@@ -2144,7 +2245,6 @@ class ConstructorResolver extends CommonResolverVisitor<Element> {
     if (e.kind === ElementKind.CLASS) {
       ClassElement cls = e;
       cls.ensureResolved(compiler);
-      compiler.resolver.toResolve.add(cls);
       if (cls.isInterface() && (cls.defaultClass === null)) {
         error(node.receiver, MessageKind.CANNOT_INSTANTIATE_INTERFACE,
               [cls.name]);

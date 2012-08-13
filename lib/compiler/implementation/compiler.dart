@@ -51,161 +51,6 @@ class Backend {
   abstract List<CompilerTask> get tasks();
 }
 
-class JavaScriptBackend extends Backend {
-  SsaBuilderTask builder;
-  SsaOptimizerTask optimizer;
-  SsaCodeGeneratorTask generator;
-  CodeEmitterTask emitter;
-  final Map<Element, Map<Element, HType>> fieldInitializers;
-  final Map<Element, Map<Element, HType>> fieldConstructorSetters;
-  final Map<Element, Map<Element, HType>> fieldSettersType;
-
-  List<CompilerTask> get tasks() {
-    return <CompilerTask>[builder, optimizer, generator, emitter];
-  }
-
-  JavaScriptBackend(Compiler compiler, bool generateSourceMap)
-      : emitter = new CodeEmitterTask(compiler, generateSourceMap),
-        fieldInitializers = new Map<Element, Map<Element, HType>>(),
-        fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
-        fieldSettersType = new Map<Element, Map<Element, HType>>(),
-        super(compiler) {
-    builder = new SsaBuilderTask(this);
-    optimizer = new SsaOptimizerTask(this);
-    generator = new SsaCodeGeneratorTask(this);
-  }
-
-  void enqueueHelpers(Enqueuer world) {
-    enqueueAllTopLevelFunctions(compiler.jsHelperLibrary, world);
-    enqueueAllTopLevelFunctions(compiler.interceptorsLibrary, world);
-    for (var helper in [const SourceString('Closure'),
-                        const SourceString('ConstantMap'),
-                        const SourceString('ConstantProtoMap')]) {
-      var e = compiler.findHelper(helper);
-      if (e !== null) world.registerInstantiatedClass(e);
-    }
-  }
-
-  CodeBuffer codegen(WorkItem work) {
-    HGraph graph = builder.build(work);
-    optimizer.optimize(work, graph);
-    if (work.allowSpeculativeOptimization
-        && optimizer.trySpeculativeOptimizations(work, graph)) {
-      CodeBuffer codeBuffer = generator.generateBailoutMethod(work, graph);
-      compiler.codegenWorld.addBailoutCode(work, codeBuffer);
-      optimizer.prepareForSpeculativeOptimizations(work, graph);
-      optimizer.optimize(work, graph);
-    }
-    return generator.generateMethod(work, graph);
-  }
-
-  void processNativeClasses(Enqueuer world,
-                            Collection<LibraryElement> libraries) {
-    native.processNativeClasses(world, emitter, libraries);
-  }
-
-  void assembleProgram() {
-    emitter.assembleProgram();
-  }
-
-  void updateFieldInitializers(Element field, HType propagatedType) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    Map<Element, HType> fields =
-        fieldInitializers.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = propagatedType;
-    } else {
-      fields[field] = fields[field].union(propagatedType);
-    }
-  }
-
-  HType typeFromInitializersSoFar(Element field) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldInitializers.containsKey(field.enclosingElement)) {
-      return HType.CONFLICTING;
-    }
-    Map<Element, HType> fields = fieldInitializers[field.enclosingElement];
-    return fields[field];
-  }
-
-  void updateFieldConstructorSetters(Element field, HType type) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    Map<Element, HType> fields =
-        fieldConstructorSetters.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = type;
-    } else {
-      fields[field] = fields[field].union(type);
-    }
-  }
-
-  // Check if this field is set in the constructor body.
-  bool hasConstructorBodyFieldSetter(Element field) {
-    if (!fieldConstructorSetters.containsKey(field.enclosingElement)) {
-      return false;
-    }
-    return fieldConstructorSetters[field.enclosingElement][field] != null;
-  }
-
-  // Provide an optimistic estimate of the type of a field after construction.
-  // If the constructor body has setters for fields returns HType.UNKNOWN.
-  // This only takes the initializer lists and field assignments in the
-  // constructor body into account. The constructor body might have method calls
-  // that could alter the field.
-  HType optimisticFieldTypeAfterConstruction(Element field) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-
-    if (hasConstructorBodyFieldSetter(field)) {
-      // If there are field setters but there is only constructor then the type
-      // of the field is determined by the assignments in the constructor
-      // body.
-      ClassElement classElement = field.enclosingElement;
-      if (classElement.constructors.length == 1) {
-        return fieldConstructorSetters[field.enclosingElement][field];
-      } else {
-        return HType.UNKNOWN;
-      }
-    } else if (fieldInitializers.containsKey(field.enclosingElement)) {
-      HType type = fieldInitializers[field.enclosingElement][field];
-      return type == null ? HType.CONFLICTING : type;
-    } else {
-      return HType.CONFLICTING;
-    }
-  }
-
-  void updateFieldSetters(Element field, HType type) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    Map<Element, HType> fields =
-        fieldSettersType.putIfAbsent(
-          field.enclosingElement, () => new Map<Element, HType>());
-    if (!fields.containsKey(field)) {
-      fields[field] = type;
-    } else {
-      fields[field] = fields[field].union(type);
-    }
-  }
-
-  // Returns the type that field setters are setting the field to based on what
-  // have been seen during compilation so far.
-  HType fieldSettersTypeSoFar(Element field) {
-    assert(field.isField());
-    assert(field.enclosingElement.isClass());
-    if (!fieldSettersType.containsKey(field.enclosingElement)) {
-      return HType.CONFLICTING;
-    }
-    Map<Element, HType> fields = fieldSettersType[field.enclosingElement];
-    if (!fields.containsKey(field)) return HType.CONFLICTING;
-    return fields[field];
-  }
-}
-
 class Compiler implements DiagnosticListener {
   final Map<String, LibraryElement> libraries;
   int nextFreeClassId = 0;
@@ -285,6 +130,7 @@ class Compiler implements DiagnosticListener {
   EnqueueTask enqueuer;
 
   static final SourceString MAIN = const SourceString('main');
+  static final SourceString CALL_OPERATOR_NAME = const SourceString('call');
   static final SourceString NO_SUCH_METHOD = const SourceString('noSuchMethod');
   static final SourceString NO_SUCH_METHOD_EXCEPTION =
       const SourceString('NoSuchMethodException');
@@ -301,6 +147,8 @@ class Compiler implements DiagnosticListener {
   int phase;
 
   bool compilationFailed = false;
+
+  bool hasCrashed = false;
 
   Compiler([this.tracer = const Tracer(),
             this.enableTypeAssertions = false,
@@ -322,7 +170,7 @@ class Compiler implements DiagnosticListener {
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this);
     backend = emitJavascript ?
-        new JavaScriptBackend(this, generateSourceMap) :
+        new js_backend.JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, validateUnparse);
     enqueuer = new EnqueueTask(this);
     tasks = [scanner, dietParser, parser, resolver, checker,
@@ -357,6 +205,8 @@ class Compiler implements DiagnosticListener {
   }
 
   void unhandledExceptionOnElement(Element element) {
+    if (hasCrashed) return;
+    hasCrashed = true;
     reportDiagnostic(spanFromElement(element),
                      MessageKind.COMPILER_CRASHED.error().toString(),
                      api.Diagnostic.CRASH);
@@ -412,7 +262,7 @@ class Compiler implements DiagnosticListener {
   void enableNoSuchMethod(Element element) {
     // TODO(ahe): Move this method to Enqueuer.
     if (enabledNoSuchMethod) return;
-    if (element.enclosingElement === objectClass) {
+    if (element.getEnclosingClass() === objectClass) {
       enqueuer.resolution.registerDynamicInvocationOf(element);
       return;
     }
@@ -559,9 +409,10 @@ class Compiler implements DiagnosticListener {
       Element patchElement = patches.head;
       Element originalElement = lookup(patchElement.name);
       if (patchElement.isAccessor()) {
-        // Skip accessors. An accessor always has an abstract field,
-        // representing the accessor in the lookup scope. We can thus skip the
-        // accessors and just handle the abstract field.
+        // TODO(lrn): When we change to always add accessors to members, and
+        // not add abstract fields, the logic here should be reversed.
+        // For now, access getters through the abstract field and skip
+        // any accessors.
       } else if (patchElement.kind === ElementKind.ABSTRACT_FIELD) {
         // Getters and setters are kept inside a synthetic field.
         if (originalElement !== null &&
@@ -573,7 +424,7 @@ class Compiler implements DiagnosticListener {
         AbstractFieldElement originalField = originalElement;
         if (patchField.getter !== null) {
           if (originalField === null || originalField.getter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.getter),
+            original.addGetterOrSetter(clonePatch(patchField.getter, original),
                                        originalField,
                                        this);
             if (originalField === null && patchField.setter !== null) {
@@ -586,7 +437,7 @@ class Compiler implements DiagnosticListener {
         }
         if (patchField.setter !== null) {
           if (originalField === null || originalField.setter === null) {
-            original.addGetterOrSetter(clonePatch(patchField.setter),
+            original.addGetterOrSetter(clonePatch(patchField.setter, original),
                                        originalField,
                                        this);
           } else {
@@ -598,7 +449,7 @@ class Compiler implements DiagnosticListener {
           internalError("Cannot patch non-existing member '"
                         "${patchElement.name.slowToString()}'.");
         }
-        original.addMember(clonePatch(patchElement), this);
+        original.addMember(clonePatch(patchElement, original), this);
       } else {
         patchMember(originalElement, patchElement);
       }
@@ -612,7 +463,7 @@ class Compiler implements DiagnosticListener {
     return !element.metadata.isEmpty();
   }
 
-  Element clonePatch(Element patchElement) {
+  Element clonePatch(Element patchElement, Element enclosing) {
     // The original library does not have an element with the same name
     // as the patch library element.
     // In this case, the patch library element must not be marked as "patch",
@@ -621,9 +472,10 @@ class Compiler implements DiagnosticListener {
       internalError("Cannot add non-private member '"
                     "${patchElement.name.slowToString()}' from patch.");
     }
-    // TODO(lrn): Create a copy of patchElement that isn't added to any
-    // object/library yet, but which takes its source from patchElement.
-    throw "Adding members from patch is unsupported";
+    Element override =
+        new CompilationUnitOverrideElement(patchElement.getCompilationUnit(),
+                                           enclosing);
+    return patchElement.cloneTo(override, this);
   }
 
   void patchMember(Element originalElement, Element patchElement) {
@@ -735,10 +587,6 @@ class Compiler implements DiagnosticListener {
       });
     }
 
-    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
-    // should know this.
-    world.populate(this, libraries.getValues());
-
     log('Resolving...');
     phase = PHASE_RESOLVING;
     backend.enqueueHelpers(enqueuer.resolution);
@@ -749,6 +597,10 @@ class Compiler implements DiagnosticListener {
 
     log('Inferring types...');
     typesTask.onResolutionComplete();
+
+    // TODO(ahe): Remove this line. Eventually, enqueuer.resolution
+    // should know this.
+    world.populate(this);
 
     log('Compiling...');
     phase = PHASE_COMPILING;
@@ -774,8 +626,8 @@ class Compiler implements DiagnosticListener {
       withCurrentElement(work.element, () => work.run(this, world));
     });
     world.queueIsClosed = true;
+    if (compilationFailed) return;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
-    world.registerFieldClosureInvocations();
   }
 
   void processRecompilationQueue(Enqueuer world) {
@@ -820,7 +672,7 @@ class Compiler implements DiagnosticListener {
         resolved.remove(e);
       }
       if (e.kind === ElementKind.GENERATIVE_CONSTRUCTOR) {
-        ClassElement enclosingClass = e.enclosingElement;
+        ClassElement enclosingClass = e.getEnclosingClass();
         if (enclosingClass.isInterface()) {
           resolved.remove(e);
         }
@@ -916,10 +768,6 @@ class Compiler implements DiagnosticListener {
   void registerInstantiatedClass(ClassElement cls) {
     enqueuer.resolution.registerInstantiatedClass(cls);
     enqueuer.codegen.registerInstantiatedClass(cls);
-  }
-
-  void resolveClass(ClassElement element) {
-    withCurrentElement(element, () => resolver.resolveClass(element));
   }
 
   Type resolveTypeAnnotation(Element element, TypeAnnotation annotation) {

@@ -31,6 +31,3 @@ yaml_test: Fail # Issue 3215
 
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == dart2dart ]
-yaml_test: Fail # Math.parseDouble is reemitted as plain parseDouble.

@@ -73,7 +73,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnBlock;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
@@ -182,7 +181,8 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    private final boolean suppressNoMemberWarningForInferredTypes;
+    private final boolean memberWarningForInferredTypes;
+    private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
 
     /**
      * Keeps track of the number of nested catches, used to detect re-throws
@@ -208,7 +208,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
-      this.suppressNoMemberWarningForInferredTypes = compilerOptions.suppressNoMemberWarningForInferredTypes();
+      this.memberWarningForInferredTypes = compilerOptions.memberWarningForInferredTypes();
     }
 
     @VisibleForTesting
@@ -562,7 +562,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
-        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+        if (memberWarningForInferredTypes || !receiver.isInferred()) {
           typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
         }
@@ -607,49 +607,58 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private void visitConditionalNode(DartExpression condition, DartNode node) {
       final VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
       try {
-        if (condition != null) {
-          condition.accept(new ASTVisitor<Void>() {
-            boolean negation = false;
-            @Override
-            public Void visitUnaryExpression(DartUnaryExpression node) {
-              boolean negationOld = negation;
-              try {
-                if (node.getOperator() == Token.NOT) {
-                  negation = !negation;
-                }
-                return super.visitUnaryExpression(node);
-              } finally {
-                negation = negationOld;
-              }
-            }
-
-            @Override
-            public Void visitBinaryExpression(DartBinaryExpression node) {
-              // apply "as" always
-              // apply "is" only if not negated
-              if (node.getOperator() == Token.AS || node.getOperator() == Token.IS && !negation) {
-                DartExpression arg1 = node.getArg1();
-                DartExpression arg2 = node.getArg2();
-                if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
-                    && arg2 instanceof DartTypeExpression) {
-                  VariableElement variableElement = (VariableElement) arg1.getElement();
-                  Type rhsType = arg2.getType();
-                  Type varType = Types.makeInferred(rhsType);
-                  variableRestorer.setType(variableElement, varType);
-                }
-              }
-              // operator || means that we can not be sure about types
-              if (node.getOperator() == Token.OR) {
-                return null;
-              }
-              // continue
-              return super.visitBinaryExpression(node);
-            }
-          });
-        }
+        inferVariableTypesFromIsConditions(condition, variableRestorer);
         typeOf(node);
       } finally {
         variableRestorer.restore();
+      }
+    }
+
+    /**
+     * Helper for setting {@link Type}s of {@link VariableElement}s when given "condition" is
+     * satisfied.
+     */
+    private void inferVariableTypesFromIsConditions(DartExpression condition,
+        final VariableElementsRestorer variableRestorer) {
+      if (condition != null) {
+        condition.accept(new ASTVisitor<Void>() {
+          boolean negation = false;
+          @Override
+          public Void visitUnaryExpression(DartUnaryExpression node) {
+            boolean negationOld = negation;
+            try {
+              if (node.getOperator() == Token.NOT) {
+                negation = !negation;
+              }
+              return super.visitUnaryExpression(node);
+            } finally {
+              negation = negationOld;
+            }
+          }
+
+          @Override
+          public Void visitBinaryExpression(DartBinaryExpression node) {
+            // apply "as" always
+            // apply "is" only if not negated
+            if (node.getOperator() == Token.AS || node.getOperator() == Token.IS && !negation) {
+              DartExpression arg1 = node.getArg1();
+              DartExpression arg2 = node.getArg2();
+              if (arg1 instanceof DartIdentifier && arg1.getElement() instanceof VariableElement
+                  && arg2 instanceof DartTypeExpression) {
+                VariableElement variableElement = (VariableElement) arg1.getElement();
+                Type rhsType = arg2.getType();
+                Type varType = Types.makeInferred(rhsType);
+                variableRestorer.setType(variableElement, varType);
+              }
+            }
+            // operator || means that we can not be sure about types
+            if (node.getOperator() == Token.OR) {
+              return null;
+            }
+            // continue
+            return super.visitBinaryExpression(node);
+          }
+        });
       }
     }
 
@@ -915,7 +924,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         default:
-          if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+          if (memberWarningForInferredTypes || !receiver.isInferred()) {
             typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
           }
           return dynamicType;
@@ -958,6 +967,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             Type argumentType = argumentTypes.next();
             argumentType.getClass(); // quick null check
             DartExpression argumentNode = argumentNodes.get(argumentIndex);
+            argumentNode.setInvocationParameterId(argumentIndex);
             if (argumentNode instanceof DartNamedExpression) {
               onError(argumentNode, TypeErrorCode.EXPECTED_POSITIONAL_ARGUMENT, parameterType);
               return ftype.getReturnType();
@@ -993,6 +1003,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Type argumentType = argumentTypes.next();
           argumentType.getClass(); // quick null check
           DartExpression argumentNode = argumentNodes.get(argumentIndex);
+          argumentNode.setInvocationParameterId(argumentIndex);
           if (checkAssignable(argumentNode, namedType, argumentType)) {
             inferFunctionLiteralParametersTypes(argumentNode, namedType);
           }
@@ -1006,6 +1017,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression argumentNode = namedExpression.getExpression();
           // Prepare parameter name.
           String parameterName = namedExpression.getName().getName();
+          argumentNode.setInvocationParameterId(parameterName);
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(namedExpression, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);
           } else if (usedNamedParametersNamed.contains(parameterName)) {
@@ -1202,7 +1214,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitBlock(DartBlock node) {
-      return typeAsVoid(node);
+      try {
+        return typeAsVoid(node);
+      } finally {
+        VariableElementsRestorer variableRestorer = restoreOnBlockExit.remove(node);
+        if (variableRestorer != null) {
+          variableRestorer.restore();
+        }
+      }
     }
 
     @Override
@@ -1621,7 +1640,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
           break;
 
         case NONE:
-          return typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getName());
+          if (!node.isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
+            typeError(node, TypeErrorCode.CANNOT_BE_RESOLVED, node.getName());
+          }
+          return dynamicType;
 
         case DYNAMIC:
           return element.getType();
@@ -2003,7 +2025,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (!receiver.isInferred() || !suppressNoMemberWarningForInferredTypes) {
+        if (memberWarningForInferredTypes || !receiver.isInferred()) {
           typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
         }
         return dynamicType;
@@ -2283,6 +2305,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (node.getArguments().size() == 1) {
           DartExpression condition = node.getArguments().get(0);
           checkAssertCondition(condition);
+          // infer types, which are valid until the end of the enclosing control block
+          if (node.getParent() instanceof DartExprStmt
+              && node.getParent().getParent() instanceof DartBlock) {
+            DartBlock restoreBlock = getBlockForAssertTypesInference(node);
+            VariableElementsRestorer variableRestorer = new VariableElementsRestorer();
+            restoreOnBlockExit.put(restoreBlock, variableRestorer);
+            inferVariableTypesFromIsConditions(condition, variableRestorer);
+          }
         } else {
           onError(node, TypeErrorCode.ASSERT_NUMBER_ARGUMENTS);
         }
@@ -2317,6 +2347,21 @@ public class TypeAnalyzer implements DartCompilationPhase {
       Type returnType = checkInvocation(node, target, name, type);
       returnType = ExternalTypeAnalyzers.resolve(types, node, element, returnType);
       return returnType;
+    }
+
+    private static DartBlock getBlockForAssertTypesInference(DartNode node) {
+      while (node != null) {
+        if (node instanceof DartBlock) {
+          DartBlock block = (DartBlock) node;
+          DartNode p = block.getParent();
+          if (p instanceof DartIfStatement || p instanceof DartForStatement
+              || p instanceof DartForInStatement || p instanceof DartDoWhileStatement) {
+            return block;
+          }
+        }
+        node = node.getParent();
+      }
+      return null;
     }
 
     /**
@@ -2667,11 +2712,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitNativeDirective(DartNativeDirective node) {
-      return typeAsVoid(node);
-    }
-
-    @Override
-    public Type visitResourceDirective(DartResourceDirective node) {
       return typeAsVoid(node);
     }
 

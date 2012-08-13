@@ -14,7 +14,7 @@ class ResolvedVisitor<R> implements Visitor<R> {
       return visitOperatorSend(node);
     } else if (node.isPropertyAccess) {
       return visitGetterSend(node);
-    } else if (Elements.isClosureSend(node, elements)) {
+    } else if (Elements.isClosureSend(node, elements[node])) {
       return visitClosureSend(node);
     } else {
       Element element = elements[node];

@@ -59,6 +59,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register temp = locs()->temp(0).reg();
   ASSERT(result == RAX);
   if (!compiler->is_optimizing()) {
+    __ Comment("Check function counter");
     // Count only in unoptimized code.
     // TODO(srdjan): Replace the counting code with a type feedback
     // collection and counting stub.
@@ -68,7 +69,7 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     __ incq(FieldAddress(temp, Function::usage_counter_offset()));
     if (FlowGraphCompiler::CanOptimize()) {
       // Do not optimize if usage count must be reported.
-      __ cmpl(FieldAddress(temp, Function::usage_counter_offset()),
+      __ cmpq(FieldAddress(temp, Function::usage_counter_offset()),
           Immediate(FLAG_optimization_counter_threshold));
       Label not_yet_hot, already_optimized;
       __ j(LESS, &not_yet_hot, Assembler::kNearJump);
@@ -446,6 +447,12 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
+static intptr_t GetCid(const Value& v) {
+  const AbstractType& type = AbstractType::Handle(v.CompileType());
+  return Class::Handle(type.type_class()).id();
+}
+
+
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -455,16 +462,22 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 intptr_t try_index) {
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
-  Register temp = locs.temp(0).reg();
-  Label* deopt = compiler->AddDeoptStub(deopt_id,
-                                        try_index,
-                                        kDeoptSmiCompareSmi,
-                                        left,
-                                        right);
-  __ movq(temp, left);
-  __ orq(temp, right);
-  __ testq(temp, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
+  const bool left_is_smi = (branch == NULL) ?
+      false : (GetCid(*branch->left()) == kSmiCid);
+  const bool right_is_smi = (branch == NULL) ?
+      false : (GetCid(*branch->right()) == kSmiCid);
+  if (!left_is_smi || !right_is_smi) {
+    Register temp = locs.temp(0).reg();
+    Label* deopt = compiler->AddDeoptStub(deopt_id,
+                                          try_index,
+                                          kDeoptSmiCompareSmi,
+                                          left,
+                                          right);
+    __ movq(temp, left);
+    __ orq(temp, right);
+    __ testq(temp, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+  }
 
   Condition true_condition = TokenKindToSmiCondition(kind);
   __ cmpq(left, right);
@@ -1439,18 +1452,40 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
   ASSERT(left == result);
-  Label* deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
-                                        comp->instance_call()->try_index(),
-                                        kDeoptSmiBinaryOp,
-                                        temp,
-                                        right);
-  // TODO(vegorov): for many binary operations this pattern can be rearranged
-  // to save one move.
-  __ movq(temp, left);
-  __ orq(left, right);
-  __ testq(left, Immediate(kSmiTagMask));
-  __ j(NOT_ZERO, deopt);
-  __ movq(left, temp);
+  const bool left_is_smi = (GetCid(*comp->left()) == kSmiCid);
+  const bool right_is_smi = (GetCid(*comp->right()) == kSmiCid);
+  bool can_deopt;
+  switch (comp->op_kind()) {
+    case Token::kBIT_AND:
+    case Token::kBIT_OR:
+    case Token::kBIT_XOR:
+      can_deopt = !(right_is_smi && left_is_smi);
+      break;
+    default:
+      can_deopt = true;
+  }
+  Label* deopt = NULL;
+  if (can_deopt) {
+    deopt = compiler->AddDeoptStub(comp->instance_call()->deopt_id(),
+                                   comp->instance_call()->try_index(),
+                                   kDeoptSmiBinaryOp,
+                                   temp,
+                                   right);
+  }
+  if (left_is_smi && right_is_smi) {
+    if (can_deopt) {
+      // Preserve left for deopt.
+      __ movq(temp, left);
+    }
+  } else {
+    // TODO(vegorov): for many binary operations this pattern can be rearranged
+    // to save one move.
+    __ movq(temp, left);
+    __ orq(left, right);
+    __ testq(left, Immediate(kSmiTagMask));
+    __ j(NOT_ZERO, deopt);
+    __ movq(left, temp);
+  }
   switch (comp->op_kind()) {
     case Token::kADD: {
       __ addq(left, right);
@@ -1712,14 +1747,12 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                          PcDescriptors::kOther);
   // Newly allocated object is now in the result register (RAX).
   ASSERT(result == RAX);
-  __ popq(right);
-  __ popq(left);
+  __ movq(right, Address(RSP, 0));
+  __ movq(left, Address(RSP, kWordSize));
 
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        kDeoptDoubleBinaryOp,
-                                        left,
-                                        right);
+                                        kDeoptDoubleBinaryOp);
 
   // Binary operation of two Smi's produces a Smi not a double.
   __ movq(temp, left);
@@ -1739,6 +1772,8 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   }
 
   __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+
+  __ Drop(2);
 }
 
 
@@ -2005,7 +2040,13 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
     // Otherwise polymorphic dispatch.
   }
   // Call.
-  return Computation::MakeCallSummary();
+  const intptr_t kNumInputs = 2;
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
+  locs->set_in(0, Location::RegisterLocation(RAX));
+  locs->set_in(1, Location::RegisterLocation(RCX));
+  return locs;
 }
 
 
@@ -2038,6 +2079,10 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     }
     // Otherwise polymorphic dispatch?
   }
+  Register left = locs()->in(0).reg();
+  Register right = locs()->in(1).reg();
+  __ pushq(left);
+  __ pushq(right);
   // Not equal is always split into '==' and negate,
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
   Token::Kind call_kind = (kind() == Token::kNE) ? Token::kEQ : kind();
@@ -2056,8 +2101,7 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
                                  kNumArgsChecked);
-  ASSERT(locs()->out().reg() == RAX);
-  __ CompareObject(locs()->out().reg(), compiler->bool_true());
+  __ CompareObject(RAX, compiler->bool_true());
   EmitBranchOnCondition(compiler, branch_condition);
 }
 

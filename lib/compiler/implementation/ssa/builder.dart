@@ -138,6 +138,7 @@ class SsaBuilderTask extends CompilerTask {
   // Loop tracking information.
   final Set<FunctionElement> functionsCalledInLoop;
   final Map<SourceString, Selector> selectorsCalledInLoop;
+  final JavaScriptBackend backend;
 
   String get name() => 'SSA builder';
 
@@ -147,6 +148,7 @@ class SsaBuilderTask extends CompilerTask {
       emitter = backend.emitter,
       functionsCalledInLoop = new Set<FunctionElement>(),
       selectorsCalledInLoop = new Map<SourceString, Selector>(),
+      backend = backend,
       super(backend.compiler);
 
   HGraph build(WorkItem work) {
@@ -171,11 +173,24 @@ class SsaBuilderTask extends CompilerTask {
         inLoop = selector !== null && selector.applies(element, compiler);
       }
       graph.calledInLoop = inLoop;
+
+      // If there is an estimate of the parameter types assume these types when
+      // compiling.
+      List<HType> parameterTypes =
+          backend.optimisticParameterTypesWithRecompilationOnTypeChange(
+              element);
+      if (parameterTypes != null) {
+        FunctionSignature signature = element.computeSignature(compiler);
+        int i = 0;
+        signature.forEachParameter((Element param) {
+          builder.parameters[param].guaranteedType = parameterTypes[i++];
+        });
+      }
+
       if (compiler.tracer.enabled) {
         String name;
-        if (element.enclosingElement !== null &&
-            element.enclosingElement.kind == ElementKind.CLASS) {
-          String className = element.enclosingElement.name.slowToString();
+        if (element.isMember()) {
+          String className = element.getEnclosingClass().name.slowToString();
           String memberName = element.name.slowToString();
           name = "$className.$memberName";
           if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR_BODY) {
@@ -193,7 +208,7 @@ class SsaBuilderTask extends CompilerTask {
 
   HGraph compileConstructor(SsaBuilder builder, WorkItem work) {
     // The body of the constructor will be generated in a separate function.
-    final ClassElement classElement = work.element.enclosingElement;
+    final ClassElement classElement = work.element.getEnclosingClass();
     return builder.buildFactory(classElement, work.element);
   }
 }
@@ -339,7 +354,7 @@ class LocalsHandler {
       // Once closures have been mapped to classes their instance members might
       // not have any thisElement if the closure was created inside a static
       // context.
-      ClassElement cls = function.enclosingElement;
+      ClassElement cls = function.getEnclosingClass();
       Type type = cls.computeType(builder.compiler);
       HInstruction thisInstruction = new HThis(new HBoundedType.nonNull(type));
       builder.add(thisInstruction);
@@ -368,7 +383,7 @@ class LocalsHandler {
     if (isAccessedDirectly(element)) return false;
     Element redirectTarget = redirectionMapping[element];
     if (redirectTarget == null) return false;
-    if (redirectTarget.enclosingElement.kind == ElementKind.CLASS) {
+    if (redirectTarget.isMember()) {
       assert(redirectTarget is ClosureFieldElement);
       return true;
     }
@@ -432,7 +447,7 @@ class LocalsHandler {
       if (cachedTypeOfThis === null) {
         assert(closureData.isClosure());
         Element element = closureData.thisElement;
-        ClassElement cls = element.enclosingElement.enclosingElement;
+        ClassElement cls = element.enclosingElement.getEnclosingClass();
         Type type = cls.computeType(builder.compiler);
         cachedTypeOfThis = new HBoundedType.nonNull(type);
       }
@@ -861,7 +876,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       NodeList statements = node.body.asBlock().statements;
       if (statements.isEmpty()) return null;
     }
-    ClassElement classElement = constructor.enclosingElement;
+    ClassElement classElement = constructor.getEnclosingClass();
     ConstructorBodyElement bodyElement;
     for (Link<Element> backendMembers = classElement.backendMembers;
          !backendMembers.isEmpty();
@@ -969,11 +984,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     if (!foundSuperOrRedirect) {
       // No super initializer found. Try to find the default constructor if
       // the class is not Object.
-      ClassElement enclosingClass = constructor.enclosingElement;
+      ClassElement enclosingClass = constructor.getEnclosingClass();
       ClassElement superClass = enclosingClass.superclass;
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
-        assert(superClass.isResolved);
+        assert(superClass.resolutionState == ClassElement.STATE_DONE);
         FunctionElement target = superClass.lookupConstructor(superClass.name);
         if (target === null) {
           compiler.internalError("no default constructor available");
@@ -2263,14 +2278,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitNewSend(Send node) {
     computeType(element) {
       Element originalElement = elements[node];
-      if (originalElement.enclosingElement === compiler.listClass) {
+      if (originalElement.getEnclosingClass() === compiler.listClass) {
         if (node.arguments.isEmpty()) {
           return HType.EXTENDABLE_ARRAY;
         } else {
           return HType.MUTABLE_ARRAY;
         }
       } else if (element.isGenerativeConstructor()) {
-        ClassElement cls = element.enclosingElement;
+        ClassElement cls = element.getEnclosingClass();
         return new HBoundedType.exact(cls.type);
       } else {
         return HType.UNKNOWN;

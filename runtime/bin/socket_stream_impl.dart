@@ -136,6 +136,8 @@ class _SocketOutputStream
     _closed = true;
   }
 
+  bool get closed() => _closed;
+
   void set onNoPendingWrites(void callback()) {
     _onNoPendingWrites = callback;
     if (_onNoPendingWrites != null) {

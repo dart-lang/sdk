@@ -235,6 +235,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   }
 
   static RawObject* null() { return null_; }
+  static RawArray* empty_array() { return empty_array_; }
 
   // The sentinel is a value that cannot be produced by Dart code.
   // It can be used to mark special values, for example to distinguish
@@ -284,8 +285,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
 
-  static const char* GetSingletonClassName(intptr_t class_id);
-
   static RawClass* CreateAndRegisterInterface(const char* cname,
                                               const Script& script,
                                               const Library& lib);
@@ -302,6 +301,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
   static void InitOnce();
+  static void RegisterSingletonClassNames();
 
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(RawObject));
@@ -376,6 +376,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   // The static values below are singletons shared between the different
   // isolates. They are all allocated in the non-GC'd Dart::vm_isolate_.
   static RawObject* null_;
+  static RawArray* empty_array_;
   static RawInstance* sentinel_;
   static RawInstance* transition_sentinel_;
 
@@ -552,13 +553,6 @@ class Class : public Object {
   void set_interfaces(const Array& value) const;
   static intptr_t interfaces_offset() {
     return OFFSET_OF(RawClass, interfaces_);
-  }
-
-  RawArray* functions_cache() const { return raw_ptr()->functions_cache_; }
-  void set_functions_cache(const Array& value) const;
-
-  static intptr_t functions_cache_offset() {
-    return OFFSET_OF(RawClass, functions_cache_);
   }
 
   // Check if this class represents the class of null.
@@ -1365,11 +1359,13 @@ class Function : public Object {
   // If none exists yet, create one and remember it.
   RawFunction* ImplicitClosureFunction() const;
 
-  RawFunction::Kind kind() const { return raw()->GetKind(); }
+  RawFunction::Kind kind() const {
+    return KindBits::decode(raw_ptr()->kind_tag_);
+  }
 
-  bool is_static() const { return raw()->IsStatic(); }
-  bool is_const() const { return raw()->IsConst(); }
-  bool is_external() const { return raw()->IsExternal(); }
+  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_tag_); }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_tag_); }
+  bool is_external() const { return ExternalBit::decode(raw_ptr()->kind_tag_); }
   bool IsConstructor() const {
     return (kind() == RawFunction::kConstructor) && !is_static();
   }
@@ -1458,16 +1454,20 @@ class Function : public Object {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
-  bool is_optimizable() const { return raw()->IsOptimizable(); }
+  bool is_optimizable() const {
+    return OptimizableBit::decode(raw_ptr()->kind_tag_);
+  }
   void set_is_optimizable(bool value) const;
 
-  bool has_finally() const { return raw()->HasFinally(); }
+  bool has_finally() const {
+    return HasFinallyBit::decode(raw_ptr()->kind_tag_);
+  }
   void set_has_finally(bool value) const;
 
-  bool is_native() const { return raw()->IsNative(); }
+  bool is_native() const { return NativeBit::decode(raw_ptr()->kind_tag_); }
   void set_is_native(bool value) const;
 
-  bool is_abstract() const { return raw()->IsAbstract(); }
+  bool is_abstract() const { return AbstractBit::decode(raw_ptr()->kind_tag_); }
   void set_is_abstract(bool value) const;
 
   bool HasOptimizedCode() const;
@@ -1521,6 +1521,16 @@ class Function : public Object {
                     other,
                     other_type_arguments,
                     malformed_error);
+  }
+
+  // Returns true if this function represents an explicit getter function.
+  bool IsGetterFunction() const {
+    return kind() == RawFunction::kGetterFunction;
+  }
+
+  // Returns true if this function represents an explicit setter function.
+  bool IsSetterFunction() const {
+    return kind() == RawFunction::kSetterFunction;
   }
 
   // Returns true if this function represents a (possibly implicit) closure
@@ -1586,6 +1596,27 @@ class Function : public Object {
   static const int kCtorPhaseAll = (kCtorPhaseInit | kCtorPhaseBody);
 
  private:
+  enum KindTagBits {
+    kStaticBit = 1,
+    kConstBit,
+    kOptimizableBit,
+    kHasFinallyBit,
+    kNativeBit,
+    kAbstractBit,
+    kExternalBit,
+    kKindTagBit,
+    kKindTagSize = 4,
+  };
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class OptimizableBit : public BitField<bool, kOptimizableBit, 1> {};
+  class HasFinallyBit : public BitField<bool, kHasFinallyBit, 1> {};
+  class NativeBit : public BitField<bool, kNativeBit, 1> {};
+  class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
+  class ExternalBit : public BitField<bool, kExternalBit, 1> {};
+  class KindBits :
+    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {}; // NOLINT
+
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
   void set_is_static(bool is_static) const;
@@ -1595,6 +1626,7 @@ class Function : public Object {
   void set_owner(const Class& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
+  void set_kind_tag(intptr_t value) const;
   static RawFunction* New();
 
   RawString* BuildSignature(bool instantiate,
@@ -1745,7 +1777,8 @@ class TokenStream : public Object {
   }
 
   static RawTokenStream* New(intptr_t length);
-  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens);
+  static RawTokenStream* New(const Scanner::GrowableTokenStream& tokens,
+                             const String& private_key);
 
   // The class Iterator encapsulates iteration over the tokens
   // in a TokenStream object.
@@ -1787,6 +1820,9 @@ class TokenStream : public Object {
 
  private:
   void SetLength(intptr_t value) const;
+
+  RawString* PrivateKey() const;
+  void SetPrivateKey(const String& value) const;
 
   uint8_t* EntryAddr(intptr_t token_pos) const {
     ASSERT((token_pos >=0) && (token_pos < Length()));
@@ -3895,9 +3931,6 @@ class Array : public Instance {
   static RawArray* Grow(const Array& source,
                         int new_length,
                         Heap::Space space = Heap::kNew);
-
-  // Returns the preallocated empty array, used to initialize array fields.
-  static RawArray* Empty();
 
   // Return an Array object that contains all the elements currently present
   // in the specified Growable Object Array. This is done by first truncating

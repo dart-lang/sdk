@@ -21,8 +21,11 @@ void testOpenOutputStreamSync() {
   file.createSync();
   OutputStream x = file.openOutputStream();
   x.write([65, 66, 67]);
+  Expect.isFalse(x.closed);
   x.close();
+  Expect.isTrue(x.closed);
   x.onClosed = () {
+    Expect.isTrue(x.closed);
     file.deleteSync();
     done.toSendPort().send("done");
   };

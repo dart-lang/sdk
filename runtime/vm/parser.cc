@@ -27,6 +27,7 @@ DEFINE_FLAG(bool, enable_type_checks, false, "Enable type checks.");
 DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
+DEFINE_FLAG(bool, warn_legacy_catch, false, "Warning on legacy catch syntax");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -446,6 +447,7 @@ struct MemberDesc {
     has_static = false;
     has_var = false;
     has_factory = false;
+    has_operator = false;
     type = NULL;
     name_pos = 0;
     name = NULL;
@@ -475,6 +477,7 @@ struct MemberDesc {
   bool has_static;
   bool has_var;
   bool has_factory;
+  bool has_operator;
   const AbstractType* type;
   intptr_t name_pos;
   String* name;
@@ -2101,9 +2104,18 @@ SequenceNode* Parser::ParseFunc(const Function& func,
         &String::ZoneHandle(Symbols::TypeArgumentsParameter()),
         &Type::ZoneHandle(Type::DynamicType()));
   }
-  ASSERT(CurrentToken() == Token::kLPAREN);
+  ASSERT((CurrentToken() == Token::kLPAREN) || func.IsGetterFunction());
   const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, &params);
+  if (!func.IsGetterFunction()) {
+    ParseFormalParameterList(allow_explicit_default_values, &params);
+  } else {
+    // TODO(hausner): Remove this once we no longer support the old
+    // getter syntax with explicit empty parameter list.
+    if (CurrentToken() == Token::kLPAREN) {
+      ConsumeToken();
+      ExpectToken(Token::kRPAREN);
+    }
+  }
 
   // The number of parameters and their type are not yet set in local functions,
   // since they are not 'top-level' parsed.
@@ -2258,7 +2270,7 @@ void Parser::ParseQualIdent(QualIdent* qual_ident) {
 
 void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   TRACE_PARSER("ParseMethodOrConstructor");
-  ASSERT(CurrentToken() == Token::kLPAREN);
+  ASSERT(CurrentToken() == Token::kLPAREN || method->IsGetter());
   intptr_t method_pos = this->TokenPos();
   ASSERT(method->type != NULL);
   ASSERT(method->name_pos > 0);
@@ -2294,11 +2306,6 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
              "'external' method only allowed in class definition");
   }
 
-  if (members->FunctionNameExists(*method->name, method->kind)) {
-    ErrorMsg(method->name_pos,
-             "field or method '%s' already defined", method->name->ToCString());
-  }
-
   // Parse the formal parameters.
   const bool are_implicitly_final = method->has_const;
   const bool allow_explicit_default_values = true;
@@ -2325,7 +2332,35 @@ void Parser::ParseMethodOrConstructor(ClassDesc* members, MemberDesc* method) {
   if (are_implicitly_final) {
     method->params.SetImplicitlyFinal();
   }
-  ParseFormalParameterList(allow_explicit_default_values, &method->params);
+  if (!method->IsGetter()) {
+    ParseFormalParameterList(allow_explicit_default_values, &method->params);
+  } else {
+    // TODO(hausner): Remove this once the old getter syntax with
+    // empty parameter list is no longer supported.
+    if (CurrentToken() == Token::kLPAREN) {
+      ConsumeToken();
+      ExpectToken(Token::kRPAREN);
+    }
+  }
+
+  // Now that we know the parameter list, we can distinguish between the
+  // unary and binary operator -.
+  if (method->has_operator &&
+      ((method->name->Equals(Token::Str(Token::kNEGATE))) ||
+      method->name->Equals("-")) &&
+      (method->params.num_fixed_parameters == 1)) {
+    // Patch up name for unary operator - so it does not clash with the
+    // name for binary operator -.
+    *method->name = Symbols::New("unary-");
+  }
+
+  if (members->FunctionNameExists(*method->name, method->kind)) {
+    ErrorMsg(method->name_pos,
+             "field or method '%s' already defined", method->name->ToCString());
+  }
+
+  // Mangle the name for getter and setter functions and check function
+  // arity.
   if (method->IsGetter() || method->IsSetter()) {
     int expected_num_parameters = 0;
     if (method->IsGetter()) {
@@ -2629,13 +2664,21 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
 }
 
 
-void Parser::CheckOperatorArity(
-    const MemberDesc& member, Token::Kind operator_token) {
+void Parser::CheckOperatorArity(const MemberDesc& member,
+                                Token::Kind operator_token) {
   intptr_t expected_num_parameters;  // Includes receiver.
   if (operator_token == Token::kASSIGN_INDEX) {
     expected_num_parameters = 3;
+  } else if (operator_token == Token::kSUB) {
+    if (member.params.num_fixed_parameters == 1) {
+      // Unary operator minus (i.e. negate).
+      expected_num_parameters = 1;
+    } else {
+      expected_num_parameters = 2;
+    }
   } else if ((operator_token == Token::kNEGATE) ||
       (operator_token == Token::kBIT_NOT)) {
+    // TODO(hausner): Remove support for keyword 'negate'.
     expected_num_parameters = 1;
   } else {
     expected_num_parameters = 2;
@@ -2789,9 +2832,6 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
     member.kind = RawFunction::kGetterFunction;
     member.name_pos = this->TokenPos();
     member.name = ExpectIdentifier("identifier expected");
-    if (CurrentToken() != Token::kLPAREN) {
-      ErrorMsg("'(' expected");
-    }
     // If the result type was not specified, it will be set to DynamicType.
   } else if ((CurrentToken() == Token::kSET) && !member.has_var &&
              (LookaheadToken(1) != Token::kLPAREN) &&
@@ -2823,6 +2863,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       ErrorMsg("operator overloading functions cannot be static");
     }
     operator_token = CurrentToken();
+    member.has_operator = true;
     member.kind = RawFunction::kRegularFunction;
     member.name_pos = this->TokenPos();
     member.name =
@@ -2837,7 +2878,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
   }
 
   ASSERT(member.name != NULL);
-  if (CurrentToken() == Token::kLPAREN) {
+  if (CurrentToken() == Token::kLPAREN || member.IsGetter()) {
     if (members->is_interface() && member.has_static) {
       if (member.has_factory) {
         ErrorMsg("factory constructors are not allowed in interfaces");
@@ -2850,7 +2891,7 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
       member.type = &Type::ZoneHandle(Type::DynamicType());
     }
     ParseMethodOrConstructor(members, &member);
-    if (operator_token != Token::kILLEGAL) {
+    if (member.has_operator) {
       CheckOperatorArity(member, operator_token);
     }
   } else if (CurrentToken() ==  Token::kSEMICOLON ||
@@ -2904,13 +2945,13 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     if (cls.is_interface()) {
       ErrorMsg(classname_pos, "'%s' is already defined as interface",
                class_name.ToCString());
-    } else if (cls.functions() != Array::Empty()) {
+    } else if (cls.functions() != Object::empty_array()) {
       ErrorMsg(classname_pos, "class '%s' is already defined",
                class_name.ToCString());
     }
   }
   ASSERT(!cls.IsNull());
-  ASSERT(cls.functions() == Array::Empty());
+  ASSERT(cls.functions() == Object::empty_array());
   set_current_class(cls);
   ParseTypeParameters(cls);
   Type& super_type = Type::Handle();
@@ -3182,14 +3223,14 @@ void Parser::ParseInterfaceDefinition(
       ErrorMsg(interfacename_pos,
                "'%s' is already defined as class",
                interface_name.ToCString());
-    } else if (interface.functions() != Array::Empty()) {
+    } else if (interface.functions() != Object::empty_array()) {
       ErrorMsg(interfacename_pos,
                "interface '%s' is already defined",
                interface_name.ToCString());
     }
   }
   ASSERT(!interface.IsNull());
-  ASSERT(interface.functions() == Array::Empty());
+  ASSERT(interface.functions() == Object::empty_array());
   set_current_class(interface);
   ParseTypeParameters(interface);
 
@@ -5361,6 +5402,8 @@ AstNode* Parser::ParseAssertStatement() {
 }
 
 
+// TODO(hausner): This structure can be simplified once the old catch
+// syntax is removed. All catch parameters in the new syntax are final.
 struct CatchParamDesc {
   CatchParamDesc()
       : token_pos(0), type(NULL), var(NULL), is_final(false) { }
@@ -5560,17 +5603,63 @@ AstNode* Parser::ParseTryStatement(String* label_name) {
   const intptr_t handler_pos = TokenPos();
   OpenBlock();  // Start the catch block sequence.
   current_block_->scope->AddLabel(end_catch_label);
-  while (CurrentToken() == Token::kCATCH) {
-    catch_seen = true;
+  while ((CurrentToken() == Token::kCATCH) || IsLiteral("on")) {
     const intptr_t catch_pos = TokenPos();
-    ConsumeToken();  // Consume the 'catch'.
-    ExpectToken(Token::kLPAREN);
     CatchParamDesc exception_param;
     CatchParamDesc stack_trace_param;
-    ParseCatchParameter(&exception_param);
-    if (CurrentToken() == Token::kCOMMA) {
-      ConsumeToken();
-      ParseCatchParameter(&stack_trace_param);
+    catch_seen = true;
+    if (CurrentToken() == Token::kCATCH) {
+      ConsumeToken();  // Consume the 'catch'.
+      ExpectToken(Token::kLPAREN);
+      if (IsIdentifier() &&
+          ((LookaheadToken(1) == Token::kCOMMA) ||
+          (LookaheadToken(1) == Token::kRPAREN))) {
+        // New catch syntax for untyped exception variable:
+        // catch(e) or catch (e,s).
+        exception_param.is_final = true;
+        exception_param.type =
+            &AbstractType::ZoneHandle(Type::DynamicType());
+        exception_param.token_pos = TokenPos();
+        exception_param.var = ExpectIdentifier("identifier expected");
+        if (CurrentToken() == Token::kCOMMA) {
+          ConsumeToken();
+          stack_trace_param.is_final = true;
+          // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+          stack_trace_param.type =
+              &AbstractType::ZoneHandle(Type::DynamicType());
+          stack_trace_param.token_pos = TokenPos();
+          stack_trace_param.var = ExpectIdentifier("identifier expected");
+        }
+      } else {
+        // TODO(hausner): Remove legacy syntax support.
+        if (FLAG_warn_legacy_catch) {
+          Warning("legacy catch syntax");
+        }
+        ParseCatchParameter(&exception_param);
+        if (CurrentToken() == Token::kCOMMA) {
+          ConsumeToken();
+          ParseCatchParameter(&stack_trace_param);
+        }
+      }
+    } else {
+      // on T catch(e) { ...
+      ConsumeToken();  // on
+      exception_param.is_final = true;
+      exception_param.type = &AbstractType::ZoneHandle(
+          ParseType(ClassFinalizer::kCanonicalizeWellFormed));
+      ExpectToken(Token::kCATCH);
+      ExpectToken(Token::kLPAREN);
+      exception_param.token_pos = TokenPos();
+      exception_param.var = ExpectIdentifier("identifier expected");
+      if (CurrentToken() == Token::kCOMMA) {
+        ConsumeToken();
+        stack_trace_param.is_final = true;
+        // TODO(hausner): Make imlicit type be StackTrace, not Dynamic.
+        stack_trace_param.type =
+        &AbstractType::ZoneHandle(Type::DynamicType());
+        stack_trace_param.token_pos = TokenPos();
+        stack_trace_param.var = ExpectIdentifier("identifier expected");
+      }
     }
     ExpectToken(Token::kRPAREN);
 

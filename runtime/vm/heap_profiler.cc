@@ -412,13 +412,8 @@ void HeapProfiler::WriteLoadClass(const RawClass* raw_class) {
   record.WritePointer(raw_class);
   // stack trace serial number
   record.Write32(0);
-  if (raw_class->ptr()->name_ == String::null()) {
-    intptr_t class_id = raw_class->ptr()->id_;
-    const char* name = Object::GetSingletonClassName(class_id);
-    record.WritePointer(StringId(name));
-  } else {
-    record.WritePointer(StringId(raw_class->ptr()->name_));
-  }
+  ASSERT(raw_class->ptr()->name_ != String::null());
+  record.WritePointer(StringId(raw_class->ptr()->name_));
 }
 
 

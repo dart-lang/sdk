@@ -2763,7 +2763,7 @@ DART_EXPORT Dart_Handle Dart_FunctionIsGetter(Dart_Handle function,
   if (func.IsNull()) {
     RETURN_TYPE_ERROR(isolate, function, Function);
   }
-  *is_getter = (func.kind() == RawFunction::kGetterFunction);
+  *is_getter = func.IsGetterFunction();
   return Api::Success(isolate);
 }
 

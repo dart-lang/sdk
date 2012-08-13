@@ -10,7 +10,6 @@ measurement_test: Pass, Fail  # Issue 1940
 
 [ $compiler == none && ($runtime == drt || $runtime == dartium) ]
 request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not implemented
-js_interop_4_test: Fail              # Dart-to-Dart sync calls not implemented.
 #htmloptionscollection_test: Fail # TODO(asiva): investigate.
 
 [ $compiler == none && $runtime == drt && $system == windows]
@@ -24,7 +23,6 @@ documentfragment_test: Pass, Timeout
 
 [ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
 # TODO(vsm): Triage DOM tests.
-dom_isolates_test: Fail
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 htmloptionscollection_test: Fail # Issue 3813.
 shadow_dom_test: Skip # No ShadowDOM support except on tip dartium.
@@ -170,7 +168,6 @@ unknownelement_test: Fail # Issue 4189
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js ]
-dom_isolates_test: Fail # error: cannot resolve spawnDomIsolate
 svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 transferables_test: Skip # until isInstance works in dart2js
 

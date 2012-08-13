@@ -10,7 +10,6 @@ compare_to2_test: Fail    # Bug 4018
 
 [ $compiler == dartc ]
 *vm_test: Skip
-expando_test: Fail
 
 [ $compiler == frog ]
 # VM or DartC specific tests not to be run by Frog. See language.status.

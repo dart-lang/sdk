@@ -602,4 +602,35 @@ main() {
     });
     expect(total, equals((0 * 1) + (2 * 3) + (4 * 5) + (6 * 7) + (8 * 9))); 
   });
+
+  test('Mocking: clearLogs', () {
+    var m = new Mock();
+    m.foo();
+    m.foo();
+    m.foo();
+    expect(m.log.logs, hasLength(3));
+    m.clearLogs();
+    expect(m.log.logs, hasLength(0));
+    LogEntryList log = new LogEntryList();
+    var m1 = new Mock.custom(name: 'm1', log: log);
+    var m2 = new Mock.custom(name: 'm2', log: log);
+    var m3 = new Mock.custom(name: 'm3', log: log);
+    for (var i = 0; i < 3; i++) {
+      m1.foo();
+      m2.bar();
+      m3.pow();
+    }
+    expect(log.logs, hasLength(9));
+    m1.clearLogs();
+    expect(log.logs, hasLength(6));
+    m1.clearLogs();
+    expect(log.logs, hasLength(6));
+    expect(log.logs.every((e) => e.mockName == 'm2' || e.mockName == 'm3'),
+        isTrue);
+    m2.clearLogs();
+    expect(log.logs, hasLength(3));
+    expect(log.logs.every((e) => e.mockName =='m3'), isTrue);
+    m3.clearLogs();
+    expect(log.logs, hasLength(0));
+  });
 }

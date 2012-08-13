@@ -177,6 +177,7 @@ class Hoisting {
     f_ = () { return x; };
   }
 
+  // TODO(hausner): Rename to operator -.
   operator negate() {
     var x = 3;
     return () { return x + 1; };
@@ -191,7 +192,6 @@ class Hoisting {
     Expect.equals(1, (h.f_)());
     var f = -h;
     Expect.equals(4, f());
-    Expect.equals(4, h.negate()());
     Expect.equals(7, h[4]());
   }
 }

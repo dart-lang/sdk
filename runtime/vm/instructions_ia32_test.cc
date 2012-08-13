@@ -15,19 +15,20 @@ namespace dart {
 #define __ assembler->
 
 ASSEMBLER_TEST_GENERATE(Call, assembler) {
-  __ call(&StubCode::MegamorphicLookupLabel());
+  __ call(&StubCode::InstanceFunctionLookupLabel());
   __ ret();
 }
 
 
 ASSEMBLER_TEST_RUN(Call, entry) {
   CallPattern call(entry);
-  EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(), call.TargetAddress());
+  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
+            call.TargetAddress());
 }
 
 
 ASSEMBLER_TEST_GENERATE(Jump, assembler) {
-  __ jmp(&StubCode::MegamorphicLookupLabel());
+  __ jmp(&StubCode::InstanceFunctionLookupLabel());
   __ jmp(&StubCode::AllocateArrayLabel());
   __ ret();
 }
@@ -35,7 +36,7 @@ ASSEMBLER_TEST_GENERATE(Jump, assembler) {
 
 ASSEMBLER_TEST_RUN(Jump, entry) {
   JumpPattern jump1(entry);
-  EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
+  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump1.TargetAddress());
   JumpPattern jump2(entry + jump1.pattern_length_in_bytes());
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
@@ -46,7 +47,7 @@ ASSEMBLER_TEST_RUN(Jump, entry) {
   jump2.SetTargetAddress(target1);
   EXPECT_EQ(StubCode::AllocateArrayLabel().address(),
             jump1.TargetAddress());
-  EXPECT_EQ(StubCode::MegamorphicLookupLabel().address(),
+  EXPECT_EQ(StubCode::InstanceFunctionLookupLabel().address(),
             jump2.TargetAddress());
 }
 

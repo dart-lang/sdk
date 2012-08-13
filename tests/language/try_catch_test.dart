@@ -2,28 +2,22 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class MyException {
-  MyException() {}
-}
+class MyException { }
 
-class MyException1 extends MyException {
-  MyException1() : super() {}
-}
+class MyException1 extends MyException { }
 
-class MyException2 extends MyException {
-  MyException2() : super() {}
-}
+class MyException2 extends MyException { }
 
 class TryCatchTest {
   static void test1() {
     var foo = 0;
     try {
       throw new MyException1();
-    } catch (MyException2 e) {
+    } on MyException2 catch (e) {
       foo = 1;
-    } catch (MyException1 e) {
+    } on MyException1 catch (e) {
       foo = 2;
-    } catch (MyException e) {
+    } on MyException catch (e) {
       foo = 3;
     }
     Expect.equals(2, foo);
@@ -33,11 +27,11 @@ class TryCatchTest {
     var foo = 0;
     try {
       throw new MyException1();
-    } catch (MyException2 e) {
+    } on MyException2 catch (e) {
       foo = 1;
-    } catch (MyException e) {
+    } on MyException catch (e) {
       foo = 2;
-    } catch (MyException1 e) {
+    } on MyException1 catch (e) {
       foo = 3;
     }
     Expect.equals(2, foo);
@@ -47,11 +41,11 @@ class TryCatchTest {
     var foo = 0;
     try {
       throw new MyException();
-    } catch (MyException2 e) {
+    } on MyException2 catch (e) {
       foo = 1;
-    } catch (MyException1 e) {
+    } on MyException1 catch (e) {
       foo = 2;
-    } catch (MyException e) {
+    } on MyException catch (e) {
       foo = 3;
     }
     Expect.equals(3, foo);
@@ -62,12 +56,12 @@ class TryCatchTest {
     try {
       try {
         throw new MyException();
-      } catch (MyException2 e) {
+      } on MyException2 catch (e) {
         foo = 1;
-      } catch (MyException1 e) {
+      } on MyException1 catch (e) {
         foo = 2;
       }
-    } catch (MyException e) {
+    } on MyException catch (e) {
       Expect.equals(0, foo);
       foo = 3;
     }
@@ -78,9 +72,9 @@ class TryCatchTest {
     var foo = 0;
     try {
       throw new MyException1();
-    } catch (MyException2 e) {
+    } on MyException2 catch (e) {
       foo = 1;
-    } catch (var e) {
+    } catch (e) {
       foo = 2;
     }
     Expect.equals(2, foo);
@@ -90,11 +84,11 @@ class TryCatchTest {
     var foo = 0;
     try {
       throw new MyException();
-    } catch (MyException2 e) {
+    } on MyException2 catch (e) {
       foo = 1;
-    } catch (MyException1 e) {
+    } on MyException1 catch (e) {
       foo = 2;
-    } catch (var e) {
+    } catch (e) {
       foo = 3;
     }
     Expect.equals(3, foo);
@@ -105,12 +99,12 @@ class TryCatchTest {
     try {
       try {
         throw new MyException();
-      } catch (MyException2 e) {
+      } on MyException2 catch (e) {
         foo = 1;
-      } catch (MyException1 e) {
+      } on MyException1 catch (e) {
         foo = 2;
       }
-    } catch (var e) {
+    } catch (e) {
       Expect.equals(0, foo);
       foo = 3;
     }
@@ -122,7 +116,7 @@ class TryCatchTest {
     var caught = false;
     try {
       throw new MyException();
-    } catch (var exc) {
+    } catch (exc) {
       caught = true;
     }
     Expect.equals(true, caught);

@@ -81,6 +81,6 @@ main() {
   test('Test passing locale', () {
     hello(a_locale) => Intl.message('locale=${Intl.getCurrentLocale()}',
         desc: 'explains the locale', locale: a_locale);
-    expect(hello('en-US'), equals('locale=en-US'));
+    expect(hello('en-US'), equals('locale=en_US'));
   });
 }

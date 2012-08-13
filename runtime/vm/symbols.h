@@ -53,6 +53,37 @@ class ObjectPointerVisitor;
   V(Import, "import")                                                          \
   V(Source, "source")                                                          \
   V(Resource, "resource")                                                      \
+  V(Class, "Class")                                                            \
+  V(Null, "Null")                                                              \
+  V(Dynamic, "Dynamic")                                                        \
+  V(Void, "void")                                                              \
+  V(UnresolvedClass, "UnresolvedClass")                                        \
+  V(Type, "Type")                                                              \
+  V(TypeParameter, "TypeParameter")                                            \
+  V(TypeArguments, "TypeArguments")                                            \
+  V(InstantiatedTypeArguments, "InstantiatedTypeArguments")                    \
+  V(Function, "Function")                                                      \
+  V(Field, "Field")                                                            \
+  V(LiteralToken, "LiteralToken")                                              \
+  V(TokenStream, "TokenStream")                                                \
+  V(Script, "Script")                                                          \
+  V(LibraryClass, "Library")                                                   \
+  V(LibraryPrefix, "LibraryPrefix")                                            \
+  V(Code, "Code")                                                              \
+  V(Instructions, "Instructions")                                              \
+  V(PcDescriptors, "PcDescriptors")                                            \
+  V(Stackmap, "Stackmap")                                                      \
+  V(LocalVarDescriptors, "LocalVarDescriptors")                                \
+  V(ExceptionHandlers, "ExceptionHandlers")                                    \
+  V(DeoptInfo, "DeoptInfo")                                                    \
+  V(Context, "Context")                                                        \
+  V(ContextScope, "ContextScope")                                              \
+  V(ICData, "ICData")                                                          \
+  V(SubtypeTestCache, "SubtypeTestCache")                                      \
+  V(ApiError, "ApiError")                                                      \
+  V(LanguageError, "LanguageError")                                            \
+  V(UnhandledException, "UnhandledException")                                  \
+  V(UnwindError, "UnwindError")                                                \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

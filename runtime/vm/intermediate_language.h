@@ -112,6 +112,7 @@ class BindInstr;
 class BranchInstr;
 class BufferFormatter;
 class ComparisonComp;
+class Definition;
 class Instruction;
 class PushArgumentInstr;
 class Value;
@@ -147,8 +148,13 @@ class Computation : public ZoneAllocated {
   // Returns true, if this computation can deoptimize.
   virtual bool CanDeoptimize() const  = 0;
 
-  // Static type of the computation.
-  virtual RawAbstractType* StaticType() const = 0;
+  // Optimize this computation. Returns a replacement for the instruction
+  // that wraps this computation or NULL if nothing to replace.
+  virtual Definition* TryReplace(BindInstr* instr) { return NULL; }
+
+  // Compile time type of the computation, which typically depends on the
+  // compile time types (and possibly propagated types) of its inputs.
+  virtual RawAbstractType* CompileType() const = 0;
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
@@ -181,18 +187,20 @@ class Computation : public ZoneAllocated {
   // TODO(fschneider): Make EmitNativeCode and locs const.
   virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
 
+  virtual void RemoveInputUses() = 0;
+
   static LocationSummary* MakeCallSummary();
 
-  // Declare an enum value used to define type-test predicates.
-  enum ComputationType {
-#define DECLARE_COMPUTATION_TYPE(ShortName, ClassName) k##ShortName,
+  // Declare an enum value used to define kind-test predicates.
+  enum ComputationKind {
+#define DECLARE_COMPUTATION_KIND(ShortName, ClassName) k##ShortName,
 
-  FOR_EACH_COMPUTATION(DECLARE_COMPUTATION_TYPE)
+  FOR_EACH_COMPUTATION(DECLARE_COMPUTATION_KIND)
 
-#undef DECLARE_COMPUTATION_TYPE
+#undef DECLARE_COMPUTATION_KIND
   };
 
-  virtual ComputationType computation_type() const = 0;
+  virtual ComputationKind computation_kind() const = 0;
 
   // Declare predicate for each computation.
 #define DECLARE_PREDICATE(ShortName, ClassName)                                \
@@ -267,7 +275,16 @@ class TemplateComputation : public Computation {
  public:
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    inputs_[i] = value;
+  }
+  virtual void RemoveInputUses() {
+    for (intptr_t i = 0; i < N; ++i) {
+      ASSERT(inputs_[i] != NULL);
+      inputs_[i]->RemoveFromUseList();
+    }
+  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -278,7 +295,9 @@ class Value : public TemplateComputation<0> {
  public:
   Value() { }
 
-  bool StaticTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
+  bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
+
+  virtual void RemoveFromUseList() = 0;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(Value);
@@ -288,12 +307,12 @@ class Value : public TemplateComputation<0> {
 // Functions defined in all concrete computation classes.
 #define DECLARE_COMPUTATION(ShortName)                                         \
   virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr);            \
-  virtual ComputationType computation_type() const {                           \
+  virtual ComputationKind computation_kind() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
   virtual intptr_t ArgumentCount() const { return 0; }                         \
   virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* StaticType() const;                                 \
+  virtual RawAbstractType* CompileType() const;                                \
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
@@ -306,11 +325,11 @@ class Value : public TemplateComputation<0> {
 // Function defined in all call computation classes.
 #define DECLARE_CALL_COMPUTATION(ShortName)                                    \
   virtual void Accept(FlowGraphVisitor* visitor, BindInstr* instr);            \
-  virtual ComputationType computation_type() const {                           \
+  virtual ComputationKind computation_kind() const {                           \
     return Computation::k##ShortName;                                          \
   }                                                                            \
   virtual const char* DebugName() const { return #ShortName; }                 \
-  virtual RawAbstractType* StaticType() const;                                 \
+  virtual RawAbstractType* CompileType() const;                                \
   virtual LocationSummary* MakeLocationSummary() const;                        \
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
@@ -320,19 +339,27 @@ class PhiInstr;
 
 class UseVal : public Value {
  public:
-  explicit UseVal(Definition* definition) : definition_(definition) {}
+  explicit UseVal(Definition* definition);
 
   DECLARE_VALUE(Use)
 
   inline Definition* definition() const;
-  void set_definition(Definition* definition) {
-    definition_ = definition;
-  }
+  void SetDefinition(Definition* definition);
 
   virtual bool CanDeoptimize() const { return false; }
 
+  UseVal* next_use() const { return next_use_; }
+  UseVal* previous_use() const { return previous_use_; }
+  virtual void RemoveFromUseList();
+  virtual void RemoveInputUses() { RemoveFromUseList(); }
+
  private:
+  void AddToUseList();
   Definition* definition_;
+  UseVal* next_use_;
+  UseVal* previous_use_;
+
+  friend class Definition;
 
   DISALLOW_COPY_AND_ASSIGN(UseVal);
 };
@@ -351,6 +378,8 @@ class ConstantVal: public Value {
   const Object& value() const { return value_; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual void RemoveFromUseList() { }
 
  private:
   const Object& value_;
@@ -373,7 +402,8 @@ class AssertAssignableComp : public TemplateComputation<3> {
       : token_pos_(token_pos),
         try_index_(try_index),
         dst_type_(dst_type),
-        dst_name_(dst_name) {
+        dst_name_(dst_name),
+        eliminated_(false) {
     ASSERT(value != NULL);
     ASSERT(instantiator != NULL);
     ASSERT(instantiator_type_arguments != NULL);
@@ -395,6 +425,14 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
+  bool IsEliminated() const {
+    return eliminated_;
+  }
+  void Eliminate() {
+    ASSERT(!eliminated_);
+    eliminated_ = true;
+  }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
@@ -404,6 +442,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const intptr_t try_index_;
   const AbstractType& dst_type_;
   const String& dst_name_;
+  bool eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableComp);
 };
@@ -569,7 +608,11 @@ class PolymorphicInstanceCallComp : public TemplateComputation<0> {
 
   void PrintTo(BufferFormatter* f) const;
 
-  DECLARE_COMPUTATION(PolymorphicInstanceCall)
+  virtual intptr_t ArgumentCount() const {
+    return instance_call()->ArgumentCount();
+  }
+
+  DECLARE_CALL_COMPUTATION(PolymorphicInstanceCall)
 
   virtual bool CanDeoptimize() const { return true; }
 
@@ -613,6 +656,8 @@ class StrictCompareComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual Definition* TryReplace(BindInstr* instr);
 
  private:
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
@@ -772,6 +817,7 @@ class StoreLocalComp : public TemplateComputation<1> {
                  intptr_t context_level)
       : local_(local),
         context_level_(context_level) {
+    ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
@@ -995,6 +1041,9 @@ class StoreIndexedComp : public TemplateComputation<3> {
       : token_pos_(token_pos),
         try_index_(try_index),
         receiver_type_(kIllegalCid) {
+    ASSERT(array != NULL);
+    ASSERT(index != NULL);
+    ASSERT(value != NULL);
     inputs_[0] = array;
     inputs_[1] = index;
     inputs_[2] = value;
@@ -1031,6 +1080,7 @@ class StoreIndexedComp : public TemplateComputation<3> {
 class BooleanNegateComp : public TemplateComputation<1> {
  public:
   explicit BooleanNegateComp(Value* value) {
+    ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
@@ -1095,28 +1145,26 @@ class InstanceOfComp : public TemplateComputation<3> {
 };
 
 
-class AllocateObjectComp : public Computation {
+class AllocateObjectComp : public TemplateComputation<0> {
  public:
   AllocateObjectComp(ConstructorCallNode* node,
                      intptr_t try_index,
-                     ZoneGrowableArray<Value*>* arguments)
+                     ZoneGrowableArray<PushArgumentInstr*>* arguments)
       : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
     // Either no arguments or one type-argument and one instantiator.
     ASSERT(arguments->is_empty() || (arguments->length() == 2));
   }
 
-  DECLARE_COMPUTATION(AllocateObject)
+  DECLARE_CALL_COMPUTATION(AllocateObject)
+
+  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  PushArgumentInstr* ArgumentAt(intptr_t index) const {
+    return (*arguments_)[index];
+  }
 
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
-  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1125,19 +1173,23 @@ class AllocateObjectComp : public Computation {
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* const arguments_;
+  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectComp);
 };
 
 
-class AllocateObjectWithBoundsCheckComp : public Computation {
+class AllocateObjectWithBoundsCheckComp : public TemplateComputation<2> {
  public:
   AllocateObjectWithBoundsCheckComp(ConstructorCallNode* node,
                                     intptr_t try_index,
-                                    ZoneGrowableArray<Value*>* arguments)
-      : ast_node_(*node), try_index_(try_index), arguments_(arguments) {
-    // One type-argument and one instantiator.
-    ASSERT(arguments->length() == 2);
+                                    Value* type_arguments,
+                                    Value* instantiator)
+      : ast_node_(*node), try_index_(try_index) {
+    ASSERT(type_arguments != NULL);
+    ASSERT(instantiator != NULL);
+    inputs_[0] = type_arguments;
+    inputs_[1] = instantiator;
   }
 
   DECLARE_COMPUTATION(AllocateObjectWithBoundsCheck)
@@ -1145,13 +1197,6 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
   const Function& constructor() const { return ast_node_.constructor(); }
   intptr_t token_pos() const { return ast_node_.token_pos(); }
   intptr_t try_index() const { return try_index_; }
-  const ZoneGrowableArray<Value*>& arguments() const { return *arguments_; }
-
-  virtual intptr_t InputCount() const;
-  virtual Value* InputAt(intptr_t i) const { return arguments()[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) {
-    (*arguments_)[i] = value;
-  }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
@@ -1160,7 +1205,7 @@ class AllocateObjectWithBoundsCheckComp : public Computation {
  private:
   const ConstructorCallNode& ast_node_;
   const intptr_t try_index_;
-  ZoneGrowableArray<Value*>* const arguments_;
+
   DISALLOW_COPY_AND_ASSIGN(AllocateObjectWithBoundsCheckComp);
 };
 
@@ -1282,6 +1327,7 @@ class StoreVMFieldComp : public TemplateComputation<2> {
                    const AbstractType& type)
       : offset_in_bytes_(offset_in_bytes), type_(type) {
     ASSERT(value != NULL);
+    ASSERT(dest != NULL);
     ASSERT(type.IsZoneHandle());  // May be null if field is not an instance.
     inputs_[0] = value;
     inputs_[1] = dest;
@@ -1682,7 +1728,7 @@ class ToDoubleComp : public TemplateComputation<1> {
 // Implementation of type testers and cast functins.
 #define DEFINE_PREDICATE(ShortName, ClassName)                                 \
 bool Computation::Is##ShortName() const {                                      \
-  return computation_type() == k##ShortName;                                   \
+  return computation_kind() == k##ShortName;                                   \
 }                                                                              \
 const ClassName* Computation::As##ShortName() const {                          \
   if (!Is##ShortName()) return NULL;                                           \
@@ -1785,6 +1831,8 @@ class Instruction : public ZoneAllocated {
 
   // Removed this instruction from the graph.
   Instruction* RemoveFromGraph(bool return_previous = true);
+  // Remove value uses within this instruction and its inputs.
+  virtual void RemoveInputUses() = 0;
 
   // Normal instructions can have 0 (inside a block) or 1 (last instruction in
   // a block) successors. Branch instruction with >1 successors override this
@@ -1871,7 +1919,10 @@ class TemplateInstruction: public Instruction {
 
   virtual intptr_t InputCount() const { return N; }
   virtual Value* InputAt(intptr_t i) const { return inputs_[i]; }
-  virtual void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
+  virtual void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(value != NULL);
+    inputs_[i] = value;
+  }
 
   virtual LocationSummary* locs() {
     if (locs_ == NULL) {
@@ -1881,6 +1932,13 @@ class TemplateInstruction: public Instruction {
   }
 
   virtual LocationSummary* MakeLocationSummary() const = 0;
+
+  virtual void RemoveInputUses() {
+    for (intptr_t i = 0; i < N; ++i) {
+      ASSERT(inputs_[i] != NULL);
+      inputs_[i]->RemoveFromUseList();
+    }
+  }
 
  protected:
   EmbeddedArray<Value*, N> inputs_;
@@ -2058,6 +2116,8 @@ class BlockEntryInstr : public Instruction {
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual void RemoveInputUses() { }
 
  protected:
   BlockEntryInstr()
@@ -2279,7 +2339,11 @@ class TargetEntryInstr : public BlockEntryInstr {
 // Abstract super-class of all instructions that define a value (Bind, Phi).
 class Definition : public Instruction {
  public:
-  Definition() : temp_index_(-1), ssa_temp_index_(-1) { }
+  Definition()
+      : temp_index_(-1),
+        ssa_temp_index_(-1),
+        propagated_type_(AbstractType::Handle()),
+        use_list_(NULL) { }
 
   virtual bool IsDefinition() const { return true; }
   virtual Definition* AsDefinition() { return this; }
@@ -2294,12 +2358,44 @@ class Definition : public Instruction {
   }
   bool HasSSATemp() const { return ssa_temp_index_ >= 0; }
 
-  // Static type of the definition.
-  virtual RawAbstractType* StaticType() const = 0;
+  // Compile time type of the definition, which may be requested before type
+  // propagation during graph building.
+  virtual RawAbstractType* CompileType() const = 0;
+
+  bool HasPropagatedType() const {
+    return !propagated_type_.IsNull();
+  }
+  RawAbstractType* PropagatedType() const {
+    ASSERT(HasPropagatedType());
+    return propagated_type_.raw();
+  }
+  // Returns true if the propagated type has changed.
+  bool SetPropagatedType(const AbstractType& propagated_type) {
+    if (propagated_type.IsNull()) {
+      // Not a typed definition, e.g. access to a VM field.
+      return false;
+    }
+    const bool changed =
+        propagated_type_.IsNull() || !propagated_type.Equals(propagated_type_);
+    propagated_type_ = propagated_type.raw();
+    return changed;
+  }
+
+  UseVal* use_list() { return use_list_; }
+  void set_use_list(UseVal* head) {
+    ASSERT(head == NULL || head->previous_use() == NULL);
+    use_list_ = head;
+  }
+
+  void ReplaceUsesWith(Definition* other);
 
  private:
   intptr_t temp_index_;
   intptr_t ssa_temp_index_;
+  // TODO(regis): GrowableArray<const AbstractType*> propagated_types_;
+  // For now:
+  AbstractType& propagated_type_;
+  UseVal* use_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
 };
@@ -2340,10 +2436,7 @@ class BindInstr : public Definition {
   void set_computation(Computation* value) { computation_ = value; }
   bool is_used() const { return is_used_; }
 
-  // Static type of the underlying computation.
-  virtual RawAbstractType* StaticType() const {
-    return computation()->StaticType();
-  }
+  virtual RawAbstractType* CompileType() const;
 
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
@@ -2353,6 +2446,8 @@ class BindInstr : public Definition {
   }
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
+
+  virtual void RemoveInputUses() { computation()->RemoveInputUses(); }
 
  private:
   Computation* computation_;
@@ -2371,8 +2466,7 @@ class PhiInstr : public Definition {
     }
   }
 
-  // Least upper bound of the static types of the inputs.
-  virtual RawAbstractType* StaticType() const;
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2383,6 +2477,16 @@ class PhiInstr : public Definition {
   void SetInputAt(intptr_t i, Value* value) { inputs_[i] = value; }
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual void RemoveInputUses() {
+    for (intptr_t i = 0; i < inputs_.length(); ++i) {
+      ASSERT(inputs_[i] != NULL);
+      inputs_[i]->RemoveFromUseList();
+    }
+  }
+
+  // TODO(regis): This helper will be removed once we support type sets.
+  RawAbstractType* LeastSpecificInputType() const;
 
   // Phi is alive if it reaches a non-environment use.
   bool is_alive() const { return is_alive_; }
@@ -2406,8 +2510,8 @@ class ParameterInstr : public Definition {
 
   intptr_t index() const { return index_; }
 
-  // Static type of the passed-in parameter.
-  virtual RawAbstractType* StaticType() const;
+  // Compile type of the passed-in parameter.
+  virtual RawAbstractType* CompileType() const;
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2418,8 +2522,9 @@ class ParameterInstr : public Definition {
   }
   void SetInputAt(intptr_t i, Value* value) { UNREACHABLE(); }
 
-
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual void RemoveInputUses() { }
 
  private:
   const intptr_t index_;
@@ -2428,26 +2533,53 @@ class ParameterInstr : public Definition {
 };
 
 
-class PushArgumentInstr : public TemplateInstruction<1> {
+class PushArgumentInstr : public Definition {
  public:
-  explicit PushArgumentInstr(Value* value) {
+  explicit PushArgumentInstr(Value* value) : value_(value), locs_(NULL) {
     ASSERT(value != NULL);
-    inputs_[0] = value;
   }
 
   DECLARE_INSTRUCTION(PushArgument)
 
+  intptr_t InputCount() const { return 1; }
+  Value* InputAt(intptr_t i) const {
+    ASSERT(i == 0);
+    return value_;
+  }
+  void SetInputAt(intptr_t i, Value* value) {
+    ASSERT(i == 0);
+    value_ = value;
+  }
+
   virtual intptr_t ArgumentCount() const { return 0; }
 
-  Value* value() const { return inputs_[0]; }
+  virtual RawAbstractType* CompileType() const;
 
-  virtual LocationSummary* MakeLocationSummary() const;
+  Value* value() const { return value_; }
+
+  virtual LocationSummary* locs() {
+    if (locs_ == NULL) {
+      locs_ = MakeLocationSummary();
+    }
+    return locs_;
+  }
+
+  LocationSummary* MakeLocationSummary() const;
 
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   virtual bool CanDeoptimize() const { return false; }
 
+  bool WasEliminated() const {
+    return next() == NULL;
+  }
+
+  virtual void RemoveInputUses() { value_->RemoveFromUseList(); }
+
  private:
+  Value* value_;
+  LocationSummary* locs_;
+
   DISALLOW_COPY_AND_ASSIGN(PushArgumentInstr);
 };
 
@@ -2688,34 +2820,31 @@ class Environment : public ZoneAllocated {
   explicit Environment(const GrowableArray<Value*>& values,
                        intptr_t fixed_parameter_count)
       : values_(values.length()),
-        location_count_(0),
         locations_(NULL),
         fixed_parameter_count_(fixed_parameter_count) {
     values_.AddArray(values);
+  }
+
+  void set_locations(Location* locations) {
+    ASSERT(locations_ == NULL);
+    locations_ = locations;
   }
 
   const GrowableArray<Value*>& values() const {
     return values_;
   }
 
-  // Initialize locations for the environment values on behalf of the
-  // register allocator.  The initial live ranges of environment uses extend
-  // from the block start position to the environment position.
-  void InitializeLocations(FlowGraphAllocator* allocator,
-                           intptr_t block_start_pos,
-                           intptr_t environment_pos);
-
   GrowableArray<Value*>* values_ptr() {
     return &values_;
   }
 
   Location LocationAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < location_count_));
+    ASSERT((ix >= 0) && (ix < values_.length()));
     return locations_[ix];
   }
 
   Location* LocationSlotAt(intptr_t ix) const {
-    ASSERT((ix >= 0) && (ix < location_count_));
+    ASSERT((ix >= 0) && (ix < values_.length()));
     return &locations_[ix];
   }
 
@@ -2727,7 +2856,6 @@ class Environment : public ZoneAllocated {
 
  private:
   GrowableArray<Value*> values_;
-  intptr_t location_count_;
   Location* locations_;
   const intptr_t fixed_parameter_count_;
 

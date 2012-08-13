@@ -48,6 +48,7 @@ void Symbols::InitOnce(Isolate* isolate) {
     Add(symbol_table, str);
     predefined_[i] = str.raw();
   }
+  Object::RegisterSingletonClassNames();
 }
 
 

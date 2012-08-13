@@ -123,6 +123,23 @@
  *
  *     -vfi
  *
+ * By default, an option has only a single value, with later option values
+ * overriding earlier ones; for example:
+ *
+ *     var parser = new ArgParser();
+ *     parser.addOption('mode');
+ *     var results = parser.parse(['--mode', 'on', '--mode', 'off']);
+ *     print(results['mode']); // prints 'off'
+ *
+ * If you need multiple values, set the [allowMultiple] flag. In that
+ * case the option can occur multiple times and when parsing arguments a
+ * List of values will be returned:
+ *
+ *     var parser = new ArgParser();
+ *     parser.addOption('mode', allowMultiple: true);
+ *     var results = parser.parse(['--mode', 'on', '--mode', 'off']);
+ *     print(results['mode']); // prints '[on, off]'
+ *
  * ## Usage ##
  *
  * This library can also be used to automatically generate nice usage help
@@ -214,14 +231,15 @@ class ArgParser {
    */
   void addOption(String name, [String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, String defaultsTo,
-      void callback(bool value)]) {
+      void callback(bool value), bool allowMultiple = false]) {
     _addOption(name, abbr, help, allowed, allowedHelp, defaultsTo,
-        callback, isFlag: false);
+        callback, isFlag: false, allowMultiple: allowMultiple);
   }
 
   void _addOption(String name, String abbr, String help, List<String> allowed,
       Map<String, String> allowedHelp, defaultsTo,
-      void callback(bool value), [bool isFlag, bool negatable = false]) {
+      void callback(bool value), [bool isFlag, bool negatable = false,
+      bool allowMultiple = false]) {
     // Make sure the name isn't in use.
     if (_options.containsKey(name)) {
       throw new IllegalArgumentException('Duplicate option "$name".');
@@ -242,7 +260,8 @@ class ArgParser {
     }
 
     _options[name] = new _Option(name, abbr, help, allowed, allowedHelp,
-        defaultsTo, callback, isFlag: isFlag, negatable: negatable);
+        defaultsTo, callback, isFlag: isFlag, negatable: negatable,
+        allowMultiple: allowMultiple);
     _optionNames.add(name);
   }
 
@@ -257,7 +276,11 @@ class ArgParser {
 
     // Initialize flags to their defaults.
     _options.forEach((name, option) {
-      results[name] = option.defaultValue;
+      if (option.allowMultiple) {
+        results[name] = [];
+      } else {
+        results[name] = option.defaultValue;
+      }
     });
 
     // Parse the args.
@@ -280,9 +303,15 @@ class ArgParser {
       break;
     }
 
-    // Invoke the callbacks.
+    // Set unspecified multivalued arguments to their default value,
+    // if any, and invoke the callbacks.
     for (var name in _optionNames) {
       var option = _options[name];
+      if (option.allowMultiple &&
+          results[name].length == 0 && 
+          option.defaultValue != null) {
+        results[name].add(option.defaultValue);
+      }
       if (option.callback != null) option.callback(results[name]);
     }
 
@@ -315,7 +344,11 @@ class ArgParser {
           '"$value" is not an allowed value for option "${option.name}".');
     }
 
-    results[option.name] = value;
+    if (option.allowMultiple) {
+      results[option.name].add(value);
+    } else {
+      results[option.name] = value;
+    }
   }
 
   /**
@@ -497,10 +530,11 @@ class _Option {
   final Map<String, String> allowedHelp;
   final bool isFlag;
   final bool negatable;
+  final bool allowMultiple;
 
   _Option(this.name, this.abbreviation, this.help, this.allowed,
       this.allowedHelp, this.defaultValue, this.callback, [this.isFlag,
-      this.negatable]);
+      this.negatable, this.allowMultiple = false]);
 }
 
 /**

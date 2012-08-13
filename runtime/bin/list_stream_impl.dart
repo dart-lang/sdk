@@ -71,6 +71,7 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
   void close() {
     if (_streamMarkedClosed) throw new StreamException.streamClosed();
     _streamMarkedClosed = true;
+    _checkScheduleCallbacks();
   }
 
   void destroy() {
@@ -143,6 +144,8 @@ class _ListOutputStream extends _BaseOutputStream implements ListOutputStream {
       _closeCallbackCalled = true;
     }
   }
+
+  bool get closed() => _streamMarkedClosed;
 
   _BufferList _bufferList;
   bool _streamMarkedClosed = false;

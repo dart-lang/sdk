@@ -11,7 +11,7 @@ namespace dart {
 
 
 static RawClass* CreateTestClass(const char* name) {
-  const Array& empty_array = Array::Handle(Array::Empty());
+  const Array& empty_array = Array::Handle(Object::empty_array());
   const String& class_name = String::Handle(Symbols::New(name));
   const Script& script = Script::Handle();
   const Class& cls =

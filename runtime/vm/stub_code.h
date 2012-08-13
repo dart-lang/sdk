@@ -25,7 +25,7 @@ class RawCode;
   V(CallNativeCFunction)                                                       \
   V(AllocateArray)                                                             \
   V(CallNoSuchMethodFunction)                                                  \
-  V(MegamorphicLookup)                                                         \
+  V(InstanceFunctionLookup)                                                    \
   V(CallStaticFunction)                                                        \
   V(CallClosureFunction)                                                       \
   V(FixCallersTarget)                                                          \

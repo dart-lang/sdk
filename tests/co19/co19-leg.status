@@ -12,6 +12,37 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t01: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t02: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/1_Instance_Methods_A01_t06: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/2_Getters_A04_t07: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t03: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t04: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t05: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/3_Setters_A04_t06: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/1_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # TODO(ahe): I'm working on these.
+Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # TODO(ahe): I'm working on these.
+
+
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
 LibTest/core/Math/asin_A01_t01: Fail, OK
@@ -25,13 +56,6 @@ LibTest/core/double/operator_remainder_A01_t04: Fail
 Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
 Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
-
-# This test sometimes passes (as a negative test), sometimes it
-# crashes. The problem is that there is a stack overflow in
-# dart2js. The reason for the test sometimes passing is VM issue
-# 3874. The stack overflow is addressed in
-# https://chromiumcodereview.appspot.com/10661029/.
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Crash, Pass
 
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
@@ -227,8 +251,48 @@ LibTest/core/String/String_class_A02_t01: Fail, OK # compiler cancelled: Unhandl
 LibTest/core/String/charCodeAt_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled non-BMP character: U+10000
 
-LibTest/core/Math/max_A01_t03: Fail # co19 issue 157
-LibTest/core/Math/min_A01_t03: Fail # co19 issue 157
+LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
+LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
+
+# Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK # Bad test, fixed in r295.
+Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Pass # TODO(ahe): Passing for wrong reasons.
+
+# Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail, OK # Bad test, fixed in r295.
+Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Pass # TODO(ahe): Passing for wrong reasons.
+
+
+
+Language/10_Expressions/02_Null_A04_t01: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A03_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A04_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A05_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A06_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A07_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A08_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A09_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A10_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A11_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A12_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A13_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A14_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A15_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A16_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A17_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A18_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A19_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A20_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A21_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A22_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A23_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A24_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A25_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A26_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A27_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A28_t04: Fail, OK # Bad test: assumes eager loading.
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A29_t04: Fail, OK # Bad test: assumes eager loading.
+
 
 [ $compiler == dart2js && $runtime == d8 ]
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterClassEscape_A04_t01: Fail, Pass # issue 3333
@@ -405,336 +469,326 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 
 
 #
-# The following tests are all semantic tests that we can rely on dartc
-# catching for now.
+# The following tests are all negative tests that should be fixed.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t19: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t20: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t21: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t23: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t24: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t35: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t39: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t40: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t41: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t45: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A01_t46: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A02_t10: Fail, OK # @compile-error
-Language/03_Overview/1_Scoping_A03_t05: Fail, OK # @compile-error
-Language/03_Overview/2_Privacy_A01_t09: Fail, OK # @compile-error
-Language/03_Overview/2_Privacy_A01_t10: Fail, OK # @compile-error
-Language/03_Overview/2_Privacy_A01_t19: Fail, OK # @compile-error
-Language/03_Overview/2_Privacy_A01_t20: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A01_t04: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A01_t05: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A01_t08: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A01_t15: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t01: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t02: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t03: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t04: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t05: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t06: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t07: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t08: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A03_t10: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A04_t03: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A04_t04: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A04_t07: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A04_t08: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A04_t10: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A05_t01: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t01: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t02: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t03: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t04: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t05: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t06: Fail, OK # @compile-error
-Language/05_Variables/05_Variables_A08_t07: Fail, OK # @compile-error
-Language/06_Functions/06_Functions_A01_t23: Fail, OK # @compile-error
-Language/06_Functions/06_Functions_A01_t31: Fail, OK # @compile-error
-Language/06_Functions/1_Function_Declaration_A01_t01: Fail, OK # @compile-error
-Language/06_Functions/1_Function_Declaration_A02_t02: Fail, OK # @compile-error
-Language/06_Functions/1_Function_Declaration_A03_t02: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t03: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t04: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t05: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t06: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t07: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t06: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t07: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters_A02_t01: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters_A02_t02: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters_A02_t03: Fail, OK # @compile-error
-Language/06_Functions/2_Formal_Parameters_A02_t04: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t02: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t04: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t05: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t07: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t09: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t10: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t11: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t25: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t26: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t27: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t28: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t29: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t31: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A02_t33: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t03: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t04: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t05: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t06: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t07: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t08: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A03_t09: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t18: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t19: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t20: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t21: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t22: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t23: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t24: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A04_t25: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A07_t01: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A07_t04: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A07_t07: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A07_t08: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A08_t01: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A09_t01: Fail, OK # @compile-error
-Language/07_Classes/07_Classes_A09_t02: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A05_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t01: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t02: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t03: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t04: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t05: Fail, OK # @compile-error
-Language/07_Classes/1_Instance_Methods_A02_t06: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A03_t01: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A03_t03: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A03_t04: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t01: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t02: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t08: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t09: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t10: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t11: Fail, OK # @compile-error
-Language/07_Classes/2_Getters_A04_t12: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t01: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t03: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t04: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t05: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t06: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t07: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A03_t08: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A04_t01: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A04_t02: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
-Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t05: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail, OK # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail, OK # @compile-error
-Language/07_Classes/9_Superinterfaces_A04_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A01_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A03_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A03_t02: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A03_t03: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A03_t04: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A04_t01: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A04_t02: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A04_t03: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A04_t04: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A04_t05: Fail, OK # @compile-error
-Language/08_Interfaces/1_Methods_A05_t01: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t09: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t10: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t01: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t02: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t04: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t05: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A03_t06: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t04: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t05: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t06: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A10_t02: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A10_t03: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A10_t04: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A10_t05: Fail, OK # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A10_t06: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A01_t02: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A01_t06: Fail, OK # @compile-error
-Language/08_Interfaces/Interfaces_A01_t07: Fail, OK # @compile-error
-Language/10_Expressions/01_Constants_A15_t38: Fail, OK # @compile-error
-Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail, OK # @compile-error
-Language/10_Expressions/06_Lists_A04_t01: Fail, OK # @compile-error
-Language/10_Expressions/07_Maps_A03_t01: Fail, OK # @compile-error
-Language/10_Expressions/08_Function_Expressions_A01_t03: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail, OK # @compile-error
-Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail, OK # @compile-error
-Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t16: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t15: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t16: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t17: Fail, OK # @compile-error
-Language/10_Expressions/20_Equality_A01_t18: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail, OK # @compile-error
-Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail, OK # @compile-error
-Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail, OK # @compile-error
-Language/11_Statements/03_Variable_Declaration_A03_t01: Fail, OK # @compile-error
-Language/11_Statements/03_Variable_Declaration_A03_t02: Fail, OK # @compile-error
-Language/11_Statements/05_For_A01_t12: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A05_t01: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A05_t02: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A06_t01: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A06_t02: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A06_t03: Fail, OK # @compile-error
-Language/11_Statements/08_Switch_A06_t04: Fail, OK # @compile-error
-Language/11_Statements/09_Try_A01_t14: Fail, OK # @compile-error
-Language/11_Statements/09_Try_A01_t18: Fail, OK # @compile-error
-Language/11_Statements/10_Return_A04_t01: Fail, OK # @compile-error
-Language/11_Statements/10_Return_A04_t02: Fail, OK # @compile-error
-Language/11_Statements/10_Return_A04_t03: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Imports_A07_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Imports_A07_t02: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/3_Includes_A01_t01: Fail, OK # @compile-error
-Language/12_Libraries_and_Scripts/3_Includes_A03_t03: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail, OK # @compile-error
-Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail, OK # @compile-error
-Language/13_Types/7_Type_Void_A01_t02: Fail, OK # @compile-error
-Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail, OK # @compile-error
-Language/14_Reference/1_Lexical_Rules_A02_t06: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t19: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t20: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t21: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t23: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t24: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t35: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t39: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t40: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t41: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t45: Fail # @compile-error
+Language/03_Overview/1_Scoping_A01_t46: Fail # @compile-error
+Language/03_Overview/1_Scoping_A02_t10: Fail # @compile-error
+Language/03_Overview/1_Scoping_A03_t05: Fail # @compile-error
+Language/03_Overview/2_Privacy_A01_t09: Fail # @compile-error
+Language/03_Overview/2_Privacy_A01_t10: Fail # @compile-error
+Language/03_Overview/2_Privacy_A01_t19: Fail # @compile-error
+Language/03_Overview/2_Privacy_A01_t20: Fail # @compile-error
+Language/05_Variables/05_Variables_A01_t04: Fail # @compile-error
+Language/05_Variables/05_Variables_A01_t05: Fail # @compile-error
+Language/05_Variables/05_Variables_A01_t08: Fail # @compile-error
+Language/05_Variables/05_Variables_A01_t15: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t01: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t02: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t03: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t04: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t05: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t06: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t07: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t08: Fail # @compile-error
+Language/05_Variables/05_Variables_A03_t10: Fail # @compile-error
+Language/05_Variables/05_Variables_A04_t03: Fail # @compile-error
+Language/05_Variables/05_Variables_A04_t04: Fail # @compile-error
+Language/05_Variables/05_Variables_A04_t07: Fail # @compile-error
+Language/05_Variables/05_Variables_A04_t08: Fail # @compile-error
+Language/05_Variables/05_Variables_A04_t10: Fail # @compile-error
+Language/05_Variables/05_Variables_A05_t01: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t01: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t02: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t03: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t04: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t05: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t06: Fail # @compile-error
+Language/05_Variables/05_Variables_A08_t07: Fail # @compile-error
+Language/06_Functions/06_Functions_A01_t23: Fail # @compile-error
+Language/06_Functions/06_Functions_A01_t31: Fail # @compile-error
+Language/06_Functions/1_Function_Declaration_A01_t01: Fail # @compile-error
+Language/06_Functions/1_Function_Declaration_A02_t02: Fail # @compile-error
+Language/06_Functions/1_Function_Declaration_A03_t02: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t03: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t04: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t05: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t06: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t07: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t06: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A01_t07: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t01: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters/2_Named_Optional_Formals_A03_t02: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t01: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t02: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t03: Fail # @compile-error
+Language/06_Functions/2_Formal_Parameters_A02_t04: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t02: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t04: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t05: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t07: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t09: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t10: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t11: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t25: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t26: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t27: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t28: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t29: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t31: Fail # @compile-error
+Language/07_Classes/07_Classes_A02_t33: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t02: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t03: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t04: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t05: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t06: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t07: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t08: Fail # @compile-error
+Language/07_Classes/07_Classes_A03_t09: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t18: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t19: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t20: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t21: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t22: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t23: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t24: Fail # @compile-error
+Language/07_Classes/07_Classes_A04_t25: Fail # @compile-error
+Language/07_Classes/07_Classes_A07_t01: Fail # @compile-error
+Language/07_Classes/07_Classes_A07_t04: Fail # @compile-error
+Language/07_Classes/07_Classes_A07_t07: Fail # @compile-error
+Language/07_Classes/07_Classes_A07_t08: Fail # @compile-error
+Language/07_Classes/07_Classes_A08_t01: Fail # @compile-error
+Language/07_Classes/07_Classes_A09_t01: Fail # @compile-error
+Language/07_Classes/07_Classes_A09_t02: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t05: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t06: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A05_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A05_t02: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A06_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t02: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t03: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods/2_Operators_A07_t04: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t01: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t02: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t03: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t04: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t05: Fail # @compile-error
+Language/07_Classes/1_Instance_Methods_A02_t06: Fail # @compile-error
+Language/07_Classes/2_Getters_A03_t01: Fail # @compile-error
+Language/07_Classes/2_Getters_A03_t02: Fail # @compile-error
+Language/07_Classes/2_Getters_A03_t03: Fail # @compile-error
+Language/07_Classes/2_Getters_A03_t04: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t01: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t02: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t08: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t09: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t10: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t11: Fail # @compile-error
+Language/07_Classes/2_Getters_A04_t12: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t01: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t02: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t03: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t04: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t05: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t06: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t07: Fail # @compile-error
+Language/07_Classes/3_Setters_A03_t08: Fail # @compile-error
+Language/07_Classes/3_Setters_A04_t01: Fail # @compile-error
+Language/07_Classes/3_Setters_A04_t02: Fail # @compile-error
+Language/07_Classes/3_Setters_A04_t07: Fail # @compile-error
+Language/07_Classes/3_Setters_A04_t08: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t05: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail # @compile-error
+Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail # @compile-error
+Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t03: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t01: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A03_t02: Fail # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A05_t03: Fail # @compile-error
+Language/07_Classes/9_Superinterfaces_A04_t01: Fail # @compile-error
+Language/08_Interfaces/1_Methods/1_Operators_A02_t01: Fail # @compile-error
+Language/08_Interfaces/1_Methods/1_Operators_A03_t01: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A01_t01: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A04_t01: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A04_t02: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A04_t03: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A04_t04: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A04_t05: Fail # @compile-error
+Language/08_Interfaces/1_Methods_A05_t01: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t09: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t10: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t01: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t02: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t03: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t04: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t05: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A03_t06: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t01: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t02: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t03: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t04: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t05: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t06: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t07: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A06_t08: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A10_t02: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A10_t03: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A10_t04: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A10_t05: Fail # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A10_t06: Fail # @compile-error
+Language/08_Interfaces/Interfaces_A01_t02: Fail # @compile-error
+Language/08_Interfaces/Interfaces_A01_t06: Fail # @compile-error
+Language/08_Interfaces/Interfaces_A01_t07: Fail # @compile-error
+Language/10_Expressions/01_Constants_A15_t38: Fail # @compile-error
+Language/10_Expressions/05_Strings/1_String_Interpolation_A01_t12: Fail # @compile-error
+Language/10_Expressions/06_Lists_A04_t01: Fail # @compile-error
+Language/10_Expressions/07_Maps_A03_t01: Fail # @compile-error
+Language/10_Expressions/08_Function_Expressions_A01_t03: Fail # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A03_t01: Fail # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A04_t02: Fail # @compile-error
+Language/10_Expressions/10_Instance_Creation/2_Const_A05_t02: Fail # @compile-error
+Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t16: Fail # @compile-error
+Language/10_Expressions/20_Equality_A01_t15: Fail # @compile-error
+Language/10_Expressions/20_Equality_A01_t16: Fail # @compile-error
+Language/10_Expressions/20_Equality_A01_t17: Fail # @compile-error
+Language/10_Expressions/20_Equality_A01_t18: Fail # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t10: Fail # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t11: Fail # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t12: Fail # @compile-error
+Language/10_Expressions/21_Relational_Expressions_A01_t13: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A01_t07: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A01_t08: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t01: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t02: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t03: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t04: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t07: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t09: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t10: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t11: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t12: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t15: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t17: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t18: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t19: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t20: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t21: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t22: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t23: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t24: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t25: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t26: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t27: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t28: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t29: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t30: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t31: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t32: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t33: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t34: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t35: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t36: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t37: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t38: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t39: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t40: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t41: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t42: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t43: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t44: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t45: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t46: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t47: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t48: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t49: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t50: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t51: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t52: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t53: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t54: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t55: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A06_t56: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t01: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t02: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t03: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t04: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t05: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t06: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t07: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t08: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t09: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t10: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t11: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t12: Fail # @compile-error
+Language/10_Expressions/28_Identifier_Reference_A07_t13: Fail # @compile-error
+Language/11_Statements/03_Variable_Declaration_A03_t01: Fail # @compile-error
+Language/11_Statements/03_Variable_Declaration_A03_t02: Fail # @compile-error
+Language/11_Statements/05_For_A01_t12: Fail # @compile-error
+Language/11_Statements/08_Switch_A05_t01: Fail # @compile-error
+Language/11_Statements/08_Switch_A05_t02: Fail # @compile-error
+Language/11_Statements/08_Switch_A06_t01: Fail # @compile-error
+Language/11_Statements/08_Switch_A06_t02: Fail # @compile-error
+Language/11_Statements/08_Switch_A06_t03: Fail # @compile-error
+Language/11_Statements/08_Switch_A06_t04: Fail # @compile-error
+Language/11_Statements/09_Try_A01_t14: Fail # @compile-error
+Language/11_Statements/09_Try_A01_t18: Fail # @compile-error
+Language/11_Statements/10_Return_A04_t01: Fail # @compile-error
+Language/11_Statements/10_Return_A04_t02: Fail # @compile-error
+Language/11_Statements/10_Return_A04_t03: Fail # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t11: Fail # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t16: Fail # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A04_t17: Fail # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A05_t03: Fail # @compile-error
+Language/12_Libraries_and_Scripts/12_Libraries_and_Scripts_A07_t02: Fail # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A07_t01: Fail # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A07_t02: Fail # @compile-error
+Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail # @compile-error
+Language/12_Libraries_and_Scripts/3_Includes_A01_t01: Fail # @compile-error
+Language/12_Libraries_and_Scripts/3_Includes_A03_t03: Fail # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Fail # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t02: Fail # @compile-error
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t03: Fail # @compile-error
+Language/13_Types/7_Type_Void_A01_t02: Fail # @compile-error
+Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A30_t04: Fail # @compile-error
+Language/14_Reference/1_Lexical_Rules_A02_t06: Fail # @compile-error
 
 [ $compiler == dart2dart ]
 *: Skip

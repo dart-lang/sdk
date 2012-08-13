@@ -581,6 +581,9 @@ RawObject* SnapshotReader::ReadVMIsolateObject(intptr_t header_value) {
   if (object_id == kSentinelObject) {
     return Object::sentinel();
   }
+  if (object_id == kEmptyArrayObject) {
+    return Object::empty_array();
+  }
   intptr_t class_id = ClassIdFromObjectId(object_id);
   if (IsSingletonClassId(class_id)) {
     return isolate()->class_table()->At(class_id);  // get singleton class.
@@ -706,6 +709,12 @@ void SnapshotWriter::HandleVMIsolateObject(RawObject* rawobj) {
   // Check if it is a singleton sentinel object.
   if (rawobj == Object::sentinel()) {
     WriteVMIsolateObject(kSentinelObject);
+    return;
+  }
+
+  // Check if it is a singleton empty array object.
+  if (rawobj == Object::empty_array()) {
+    WriteVMIsolateObject(kEmptyArrayObject);
     return;
   }
 

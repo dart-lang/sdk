@@ -2,11 +2,19 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+// Returns null if no need to rename a node.
+typedef String Renamer(Node node);
+
 class Unparser implements Visitor {
-  final Renamer renamer;
+  Renamer rename;
   StringBuffer sb;
 
-  Unparser([this.renamer = const Renamer()]);
+  Unparser() {
+    // TODO(smok): Move this to initializer once dart2js stops complaining
+    // about closures in initializers.
+    rename = (Node node) => null;
+  }
+  Unparser.withRenamer(this.rename);
 
   String unparse(Node node) {
     sb = new StringBuffer();
@@ -27,7 +35,14 @@ class Unparser implements Visitor {
   }
 
   visit(Node node) {
-    if (node !== null) node.accept(this);
+    if (node === null) return;
+    String renamed = rename(node);
+    if (renamed !== null) {
+      sb.add(renamed);
+    } else {
+      // Fallback.
+      node.accept(this);
+    }
   }
 
   visitBlock(Block node) {
@@ -127,12 +142,7 @@ class Unparser implements Visitor {
   }
 
   visitIdentifier(Identifier node) {
-    String newName = renamer.renameIdentifier(node);
-    if (newName === null) {
-      add(node.token.value);
-    } else {
-      sb.add(newName);
-    }
+    add(node.token.value);
   }
 
   visitIf(If node) {
@@ -226,80 +236,52 @@ class Unparser implements Visitor {
     if (node.endToken !== null) add(node.endToken.value);
   }
 
-  unparseSendPart(Send node) {
-    Operator op = node.selector.asOperator();
-    bool spacesNeeded = op !== null &&
-        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
-
-    if (node.isPrefix) {
-      visit(node.selector);
-    }
-    if (node.receiver !== null) {
+  unparseSendReceiver(Send node, [bool spacesNeeded=false]) {
+    // TODO(smok): Remove ugly hack for library preferences.
+    // Check that renamer does not want to omit receiver at all,
+    // in that case we don't need spaces or dot.
+    if (node.receiver !== null && rename(node.receiver) != '') {
       visit(node.receiver);
       CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
       if (asCascadeReceiver !== null) {
         add(asCascadeReceiver.cascadeOperator.value);
-      } else if (op === null) {
+      } else if (node.selector.asOperator() === null) {
         sb.add('.');
       } else if (spacesNeeded) {
         sb.add(' ');
       }
     }
-    if (!node.isPrefix && !node.isIndex) {
-      visit(node.selector);
-    }
-    if (spacesNeeded) {
-      sb.add(' ');
-    }
-  }
-
-  unparseSend(Send node) {
-    unparseSendPart(node);
-    visit(node.argumentsNode);
   }
 
   visitSend(Send node) {
-    String newMethodName = renamer.renameSendMethod(node);
-    if (newMethodName !== null) {
-      sb.add(newMethodName);
-      visit(node.argumentsNode);
-    } else {
-      unparseSendPart(node);
-      visit(node.argumentsNode);
-    }
-  }
+    Operator op = node.selector.asOperator();
+    bool spacesNeeded = op !== null &&
+        (op.source.stringValue === 'is' || op.source.stringValue == 'as');
 
-  /**
-   * Special case for assignments like "list[0] = 1".
-   */
-  unparseIndexedSet(SendSet node) {
-    if (node.isPrefix) {
-      add(node.assignmentOperator.token.value);
-    }
-    visit(node.receiver);
-    CascadeReceiver asCascadeReceiver = node.receiver.asCascadeReceiver();
-    if (asCascadeReceiver !== null) {
-      add(asCascadeReceiver.cascadeOperator.value);
-    }
-    sb.add('[');
-    sb.add(node.arguments.head);
-    sb.add(']');
-    if (!node.isPrefix) {
-      add(node.assignmentOperator.token.value);
-    }
-    unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
+    if (node.isPrefix) visit(node.selector);
+    unparseSendReceiver(node, spacesNeeded: spacesNeeded);
+    if (!node.isPrefix && !node.isIndex) visit(node.selector);
+    if (spacesNeeded) sb.add(' ');
+    visit(node.argumentsNode);
   }
 
   visitSendSet(SendSet node) {
+    if (node.isPrefix) {
+      sb.add(' ');
+      visit(node.assignmentOperator);
+    }
+    unparseSendReceiver(node);
     if (node.isIndex) {
-      unparseIndexedSet(node);
+      sb.add('[');
+      visit(node.arguments.head);
+      sb.add(']');
+      if (!node.isPrefix) visit(node.assignmentOperator);
+      unparseNodeListFrom(node.argumentsNode, node.argumentsNode.nodes.tail);
     } else {
-      if (node.isPrefix) {
-        add(node.assignmentOperator.token.value);
-      }
-      unparseSendPart(node);
+      visit(node.selector);
       if (!node.isPrefix) {
-        add(node.assignmentOperator.token.value);
+        visit(node.assignmentOperator);
+        if (node.assignmentOperator.source.slowToString() != '=') sb.add(' ');
       }
       visit(node.argumentsNode);
     }
@@ -315,14 +297,8 @@ class Unparser implements Visitor {
   }
 
   visitTypeAnnotation(TypeAnnotation node) {
-    String newName = renamer.renameTypeName(node);
-    if (newName !== null) {
-      sb.add(newName);
-      visit(node.typeArguments);
-    } else {
-      // Fallback to default unparse without renaming.
-      node.visitChildren(this);
-    }
+    visit(node.typeName);
+    visit(node.typeArguments);
   }
 
   visitTypeVariable(TypeVariable node) {

@@ -245,6 +245,17 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           'void constructorCallback(Dart_NativeArguments);\n')
       return
 
+    if ext_attrs.get('ConstructorTemplate') == 'TypedArray':
+      self._cpp_impl_includes.add('"DartArrayBufferViewCustom.h"');
+      self._cpp_definitions_emitter.Emit(
+        '\n'
+        'static void constructorCallback(Dart_NativeArguments args)\n'
+        '{\n'
+        '    WebCore::DartArrayBufferViewInternal::constructWebGLArray<Dart$(INTERFACE_NAME)>(args);\n'
+        '}\n',
+        INTERFACE_NAME=self._interface.id);
+      return
+
     create_function = 'create'
     if 'NamedConstructor' in ext_attrs:
       create_function = 'createForJSConstructor'
@@ -282,9 +293,23 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
 
     return self._ImplClassName(supertype)
 
+  ATTRIBUTES_OF_CONSTRUCTABLE = set([
+    'CustomConstructor',
+    'V8CustomConstructor',
+    'Constructor',
+    'NamedConstructor'])
+
   def _IsConstructable(self):
-    # FIXME: support ConstructorTemplate.
-    return set(['CustomConstructor', 'V8CustomConstructor', 'Constructor', 'NamedConstructor']) & set(self._interface.ext_attrs)
+    ext_attrs = self._interface.ext_attrs
+
+    if self.ATTRIBUTES_OF_CONSTRUCTABLE & set(ext_attrs):
+      return True
+
+    # FIXME: support other types of ConstructorTemplate.
+    if ext_attrs.get('ConstructorTemplate') == 'TypedArray':
+      return True
+
+    return False
 
   def EmitFactoryProvider(self, constructor_info, factory_provider, emitter):
     template_file = 'factoryprovider_%s.darttemplate' % self._html_interface_name

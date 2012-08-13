@@ -11,11 +11,13 @@
 #include "vm/dart_api_impl.h"
 #include "vm/dart_entry.h"
 #include "vm/debugger.h"
+#include "vm/deopt_instructions.h"
 #include "vm/exceptions.h"
 #include "vm/intermediate_language.h"
 #include "vm/object_store.h"
 #include "vm/message.h"
 #include "vm/message_handler.h"
+#include "vm/parser.h"
 #include "vm/resolver.h"
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame.h"
@@ -756,15 +758,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
   } else {
     receiver_class = receiver.clazz();
   }
-  FunctionsCache functions_cache(receiver_class);
-  Code& code = Code::Handle();
-      code = functions_cache.LookupCode(function_name,
-                                        num_arguments,
-                                        num_named_arguments);
-  if (!code.IsNull()) {
-    // Function's code found in the cache.
-    return code.raw();
-  }
 
   Function& function = Function::Handle();
   function = Resolver::ResolveDynamic(receiver,
@@ -780,9 +773,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
         Exceptions::PropagateError(error);
       }
     }
-    functions_cache.AddCompiledFunction(function,
-                                        num_arguments,
-                                        num_named_arguments);
     return function.CurrentCode();
   }
 }
@@ -989,9 +979,8 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Instance& receiver = Instance::CheckedHandle(arguments.At(0));
   const ICData& ic_data = ICData::CheckedHandle(arguments.At(1));
   const String& original_function_name = String::Handle(ic_data.target_name());
-  const String& getter_prefix = String::Handle(String::New("get:"));
   Closure& closure = Closure::Handle();
-  if (!original_function_name.StartsWith(getter_prefix)) {
+  if (!Field::IsGetterName(original_function_name)) {
     // This is not a getter so can't be the case where we are trying to
     // create an implicit closure of an instance function.
     arguments.SetReturn(closure);
@@ -1000,7 +989,7 @@ DEFINE_RUNTIME_ENTRY(ResolveImplicitClosureFunction, 2) {
   const Class& receiver_class = Class::Handle(receiver.clazz());
   ASSERT(!receiver_class.IsNull());
   String& func_name = String::Handle();
-  func_name = String::SubString(original_function_name, getter_prefix.Length());
+  func_name = Field::NameFromGetter(original_function_name);
   func_name = Symbols::New(func_name);
   const Function& function = Function::Handle(
       LookupDynamicFunction(isolate, receiver_class, func_name));
@@ -1389,10 +1378,11 @@ DEOPT_REASONS(DEOPT_REASON_ID_TO_TEXT)
 }
 
 
-static void GetDeoptInfo(const Code& code,
-                         uword pc,
-                         intptr_t* deopt_id,
-                         intptr_t* deopt_reason) {
+static void GetDeoptIxDescrAtPc(const Code& code,
+                                uword pc,
+                                intptr_t* deopt_id,
+                                intptr_t* deopt_reason,
+                                intptr_t* deopt_index) {
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
   ASSERT(!descriptors.IsNull());
@@ -1402,27 +1392,19 @@ static void GetDeoptInfo(const Code& code,
         (descriptors.DescriptorKind(i) == PcDescriptors::kDeoptIndex)) {
       *deopt_id = descriptors.DeoptId(i);
       *deopt_reason = descriptors.DeoptReason(i);
+      *deopt_index = descriptors.DeoptIndex(i);
       return;
     }
   }
   *deopt_id = Isolate::kNoDeoptId;
   *deopt_reason = kDeoptUnknown;
+  *deopt_index = -1;
 }
 
 
-// Copy saved registers and caller's frame into temporary buffers.
-// Access the deopt information for the deoptimization point.
-// Return the new stack size (including PC marker and deopt return address,
-// excluding FP).
-DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
-                          intptr_t* saved_registers_address) {
-  Isolate* isolate = Isolate::Current();
-  Zone zone(isolate);
-  HANDLESCOPE(isolate);
 
-  const uword last_fp =
-      reinterpret_cast<uword>(saved_registers_address + kNumberOfCpuRegisters);
-  // Copy saved registers.
+// Copy saved registers into the isolate buffer.
+static void CopySavedRegisters(intptr_t* saved_registers_address) {
   intptr_t* registers_copy = new intptr_t[kNumberOfCpuRegisters];
   ASSERT(registers_copy != NULL);
   ASSERT(saved_registers_address != NULL);
@@ -1430,53 +1412,138 @@ DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
     registers_copy[i] = *saved_registers_address;
     saved_registers_address++;
   }
-  isolate->set_deopt_registers_copy(registers_copy);
-  ASSERT(reinterpret_cast<uword>(saved_registers_address) == last_fp);
+  Isolate::Current()->set_deopt_registers_copy(registers_copy);
+}
+
+
+// Copy optimized frame into the isolate buffer.
+// The first incoming argument is stored at the last entry in the
+// copied frame buffer.
+static void CopyFrame(const Code& optimized_code, const StackFrame& frame) {
+  const Function& function = Function::Handle(optimized_code.function());
+  // Do not copy incoming arguments if there are optional arguments (they
+  // are copied into local space at method entry).
+  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+      0 : function.num_fixed_parameters();
+  // FP, PC-marker and return-address will be copied as well.
+  const intptr_t frame_copy_size =
+      1  // Deoptimized function's return address: caller_frame->pc().
+      + ((frame.fp() - frame.sp()) / kWordSize)
+      + 1  // PC marker.
+      + 1  // Caller return address.
+      + num_args;
+  intptr_t* frame_copy = new intptr_t[frame_copy_size];
+  ASSERT(frame_copy != NULL);
+  // Include the return address of optimized code.
+  intptr_t* start = reinterpret_cast<intptr_t*>(frame.sp() - kWordSize);
+  for (intptr_t i = 0; i < frame_copy_size; i++) {
+    frame_copy[i] = *(start + i);
+  }
+  Isolate::Current()->SetDeoptFrameCopy(frame_copy, frame_copy_size);
+}
+
+
+// Copies saved registers and caller's frame into temporary buffers.
+// Returns the stack size of unoptimzied frame.
+DEFINE_LEAF_RUNTIME_ENTRY(intptr_t, DeoptimizeCopyFrame,
+                          intptr_t* saved_registers_address) {
+  Isolate* isolate = Isolate::Current();
+  Zone zone(isolate);
+  HANDLESCOPE(isolate);
+
+  // All registers have been saved below last-fp.
+  const uword last_fp =
+      reinterpret_cast<uword>(saved_registers_address + kNumberOfCpuRegisters);
+  CopySavedRegisters(saved_registers_address);
+
+  // Get optimized code and frame that need to be deoptimized.
   DartFrameIterator iterator(last_fp);
   StackFrame* caller_frame = iterator.NextFrame();
   ASSERT(caller_frame != NULL);
   const Code& optimized_code = Code::Handle(caller_frame->LookupDartCode());
   ASSERT(optimized_code.is_optimized());
 
-  intptr_t deopt_id, deopt_reason;
-  GetDeoptInfo(optimized_code, caller_frame->pc(), &deopt_id, &deopt_reason);
+  intptr_t deopt_id, deopt_reason, deopt_index;
+  GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
+                      &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
 
-  // Add incoming arguments.
-  const Function& function = Function::Handle(optimized_code.function());
-  // Think of copied arguments.
-  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
-      0 : function.num_fixed_parameters();
-  // FP, PC marker and return address will all be copied.
-  const intptr_t frame_copy_size =
-      1  // Deoptimized function's return address: caller_frame->pc().
-      + ((caller_frame->fp() - caller_frame->sp()) / kWordSize)
-      + 1  // PC marker.
-      + 1  // Caller return address.
-      + num_args;
-  intptr_t* frame_copy = new intptr_t[frame_copy_size];
-  ASSERT(frame_copy != NULL);
-  // Include the return address of deoptimized code.
-  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
-  for (intptr_t i = 0; i < frame_copy_size; i++) {
-    frame_copy[i] = *(start + i);
-  }
-  isolate->SetDeoptFrameCopy(frame_copy, frame_copy_size);
+  CopyFrame(optimized_code, *caller_frame);
   if (FLAG_trace_deopt) {
+    intptr_t deopt_id, deopt_reason, deopt_index;
+    GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
+                        &deopt_id, &deopt_reason, &deopt_index);
     OS::Print("Deoptimizing (reason %d '%s') at pc 0x%x id %d '%s'\n",
         deopt_reason,
         DeoptReasonToText(deopt_reason),
         caller_frame->pc(),
         deopt_id,
-        function.ToFullyQualifiedCString());
+        Function::Handle(optimized_code.function()).ToFullyQualifiedCString());
   }
-  // TODO(srdjan): find deopt info and the size of stack, currently stack size
-  // is the same as before.
-  const intptr_t stack_size_in_bytes = caller_frame->fp() - caller_frame->sp();
-  // Include the space for return address.
-  return stack_size_in_bytes + kWordSize;
+
+  // Compute the stack size of unoptimized frame
+  const Array& deopt_info_array =
+      Array::Handle(optimized_code.deopt_info_array());
+  ASSERT(!deopt_info_array.IsNull());
+  DeoptInfo& deopt_info = DeoptInfo::Handle();
+  deopt_info ^= deopt_info_array.At(deopt_index);
+  if (deopt_info.IsNull()) {
+    // TODO(srdjan): Deprecate.
+    // Include the space for return address.
+    intptr_t stack_size_in_bytes = caller_frame->fp() - caller_frame->sp();
+    return stack_size_in_bytes + kWordSize;
+  } else {
+    // For functions with optional argument deoptimization info does not
+    // describe incoming arguments.
+    const Function& function = Function::Handle(optimized_code.function());
+    const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+        0 : function.num_fixed_parameters();
+    intptr_t unoptimized_stack_size =
+        + deopt_info.Length() - num_args
+        - 2;  // Subtract caller FP and PC.
+    return unoptimized_stack_size * kWordSize;
+  }
 }
 END_LEAF_RUNTIME_ENTRY
+
+
+
+static void DeoptimizeWithDeoptInfo(const Code& code,
+                                    const DeoptInfo& deopt_info,
+                                    const StackFrame& caller_frame) {
+  const intptr_t len = deopt_info.Length();
+  GrowableArray<DeoptInstr*> deopt_instructions(len);
+  for (intptr_t i = 0; i < len; i++) {
+    deopt_instructions.Add(DeoptInstr::Create(deopt_info.Instruction(i),
+                                              deopt_info.FromIndex(i)));
+  }
+
+  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame.sp() - kWordSize);
+  const Function& function = Function::Handle(code.function());
+  const intptr_t num_args = (function.num_optional_parameters() > 0) ?
+      0 : function.num_fixed_parameters();
+  intptr_t to_frame_size =
+      1  // Deoptimized function's return address.
+      + (caller_frame.fp() - caller_frame.sp()) / kWordSize
+      + 3  // caller-fp, pc, pc-marker.
+      + num_args;
+  DeoptimizationContext deopt_context(start,
+                                      to_frame_size,
+                                      Array::Handle(code.object_table()),
+                                      num_args);
+  for (intptr_t to_index = 0; to_index < len; to_index++) {
+    deopt_instructions[to_index]->Execute(&deopt_context, to_index);
+  }
+  if (FLAG_trace_deopt) {
+    for (intptr_t i = 0; i < len; i++) {
+      OS::Print("*%d. [0x%0" PRIxPTR "] 0x%012" PRIxPTR " [%s]\n",
+          i,
+          &start[i],
+          start[i],
+          deopt_instructions[i]->ToCString());
+    }
+  }
+}
 
 
 // The stack has been adjusted to fit all values for unoptimized frame.
@@ -1499,8 +1566,9 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   intptr_t* frame_copy = isolate->deopt_frame_copy();
   intptr_t* registers_copy = isolate->deopt_registers_copy();
 
-  intptr_t deopt_id, deopt_reason;
-  GetDeoptInfo(optimized_code, caller_frame->pc(), &deopt_id, &deopt_reason);
+  intptr_t deopt_id, deopt_reason, deopt_index;
+  GetDeoptIxDescrAtPc(optimized_code, caller_frame->pc(),
+                      &deopt_id, &deopt_reason, &deopt_index);
   ASSERT(deopt_id != Isolate::kNoDeoptId);
   uword continue_at_pc = unoptimized_code.GetDeoptPcAtDeoptId(deopt_id);
   if (FLAG_trace_deopt) {
@@ -1508,19 +1576,34 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
     // TODO(srdjan): If we could allow GC, we could print the line where
     // deoptimization occured.
   }
-  const intptr_t deopt_frame_copy_size = isolate->deopt_frame_copy_size();
-  // TODO(srdjan): Use deopt info to copy the values to right place.
-  const intptr_t pc_marker_index =
-      ((caller_frame->fp() - caller_frame->sp()) / kWordSize);
-  // Patch the return PC and saved PC marker in frame to point to the
-  // unoptimized version.
-  frame_copy[0] = continue_at_pc;
-  frame_copy[pc_marker_index] = unoptimized_code.EntryPoint() +
-                                AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
-  intptr_t* start = reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
-  for (intptr_t i = 0; i < deopt_frame_copy_size; i++) {
-     *(start + i) = frame_copy[i];
+  const Array& deopt_info_array =
+      Array::Handle(optimized_code.deopt_info_array());
+  ASSERT(!deopt_info_array.IsNull());
+  DeoptInfo& deopt_info = DeoptInfo::Handle();
+  deopt_info ^= deopt_info_array.At(deopt_index);
+  if (deopt_info.IsNull()) {
+    // TODO(srdjan): Deprecate.
+    const intptr_t deopt_frame_copy_size = isolate->deopt_frame_copy_size();
+    const intptr_t pc_marker_index =
+        ((caller_frame->fp() - caller_frame->sp()) / kWordSize);
+    // Patch the return PC and saved PC marker in frame to point to the
+    // unoptimized version.
+    frame_copy[0] = continue_at_pc;
+    frame_copy[pc_marker_index] =
+        unoptimized_code.EntryPoint() +
+        AssemblerMacros::kOffsetOfSavedPCfromEntrypoint;
+    intptr_t* start =
+        reinterpret_cast<intptr_t*>(caller_frame->sp() - kWordSize);
+    for (intptr_t i = 0; i < deopt_frame_copy_size; i++) {
+      if (FLAG_trace_deopt) {
+        OS::Print("%d. 0x%x\n", i, frame_copy[i]);
+      }
+      *(start + i) = frame_copy[i];
+    }
+  } else {
+    DeoptimizeWithDeoptInfo(optimized_code, deopt_info, *caller_frame);
   }
+
   isolate->SetDeoptFrameCopy(NULL, 0);
   isolate->set_deopt_registers_copy(NULL);
   delete[] frame_copy;
@@ -1536,93 +1619,5 @@ DEFINE_LEAF_RUNTIME_ENTRY(void, DeoptimizeFillFrame, uword last_fp) {
   }
 }
 END_LEAF_RUNTIME_ENTRY
-
-
-// We are entering function name for a valid argument count.
-void FunctionsCache::EnterFunctionAt(int i,
-                                     const Array& cache,
-                                     const Function& function,
-                                     int num_arguments,
-                                     int num_named_arguments) {
-  ASSERT((i % kNumEntries) == 0);
-  ASSERT(function.AreValidArgumentCounts(num_arguments,
-                                         num_named_arguments,
-                                         NULL));
-  cache.SetAt(i + FunctionsCache::kFunctionName,
-      String::Handle(function.name()));
-  cache.SetAt(i + FunctionsCache::kArgCount,
-      Smi::Handle(Smi::New(num_arguments)));
-  cache.SetAt(i + FunctionsCache::kNamedArgCount,
-      Smi::Handle(Smi::New(num_named_arguments)));
-  cache.SetAt(i + FunctionsCache::kFunction, function);
-}
-
-
-void FunctionsCache::AddCompiledFunction(const Function& function,
-                                         int num_arguments,
-                                         int num_named_arguments) {
-// TODO(srdjan): Evaluate if populating the function cache is needed.
-// It is turned off currently because we do not populate code objects
-// in snapshot and hence end up in an inconsistent state as function
-// cache is populated but there are no code objects.
-#if 0
-  ASSERT(function.HasCode());
-  Array& cache = Array::Handle(class_.functions_cache());
-  // Search for first free slot. Last entry is always NULL object.
-  for (intptr_t i = 0; i < (cache.Length() - kNumEntries); i += kNumEntries) {
-    if (Object::Handle(cache.At(i)).IsNull()) {
-      EnterFunctionAt(i,
-                      cache,
-                      function,
-                      num_arguments,
-                      num_named_arguments);
-      return;
-    }
-  }
-  intptr_t ix = cache.Length() - kNumEntries;
-  // Grow by 8 entries.
-  cache = Array::Grow(cache, cache.Length() + (8 * kNumEntries));
-  class_.set_functions_cache(cache);
-  EnterFunctionAt(ix,
-                  cache,
-                  function,
-                  num_arguments,
-                  num_named_arguments);
-#endif
-}
-
-
-// Only the number of named arguments is checked, but not the actual names.
-RawCode* FunctionsCache::LookupCode(const String& function_name,
-                                    int num_arguments,
-                                    int num_named_arguments) {
-  const Array& cache = Array::Handle(class_.functions_cache());
-  String& test_name = String::Handle();
-  for (intptr_t i = 0; i < cache.Length(); i += kNumEntries) {
-    test_name ^= cache.At(i + FunctionsCache::kFunctionName);
-    if (test_name.IsNull()) {
-      // Found NULL, no more entries to check, abort lookup.
-      return Code::null();
-    }
-    if (function_name.Equals(test_name)) {
-      Smi& smi = Smi::Handle();
-      smi ^= cache.At(i + FunctionsCache::kArgCount);
-      if (num_arguments == smi.Value()) {
-        smi ^= cache.At(i + FunctionsCache::kNamedArgCount);
-        if (num_named_arguments == smi.Value()) {
-          Function& result = Function::Handle();
-          result ^= cache.At(i + FunctionsCache::kFunction);
-          ASSERT(!result.IsNull());
-          ASSERT(result.HasCode());
-          return result.CurrentCode();
-        }
-      }
-    }
-  }
-  // The cache is null terminated, therefore the loop above should never
-  // terminate by itself.
-  UNREACHABLE();
-  return Code::null();
-}
 
 }  // namespace dart

@@ -43,6 +43,9 @@ _callPortSync(int id, message) {
   return JS('var', @'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
 
+// TODO(vsm): Plumb this properly.
+spawnDomFunction(f) => spawnFunction(f);
+
 class _AbstractWorkerImpl extends _EventTargetImpl implements AbstractWorker native "*AbstractWorker" {
 
   _AbstractWorkerEventsImpl get on() =>

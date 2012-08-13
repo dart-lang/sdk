@@ -85,4 +85,5 @@ class StringBuffer implements OutputStream {
 
   GrowableArray<String> buffer_;
   int length_;
+  final bool closed = false;
 }

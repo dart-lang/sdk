@@ -9,24 +9,82 @@
  * as specify a customized pattern under certain locales. Date elements that
  * vary across locales include month name, week name, field order, etc.
  * <!-- TODO(efortuna): Customized pattern system -- suggested by i18n needs
- *feedback on appropriateness. -->
+ * feedback on appropriateness. -->
  * We also allow the user to use any customized pattern to parse or format
  * date-time strings under certain locales. Date elements that vary across
  * locales include month name, weekname, field, order, etc.
  *
- * This library uses the ICU/JDK date/time pattern specification as described
- * below.
+ * This library uses the ICU/JDK date/time pattern specification both for
+ * complete format specifications and also the abbreviated "skeleton" form
+ * which can also adapt to different locales and is preferred where available.
  *
- * Time Format Syntax: To specify the time format use a time pattern string.
- * In this pattern, following letters are reserved as pattern letters, which
- * are defined in the following manner:
+ * Skeletons: These can be specified either as the ICU constant name or as the
+ * skeleton to which it resolves. The supported set of skeletons is as follows
+ *   ICU Name                   Skeleton
+ *   --------                   --------
+ *   DAY                          d
+ *   ABBR_WEEKDAY                 E
+ *   WEEKDAY                      EEEE
+ *   ABBR_STANDALONE_MONTH        LLL
+ *   STANDALONE_MONTH             LLLL
+ *   NUM_MONTH                    M
+ *   NUM_MONTH_DAY                Md
+ *   NUM_MONTH_WEEKDAY_DAY        MEd
+ *   ABBR_MONTH                   MMM
+ *   ABBR_MONTH_DAY               MMMd
+ *   ABBR_MONTH_WEEKDAY_DAY       MMMEd
+ *   MONTH                        MMMM
+ *   MONTH_DAY                    MMMMd
+ *   MONTH_WEEKDAY_DAY            MMMMEEEEd
+ *   ABBR_QUARTER                 QQQ
+ *   QUARTER                      QQQQ
+ *   YEAR                         y
+ *   YEAR_NUM_MONTH               yM
+ *   YEAR_NUM_MONTH_DAY           yMd
+ *   YEAR_NUM_MONTH_WEEKDAY_DAY   yMEd
+ *   YEAR_ABBR_MONTH              yMMM
+ *   YEAR_ABBR_MONTH_DAY          yMMMd
+ *   YEAR_ABBR_MONTH_WEEKDAY_DAY  yMMMEd
+ *   YEAR_MONTH                   yMMMM
+ *   YEAR_MONTH_DAY               yMMMMd
+ *   YEAR_MONTH_WEEKDAY_DAY       yMMMMEEEEd
+ *   YEAR_ABBR_QUARTER            yQQQ
+ *   YEAR_QUARTER                 yQQQQ
+ *   HOUR24                       H
+ *   HOUR24_MINUTE                Hm
+ *   HOUR24_MINUTE_SECOND         Hms
+ *   HOUR                         j
+ *   HOUR_MINUTE                  jm
+ *   HOUR_MINUTE_SECOND           jms
+ *   HOUR_MINUTE_GENERIC_TZ       jmv
+ *   HOUR_MINUTE_TZ               jmz
+ *   HOUR_GENERIC_TZ              jv
+ *   HOUR_TZ                      jz
+ *   MINUTE                       m
+ *   MINUTE_SECOND                ms
+ *   SECOND                       s
+ *
+ * Examples Using the US Locale:
+ *
+ *     Pattern                           Result
+ *     ----------------                  -------
+ *     "yMd"                            -> 07/10/1996
+ *     "yMMMMd"                         -> July 10, 1996
+ *     "Hm"                             -> 12:08 PM
+ *
+ * Explicit Pattern Syntax: Formats can also be specified with a pattern string.
+ * The skeleton forms will resolve to explicit patterns of this form, but will
+ * also adapt to different patterns in different locales.
+ * The following characters are reserved:
  *
  *     Symbol   Meaning                Presentation        Example
  *     ------   -------                ------------        -------
  *     G        era designator         (Text)              AD
- *     y#       year                   (Number)            1996
+ *     y        year                   (Number)            1996
  *     M        month in year          (Text & Number)     July & 07
+ *     L        standalone month       (Text & Number)     July & 07
  *     d        day in month           (Number)            10
+ *     c        standalone day         (Number)            10
  *     h        hour in am/pm (1~12)   (Number)            12
  *     H        hour in day (0~23)     (Number)            0
  *     m        minute in hour         (Number)            30
@@ -40,17 +98,16 @@
  *     z        time zone              (Text)              Pacific Standard Time
  *     Z        time zone (RFC 822)    (Number)            -0800
  *     v        time zone (generic)    (Text)              Pacific Time
+ *     Q        quarter                (Text)              Q3
  *     '        escape for text        (Delimiter)         'Date='
  *     ''       single quote           (Literal)           'o''clock'
  *
- * Items marked with '#' work differently than in Java.
- *
  * The count of pattern letters determine the format.
- * **Text**: 
+ * **Text**:
+ * * 5 pattern letters--use narrow form for standalone. Otherwise does not apply
  * * 4 or more pattern letters--use full form,
- * * less than 4--use short or abbreviated form if one exists.
- * In parsing, we will always try long format, then short.
- * (e.g., "EEEE" produces "Monday", "EEE" produces "Mon")
+ * * 3 pattern letters--use short or abbreviated form if one exists
+ * * less than 3--use numeric form if one exists
  *
  * **Number**: the minimum number of digits. Shorter numbers are zero-padded to
  * this amount (e.g. if "m" produces "6", "mm" produces "06"). Year is handled
@@ -79,7 +136,7 @@
  *     "yyyyy.MMMMM.dd GGG hh:mm aaa"   ->01996.July.10 AD 12:08 PM
  *
  * When parsing a date string using the abbreviated year pattern ("yy"),
- * DateTimeParse must interpret the abbreviated year relative to some
+ * DateFormat must interpret the abbreviated year relative to some
  * century. It does this by adjusting dates to be within 80 years before and 20
  * years after the time the parse function is called. For example, using a
  * pattern of "MM/dd/yy" and a DateTimeParse instance created on Jan 1, 1997,
@@ -106,143 +163,56 @@
  * that point, the parse of the run fails.
  */
 
+#library('date_format');
+
+#import('intl.dart');
+#import('date_time_patterns.dart');
+#import('date_symbols.dart');
+#import('date_symbol_data.dart');
+
+#source('lib/date_format_field.dart');
+#source('lib/date_format_helpers.dart');
+
 class DateFormat {
 
-  /** Definition of how this object formats dates. */
-  String _formatDefinition;
-
   /**
-   * The locale code with which the message is to be formatted (such as en-CA).
+   * If [newPattern] matches one of the skeleton forms, it is looked up
+   * in [locale] or in the default if none is specified, and the corresponding
+   * full format string is used. If [newPattern] does not match one
+   * of the supported skeleton forms then it is used as a format directly.
+   *
+   * For example, in an en_US locale, specifying the skeleton
+   *     `new DateFormat('yMEd');`
+   * or the explicit
+   *     `new DateFormat('EEE, M/d/y');`
+   * would produce the same result, a date of the form
+   *     `Wed, 6/27/2012`
+   * However, the skeleton version would also adapt to other locales.
+   *
+   * If [locale] does not exist in our set of supported locales then an
+   * [IllegalArgumentException] is thrown.
    */
-  String _locale;
-
-  /**
-   * Date/Time format "skeleton" patterns. Also specifiable by String, but
-   * written this way so that they can be discoverable via autocomplete. These
-   * follow the ICU syntax described at the top of the file. These skeletons can
-   * be combined and we will attempt to find the best format for each locale
-   * given the pattern.
-   */
-   // TODO(efortuna): Hear back from i18n about Time Zones and the "core set"
-   // of skeleton patterns.
-                                          // Example of how this looks in the US
-                                          // locale.
-  static final String Hm = 'Hm';          // HH:mm
-  static final String Hms = 'Hms';        // HH:mm:ss
-  static final String M = 'M';            // L
-  static final String MEd = 'MEd';        // E, M/d
-  static final String MMM = 'MMM';        // LLL
-  static final String MMMEd = 'MMMEd';    // E, MMM d
-  static final String MMMMEd = 'MMMMEd';  // E, MMMM d
-  static final String MMMMd = 'MMMMd';    // MMMM d
-  static final String MMMd = 'MMMd';      // MMM d
-  static final String Md = 'Md';          // M/d
-  static final String d = 'd';            // d
-  static final String hm = 'hm';          // h:mm a
-  static final String ms = 'ms';          // mm:ss
-  static final String y = 'y';            // yyyy
-  static final String yM = 'yM';          // M/yyyy
-  static final String yMEd = 'yMEd';      // EEE, M/d/yyyy
-  static final String yMMM = 'yMMM';      // MMM yyyy
-  static final String yMMMEd = 'yMMMEd';  // EEE, MM d, yyyy
-  static final String yMMMM = 'yMMMM';    // MMMM yyyy
-  static final String yQ = 'yQ';          // Q yyyy
-  static final String yQQQ = 'yQQQ';      // QQQ yyyy
-
-  /** Date/Time format patterns. */
-  // TODO(efortuna): This are just guesses of what a full date, long date is.
-  // Do the proper homework on ICU to find the proper set "Hms"/"yMMd"
-  // applicable to each case.
-  static final String fullDate = '$y$MMMMd';
-  static final String longDate = yMMMEd;
-  static final String mediumDate = '$y$Md';
-  static final String shortDate = Md;
-  static final String fullTime = '$Hms a';
-  static final String longTime = '$Hms a zzzz';
-  static final String mediumTime = Hms;
-  static final String shortTime = Hm;
-  static final String fullDateTime = '$fullDate$fullTime';
-  static final String longDateTime = '$longDate$longTime';
-  static final String mediumDateTime = '$mediumDate$mediumTime';
-  static final String shortDateTime = '$shortDate$shortTime';
-
-  /**
-   * Constructors for dates/times that use a default format.
-   */
-  DateFormat.Hm([locale='']) : _locale = locale, _formatDefinition = Hm;
-  DateFormat.Hms([locale='']) : _locale = locale, _formatDefinition = Hms;
-  DateFormat.M([locale='']) : _locale = locale, _formatDefinition = M;
-  DateFormat.MEd([locale='']) : _locale = locale, _formatDefinition = MEd;
-  DateFormat.MMM([locale='']) : _locale = locale, _formatDefinition = MMM;
-  DateFormat.MMMEd([locale='']) : _locale = locale, _formatDefinition = MMMEd;
-  DateFormat.MMMMEd([locale='']) : _locale = locale, _formatDefinition = MMMMEd;
-  DateFormat.MMMMd([locale='']) : _locale = locale, _formatDefinition = MMMMd;
-  DateFormat.MMMd([locale='']) : _locale = locale, _formatDefinition = MMMd;
-  DateFormat.Md([locale='']) : _locale = locale, _formatDefinition = Md;
-  DateFormat.d([locale='']) : _locale = locale, _formatDefinition = d;
-  DateFormat.hm([locale='']) : _locale = locale, _formatDefinition = hm;
-  DateFormat.ms([locale='']) : _locale = locale, _formatDefinition = ms;
-  DateFormat.y([locale='']) : _locale = locale, _formatDefinition = y;
-  DateFormat.yM([locale='']) : _locale = locale, _formatDefinition = yM;
-  DateFormat.yMEd([locale='']) : _locale = locale, _formatDefinition = yMEd;
-  DateFormat.yMMM([locale='']) : _locale = locale, _formatDefinition = yMMM;
-  DateFormat.yMMMEd([locale='']) : _locale = locale, _formatDefinition = yMMMEd;
-  DateFormat.yMMMM([locale='']) : _locale = locale, _formatDefinition = yMMMM;
-  DateFormat.yQ([locale='']) : _locale = locale, _formatDefinition = yQ;
-  DateFormat.yQQQ([locale='']) : _locale = locale, _formatDefinition = yQQQ;
-
-  DateFormat.fullDate([locale='']) : _locale = locale,
-      _formatDefinition = fullDate;
-  DateFormat.longDate([locale='']) : _locale = locale,
-      _formatDefinition = longDate;
-  DateFormat.mediumDate([locale='']) : _locale = locale,
-      _formatDefinition = mediumDate;
-  DateFormat.shortDate([locale='']) : _locale = locale,
-      _formatDefinition = shortDate;
-  DateFormat.fullTime([locale='']) : _locale = locale,
-      _formatDefinition = fullTime;
-  DateFormat.longTime([locale='']) : _locale = locale,
-      _formatDefinition = longTime;
-  DateFormat.mediumTime([locale='']) : _locale = locale,
-      _formatDefinition = mediumTime;
-  DateFormat.shortTime([locale='']) : _locale = locale,
-      _formatDefinition = shortTime;
-  DateFormat.fullDateTime([locale='']) : _locale = locale,
-      _formatDefinition = fullDateTime;
-  DateFormat.longDateTime([locale='']) : _locale = locale,
-      _formatDefinition = longDateTime;
-  DateFormat.mediumDateTime([locale='']) : _locale = locale,
-      _formatDefinition = mediumDateTime;
-  DateFormat.shortDateTime([locale='']) : _locale = locale,
-      _formatDefinition = shortDateTime;
-
-  /**
-   * Constructor accepts a [formatDefinition], which can be a String, one of the
-   * predefined static forms, or a custom date format using the syntax described
-   * above. An optional [locale] can be provided for specifics of the language
-   * locale to be used, otherwise, we will attempt to infer it (acceptable if
-   * Dart is running on the client, we can infer from the browser).
-   */
-  DateFormat([formatDefinition = fullDate, locale = '']) {
-    this._formatDefinition = formatDefinition;
-    this._locale = locale;
+  DateFormat([String newPattern, String locale]) {
+    // TODO(alanknight): It should be possible to specify multiple skeletons eg
+    // date, time, timezone all separately. Adding many or named parameters to
+    // the constructor seems awkward, especially with the possibility of
+    // confusion with the locale. A "fluent" interface with cascading on an
+    // instance might work better? A list of patterns is also possible.
+    // TODO(alanknight): There will need to be at least setup type async
+    // operations to avoid the need to bring along every locale in every program
+    _locale = Intl.verifiedLocale(locale);
+    _setPattern(newPattern);
   }
 
   /**
-   * Given user input, attempt to parse the [inputString] into the anticipated
-   * format.
+   * Return a string representing [date] formatted according to our locale
+   * and internal format.
    */
-  String parse(String inputString) {
-    return inputString;
-  }
-
- /**
-  * Format the given [date] object according to preset pattern and current
-  * locale and return a formated string for the given date.
-  */
   String format(Date date) {
-    // TODO(efortuna): readd optional TimeZone argument (or similar)?
-    return date.toString();
+    // TODO(efortuna): read optional TimeZone argument (or similar)?
+    var result = new StringBuffer();
+    _formatFields.forEach((field) => result.add(field.format(date)));
+    return result.toString();
   }
 
   /**
@@ -261,5 +231,300 @@ class DateFormat {
    */
   String formatDurationFrom(Duration duration, Date date) {
     return '';
+  }
+
+  /**
+   * Given user input, attempt to parse the [inputString] into the anticipated
+   * format, treating it as being in the local timezone.
+   */
+  Date parse(String inputString, [utc = false]) {
+    var dateFields = new _DateBuilder();
+    if (utc) dateFields.utc=true;
+    var stream = new _Stream(inputString);
+    _formatFields.forEach(
+        (each) => each.parse(stream, dateFields));
+    return dateFields.asDate();
+  }
+
+  /**
+   * Given user input, attempt to parse the [inputString] into the anticipated
+   * format, treating it as being in UTC.
+   */
+  Date parseUTC(String inputString) {
+    return parse(inputString, true);
+  }
+
+  /**
+   * Return the locale code in which we operate, e.g. 'en_US' or 'pt'.
+   */
+  String get locale() => _locale;
+
+  /**
+   * Constructors for a set of predefined formats for which
+   * internationalized forms are known. These can be specified
+   * either as ICU constants, or as skeletons.
+   */
+  DateFormat.DAY([locale]) : this(DAY, locale);
+  DateFormat.ABBR_WEEKDAY([locale]) : this(ABBR_WEEKDAY, locale);
+  DateFormat.WEEKDAY([locale]) : this(WEEKDAY, locale);
+  DateFormat.ABBR_STANDALONE_MONTH([locale]) :
+      this(ABBR_STANDALONE_MONTH, locale);
+  DateFormat.STANDALONE_MONTH([locale]) : this(STANDALONE_MONTH, locale);
+  DateFormat.NUM_MONTH([locale]) : this(NUM_MONTH, locale);
+  DateFormat.NUM_MONTH_DAY([locale]) : this(NUM_MONTH_DAY, locale);
+  DateFormat.NUM_MONTH_WEEKDAY_DAY([locale]) :
+      this(NUM_MONTH_WEEKDAY_DAY, locale);
+  DateFormat.ABBR_MONTH([locale]) : this(ABBR_MONTH, locale);
+  DateFormat.ABBR_MONTH_DAY([locale]) : this(ABBR_MONTH_DAY, locale);
+  DateFormat.ABBR_MONTH_WEEKDAY_DAY([locale]) :
+      this(ABBR_MONTH_WEEKDAY_DAY, locale);
+  DateFormat.MONTH([locale]) : this(MONTH, locale);
+  DateFormat.MONTH_DAY([locale]) : this(MONTH_DAY, locale);
+  DateFormat.MONTH_WEEKDAY_DAY([locale]) : this(MONTH_WEEKDAY_DAY, locale);
+  DateFormat.ABBR_QUARTER([locale]) : this(ABBR_QUARTER, locale);
+  DateFormat.QUARTER([locale]) : this(QUARTER, locale);
+  DateFormat.YEAR([locale]) : this(YEAR, locale);
+  DateFormat.YEAR_NUM_MONTH([locale]) : this(YEAR_NUM_MONTH, locale);
+  DateFormat.YEAR_NUM_MONTH_DAY([locale]) : this(YEAR_NUM_MONTH_DAY, locale);
+  DateFormat.YEAR_NUM_MONTH_WEEKDAY_DAY([locale]) :
+      this(YEAR_NUM_MONTH_WEEKDAY_DAY, locale);
+  DateFormat.YEAR_ABBR_MONTH([locale]) : this(YEAR_ABBR_MONTH, locale);
+  DateFormat.YEAR_ABBR_MONTH_DAY([locale]) : this(YEAR_ABBR_MONTH_DAY, locale);
+  DateFormat.YEAR_ABBR_MONTH_WEEKDAY_DAY([locale]) :
+      this(YEAR_ABBR_MONTH_WEEKDAY_DAY, locale);
+  DateFormat.YEAR_MONTH([locale]) : this(YEAR_MONTH, locale);
+  DateFormat.YEAR_MONTH_DAY([locale]) : this(YEAR_MONTH_DAY, locale);
+  DateFormat.YEAR_MONTH_WEEKDAY_DAY([locale]) :
+      this(YEAR_MONTH_WEEKDAY_DAY, locale);
+  DateFormat.YEAR_ABBR_QUARTER([locale]) : this(YEAR_ABBR_QUARTER, locale);
+  DateFormat.YEAR_QUARTER([locale]) : this(YEAR_QUARTER, locale);
+  DateFormat.HOUR24([locale]) : this(HOUR24, locale);
+  DateFormat.HOUR24_MINUTE([locale]) : this(HOUR24_MINUTE, locale);
+  DateFormat.HOUR24_MINUTE_SECOND([locale]) :
+      this(HOUR24_MINUTE_SECOND, locale);
+  DateFormat.HOUR([locale]) : this(HOUR, locale);
+  DateFormat.HOUR_MINUTE([locale]) : this(HOUR_MINUTE, locale);
+  DateFormat.HOUR_MINUTE_SECOND([locale]) : this(HOUR_MINUTE_SECOND, locale);
+  DateFormat.HOUR_MINUTE_GENERIC_TZ([locale]) :
+      this(HOUR_MINUTE_GENERIC_TZ, locale);
+  DateFormat.HOUR_MINUTE_TZ([locale]) : this(HOUR_MINUTE_TZ, locale);
+  DateFormat.HOUR_GENERIC_TZ([locale]) : this(HOUR_GENERIC_TZ, locale);
+  DateFormat.HOUR_TZ([locale]) : this(HOUR_TZ, locale);
+  DateFormat.MINUTE([locale]) : this(MINUTE, locale);
+  DateFormat.MINUTE_SECOND([locale]) : this(MINUTE_SECOND, locale);
+  DateFormat.SECOND([locale]) : this(SECOND, locale);
+
+  DateFormat.d([locale]) : this("d", locale);
+  DateFormat.E([locale]) : this("E", locale);
+  DateFormat.EEEE([locale]) : this("EEEE", locale);
+  DateFormat.LLL([locale]) : this("LLL", locale);
+  DateFormat.LLLL([locale]) : this("LLLL", locale);
+  DateFormat.M([locale]) : this("M", locale);
+  DateFormat.Md([locale]) : this("Md", locale);
+  DateFormat.MEd([locale]) : this("MEd", locale);
+  DateFormat.MMM([locale]) : this("MMM", locale);
+  DateFormat.MMMd([locale]) : this("MMMd", locale);
+  DateFormat.MMMEd([locale]) : this("MMMEd", locale);
+  DateFormat.MMMM([locale]) : this("MMMM", locale);
+  DateFormat.MMMMd([locale]) : this("MMMMd", locale);
+  DateFormat.MMMMEEEEd([locale]) : this("MMMMEEEEd", locale);
+  DateFormat.QQQ([locale]) : this("QQQ", locale);
+  DateFormat.QQQQ([locale]) : this("QQQQ", locale);
+  DateFormat.y([locale]) : this("y", locale);
+  DateFormat.yM([locale]) : this("yM", locale);
+  DateFormat.yMd([locale]) : this("yMd", locale);
+  DateFormat.yMEd([locale]) : this("yMEd", locale);
+  DateFormat.yMMM([locale]) : this("yMMM", locale);
+  DateFormat.yMMMd([locale]) : this("yMMMd", locale);
+  DateFormat.yMMMEd([locale]) : this("yMMMEd", locale);
+  DateFormat.yMMMM([locale]) : this("yMMMM", locale);
+  DateFormat.yMMMMd([locale]) : this("yMMMMd", locale);
+  DateFormat.yMMMMEEEEd([locale]) : this("yMMMMEEEEd", locale);
+  DateFormat.yQQQ([locale]) : this("yQQQ", locale);
+  DateFormat.yQQQQ([locale]) : this("yQQQQ", locale);
+  DateFormat.H([locale]) : this("H", locale);
+  DateFormat.Hm([locale]) : this("Hm", locale);
+  DateFormat.Hms([locale]) : this("Hms", locale);
+  DateFormat.j([locale]) : this("j", locale);
+  DateFormat.jm([locale]) : this("jm", locale);
+  DateFormat.jms([locale]) : this("jms", locale);
+  DateFormat.jmv([locale]) : this("jmv", locale);
+  DateFormat.jmz([locale]) : this("jmz", locale);
+  DateFormat.jv([locale]) : this("jv", locale);
+  DateFormat.jz([locale]) : this("jz", locale);
+  DateFormat.m([locale]) : this("m", locale);
+  DateFormat.ms([locale]) : this("ms", locale);
+  DateFormat.s([locale]) : this("s", locale);
+
+  /**
+   * ICU constants for format names, resolving to the corresponding skeletons.
+   */
+  static final String DAY = 'd';
+  static final String ABBR_WEEKDAY = 'E';
+  static final String WEEKDAY = 'EEEE';
+  static final String ABBR_STANDALONE_MONTH = 'LLL';
+  static final String STANDALONE_MONTH = 'LLLL';
+  static final String NUM_MONTH = 'M';
+  static final String NUM_MONTH_DAY = 'Md';
+  static final String NUM_MONTH_WEEKDAY_DAY = 'MEd';
+  static final String ABBR_MONTH = 'MMM';
+  static final String ABBR_MONTH_DAY = 'MMMd';
+  static final String ABBR_MONTH_WEEKDAY_DAY = 'MMMEd';
+  static final String MONTH = 'MMMM';
+  static final String MONTH_DAY = 'MMMMd';
+  static final String MONTH_WEEKDAY_DAY = 'MMMMEEEEd';
+  static final String ABBR_QUARTER = 'QQQ';
+  static final String QUARTER = 'QQQQ';
+  static final String YEAR = 'y';
+  static final String YEAR_NUM_MONTH = 'yM';
+  static final String YEAR_NUM_MONTH_DAY = 'yMd';
+  static final String YEAR_NUM_MONTH_WEEKDAY_DAY = 'yMEd';
+  static final String YEAR_ABBR_MONTH = 'yMMM';
+  static final String YEAR_ABBR_MONTH_DAY = 'yMMMd';
+  static final String YEAR_ABBR_MONTH_WEEKDAY_DAY = 'yMMMEd';
+  static final String YEAR_MONTH = 'yMMMM';
+  static final String YEAR_MONTH_DAY = 'yMMMMd';
+  static final String YEAR_MONTH_WEEKDAY_DAY = 'yMMMMEEEEd';
+  static final String YEAR_ABBR_QUARTER = 'yQQQ';
+  static final String YEAR_QUARTER = 'yQQQQ';
+  static final String HOUR24 = 'H';
+  static final String HOUR24_MINUTE = 'Hm';
+  static final String HOUR24_MINUTE_SECOND = 'Hms';
+  static final String HOUR = 'j';
+  static final String HOUR_MINUTE = 'jm';
+  static final String HOUR_MINUTE_SECOND = 'jms';
+  static final String HOUR_MINUTE_GENERIC_TZ = 'jmv';
+  static final String HOUR_MINUTE_TZ = 'jmz';
+  static final String HOUR_GENERIC_TZ = 'jv';
+  static final String HOUR_TZ = 'jz';
+  static final String MINUTE = 'm';
+  static final String MINUTE_SECOND = 'ms';
+  static final String SECOND = 's';
+
+  /** The locale in which we operate, e.g. 'en_US', or 'pt'. */
+  String _locale;
+
+  /**
+   * The full template string. This may have been specified directly, or
+   * it may have been derived from a skeleton and the locale information
+   * on how to interpret that skeleton.
+   */
+  String _pattern;
+
+  /**
+   * We parse the format string into individual fields and store them here.
+   * This is what is actually used to do the formatting.
+   */
+  List<_DateFormatField> _formatFields;
+
+  /**
+   * A series of regular expressions used to parse a format string into its
+   * component fields.
+   */
+  static var _matchers = const [
+      // Quoted String - anything between single quotes, with escaping
+      //   of single quotes by doubling them.
+      // e.g. in the pattern "hh 'o''clock'" will match 'o''clock'
+      const RegExp("^\'(?:[^\']|\'\')*\'"),
+      // Fields - any sequence of 1 or more of the same field characters.
+      // e.g. in "hh:mm:ss" will match hh, mm, and ss. But in "hms" would
+      // match each letter individually.
+      const RegExp(
+        "^(?:G+|y+|M+|k+|S+|E+|a+|h+|K+|H+|c+|L+|Q+|d+|m+|s+|v+|z+|Z+)"),
+      // Everything else - A sequence that is not quotes or field characters.
+      // e.g. in "hh:mm:ss" will match the colons.
+      const RegExp("^[^\'GyMkSEahKHcLQdmsvzZ]+")
+  ];
+
+  /**
+   * Given a format from the user look it up in our list of known skeletons.
+   * If it's there, then use the corresponding pattern for this locale.
+   * If it's not, then treat it as an explicit pattern.
+   */
+  _setPattern(String inputPattern) {
+    // TODO(alanknight): This is an expensive operation. Caching recently used
+    // formats, or possibly introducing an entire "locale" object that would
+    // cache patterns for that locale could be a good optimization.
+    if (!_availableSkeletons.containsKey(inputPattern)) {
+      _pattern = inputPattern;
+    } else {
+      _pattern = _availableSkeletons[inputPattern];
+    }
+    _formatFields = parsePattern(_pattern);
+  }
+
+  /** Return the pattern that we use to format dates.*/
+  get pattern() => _pattern;
+
+  /** Return the skeletons for our current locale. */
+  Map get _availableSkeletons() {
+    return dateTimePatterns[locale];
+  }
+
+  /**
+   * Set the locale. If the locale can't be found, we also look up
+   * based on alternative versions, e.g. if we have no 'en_CA' we will
+   * look for 'en' as a fallback. It will also translate en-ca into en_CA.
+   * Null is also considered a valid value for [newLocale], indicating
+   * to use the default.
+   */
+  _setLocale(String newLocale) {
+    _locale = Intl.verifiedLocale(newLocale);
+  }
+
+  /**
+   * Return true if the locale exists, or if it is null. The null case
+   * is interpreted to mean that we use the default locale.
+   */
+  static bool localeExists(localeName) {
+    if (localeName == null) return false;
+    return dateTimeSymbols.containsKey(localeName);
+  }
+
+  // TODO(alanknight): This can be a variable once that's permitted.
+  static List get _fieldConstructors() => [
+      (pattern, parent) => new _DateFormatQuotedField(pattern, parent),
+      (pattern, parent) => new _DateFormatPatternField(pattern, parent),
+      (pattern, parent) => new _DateFormatLiteralField(pattern, parent)];
+
+  /** Parse the template pattern and return a list of field objects.*/
+  List parsePattern(String pattern) {
+    if (pattern == null) return null;
+    return _reverse(_parsePatternHelper(pattern));
+  }
+
+  /** Recursive helper for parsing the template pattern. */
+  List _parsePatternHelper(String pattern) {
+    if (pattern.isEmpty()) return [];
+
+    var matched = _match(pattern);
+    if (matched == null) return [];
+
+    var parsed = _parsePatternHelper(
+                      pattern.substring(matched.fullPattern().length));
+    parsed.add(matched);
+    return parsed;
+  }
+
+  /** Find elements in a string that are patterns for specific fields.*/
+  _DateFormatField _match(String pattern) {
+    for (var i = 0; i < _matchers.length; i++) {
+      var regex = _matchers[i];
+      var match = regex.firstMatch(pattern);
+      if (match != null) {
+        return _fieldConstructors[i](match.group(0), this);
+      }
+    }
+  }
+
+  /** Polyfill for missing library function. */
+  List _reverse(List list) {
+    // TODO(alanknight): Use standardized list reverse when implemented.
+    // See Issue 2804.
+    var result = new List();
+    for (var i = list.length-1; i >= 0; i--) {
+      result.addLast(list[i]);
+    }
+    return result;
   }
 }

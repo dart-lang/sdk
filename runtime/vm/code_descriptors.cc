@@ -80,7 +80,7 @@ RawArray* StackmapTableBuilder::FinalizeStackmaps(const Code& code) {
   intptr_t num_entries = Length();
   uword entry_point = code.EntryPoint();
   if (num_entries == 0) {
-    return Array::Empty();
+    return Object::empty_array();
   }
   for (intptr_t i = 0; i < num_entries; i++) {
     stack_map_ = Map(i);

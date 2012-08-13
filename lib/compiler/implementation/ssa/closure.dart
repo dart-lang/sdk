@@ -22,9 +22,16 @@ class ClosureClassElement extends ClassElement {
               // is unique, but also emit closure classes after all other
               // classes (since the emitter sorts classes by their id).
               compiler.getNextFreeClassId()) {
-    isResolved = true;
+    // We assign twice to [supertypeLoadState] as it contains asserts
+    // which enforce certain sequence of transitions.
+    supertypeLoadState = ClassElement.STATE_STARTED;
+    supertypeLoadState = ClassElement.STATE_DONE;
+    // Same as for [supertypeLoadState] above.
+    resolutionState = ClassElement.STATE_STARTED;
+    resolutionState = ClassElement.STATE_DONE;
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
+    interfaces = const EmptyLink<Type>();
   }
   bool isClosure() => true;
 }

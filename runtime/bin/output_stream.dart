@@ -58,9 +58,9 @@ interface OutputStream {
   void flush();
 
   /**
-   * Indicate that all data has been written to the output
-   * stream. When all data has been written to the communication
-   * channel it will be closed.
+   * Signal that no more data will be written to the output stream. When all
+   * buffered data has been written out to the communication channel, the
+   * channel will be closed and the [onClosed] callback will be called.
    */
   void close();
 
@@ -71,6 +71,14 @@ interface OutputStream {
   void destroy();
 
   /**
+   * Returns whether the stream has been closed by calling close(). If true, no
+   * more data may be written to the output stream, but there still may be
+   * buffered data that has not been written to the communication channel. The
+   * onClosed handler will only be called once all data has been written out.
+   */
+  bool get closed();
+
+  /**
    * Sets the handler that gets called when the internal OS buffers
    * have been flushed. This callback can be used to keep the rate of
    * writing in sync with the rate the system can write data to the
@@ -79,9 +87,8 @@ interface OutputStream {
   void set onNoPendingWrites(void callback());
 
   /**
-   * Sets the handler that gets called when the underlying
-   * communication channel has been closed and no more data can be
-   * send.
+   * Sets the handler that gets called when the underlying communication channel
+   * has been closed and all the buffered data has been sent.
    */
   void set onClosed(void callback());
 

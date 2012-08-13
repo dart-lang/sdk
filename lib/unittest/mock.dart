@@ -493,7 +493,8 @@ class LogEntryList {
    *  a bool. If [logFilter] is null, it will match any [LogEntry].
    *  If no entry is found, then [failureReturnValue] is returned.
    *  After each check the position is updated by [skip], so using
-   *  [skip] of -1 allows backward searches.
+   *  [skip] of -1 allows backward searches, using a [skip] of 2 can
+   *  be used to check pairs of adjacent entries, and so on.
    */
   int findLogEntry(logFilter, [int start = 0, int failureReturnValue = -1,
       skip = 1]) {
@@ -1435,4 +1436,24 @@ class Mock {
                        arg9 = _noArg]) =>
       getLogs(callsTo(method, arg0, arg1, arg2, arg3, arg4,
           arg5, arg6, arg7, arg8, arg9));
+
+  /** Clear the behaviors for the Mock. */
+  void resetBehavior() => _behaviors.clear();
+
+  /** Clear the logs for the Mock. */
+  void clearLogs() {
+    if (log != null) {
+      if (name == null) { // This log is not shared.
+        log.logs.clear();
+      } else { // This log may be shared.
+        log.logs = log.logs.filter((e) => e.mockName != name);
+      }
+    }
+  }
+
+  /** Clear both logs and behavior. */
+  void reset() {
+    resetBehavior();
+    clearLogs();
+  }
 }

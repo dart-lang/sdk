@@ -31,12 +31,15 @@ import os
 import optparse
 import platform
 import selenium
+from selenium.webdriver.common.desired_capabilities import DesiredCapabilities
+from selenium.webdriver.remote.webdriver import WebDriver as RemoteWebDriver
 from selenium.webdriver.support.ui import WebDriverWait
 import shutil
 import signal
 import socket
 import sys
 import time
+import urllib2
 
 TIMEOUT_ERROR_MSG = 'FAIL (timeout)'
 
@@ -76,15 +79,13 @@ def run_test_in_browser(browser, html_out, timeout, mode):
     return run_test_in_browser_selenium_rc(browser, html_out, timeout, mode)
 
   browser.get("file://" + html_out)
-  source = ''
   try:
     test_done = CONFIGURATIONS[mode]
     element = WebDriverWait(browser, float(timeout)).until(
         lambda driver: test_done(driver.page_source))
-    source = browser.page_source
+    return browser.page_source
   except selenium.common.exceptions.TimeoutException:
-    source = TIMEOUT_ERROR_MSG
-  return source
+    return TIMEOUT_ERROR_MSG
 
 def run_test_in_browser_selenium_rc(sel, html_out, timeout, mode):
   """ Run the desired test in the browser using Selenium 1.0 syntax, and wait
@@ -128,6 +129,15 @@ def parse_args(args=None):
     print 'Executable path only supported when browser=dartium.'
     sys.exit(1)
   return args.out, args.browser, args.executable, args.timeout, args.mode
+
+def print_server_error():
+  """Provide the user an informative error message if we attempt to connect to
+  the Selenium remote control server, but cannot access it. Then exit the
+  program."""
+  print ('ERROR: Could not connect to Selenium RC server. Are you running'
+      ' java -jar selenium-server-standalone-*.jar? If not, start '
+      'it before running this test.')
+  sys.exit(1)
 
 def start_browser(browser, executable_path, html_out):
   if browser == 'chrome':
@@ -173,10 +183,22 @@ def start_browser(browser, executable_path, html_out):
       sel.start()
       return sel
     except socket.error:
-      print 'ERROR: Could not connect to Selenium RC server. Are you running' +\
-          ' java -jar selenium-server-standalone-*.jar? If not, start ' + \
-          'it before running this test.'
-      sys.exit(1)
+      print_server_error()
+  elif browser == 'opera':
+    try:
+      driver = RemoteWebDriver(desired_capabilities=DesiredCapabilities.OPERA)
+      # By default, Opera sets their script timeout (the amount of time they
+      # expect to hear back from the JavaScript file) to be 10 seconds. We just
+      # make it an impossibly large number so that it doesn't time out for this
+      # reason, so it behaves like all of the other browser drivers.
+      driver.set_script_timeout(9000)
+      # If the webpage contains document.onreadystatechanged = function() {...}
+      # page load event does not correctly get fired and caught (OperaDriver
+      # bug). This is a band-aid.
+      driver.set_page_load_timeout(1)
+      return driver
+    except urllib2.URLError:
+      print_server_error()
   else:
     raise Exception('Incompatible browser and platform combination.')
 

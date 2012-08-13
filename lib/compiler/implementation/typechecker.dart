@@ -93,11 +93,11 @@ class InterfaceType implements Type {
 
 class FunctionType implements Type {
   final Element element;
-  final Type returnType;
-  final Link<Type> parameterTypes;
+  Type returnType;
+  Link<Type> parameterTypes;
 
-  const FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
-                     Element this.element);
+  FunctionType(Type this.returnType, Link<Type> this.parameterTypes,
+               Element this.element);
 
   toString() {
     StringBuffer sb = new StringBuffer();
@@ -114,6 +114,13 @@ class FunctionType implements Type {
     int arity = 0;
     parameterTypes.forEach((_) { arity++; });
     return arity;
+  }
+
+  void initializeFrom(FunctionType other) {
+    assert(returnType === null);
+    assert(parameterTypes === null);
+    returnType = other.returnType;
+    parameterTypes = other.parameterTypes;
   }
 }
 
@@ -339,7 +346,7 @@ class TypeCheckerVisitor implements Visitor<Type> {
     }
     Type previous = expectedReturnType;
     expectedReturnType = returnType;
-    if (element.isMember()) currentClass = element.enclosingElement;
+    if (element.isMember()) currentClass = element.getEnclosingClass();
     StatementType bodyType = analyze(node.body);
     if (returnType != types.voidType && returnType != types.dynamicType
         && bodyType != StatementType.RETURNING) {
@@ -421,7 +428,9 @@ class TypeCheckerVisitor implements Visitor<Type> {
   }
 
   Type visitSend(Send node) {
-    if (Elements.isClosureSend(node, elements)) {
+    Element element = elements[node];
+
+    if (Elements.isClosureSend(node, element)) {
       // TODO(karlklose): Finish implementation.
       return types.dynamicType;
     }
@@ -464,7 +473,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
         // TODO(karlklose): we cannot handle fields.
         return unhandledExpression();
       }
-      Element element = elements[node];
       if (element === null) return types.dynamicType;
       return computeType(element);
 
@@ -502,7 +510,6 @@ class TypeCheckerVisitor implements Visitor<Type> {
           if (memberType.element === compiler.dynamicClass) return null;
           return memberType;
         } else {
-          Element element = elements[node];
           if (element === null) {
             fail(node, 'unresolved ${node.selector}');
           } else if (element.kind === ElementKind.FUNCTION) {

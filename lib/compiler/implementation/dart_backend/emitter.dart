@@ -12,17 +12,15 @@ class Emitter {
   final ConflictingRenamer renamer;
   final Set<VariableListElement> processedVariableLists;
 
-  Emitter(Compiler compiler) :
-      this.compiler = compiler,
+  Emitter(this.compiler, this.renamer) :
       sb = new StringBuffer(),
-      renamer = new ConflictingRenamer(compiler),
       processedVariableLists = new Set<VariableListElement>();
 
   /**
    * Outputs given class element with selected inner elements.
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
-    Unparser unparser = new Unparser(renamer);
+    Unparser unparser = new Unparser.withRenamer(renamer.rename);
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
     sb.add(classElement.beginToken.slowToString());
@@ -35,7 +33,6 @@ class Emitter {
     if (classNode.typeParameters !== null) {
       sb.add(unparser.unparse(classNode.typeParameters));
     }
-    renamer.setContext(classElement);
     if (classNode.extendsKeyword !== null) {
       sb.add(' ');
       classNode.extendsKeyword.value.printOn(sb);
@@ -59,8 +56,7 @@ class Emitter {
   }
 
   void outputElement(Element element) {
-    Unparser unparser = new Unparser(renamer);
-    renamer.setContext(element);
+    Unparser unparser = new Unparser.withRenamer(renamer.rename);
     // TODO(smok): Figure out why AbstractFieldElement appears here,
     // we have used getters/setters resolved instead of it.
     if (element is SynthesizedConstructorElement

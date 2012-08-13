@@ -91,16 +91,18 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       bool eliminated) {
     const Class& cls = Class::Handle(parsed_function.function().owner());
     const Script& script = Script::Handle(cls.script());
-    const char* static_type_name = "unknown";
+    const char* compile_type_name = "unknown";
     if (value != NULL) {
-      const AbstractType& type = AbstractType::Handle(value->StaticType());
-      static_type_name = String::Handle(type.UserVisibleName()).ToCString();
+      const AbstractType& type = AbstractType::Handle(value->CompileType());
+      if (!type.IsNull()) {
+        compile_type_name = String::Handle(type.UserVisibleName()).ToCString();
+      }
     }
     Parser::PrintMessage(script, token_pos, "",
-                         "%s type check: static type '%s' is %s specific than "
+                         "%s type check: compile type '%s' is %s specific than "
                          "type '%s' of '%s'.",
                          eliminated ? "Eliminated" : "Generated",
-                         static_type_name,
+                         compile_type_name,
                          eliminated ? "more" : "not more",
                          String::Handle(dst_type.UserVisibleName()).ToCString(),
                          dst_name.ToCString());
@@ -163,9 +165,10 @@ void ConstantVal::PrintTo(BufferFormatter* f) const {
 
 void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   value()->PrintTo(f);
-  f->Print(", %s, '%s'",
-            String::Handle(dst_type().Name()).ToCString(),
-            dst_name().ToCString());
+  f->Print(", %s, '%s'%s",
+           String::Handle(dst_type().Name()).ToCString(),
+           dst_name().ToCString(),
+           IsEliminated() ? " eliminated" : "");
   f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
@@ -218,7 +221,7 @@ void EqualityCompareComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void StaticCallComp::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", String::Handle(function().name()).ToCString());
+  f->Print("%s ", String::Handle(function().name()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); ++i) {
     if (i > 0) f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -292,9 +295,9 @@ void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < arguments().length(); i++) {
+  for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
-    arguments()[i]->PrintTo(f);
+    ArgumentAt(i)->value()->PrintTo(f);
   }
 }
 
@@ -302,9 +305,9 @@ void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
 void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
     BufferFormatter* f) const {
   f->Print("%s", Class::Handle(constructor().owner()).ToCString());
-  for (intptr_t i = 0; i < arguments().length(); i++) {
+  for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
-    arguments()[i]->PrintTo(f);
+    InputAt(i)->PrintTo(f);
   }
 }
 
@@ -397,6 +400,17 @@ void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
 void GraphEntryInstr::PrintTo(BufferFormatter* f) const {
   f->Print("%2d: [graph]", block_id());
   if (start_env_ != NULL) {
+    f->Print("\n{\n");
+    const GrowableArray<Value*>& values = start_env_->values();
+    for (intptr_t i = 0; i < values.length(); i++) {
+      if (values[i]->IsUse()) {
+        Definition* def = values[i]->AsUse()->definition();
+        f->Print("  ", i);
+        def->PrintTo(f);
+        f->Print("\n");
+      }
+    }
+    f->Print("} ");
     start_env_->PrintTo(f);
   }
 }
@@ -418,6 +432,14 @@ void JoinEntryInstr::PrintTo(BufferFormatter* f) const {
 }
 
 
+static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
+  if (def.HasPropagatedType()) {
+    String& name = String::Handle();
+    name = AbstractType::Handle(def.PropagatedType()).Name();
+    f->Print(" {PT: %s}", name.ToCString());
+  }
+}
+
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- phi(", ssa_temp_index());
   for (intptr_t i = 0; i < inputs_.length(); ++i) {
@@ -425,6 +447,7 @@ void PhiInstr::PrintTo(BufferFormatter* f) const {
     if (i < inputs_.length() - 1) f->Print(", ");
   }
   f->Print(")");
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -432,6 +455,7 @@ void ParameterInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- parameter(%d)",
            HasSSATemp() ? ssa_temp_index() : temp_index(),
            index());
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -458,6 +482,7 @@ void BindInstr::PrintTo(BufferFormatter* f) const {
     f->Print("    t%d <- ", temp_index());
   }
   computation()->PrintTo(f);
+  PrintPropagatedType(f, *this);
 }
 
 
@@ -775,9 +800,7 @@ void Environment::PrintTo(BufferFormatter* f) const {
   for (intptr_t i = 0; i < values_.length(); ++i) {
     if (i > 0) f->Print(", ");
     values_[i]->PrintTo(f);
-    if ((locations_ != NULL) &&
-        (i < location_count_) &&
-        !locations_[i].IsInvalid()) {
+    if ((locations_ != NULL) && !locations_[i].IsInvalid()) {
       f->Print(" [");
       locations_[i].PrintTo(f);
       f->Print("]");

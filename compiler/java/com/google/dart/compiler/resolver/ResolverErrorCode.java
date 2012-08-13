@@ -14,8 +14,8 @@ public enum ResolverErrorCode implements ErrorCode {
   BLACK_LISTED_EXTENDS("'%s' can not be used as superclass"),
   BLACK_LISTED_IMPLEMENTS("'%s' can not be used as superinterface"),
   BREAK_LABEL_RESOLVES_TO_CASE_OR_DEFAULT("break label resolves to case or default statement"),
-  BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Build-in identifier '%s' cannot be used as a import prefix"),
-  BUILT_IN_IDENTIFIER_AS_TYPE("Build-in identifier '%s' cannot be used as a type annotation"),
+  BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX("Built-in identifier '%s' cannot be used as a import prefix"),
+  BUILT_IN_IDENTIFIER_AS_TYPE("Built-in identifier '%s' cannot be used as a type annotation"),
   CANNOT_ACCESS_FIELD_IN_INIT("Cannot access an instance field in an initializer expression"),
   CANNOT_ACCESS_METHOD(ErrorSeverity.WARNING, "Cannot access private method '%s'"),
   CANNOT_ACCESS_OUTER_LABEL("Cannot access label %s declared in an outer function"),
@@ -27,7 +27,7 @@ public enum ResolverErrorCode implements ErrorCode {
   CANNOT_CALL_FUNCTION_TYPE_ALIAS("Function type aliases cannot be called"),
   // TODO(zundel): error message needs JUnit test - how to test #imports in junit?
   CANNOT_CALL_LIBRARY_PREFIX("Library prefixes cannot be called"),
-  CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(
+  CANNOT_DECLARE_NON_FACTORY_CONSTRUCTOR(ErrorSeverity.WARNING,
       "Cannot declare a non-factory named constructor of another class."),
   CANNOT_HIDE_IMPORT_PREFIX("Cannot hide import prefix '%s'"),
   CANNOT_INIT_STATIC_FIELD_IN_INITIALIZER("Cannot initialize a static field in an initializer list"),
@@ -156,7 +156,8 @@ public enum ResolverErrorCode implements ErrorCode {
   METHOD_MUST_HAVE_BODY("A non-abstract method must have a body"),
   NAMED_PARAMETERS_CANNOT_START_WITH_UNDER("Named parameters cannot start with an '_' character"),
   NEW_EXPRESSION_CANT_USE_TYPE_VAR("New expression cannot be invoked on type variable"),
-  NEW_EXPRESSION_NOT_CONSTRUCTOR("New expression does not resolve to a constructor"),
+  NEW_EXPRESSION_NOT_CONSTRUCTOR(
+      ErrorSeverity.WARNING, "New expression does not resolve to a constructor"),
   NO_SUCH_TYPE("no such type \"%s\""),
   NO_SUCH_TYPE_CONSTRUCTOR("no such type \"%s\" in constructor"),
   NOT_A_CLASS("\"%s\" is not a class"),

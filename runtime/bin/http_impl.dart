@@ -709,6 +709,8 @@ class _HttpRequestResponseBase {
 
   HttpConnectionInfo get connectionInfo() => _httpConnection.connectionInfo;
 
+  bool get _done() => _state == DONE;
+
   int _state;
   bool _headResponse;
 
@@ -945,12 +947,12 @@ class _HttpResponse extends _HttpRequestResponseBase implements HttpResponse {
 
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
-    if (_state == DONE) throw new HttpException("Response closed");
+    if (_done) throw new HttpException("Response closed");
     return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
-    if (_state == DONE) throw new HttpException("Response closed");
+    if (_done) throw new HttpException("Response closed");
     return _writeList(buffer, offset, len);
   }
 
@@ -1136,6 +1138,8 @@ class _HttpOutputStream extends _BaseOutputStream implements OutputStream {
   void close() {
     _requestOrResponse._streamClose();
   }
+
+  bool get closed() => _requestOrResponse._done;
 
   void destroy() {
     throw "Not implemented";
@@ -1517,7 +1521,7 @@ class _HttpClientRequest
   }
 
   OutputStream get outputStream() {
-    if (_state == DONE) throw new HttpException("Request closed");
+    if (_done) throw new HttpException("Request closed");
     if (_outputStream == null) {
       _outputStream = new _HttpOutputStream(this);
     }
@@ -1526,12 +1530,12 @@ class _HttpClientRequest
 
   // Delegate functions for the HttpOutputStream implementation.
   bool _streamWrite(List<int> buffer, bool copyBuffer) {
-    if (_state == DONE) throw new HttpException("Request closed");
+    if (_done) throw new HttpException("Request closed");
     return _write(buffer, copyBuffer);
   }
 
   bool _streamWriteFrom(List<int> buffer, int offset, int len) {
-    if (_state == DONE) throw new HttpException("Request closed");
+    if (_done) throw new HttpException("Request closed");
     return _writeList(buffer, offset, len);
   }
 

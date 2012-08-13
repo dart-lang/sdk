@@ -162,10 +162,10 @@ public class CommandLineOptions {
     }
     
     /**
-     * Returns whether "not a member" warnings should be suppressed for inferred types.
+     * Returns whether "not a member" warnings should be reported for inferred types.
      */
-    public boolean suppressNoMemberWarningForInferredTypes() {
-      return false;
+    public boolean memberWarningForInferredTypes() {
+      return true;
     }
     
     /**

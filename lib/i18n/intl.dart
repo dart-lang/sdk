@@ -6,8 +6,8 @@
 
 #import('dart:web');
 
+#import('date_format.dart');
 #source('intl_message.dart');
-#source('date_format.dart');
 #source('bidi_formatter.dart');
 #source('bidi_utils.dart');
 
@@ -17,7 +17,6 @@
  */
 
 class Intl {
-
   /**
    * String indicating the locale code with which the message is to be
    * formatted (such as en-CA).
@@ -26,7 +25,14 @@ class Intl {
 
   IntlMessage intlMsg;
 
-  DateFormat date;
+  /**
+   * Return a new date format using the specified [pattern].
+   * If [desiredLocale] is not specified, then we default to [locale].
+   */
+  DateFormat date(String pattern, [String desiredLocale]) {
+    var actualLocale = (desiredLocale == null) ? _locale : desiredLocale;
+    return new DateFormat(pattern, actualLocale);
+  }
 
   /**
    * Constructor optionally [_locale] for specifics of the language
@@ -35,10 +41,12 @@ class Intl {
    * preferences).
    */
   Intl([a_locale]) {
-    _locale = a_locale;
-    if (_locale == null) _locale = _getDefaultLocale();
+    if (a_locale == null) {
+      _locale = _getDefaultLocale();
+    } else {
+      _locale = verifiedLocale(a_locale);
+    }
     intlMsg = new IntlMessage(_locale);
-    date = new DateFormat(_locale);
   }
 
   /**
@@ -59,6 +67,63 @@ class Intl {
   static String message(String message_str, [final String desc='',
                         final Map examples=const {}, String locale='']) {
     return message_str;
+  }
+
+  /**
+   * Return the locale for this instance. If none was set, the locale will
+   * be the default.
+   */
+  String get locale() => _locale;
+
+  /**
+   * Return true if the locale exists, or if it is null. The null case
+   * is interpreted to mean that we use the default locale.
+   */
+  static bool _localeExists(localeName) {
+    return DateFormat.localeExists(localeName);
+  }
+
+  /**
+   * Given [newLocale] return a locale that we have data for that is similar
+   * to it, if possible.
+   * If [newLocale] is found directly, return it. If it can't be found, look up
+   * based on just the language (e.g. 'en_CA' -> 'en'). Also accepts '-'
+   * as a separator and changes it into '_' for lookup, and changes the
+   * country to uppercase.
+   * Note that null is interpreted as meaning the default locale, so if
+   * [newLocale] is null it will be returned.
+   */
+  static String verifiedLocale(String newLocale) {
+    if (newLocale == null) return _getDefaultLocale();
+    if (_localeExists(newLocale)) {
+      return newLocale;
+    }
+    for (var each in [_canonicalized(newLocale), _shortLocale(newLocale)]) {
+      if (_localeExists(each)) {
+        return each;
+      }
+    }
+    throw new IllegalArgumentException("Invalid locale '$newLocale'");
+  }
+
+  /** Return the short version of a locale name, e.g. 'en_US' => 'en' */
+  static String _shortLocale(String aLocale) {
+    if (aLocale.length < 2) return aLocale;
+    return aLocale.substring(0, 2).toLowerCase();
+  }
+
+  /**
+   * Return a locale name turned into xx_YY where it might possibly be
+   * in the wrong case or with a hyphen instead of an underscore.
+   */
+  static String _canonicalized(String aLocale) {
+    // Locales of length < 5 are presumably two-letter forms, or else malformed.
+    // Locales of length > 6 are likely to be malformed. In either case we
+    // return them unmodified and if correct they will be found.
+    if ((aLocale.length < 5) || (aLocale.length > 6)) return aLocale;
+    if (aLocale[2] != '-' && (aLocale[2] != '_')) return aLocale;
+    return '${aLocale[0]}${aLocale[1]}_${aLocale[3].toUpperCase()}'
+           '${aLocale[4].toUpperCase()}';
   }
 
   /**
@@ -106,8 +171,10 @@ class Intl {
    */
   static String _getDefaultLocale() {
     // TODO(efortuna): Detect the default locale given the user preferences.
+    // That would mean using window.navigator.language in a browser or
+    // an environment variable or other OS mechanism for the standalone VM.
     // Yay, hard-coding for now!
-    return 'en-US';
+    return 'en_US';
   }
 
   /**

@@ -2,10 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#import('dart:uri');
+
 #import("../../../lib/compiler/implementation/leg.dart");
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
+#import("compiler_helper.dart");
 #import("mock_compiler.dart");
 #import("parser_helper.dart");
 
@@ -69,6 +72,7 @@ main() {
   testThis();
   testSuperCalls();
   testTypeVariables();
+  testToString();
 }
 
 testTypeVariables() {
@@ -121,7 +125,7 @@ testTypeVariables() {
                        '  bar() { g(Foo<T> f) {}; g(); }'
                        '}');
   foo = compiler.mainApp.find(buildSourceString('Foo'));
-  compiler.resolveClass(foo);
+  foo.ensureResolved(compiler);
   foo.lookupLocalMember(buildSourceString('t')).computeType(compiler);;
   foo.lookupLocalMember(buildSourceString('foo')).computeType(compiler);;
   compiler.resolver.resolve(foo.lookupLocalMember(buildSourceString('bar')));
@@ -409,10 +413,13 @@ testSuperclass() {
   MockCompiler compiler = new MockCompiler();
   compiler.parseScript("class Foo extends Bar {}");
   compiler.resolveStatement("Foo bar;");
-  Expect.equals(1, compiler.errors.length);
-  Expect.equals(
-      new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']),
-      compiler.errors[0].message);
+  // TODO(ahe): We get the same error twice: once from
+  // ClassResolverVisitor, and once from ClassSupertypeResolver. We
+  // should only the get the error once.
+  Expect.equals(2, compiler.errors.length);
+  var cannotResolveBar = new Message(MessageKind.CANNOT_RESOLVE_TYPE, ['Bar']);
+  Expect.equals(cannotResolveBar, compiler.errors[0].message);
+  Expect.equals(cannotResolveBar, compiler.errors[1].message);
   compiler.clearErrors();
 
   compiler = new MockCompiler();
@@ -717,4 +724,19 @@ List<String> asSortedStrings(Link link) {
   for (; !link.isEmpty(); link = link.tail) result.add(link.head.toString());
   result.sort((s1, s2) => s1.compareTo(s2));
   return result;
+}
+
+testToString() {
+  Uri uri = new Uri.fromComponents(scheme: 'source');
+  MockCompiler compiler = compilerFor(
+      @"class C { toString() => 'C'; } main() { '${new C()}'; }",
+      uri);
+  compiler.runCompiler(uri);
+
+  Element toStringMethod = findElement(compiler, 'C')
+      .lookupLocalMember(buildSourceString('toString'));
+  Expect.isNotNull(toStringMethod);
+
+  Expect.isNotNull(
+      compiler.enqueuer.resolution.getCachedElements(toStringMethod));
 }

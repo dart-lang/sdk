@@ -171,7 +171,7 @@ class IDLParser(object):
         [MAYBE(ExtAttrs), MAYBE(Stringifier), MAYBE(ReadOnly),
          'attribute', Type, Id, MAYBE(_AttrRaises), ';'],
         # WebKit:
-        [MAYBE(Stringifier), MAYBE(ReadOnly), 'attribute',
+        [MAYBE(Stringifier), MAYBE(Static), MAYBE(ReadOnly), 'attribute',
          MAYBE(ExtAttrs), Type, Id, MAYBE(_AttrRaises), ';'],
         # FremontCut:
         [MAYBE(_Annotations), MAYBE(ExtAttrs),

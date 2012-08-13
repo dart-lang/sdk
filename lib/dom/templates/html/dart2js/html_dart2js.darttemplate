@@ -63,3 +63,6 @@ int _getNewIsolateId() native @'''
 _callPortSync(int id, message) {
   return JS('var', @'ReceivePortSync.dispatchCall(#, #)', id, message);
 }
+
+// TODO(vsm): Plumb this properly.
+spawnDomFunction(f) => spawnFunction(f);

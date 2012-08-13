@@ -12,3 +12,5 @@
 #source('backend.dart');
 #source('emitter.dart');
 #source('renamer.dart');
+#source('placeholder.dart');
+#source('placeholder_collector.dart');

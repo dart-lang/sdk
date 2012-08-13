@@ -21,7 +21,7 @@ TEST_CASE(Class) {
       Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // Class has no fields.
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   cls.SetFields(no_fields);
 
   // Create and populate the function arrays.
@@ -110,13 +110,6 @@ TEST_CASE(Class) {
   interfaces.SetAt(1, Type::Handle(Type::NewNonParameterizedType(interface)));
   cls.set_interfaces(interfaces);
   cls.Finalize();
-
-  const Array& array = Array::Handle(cls.functions_cache());
-  array.SetAt(0, function_name);
-  cls.set_functions_cache(array);
-  String& test_name = String::Handle();
-  test_name ^= Array::Handle(cls.functions_cache()).At(0);
-  EXPECT(test_name.Equals(function_name));
 }
 
 
@@ -149,7 +142,8 @@ TEST_CASE(TokenStream) {
   const Scanner::GrowableTokenStream& ts = scanner.GetStream();
   EXPECT_EQ(6, ts.length());
   EXPECT_EQ(Token::kLPAREN, ts[1].kind);
-  const TokenStream& token_stream = TokenStream::Handle(TokenStream::New(ts));
+  const TokenStream& token_stream = TokenStream::Handle(
+      TokenStream::New(ts, private_key));
   TokenStream::Iterator iterator(token_stream, 0);
   // EXPECT_EQ(6, token_stream.Length());
   iterator.Advance();  // Advance to '(' token.
@@ -171,7 +165,7 @@ TEST_CASE(InstanceClass) {
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
 
   // No functions and no super class for the EmptyClass.
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   empty_class.SetFields(no_fields);
   empty_class.Finalize();
   EXPECT_EQ(kObjectAlignment, empty_class.instance_size());
@@ -202,7 +196,7 @@ TEST_CASE(Interface) {
   Script& script = Script::Handle();
   const Class& factory_class =
       Class::Handle(Class::New(class_name, script, Scanner::kDummyTokenIndex));
-  const Array& no_fields = Array::Handle(Array::Empty());
+  const Array& no_fields = Array::Handle(Object::empty_array());
   // Finalizes the class.
   factory_class.SetFields(no_fields);
 
@@ -1764,7 +1758,7 @@ TEST_CASE(Array) {
   other_array.SetAt(2, array);
   EXPECT(!array.Equals(other_array));
 
-  EXPECT_EQ(0, Array::Handle(Array::Empty()).Length());
+  EXPECT_EQ(0, Array::Handle(Object::empty_array()).Length());
 }
 
 

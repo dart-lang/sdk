@@ -216,6 +216,10 @@ class DoubleLinkedQueue<E> implements Queue<E> {
     return other;
   }
 
+  Dynamic reduce(Dynamic initialValue,
+                 Dynamic combine(Dynamic previousValue, E element)) {
+    return Collections.reduce(this, initialValue, combine);
+  }
 
   Queue<E> filter(bool f(E element)) {
     Queue<E> other = new Queue<E>();

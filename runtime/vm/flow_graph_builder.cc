@@ -96,7 +96,7 @@ void EffectGraphVisitor::Do(Computation* computation) {
 
 void EffectGraphVisitor::AddInstruction(Instruction* instruction) {
   ASSERT(is_open());
-  ASSERT(!instruction->IsDefinition());
+  ASSERT(!instruction->IsBind());
   ASSERT(!instruction->IsBlockEntry());
   DeallocateTempIndex(instruction->InputCount());
   if (is_empty()) {
@@ -409,7 +409,7 @@ void EffectGraphVisitor::VisitTypeNode(TypeNode* node) { UNREACHABLE(); }
 
 
 // Returns true if the type check can be skipped, for example, if the
-// destination type is Dynamic or if the static type of the value is a subtype
+// destination type is Dynamic or if the compile type of the value is a subtype
 // of the destination type.
 bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
                                           Value* value,
@@ -441,7 +441,9 @@ bool EffectGraphVisitor::CanSkipTypeCheck(intptr_t token_pos,
     return false;
   }
 
-  const bool eliminated = value->StaticTypeIsMoreSpecificThan(dst_type);
+  // Propagated types are not set yet.
+  // More checks will possibly be eliminated during type propagation.
+  const bool eliminated = value->CompileTypeIsMoreSpecificThan(dst_type);
   if (FLAG_trace_type_check_elimination) {
     FlowGraphPrinter::PrintTypeCheck(owner()->parsed_function(),
                                      token_pos,
@@ -856,12 +858,14 @@ void EffectGraphVisitor::VisitUnaryOpNode(UnaryOpNode* node) {
   ZoneGrowableArray<PushArgumentInstr*>* arguments =
       new ZoneGrowableArray<PushArgumentInstr*>(1);
   arguments->Add(push_value);
-  Token::Kind token_kind =
-      (node->kind() == Token::kSUB) ? Token::kNEGATE : node->kind();
-  const String& name =
-      String::ZoneHandle(Symbols::New(Token::Str(token_kind)));
+  String& name = String::ZoneHandle();
+  if (node->kind() == Token::kSUB) {
+    name = Symbols::New("unary-");
+  } else {
+    name = Symbols::New(Token::Str(node->kind()));
+  }
   InstanceCallComp* call = new InstanceCallComp(
-      node->token_pos(), owner()->try_index(), name, token_kind,
+      node->token_pos(), owner()->try_index(), name, node->kind(),
       arguments, Array::ZoneHandle(), 1);
   ReturnComputation(call);
 }
@@ -1453,11 +1457,6 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
 
-  ZoneGrowableArray<Value*>* allocate_arguments =
-      new ZoneGrowableArray<Value*>();
-  if (requires_type_arguments) {
-    BuildConstructorTypeArguments(node, allocate_arguments);
-  }
   // In checked mode, if the type arguments are uninstantiated, they may need to
   // be checked against declared bounds at run time.
   Computation* allocate_comp = NULL;
@@ -1468,6 +1467,10 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
       !node->type_arguments().IsWithinBoundsOf(cls,
                                                node->type_arguments(),
                                                NULL)) {
+    Value* type_arguments = NULL;
+    Value* instantiator = NULL;
+    BuildConstructorTypeArguments(node, &type_arguments, &instantiator, NULL);
+
     // The uninstantiated type arguments cannot be verified to be within their
     // bounds at compile time, so verify them at runtime.
     // Although the type arguments may be uninstantiated at compile time, they
@@ -1475,8 +1478,16 @@ Value* EffectGraphVisitor::BuildObjectAllocation(
     // type arguments of the instantiator at run time.
     allocate_comp = new AllocateObjectWithBoundsCheckComp(node,
                                                           owner()->try_index(),
-                                                          allocate_arguments);
+                                                          type_arguments,
+                                                          instantiator);
   } else {
+    ZoneGrowableArray<PushArgumentInstr*>* allocate_arguments =
+        new ZoneGrowableArray<PushArgumentInstr*>();
+
+    if (requires_type_arguments) {
+      BuildConstructorTypeArguments(node, NULL, NULL, allocate_arguments);
+    }
+
     allocate_comp = new AllocateObjectComp(node,
                                            owner()->try_index(),
                                            allocate_arguments);
@@ -1629,17 +1640,32 @@ Value* EffectGraphVisitor::BuildInstantiatedTypeArguments(
 
 void EffectGraphVisitor::BuildConstructorTypeArguments(
     ConstructorCallNode* node,
-    ZoneGrowableArray<Value*>* args) {
+    Value** type_arguments,
+    Value** instantiator,
+    ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
   const Class& cls = Class::ZoneHandle(node->constructor().owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
-    Value* type_args = Bind(new ConstantVal(node->type_arguments()));
+    Value* type_arguments_val = Bind(new ConstantVal(node->type_arguments()));
+    if (call_arguments != NULL) {
+      ASSERT(type_arguments == NULL);
+      call_arguments->Add(PushArgument(type_arguments_val));
+    } else {
+      ASSERT(type_arguments != NULL);
+      *type_arguments = type_arguments_val;
+    }
+
     // No instantiator required.
-    Value* no_instantiator = Bind(
+    Value* instantiator_val = Bind(
         new ConstantVal(Smi::ZoneHandle(Smi::New(StubCode::kNoInstantiator))));
-    args->Add(type_args);
-    args->Add(no_instantiator);
+    if (call_arguments != NULL) {
+      ASSERT(instantiator == NULL);
+      call_arguments->Add(PushArgument(instantiator_val));
+    } else {
+      ASSERT(instantiator != NULL);
+      *instantiator = instantiator_val;
+    }
     return;
   }
   // The type arguments are uninstantiated. The generated pseudo code:
@@ -1676,10 +1702,23 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
   Do(BuildStoreLocal(t1, extract_instantiator));
   // t2: extracted constructor type arguments.
   // t1: extracted constructor instantiator.
-  Value* load_0 = Bind(BuildLoadLocal(t2));
-  Value* load_1 = Bind(BuildLoadLocal(t1));
-  args->Add(load_0);
-  args->Add(load_1);
+  Value* type_arguments_val = Bind(BuildLoadLocal(t2));
+  if (call_arguments != NULL) {
+    ASSERT(type_arguments == NULL);
+    call_arguments->Add(PushArgument(type_arguments_val));
+  } else {
+    ASSERT(type_arguments != NULL);
+    *type_arguments = type_arguments_val;
+  }
+
+  Value* instantiator_val = Bind(BuildLoadLocal(t1));
+  if (call_arguments != NULL) {
+    ASSERT(instantiator == NULL);
+    call_arguments->Add(PushArgument(instantiator_val));
+  } else {
+    ASSERT(instantiator != NULL);
+    *instantiator = instantiator_val;
+  }
 }
 
 
@@ -2714,7 +2753,7 @@ void FlowGraphBuilder::RenameRecursive(BlockEntryInstr* block_entry,
     // 2c. Handle pushed argument.
     PushArgumentInstr* push = current->AsPushArgument();
     if (push != NULL) {
-      env->Add(push->value());
+      env->Add(new UseVal(push));
     }
   }
 

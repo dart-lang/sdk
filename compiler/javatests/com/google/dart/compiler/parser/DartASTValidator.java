@@ -51,7 +51,6 @@ import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
-import com.google.dart.compiler.ast.DartResourceDirective;
 import com.google.dart.compiler.ast.DartReturnStatement;
 import com.google.dart.compiler.ast.DartSourceDirective;
 import com.google.dart.compiler.ast.DartStringInterpolation;
@@ -410,13 +409,6 @@ public class DartASTValidator extends ASTVisitor<Void> {
 
   @Override
   public Void visitPropertyAccess(DartPropertyAccess node) {
-    validate(node);
-    node.visitChildren(this);
-    return null;
-  }
-
-  @Override
-  public Void visitResourceDirective(DartResourceDirective node) {
     validate(node);
     node.visitChildren(this);
     return null;

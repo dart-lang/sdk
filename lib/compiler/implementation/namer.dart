@@ -35,13 +35,31 @@ class Namer {
   /** Some closures must contain their name. The name is stored in
     * [STATIC_CLOSURE_NAME_NAME]. */
   final String STATIC_CLOSURE_NAME_NAME = @'$name';
-  final SourceString CLOSURE_INVOCATION_NAME = const SourceString(@'$call');
+  final SourceString CLOSURE_INVOCATION_NAME = Compiler.CALL_OPERATOR_NAME;
 
 
   String closureInvocationName(Selector selector) {
     // TODO(floitsch): mangle, while not conflicting with instance names.
     return instanceMethodInvocationName(null, CLOSURE_INVOCATION_NAME,
                                         selector);
+  }
+
+  String breakLabelName(LabelElement label) {
+    return '\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  String implicitBreakLabelName(TargetElement target) {
+    return '\$${target.nestingLevel}';
+  }
+
+  // We sometimes handle continue targets differently from break targets,
+  // so we have special continue-only labels.
+  String continueLabelName(LabelElement label) {
+    return 'c\$${label.labelName}\$${label.target.nestingLevel}';
+  }
+
+  String implicitContinueLabelName(TargetElement target) {
+    return 'c\$${target.nestingLevel}';
   }
 
   /** Returns a non-unique name for the given closure element. */
@@ -178,16 +196,16 @@ class Namer {
     LibraryElement lib = element.getLibrary();
     String name;
     if (element.isGenerativeConstructor()) {
-      if (element.name == element.enclosingElement.name) {
+      if (element.name == element.getEnclosingClass().name) {
         // Keep the class name for the class and not the factory.
         name = "${element.name.slowToString()}\$";
       } else {
         name = element.name.slowToString();
       }
     } else if (Elements.isStaticOrTopLevel(element)) {
-      if (element.enclosingElement != null &&
-          element.enclosingElement.isClass()) {
-        name = "${element.enclosingElement.name.slowToString()}_"
+      if (element.isMember()) {
+        ClassElement enclosingClass = element.getEnclosingClass();
+        name = "${enclosingClass.name.slowToString()}_"
                "${element.name.slowToString()}";
       } else {
         name = element.name.slowToString();
