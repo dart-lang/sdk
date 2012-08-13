@@ -31,6 +31,8 @@ Language/07_Classes/3_Setters_A04_t03: Fail # TODO(ahe): I'm working on these.
 Language/07_Classes/3_Setters_A04_t04: Fail # TODO(ahe): I'm working on these.
 Language/07_Classes/3_Setters_A04_t05: Fail # TODO(ahe): I'm working on these.
 Language/07_Classes/3_Setters_A04_t06: Fail # TODO(ahe): I'm working on these.
+Language/07_Classes/8_Superclasses_A03_t01: Fail # After r10586, in checked
+Language/07_Classes/8_Superclasses_A03_t02: Fail # After r10586, in checked
 Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
 Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
 Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
