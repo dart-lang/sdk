@@ -94,7 +94,7 @@ public abstract class AbstractParserTest extends CompilerTestCase {
 
     DartDirective directive = iter.next();
     assertEquals(DartLibraryDirective.class, directive.getClass());
-    assertEquals("a-directives-test", ((DartLibraryDirective) directive).getName().getValue());
+    assertEquals("a-directives-test", ((DartLibraryDirective) directive).getLibraryName());
 
     directive = iter.next();
     assertEquals(DartImportDirective.class, directive.getClass());
@@ -115,7 +115,7 @@ public abstract class AbstractParserTest extends CompilerTestCase {
 
     DartDirective directive = iter.next();
     assertEquals(DartLibraryDirective.class, directive.getClass());
-    assertEquals("b-directives-test", ((DartLibraryDirective) directive).getName().getValue());
+    assertEquals("b-directives-test", ((DartLibraryDirective) directive).getLibraryName());
 
     directive = iter.next();
     assertEquals(DartImportDirective.class, directive.getClass());

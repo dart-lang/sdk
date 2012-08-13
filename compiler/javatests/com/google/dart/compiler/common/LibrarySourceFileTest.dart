@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#library("LibrarySourceFileTest");
-#source("OneSourceFile.dart");
-#source("Source2.dart");
-#source("subdir/Source3.dart");
+library "LibrarySourceFileTest";
+part "OneSourceFile.dart";
+part "Source2.dart";
+part "subdir/Source3.dart";

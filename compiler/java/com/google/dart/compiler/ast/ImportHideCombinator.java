@@ -13,6 +13,8 @@
  */
 package com.google.dart.compiler.ast;
 
+import java.util.List;
+
 /**
  * Instances of the class <code>ImportHideCombinator</code> represent a combinator that restricts
  * the names being imported to those that are not in a given list.
@@ -26,7 +28,7 @@ public class ImportHideCombinator extends ImportCombinator {
   /**
    * The list of names from the library that are hidden by this combinator.
    */
-  private DartArrayLiteral hiddenNames;
+  private NodeList<DartIdentifier> hiddenNames = new NodeList<DartIdentifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -40,8 +42,8 @@ public class ImportHideCombinator extends ImportCombinator {
    * 
    * @param hiddenNames the list of names from the library that are hidden by this combinator
    */
-  public ImportHideCombinator(DartArrayLiteral hiddenNames) {
-    this.hiddenNames = becomeParentOf(hiddenNames);
+  public ImportHideCombinator(List<DartIdentifier> hiddenNames) {
+    this.hiddenNames.addAll(hiddenNames);
   }
 
   @Override
@@ -54,23 +56,14 @@ public class ImportHideCombinator extends ImportCombinator {
    * 
    * @return the list of names from the library that are hidden by this combinator
    */
-  public DartArrayLiteral getHiddenNames() {
+  public NodeList<DartIdentifier> getHiddenNames() {
     return hiddenNames;
-  }
-
-  /**
-   * Set the list of names from the library that are hidden by this combinator to the given list.
-   * 
-   * @param hiddenNames the list of names from the library that are hidden by this combinator
-   */
-  public void setHiddenNames(DartArrayLiteral hiddenNames) {
-    this.hiddenNames = becomeParentOf(hiddenNames);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     if (hiddenNames != null) {
-      hiddenNames.visitChildren(visitor);
+      hiddenNames.accept(visitor);
     }
   }
 }

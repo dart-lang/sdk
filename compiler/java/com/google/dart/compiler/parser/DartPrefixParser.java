@@ -15,6 +15,7 @@ package com.google.dart.compiler.parser;
 
 import com.google.dart.compiler.DartCompilerListener;
 import com.google.dart.compiler.Source;
+import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartImportDirective;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.metrics.CompilerMetrics;
@@ -38,13 +39,25 @@ public class DartPrefixParser extends DartParser {
     super(source, sourceCode, isDietParse, prefixes, listener, compilerMetrics);
     this.prefixes = prefixes;
   }
-  
+
+  @SuppressWarnings("deprecation")
   @Override
   protected DartImportDirective parseImportDirective() {
     DartImportDirective directive = super.parseImportDirective();
-    DartStringLiteral prefix = directive.getPrefix();
+    DartIdentifier prefix = directive.getPrefix();
     if (prefix != null) {
-      prefixes.add(prefix.getValue());
+      prefixes.add(prefix.getName());
+    }
+    return directive;
+  }
+
+  @SuppressWarnings("deprecation")
+  @Override
+  protected DartImportDirective parseObsoleteImportDirective() {
+    DartImportDirective directive = super.parseObsoleteImportDirective();
+    DartStringLiteral oldPrefix = directive.getOldPrefix();
+    if (oldPrefix != null) {
+      prefixes.add(oldPrefix.getValue());
     }
     return directive;
   }

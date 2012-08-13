@@ -10,43 +10,67 @@ import java.util.List;
  * Implements the #import directive.
  */
 public class DartImportDirective extends DartDirective {
+  private boolean obsoleteFormat;
+
   private DartStringLiteral libraryUri;
 
-  private DartBooleanLiteral exported;
+  private DartIdentifier prefix;
 
   private NodeList<ImportCombinator> combinators = new NodeList<ImportCombinator>(this);
 
-  private DartStringLiteral prefix;
+  private boolean exported;
+
+  private DartStringLiteral oldPrefix;
+
+  public DartImportDirective(DartStringLiteral libraryUri, DartIdentifier prefix, List<ImportCombinator> combinators, boolean exported) {
+    obsoleteFormat = false;
+    this.libraryUri = becomeParentOf(libraryUri);
+    this.prefix = becomeParentOf(prefix);
+    this.combinators.addAll(combinators);
+    this.exported = exported;
+  }
 
   public DartImportDirective(DartStringLiteral libraryUri, DartBooleanLiteral exported, List<ImportCombinator> combinators, DartStringLiteral prefix) {
+    obsoleteFormat = true;
     this.libraryUri = becomeParentOf(libraryUri);
-    this.exported = becomeParentOf(exported);
     this.combinators.addAll(combinators);
-    this.prefix = becomeParentOf(prefix);
+    this.oldPrefix = becomeParentOf(prefix);
+    this.exported = exported != null;
   }
 
   public DartStringLiteral getLibraryUri() {
     return libraryUri;
   }
 
-  public DartBooleanLiteral getExported() {
+  public boolean isExported() {
     return exported;
+  }
+
+  public boolean isObsoleteFormat() {
+    // TODO(brianwilkerson) Remove this method once the obsolete format is no longer supported.
+    return obsoleteFormat;
   }
 
   public List<ImportCombinator> getCombinators() {
     return combinators;
   }
 
-  public DartStringLiteral getPrefix() {
+  @Deprecated
+  public DartStringLiteral getOldPrefix() {
+    // TODO(brianwilkerson) Remove this method once the obsolete format is no longer supported.
+    return oldPrefix;
+  }
+
+  public DartIdentifier getPrefix() {
     return prefix;
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     safelyVisitChild(libraryUri, visitor);
-    safelyVisitChild(exported, visitor);
-    combinators.accept(visitor);
     safelyVisitChild(prefix, visitor);
+    combinators.accept(visitor);
+    safelyVisitChild(oldPrefix, visitor);
   }
 
   @Override

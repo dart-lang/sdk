@@ -8,14 +8,30 @@ package com.google.dart.compiler.ast;
  * Implements the #library directive.
  */
 public class DartLibraryDirective extends DartDirective {
-  private DartStringLiteral name;
+  private DartExpression name;
 
-  public DartLibraryDirective(DartStringLiteral name) {
+  public DartLibraryDirective(DartExpression name) {
     this.name = becomeParentOf(name);
   }
 
-  public DartStringLiteral getName() {
+  public DartExpression getName() {
     return name;
+  }
+
+  public String getLibraryName() {
+    if (name == null) {
+      return null;
+    } else if (name instanceof DartStringLiteral) {
+      // TODO(brianwilkerson) Remove this case once the obsolete format is no longer supported.
+      return ((DartStringLiteral) name).getValue();
+    } else {
+      return name.toSource();
+    }
+  }
+
+  public boolean isObsoleteFormat() {
+    // TODO(brianwilkerson) Remove this method once the obsolete format is no longer supported.
+    return name instanceof DartStringLiteral;
   }
 
   @Override

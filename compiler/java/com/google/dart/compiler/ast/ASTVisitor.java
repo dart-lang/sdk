@@ -265,6 +265,10 @@ public class ASTVisitor<R> {
     return visitExpression(node);
   }
 
+  public R visitPartOfDirective(DartPartOfDirective node) {
+    return visitDirective(node);
+  }
+
   public R visitPropertyAccess(DartPropertyAccess node) {
     return visitExpression(node);
   }

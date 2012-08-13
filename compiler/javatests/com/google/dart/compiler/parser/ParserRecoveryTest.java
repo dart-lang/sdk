@@ -765,9 +765,9 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
             ParserErrorCode.DIRECTIVE_OUT_OF_ORDER, 2, 1,
             ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE, 2, 14);
     DartLibraryDirective a = (DartLibraryDirective)unit.getDirectives().get(0);
-    assertEquals("a", a.getName().getValue());
+    assertEquals("a", a.getLibraryName());
     DartLibraryDirective b = (DartLibraryDirective)unit.getDirectives().get(1);
-    assertEquals("b", b.getName().getValue());
+    assertEquals("b", b.getLibraryName());
   }
 
   public void testRecoveryDirective2() {
@@ -779,7 +779,7 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
     DartImportDirective a = (DartImportDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getLibraryUri().getValue());
     DartLibraryDirective b = (DartLibraryDirective)unit.getDirectives().get(1);
-    assertEquals("b", b.getName().getValue());
+    assertEquals("b", b.getLibraryName());
   }
 
   public void testRecoveryDirective3() {

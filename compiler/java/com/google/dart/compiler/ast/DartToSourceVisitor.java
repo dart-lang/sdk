@@ -60,23 +60,48 @@ public class DartToSourceVisitor extends ASTVisitor<Void> {
 
   @Override
   public Void visitLibraryDirective(DartLibraryDirective node) {
-    p("#library(");
-    accept(node.getName());
-    p(");");
-    nl();
+    if (node.isObsoleteFormat()) {
+      p("#library(");
+      accept(node.getName());
+      p(");");
+      nl();
+    } else {
+      p("library ");
+      accept(node.getName());
+      p(";");
+      nl();
+    }
     return null;
   }
 
+  @SuppressWarnings("deprecation")
   @Override
   public Void visitImportDirective(DartImportDirective node) {
-    p("#import(");
-    accept(node.getLibraryUri());
-    if (node.getPrefix() != null) {
-      p(", prefix : ");
-      accept(node.getPrefix());
+    if (node.isObsoleteFormat()) {
+      p("#import(");
+      accept(node.getLibraryUri());
+      if (node.getOldPrefix() != null) {
+        p(", prefix : ");
+        accept(node.getOldPrefix());
+      }
+      p(");");
+      nl();
+    } else {
+      p("import ");
+      accept(node.getLibraryUri());
+      if (node.getPrefix() != null) {
+        p(" as ");
+        accept(node.getPrefix());
+      }
+      for (ImportCombinator combinator : node.getCombinators()) {
+        accept(combinator);
+      }
+      if (node.isExported()) {
+        p(" & export");
+      }
+      p(";");
+      nl();
     }
-    p(");");
-    nl();
     return null;
   }
 

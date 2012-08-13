@@ -289,6 +289,14 @@ public abstract class CompletionHooksParserBase extends AbstractParser {
     begin();
   }
 
+  protected void beginPartDirective() {
+    begin();
+  }
+
+  protected void beginPartOfDirective() {
+    begin();
+  }
+
   protected void beginPostfixExpression() {
     begin();
   }
