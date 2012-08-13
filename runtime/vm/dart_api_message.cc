@@ -187,7 +187,7 @@ Dart_CObject* ApiMessageReader::ReadInlinedObject(intptr_t object_id) {
 
   ASSERT((class_header & kSmiTagMask) != 0);
   class_id = LookupInternalClass(class_header);
-  if (class_id == kArrayCid || class_id == kImmutableArrayCid) {
+  if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
     intptr_t len = ReadSmiValue();
     Dart_CObject* value = GetBackRef(object_id);
     if (value == NULL) {
@@ -260,7 +260,7 @@ Dart_CObject* ApiMessageReader::ReadObjectRef() {
   ASSERT((class_header & kSmiTagMask) != 0);
   intptr_t object_id = SerializedHeaderData::decode(value);
   intptr_t class_id = LookupInternalClass(class_header);
-  if (class_id == kArrayCid || class_id == kImmutableArrayCid) {
+  if ((class_id == kArrayCid) || (class_id == kImmutableArrayCid)) {
     ASSERT(GetBackRef(object_id) == NULL);
     intptr_t len = ReadSmiValue();
     Dart_CObject* value = AllocateDartCObjectArray(len);
