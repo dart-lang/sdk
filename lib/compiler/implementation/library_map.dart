@@ -30,7 +30,7 @@ final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
       "lib/compiler/implementation/lib/core.dart"),
   "coreimpl": const LibraryInfo(
       "lib/compiler/implementation/lib/coreimpl.dart",
-      "lib/compiler/implementation/lib/coreimpl.dartp"),
+      "lib/compiler/implementation/lib/patch/coreimpl.dartp"),
   "_js_helper": const LibraryInfo(
       "lib/compiler/implementation/lib/js_helper.dart", isInternal: true),
   "_interceptors": const LibraryInfo(
@@ -48,7 +48,7 @@ final Map<String, LibraryInfo> DART2JS_LIBRARY_MAP
   "json": const LibraryInfo("lib/json/json.dart"),
   "math": const LibraryInfo(
       "corelib/unified/math/math.dart",
-      "lib/compiler/implementation/lib/math.dartp", isInternal: true),
+      "lib/compiler/implementation/lib/patch/math.dartp", isInternal: true),
   "uri": const LibraryInfo("lib/uri/uri.dart"),
   "utf": const LibraryInfo("lib/utf/utf.dart"),
   "web": const LibraryInfo("lib/web/web.dart"),
