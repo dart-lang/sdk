@@ -1444,8 +1444,6 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
-    world.registerDynamicInvocation(
-        const SourceString('toString'), Selector.INVOCATION_0);
     node.visitChildren(this);
   }
 
