@@ -16,7 +16,7 @@ class PartialClassElement extends ClassElement {
   PartialClassElement(SourceString name,
                       Token this.beginToken,
                       Token this.endToken,
-                      CompilationUnitElement enclosing,
+                      Element enclosing,
                       int id)
     : super(name, enclosing, id);
 

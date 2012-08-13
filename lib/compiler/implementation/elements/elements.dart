@@ -4,6 +4,8 @@
 
 #library('elements');
 
+#import('dart:uri');
+
 #import('../tree/tree.dart');
 #import('../scanner/scannerlib.dart');
 #import('../leg.dart');  // TODO(karlklose): we only need type.
@@ -255,10 +257,43 @@ class Element implements Hashable {
 }
 
 class ContainerElement extends Element {
-  ContainerElement(name, kind, enclosingElement) :
-    super(name, kind, enclosingElement);
+  Link<Element> localMembers = const EmptyLink<Element>();
 
-  abstract void addMember(Element element, DiagnosticListener listener);
+  ContainerElement(name, kind, enclosingElement)
+    : super(name, kind, enclosingElement);
+
+  void addMember(Element element, DiagnosticListener listener) {
+    localMembers = localMembers.prepend(element);
+  }
+}
+
+class ScopeContainerElement extends ContainerElement {
+  final Map<SourceString, Element> localScope;
+
+  ScopeContainerElement(name, kind, enclosingElement)
+    : super(name, kind, enclosingElement),
+      localScope = new Map<SourceString, Element>();
+
+  void addMember(Element element, DiagnosticListener listener) {
+    super.addMember(element, listener);
+    addToScope(element, listener);
+  }
+
+  void addToScope(Element element, DiagnosticListener listener) {
+    if (element.isAccessor()) {
+      addGetterOrSetter(element, localScope[element.name], listener);
+    } else {
+      Element existing = localScope.putIfAbsent(element.name, () => element);
+      if (existing !== element) {
+        listener.cancel('duplicate definition', token: element.position());
+        listener.cancel('existing definition', token: existing.position());
+      }
+    }
+  }
+
+  Element localLookup(SourceString elementName) {
+    return localScope[elementName];
+  }
 
   void addGetterOrSetter(Element element,
                          Element existing,
@@ -298,9 +333,10 @@ class ContainerElement extends Element {
   }
 }
 
+
+
 class CompilationUnitElement extends ContainerElement {
   final Script script;
-  Link<Element> topLevelElements = const EmptyLink<Element>();
 
   CompilationUnitElement(Script script, Element enclosing)
     : this.script = script,
@@ -308,41 +344,30 @@ class CompilationUnitElement extends ContainerElement {
             ElementKind.COMPILATION_UNIT,
             enclosing);
 
-  CompilationUnitElement.library(Script script)
-    : this.script = script,
-      super(new SourceString(script.name), ElementKind.LIBRARY, null);
-
   void addMember(Element element, DiagnosticListener listener) {
-    LibraryElement library = enclosingElement;
-    library.addMember(element, listener);
-    topLevelElements = topLevelElements.prepend(element);
-  }
-
-  void define(Element element, DiagnosticListener listener) {
-    LibraryElement library = enclosingElement;
-    library.define(element, listener);
-  }
-
-  void addTag(ScriptTag tag, DiagnosticListener listener) {
-    listener.cancel("script tags not allowed here", node: tag);
+    // Keep a list of top level members.
+    super.addMember(element, listener);
+    // Provide the member to the library to build scope.
+    getLibrary().addMember(element, listener);
   }
 }
 
-class LibraryElement extends CompilationUnitElement {
-  // TODO(ahe): Library element should not be a subclass of
-  // CompilationUnitElement.
-
+class LibraryElement extends ScopeContainerElement {
+  CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
-    const EmptyLink<CompilationUnitElement>();
+      const EmptyLink<CompilationUnitElement>();
+
   Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
   ScriptTag libraryTag;
-  Map<SourceString, Element> elements;
   bool canUseNative = false;
   LibraryElement patch = null;
 
   LibraryElement(Script script)
-      : elements = new Map<SourceString, Element>(),
-        super.library(script);
+    : super(new SourceString(script.name), ElementKind.LIBRARY, null) {
+    entryCompilationUnit = new CompilationUnitElement(script, this);
+  }
+
+  Uri get uri() => entryCompilationUnit.script.uri;
 
   bool get isPatched() => patch !== null;
 
@@ -354,45 +379,27 @@ class LibraryElement extends CompilationUnitElement {
     tags = tags.prepend(tag);
   }
 
-  void addMember(Element element, DiagnosticListener listener) {
-    topLevelElements = topLevelElements.prepend(element);
-    define(element, listener);
-  }
-
-  void define(Element element, DiagnosticListener listener) {
-    if (element.kind == ElementKind.GETTER
-        || element.kind == ElementKind.SETTER) {
-      addGetterOrSetter(element, elements[element.name], listener);
-    } else {
-      Element existing = elements.putIfAbsent(element.name, () => element);
-      if (existing !== element) {
-        listener.cancel('duplicate definition', token: element.position());
-        listener.cancel('existing definition', token: existing.position());
-      }
-    }
-  }
-
   /** Look up a top-level element in this library. The element could
     * potentially have been imported from another library. Returns
     * null if no such element exist. */
   Element find(SourceString elementName) {
-    return elements[elementName];
+    return localScope[elementName];
   }
 
   /** Look up a top-level element in this library, but only look for
     * non-imported elements. Returns null if no such element exist. */
   Element findLocal(SourceString elementName) {
-    Element result = elements[elementName];
+    Element result = localScope[elementName];
     if (result === null || result.getLibrary() != this) return null;
     return result;
   }
 
   void forEachExport(f(Element element)) {
-    elements.forEach((SourceString _, Element e) {
-      if (this === e.getLibrary()
-          && e.kind !== ElementKind.PREFIX
-          && e.kind !== ElementKind.FOREIGN) {
-        if (!e.name.isPrivate()) f(e);
+    localMembers.forEach((Element e) {
+      if (e.kind !== ElementKind.PREFIX
+          && e.kind !== ElementKind.FOREIGN
+          && !e.name.isPrivate()) {
+        f(e);
       }
     });
   }
@@ -409,10 +416,12 @@ class LibraryElement extends CompilationUnitElement {
       return libraryTag.argument.dartString.slowToString();
     } else {
       // Use the file name as script name.
-      var path = script.uri.path;
+      String path = uri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
+
+  CompilationUnitElement getCompilationUnit() => entryCompilationUnit;
 
   Scope buildEnclosingScope() => new TopScope(this);
 }
@@ -420,15 +429,15 @@ class LibraryElement extends CompilationUnitElement {
 class PrefixElement extends Element {
   Map<SourceString, Element> imported;
   Token firstPosition;
-  final CompilationUnitElement patchSource;
+  final CompilationUnitElement patchCompilationUnit;
 
   PrefixElement(SourceString prefix, Element enclosing, this.firstPosition,
-                [this.patchSource])
+                [this.patchCompilationUnit])
     : imported = new Map<SourceString, Element>(),
       super(prefix, ElementKind.PREFIX, enclosing);
 
   CompilationUnitElement getCompilationUnit() {
-    if (patchSource !== null) return patchSource;
+    if (patchCompilationUnit !== null) return patchCompilationUnit;
     return super.getCompilationUnit();
   }
 
@@ -879,15 +888,12 @@ abstract class TypeDeclarationElement implements Element {
   }
 }
 
-class ClassElement extends ContainerElement
+class ClassElement extends ScopeContainerElement
     implements TypeDeclarationElement {
   final int id;
   InterfaceType type;
   Type supertype;
   Type defaultClass;
-  Link<Element> members = const EmptyLink<Element>();
-  Map<SourceString, Element> localMembers;
-  Map<SourceString, Element> constructors;
   Link<Type> interfaces = const EmptyLink<Type>();
   bool isResolved = false;
   bool isBeingResolved = false;
@@ -899,22 +905,7 @@ class ClassElement extends ContainerElement
   ClassElement patch = null;
 
   ClassElement(SourceString name, CompilationUnitElement enclosing, this.id)
-    : localMembers = new Map<SourceString, Element>(),
-      constructors = new Map<SourceString, Element>(),
-      super(name, ElementKind.CLASS, enclosing);
-
-  void addMember(Element element, DiagnosticListener listener) {
-    members = members.prepend(element);
-    if (element.kind == ElementKind.GENERATIVE_CONSTRUCTOR ||
-        element.modifiers.isFactory()) {
-      constructors[element.name] = element;
-    } else if (element.kind == ElementKind.GETTER
-               || element.kind == ElementKind.SETTER) {
-      addGetterOrSetter(element, localMembers[element.name], listener);
-    } else {
-      localMembers[element.name] = element;
-    }
-  }
+    : super(name, ElementKind.CLASS, enclosing);
 
   InterfaceType computeType(compiler) {
     if (type == null) {
@@ -933,10 +924,18 @@ class ClassElement extends ContainerElement
     return this;
   }
 
+  /**
+   * Lookup local members in the class. This will ignore constructors.
+   */
   Element lookupLocalMember(SourceString memberName) {
-    return localMembers[memberName];
+    var result = localLookup(memberName);
+    if (result !== null && result.isConstructor()) return null;
+    return result;
   }
 
+  /**
+  * Lookup super members for the class. This will ignore constructors.
+   */
   Element lookupSuperMember(SourceString memberName) {
     bool isPrivate = memberName.isPrivate();
     for (ClassElement s = superclass; s != null; s = s.superclass) {
@@ -958,7 +957,7 @@ class ClassElement extends ContainerElement
    * rules, where library scope comes before superclass scope.
    */
   Element lookupMember(SourceString memberName) {
-    Element localMember = localMembers[memberName];
+    Element localMember = lookupLocalMember(memberName);
     return localMember === null ? lookupSuperMember(memberName) : localMember;
   }
 
@@ -1003,10 +1002,28 @@ class ClassElement extends ContainerElement
     } else {
       normalizedName = className;
     }
-    Element result = constructors[normalizedName];
-    if (result === null && noMatch !== null) {
-      result = noMatch(lookupLocalMember(constructorName));
+    Element result = localLookup(normalizedName);
+    if (result === null || !result.isConstructor()) {
+      result = noMatch !== null ? noMatch(result) : null;
     }
+    return result;
+  }
+
+  bool get hasConstructor() {
+    // Search in scope to be sure we search patched constructors.
+    for (var element in localScope.getValues()) {
+      if (element.isConstructor()) return true;
+    }
+    return false;
+  }
+
+  Collection<Element> get constructors() {
+    // TODO(ajohnsen): See if we can avoid this method at some point.
+    List<Element> result = <Element>[];
+    // Search in scope to be sure we search patched constructors.
+    localScope.forEach((_, Element value) {
+      if (value.isConstructor()) result.add(value);
+    });
     return result;
   }
 
@@ -1034,7 +1051,7 @@ class ClassElement extends ContainerElement
     do {
       if (seen.contains(classElement)) return;
       seen.add(classElement);
-      for (Element element in classElement.members) {
+      for (Element element in classElement.localMembers) {
         f(classElement, element);
       }
       if (includeBackendMembers) {

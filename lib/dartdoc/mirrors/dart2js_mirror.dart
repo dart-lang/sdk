@@ -486,7 +486,7 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
       return _library.libraryTag.argument.dartString.slowToString();
     } else {
       // Use the file name as script name.
-      String path = _library.script.uri.path;
+      String path = _library.uri.path;
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
@@ -684,12 +684,7 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   void _ensureMembers() {
     if (_members == null) {
       _members = <Dart2JsMemberMirror>{};
-      _class.constructors.forEach((_, e) {
-        for (var member in _convertElementMemberToMemberMirrors(this, e)) {
-          _members[member.canonicalName] = member;
-        }
-      });
-      _class.localMembers.forEach((_, e) {
+      _class.localMembers.forEach((e) {
         for (var member in _convertElementMemberToMemberMirrors(this, e)) {
           _members[member.canonicalName] = member;
         }

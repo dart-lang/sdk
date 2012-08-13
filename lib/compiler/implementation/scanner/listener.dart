@@ -556,10 +556,14 @@ class ElementListener extends Listener {
     }
     StringNode firstArgument = popLiteralString();
     Identifier tag = popNode();
-    compilationUnitElement.addTag(new ScriptTag(tag, firstArgument,
-                                                argumentName, prefix,
-                                                beginToken, endToken),
-                                  listener);
+    LibraryElement library = compilationUnitElement.getLibrary();
+    if (library.entryCompilationUnit != compilationUnitElement) {
+      // Only allow script tags in the entry compilation unit.
+      listener.cancel("script tags not allowed here", node: tag);
+    }
+    ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
+                                        prefix, beginToken, endToken);
+    library.addTag(scriptTag, listener);
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
