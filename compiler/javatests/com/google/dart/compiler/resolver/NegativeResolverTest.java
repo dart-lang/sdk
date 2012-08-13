@@ -1358,4 +1358,68 @@ public class NegativeResolverTest extends CompilerTestCase {
             "}"),
             errEx(ResolverErrorCode.CANNOT_BE_RESOLVED, 4, 21, 1));
   }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4374
+   */
+  public void test_unaryOperatorForFinal_variable() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "main() {",
+            "  final v = 0;",
+            "  v++;",
+            "  v--;",
+            "  ++v;",
+            "  --v;",
+            "}"),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 5, 3, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 5, 1));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4374
+   */
+  public void test_unaryOperatorForFinal_parameter() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "foo(final v) {",
+            "  v++;",
+            "  v--;",
+            "  ++v;",
+            "  --v;",
+            "}"),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 3, 3, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 4, 3, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 5, 5, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4374
+   */
+  public void test_unaryOperatorForFinal_field() throws Exception {
+    checkSourceErrors(
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class A {",
+            "  final v = 0;",
+            "  foo() {",
+            "    v++;",
+            "    v--;",
+            "    ++v;",
+            "    --v;",
+            "  }",
+            "}"),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 5, 5, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 6, 5, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 7, 7, 1),
+            errEx(ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL, 8, 7, 1));
+  }
 }

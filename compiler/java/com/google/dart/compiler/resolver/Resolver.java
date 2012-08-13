@@ -62,6 +62,7 @@ import com.google.dart.compiler.ast.DartTryStatement;
 import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartTypeParameter;
+import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
 import com.google.dart.compiler.ast.DartUnqualifiedInvocation;
 import com.google.dart.compiler.ast.DartVariable;
@@ -1873,6 +1874,25 @@ public class Resolver {
         }
       }
 
+      return null;
+    }
+
+    @Override
+    public Element visitUnaryExpression(DartUnaryExpression node) {
+      DartExpression arg = node.getArg();
+      Element argElement = resolve(arg);
+      if (node.getOperator().isCountOperator()) {
+        switch (ElementKind.of(argElement)) {
+          case FIELD:
+          case PARAMETER:
+          case VARIABLE:
+            if (argElement.getModifiers().isFinal()) {
+              topLevelContext.onError(arg, ResolverErrorCode.CANNOT_ASSIGN_TO_FINAL,
+                  argElement.getName());
+            }
+            break;
+        }
+      }
       return null;
     }
 
