@@ -1035,8 +1035,8 @@ class StandardTestSuite implements TestSuite {
 
   List<List<String>> getVmOptions(Map optionsFromFile) {
     bool needsVmOptions =
-        Contains(configuration['compiler'], const ['none', 'dart2dart']) &&
-        Contains(configuration['runtime'], const ['vm', 'drt', 'dartium']);
+        Contains(configuration['compiler'], const ['none', 'dart2dart', 'dartc']) &&
+        Contains(configuration['runtime'], const ['none', 'vm', 'drt', 'dartium']);
     if (!needsVmOptions) return [[]];
     return optionsFromFile['vmOptions'];
   }
