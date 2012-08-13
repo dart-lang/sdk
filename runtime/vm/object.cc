@@ -7638,6 +7638,36 @@ RawICData* ICData::AsUnaryClassChecks() const {
 }
 
 
+bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    cls = Function::Handle(GetTargetAt(i)).owner();
+    if (cls.id() != owner_cid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::AllReceiversAreNumbers() const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    cls = Function::Handle(GetTargetAt(i)).owner();
+    const intptr_t cid = cls.id();
+    if ((cid != kSmiCid) &&
+        (cid != kMintCid) &&
+        (cid != kBigintCid) &&
+        (cid != kDoubleCid)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 RawICData* ICData::New(const Function& function,
                        const String& target_name,
                        intptr_t deopt_id,

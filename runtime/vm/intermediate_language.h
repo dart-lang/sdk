@@ -686,7 +686,7 @@ class EqualityCompareComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObjectCid) {
+        receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -695,8 +695,10 @@ class EqualityCompareComp : public ComparisonComp {
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
+  // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
   intptr_t receiver_class_id() const { return receiver_class_id_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
@@ -720,7 +722,7 @@ class RelationalOpComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        operands_class_id_(kObjectCid) {
+        operands_class_id_(kIllegalCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 

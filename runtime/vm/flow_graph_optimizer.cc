@@ -547,13 +547,16 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
     comp->set_operands_class_id(kSmiCid);
   } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDoubleCid);
+  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
+    comp->set_operands_class_id(kNumberCid);
   }
 }
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
                                               BindInstr* instr) {
-  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() == 1)) {
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
+  if (comp->ic_data()->NumberOfChecks() == 1) {
     ASSERT(comp->ic_data()->num_args_tested() == 2);
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
@@ -563,7 +566,11 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
       comp->set_receiver_class_id(kSmiCid);
     } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
       comp->set_receiver_class_id(kDoubleCid);
+    } else {
+      ASSERT(comp->receiver_class_id() == kIllegalCid);
     }
+  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
+    comp->set_receiver_class_id(kNumberCid);
   }
 }
 

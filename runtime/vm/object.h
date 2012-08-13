@@ -2844,6 +2844,9 @@ class ICData : public Object {
   // ICData object containing only unique arg0 checks.
   RawICData* AsUnaryClassChecks() const;
 
+  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
+  bool AllReceiversAreNumbers() const;
+
   static RawICData* New(const Function& caller_function,
                         const String& target_name,
                         intptr_t deopt_id,

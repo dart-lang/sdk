@@ -244,9 +244,11 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 2;
-  if (receiver_class_id() != kObjectCid) {
-    ASSERT((receiver_class_id() == kSmiCid) ||
-           (receiver_class_id() == kDoubleCid));
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if ((receiver_class_id() == kSmiCid) ||
+      (receiver_class_id() == kDoubleCid) ||
+      is_checked_strict_equal) {
     const intptr_t kNumTemps = 1;
     LocationSummary* locs =
         new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
@@ -337,15 +339,17 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     __ j(ZERO, deopt);  // Smi deopts.
     __ LoadClassId(temp, left);
   }
+  // 'temp' contains class-id of the left argument.
+  ObjectStore* object_store = Isolate::Current()->object_store();
   Condition cond = TokenKindToSmiCondition(kind);
   Label done;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    // Assert that the Smi is at position 0, if at all.
     ASSERT((ic_data.GetReceiverClassIdAt(i) != kSmiCid) || (i == 0));
     Label next_test;
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
     __ j(NOT_EQUAL, &next_test);
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    ObjectStore* object_store = Isolate::Current()->object_store();
     if (target.owner() == object_store->object_class()) {
       // Object.== is same as ===.
       __ Drop(2);
@@ -353,7 +357,6 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
       if (branch != NULL) {
         branch->EmitBranchOnCondition(compiler, cond);
       } else {
-        // This case should be rare.
         Register result = locs.out().reg();
         Label load_true;
         __ j(cond, &load_true, Assembler::kNearJump);
@@ -393,6 +396,57 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
   // Fall through leads to deoptimization
   __ jmp(deopt);
   __ Bind(&done);
+}
+
+
+// Emit code when ICData's targets are all Object == (which is ===).
+static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
+                                   const ICData& ic_data,
+                                   const LocationSummary& locs,
+                                   Token::Kind kind,
+                                   BranchInstr* branch,
+                                   intptr_t deopt_id,
+                                   intptr_t token_pos,
+                                   intptr_t try_index) {
+  ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
+  Register left = locs.in(0).reg();
+  Register right = locs.in(1).reg();
+  Register temp = locs.temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id,
+                                        try_index,
+                                        kDeoptEquality,
+                                        left,
+                                        right);
+  __ testl(left, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  __ LoadClassId(temp, left);
+  Label done;
+  for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
+    __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
+    if (i == (ic_data.NumberOfChecks() - 1)) {
+      __ j(NOT_EQUAL, deopt);
+    } else {
+      __ j(EQUAL, &done);
+    }
+  }
+  __ Bind(&done);
+  __ cmpl(left, right);
+  if (branch == NULL) {
+    Label done, is_equal;
+    Register result = locs.out().reg();
+    __ j(EQUAL, &is_equal, Assembler::kNearJump);
+    // Not equal.
+    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_false()
+                                               : compiler->bool_true());
+    __ jmp(&done, Assembler::kNearJump);
+    __ Bind(&is_equal);
+    __ LoadObject(result, (kind == Token::kEQ) ? compiler->bool_true()
+                                               : compiler->bool_false());
+    __ Bind(&done);
+  } else {
+    Condition cond = TokenKindToSmiCondition(kind);
+    branch->EmitBranchOnCondition(compiler, cond);
+  }
 }
 
 
@@ -546,6 +600,13 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                            deopt_id(), token_pos(), try_index());
     return;
   }
+  const bool is_checked_strict_equal =
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+  if (is_checked_strict_equal) {
+    EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), NULL,
+                           deopt_id(), token_pos(), try_index());
+    return;
+  }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     EmitGenericEqualityCompare(compiler, *locs(), kind(), NULL, *ic_data(),
                                deopt_id(), token_pos(), try_index());
@@ -571,7 +632,6 @@ LocationSummary* RelationalOpComp::MakeLocationSummary() const {
     summary->set_temp(0, Location::RequiresRegister());
     return summary;
   }
-  ASSERT(operands_class_id() == kObjectCid);
   return MakeCallSummary();
 }
 
@@ -2000,6 +2060,14 @@ static bool ICDataWithBothClassIds(const ICData& ic_data, intptr_t class_id) {
 }
 
 
+static bool IsCheckedStrictEquals(const ICData& ic_data, Token::Kind kind) {
+  if ((kind == Token::kEQ) || (kind == Token::kNE)) {
+    return ic_data.AllTargetsHaveSameOwner(kInstanceCid);
+  }
+  return false;
+}
+
+
 LocationSummary* BranchInstr::MakeLocationSummary() const {
   if ((kind() == Token::kEQ_STRICT) || (kind() == Token::kNE_STRICT)) {
     const int kNumInputs = 2;
@@ -2012,7 +2080,8 @@ LocationSummary* BranchInstr::MakeLocationSummary() const {
   }
   if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
     if (ICDataWithBothClassIds(*ic_data(), kSmiCid) ||
-        ICDataWithBothClassIds(*ic_data(), kDoubleCid)) {
+        ICDataWithBothClassIds(*ic_data(), kDoubleCid) ||
+        IsCheckedStrictEquals(*ic_data(), kind())) {
       const intptr_t kNumInputs = 2;
       const intptr_t kNumTemps = 1;
       LocationSummary* summary =
@@ -2066,6 +2135,12 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                              deopt_id(), token_pos(), try_index());
       return;
     }
+    if (IsCheckedStrictEquals(*ic_data(), kind())) {
+      EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), this,
+                             deopt_id(), token_pos(), try_index());
+      return;
+    }
+
     // TODO(srdjan): Add Smi/Double, Double/Smi comparisons.
     if ((kind() == Token::kEQ) || (kind() == Token::kNE)) {
       EmitGenericEqualityCompare(compiler, *locs(), kind(), this, *ic_data(),

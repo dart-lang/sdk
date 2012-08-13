@@ -648,17 +648,27 @@ RawAbstractType* StrictCompareComp::CompileType() const {
 }
 
 
+// Only known == targets return a Boolean.
 RawAbstractType* EqualityCompareComp::CompileType() const {
-  return receiver_class_id() != kObjectCid
-      ? Type::BoolInterface()
-      : Type::DynamicType();
+  if ((receiver_class_id() == kSmiCid) ||
+      (receiver_class_id() == kDoubleCid) ||
+      (receiver_class_id() == kNumberCid)) {
+    return Type::BoolInterface();
+  }
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+    return Type::BoolInterface();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* RelationalOpComp::CompileType() const {
-  return operands_class_id() != kObjectCid
-      ? Type::BoolInterface()
-      : Type::DynamicType();
+  if ((operands_class_id() == kSmiCid) ||
+      (operands_class_id() == kDoubleCid) ||
+      (operands_class_id() == kNumberCid)) {
+    return Type::BoolInterface();
+  }
+  return Type::DynamicType();
 }
 
 
@@ -1032,22 +1042,22 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
+  return NULL;
   UseVal* left_use = left()->AsUse();
   UseVal* right_use = right()->AsUse();
-  if (right_use == NULL || left_use == NULL) return NULL;
+  if ((right_use == NULL) || (left_use == NULL)) return NULL;
   Definition* left = left_use->definition();
   BindInstr* right = right_use->definition()->AsBind();
   if (right == NULL) return NULL;
   ConstantVal* right_constant = right->computation()->AsConstant();
   if (right_constant == NULL) return NULL;
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  const AbstractType& left_type =
-      AbstractType::Handle(left->HasPropagatedType()
-                           ? left->PropagatedType()
-                           : left->CompileType());
-  if ((left_type.raw() == Type::BoolInterface()) &&
-      (kind() == Token::kEQ_STRICT) &&
-      (right_constant->value().raw() == Bool::True())) {
+  // Handles e === true.
+  // const AbstractType& left_type = AbstractType::Handle(left->CompileType());
+  if ((kind() == Token::kEQ_STRICT) &&
+      (right_constant->value().raw() == Bool::True()) &&
+      left_use->CompileTypeIsMoreSpecificThan(
+          Type::Handle(Type::BoolInterface()))) {
     // Remove the constant from the graph.
     right->RemoveFromGraph();
     // Return left subexpression as the replacement for this instruction.
