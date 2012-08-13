@@ -40,7 +40,7 @@ void processNativeClassesInLibrary(Enqueuer world,
                                    LibraryElement library) {
   bool hasNativeClass = false;
   final compiler = emitter.compiler;
-  for (Link<Element> link = library.localMembers;
+  for (Link<Element> link = library.topLevelElements;
        !link.isEmpty(); link = link.tail) {
     Element element = link.head;
     if (element.kind == ElementKind.CLASS) {
@@ -77,15 +77,14 @@ void maybeEnableNative(Compiler compiler,
                        LibraryElement library,
                        Uri uri) {
   String libraryName = uri.toString();
-  if (library.entryCompilationUnit.script.name.contains(
-          'dart/tests/compiler/dart2js_native')
+  if (library.script.name.contains('dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
-    library.addToScope(compiler.findHelper(const SourceString('JS')), compiler);
+    library.define(compiler.findHelper(const SourceString('JS')), compiler);
     if (compiler.jsIndexingBehaviorInterface !== null) {
-      library.addToScope(compiler.jsIndexingBehaviorInterface, compiler);
+      library.define(compiler.jsIndexingBehaviorInterface, compiler);
     }
   }
 }

@@ -291,7 +291,7 @@ class Compiler implements DiagnosticListener {
       // take advantage of this as core and coreimpl import js_helper
       // and see Dynamic this way.
       withCurrentElement(dynamicClass, () {
-        library.addToScope(dynamicClass, this);
+        library.define(dynamicClass, this);
       });
     }
   }
@@ -370,20 +370,19 @@ class Compiler implements DiagnosticListener {
   }
 
   void applyLibraryPatch(LibraryElement original, LibraryElement patch) {
-    Link<Element> patches = patch.localMembers;
-    applyContainerPatch(original, patches);
+    Link<Element> patches = patch.topLevelElements;
+    applyContainerPatch(original, patches, original.findLocal);
 
     // Copy imports from patch to original library.
     Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
-    Uri patchBase = patch.uri;
+    Uri patchBase = patch.script.uri;
     for (ScriptTag tag in patch.tags.reverse()) {
       if (tag.isImport()) {
         StringNode argument = tag.argument;
         Uri resolved = patchBase.resolve(argument.dartString.slowToString());
         LibraryElement importedLibrary =
             scanner.loadLibrary(resolved, argument);
-        scanner.importLibrary(original, importedLibrary, tag,
-                              patch.entryCompilationUnit);
+        scanner.importLibrary(original, importedLibrary, tag, patch);
         if (resolved.scheme == "dart") {
           delayedPatches[resolved.path] = importedLibrary;
         }
@@ -400,11 +399,11 @@ class Compiler implements DiagnosticListener {
     });
   }
 
-  void applyContainerPatch(ScopeContainerElement original,
-                           Link<Element> patches) {
+  void applyContainerPatch(ContainerElement original, Link<Element> patches,
+                           Element lookup(SourceString name)) {
     while (!patches.isEmpty()) {
       Element patchElement = patches.head;
-      Element originalElement = original.localLookup(patchElement.name);
+      Element originalElement = lookup(patchElement.name);
       if (patchElement.isAccessor()) {
         // Skip accessors. An accessor always has an abstract field,
         // representing the accessor in the lookup scope. We can thus skip the
@@ -425,7 +424,7 @@ class Compiler implements DiagnosticListener {
                                        this);
             if (originalField === null && patchField.setter !== null) {
               // It exists now, so find it for the setter patching.
-              originalField = original.localLookup(patchElement.name);
+              originalField = lookup(patchElement.name);
             }
           } else {
             patchMember(originalField.getter, patchField.getter);
@@ -536,8 +535,13 @@ class Compiler implements DiagnosticListener {
     ClassNode node = original.parseNode(this);
     // Parse patch class with "patch" parser.
     ClassNode patchNode = patchParser.parsePatchClassNode(patch);
-    Link<Element> patches = patch.localMembers;
-    applyContainerPatch(original, patches);
+    Link<Element> patches = patch.members;
+    Element lookupMemberOrConstructor(SourceString name) {
+      Element result = original.lookupLocalMember(name);
+      if (result !== null) return result;
+      return original.lookupConstructor(name);
+    }
+    applyContainerPatch(original, patches, lookupMemberOrConstructor);
   }
 
   /**
@@ -548,17 +552,17 @@ class Compiler implements DiagnosticListener {
 
   /** Define the JS helper functions in the given library. */
   void addForeignFunctions(LibraryElement library) {
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('JS'), library), this);
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('UNINTERCEPTED'), library), this);
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('JS_HAS_EQUALS'), library), this);
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('JS_CURRENT_ISOLATE'), library), this);
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('JS_CALL_IN_ISOLATE'), library), this);
-    library.addToScope(new ForeignElement(
+    library.define(new ForeignElement(
         const SourceString('DART_CLOSURE_TO_JS'), library), this);
   }
 

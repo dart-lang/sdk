@@ -112,7 +112,7 @@ function(cls, fields, methods) {
       nativeBuffer.add("$className.$name = $value;\n");
     }
 
-    for (Element member in classElement.localMembers) {
+    for (Element member in classElement.members) {
       if (member.isInstanceMember()) {
         emitter.addInstanceMember(member, defineInstanceMember);
       }

@@ -40,13 +40,11 @@ class PatchParserTask extends leg.CompilerTask {
   void scanLibraryElements(LibraryElement library) {
     measure(() {
       // TODO(lrn): Possibly recursively handle #source directives in patch.
-      leg.Script script = library.entryCompilationUnit.script;
+      leg.Script script = library.script;
       Token tokens = new StringScanner(script.text).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;
       PatchListener patchListener =
-          new PatchElementListener(compiler,
-                                   library.entryCompilationUnit,
-                                   idGenerator);
+          new PatchElementListener(compiler, library, idGenerator);
       new PatchParser(patchListener).parseUnit(tokens);
     });
   }

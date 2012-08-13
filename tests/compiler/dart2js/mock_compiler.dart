@@ -190,10 +190,11 @@ void compareWarningKinds(String text, expectedWarnings, foundWarnings) {
 
 void importLibrary(LibraryElement target, LibraryElement imported,
                    Compiler compiler) {
-  for (var element in imported.localMembers) {
-    compiler.withCurrentElement(element, () {
-      target.addToScope(element, compiler);
-    });
+  for (Link<Element> link = imported.topLevelElements; !link.isEmpty();
+       link = link.tail) {
+    compiler.withCurrentElement(link.head, () {
+        target.define(link.head, compiler);
+      });
   }
 }
 

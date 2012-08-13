@@ -1884,10 +1884,10 @@ class ClassResolverVisitor extends TypeDefinitionVisitor {
    * constructors.
    */
   void addDefaultConstructorIfNeeded(ClassElement element) {
-    if (element.hasConstructor) return;
+    if (element.constructors.length != 0) return;
     SynthesizedConstructorElement constructor =
       new SynthesizedConstructorElement(element);
-    element.addToScope(constructor, compiler);
+    element.constructors[element.name] = constructor;
     Type returnType = compiler.types.voidType;
     constructor.type = new FunctionType(returnType, const EmptyLink<Type>(),
                                         constructor);

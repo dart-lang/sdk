@@ -72,7 +72,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   ElementListener listener = new ElementListener(compiler, unit, () => id++);
   PartialParser parser = new PartialParser(listener);
   compiler.withCurrentElement(unit, () => parser.parseUnit(tokens));
-  return unit.localMembers;
+  return unit.topLevelElements;
 }
 
 // TODO(ahe): We define this method to avoid having to import

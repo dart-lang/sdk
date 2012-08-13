@@ -442,10 +442,17 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 # catching for now.
 #
 [ $compiler == dart2js ]
+Language/03_Overview/1_Scoping_A01_t19: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t20: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t21: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t23: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t24: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t35: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t39: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t40: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A01_t41: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t45: Fail, OK # @compile-error
+Language/03_Overview/1_Scoping_A01_t46: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A02_t10: Fail, OK # @compile-error
 Language/03_Overview/1_Scoping_A03_t05: Fail, OK # @compile-error
 Language/03_Overview/2_Privacy_A01_t09: Fail, OK # @compile-error
@@ -526,6 +533,13 @@ Language/07_Classes/07_Classes_A04_t22: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A04_t23: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A04_t24: Fail, OK # @compile-error
 Language/07_Classes/07_Classes_A04_t25: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A07_t01: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A07_t04: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A07_t07: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A07_t08: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A08_t01: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A09_t01: Fail, OK # @compile-error
+Language/07_Classes/07_Classes_A09_t02: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t01: Fail, OK # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail, OK # @compile-error
@@ -549,6 +563,13 @@ Language/07_Classes/2_Getters_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/2_Getters_A03_t02: Fail, OK # @compile-error
 Language/07_Classes/2_Getters_A03_t03: Fail, OK # @compile-error
 Language/07_Classes/2_Getters_A03_t04: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t01: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t02: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t08: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t09: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t10: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t11: Fail, OK # @compile-error
+Language/07_Classes/2_Getters_A04_t12: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t01: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t02: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t03: Fail, OK # @compile-error
@@ -557,6 +578,10 @@ Language/07_Classes/3_Setters_A03_t05: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t06: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t07: Fail, OK # @compile-error
 Language/07_Classes/3_Setters_A03_t08: Fail, OK # @compile-error
+Language/07_Classes/3_Setters_A04_t01: Fail, OK # @compile-error
+Language/07_Classes/3_Setters_A04_t02: Fail, OK # @compile-error
+Language/07_Classes/3_Setters_A04_t07: Fail, OK # @compile-error
+Language/07_Classes/3_Setters_A04_t08: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail, OK # @compile-error
@@ -568,6 +593,7 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail, OK # @compile-erro
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail, OK # @compile-error
+Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail, OK # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail, OK # @compile-error
@@ -591,16 +617,19 @@ Language/08_Interfaces/1_Methods_A04_t05: Fail, OK # @compile-error
 Language/08_Interfaces/1_Methods_A05_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail, OK # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail, OK # @compile-error
+Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail, OK # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail, OK # @compile-error
+Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail, OK # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t09: Fail, OK # @compile-error

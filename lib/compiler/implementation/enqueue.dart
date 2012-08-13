@@ -137,7 +137,7 @@ class Enqueuer {
   }
 
   void processInstantiatedClass(ClassElement cls) {
-    cls.localMembers.forEach(processInstantiatedClassMember);
+    cls.members.forEach(processInstantiatedClassMember);
   }
 
   void registerFieldClosureInvocations() {
@@ -217,7 +217,7 @@ class Enqueuer {
         // TODO(ahe): Don't call resolveType, instead, call this method
         // when resolveType is called.
         compiler.resolveClass(cls);
-        cls.localMembers.forEach(processInstantiatedClassMember);
+        cls.members.forEach(processInstantiatedClassMember);
         cls = cls.superclass;
       }
     });
