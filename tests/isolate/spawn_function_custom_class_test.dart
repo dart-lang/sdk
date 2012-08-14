@@ -9,7 +9,7 @@
 
 #library('spawn_tests');
 #import('dart:isolate');
-#import('../../lib/unittest/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 
 class MyClass {
   var myVar = 'there';

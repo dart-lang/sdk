@@ -6,7 +6,7 @@
 #library('bidi_utils_test');
 
 #import('../../../pkg/i18n/intl.dart');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 /**
  * Tests the bidi utilities library.

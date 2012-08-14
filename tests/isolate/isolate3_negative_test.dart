@@ -7,7 +7,7 @@
 
 #library('Isolate3NegativeTest');
 #import('dart:isolate');
-#import('../../lib/unittest/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 
 class TestClass {
   TestClass.named(num this.fld1) : fld2=fld1 {

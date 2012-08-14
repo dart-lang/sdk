@@ -337,8 +337,7 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['args', 'crypto', 'json', 'math', 'unittest', 'uri',
-                  'utf', 'web']:
+  for library in ['args', 'crypto', 'json', 'math', 'uri', 'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -431,7 +430,7 @@ def Main(argv):
   # Create and populate pkg/{i18n, logging}
   #
 
-  for library in ['i18n', 'logging']:
+  for library in ['i18n', 'logging', 'unittest']:
     src_dir = join(HOME, 'pkg', library)
     dest_dir = join(PKG, library)
     os.makedirs(dest_dir)

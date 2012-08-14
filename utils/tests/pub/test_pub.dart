@@ -15,7 +15,7 @@
 #import('dart:json');
 #import('dart:uri');
 
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../lib/file_system.dart', prefix: 'fs');
 #import('../../pub/io.dart');
 #import('../../pub/utils.dart');

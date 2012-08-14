@@ -4,7 +4,7 @@
 
 #library('pubspec_test');
 
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../pub/pubspec.dart');
 #import('../../pub/source.dart');
 #import('../../pub/source_registry.dart');

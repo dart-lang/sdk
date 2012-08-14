@@ -109,7 +109,7 @@ void main() {
       apidocLibraries.add(new Path('dart:$name'));
     }
   });
-  apidocLibraries.add(doc.scriptDir.append('../../lib/unittest/unittest.dart'));
+  apidocLibraries.add(doc.scriptDir.append('../../pkg/unittest/unittest.dart'));
   apidocLibraries.add(doc.scriptDir.append('../../pkg/i18n/intl.dart'));
 
   print('Generating docs...');

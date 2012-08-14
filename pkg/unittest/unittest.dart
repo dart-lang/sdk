@@ -6,7 +6,7 @@
  * A library for writing dart unit tests.
  *
  * To import this library, specify the relative path to
- * lib/unittest/unittest.dart.
+ * pkg/unittest/unittest.dart.
  *
  * ##Concepts##
  *
@@ -24,7 +24,7 @@
  *
  * A trivial test:
  *
- *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('path-to-dart/pkg/unittest/unitest.dart');
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -34,7 +34,7 @@
  *
  * Multiple tests:
  *
- *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('path-to-dart/pkg/unittest/unitest.dart');
  *     main() {
  *       test('this is a test', () {
  *         int x = 2 + 3;
@@ -48,7 +48,7 @@
  *
  * Multiple tests, grouped by category:
  *
- *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('path-to-dart/pkg/unittest/unitest.dart');
  *     main() {
  *       group('group A', () {
  *         test('test A.1', () {
@@ -74,7 +74,7 @@
  * that callback is run. A count argument can be provided to specify the number
  * of times the callback should be called (the default is 1).
  *
- *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('path-to-dart/pkg/unittest/unitest.dart');
  *     #import('dart:dom_deprecated');
  *     main() {
  *       test('calllback is executed once', () {
@@ -115,7 +115,7 @@
  * arguments or that take named parameters. (this is not implemented yet,
  * but will be coming here soon).
  *
- *     #import('path-to-dart/lib/unittest/unitest.dart');
+ *     #import('path-to-dart/pkg/unittest/unitest.dart');
  *     #import('dart:dom_deprecated');
  *     main() {
  *       test('calllback is executed', () {

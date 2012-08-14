@@ -7,7 +7,7 @@
 #import('dart:io');
 
 #import('test_pub.dart');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 final USAGE_STRING = """
     Pub is a package manager for Dart.

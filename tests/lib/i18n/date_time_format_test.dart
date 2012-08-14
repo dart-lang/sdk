@@ -8,7 +8,7 @@
 
 #import('../../../pkg/i18n/intl.dart');
 #import('../../../pkg/i18n/date_format.dart');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../../pkg/i18n/date_time_patterns.dart');
 #import('../../../pkg/i18n/date_symbol_data.dart');
 

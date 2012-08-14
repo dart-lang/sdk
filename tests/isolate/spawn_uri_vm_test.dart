@@ -7,7 +7,7 @@
 // other isolate's code.
 // OtherScripts=spawn_uri_child_isolate.dart
 #library('spawn_tests');
-#import('../../lib/unittest/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 #import('dart:isolate');
 
 main() {

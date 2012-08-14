@@ -7,7 +7,7 @@
 
 #library('CrossIsolateMessageTest');
 #import('dart:isolate');
-#import('../../lib/unittest/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 
 void crossIsolate1() {
   port.receive((msg, replyTo) {

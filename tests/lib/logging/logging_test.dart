@@ -6,7 +6,7 @@
 #library('logging_test');
 
 #import('../../../pkg/logging/logging.dart');
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 
 main() {
   test('level comparison is a valid comparator', () {

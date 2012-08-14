@@ -7,7 +7,7 @@
 
 #library("MirrorsTest.dart");
 #import("dart:mirrors");
-#import("../../../lib/unittest/unittest.dart");
+#import("../../../pkg/unittest/unittest.dart");
 
 var topLevelField;
 

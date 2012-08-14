@@ -4,7 +4,7 @@
 
 #library('args_test');
 
-#import('../../../lib/unittest/unittest.dart');
+#import('../../../pkg/unittest/unittest.dart');
 #import('../../../lib/args/args.dart');
 
 main() {
