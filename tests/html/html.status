@@ -88,6 +88,7 @@ xsltprocessor_test: Skip    # BUG(4016)
 fileapi_test: Skip          # BUG(4016)
 isolates_test: Skip         # BUG(4016)
 xhr_test: Skip              # BUG(4016)
+xhr_cross_origin_test: Skip # TODO(vsm): Triage XHR on IE.
 
 
 [ $runtime == safari ]
