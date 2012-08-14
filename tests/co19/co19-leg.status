@@ -472,16 +472,10 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 # The following tests are all negative tests that should be fixed.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t19: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t20: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t21: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t23: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t24: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t35: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t39: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t40: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t41: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t45: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t46: Fail # @compile-error
 Language/03_Overview/1_Scoping_A02_t10: Fail # @compile-error
 Language/03_Overview/1_Scoping_A03_t05: Fail # @compile-error
@@ -563,13 +557,6 @@ Language/07_Classes/07_Classes_A04_t22: Fail # @compile-error
 Language/07_Classes/07_Classes_A04_t23: Fail # @compile-error
 Language/07_Classes/07_Classes_A04_t24: Fail # @compile-error
 Language/07_Classes/07_Classes_A04_t25: Fail # @compile-error
-Language/07_Classes/07_Classes_A07_t01: Fail # @compile-error
-Language/07_Classes/07_Classes_A07_t04: Fail # @compile-error
-Language/07_Classes/07_Classes_A07_t07: Fail # @compile-error
-Language/07_Classes/07_Classes_A07_t08: Fail # @compile-error
-Language/07_Classes/07_Classes_A08_t01: Fail # @compile-error
-Language/07_Classes/07_Classes_A09_t01: Fail # @compile-error
-Language/07_Classes/07_Classes_A09_t02: Fail # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A01_t01: Fail # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t01: Fail # @compile-error
 Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A04_t04: Fail # @compile-error
@@ -593,13 +580,6 @@ Language/07_Classes/2_Getters_A03_t01: Fail # @compile-error
 Language/07_Classes/2_Getters_A03_t02: Fail # @compile-error
 Language/07_Classes/2_Getters_A03_t03: Fail # @compile-error
 Language/07_Classes/2_Getters_A03_t04: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t01: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t02: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t08: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t09: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t10: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t11: Fail # @compile-error
-Language/07_Classes/2_Getters_A04_t12: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t01: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t02: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t03: Fail # @compile-error
@@ -608,10 +588,6 @@ Language/07_Classes/3_Setters_A03_t05: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t06: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t07: Fail # @compile-error
 Language/07_Classes/3_Setters_A03_t08: Fail # @compile-error
-Language/07_Classes/3_Setters_A04_t01: Fail # @compile-error
-Language/07_Classes/3_Setters_A04_t02: Fail # @compile-error
-Language/07_Classes/3_Setters_A04_t07: Fail # @compile-error
-Language/07_Classes/3_Setters_A04_t08: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # @compile-error
@@ -643,11 +619,9 @@ Language/08_Interfaces/1_Methods_A04_t05: Fail # @compile-error
 Language/08_Interfaces/1_Methods_A05_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A02_t02: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A03_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # @compile-error
-Language/08_Interfaces/2_Getters_and_Setters_A07_t01: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail # @compile-error

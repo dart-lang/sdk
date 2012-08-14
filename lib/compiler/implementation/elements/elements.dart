@@ -287,6 +287,7 @@ class ContainerElement extends Element {
                          Element existing,
                          DiagnosticListener listener) {
     void reportError(Element other) {
+      // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
       listener.cancel('duplicate definition of ${element.name.slowToString()}',
                       element: element);
       listener.cancel('existing definition', element: other);
@@ -404,6 +405,7 @@ class LibraryElement extends CompilationUnitElement {
     } else {
       Element existing = elements.putIfAbsent(element.name, () => element);
       if (existing !== element) {
+        // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
         listener.cancel('duplicate definition', token: element.position());
         listener.cancel('existing definition', token: existing.position());
       }
@@ -1030,7 +1032,12 @@ class ClassElement extends ContainerElement
                || element.kind == ElementKind.SETTER) {
       addGetterOrSetter(element, localMembers[element.name], listener);
     } else {
-      localMembers[element.name] = element;
+      Element existing = localMembers.putIfAbsent(element.name, () => element);
+      if (existing !== element) {
+        // TODO(ahe): Do something similar to Resolver.reportErrorWithContext.
+        listener.cancel('duplicate definition', token: element.position());
+        listener.cancel('existing definition', token: existing.position());
+      }
     }
   }
 
