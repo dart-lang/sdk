@@ -92,7 +92,15 @@ class PlaceholderCollector extends AbstractVisitor {
             Send send = definition.asSend();
             if (send !== null) {
               assert(send.receiver.isThis());
-              tryMakePrivateIdentifier(send.selector.asIdentifier());
+              if (send.selector is Identifier) {
+                tryMakePrivateIdentifier(send.selector.asIdentifier());
+              } else if (send.selector is FunctionExpression) {
+                // C(int this.f()) case where f is field of function type.
+                tryMakePrivateIdentifier(
+                    send.selector.asFunctionExpression().name.asIdentifier());
+              } else {
+                internalError('Unreachable case');
+              }
             } else {
               assert(definition is Identifier);
             }
@@ -126,7 +134,7 @@ class PlaceholderCollector extends AbstractVisitor {
           tryMakePrivateIdentifier(
               definition.asSendSet().selector.asIdentifier());
         } else {
-          assert(false); // Unreachable.
+          internalError('Unreachable case');
         }
       }
     }
