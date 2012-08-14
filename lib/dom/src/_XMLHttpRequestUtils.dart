@@ -6,13 +6,12 @@ class _XMLHttpRequestUtils {
 
   // Helper for factory XMLHttpRequest.get
   static XMLHttpRequest get(String url,
-                            onSuccess(XMLHttpRequest request)) {
+                            onSuccess(XMLHttpRequest request),
+                            bool withCredentials) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
 
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
+    request.withCredentials = withCredentials;
 
     // Status 0 is for local XHR request.
     request.on.readyStateChange.add((e) {

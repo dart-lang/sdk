@@ -20682,7 +20682,11 @@ class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.get(url, onSuccess);
+      _XMLHttpRequestUtils.get(url, onSuccess, false);
+
+  factory XMLHttpRequest.getWithCredentials(String url,
+                                     onSuccess(XMLHttpRequest request)) =>
+      _XMLHttpRequestUtils.get(url, onSuccess, true);
 }
 
 class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
@@ -39348,9 +39352,9 @@ interface WorkerNavigator {
 
 /// @domName XMLHttpRequest
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
-  // not correctly implemented yet. (b/4970173)
   XMLHttpRequest.get(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest.getWithCredentials(String url, onSuccess(XMLHttpRequest request));
 
   XMLHttpRequest();
 
@@ -40351,13 +40355,12 @@ class _XMLHttpRequestUtils {
 
   // Helper for factory XMLHttpRequest.get
   static XMLHttpRequest get(String url,
-                            onSuccess(XMLHttpRequest request)) {
+                            onSuccess(XMLHttpRequest request),
+                            bool withCredentials) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
 
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
+    request.withCredentials = withCredentials;
 
     // Status 0 is for local XHR request.
     request.on.readyStateChange.add((e) {

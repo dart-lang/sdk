@@ -6,28 +6,28 @@
 #import('../../lib/unittest/unittest.dart');
 #import('../../lib/unittest/html_config.dart');
 #import('dart:html');
+#import('dart:json');
 
 main() {
   useHtmlConfiguration();
 
-  print(window.location.href);
-  test('XHR', () {
+  test('XHR No file', () {
     XMLHttpRequest xhr = new XMLHttpRequest();
     xhr.open("GET", "NonExistingFile", true);
     xhr.on.readyStateChange.add(expectAsync1((event) {
-        if (xhr.readyState == 4) {
-          Expect.equals(0, xhr.status);
-          Expect.stringEquals('', xhr.responseText);
-        }
-      }));
+      if (xhr.readyState == XMLHttpRequest.DONE) {
+        expect(xhr.status, equals(0));
+        expect(xhr.responseText, equals(''));
+      }
+    }));
     xhr.send();
   });
 
-  test('XHR.get', () {
-      new XMLHttpRequest.get("NonExistingFile", expectAsync1((xhr) {
-          Expect.equals(XMLHttpRequest.DONE, xhr.readyState);
-          Expect.equals(0, xhr.status);
-          Expect.stringEquals('', xhr.responseText);
-      }));
+  test('XHR.get No file', () {
+    new XMLHttpRequest.get("NonExistingFile", expectAsync1((xhr) {
+      expect(xhr.readyState, equals(XMLHttpRequest.DONE));
+      expect(xhr.status, equals(0));
+      expect(xhr.responseText, equals(''));
+    }));
   });
 }

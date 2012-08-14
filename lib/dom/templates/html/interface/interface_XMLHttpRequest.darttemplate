@@ -6,7 +6,7 @@
 
 $!COMMENT
 interface $ID$EXTENDS {
-  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
-  // not correctly implemented yet. (b/4970173)
   $ID.get(String url, onSuccess($ID request));
+
+  $ID.getWithCredentials(String url, onSuccess($ID request));
 $!MEMBERS}
