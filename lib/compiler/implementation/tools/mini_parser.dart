@@ -22,7 +22,9 @@
 int charCount = 0;
 Stopwatch stopwatch;
 
-void main() { toolMain(new Options().arguments); }
+void main() {
+  toolMain(new Options().arguments);
+}
 
 void toolMain(List<String> arguments) {
   filesWithCrashes = [];
