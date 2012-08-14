@@ -13,9 +13,9 @@
 #import('../scanner/scannerlib.dart');
 #import('../tree/tree.dart');
 #import('../util/characters.dart');
+#import('../source_file.dart');
 
 #source('../diagnostic_listener.dart');
-#source('../../source.dart');
 #source('../scanner/byte_array_scanner.dart');
 #source('../scanner/byte_strings.dart');
 
@@ -32,7 +32,7 @@ void main() {
     String stats =
         '$classCount classes (${kb}Kb) in ${stopwatch.elapsedInMs()}ms';
     if (errorCount != 0) {
-      stats += ' with $errorCount errors';
+      stats = '$stats with $errorCount errors';
     }
     if (options.diet) {
       print('Diet parsed $stats.');
@@ -209,7 +209,7 @@ String formatError(String message, Token beginToken, Token endToken,
   String tokenString = endToken.toString();
   int begin = beginToken.charOffset;
   int end = endToken.charOffset + tokenString.length;
-  return file.getLocationMessage(message, begin, end, true);
+  return file.getLocationMessage(message, begin, end, true, (x) => x);
 }
 
 class MyNodeListener extends NodeListener {
@@ -317,14 +317,6 @@ class MySourceFile extends SourceFile {
     throw "not supported";
   }
 }
-
-// Hacks to allow sourcing in ../source.dart:
-var world = const Mock();
-var options = const Mock();
-String _GREEN_COLOR = '\u001b[32m';
-String _RED_COLOR = '\u001b[31m';
-String _MAGENTA_COLOR = '\u001b[35m';
-String _NO_COLOR = '\u001b[0m';
 
 class Mock {
   const Mock();
