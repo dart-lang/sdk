@@ -351,19 +351,48 @@
        }]],
     },
     {
-      # Generate snapshot file.
-      'target_name': 'generate_snapshot_file',
+      # Generate snapshot bin file.
+      'target_name': 'generate_snapshot_bin',
       'type': 'none',
       'dependencies': [
         'gen_snapshot',
       ],
       'actions': [
         {
+          'action_name': 'generate_snapshot_bin',
+          'inputs': [
+            '../tools/create_snapshot_bin.py',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
+          ],
+          'outputs': [
+            '<(snapshot_bin_file)',
+          ],
+          'action': [
+            'python',
+            'tools/create_snapshot_bin.py',
+            '--executable',
+            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
+            '--output_bin', '<(snapshot_bin_file)',
+            '--target_os', '<(OS)'
+          ],
+          'message': 'Generating ''<(snapshot_bin_file)'' file.'
+        },
+      ],
+    },
+    {
+      # Generate snapshot file.
+      'target_name': 'generate_snapshot_file',
+      'type': 'none',
+      'dependencies': [
+        'generate_snapshot_bin',
+      ],
+      'actions': [
+        {
           'action_name': 'generate_snapshot_file',
           'inputs': [
             '../tools/create_snapshot_file.py',
-            '<(PRODUCT_DIR)/<(EXECUTABLE_PREFIX)gen_snapshot<(EXECUTABLE_SUFFIX)',
             '<(snapshot_in_cc_file)',
+            '<(snapshot_bin_file)'
           ],
           'outputs': [
             '<(snapshot_cc_file)',
@@ -371,8 +400,7 @@
           'action': [
             'python',
             'tools/create_snapshot_file.py',
-            '--executable', '<(PRODUCT_DIR)/gen_snapshot',
-            '--output_bin', '<(snapshot_bin_file)',
+            '--input_bin', '<(snapshot_bin_file)',
             '--input_cc', '<(snapshot_in_cc_file)',
             '--output', '<(snapshot_cc_file)',
           ],
