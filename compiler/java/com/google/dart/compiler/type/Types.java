@@ -506,12 +506,16 @@ public class Types {
    *         {@link Type#isInferred()}.
    */
   public static Type makeInferred(Type type) {
-    if (type != null) {
-      Set<Class<?>> interfaceSet = getAllImplementedInterfaces(type.getClass());
-      if (!interfaceSet.isEmpty()) {
-        Class<?>[] interfaces = (Class[]) interfaceSet.toArray(new Class[interfaceSet.size()]);
-        type = makeInferred(type, interfaces);
-      }
+    if (type == null) {
+      return null;
+    }
+    if (type.isInferred()) {
+      return type;
+    }
+    Set<Class<?>> interfaceSet = getAllImplementedInterfaces(type.getClass());
+    if (!interfaceSet.isEmpty()) {
+      Class<?>[] interfaces = (Class[]) interfaceSet.toArray(new Class[interfaceSet.size()]);
+      return makeInferred(type, interfaces);
     }
     return type;
   }

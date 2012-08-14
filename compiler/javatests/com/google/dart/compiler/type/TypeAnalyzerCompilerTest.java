@@ -1803,6 +1803,32 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     }
   }
 
+  /**
+   * There was bug that for-in loop did not mark type of variable as inferred, so we produced
+   * warnings even when this is disabled.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4460
+   */
+  public void test_inferredTypes_noMemberWarnings_forInLoop() throws Exception {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean memberWarningForInferredTypes() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "foo() {",
+          "  List<A> values;",
+          "  for (var v in values) {",
+          "    v.bar();",
+          "  }",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+  }
+
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
     analyzeLibrary(
         "f() {",

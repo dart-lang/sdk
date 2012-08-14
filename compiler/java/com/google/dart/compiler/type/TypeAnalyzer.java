@@ -682,6 +682,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // if we fell back to Dynamic, keep it
           } else {
             Type unionType = getUnionType(currentType, inferredType);
+            unionType = Types.makeInferred(unionType);
             Elements.setType(element, unionType);
           }
         }
@@ -705,7 +706,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return b;
         }
         // TODO(scheglov) return union of types, but this is not easy
-        return Types.makeInferred(dynamicType);
+        return dynamicType;
       }
 
       void restore() {
