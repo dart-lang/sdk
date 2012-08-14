@@ -274,6 +274,10 @@ class Element implements Hashable {
   Element cloneTo(Element enclosing, DiagnosticListener listener) {
     listener.cancel("Unimplemented cloneTo", element: this);
   }
+
+  Link<Type> get allSupertypesAndSelf() {
+    return allSupertypes.prepend(new InterfaceType(this));
+  }
 }
 
 class ContainerElement extends Element {
@@ -1062,6 +1066,24 @@ class ClassElement extends ScopeContainerElement
       if (isPrivate && getLibrary() !== s.getLibrary()) continue;
       Element e = s.lookupLocalMember(memberName);
       if (e === null) continue;
+      // Static members are not inherited.
+      if (e.modifiers.isStatic()) continue;
+      return e;
+    }
+    if (isInterface()) {
+      return lookupSuperInterfaceMember(memberName, getLibrary());
+    }
+    return null;
+  }
+
+  Element lookupSuperInterfaceMember(SourceString memberName,
+                                     LibraryElement fromLibrary) {
+    bool isPrivate = memberName.isPrivate();
+    for (Type t in interfaces) {
+      Element e = t.element.lookupLocalMember(memberName);
+      if (e === null) continue;
+      // Private members from a different library are not visible.
+      if (isPrivate && fromLibrary !== e.getLibrary()) continue;
       // Static members are not inherited.
       if (e.modifiers.isStatic()) continue;
       return e;

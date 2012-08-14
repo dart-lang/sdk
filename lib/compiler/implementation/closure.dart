@@ -77,6 +77,7 @@ class ClosureClassElement extends ClassElement {
     compiler.closureClass.ensureResolved(compiler);
     supertype = compiler.closureClass.computeType(compiler);
     interfaces = const EmptyLink<Type>();
+    allSupertypes = new Link<Type>(supertype);
   }
   bool isClosure() => true;
 }

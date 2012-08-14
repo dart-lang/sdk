@@ -219,12 +219,22 @@ class Enqueuer {
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
-      while (cls !== null) {
-        if (seenClasses.contains(cls)) return;
+      // The class must be resolved to compute the set of all
+      // supertypes.
+      cls.ensureResolved(compiler);
+
+      for (Link<Type> supertypes = cls.allSupertypesAndSelf;
+           !supertypes.isEmpty(); supertypes = supertypes.tail) {
+        cls = supertypes.head.element;
+        if (seenClasses.contains(cls)) continue;
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
-        cls.localMembers.forEach(processInstantiatedClassMember);
-        cls = cls.superclass;
+        if (!cls.isInterface()) {
+          cls.localMembers.forEach(processInstantiatedClassMember);
+        }
+        if (isResolutionQueue) {
+          compiler.resolver.checkMembers(cls);
+        }
       }
     });
   }

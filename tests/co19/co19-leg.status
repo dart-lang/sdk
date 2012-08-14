@@ -12,36 +12,6 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods/1_Abstract_Methods_A03_t05: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t01: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t02: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t03: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t04: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t05: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/1_Instance_Methods_A01_t06: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/2_Getters_A04_t03: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/2_Getters_A04_t04: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/2_Getters_A04_t05: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/2_Getters_A04_t07: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/3_Setters_A04_t03: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/3_Setters_A04_t04: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/3_Setters_A04_t05: Fail # TODO(ahe): I'm working on these.
-Language/07_Classes/3_Setters_A04_t06: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/1_Methods_A03_t01: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/1_Methods_A03_t02: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/1_Methods_A03_t03: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/1_Methods_A03_t04: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t02: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t02: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t03: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t04: Fail # TODO(ahe): I'm working on these.
-Language/08_Interfaces/2_Getters_and_Setters_A07_t05: Fail # TODO(ahe): I'm working on these.
-
 
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK
@@ -254,14 +224,11 @@ LibTest/core/String/charCodes_A01_t01: Fail, OK # compiler cancelled: Unhandled 
 LibTest/core/Math/max_A01_t03: Fail, OK # co19 issue 157
 LibTest/core/Math/min_A01_t03: Fail, OK # co19 issue 157
 
-# Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Fail, OK # Bad test, fixed in r295.
-Language/08_Interfaces/2_Getters_and_Setters_A04_t02: Pass # TODO(ahe): Passing for wrong reasons.
-
-# Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Fail, OK # Bad test, fixed in r295.
-Language/08_Interfaces/2_Getters_and_Setters_A09_t02: Pass # TODO(ahe): Passing for wrong reasons.
-
-
-
+Language/08_Interfaces/1_Methods_A03_t01: Fail, OK # Bad test: assumes eager loading.
+Language/08_Interfaces/1_Methods_A03_t02: Fail, OK # Bad test: assumes eager loading.
+Language/08_Interfaces/1_Methods_A03_t03: Fail, OK # Bad test: assumes eager loading.
+Language/08_Interfaces/1_Methods_A03_t04: Fail, OK # Bad test: assumes eager loading.
+Language/08_Interfaces/2_Getters_and_Setters_A03_t03: Fail, OK # Bad test: assumes eager loading.
 Language/10_Expressions/02_Null_A04_t01: Fail, OK # Bad test: assumes eager loading.
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A01_t04: Fail, OK # Bad test: assumes eager loading.
 Language/14_Reference/1_Lexical_Rules/1_Reserved_Words_A02_t04: Fail, OK # Bad test: assumes eager loading.
