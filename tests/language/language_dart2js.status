@@ -184,7 +184,6 @@ constructor_return_negative_test: Fail # Negative language test.
 constructor_return_with_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_and_arrow_negative_test: Fail # Negative language test.
 constructor_return_with_init_negative_test: Fail # Negative language test.
-duplicate_constructor_test/01: Fail # Negative language test.
 duplicate_implements_test/01: Fail # Negative language test.
 duplicate_implements_test/02: Fail # Negative language test.
 duplicate_implements_test/03: Fail # Negative language test.

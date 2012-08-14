@@ -55,7 +55,7 @@ class PartialClassElement extends ClassElement {
     // support patching.
     assert(this.nativeName === null);
 
-    Link<Element> elementList = this.members;
+    Link<Element> elementList = this.localMembers;
     while (!elementList.isEmpty()) {
       result.addMember(elementList.head.cloneTo(result, listener), listener);
       elementList = elementList.tail;
