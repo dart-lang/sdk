@@ -71,6 +71,9 @@ class Enqueuer {
     return compiler.enqueuer.resolution.resolvedElements[owner];
   }
 
+  String lookupCode(Element element) =>
+      universe.generatedCode[element].toString();
+
   void addToWorkList(Element element, [TreeElements elements]) {
     if (element.isForeign()) return;
     if (compiler.phase == Compiler.PHASE_RECOMPILING) return;

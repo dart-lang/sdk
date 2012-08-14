@@ -22,7 +22,7 @@ class DartBackend extends Backend {
     // TODO(antonm): Implement this method, if needed.
   }
 
-  CodeBuffer codegen(WorkItem work) { return new CodeBuffer(); }
+  void codegen(WorkItem work) { }
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {

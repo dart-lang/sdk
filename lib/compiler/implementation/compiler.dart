@@ -24,11 +24,11 @@ class WorkItem {
 
   bool isAnalyzed() => resolutionTree !== null;
 
-  String run(Compiler compiler, Enqueuer world) {
+  void run(Compiler compiler, Enqueuer world) {
     CodeBuffer codeBuffer = world.universe.generatedCode[element];
-    if (codeBuffer !== null) return codeBuffer.toString();
+    if (codeBuffer !== null) return;
     resolutionTree = compiler.analyze(this, world);
-    return compiler.codegen(this, world);
+    compiler.codegen(this, world);
   }
 }
 
@@ -44,7 +44,7 @@ class Backend {
   }
 
   abstract void enqueueHelpers(Enqueuer world);
-  abstract CodeBuffer codegen(WorkItem work);
+  abstract void codegen(WorkItem work);
   abstract void processNativeClasses(Enqueuer world,
                                      Collection<LibraryElement> libraries);
   abstract void assembleProgram();
@@ -743,7 +743,7 @@ class Compiler implements DiagnosticListener {
     return result;
   }
 
-  String codegen(WorkItem work, Enqueuer world) {
+  void codegen(WorkItem work, Enqueuer world) {
     if (world !== enqueuer.codegen) return null;
     if (progress.elapsedInMs() > 500) {
       // TODO(ahe): Add structured diagnostics to the compiler API and
@@ -757,11 +757,8 @@ class Compiler implements DiagnosticListener {
     }
     if (work.element.kind.category == ElementCategory.VARIABLE) {
       constantHandler.compileWorkItem(work);
-      return null;
     } else {
-      CodeBuffer codeBuffer = backend.codegen(work);
-      codegenWorld.addGeneratedCode(work, codeBuffer);
-      return codeBuffer.toString();
+      backend.codegen(work);
     }
   }
 

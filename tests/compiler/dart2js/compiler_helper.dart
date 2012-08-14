@@ -20,8 +20,8 @@ String compile(String code, [String entry = 'main']) {
   if (element === null) return null;
   compiler.processQueue(compiler.enqueuer.resolution, element);
   leg.WorkItem work = new leg.WorkItem(element, null);
-  String generated = work.run(compiler, compiler.enqueuer.codegen);
-  return generated;
+  work.run(compiler, compiler.enqueuer.codegen);
+  return compiler.enqueuer.codegen.lookupCode(element);
 }
 
 MockCompiler compilerFor(String code, Uri uri) {

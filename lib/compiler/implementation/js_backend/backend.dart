@@ -31,6 +31,8 @@ class JavaScriptBackend extends Backend {
 
   final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
 
+  final List<Element> invalidateAfterCodegen;
+
   List<CompilerTask> get tasks() {
     return <CompilerTask>[builder, optimizer, generator, emitter];
   }
@@ -41,6 +43,7 @@ class JavaScriptBackend extends Backend {
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
         invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
+        invalidateAfterCodegen = new List<Element>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
@@ -58,7 +61,7 @@ class JavaScriptBackend extends Backend {
     }
   }
 
-  CodeBuffer codegen(WorkItem work) {
+  void codegen(WorkItem work) {
     HGraph graph = builder.build(work);
     optimizer.optimize(work, graph);
     if (work.allowSpeculativeOptimization
@@ -68,7 +71,11 @@ class JavaScriptBackend extends Backend {
       optimizer.prepareForSpeculativeOptimizations(work, graph);
       optimizer.optimize(work, graph);
     }
-    return generator.generateMethod(work, graph);
+    CodeBuffer codeBuffer = generator.generateMethod(work, graph);
+    compiler.codegenWorld.addGeneratedCode(work, codeBuffer);
+    invalidateAfterCodegen.forEach(
+      compiler.enqueuer.codegen.eagerRecompile);
+    invalidateAfterCodegen.clear();
   }
 
   void processNativeClasses(Enqueuer world,
@@ -209,8 +216,7 @@ class JavaScriptBackend extends Backend {
       // have been compiled under the now invalidated assumptions.
       if (typesChanged && info.compiledFunctions.length != 0) {
         if (compiler.phase == Compiler.PHASE_COMPILING) {
-          info.compiledFunctions.forEach(
-              compiler.enqueuer.codegen.eagerRecompile);
+          info.compiledFunctions.forEach(invalidateAfterCodegen.add);
           info.compiledFunctions.clear();
         }
       }
