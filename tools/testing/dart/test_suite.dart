@@ -456,8 +456,7 @@ class StandardTestSuite implements TestSuite {
       if (configuration['runtime'] == 'vm') {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
-        vmArguments.addAll(
-            ['--enable_checked_mode', '$tempDir/out.dart']);
+        vmArguments.addAll(['$tempDir/out.dart']);
         commands.add(new Command(
             TestUtils.vmFileName(configuration),
             vmArguments));
