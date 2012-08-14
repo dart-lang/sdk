@@ -1138,7 +1138,10 @@ class ConstructorEvaluator extends CompileTimeConstantEvaluator {
                                  node: functionNode);
         }
 
-        evaluateSuperOrRedirectSend(Selector.INVOCATION_0,
+        Selector selector = new Selector.call(superClass.name,
+                                              enclosingClass.getLibrary(),
+                                              0);
+        evaluateSuperOrRedirectSend(selector,
                                     const EmptyLink<Node>(),
                                     targetConstructor);
       }

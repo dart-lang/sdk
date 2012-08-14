@@ -1420,7 +1420,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(object, methodName, arguments), node);
   }
 
-  Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
+  Selector getOptimizedSelectorFor(HInvokeDynamic node,
+                                   Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
     if (node.name.isPrivate()) return defaultSelector;
     Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
@@ -1437,8 +1438,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         compiler.namer.setterName(currentLibrary, node.name),
                         visitArguments(node.inputs)),
          node);
+    Selector setter = new Selector.setter(node.name, currentLibrary);
     world.registerDynamicSetter(
-        node.name, getOptimizedSelectorFor(node, Selector.SETTER));
+        node.name, getOptimizedSelectorFor(node, setter));
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1447,8 +1449,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         compiler.namer.getterName(currentLibrary, node.name),
                         visitArguments(node.inputs)),
          node);
+    Selector getter = new Selector.getter(node.name, currentLibrary);
     world.registerDynamicGetter(
-        node.name, getOptimizedSelectorFor(node, Selector.GETTER));
+        node.name, getOptimizedSelectorFor(node, getter));
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1458,8 +1461,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         visitArguments(node.inputs)),
          node);
     // TODO(floitsch): we should have a separate list for closure invocations.
+    Selector call = new Selector.call(
+        compiler.namer.CLOSURE_INVOCATION_NAME,
+        node.selector.library,
+        node.selector.argumentCount,
+        node.selector.namedArguments);
     world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                    node.selector);
+                                    call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
@@ -1517,11 +1525,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't have an element we register a dynamic field getter.
       // This might lead to unnecessary getters, but these cases should be
       // rare.
-      world.registerDynamicGetter(node.fieldName, Selector.GETTER);
+      Selector getter = new Selector.getter(node.fieldName, node.library);
+      world.registerDynamicGetter(node.fieldName, getter);
     } else {
       Type type = node.receiver.propagatedType.computeType(compiler);
       if (type != null) {
-        world.registerFieldGetter(node.element.name, type);
+        world.registerFieldGetter(node.element.name, node.library, type);
       }
     }
   }
@@ -1554,12 +1563,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't have an element we register a dynamic field setter.
       // This might lead to unnecessary setters, but these cases should be
       // rare.
-      world.registerDynamicSetter(node.fieldName, Selector.SETTER);
+      Selector setter = new Selector.setter(node.fieldName, node.library);
+      world.registerDynamicSetter(node.fieldName, setter);
     } else {
       Type type = node.receiver.propagatedType.computeType(compiler);
       if (type != null) {
         if (!work.element.isGenerativeConstructorBody()) {
-          world.registerFieldSetter(node.element.name, type);
+          world.registerFieldSetter(node.element.name, node.library, type);
         }
         // Determine the types seen so far for the field. If only number
         // types have been seen and the value of the field set is a

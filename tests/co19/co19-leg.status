@@ -430,7 +430,7 @@ Language/10_Expressions/20_Equality_A05_t01: Fail # != cannot be called on super
 Language/10_Expressions/20_Equality_A07_t01: Fail # === cannot be called on super
 Language/10_Expressions/20_Equality_A08_t01: Fail # !== cannot be called on super
 Language/10_Expressions/25_Unary_Expressions_A01_t01: Fail # ! cannot be called on super
-Language/10_Expressions/27_Assignable_Expressions_A01_t02: Fail # internal error: super property store not implemented
+Language/10_Expressions/25_Unary_Expressions_A01_t10: Fail # cannot deal with super in complex assignments
 Language/10_Expressions/27_Assignable_Expressions_A01_t26: Fail # internal error in parser.
 Language/10_Expressions/28_Identifier_Reference_A02_t01: Fail # Pseudo keyword "abstract".
 
@@ -459,7 +459,6 @@ Language/10_Expressions/07_Maps_A06_t02: Fail # generic type information is lost
 Language/10_Expressions/13_Function_Invocation/4_Function_Expression_Invocation_A05_t01: Fail # TypeError: Object #<Closure> has no method 'call'
 Language/10_Expressions/20_Equality_A06_t01: Fail # Canonicalization.
 Language/10_Expressions/20_Equality_A09_t01: Fail # Canonicalization.
-Language/10_Expressions/25_Unary_Expressions_A06_t01: Fail # NoSuchMethodException : method not found: '-'
 
 #
 # The following tests may be broken, but require further review.

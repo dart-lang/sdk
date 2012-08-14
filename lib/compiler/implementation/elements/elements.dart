@@ -1314,12 +1314,12 @@ class Elements {
 
   static SourceString constructOperatorName(SourceString receiver,
                                             SourceString selector,
-                                            [bool isPrefix = false]) {
+                                            [bool isUnary = false]) {
     String str = selector.stringValue;
     if (str === '==' || str === '!=') return OPERATOR_EQUALS;
 
     if (str === '~') str = 'not';
-    else if (str === 'negate' || (str === '-' && isPrefix)) str = 'negate';
+    else if (str === 'negate' || (str === '-' && isUnary)) str = 'negate';
     else if (str === '[]') str = 'index';
     else if (str === '[]=') str = 'indexSet';
     else if (str === '*' || str === '*=') str = 'mul';

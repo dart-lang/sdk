@@ -75,6 +75,7 @@ class SelectorKind {
 
   static final SelectorKind GETTER = const SelectorKind('getter');
   static final SelectorKind SETTER = const SelectorKind('setter');
+  // TODO(kasperl): Rename INVOCATION to CALL and introduce CALL_ANY.
   static final SelectorKind INVOCATION = const SelectorKind('invocation');
   static final SelectorKind OPERATOR = const SelectorKind('operator');
   static final SelectorKind INDEX = const SelectorKind('index');
@@ -83,58 +84,87 @@ class SelectorKind {
 }
 
 class Selector implements Hashable {
+  final SelectorKind kind;
+  final SourceString name;       // Name is null for call-any selectors.
+  final LibraryElement library;  // Library is null for non-private selectors.
+
   // The numbers of arguments of the selector. Includes named arguments.
   final int argumentCount;
-  final SelectorKind kind;
   final List<SourceString> namedArguments;
   final List<SourceString> orderedNamedArguments;
 
-  // The const constructor.
-  const Selector.constant(this.kind, this.argumentCount)
-    : this.namedArguments = const <SourceString>[],
-      this.orderedNamedArguments = const <SourceString>[];
-
   Selector(
       this.kind,
+      SourceString name,
+      LibraryElement library,
       this.argumentCount,
       [List<SourceString> namedArguments = const <SourceString>[]])
-    : this.namedArguments = namedArguments,
+    : this.name = name,
+      this.library = (name != null && name.isPrivate()) ? library : null,
+      this.namedArguments = namedArguments,
       this.orderedNamedArguments = namedArguments.isEmpty()
           ? namedArguments
-          : <SourceString>[];
+          : <SourceString>[] {
+    // TODO(kasperl): Only allow null name for call-any selectors.
+    assert(name == null || !name.isPrivate() || library != null);
+  }
 
-  Selector.invocation(
-      int argumentCount,
-      [List<SourceString> namedArguments = const <SourceString>[]])
-    : this(SelectorKind.INVOCATION, argumentCount, namedArguments);
+  Selector.getter(SourceString name, LibraryElement library)
+      : this(SelectorKind.GETTER, name, library, 0);
+
+  Selector.setter(SourceString name, LibraryElement library)
+      : this(SelectorKind.SETTER, name, library, 1);
+
+  Selector.unaryOperator(SourceString name)
+      : this(SelectorKind.OPERATOR, operatorName(name, true), null, 0);
+
+  Selector.binaryOperator(SourceString name)
+      : this(SelectorKind.OPERATOR, operatorName(name, false), null, 1);
+
+  Selector.index()
+      : this(SelectorKind.INDEX, indexName(), null, 1);
+
+  Selector.indexSet()
+      : this(SelectorKind.INDEX, indexSetName(), null, 2);
+
+  Selector.call(SourceString name,
+                LibraryElement library,
+                int arity,
+                [List<SourceString> named = const []])
+      : this(SelectorKind.INVOCATION, name, library, arity, named);
+
+  Selector.callAny(int arity, [List<SourceString> named = const []])
+      : this(SelectorKind.INVOCATION, null, null, arity, named);
+
+  // TODO(kasperl): This belongs somewhere else.
+  Selector.noSuchMethod()
+      : this(SelectorKind.INVOCATION, Compiler.NO_SUCH_METHOD, null, 2);
+
+  bool isGetter() => kind === SelectorKind.GETTER;
+  bool isSetter() => kind === SelectorKind.SETTER;
+  bool isCall() => kind === SelectorKind.INVOCATION;
+
+  bool isIndex() => kind === SelectorKind.INDEX && argumentCount == 1;
+  bool isIndexSet() => kind === SelectorKind.INDEX && argumentCount == 2;
+
+  bool isOperator() => kind === SelectorKind.OPERATOR;
+  bool isUnaryOperator() => isOperator() && argumentCount == 0;
+  bool isBinaryOperator() => isOperator() && argumentCount == 1;
+
+  static SourceString operatorName(SourceString name, bool isUnary)
+      => Elements.constructOperatorName(
+             const SourceString('operator'), name, isUnary);
+
+  static SourceString indexName()
+      => operatorName(const SourceString('[]'), false);
+
+  static SourceString indexSetName()
+      => operatorName(const SourceString('[]='), false);
 
   int hashCode() => argumentCount + 1000 * namedArguments.length;
   int get namedArgumentCount() => namedArguments.length;
   int get positionalArgumentCount() => argumentCount - namedArgumentCount;
   Type get receiverType() => null;
-
-  static final Selector GETTER =
-      const Selector.constant(SelectorKind.GETTER, 0);
-  static final Selector SETTER =
-      const Selector.constant(SelectorKind.SETTER, 1);
-  static final Selector UNARY_OPERATOR =
-      const Selector.constant(SelectorKind.OPERATOR, 0);
-  static final Selector BINARY_OPERATOR =
-      const Selector.constant(SelectorKind.OPERATOR, 1);
-  static final Selector INDEX =
-      const Selector.constant(SelectorKind.INDEX, 1);
-  static final Selector INDEX_SET =
-      const Selector.constant(SelectorKind.INDEX, 2);
-  static final Selector INDEX_AND_INDEX_SET =
-      const Selector.constant(SelectorKind.INDEX, 2);
-  static final Selector GETTER_AND_SETTER =
-      const Selector.constant(SelectorKind.SETTER, 1);
-  static final Selector INVOCATION_0 =
-      const Selector.constant(SelectorKind.INVOCATION, 0);
-  static final Selector INVOCATION_1 =
-      const Selector.constant(SelectorKind.INVOCATION, 1);
-  static final Selector INVOCATION_2 =
-      const Selector.constant(SelectorKind.INVOCATION, 2);
 
   bool applies(Element element, Compiler compiler) {
     if (element.isSetter()) return kind === SelectorKind.SETTER;
@@ -268,9 +298,11 @@ class Selector implements Hashable {
 
   bool operator ==(other) {
     if (other is !Selector) return false;
-    if (receiverType !== other.receiverType) return false;
-    return argumentCount == other.argumentCount
+    return name == other.name
+           && library === other.library
+           && argumentCount == other.argumentCount
            && namedArguments.length == other.namedArguments.length
+           && receiverType === other.receiverType
            && sameNames(namedArguments, other.namedArguments);
   }
 
@@ -285,7 +317,7 @@ class Selector implements Hashable {
     return orderedNamedArguments;
   }
 
-  toString() => 'Selector($kind, $argumentCount)';
+  toString() => 'Selector($kind, $name, $argumentCount)';
 }
 
 class TypedSelector extends Selector {
@@ -297,6 +329,8 @@ class TypedSelector extends Selector {
 
   TypedSelector(this.receiverType, Selector selector)
     : super(selector.kind,
+            selector.name,
+            selector.library,
             selector.argumentCount,
             selector.namedArguments);
 

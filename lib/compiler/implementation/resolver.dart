@@ -462,10 +462,12 @@ class InitializerResolver {
   Element resolveSuperOrThisForSend(FunctionElement constructor,
                                     FunctionExpression functionNode,
                                     Send call) {
-    // Resolve the arguments, and make sure the call gets a selector
-    // by calling handleArguments.
+    // Resolve the selector and the arguments.
     ResolverTask resolver = visitor.compiler.resolver;
-    visitor.inStaticContext( () => visitor.handleArguments(call) );
+    visitor.inStaticContext(() {
+      visitor.resolveSelector(call);
+      visitor.visitArguments(call.argumentsNode);
+    });
     Selector selector = visitor.mapping.getSelector(call);
     bool isSuperCall = Initializers.isSuperConstructorCall(call);
     SourceString constructorName = resolver.getConstructorName(call);
@@ -483,9 +485,10 @@ class InitializerResolver {
     if (classElement != visitor.compiler.objectClass) {
       assert(superClass !== null);
       assert(superClass.resolutionState == ClassElement.STATE_DONE);
+      SourceString name = const SourceString('');
+      Selector call = new Selector.call(name, classElement.getLibrary(), 0);
       var element = resolveSuperOrThis(constructor, true, true,
-                                       const SourceString(''),
-                                       Selector.INVOCATION_0, functionNode);
+                                       name, call, functionNode);
       visitor.world.registerStaticUse(element);
     }
   }
@@ -1114,9 +1117,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   Element resolveSend(Send node) {
+    Selector selector = resolveSelector(node);
+
     if (node.receiver === null) {
       return node.selector.accept(this);
     }
+
     var oldCategory = allowedCategory;
     allowedCategory |=
       ElementCategory.CLASS | ElementCategory.PREFIX | ElementCategory.SUPER;
@@ -1130,8 +1136,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     } else if (node.isSuperCall) {
       if (node.isOperator) {
         if (isUserDefinableOperator(name.stringValue)) {
-          name = Elements.constructOperatorName(const SourceString('operator'),
-                                                name);
+          name = selector.name;
         } else {
           error(node.selector, MessageKind.ILLEGAL_SUPER_SEND, [name]);
         }
@@ -1178,25 +1183,75 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     return resolveTypeRequired(node);
   }
 
-  void handleArguments(Send node) {
-    int count = 0;
-    List<SourceString> namedArguments = <SourceString>[];
-    bool seenNamedArgument = false;
+  static Selector computeSendSelector(Send node, LibraryElement library) {
+    // First determine if this is part of an assignment.
+    bool isSet = node is SendSet;
+
+    if (node.isIndex) {
+      return isSet ? new Selector.indexSet() : new Selector.index();
+    }
+
+    if (node.isOperator) {
+      SourceString source = node.selector.asOperator().source;
+      switch (source.stringValue) {
+        case '!'  : case '&&' : case '||':
+        case 'is' : case 'as' :
+        case '===': case '!==':
+        case '>>>':
+          return null;
+      }
+      return node.arguments.isEmpty()
+          ? new Selector.unaryOperator(source)
+          : new Selector.binaryOperator(source);
+    }
+
+    Identifier identifier = node.selector.asIdentifier();
+    if (node.isPropertyAccess) {
+      assert(!isSet);
+      return new Selector.getter(identifier.source, library);
+    } else if (isSet) {
+      return new Selector.setter(identifier.source, library);
+    }
+
+    // Compute the arity and the list of named arguments.
+    int arity = 0;
+    List<SourceString> named = <SourceString>[];
     for (Link<Node> link = node.argumentsNode.nodes;
-         !link.isEmpty();
-         link = link.tail) {
-      count++;
+        !link.isEmpty();
+        link = link.tail) {
+      Expression argument = link.head;
+      if (argument.asNamedArgument() != null) {
+        named.add((argument as NamedArgument).name.source);
+      }
+      arity++;
+    }
+
+    // If we're invoking a closure, we do not have an identifier. In
+    // that case, we create a wildcard selector that can call any
+    // method that may have been closurized.
+    return (identifier == null)
+        ? new Selector.callAny(arity, named)
+        : new Selector.call(identifier.source, library, arity, named);
+  }
+
+  Selector resolveSelector(Send node) {
+    LibraryElement library = enclosingElement.getLibrary();
+    Selector selector = computeSendSelector(node, library);
+    if (selector != null) mapping.setSelector(node, selector);
+    return selector;
+  }
+
+  void visitArguments(NodeList list) {
+    bool seenNamedArgument = false;
+    for (Link<Node> link = list.nodes; !link.isEmpty(); link = link.tail) {
       Expression argument = link.head;
       visit(argument);
       if (argument.asNamedArgument() != null) {
         seenNamedArgument = true;
-        NamedArgument named = argument;
-        namedArguments.add(named.name.source);
       } else if (seenNamedArgument) {
         error(argument, MessageKind.INVALID_ARGUMENT_AFTER_NAMED);
       }
     }
-    mapping.setSelector(node, new Selector.invocation(count, namedArguments));
   }
 
   visitSend(Send node) {
@@ -1206,23 +1261,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       if (op.source.stringValue === 'is' || op.source.stringValue === 'as') {
         resolveTypeTest(node.arguments.head);
         assert(node.arguments.tail.isEmpty());
-        mapping.setSelector(node, Selector.BINARY_OPERATOR);
       } else if (node.arguments.isEmpty()) {
         assert(op.token.kind !== PLUS_TOKEN);
-        mapping.setSelector(node, Selector.UNARY_OPERATOR);
       } else {
         visit(node.argumentsNode);
-        mapping.setSelector(node, Selector.BINARY_OPERATOR);
       }
     } else if (node.isIndex) {
       visit(node.argumentsNode);
       assert(node.arguments.tail.isEmpty());
-      mapping.setSelector(node, Selector.INDEX);
     } else if (node.isPropertyAccess) {
-      mapping.setSelector(node, Selector.GETTER);
+      // Nothing to do here.
     } else {
-      handleArguments(node);
+      visitArguments(node.argumentsNode);
     }
+
     if (target != null && target.kind == ElementKind.ABSTRACT_FIELD) {
       AbstractFieldElement field = target;
       target = field.getter;
@@ -1231,8 +1283,14 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         (target === null ||
          target.isGetter() ||
          Elements.isClosureSend(node, target))) {
+      Selector selector = mapping.getSelector(node);
+      Selector call = new Selector.call(
+          compiler.namer.CLOSURE_INVOCATION_NAME,
+          selector.library,
+          selector.argumentCount,
+          selector.namedArguments);
       world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                      mapping.getSelector(node));
+                                      call);
     }
     // TODO(ngeoffray): We should do the check in
     // visitExpressionStatement instead.
@@ -1263,23 +1321,12 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       getter = target;
     }
     // TODO(ngeoffray): Check if the target can be assigned.
-    Identifier op = node.assignmentOperator;
-    bool needsGetter = op.source.stringValue !== '=';
-    Selector selector;
-    if (needsGetter) {
-      if (node.isIndex) {
-        selector = Selector.INDEX_AND_INDEX_SET;
-      } else {
-        selector = Selector.GETTER_AND_SETTER;
-      }
+    Identifier identifier = node.assignmentOperator;
+    bool compoundAssignment = identifier.source.stringValue !== '=';
+    if (compoundAssignment) {
       useElement(node.selector, getter);
-    } else if (node.isIndex) {
-      selector = Selector.INDEX_SET;
-    } else {
-      selector = Selector.SETTER;
     }
     visit(node.argumentsNode);
-    mapping.setSelector(node, selector);
     // TODO(ngeoffray): Warn if target is null and the send is
     // unqualified.
     registerDynamicSend(node);
@@ -1290,7 +1337,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Identifier id = node.selector.asIdentifier();
     if (id === null) return;
     SourceString name = node.selector.asIdentifier().source;
-    if (node.isIndex && !node.arguments.tail.isEmpty()) {
+    if (node.isIndex && node is SendSet) {
       name = Elements.constructOperatorName(
           const SourceString('operator'),
           const SourceString('[]='));
@@ -1312,20 +1359,20 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
           node.argumentsNode is Prefix);
     }
     Selector selector = mapping.getSelector(node);
-    if (Selector.GETTER === selector) {
+    if (selector.isGetter()) {
       world.registerDynamicGetter(name, selector);
-    } else if (Selector.SETTER === selector) {
+    } else if (selector.isSetter()) {
       world.registerDynamicSetter(name, selector);
       // Also register the getter for compound assignments.
-      world.registerDynamicGetter(name, Selector.GETTER);
-    } else if (Selector.INDEX_AND_INDEX_SET === selector) {
-      register(op, selector) {
-        world.registerDynamicInvocation(Elements.constructOperatorName(
-            const SourceString('operator'), new SourceString(op)), selector);
-      }
-      register('[]', Selector.INDEX);
-      register('[]=', Selector.INDEX_SET);
+      LibraryElement library = enclosingElement.getLibrary();
+      Selector getter = new Selector.getter(name, library);
+      world.registerDynamicGetter(name, getter);
     } else {
+      if (selector.isIndexSet()) {
+        // Also register the index selector for compound assignments.
+        Selector index = new Selector.index();
+        world.registerDynamicInvocation(index.name, index);
+      }
       world.registerDynamicInvocation(name, selector);
     }
     var interceptor = new Interceptors(compiler).getStaticInterceptor(
@@ -1394,7 +1441,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     Node selector = node.send.selector;
 
     FunctionElement constructor = resolveConstructor(node);
-    handleArguments(node.send);
+    resolveSelector(node.send);
+    visitArguments(node.send.argumentsNode);
     if (constructor === null) return null;
     // TODO(karlklose): handle optional arguments.
     if (node.send.argumentCount() != constructor.parameterCount(compiler)) {
@@ -1483,8 +1531,10 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   }
 
   visitStringInterpolationPart(StringInterpolationPart node) {
-    world.registerDynamicInvocation(
-        const SourceString('toString'), Selector.INVOCATION_0);
+    SourceString name = const SourceString('toString');
+    LibraryElement library = enclosingElement.getLibrary();
+    Selector selector = new Selector.call(name, library, 0);
+    world.registerDynamicInvocation(name, selector);
     node.visitChildren(this);
   }
 

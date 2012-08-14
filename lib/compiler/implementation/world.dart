@@ -72,10 +72,11 @@ class World {
   Set<ClassElement> findNoSuchMethodHolders(Type type) {
     Set<ClassElement> result = new Set<ClassElement>();
     MemberSet memberSet = _memberSetFor(type, Compiler.NO_SUCH_METHOD);
+    Selector noSuchMethodSelector = new Selector.noSuchMethod();
     for (Element element in memberSet.elements) {
       ClassElement holder = element.getEnclosingClass();
       if (holder !== compiler.objectClass &&
-          Selector.INVOCATION_2.applies(element, compiler)) {
+          noSuchMethodSelector.applies(element, compiler)) {
         result.add(holder);
       }
     }

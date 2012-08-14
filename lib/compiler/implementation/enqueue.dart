@@ -155,8 +155,13 @@ class Enqueuer {
         Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
+            Selector call = new Selector.call(
+                compiler.namer.CLOSURE_INVOCATION_NAME,
+                selector.library,  // TODO(kasperl): Use "default" library?
+                selector.argumentCount,
+                selector.namedArguments);
             registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                      selector);
+                                      call);
           }
         }
       }
@@ -227,6 +232,10 @@ class Enqueuer {
   void registerNewSelector(SourceString name,
                            Selector selector,
                            Map<SourceString, Set<Selector>> selectorsMap) {
+    if (name != selector.name) {
+      String message = "$name != ${selector.name} (${selector.kind})";
+      compiler.internalError("Wrong selector name: $message.");
+    }
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Set<Selector>());
     if (!selectors.contains(selector)) {
@@ -301,18 +310,24 @@ class Enqueuer {
     registerInvokedSetter(methodName, selector);
   }
 
-  void registerFieldGetter(SourceString getterName, Type type) {
+  void registerFieldGetter(SourceString getterName,
+                           LibraryElement library,
+                           Type type) {
     task.measure(() {
+      Selector getter = new Selector.getter(getterName, library);
       registerNewSelector(getterName,
-                          new TypedSelector(type, Selector.GETTER),
+                          new TypedSelector(type, getter),
                           universe.fieldGetters);
     });
   }
 
-  void registerFieldSetter(SourceString setterName, Type type) {
+  void registerFieldSetter(SourceString setterName,
+                           LibraryElement library,
+                           Type type) {
     task.measure(() {
+      Selector setter = new Selector.setter(setterName, library);
       registerNewSelector(setterName,
-                          new TypedSelector(type, Selector.SETTER),
+                          new TypedSelector(type, setter),
                           universe.fieldSetters);
     });
   }

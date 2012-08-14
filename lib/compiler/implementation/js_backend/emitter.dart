@@ -621,11 +621,12 @@ function(collectedClasses) {
     // class. If so, we let the native emitter deal with it.
     if (compiler.enabledNoSuchMethod) {
       SourceString noSuchMethodName = Compiler.NO_SUCH_METHOD;
+      Selector noSuchMethodSelector = new Selector.noSuchMethod();
       for (ClassElement element in sortedClasses) {
         if (!element.isNative()) continue;
         Element member = element.lookupLocalMember(noSuchMethodName);
         if (member === null) continue;
-        if (Selector.INVOCATION_2.applies(member, compiler)) {
+        if (noSuchMethodSelector.applies(member, compiler)) {
           nativeEmitter.handleNoSuchMethod = true;
           break;
         }
@@ -1052,8 +1053,8 @@ $classesCollector.$mangledName = {'':
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
-      String invocationName =
-          "${namer.closureInvocationName(Selector.INVOCATION_0)}";
+      Selector selector = new Selector.callAny(0);
+      String invocationName = "${namer.closureInvocationName(selector)}";
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
     }
 

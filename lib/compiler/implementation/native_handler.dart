@@ -191,24 +191,20 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   if (element.name == const SourceString('typeName')
       && element.isGetter()
       && nativeEmitter.toNativeName(element.getEnclosingClass()) == 'DOMType') {
-    Element methodElement =
+    Element helper =
         compiler.findHelper(const SourceString('getTypeNameOf'));
-    HStatic method = new HStatic(methodElement);
-    builder.add(method);
-    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
-        <HInstruction>[method, builder.localsHandler.readThis()]));
+    builder.pushInvokeHelper1(helper, builder.localsHandler.readThis());
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   }
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
+    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    builder.push(new HStatic(builder.interceptors.getClosureConverter()));
-    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
-    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local, arity];
-    HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
-    builder.add(closure);
+    Element helper = builder.interceptors.getClosureConverter();
+    builder.pushInvokeHelper2(helper, local, arity);
+    HInstruction closure = builder.pop();
     return closure;
   }
 

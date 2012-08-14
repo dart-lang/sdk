@@ -206,7 +206,7 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         transformToDynamicInvocation = false;
       }
       if (transformToDynamicInvocation) {
-        return fromInterceptorToDynamicInvocation(node, node.name);
+        return fromInterceptorToDynamicInvocation(node, node.selector);
       }
     }
 
@@ -234,16 +234,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return node;
   }
 
-  HInstruction fromInterceptorToDynamicInvocation(
-      HInvokeStatic node, SourceString methodName) {
+  HInstruction fromInterceptorToDynamicInvocation(HInvokeStatic node,
+                                                  Selector selector) {
     HBoundedType type = node.inputs[1].propagatedType;
     HInvokeDynamicMethod result = new HInvokeDynamicMethod(
-        node.selector,
-        methodName,
+        selector,
+        selector.name,
         node.inputs.getRange(1, node.inputs.length - 1));
     if (type.isExact()) {
       HBoundedType concrete = type;
-      result.element = concrete.lookupMember(methodName);
+      result.element = concrete.lookupMember(selector.name);
     }
     return result;
   }
@@ -302,18 +302,16 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
 
   HInstruction visitIndex(HIndex node) {
     if (!node.receiver.canBePrimitive()) {
-      SourceString methodName = Elements.constructOperatorName(
-          const SourceString('operator'), const SourceString('[]'));
-      return fromInterceptorToDynamicInvocation(node, methodName);
+      Selector selector = new Selector.index();
+      return fromInterceptorToDynamicInvocation(node, selector);
     }
     return node;
   }
 
   HInstruction visitIndexAssign(HIndexAssign node) {
     if (!node.receiver.canBePrimitive()) {
-      SourceString methodName = Elements.constructOperatorName(
-          const SourceString('operator'), const SourceString('[]='));
-      return fromInterceptorToDynamicInvocation(node, methodName);
+      Selector selector = new Selector.indexSet();
+      return fromInterceptorToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -333,9 +331,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
         && node.operation.isUserDefinable()
         // The equals operation is being optimized in visitEquals.
         && node.operation !== const EqualsOperation()) {
-      SourceString methodName = Elements.constructOperatorName(
-          const SourceString('operator'), node.operation.name);
-      return fromInterceptorToDynamicInvocation(node, methodName);
+      Selector selector = new Selector.binaryOperator(node.operation.name);
+      return fromInterceptorToDynamicInvocation(node, selector);
     }
     return node;
   }
@@ -649,8 +646,12 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
                                  HInstruction index) {
     HStatic interceptor = new HStatic(lengthInterceptor);
     node.block.addBefore(node, interceptor);
+    Selector selector = new Selector.call(
+        lengthInterceptor.name,
+        lengthInterceptor.getLibrary(),  // TODO(kasperl): Wrong.
+        0);
     HInvokeInterceptor length = new HInvokeInterceptor(
-        Selector.INVOCATION_0,
+        selector,
         const SourceString("length"),
         <HInstruction>[interceptor, receiver],
         getter: true);

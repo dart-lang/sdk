@@ -267,10 +267,9 @@ class Compiler implements DiagnosticListener {
       return;
     }
     enabledNoSuchMethod = true;
-    enqueuer.resolution.registerInvocation(NO_SUCH_METHOD,
-                                           Selector.INVOCATION_2);
-    enqueuer.codegen.registerInvocation(NO_SUCH_METHOD,
-                                        Selector.INVOCATION_2);
+    Selector selector = new Selector.noSuchMethod();
+    enqueuer.resolution.registerInvocation(NO_SUCH_METHOD, selector);
+    enqueuer.codegen.registerInvocation(NO_SUCH_METHOD, selector);
   }
 
   void enableIsolateSupport(LibraryElement element) {
