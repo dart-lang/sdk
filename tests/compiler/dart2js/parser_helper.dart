@@ -34,7 +34,7 @@ Node parseBodyCode(String text, Function parseMethod) {
           new MockFile(text));
   LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
-  NodeListener listener = new NodeListener(lc, library);
+  NodeListener listener = new NodeListener(lc, library.entryCompilationUnit);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);

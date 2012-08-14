@@ -1563,7 +1563,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.enqueuer.codegen.addToWorkList(callElement, elements);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(closureClassElement);
-    assert(closureClassElement.members.isEmpty());
+    assert(closureClassElement.localScope.isEmpty());
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     for (Element member in closureClassElement.backendMembers) {

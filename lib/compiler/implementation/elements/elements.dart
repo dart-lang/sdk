@@ -383,6 +383,8 @@ class CompilationUnitOverrideElement extends Element {
               enclosing);
 
   CompilationUnitElement asCompilationUnit() => compilationUnit;
+
+  CompilationUnitElement getCompilationUnit() => compilationUnit;
 }
 
 class LibraryElement extends ScopeContainerElement {

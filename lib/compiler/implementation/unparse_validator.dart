@@ -55,7 +55,8 @@ class UnparseValidator extends CompilerTask {
     LibraryElement lib = new LibraryElement(synthesizedScript);
     lib.canUseNative = originalFunction.getLibrary().canUseNative;
     NodeListener listener =
-        new NodeListener(new ValidatorListener(synthesizedSourceFile), lib);
+        new NodeListener(new ValidatorListener(synthesizedSourceFile),
+                         lib.entryCompilationUnit);
     parser = new Parser(listener);
     parser.parseFunction(newTokens, getOrSet);
     FunctionExpression newNode = listener.popNode();
