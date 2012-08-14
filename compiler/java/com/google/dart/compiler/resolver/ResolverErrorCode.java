@@ -194,6 +194,7 @@ public enum ResolverErrorCode implements ErrorCode {
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_VARIABLE_NOT_ALLOWED_IN_IDENTIFIER(
       "type variables are not allowed in identifier expressions"),
+  USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
   USING_LOCAL_VARIABLE_BEFORE_DECLARATION("Using local variable '%s' before its declaration in lexical scope"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d).  Expected %d");
 

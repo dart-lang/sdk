@@ -3467,6 +3467,45 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4383
+   */
+  public void test_callFieldWithoutGetter_topLevel() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "set setOnlyField(v) {}",
+        "main() {",
+        "  setOnlyField(0);",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, 4, 3, 12));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4383
+   */
+  public void test_callFieldWithoutGetter_member() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set setOnlyField(v) {}",
+        "  foo() {",
+        "    setOnlyField(0);",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.setOnlyField(0);",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 5, 5, 12),
+        errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 10, 5, 12));
+  }
 
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,

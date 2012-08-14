@@ -747,4 +747,22 @@ static FieldElementImplementation fieldFromNode(DartField node,
     return false;
   }
 
+  /**
+   * @return <code>true</code> if normal field or abstract field with getter.
+   */
+  public static boolean isFieldWithGetter(FieldElement fieldElement) {
+    if (fieldElement.getModifiers().isAbstractField()) {
+      return fieldElement.getGetter() != null;
+    }
+    return true;
+  }
+  
+  public static boolean isAbstractFieldWithoutGetter(Element element) {
+    if (element instanceof FieldElement) {
+      FieldElement fieldElement = (FieldElement) element;
+      return fieldElement.getModifiers().isAbstractField() && fieldElement.getGetter() == null;
+    }
+    return false;
+  }
+  
 }

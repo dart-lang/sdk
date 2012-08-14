@@ -72,7 +72,7 @@ public enum TypeErrorCode implements ErrorCode {
       "Type alias cannot reference itself directly of via other typedefs"),
   TYPE_VARIABLE_IN_STATIC_CONTEXT("cannot access type variable %s in static context"),
   TYPE_NOT_ASSIGNMENT_COMPATIBLE("'%s' is not assignable to '%s'"),
-  USE_ASSIGNMENT_ON_SETTER("Use assignment to set field \"%s\" in %s"),
+  USE_ASSIGNMENT_ON_SETTER("Use assignment to set field '%s'"),
   VOID("expression does not yield a value"),
   WRONG_NUMBER_OF_TYPE_ARGUMENTS("%s: wrong number of type arguments (%d), Expected %d");
 

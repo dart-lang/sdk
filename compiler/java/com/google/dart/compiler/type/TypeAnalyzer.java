@@ -915,12 +915,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
               return Types.asFunctionType((FunctionAliasType) member.getType());
             default:
               // target.field() as Function invocation.
-              if (types.isAssignable(functionType, field.getType())) {
-                return dynamicType;
+              if (Elements.isFieldWithGetter(field)) {
+                Type fieldType = field.getType();
+                if (!types.isAssignable(functionType, fieldType)) {
+                  onError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, fieldType);
+                }
               }
-              // "field" is not Function, so bad structure.
-              return typeError(diagnosticNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER,
-                               name, receiver);
+              return dynamicType;
           }
         }
         default:
@@ -1282,6 +1283,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (nameNode != null) {
           nameNode.setElement(element);
         }
+      }
+      if (Elements.isAbstractFieldWithoutGetter(element)) {
+        onError(nameNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
       }
       checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);

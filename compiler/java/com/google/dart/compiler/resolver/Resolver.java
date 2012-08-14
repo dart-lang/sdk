@@ -1393,6 +1393,14 @@ public class Resolver {
       } else {
         checkInvocationTarget(x, currentMethod, element);
       }
+      if (Elements.isAbstractFieldWithoutGetter(element)) {
+        String name = element.getName();
+        if (isStaticContextOrInitializer()) {
+          onError(x.getTarget(), ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
+        } else {
+          onError(x.getTarget(), TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
+        }
+      }
       recordElement(x, element);
       recordElement(x.getTarget(), element);
       visit(x.getArguments());
