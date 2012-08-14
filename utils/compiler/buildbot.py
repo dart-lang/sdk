@@ -4,9 +4,9 @@
 # Use of this source code is governed by a BSD-style license that can be
 # found in the LICENSE file.
 
-"""Dart frog buildbot steps
+"""Dart2js buildbot steps
 
-Runs tests for the frog or dart2js compiler.
+Runs tests for the  dart2js compiler.
 """
 
 import platform
@@ -24,8 +24,6 @@ DART_PATH = os.path.dirname(
 
 DART2JS_BUILDER = (
     r'dart2js-(linux|mac|windows)-(debug|release)(-([a-z]+))?-?(\d*)-?(\d*)')
-FROG_BUILDER = (
-    r'(frog)-(linux|mac|windows)-(debug|release)')
 WEB_BUILDER = (
     r'web-(ie|ff|safari|chrome|opera)-(win7|win8|mac|linux)-?(\d*)-?(\d*)')
 
@@ -34,8 +32,7 @@ NO_COLOR_ENV['TERM'] = 'nocolor'
 
 def GetBuildInfo():
   """Returns a tuple (compiler, runtime, mode, system, option) where:
-    - compiler: 'dart2js', 'frog', or None when the builder has an
-      incorrect name
+    - compiler: 'dart2js' or None when the builder has an incorrect name
     - runtime: 'd8', 'ie', 'ff', 'safari', 'chrome', 'opera'
     - mode: 'debug' or 'release'
     - system: 'linux', 'mac', or 'win7'
@@ -66,7 +63,6 @@ def GetBuildInfo():
 
   if builder_name:
     dart2js_pattern = re.match(DART2JS_BUILDER, builder_name)
-    frog_pattern = re.match(FROG_BUILDER, builder_name)
     web_pattern = re.match(WEB_BUILDER, builder_name)
 
     if dart2js_pattern:
@@ -77,12 +73,6 @@ def GetBuildInfo():
       option = dart2js_pattern.group(4)
       shard_index = dart2js_pattern.group(5)
       total_shards = dart2js_pattern.group(6)
-
-    elif frog_pattern:
-      compiler = frog_pattern.group(1)
-      runtime = 'd8'
-      system = frog_pattern.group(2)
-      mode = frog_pattern.group(3)
 
     elif web_pattern:
       compiler = 'dart2js'
@@ -159,7 +149,6 @@ def BuildSDK(mode, system):
       for arch in ['ia32', 'x64']:
         outdir = build + arch
         shutil.rmtree(outdir, ignore_errors=True)
-        shutil.rmtree('frog/%s' % outdir, ignore_errors=True)
         shutil.rmtree('runtime/%s' % outdir, ignore_errors=True)
 
   os.chdir(DART_PATH)
@@ -169,10 +158,9 @@ def BuildSDK(mode, system):
   return subprocess.call(args, env=NO_COLOR_ENV)
 
 
-def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
+def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
   """ test the compiler.
    Args:
-     - compiler: either 'dart2js' or 'frog'
      - runtime: either 'd8', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
      - system: either 'linux', 'mac', or 'win7'
@@ -182,7 +170,7 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
        emulating one.
   """
 
-  # Make sure we are in the frog directory
+  # Make sure we are in the dart directory
   os.chdir(DART_PATH)
 
   if system.startswith('win') and runtime == 'ie':
@@ -239,38 +227,32 @@ def TestCompiler(compiler, runtime, mode, system, option, flags, is_buildbot):
       # Failed to obtain version information. Continue running tests.
       pass
 
-  if compiler == 'dart2js':
-    if option == 'checked': flags = flags + ['--host-checked']
+  if option == 'checked': flags = flags + ['--host-checked']
 
-    if runtime == 'd8':
-      # The dart2js compiler isn't self-hosted (yet) so we run its
-      # unit tests on the VM. We avoid doing this on the builders
-      # that run the browser tests to cut down on the cycle time.
-      TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
+  if runtime == 'd8':
+    # The dart2js compiler isn't self-hosted (yet) so we run its
+    # unit tests on the VM. We avoid doing this on the builders
+    # that run the browser tests to cut down on the cycle time.
+    TestStep("dart2js_unit", mode, system, 'none', 'vm', ['dart2js'], flags)
 
-    if not (system.startswith('win') and runtime == 'ie'):
-      # Run the default set of test suites.
-      TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
+  if not (system.startswith('win') and runtime == 'ie'):
+    # Run the default set of test suites.
+    TestStep("dart2js", mode, system, 'dart2js', runtime, [], flags)
 
-      # TODO(kasperl): Consider running peg and css tests too.
-      extras = ['dart2js_extra', 'dart2js_native']
-      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+    # TODO(kasperl): Consider running peg and css tests too.
+    extras = ['dart2js_extra', 'dart2js_native']
+    TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras, flags)
+  else:
+    if bot_num == '1':
+      TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
     else:
-      if bot_num == '1':
-        TestStep("dart2js", mode, system, 'dart2js', runtime, ['html'], flags)
-      else:
-        TestStep("dart2js", mode, system, 'dart2js', runtime, ['dartc',
-            'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
-            'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
-            flags)
-        extras = ['dart2js_extra', 'dart2js_native']
-        TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
-            flags)
-
-  elif compiler == 'frog':
-    TestStep("frog", mode, system, compiler, runtime, [], flags)
-    extras = ['frog', 'dart2js_native', 'peg', 'css']
-    TestStep("frog_extra", mode, system, compiler, runtime, extras, flags)
+      TestStep("dart2js", mode, system, 'dart2js', runtime, ['dartc',
+          'samples', 'standalone', 'corelib', 'co19', 'language', 'isolate',
+          'vm', 'json', 'benchmark_smoke', 'dartdoc', 'utils', 'pub', 'lib'],
+          flags)
+      extras = ['dart2js_extra', 'dart2js_native']
+      TestStep("dart2js_extra", mode, system, 'dart2js', runtime, extras,
+          flags)
 
   return 0
 
@@ -336,12 +318,12 @@ def main():
     test_flags = ['--shards=%s' % total_shards, '--shard=%s' % shard_index]
 
   # First we run all the regular tests.
-  status = TestCompiler(compiler, runtime, mode, system, option, test_flags,
+  status = TestCompiler(runtime, mode, system, option, test_flags,
                         is_buildbot)
 
   # We only run checked mode tests when the host is not in checked mode.
   if status == 0 and option != 'checked' and runtime == 'd8':
-    status = TestCompiler(compiler, runtime, mode, system, option,
+    status = TestCompiler(runtime, mode, system, option,
                           test_flags + ['--checked'], is_buildbot)
 
   if runtime != 'd8': CleanUpTemporaryFiles(system, runtime)
