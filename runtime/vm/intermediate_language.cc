@@ -806,19 +806,14 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinaryOpComp::CompileType() const {
-  // TODO(srdjan): Add mint, smi and double type to object store.
   // TODO(srdjan): Convert to use with class-ids instead of types.
   if (operands_type() == kMintOperands) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    return Type::NewNonParameterizedType(
-        Class::Handle(object_store->mint_class()));
+    return Isolate::Current()->object_store()->mint_type();
   } else if (op_kind() == Token::kSHL) {
     return Type::IntInterface();
   } else {
     ASSERT(operands_type() == kSmiOperands);
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    return Type::NewNonParameterizedType(
-        Class::Handle(object_store->smi_class()));
+    return Isolate::Current()->object_store()->smi_type();
   }
 }
 

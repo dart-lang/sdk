@@ -740,6 +740,18 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_byte_array_interface(type);
 
+  cls = object_store->smi_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_smi_type(type);
+
+  cls = object_store->double_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_double_type(type);
+
+  cls = object_store->mint_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_mint_type(type);
+
   // The classes 'Null' and 'void' are not registered in the class dictionary,
   // because their names are reserved keywords. Their names are not heap
   // allocated, because the classes reside in the VM isolate.
