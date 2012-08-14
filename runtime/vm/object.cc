@@ -9,17 +9,17 @@
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
-#include "vm/datastream.h"
-#include "vm/deopt_instructions.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
-#include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/datastream.h"
 #include "vm/debuginfo.h"
+#include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
@@ -6731,12 +6731,25 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
 }
 
 
+void PcDescriptors::PrintHeaderString() {
+  // 4 bits per hex digit + 2 for "0x".
+  const int addr_width = (kBitsPerWord / 4) + 2;
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  OS::Print("%-*s\tkind    \ttid\ttok-ix\ttry/deopt-ix\n", addr_width, "pc");
+}
+
+
 const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
     return "No pc descriptors\n";
   }
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
   const char* kFormat =
-      "0x%" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
+      "0x%-*" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6744,7 +6757,7 @@ const char* PcDescriptors::ToCString() const {
         DeoptReason(i) : TokenPos(i);
     intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
-    len += OS::SNPrint(NULL, 0, kFormat,
+    len += OS::SNPrint(NULL, 0, kFormat, addr_width,
         PC(i),
         KindAsStr(i),
         DeoptId(i),
@@ -6760,7 +6773,7 @@ const char* PcDescriptors::ToCString() const {
         DeoptReason(i) : TokenPos(i);
     intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
-    index += OS::SNPrint((buffer + index), (len - index), kFormat,
+    index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
         PC(i),
         KindAsStr(i),
         DeoptId(i),
@@ -7210,6 +7223,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_spill_slot_count(0);
     result.set_comments(Comments::New(0));
   }
   return result.raw();

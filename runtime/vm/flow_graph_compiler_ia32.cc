@@ -455,7 +455,8 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
                                            intptr_t token_pos,
                                            intptr_t try_index,
                                            const AbstractType& type,
-                                           bool negate_result) {
+                                           bool negate_result,
+                                           BitmapBuilder* stack_bitmap) {
   ASSERT(type.IsFinalized() && !type.IsMalformed());
 
   const Immediate raw_null =
@@ -496,7 +497,7 @@ void FlowGraphCompiler::GenerateInstanceOf(intptr_t deopt_id,
     __ LoadObject(EAX, test_cache);
     __ pushl(EAX);
     GenerateCallRuntime(deopt_id, token_pos, try_index,
-                        kInstanceofRuntimeEntry);
+                        kInstanceofRuntimeEntry, stack_bitmap);
     // Pop the parameters supplied to the runtime entry. The result of the
     // instanceof runtime call will be left as the result of the operation.
     __ Drop(5);
@@ -539,7 +540,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
                                                  intptr_t token_pos,
                                                  intptr_t try_index,
                                                  const AbstractType& dst_type,
-                                                 const String& dst_name) {
+                                                 const String& dst_name,
+                                                 BitmapBuilder* stack_bitmap) {
   ASSERT(token_pos >= 0);
   ASSERT(!dst_type.IsNull());
   ASSERT(dst_type.IsFinalized());
@@ -567,7 +569,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
     GenerateCallRuntime(deopt_id,
                         token_pos,
                         try_index,
-                        kMalformedTypeErrorRuntimeEntry);
+                        kMalformedTypeErrorRuntimeEntry,
+                        stack_bitmap);
     // We should never return here.
     __ int3();
 
@@ -596,7 +599,8 @@ void FlowGraphCompiler::GenerateAssertAssignable(intptr_t deopt_id,
   GenerateCallRuntime(deopt_id,
                       token_pos,
                       try_index,
-                      kTypeCheckRuntimeEntry);
+                      kTypeCheckRuntimeEntry,
+                      stack_bitmap);
   // Pop the parameters supplied to the runtime entry. The result of the
   // type check runtime call is the checked value.
   __ Drop(6);
@@ -776,7 +780,8 @@ void FlowGraphCompiler::CopyParameters() {
     GenerateCallRuntime(Isolate::kNoDeoptId,
                         0,
                         CatchClauseNode::kInvalidTryIndex,
-                        kClosureArgumentMismatchRuntimeEntry);
+                        kClosureArgumentMismatchRuntimeEntry,
+                        NULL);
   } else {
     ASSERT(!IsLeaf());
     // Invoke noSuchMethod function.
@@ -803,7 +808,8 @@ void FlowGraphCompiler::CopyParameters() {
     GenerateCallRuntime(Isolate::kNoDeoptId,
                         0,
                         CatchClauseNode::kInvalidTryIndex,
-                        kTraceFunctionExitRuntimeEntry);
+                        kTraceFunctionExitRuntimeEntry,
+                        NULL);
     __ popl(EAX);  // Remove argument.
     __ popl(EAX);  // Restore result.
   }
@@ -896,7 +902,7 @@ void FlowGraphCompiler::CompileGraph() {
   const Function& function = parsed_function().function();
 
   const int parameter_count = function.num_fixed_parameters();
-  const int num_copied_params = parsed_function().copied_parameter_count();
+  const int copied_parameter_count = parsed_function().copied_parameter_count();
   const int local_count = parsed_function().stack_local_count();
   __ Comment("Enter frame");
   if (IsLeaf()) {
@@ -908,7 +914,7 @@ void FlowGraphCompiler::CompileGraph() {
   // the presence of optional named parameters.
   // No such checking code is generated if only fixed parameters are declared,
   // unless we are debug mode or unless we are compiling a closure.
-  if (num_copied_params == 0) {
+  if (copied_parameter_count == 0) {
 #ifdef DEBUG
     const bool check_arguments = true;
 #else
@@ -926,7 +932,8 @@ void FlowGraphCompiler::CompileGraph() {
         GenerateCallRuntime(Isolate::kNoDeoptId,
                             function.token_pos(),
                             CatchClauseNode::kInvalidTryIndex,
-                            kClosureArgumentMismatchRuntimeEntry);
+                            kClosureArgumentMismatchRuntimeEntry,
+                            NULL);
       } else {
         __ Stop("Wrong number of arguments");
       }
@@ -936,21 +943,26 @@ void FlowGraphCompiler::CompileGraph() {
     CopyParameters();
   }
 
+  // Initialize (non-argument) stack allocated slots to null.
+  //
   // TODO(vegorov): introduce stack maps and stop initializing all spill slots
   // with null.
-  const intptr_t stack_slot_count =
-      is_ssa_ ? block_order_[0]->AsGraphEntry()->spill_slot_count()
-              : local_count;
-
+  intptr_t uninitialized_slot_count;
+  if (is_ssa_) {
+    GraphEntryInstr* entry = block_order_[0]->AsGraphEntry();
+    uninitialized_slot_count =
+        entry->spill_slot_count() - copied_parameter_count;
+  } else {
+    uninitialized_slot_count = local_count;
+  }
   const intptr_t slot_base = parsed_function().first_stack_local_index();
 
-  // Initialize (non-argument) stack allocated locals to null.
-  if (stack_slot_count > 0) {
+  if (uninitialized_slot_count > 0) {
     __ Comment("Initialize spill slots");
     const Immediate raw_null =
         Immediate(reinterpret_cast<intptr_t>(Object::null()));
     __ movl(EAX, raw_null);
-    for (intptr_t i = 0; i < stack_slot_count; ++i) {
+    for (intptr_t i = 0; i < uninitialized_slot_count; ++i) {
       // Subtract index i (locals lie at lower addresses than EBP).
       __ movl(Address(EBP, (slot_base - i) * kWordSize), EAX);
     }
@@ -984,10 +996,14 @@ void FlowGraphCompiler::CompileGraph() {
 void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
                                      intptr_t try_index,
                                      const ExternalLabel* label,
-                                     PcDescriptors::Kind kind) {
+                                     PcDescriptors::Kind kind,
+                                     BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ call(label);
+  if (is_ssa() && (stack_bitmap != NULL)) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
+  }
   AddCurrentDescriptor(kind, Isolate::kNoDeoptId, token_pos, try_index);
 }
 
@@ -995,10 +1011,14 @@ void FlowGraphCompiler::GenerateCall(intptr_t token_pos,
 void FlowGraphCompiler::GenerateCallRuntime(intptr_t deopt_id,
                                             intptr_t token_pos,
                                             intptr_t try_index,
-                                            const RuntimeEntry& entry) {
+                                            const RuntimeEntry& entry,
+                                            BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   __ CallRuntime(entry);
+  if (is_ssa() && (stack_bitmap != NULL)) {
+    stackmap_table_builder_->AddEntry(assembler()->CodeSize(), stack_bitmap);
+  }
   AddCurrentDescriptor(PcDescriptors::kOther, deopt_id, token_pos, try_index);
 }
 

@@ -91,7 +91,8 @@ void ReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateCallRuntime(Isolate::kNoDeoptId,
                                   0,
                                   CatchClauseNode::kInvalidTryIndex,
-                                  kTraceFunctionExitRuntimeEntry);
+                                  kTraceFunctionExitRuntimeEntry,
+                                  locs()->stack_bitmap());
     __ popl(temp);  // Remove argument.
     __ popl(result);  // Restore result.
   }
@@ -217,10 +218,10 @@ void AssertBooleanComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateCallRuntime(deopt_id(),
                                   token_pos(),
                                   try_index(),
-                                  kConditionTypeErrorRuntimeEntry);
+                                  kConditionTypeErrorRuntimeEntry,
+                                  locs()->stack_bitmap());
     // We should never return here.
     __ int3();
-
     __ Bind(&done);
   }
   ASSERT(obj == result);
@@ -295,7 +296,8 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  operator_name,
                                  kNumberOfArguments,
                                  kNoArgumentNames,
-                                 kNumArgumentsChecked);
+                                 kNumArgumentsChecked,
+                                 comp->locs()->stack_bitmap());
   ASSERT(comp->locs()->out().reg() == EAX);
   if (comp->kind() == Token::kNE) {
     Label done, false_label;
@@ -317,7 +319,8 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                           Token::Kind kind,
                                           intptr_t deopt_id,
                                           intptr_t token_pos,
-                                          intptr_t try_index) {
+                                          intptr_t try_index,
+                                          BitmapBuilder* stack_bitmap) {
   ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   const ICData& ic_data = ICData::Handle(orig_ic_data.AsUnaryClassChecks());
   ASSERT(ic_data.NumberOfChecks() > 0);
@@ -373,7 +376,8 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
                                    try_index,
                                    target,
                                    kNumberOfArguments,
-                                   kNoArgumentNames);
+                                   kNoArgumentNames,
+                                   stack_bitmap);
       if (branch == NULL) {
         if (kind == Token::kNE) {
           Label false_label;
@@ -489,7 +493,8 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   __ pushl(left);
   __ pushl(right);
   EmitEqualityAsPolymorphicCall(compiler, ic_data, locs, branch, kind,
-                                deopt_id, token_pos, try_index);
+                                deopt_id, token_pos, try_index,
+                                locs.stack_bitmap());
   __ Bind(&done);
 }
 
@@ -668,7 +673,8 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                               NULL,   // Fallthrough when done.
                               deopt_id(),
                               token_pos(),
-                              try_index());
+                              try_index(),
+                              locs()->stack_bitmap());
     return;
   }
   const String& function_name =
@@ -685,7 +691,8 @@ void RelationalOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked);
+                                 kNumArgsChecked,
+                                 locs()->stack_bitmap());
   ASSERT(locs()->out().reg() == EAX);
 }
 
@@ -727,7 +734,8 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::CallNativeCFunctionLabel(),
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   __ popl(result);
 }
 
@@ -753,7 +761,7 @@ LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
 
 
 static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
-                                        LoadIndexedComp* comp) {
+                                       LoadIndexedComp* comp) {
   Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
                                         comp->try_index(),
                                         kDeoptLoadIndexedPolymorphic);
@@ -777,7 +785,8 @@ static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
                             NULL,   // Fallthrough when done.
                             comp->deopt_id(),
                             comp->token_pos(),
-                            comp->try_index());
+                            comp->try_index(),
+                            comp->locs()->stack_bitmap());
 }
 
 
@@ -883,7 +892,8 @@ static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No named arguments.
-                                 kNumArgsChecked);
+                                 kNumArgsChecked,
+                                 comp->locs()->stack_bitmap());
 }
 
 
@@ -912,7 +922,8 @@ static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
                             NULL,   // Fallthrough when done.
                             comp->deopt_id(),
                             comp->token_pos(),
-                            comp->try_index());
+                            comp->try_index(),
+                            comp->locs()->stack_bitmap());
 }
 
 
@@ -1045,7 +1056,8 @@ void InstanceOfComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                token_pos(),
                                try_index(),
                                type(),
-                               negate_result());
+                               negate_result(),
+                               locs()->stack_bitmap());
   ASSERT(locs()->out().reg() == EAX);
 }
 
@@ -1068,7 +1080,8 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::AllocateArrayLabel(),
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   ASSERT(locs()->out().reg() == EAX);
 
   // Pop the element values from the stack into the array.
@@ -1108,7 +1121,8 @@ void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kAllocateObjectWithBoundsCheckRuntimeEntry);
+                                kAllocateObjectWithBoundsCheckRuntimeEntry,
+                                locs()->stack_bitmap());
   // Pop instantiator type arguments, type arguments, and class.
   // source location.
   __ Drop(3);
@@ -1196,7 +1210,8 @@ void InstantiateTypeArgumentsComp::EmitNativeCode(
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kInstantiateTypeArgumentsRuntimeEntry);
+                                kInstantiateTypeArgumentsRuntimeEntry,
+                                locs()->stack_bitmap());
   __ Drop(2);  // Drop instantiator and uninstantiated type arguments.
   __ popl(result_reg);  // Pop instantiated type arguments.
   __ Bind(&type_arguments_instantiated);
@@ -1352,7 +1367,8 @@ void AllocateContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &label,
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
 }
 
 
@@ -1376,7 +1392,8 @@ void CloneContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kCloneContextRuntimeEntry);
+                                kCloneContextRuntimeEntry,
+                                locs()->stack_bitmap());
   __ popl(result);  // Remove argument.
   __ popl(result);  // Get result (cloned context).
 }
@@ -1427,7 +1444,8 @@ void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kStackOverflowRuntimeEntry);
+                                kStackOverflowRuntimeEntry,
+                                locs()->stack_bitmap());
   __ Bind(&no_stack_overflow);
 }
 
@@ -1635,12 +1653,14 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
         const intptr_t kArgumentCount = 2;
         __ pushl(temp);
         __ pushl(right);
-        compiler->GenerateStaticCall(comp->instance_call()->deopt_id(),
-                                     comp->instance_call()->token_pos(),
-                                     comp->instance_call()->try_index(),
-                                     target,
-                                     kArgumentCount,
-                                     Array::Handle());  // No argument names.
+        compiler->GenerateStaticCall(
+            comp->instance_call()->deopt_id(),
+            comp->instance_call()->token_pos(),
+            comp->instance_call()->try_index(),
+            target,
+            kArgumentCount,
+            Array::Handle(),  // No argument names.
+            comp->locs()->stack_bitmap());
         ASSERT(result == EAX);
       }
       __ Bind(&done);
@@ -1729,12 +1749,14 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
     } else {
       __ pushl(left);
       __ pushl(right);
-      compiler->GenerateStaticCall(comp->instance_call()->deopt_id(),
-                                   comp->instance_call()->token_pos(),
-                                   comp->instance_call()->try_index(),
-                                   target,
-                                   comp->instance_call()->ArgumentCount(),
-                                   comp->instance_call()->argument_names());
+      compiler->GenerateStaticCall(
+          comp->instance_call()->deopt_id(),
+          comp->instance_call()->token_pos(),
+          comp->instance_call()->try_index(),
+          target,
+          comp->instance_call()->ArgumentCount(),
+          comp->instance_call()->argument_names(),
+          comp->locs()->stack_bitmap());
       ASSERT(result == EAX);
       __ jmp(&done);
     }
@@ -1749,12 +1771,14 @@ static void EmitMintBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
     } else {
       __ pushl(left);
       __ pushl(right);
-      compiler->GenerateStaticCall(comp->instance_call()->deopt_id(),
-                                   comp->instance_call()->token_pos(),
-                                   comp->instance_call()->try_index(),
-                                   target,
-                                   comp->instance_call()->ArgumentCount(),
-                                   comp->instance_call()->argument_names());
+      compiler->GenerateStaticCall(
+          comp->instance_call()->deopt_id(),
+          comp->instance_call()->token_pos(),
+          comp->instance_call()->try_index(),
+          target,
+          comp->instance_call()->ArgumentCount(),
+          comp->instance_call()->argument_names(),
+          comp->locs()->stack_bitmap());
       ASSERT(result == EAX);
     }
   }
@@ -1796,7 +1820,8 @@ void DoubleBinaryOpComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(instance_call()->token_pos(),
                          instance_call()->try_index(),
                          &label,
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   // Newly allocated object is now in the result register (RAX).
   ASSERT(result == EAX);
   __ movl(right, Address(ESP, 0));
@@ -1923,7 +1948,8 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     compiler->GenerateCall(instance_call()->token_pos(),
                            instance_call()->try_index(),
                            &label,
-                           PcDescriptors::kOther);
+                           PcDescriptors::kOther,
+                           locs()->stack_bitmap());
     // Result is in EAX.
     ASSERT(result != temp);
     __ movl(result, EAX);
@@ -1987,7 +2013,8 @@ void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(instance_call()->token_pos(),
                          instance_call()->try_index(),
                          &label,
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   ASSERT(result == EAX);
   __ popl(value);
 
@@ -2033,7 +2060,8 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                             (is_smi_label == &handle_smi) ? &done : NULL,
                             instance_call()->deopt_id(),
                             instance_call()->token_pos(),
-                            instance_call()->try_index());
+                            instance_call()->try_index(),
+                            locs()->stack_bitmap());
   if (is_smi_label == &handle_smi) {
     __ Bind(&handle_smi);
     ASSERT(ic_data()->GetReceiverClassIdAt(0) == kSmiCid);
@@ -2043,7 +2071,8 @@ void PolymorphicInstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  instance_call()->try_index(),
                                  target,
                                  instance_call()->ArgumentCount(),
-                                 instance_call()->argument_names());
+                                 instance_call()->argument_names(),
+                                 locs()->stack_bitmap());
   }
   __ Bind(&done);
 }
@@ -2170,7 +2199,8 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  function_name,
                                  kNumArguments,
                                  Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked);
+                                 kNumArgsChecked,
+                                 locs()->stack_bitmap());
   __ CompareObject(EAX, compiler->bool_true());
   EmitBranchOnCondition(compiler, branch_condition);
 }

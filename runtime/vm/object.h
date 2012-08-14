@@ -2292,6 +2292,8 @@ class PcDescriptors : public Object {
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(bool check_ids) const;
 
+  static void PrintHeaderString();
+
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
@@ -2505,6 +2507,13 @@ class Code : public Object {
   void set_is_optimized(bool value) const {
     raw_ptr()->is_optimized_ = value ? 1 : 0;
   }
+  intptr_t spill_slot_count() const {
+    return raw_ptr()->spill_slot_count_;
+  }
+  void set_spill_slot_count(intptr_t count) const {
+    raw_ptr()->spill_slot_count_ = count;
+  }
+
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.EntryPoint();

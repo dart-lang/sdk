@@ -216,6 +216,9 @@ static bool CompileParsedFunctionHelper(
       const Function& function = parsed_function.function();
       const Code& code = Code::Handle(Code::FinalizeCode(function, &assembler));
       code.set_is_optimized(optimized);
+      if (optimized && use_ssa) {
+        code.set_spill_slot_count(graph_compiler.StackSize());
+      }
       graph_compiler.FinalizePcDescriptors(code);
       graph_compiler.FinalizeDeoptInfo(code);
       graph_compiler.FinalizeStackmaps(code);
@@ -269,6 +272,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
                             start + instructions.size(),
                             code.comments());
   OS::Print("}\n");
+
   OS::Print("Pointer offsets for function: {\n");
   // Pointer offsets are stored in descending order.
   for (intptr_t i = code.pointer_offsets_length() - 1; i >= 0; i--) {
@@ -279,12 +283,13 @@ static void DisassembleCode(const Function& function, bool optimized) {
               code.GetPointerOffsetAt(i), addr, obj.ToCString());
   }
   OS::Print("}\n");
+
   OS::Print("PC Descriptors for function '%s' {\n", function_fullname);
-  OS::Print("(pc\t\tkind\t\tid\ttok-ix\ttry/deopt-ix)\n");
+  PcDescriptors::PrintHeaderString();
   const PcDescriptors& descriptors =
       PcDescriptors::Handle(code.pc_descriptors());
-  OS::Print("%s\n", descriptors.ToCString());
-  OS::Print("}\n");
+  OS::Print("%s}\n", descriptors.ToCString());
+
   const Array& deopt_info_array = Array::Handle(code.deopt_info_array());
   if (deopt_info_array.Length() > 0) {
     OS::Print("DeoptInfo: {\n");
@@ -294,6 +299,7 @@ static void DisassembleCode(const Function& function, bool optimized) {
     }
     OS::Print("}\n");
   }
+
   const Array& object_table = Array::Handle(code.object_table());
   if (object_table.Length() > 0) {
     OS::Print("Object Table: {\n");
@@ -303,6 +309,18 @@ static void DisassembleCode(const Function& function, bool optimized) {
     }
     OS::Print("}\n");
   }
+
+  OS::Print("Stackmaps for function '%s' {\n", function_fullname);
+  if (code.stackmaps() != Array::null()) {
+    const Array& stackmap_table = Array::Handle(code.stackmaps());
+    Stackmap& map = Stackmap::Handle();
+    for (intptr_t i = 0; i < stackmap_table.Length(); ++i) {
+      map ^= stackmap_table.At(i);
+      OS::Print("%s\n", map.ToCString());
+    }
+  }
+  OS::Print("}\n");
+
   OS::Print("Variable Descriptors for function '%s' {\n",
             function_fullname);
   const LocalVarDescriptors& var_descriptors =
@@ -333,11 +351,11 @@ static void DisassembleCode(const Function& function, bool optimized) {
     }
   }
   OS::Print("}\n");
+
   OS::Print("Exception Handlers for function '%s' {\n", function_fullname);
   const ExceptionHandlers& handlers =
         ExceptionHandlers::Handle(code.exception_handlers());
-  OS::Print("%s\n", handlers.ToCString());
-  OS::Print("}\n");
+  OS::Print("%s}\n", handlers.ToCString());
 }
 
 

@@ -83,24 +83,28 @@ class FlowGraphCompiler : public ValueObject {
   void GenerateCallRuntime(intptr_t deopt_id,
                            intptr_t token_pos,
                            intptr_t try_index,
-                           const RuntimeEntry& entry);
+                           const RuntimeEntry& entry,
+                           BitmapBuilder* stack_bitmap);
 
   void GenerateCall(intptr_t token_pos,
                     intptr_t try_index,
                     const ExternalLabel* label,
-                    PcDescriptors::Kind kind);
+                    PcDescriptors::Kind kind,
+                    BitmapBuilder* stack_bitmap);
 
   void GenerateAssertAssignable(intptr_t deopt_id,
                                 intptr_t token_pos,
                                 intptr_t try_index,
                                 const AbstractType& dst_type,
-                                const String& dst_name);
+                                const String& dst_name,
+                                BitmapBuilder* stack_bitmap);
 
   void GenerateInstanceOf(intptr_t deopt_id,
                           intptr_t token_pos,
                           intptr_t try_index,
                           const AbstractType& type,
-                          bool negate_result);
+                          bool negate_result,
+                          BitmapBuilder* stack_bitmap);
 
   void GenerateInstanceCall(intptr_t deopt_id,
                             intptr_t token_pos,
@@ -108,14 +112,16 @@ class FlowGraphCompiler : public ValueObject {
                             const String& function_name,
                             intptr_t argument_count,
                             const Array& argument_names,
-                            intptr_t checked_argument_count);
+                            intptr_t checked_argument_count,
+                            BitmapBuilder* stack_bitmap);
 
   void GenerateStaticCall(intptr_t deopt_id,
                           intptr_t token_pos,
                           intptr_t try_index,
                           const Function& function,
                           intptr_t argument_count,
-                          const Array& argument_names);
+                          const Array& argument_names,
+                          BitmapBuilder* stack_bitmap);
 
   void GenerateInlinedMathSqrt(Label* done);
 
@@ -152,7 +158,8 @@ class FlowGraphCompiler : public ValueObject {
                        Label* done,  // Can be NULL, which means fallthrough.
                        intptr_t deopt_id,
                        intptr_t token_index,
-                       intptr_t try_index);
+                       intptr_t try_index,
+                       BitmapBuilder* stack_bitmap);
 
   void EmitDoubleCompareBranch(Condition true_condition,
                                XmmRegister left,

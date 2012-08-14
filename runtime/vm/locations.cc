@@ -16,7 +16,9 @@ LocationSummary::LocationSummary(intptr_t input_count,
     : input_locations_(input_count),
       temp_locations_(temp_count),
       output_location_(),
-      is_call_(contains_call == LocationSummary::kCall) {
+      stack_bitmap_(NULL),
+      is_call_(contains_call == kCall) {
+  if (is_call()) stack_bitmap_ = new BitmapBuilder();
   for (intptr_t i = 0; i < input_count; i++) {
     input_locations_.Add(Location());
   }

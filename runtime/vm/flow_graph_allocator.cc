@@ -490,7 +490,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
 
   const bool copied = builder_->copied_parameter_count() > 0;
 
-  // Process incoming parameters.
+  // Process incoming parameters.  Do this after all other instructions so
+  // that safepoints for all calls have already been found.
   const intptr_t fixed_parameters_count =
       builder_->parsed_function().function().num_fixed_parameters();
 
@@ -528,6 +529,7 @@ void FlowGraphAllocator::BuildLiveRanges() {
         AddToUnallocated(tail);
       }
       ConvertAllUses(range);
+      if (copied) MarkAsObjectAtSafepoints(range);
     }
   }
 }
@@ -802,13 +804,16 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     }
   }
 
-  // Block all allocatable registers for calls.
+  // Block all allocatable registers for calls and record the stack bitmap.
   if (locs->is_call()) {
     // Expected shape of live range:
     //
     //              i  i'
     //              [--)
     //
+    // The stack bitmap describes the position i.
+    Safepoint safepoint = { pos, locs->stack_bitmap() };
+    safepoints_.Add(safepoint);
 
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
       BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)),
@@ -1366,30 +1371,59 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 }
 
 
+bool LiveRange::Contains(intptr_t pos) const {
+  const LiveRange* current = this;
+  while (current != NULL) {
+    UseInterval* interval = current->first_use_interval_;
+    while (interval != NULL) {
+      if (interval->Contains(pos)) return true;
+      interval = interval->next();
+    }
+    current = current->next_sibling_;
+  }
+  return false;
+}
+
+
+void FlowGraphAllocator::MarkAsObjectAtSafepoints(LiveRange* range) {
+  intptr_t stack_index = range->spill_slot().stack_index();
+  ASSERT(stack_index >= 0);
+  for (intptr_t i = 0; i < safepoints_.length(); ++i) {
+    if (range->Contains(safepoints_[i].position)) {
+      TRACE_ALLOC(OS::Print("  marking S[%d] in stack bitmap at %d\n",
+                            stack_index,
+                            safepoints_[i].position));
+      safepoints_[i].stack_bitmap->Set(stack_index, true);
+    }
+  }
+}
+
+
 void FlowGraphAllocator::Spill(LiveRange* range) {
   LiveRange* parent = GetLiveRange(range->vreg());
-
-  if (parent->spill_slot().IsInvalid()) AllocateSpillSlotFor(parent);
-
+  if (parent->spill_slot().IsInvalid()) {
+    AllocateSpillSlotFor(parent);
+    MarkAsObjectAtSafepoints(parent);
+  }
   range->set_assigned_location(parent->spill_slot());
   ConvertAllUses(range);
 }
 
 
 intptr_t FlowGraphAllocator::FirstIntersectionWithAllocated(
-  Register reg, LiveRange* unallocated) {
+    Register reg, LiveRange* unallocated) {
   intptr_t intersection = kMaxPosition;
   for (intptr_t i = 0; i < cpu_regs_[reg].length(); i++) {
     LiveRange* allocated = cpu_regs_[reg][i];
     if (allocated == NULL) continue;
 
     UseInterval* allocated_head =
-      allocated->finger()->first_pending_use_interval();
+        allocated->finger()->first_pending_use_interval();
     if (allocated_head->start() >= intersection) continue;
 
     const intptr_t pos = FirstIntersection(
-      unallocated->finger()->first_pending_use_interval(),
-      allocated_head);
+        unallocated->finger()->first_pending_use_interval(),
+        allocated_head);
     if (pos < intersection) intersection = pos;
   }
   return intersection;
@@ -1428,10 +1462,9 @@ bool FlowGraphAllocator::AllocateFreeRegister(LiveRange* unallocated) {
   if (free_until != kMaxPosition) {
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; ++reg) {
       if (blocked_cpu_regs_[reg] || (reg == candidate)) continue;
-
       const intptr_t intersection =
-        FirstIntersectionWithAllocated(static_cast<Register>(reg), unallocated);
-
+          FirstIntersectionWithAllocated(static_cast<Register>(reg),
+                                         unallocated);
       if (intersection > free_until) {
         candidate = static_cast<Register>(reg);
         free_until = intersection;
@@ -1530,7 +1563,7 @@ bool FlowGraphAllocator::UpdateFreeUntil(Register reg,
       }
 
       const UsePosition* use =
-        allocated->finger()->FirstRegisterBeneficialUse(unallocated->Start());
+          allocated->finger()->FirstRegisterBeneficialUse(unallocated->Start());
 
       if ((use != NULL) && ((use->pos() - start) <= 1)) {
         // This register is blocked by interval that is used
@@ -1604,7 +1637,7 @@ void FlowGraphAllocator::AssignNonFreeRegister(LiveRange* unallocated,
 bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
                                            LiveRange* unallocated) {
   UseInterval* first_unallocated =
-    unallocated->finger()->first_pending_use_interval();
+      unallocated->finger()->first_pending_use_interval();
   const intptr_t intersection = FirstIntersection(
       allocated->finger()->first_pending_use_interval(),
       first_unallocated);
@@ -1617,8 +1650,8 @@ bool FlowGraphAllocator::EvictIntersection(LiveRange* allocated,
     SpillAfter(allocated, spill_position);
   } else {
     const intptr_t restore_position =
-      (spill_position < intersection) ? MinPosition(intersection, use->pos())
-                                      : use->pos();
+        (spill_position < intersection) ? MinPosition(intersection, use->pos())
+                                        : use->pos();
 
     SpillBetween(allocated, spill_position, restore_position);
   }

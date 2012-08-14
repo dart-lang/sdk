@@ -750,6 +750,10 @@ class RawCode : public RawObject {
   // This cannot be boolean because of alignment issues on x64 architectures.
   intptr_t is_optimized_;
 
+  // The number of spill slots used by an optimized code object.  This is
+  // used as the length of each stackmap in the code.
+  intptr_t spill_slot_count_;
+
   // Variable length data follows here.
   int32_t data_[0];
 

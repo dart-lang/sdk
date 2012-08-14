@@ -268,6 +268,8 @@ class LocationSummary : public ZoneAllocated {
     output_location_ = loc;
   }
 
+  BitmapBuilder* stack_bitmap() const { return stack_bitmap_; }
+
   bool is_call() const {
     return is_call_;
   }
@@ -283,7 +285,7 @@ class LocationSummary : public ZoneAllocated {
   GrowableArray<Location> input_locations_;
   GrowableArray<Location> temp_locations_;
   Location output_location_;
-
+  BitmapBuilder* stack_bitmap_;
   const bool is_call_;
 };
 

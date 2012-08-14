@@ -163,6 +163,10 @@ class FlowGraphAllocator : public ValueObject {
   // position preceding the to position.
   void SpillBetween(LiveRange* range, intptr_t from, intptr_t to);
 
+  // Mark the live range as a live object pointer at all safepoints
+  // contained in the range.
+  void MarkAsObjectAtSafepoints(LiveRange* range);
+
   MoveOperands* AddMoveAt(intptr_t pos, Location to, Location from);
 
   void PrintLiveRanges();
@@ -220,6 +224,13 @@ class FlowGraphAllocator : public ValueObject {
   // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
+
+  // List of safepoints.
+  struct Safepoint {
+    intptr_t position;
+    BitmapBuilder* stack_bitmap;
+  };
+  GrowableArray<Safepoint> safepoints_;
 
   bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
@@ -425,9 +436,15 @@ class LiveRange : public ZoneAllocated {
 
   LiveRange* SplitAt(intptr_t pos);
 
+  // A fast conservative check if the range might contain a given position
+  // -- can return true when the range does not contain the position (e.g.,
+  // the position lies in a lifetime hole between range start and end).
   bool CanCover(intptr_t pos) const {
     return (Start() <= pos) && (pos < End());
   }
+
+  // True if the range contains the given position.
+  bool Contains(intptr_t pos) const;
 
   Location spill_slot() const {
     return spill_slot_;

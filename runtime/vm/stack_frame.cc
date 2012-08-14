@@ -51,7 +51,11 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
   // these handles are not traversed. The use of handles is mainly to
   // be able to reuse the handle based code and avoid having to add
   // helper functions to the raw object interface.
+  ASSERT(visitor != NULL);
   NoGCScope no_gc;
+  RawObject** start_addr = reinterpret_cast<RawObject**>(sp());
+  RawObject** end_addr = reinterpret_cast<RawObject**>(
+      fp() + (ParsedFunction::kFirstLocalSlotIndex * kWordSize));
   Code code;
   code = LookupDartCode();
   if (!code.IsNull()) {
@@ -62,31 +66,28 @@ void StackFrame::VisitObjectPointers(ObjectPointerVisitor* visitor) {
     if (!map.IsNull()) {
       // A stack map is present in the code object, use the stack map to visit
       // frame slots which are marked as having objects.
-      intptr_t bit_index = map.MinimumBitIndex();
-      ASSERT(bit_index != Stackmap::kNoMinimum);
       intptr_t end_bit_index = map.MaximumBitIndex();
-      ASSERT(end_bit_index != Stackmap::kNoMaximum);
-      uword base_addr =
-          fp() + (ParsedFunction::kFirstLocalSlotIndex * kWordSize);
-      while (bit_index <= end_bit_index) {
-        uword addr = base_addr - (bit_index * kWordSize);
-        ASSERT(addr >= sp());
-        if (map.IsObject(bit_index)) {
-          visitor->VisitPointer(reinterpret_cast<RawObject**>(addr));
+      // It's possible that no bits are set.
+      if (end_bit_index != Stackmap::kNoMaximum) {
+        intptr_t bit_index = map.MinimumBitIndex();
+        ASSERT(bit_index != Stackmap::kNoMinimum);
+        ASSERT(bit_index <= end_bit_index);
+        ASSERT(end_bit_index <= (end_addr - start_addr));
+        while (bit_index <= end_bit_index) {
+          if (map.IsObject(bit_index)) {
+            visitor->VisitPointer(end_addr - bit_index);
+          }
+          ++bit_index;
         }
-        ++bit_index;
       }
-      return;
+      // The stack slots that are not spill slots (i.e., outgoing arguments)
+      // are tagged objects.
+      end_addr = end_addr - (code.spill_slot_count() - 1);
+      ASSERT(end_addr >= start_addr);
     }
   }
-  // No stack maps are present in the code object which means this
-  // frame relies on tagged pointers and hence we visit each entry
-  // on the frame between SP and FP.
-  ASSERT(visitor != NULL);
-  RawObject** start = reinterpret_cast<RawObject**>(sp());
-  RawObject** end = reinterpret_cast<RawObject**>(
-      fp() + (ParsedFunction::kFirstLocalSlotIndex * kWordSize));
-  visitor->VisitPointers(start, end);
+  // Each slot between the start and end address are tagged objects.
+  visitor->VisitPointers(start_addr, end_addr);
 }
 
 
