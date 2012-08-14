@@ -6,11 +6,11 @@
 
 #library('date_time_format_test');
 
-#import('../../../pkg/i18n/intl.dart');
-#import('../../../pkg/i18n/date_format.dart');
+#import('../intl.dart');
+#import('../date_format.dart');
 #import('../../../pkg/unittest/unittest.dart');
-#import('../../../pkg/i18n/date_time_patterns.dart');
-#import('../../../pkg/i18n/date_symbol_data.dart');
+#import('../date_time_patterns.dart');
+#import('../date_symbol_data.dart');
 
 #source('date_time_format_test_data.dart');
 

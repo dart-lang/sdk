@@ -5,7 +5,7 @@
 
 #library('logging_test');
 
-#import('../../../pkg/logging/logging.dart');
+#import('../logging.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 main() {

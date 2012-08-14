@@ -45,6 +45,7 @@
 final TEST_SUITE_DIRECTORIES = const [
     const Path('frog/tests/await'),
     const Path('frog/tests/frog'),
+    const Path('pkg'),
     const Path('runtime/tests/vm'),
     const Path('samples/tests/samples'),
     const Path('tests/benchmark_smoke'),

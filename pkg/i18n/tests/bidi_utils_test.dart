@@ -5,7 +5,7 @@
 
 #library('bidi_utils_test');
 
-#import('../../../pkg/i18n/intl.dart');
+#import('../intl.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 /**
@@ -56,7 +56,7 @@ main() {
     expect(hasAnyRtl('<input value=\u05e0>123', true), isFalse);
   });
 
-  
+
   test('endsWithLtr', () {
     expect(endsWithLtr('a'), isTrue);
     expect(endsWithLtr('abc'), isTrue);
@@ -185,7 +185,7 @@ main() {
   });
 
   test('estimateDirectionOfText', () {
-    expect(estimateDirectionOfText('', false).value, 
+    expect(estimateDirectionOfText('', false).value,
         equals(TextDirection.UNKNOWN.value));
     expect(estimateDirectionOfText(' ', false).value,
         equals(TextDirection.UNKNOWN.value));

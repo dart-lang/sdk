@@ -4,7 +4,7 @@
 
 #library('intl_test');
 
-#import('../../../pkg/i18n/intl.dart');
+#import('../intl.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 main() {

@@ -5,7 +5,7 @@
 
 #library('bidi_format_test');
 
-#import('../../../pkg/i18n/intl.dart');
+#import('../intl.dart');
 #import('../../../pkg/unittest/unittest.dart');
 
 /**
@@ -71,7 +71,7 @@ main() {
         equals('<span dir=rtl>$he</span>'));
     // Test overall dir (neutral) doesn't match context dir (LTR), dirReset.
     expect(ltrFmt.wrapWithSpan('', true, true), equals(''));
-    
+
     // Test exit dir (but not overall dir) is opposite to context dir, dirReset.
     expect(ltrFmt.wrapWithSpan('$longEn$he$html', true, true),
         equals('$longEn$he$html$LRM'));
