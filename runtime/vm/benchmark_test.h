@@ -25,7 +25,7 @@ DECLARE_FLAG(int, code_heap_size);
   static const Benchmark kRegister##name(Dart_Benchmark##name, #name);         \
   static void Dart_BenchmarkHelper##name(Benchmark* benchmark);                \
   void Dart_Benchmark##name(Benchmark* benchmark) {                            \
-    FLAG_code_heap_size = 10;                                                  \
+    FLAG_code_heap_size = 12;                                                  \
     BenchmarkIsolateScope __isolate__(benchmark);                              \
     Zone __zone__(benchmark->isolate());                                       \
     HandleScope __hs__(benchmark->isolate());                                  \
