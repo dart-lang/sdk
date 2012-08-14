@@ -34,3 +34,14 @@ class UnresolvedPlaceholder extends Placeholder {
       renamer.generateUniqueName('unresolved');
   String toString() => 'unresolved_placeholder';
 }
+
+class LocalPlaceholder extends Placeholder {
+  final FunctionElement scope;
+  final String identifier;
+  LocalPlaceholder(this.scope, this.identifier);
+
+  String rename(ConflictingRenamer renamer) =>
+      renamer.renameLocalIdentifier(scope, identifier);
+  String toString() =>
+      'local_placeholder[scope($scope), id($identifier)]';
+}

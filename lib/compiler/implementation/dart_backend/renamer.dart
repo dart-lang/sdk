@@ -41,6 +41,11 @@ class ConflictingRenamer {
     return name;
   }
 
+  // TODO(smok): Check for conflicts with class fields and take usages
+  // into account.
+  String renameLocalIdentifier(FunctionElement scope, String identifier) =>
+      identifier;
+
   String renameElement(Element element) {
     assert(element.isTopLevel());
     // TODO(smok): Make sure that the new name does not conflict with existing

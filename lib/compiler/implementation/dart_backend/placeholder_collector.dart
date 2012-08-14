@@ -9,8 +9,14 @@ class SendVisitor extends ResolvedVisitor {
 
   visitSuperSend(Send node) {}
   visitOperatorSend(Send node) {}
-  visitClosureSend(Send node) {}
   visitForeignSend(Send node) {}
+
+  visitClosureSend(Send node) {
+    final element = elements[node];
+    if (element !== null) {
+      collector.tryMakeLocalPlaceholder(element, node.selector);
+    }
+  }
 
   visitDynamicSend(Send node) {
     tryRenamePrivateSelector(node);
@@ -23,8 +29,18 @@ class SendVisitor extends ResolvedVisitor {
       tryRenamePrivateSelector(node);
       return;
     }
-    // We don't want to rename non top-level element access.
-    if (!element.isTopLevel()) return;
+    // We don't want to rename non top-level element access
+    // unless it's a local variable.
+    if (!element.isTopLevel()) {
+      // May get FunctionExpression here in selector
+      // in case of A(int this.f());
+      if (node.selector is Identifier) {
+        collector.tryMakeLocalPlaceholder(element, node.selector);
+      } else {
+        assert(node.selector is FunctionExpression);
+      }
+      return;
+    }
     // Unqualified <class> in static invocation, why it's not a type annotation?
     // Another option would be to process in visitStaticSend, NB:
     // those elements are not top-level.
@@ -57,11 +73,13 @@ class SendVisitor extends ResolvedVisitor {
 class PlaceholderCollector extends AbstractVisitor {
   final Compiler compiler;
   final Map<Node, Placeholder> placeholders;
+  final Map<Element, Map<String, LocalPlaceholder>> localPlaceholders;
   Element currentElement;
   TreeElements treeElements;
 
   PlaceholderCollector(this.compiler) :
-      placeholders = new Map<Node, Placeholder>();
+      placeholders = new Map<Node, Placeholder>(),
+      localPlaceholders = new Map<Element, Map<String, LocalPlaceholder>>();
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
@@ -177,8 +195,18 @@ class PlaceholderCollector extends AbstractVisitor {
     return result;
   }
 
-  tryMakePrivateIdentifier(Identifier identifier) {
+  void tryMakePrivateIdentifier(Identifier identifier) {
     if (identifier.source.isPrivate()) makePrivateIdentifier(identifier);
+  }
+
+  void tryMakeLocalPlaceholder(Element element, Identifier node) {
+    // TODO(smok): Maybe we should rename privates as well, their privacy
+    // should not matter if they are local vars.
+    if (node.source.isPrivate()) return;
+    if (element.isVariable()
+        || (element.isFunction() && !Elements.isStaticOrTopLevel(element))) {
+      makeLocalPlaceholder(node);
+    }
   }
 
   void makeTypePlaceholder(Node node, Type type) {
@@ -204,6 +232,19 @@ class PlaceholderCollector extends AbstractVisitor {
     placeholders[node] = const UnresolvedPlaceholder();
   }
 
+  void makeLocalPlaceholder(Node node) {
+    assert(currentElement is FunctionElement);
+    assert(node is Identifier);
+    Map<String, LocalPlaceholder> functionLocals =
+        localPlaceholders.putIfAbsent(currentElement,
+            () => <LocalPlaceholder>{});
+    String identifier = node.asIdentifier().source.slowToString();
+    LocalPlaceholder localPlaceholder =
+        functionLocals.putIfAbsent(identifier,
+            () => new LocalPlaceholder(currentElement, identifier));
+    placeholders[node] = localPlaceholder;
+  }
+
   void internalError(String reason, [Node node]) {
     compiler.cancel(reason: reason, node: node);
   }
@@ -219,8 +260,13 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitSendSet(SendSet send) {
     final element = treeElements[send];
-    if (element !== null && element.isInstanceMember()) {
-      tryMakePrivateIdentifier(send.selector.asIdentifier());
+    if (element !== null) {
+      if (element.isInstanceMember()) {
+        tryMakePrivateIdentifier(send.selector.asIdentifier());
+      } else {
+        assert(send.selector is Identifier);
+        tryMakeLocalPlaceholder(element, send.selector);
+      }
     }
     send.visitChildren(this);
   }
@@ -282,6 +328,51 @@ class PlaceholderCollector extends AbstractVisitor {
       makeTypePlaceholder(target, type);
     } else {
       if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+    }
+    node.visitChildren(this);
+  }
+
+  visitVariableDefinitions(VariableDefinitions node) {
+    // Collect only local placeholders.
+    if (currentElement is FunctionElement) {
+      for (Node definition in node.definitions.nodes) {
+        Element definitionElement = treeElements[definition];
+        // definitionElement may be null if we're inside variable definitions
+        // of a function that is a parameter of another function.
+        // TODO(smok): Fix this when resolver correctly deals with
+        // such cases.
+        if (definitionElement === null) continue;
+        if (definition is Send) {
+          // May get FunctionExpression here in definition.selector
+          // in case of A(int this.f());
+          if (definition.selector is Identifier) {
+            tryMakeLocalPlaceholder(definitionElement, definition.selector);
+          } else {
+            assert(definition.selector is FunctionExpression);
+          }
+        } else if (definition is Identifier) {
+          tryMakeLocalPlaceholder(definitionElement, definition);
+        } else if (definition is FunctionExpression) {
+          // Skip, it will be processed in visitFunctionExpression.
+        } else {
+          internalError('Unexpected definition structure $definition');
+        }
+      }
+    }
+    node.visitChildren(this);
+  }
+
+  visitFunctionExpression(FunctionExpression node) {
+    Element element = treeElements[node];
+    // May get null here in case of A(int this.f());
+    if (element !== null) {
+      // Rename only local functions.
+      if (element is FunctionElement && element !== currentElement) {
+        if (node.name !== null) {
+          assert(node.name is Identifier);
+          tryMakeLocalPlaceholder(element, node.name);
+        }
+      }
     }
     node.visitChildren(this);
   }
