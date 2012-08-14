@@ -9,7 +9,6 @@ type_inference2_test: Fail # Issue 2577, requires liveness analysis.
 type_inference4_test: Fail # Issue 2665.
 type_inference5_test: Fail # Issue 2665.
 is_inference2_test: Fail # Issue 4069.
-patch_test: Fail # Not implemented
 
 [ $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
