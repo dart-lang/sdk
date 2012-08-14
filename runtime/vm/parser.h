@@ -313,7 +313,7 @@ class Parser : ValueObject {
   void CheckConstFieldsInitialized(const Class& cls);
   void CheckConstructors(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
-           GrowableArray<FieldInitExpression>* initializers,
+           LocalVariable* receiver,
            GrowableArray<Field*>* initialized_fields);
   void CheckDuplicateFieldInit(intptr_t init_pos,
                                GrowableArray<Field*>* initialized_fields,

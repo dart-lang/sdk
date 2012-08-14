@@ -1616,14 +1616,8 @@ void Parser::CheckConstFieldsInitialized(const Class& cls) {
 }
 
 
-struct FieldInitExpression {
-  Field* inst_field;
-  AstNode* expr;
-};
-
-
 void Parser::ParseInitializedInstanceFields(const Class& cls,
-                 GrowableArray<FieldInitExpression>* initializers,
+                 LocalVariable* receiver,
                  GrowableArray<Field*>* initialized_fields) {
   TRACE_PARSER("ParseInitializedInstanceFields");
   const Array& fields = Array::Handle(cls.fields());
@@ -1645,13 +1639,24 @@ void Parser::ParseInitializedInstanceFields(const Class& cls,
       ASSERT(IsIdentifier());
       ConsumeToken();
       ExpectToken(Token::kASSIGN);
-      // TODO(hausner): Allow non-const expressions here for final fields.
-      AstNode* init_expr = ParseConstExpr();
+
+      AstNode* init_expr = NULL;
+      if (field.is_const()) {
+        init_expr = ParseConstExpr();
+      } else {
+        init_expr = ParseExpr(kAllowConst, kConsumeCascades);
+        if (init_expr->EvalConstExpr() != NULL) {
+          init_expr = new LiteralNode(field_pos, EvaluateConstExpr(init_expr));
+        }
+      }
       ASSERT(init_expr != NULL);
-      FieldInitExpression initializer;
-      initializer.inst_field = &field;
-      initializer.expr = init_expr;
-      initializers->Add(initializer);
+      AstNode* instance = new LoadLocalNode(field.token_pos(), receiver);
+      AstNode* field_init =
+          new StoreInstanceFieldNode(field.token_pos(),
+                                     instance,
+                                     field,
+                                     init_expr);
+      current_block_->statements->Add(field_init);
     }
   }
   SetPosition(saved_pos);
@@ -1770,17 +1775,8 @@ void Parser::ParseConstructorRedirection(const Class& cls,
 SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   ASSERT(func.IsConstructor());
   const intptr_t ctor_pos = TokenPos();
-
-  // Implicit 'this' is the only parameter/local variable.
   OpenFunctionBlock(func);
-
-  // Parse expressions of instance fields that have an explicit
-  // initializers.
-  GrowableArray<FieldInitExpression> initializers;
-  GrowableArray<Field*> initialized_fields;
-  Class& cls = Class::Handle(func.Owner());
-  ParseInitializedInstanceFields(cls, &initializers, &initialized_fields);
-
+  const Class& cls = Class::Handle(func.Owner());
   LocalVariable* receiver = new LocalVariable(
       ctor_pos,
       String::ZoneHandle(Symbols::This()),
@@ -1793,18 +1789,13 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
        Type::ZoneHandle(Type::IntInterface()));
   current_block_->scope->AddVariable(phase_parameter);
 
-  // Now that the "this" parameter is in scope, we can generate the code
-  // to strore the initializer expressions in the respective instance fields.
-  for (int i = 0; i < initializers.length(); i++) {
-    const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
-    AstNode* field_init =
-        new StoreInstanceFieldNode(field->token_pos(),
-                                   instance,
-                                   *field,
-                                   initializers[i].expr);
-    current_block_->statements->Add(field_init);
-  }
+  // Parse expressions of instance fields that have an explicit
+  // initializer expression.
+  // The receiver must not be visible to field initializer expressions.
+  receiver->set_invisible(true);
+  GrowableArray<Field*> initialized_fields;
+  ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
+  receiver->set_invisible(false);
 
   GenerateSuperConstructorCall(cls, receiver);
   CheckConstFieldsInitialized(cls);
@@ -1812,6 +1803,16 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // Empty constructor body.
   SequenceNode* statements = CloseBlock();
   return statements;
+}
+
+
+// Helper function to make the first num_variables variables in the
+// given scope visible/invisible.
+static void SetInvisible(LocalScope* scope, int num_variables, bool invisible) {
+  ASSERT(num_variables <= scope->num_variables());
+  for (int i = 0; i < num_variables; i++) {
+    scope->VariableAt(i)->set_invisible(invisible);
+  }
 }
 
 
@@ -1864,35 +1865,23 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
   ASSERT(func.NumberOfParameters() == params.parameters->length());
 
-  // Initialize instance fields that have an explicit initializer expression.
-  // This has to be done before code for field initializer parameters
-  // is generated.
-  // NB: the instance field initializers have to be compiled before
-  // the parameters are added to the scope, so that a parameter
-  // name cannot shadow a name used in the field initializer expression.
-  GrowableArray<FieldInitExpression> initializers;
-  GrowableArray<Field*> initialized_fields;
-  ParseInitializedInstanceFields(cls, &initializers, &initialized_fields);
-
   // Now populate function scope with the formal parameters.
   AddFormalParamsToScope(&params, current_block_->scope);
-  LocalVariable* receiver = current_block_->scope->VariableAt(0);
 
-  // Now that the "this" parameter is in scope, we can generate the code
-  // to store the initializer expressions in the respective instance fields.
-  // We do this before the field parameters and the initializers from the
-  // constructor's initializer list get compiled.
+  // Initialize instance fields that have an explicit initializer expression.
+  // The formal parameter names must not be visible to the instance
+  // field initializer expressions, yet the parameters must be added to
+  // the scope so the expressions use the correct offsets for 'this' when
+  // storing values. We make the formal parameters temporarily invisible
+  // while parsing the instance field initializer expressions.
+  SetInvisible(current_block_->scope, params.parameters->length(), true);
+  GrowableArray<Field*> initialized_fields;
+  LocalVariable* receiver = current_block_->scope->VariableAt(0);
   OpenBlock();
-  for (int i = 0; i < initializers.length(); i++) {
-    const Field* field = initializers[i].inst_field;
-    AstNode* instance = new LoadLocalNode(field->token_pos(), receiver);
-    AstNode* field_init =
-        new StoreInstanceFieldNode(field->token_pos(),
-                                   instance,
-                                   *field,
-                                   initializers[i].expr);
-    current_block_->statements->Add(field_init);
-  }
+  ParseInitializedInstanceFields(cls, receiver, &initialized_fields);
+  // Make the parameters (which are in the outer scope) visible again.
+  SetInvisible(current_block_->scope->parent(),
+               params.parameters->length(), false);
 
   // Turn formal field parameters into field initializers or report error
   // if the function is not a constructor.
