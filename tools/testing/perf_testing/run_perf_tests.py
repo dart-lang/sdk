@@ -94,6 +94,17 @@ class TestRunner(object):
           else:
             os.remove(to_remove)
 
+  def get_archive(archive_name):
+    """Wrapper around the pulling down a specific archive from Google Storage.
+    Adds a specific revision argument as needed.
+    Returns: The stderr from running this command."""
+    cmd = ['python', os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'),
+           archive_name]
+    if self.current_revision_num != -1:
+      cmd += ['-r', revision_num]
+    _, stderr = self.test.test_runner.run_cmd(cmd)
+    return stderr
+
   def sync_and_build(self, suites, revision_num=''):
     """Make sure we have the latest version of of the repo, and build it. We
     begin and end standing in DART_REPO_LOC.
@@ -114,18 +125,17 @@ class TestRunner(object):
                     os.path.join(DART_REPO_LOC, 'internal'))
     shutil.copy(os.path.join(TOP_LEVEL_DIR, 'tools', 'get_archive.py'),
                     os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'))
+    shutil.copy(
+        os.path.join(TOP_LEVEL_DIR, 'tools', 'testing', 'run_selenium.py'),
+        os.path.join(DART_REPO_LOC, 'tools', 'testing', 'run_selenium.py'))
 
     if revision_num == '':
       revision_num = search_for_revision(['svn', 'info'])
       if revision_num == -1:
         revision_num = search_for_revision(['git', 'svn', 'info'])
 
-    get_archive_path = os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py')
-    if os.path.exists(get_archive_path):
-      cmd = ['python', get_archive_path, 'sdk']
-      if revision_num != -1:
-        cmd += ['-r', revision_num]
-      _, stderr = self.run_cmd(cmd)
+    self.current_revision_num = revision_num
+    stderr = get_archive('sdk')
     if not os.path.exists(get_archive_path) or 'InvalidUriError' in stderr:
       # Couldn't find the SDK on Google Storage. Build it locally.
 
@@ -167,6 +177,8 @@ class TestRunner(object):
 
   def has_new_code(self):
     """Tests if there are any newer versions of files on the server."""
+    if not os.path.exists(DART_REPO_LOC):
+      return True
     os.chdir(DART_REPO_LOC)
     # Pass 'p' in if we have a new certificate for the svn server, we want to
     # (p)ermanently accept it.
@@ -195,10 +207,6 @@ class TestRunner(object):
     parser.add_option('--forever', '-f', dest='continuous', help='Run this scri'
                       'pt forever, always checking for the next svn checkin',
                       action='store_true', default=False)
-    parser.add_option('--incremental', '-i', dest='incremental',
-                      help='Start an an early revision and work your way '
-                      'forward through CLs sequentially', action='store_true',
-                      default=False)
     parser.add_option('--nobuild', '-n', dest='no_build', action='store_true',
                       help='Do not sync with the repository and do not '
                       'rebuild.', default=False)
@@ -228,7 +236,7 @@ class TestRunner(object):
     self.no_upload = args.no_upload
     self.no_test = args.no_test
     self.verbose = args.verbose
-    return args.continuous, args.incremental
+    return args.continuous
 
   def run_test_sequence(self, revision_num='', num_reruns=1):
     """Run the set of commands to (possibly) build, run, and post the results
@@ -354,7 +362,7 @@ class Tester(object):
   def add_svn_revision_to_trace(self, outfile, browser = None):
     """Add the svn version number to the provided tracefile."""
     def get_dartium_revision():
-      version_file_name = os.path.join(TOP_LEVEL_DIR, 'client', 'tests',
+      version_file_name = os.path.join(DART_REPO_LOC, 'client', 'tests',
                                        'dartium', 'LAST_VERSION')
       version_file = open(version_file_name, 'r')
       version = version_file.read().split('.')[-2]
@@ -469,25 +477,15 @@ class RuntimePerformanceTest(Test):
 class BrowserTester(Tester):
   @staticmethod
   def get_browsers(add_dartium=True):
-    browsers = ['chrome']#['ff', 'chrome']
+    browsers = ['ff', 'chrome']
     if add_dartium:
-      pass
-      #browsers += ['dartium']
+      browsers += ['dartium']
     has_shell = False
     if platform.system() == 'Darwin':
-      pass
-      #browsers += ['safari']
+      browsers += ['safari']
     if platform.system() == 'Windows':
       browsers += ['ie']
       has_shell = True
-    if 'dartium' in browsers:
-      # Fetch it if necessary.
-      get_dartium = ['python', os.path.join(DART_REPO_LOC, 'tools',
-                     'get_archive.py'), 'dartium']
-      # TODO(vsm): It's inconvenient that run_cmd isn't in scope here.
-      # Perhaps there is a better place to put that or this.
-      subprocess.call(get_dartium, stdout=sys.stdout, stderr=sys.stderr,
-                      shell=has_shell)
     return browsers
 
 
@@ -667,9 +665,7 @@ class DromaeoTester(Tester):
 
   @staticmethod
   def get_dromaeo_versions():
-    # TODO(vsm): why is the js version closing early?
-    return ['dart2js_dom', 'dart2js_html'] 
-    #return ['js', 'dart2js_dom', 'dart2js_html']
+    return ['js', 'dart2js_dom', 'dart2js_html']
 
 
 class DromaeoTest(RuntimePerformanceTest):
@@ -677,7 +673,7 @@ class DromaeoTest(RuntimePerformanceTest):
   def __init__(self, test_runner):
     super(DromaeoTest, self).__init__(
         self.name(),
-        BrowserTester.get_browsers(),
+        BrowserTester.get_browsers(True),
         'browser',
         DromaeoTester.get_dromaeo_versions(), 
         DromaeoTester.get_dromaeo_benchmarks(), test_runner,
@@ -710,8 +706,8 @@ class DromaeoTest(RuntimePerformanceTest):
       in the default location (inside depot_tools).
       """
       current_dir = os.getcwd()
+      self.test.test_runner.get_archive('chromedriver')
       self.test.test_runner.run_cmd(['python', os.path.join(
-          'tools', 'get_archive.py'), 'chromedriver'])
       path = os.environ['PATH'].split(os.pathsep)
       orig_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools', 'testing',
                                             'orig-chromedriver')
@@ -747,8 +743,7 @@ class DromaeoTest(RuntimePerformanceTest):
               move_chromedriver(loc)
           elif browser == 'dartium':
             if not os.path.exists(dartium_chromedriver_path):
-              self.test.test_runner.run_cmd(['python',
-                  os.path.join('tools', 'get_archive.py'), 'chromedriver'])
+              self.test.test_runner.get_archive('chromedriver')
             # Move original chromedriver for storage.
             if not os.path.exists(orig_chromedriver_path):
               move_chromedriver(loc, copy_to_depot_tools_dir=False)
@@ -759,6 +754,8 @@ class DromaeoTest(RuntimePerformanceTest):
 
     def run_tests(self):
       """Run dromaeo in the browser."""
+      
+      self.test.test_runner.get_archive('dartium')
 
       # Build tests.
       dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
@@ -876,6 +873,7 @@ class DromaeoSizeTest(Test):
       os.chdir(dromaeo_path)
       self.test.test_runner.run_cmd(
           ['python', os.path.join('generate_dart2js_tests.py')])
+      self.test.test_runner.get_archive('dartium')
       os.chdir(current_path)
 
       self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
@@ -1116,7 +1114,7 @@ def update_set_of_done_cls(revision_num=None):
   Args:
   revision_num: an additional number to be added to the 'done set'
   """
-  filename = os.path.join(dirname(abspath(__file__)), 'cached_results.txt')
+  filename = os.path.join(TOP_LEVEL_DIR, 'cached_results.txt')
   if not os.path.exists(filename):
     f = open(filename, 'w')
     results = set()
@@ -1133,7 +1131,7 @@ def update_set_of_done_cls(revision_num=None):
 
 def main():
   runner = TestRunner()
-  continuous, incremental = runner.parse_args()
+  continuous = runner.parse_args()
 
   if not os.path.exists(DART_REPO_LOC):
     os.mkdir(dirname(DART_REPO_LOC))
@@ -1178,15 +1176,6 @@ def main():
           revision_num -= 1
         # No more extra back-runs to do (for now). Wait for new code.
         time.sleep(200)
-  elif incremental:
-    # This is a temporary measure to backfill old revisions.
-    # TODO(efortuna): Clean this up -- don't hard code numbers, make user
-    # specifiable.
-    revision_num = 9000
-    while revision_num < 10600:
-      run = runner.run_test_sequence(revision_num=str(revision_num),
-          num_reruns=10)
-      revision_num += 1
   else:
     runner.run_test_sequence()
 
