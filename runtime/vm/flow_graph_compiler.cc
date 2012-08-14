@@ -205,7 +205,36 @@ bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
 }
 
 
+void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+  // TODO(vegorov): consider saving only caller save (volatile) registers.
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->Contains(reg)) {
+      assembler()->PushRegister(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->Contains(reg)) {
+      assembler()->PopRegister(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
+  slow_path_code_.Add(code);
+}
+
+
 void FlowGraphCompiler::GenerateDeferredCode() {
+  for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    slow_path_code_[i]->EmitNativeCode(this);
+  }
   for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
     deopt_stubs_[i]->GenerateCode(this, i);
   }
@@ -678,7 +707,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 
   // If this instruction is call spill everything that was not consumed by
   // input locations.
-  if (locs->is_call() || instr->IsBranch() || instr->IsGoto()) {
+  if (locs->contains_call() || instr->IsBranch() || instr->IsGoto()) {
     Spill();
   }
 

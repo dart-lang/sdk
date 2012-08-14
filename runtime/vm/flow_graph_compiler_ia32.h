@@ -191,6 +191,8 @@ class FlowGraphCompiler : public ValueObject {
                       Register reg2 = kNoRegister,
                       Register reg3 = kNoRegister);
 
+  void AddSlowPathCode(SlowPathCode* slow_path);
+
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
   void FinalizeDeoptInfo(const Code& code);
@@ -205,6 +207,9 @@ class FlowGraphCompiler : public ValueObject {
   FrameRegisterAllocator* frame_register_allocator() {
     return &frame_register_allocator_;
   }
+
+  void SaveLiveRegisters(LocationSummary* locs);
+  void RestoreLiveRegisters(LocationSummary* locs);
 
   // Returns true if the compiled function has a finally clause.
   bool HasFinally() const;
@@ -305,6 +310,7 @@ class FlowGraphCompiler : public ValueObject {
   StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
+  GrowableArray<SlowPathCode*> slow_path_code_;
   const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
   const bool is_ssa_;

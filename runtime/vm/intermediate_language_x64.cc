@@ -1437,29 +1437,47 @@ void CatchEntryComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* CheckStackOverflowComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 0;
   const intptr_t kNumTemps = 1;
-  // TODO(vegorov): spilling is required only on an infrequently executed path.
   LocationSummary* summary =
-      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kCall);
-  // All registers are blocked for a call.  Instructions marked at calls can use
-  // only fixed register temps.
-  summary->set_temp(0, Location::RegisterLocation(RAX));
+      new LocationSummary(kNumInputs,
+                          kNumTemps,
+                          LocationSummary::kCallOnSlowPath);
+  summary->set_temp(0, Location::RequiresRegister());
   return summary;
 }
 
 
+class CheckStackOverflowSlowPath : public SlowPathCode {
+ public:
+  explicit CheckStackOverflowSlowPath(CheckStackOverflowComp* computation)
+      : computation_(computation) { }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) {
+    __ Bind(entry_label());
+    compiler->SaveLiveRegisters(computation_->locs());
+    compiler->GenerateCallRuntime(computation_->deopt_id(),
+                                  computation_->token_pos(),
+                                  computation_->try_index(),
+                                  kStackOverflowRuntimeEntry,
+                                  computation_->locs()->stack_bitmap());
+    compiler->RestoreLiveRegisters(computation_->locs());
+    __ jmp(exit_label());
+  }
+
+ private:
+  CheckStackOverflowComp* computation_;
+};
+
+
 void CheckStackOverflowComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  CheckStackOverflowSlowPath* slow_path = new CheckStackOverflowSlowPath(this);
+  compiler->AddSlowPathCode(slow_path);
+
   Register temp = locs()->temp(0).reg();
   // Generate stack overflow check.
   __ movq(temp, Immediate(Isolate::Current()->stack_limit_address()));
   __ cmpq(RSP, Address(temp, 0));
-  Label no_stack_overflow;
-  __ j(ABOVE, &no_stack_overflow, Assembler::kNearJump);
-  compiler->GenerateCallRuntime(deopt_id(),
-                                token_pos(),
-                                try_index(),
-                                kStackOverflowRuntimeEntry,
-                                locs()->stack_bitmap());
-  __ Bind(&no_stack_overflow);
+  __ j(BELOW_EQUAL, slow_path->entry_label());
+  __ Bind(slow_path->exit_label());
 }
 
 

@@ -191,6 +191,8 @@ class FlowGraphCompiler : public ValueObject {
                       Register reg2 = kNoRegister,
                       Register reg3 = kNoRegister);
 
+  void AddSlowPathCode(SlowPathCode* slow_path);
+
   void FinalizeExceptionHandlers(const Code& code);
   void FinalizePcDescriptors(const Code& code);
   void FinalizeDeoptInfo(const Code& code);
@@ -210,6 +212,9 @@ class FlowGraphCompiler : public ValueObject {
   bool HasFinally() const;
 
   static const int kLocalsOffsetFromFP = (-1 * kWordSize);
+
+  void SaveLiveRegisters(LocationSummary* locs);
+  void RestoreLiveRegisters(LocationSummary* locs);
 
  private:
   friend class DeoptimizationStub;
@@ -305,6 +310,7 @@ class FlowGraphCompiler : public ValueObject {
   StackmapTableBuilder* stackmap_table_builder_;
   GrowableArray<BlockInfo*> block_info_;
   GrowableArray<DeoptimizationStub*> deopt_stubs_;
+  GrowableArray<SlowPathCode*> slow_path_code_;
   const GrowableObjectArray& object_table_;
   const bool is_optimizing_;
   const bool is_ssa_;

@@ -96,6 +96,9 @@ class FlowGraphAllocator : public ValueObject {
   void ConnectIncomingPhiMoves(BlockEntryInstr* block);
   void BlockLocation(Location loc, intptr_t from, intptr_t to);
 
+  // Find all safepoints that are covered by this live range.
+  void AssignSafepoints(LiveRange* range);
+
   // Process live ranges sorted by their start and assign registers
   // to them
   void AllocateCPURegisters();
@@ -213,7 +216,11 @@ class FlowGraphAllocator : public ValueObject {
   GrowableArray<LiveRange*> temporaries_;
 #endif
 
+  // List of spilled live ranges.
   GrowableArray<LiveRange*> spilled_;
+
+  // List of instructions containing calls.
+  GrowableArray<Instruction*> safepoints_;
 
   // Per register lists of allocated live ranges.  Contain only those
   // ranges that can be affected by future allocation decisions.
@@ -224,13 +231,6 @@ class FlowGraphAllocator : public ValueObject {
   // List of used spill slots. Contains positions after which spill slots
   // become free and can be reused for allocation.
   GrowableArray<intptr_t> spill_slots_;
-
-  // List of safepoints.
-  struct Safepoint {
-    intptr_t position;
-    BitmapBuilder* stack_bitmap;
-  };
-  GrowableArray<Safepoint> safepoints_;
 
   bool blocked_cpu_regs_[kNumberOfCpuRegisters];
 
@@ -387,6 +387,27 @@ class AllocationFinger : public ValueObject {
 };
 
 
+class SafepointPosition : public ZoneAllocated {
+ public:
+  SafepointPosition(intptr_t pos,
+                    LocationSummary* locs)
+      : pos_(pos), locs_(locs), next_(NULL) { }
+
+  void set_next(SafepointPosition* next) { next_ = next; }
+  SafepointPosition* next() const { return next_; }
+
+  intptr_t pos() const { return pos_; }
+
+  LocationSummary* locs() const { return locs_; }
+
+ private:
+  const intptr_t pos_;
+  LocationSummary* const locs_;
+
+  SafepointPosition* next_;
+};
+
+
 // LiveRange represents a sequence of UseIntervals for a given SSA value.
 class LiveRange : public ZoneAllocated {
  public:
@@ -397,6 +418,8 @@ class LiveRange : public ZoneAllocated {
       uses_(NULL),
       first_use_interval_(NULL),
       last_use_interval_(NULL),
+      first_safepoint_(NULL),
+      last_safepoint_(NULL),
       next_sibling_(NULL),
       finger_() {
   }
@@ -413,6 +436,8 @@ class LiveRange : public ZoneAllocated {
   intptr_t Start() const { return first_use_interval()->start(); }
   intptr_t End() const { return last_use_interval()->end(); }
 
+  SafepointPosition* first_safepoint() const { return first_safepoint_; }
+
   AllocationFinger* finger() { return &finger_; }
 
   void set_assigned_location(Location location) {
@@ -424,6 +449,8 @@ class LiveRange : public ZoneAllocated {
   }
 
   void DefineAt(intptr_t pos);
+
+  void AddSafepoint(intptr_t pos, LocationSummary* locs);
 
   void AddUse(intptr_t pos, Location* location_slot);
   void AddHintedUse(intptr_t pos, Location* location_slot, Location* hint);
@@ -455,12 +482,15 @@ class LiveRange : public ZoneAllocated {
             UsePosition* uses,
             UseInterval* first_use_interval,
             UseInterval* last_use_interval,
+            SafepointPosition* first_safepoint,
             LiveRange* next_sibling)
     : vreg_(vreg),
       assigned_location_(),
       uses_(uses),
       first_use_interval_(first_use_interval),
       last_use_interval_(last_use_interval),
+      first_safepoint_(first_safepoint),
+      last_safepoint_(NULL),
       next_sibling_(next_sibling),
       finger_() {
   }
@@ -472,6 +502,9 @@ class LiveRange : public ZoneAllocated {
   UsePosition* uses_;
   UseInterval* first_use_interval_;
   UseInterval* last_use_interval_;
+
+  SafepointPosition* first_safepoint_;
+  SafepointPosition* last_safepoint_;
 
   LiveRange* next_sibling_;
 

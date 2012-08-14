@@ -716,7 +716,7 @@ void FlowGraphAnalyzer::Analyze() {
     BlockEntryInstr* entry = blocks_[i];
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       LocationSummary* locs = it.Current()->locs();
-      if ((locs != NULL) && locs->is_call()) {
+      if ((locs != NULL) && locs->contains_call()) {
         is_leaf_ = false;
         return;
       }

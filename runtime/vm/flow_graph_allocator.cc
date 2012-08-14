@@ -311,6 +311,23 @@ void LiveRange::AddUse(intptr_t pos, Location* location_slot) {
 }
 
 
+void LiveRange::AddSafepoint(intptr_t pos, LocationSummary* locs) {
+  SafepointPosition* safepoint = new SafepointPosition(pos, locs);
+
+  if (first_safepoint_ == NULL) {
+    ASSERT(last_safepoint_ == NULL);
+    first_safepoint_ = last_safepoint_ = safepoint;
+  } else {
+    ASSERT(last_safepoint_ != NULL);
+    // We assume that safepoints list is sorted by position and that
+    // safepoints are added in this order.
+    ASSERT(last_safepoint_->pos() < pos);
+    last_safepoint_->set_next(safepoint);
+    last_safepoint_ = safepoint;
+  }
+}
+
+
 void LiveRange::AddHintedUse(intptr_t pos,
                              Location* location_slot,
                              Location* hint) {
@@ -519,6 +536,8 @@ void FlowGraphAllocator::BuildLiveRanges() {
         spill_slots_.Add(range->End());
       }
 
+      AssignSafepoints(range);
+
       range->finger()->Initialize(range);
       UsePosition* use = range->finger()->FirstRegisterBeneficialUse(
           graph_entry->start_pos());
@@ -658,6 +677,7 @@ void FlowGraphAllocator::ConnectIncomingPhiMoves(BlockEntryInstr* block) {
 
       // All phi resolution moves are connected. Phi's live range is
       // complete.
+      AssignSafepoints(range);
       AddToUnallocated(range);
 
       move_idx++;
@@ -812,9 +832,6 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     //              [--)
     //
     // The stack bitmap describes the position i.
-    Safepoint safepoint = { pos, locs->stack_bitmap() };
-    safepoints_.Add(safepoint);
-
     for (intptr_t reg = 0; reg < kNumberOfCpuRegisters; reg++) {
       BlockLocation(Location::RegisterLocation(static_cast<Register>(reg)),
                     pos,
@@ -835,6 +852,10 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
     ASSERT(!locs->out().IsUnallocated());
 #endif
+  }
+
+  if (locs->contains_call()) {
+    safepoints_.Add(current);
   }
 
   Definition* def = current->AsDefinition();
@@ -937,6 +958,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
     range->AddUse(pos, out);
   }
 
+  AssignSafepoints(range);
   AddToUnallocated(range);
 }
 
@@ -1204,6 +1226,34 @@ LiveRange* LiveRange::MakeTemp(intptr_t pos, Location* location_slot) {
 }
 
 
+template<typename PositionType>
+PositionType* SplitListOfPositions(PositionType** head,
+                                   intptr_t split_pos,
+                                   bool split_at_start) {
+  PositionType* last_before_split = NULL;
+  PositionType* pos = *head;
+  if (split_at_start) {
+    while ((pos != NULL) && (pos->pos() < split_pos)) {
+      last_before_split = pos;
+      pos = pos->next();
+    }
+  } else {
+    while ((pos != NULL) && (pos->pos() <= split_pos)) {
+      last_before_split = pos;
+      pos = pos->next();
+    }
+  }
+
+  if (last_before_split == NULL) {
+    *head = NULL;
+  } else {
+    last_before_split->set_next(NULL);
+  }
+
+  return pos;
+}
+
+
 LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
   if (Start() == split_pos) return this;
 
@@ -1240,26 +1290,11 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
   ASSERT(last_before_split->end() <= split_pos);
   ASSERT(split_pos <= first_after_split->start());
 
-  UsePosition* last_use_before_split = NULL;
-  UsePosition* use = uses_;
-  if (split_at_start) {
-    while ((use != NULL) && (use->pos() < split_pos)) {
-      last_use_before_split = use;
-      use = use->next();
-    }
-  } else {
-    while ((use != NULL) && (use->pos() <= split_pos)) {
-      last_use_before_split = use;
-      use = use->next();
-    }
-  }
-  UsePosition* first_use_after_split = use;
+  UsePosition* first_use_after_split =
+      SplitListOfPositions(&uses_, split_pos, split_at_start);
 
-  if (last_use_before_split == NULL) {
-    uses_ = NULL;
-  } else {
-    last_use_before_split->set_next(NULL);
-  }
+  SafepointPosition* first_safepoint_after_split =
+      SplitListOfPositions(&first_safepoint_, split_pos, split_at_start);
 
   UseInterval* last_use_interval = (last_before_split == last_use_interval_) ?
     first_after_split : last_use_interval_;
@@ -1267,6 +1302,7 @@ LiveRange* LiveRange::SplitAt(intptr_t split_pos) {
                                 first_use_after_split,
                                 first_after_split,
                                 last_use_interval,
+                                first_safepoint_after_split,
                                 next_sibling_);
 
   TRACE_ALLOC(OS::Print("  split sibling [%d, %d)\n",
@@ -1371,30 +1407,17 @@ void FlowGraphAllocator::AllocateSpillSlotFor(LiveRange* range) {
 }
 
 
-bool LiveRange::Contains(intptr_t pos) const {
-  const LiveRange* current = this;
-  while (current != NULL) {
-    UseInterval* interval = current->first_use_interval_;
-    while (interval != NULL) {
-      if (interval->Contains(pos)) return true;
-      interval = interval->next();
-    }
-    current = current->next_sibling_;
-  }
-  return false;
-}
-
-
 void FlowGraphAllocator::MarkAsObjectAtSafepoints(LiveRange* range) {
   intptr_t stack_index = range->spill_slot().stack_index();
   ASSERT(stack_index >= 0);
-  for (intptr_t i = 0; i < safepoints_.length(); ++i) {
-    if (range->Contains(safepoints_[i].position)) {
-      TRACE_ALLOC(OS::Print("  marking S[%d] in stack bitmap at %d\n",
-                            stack_index,
-                            safepoints_[i].position));
-      safepoints_[i].stack_bitmap->Set(stack_index, true);
+
+  while (range != NULL) {
+    for (SafepointPosition* safepoint = range->first_safepoint();
+         safepoint != NULL;
+         safepoint = safepoint->next()) {
+      safepoint->locs()->stack_bitmap()->Set(stack_index, true);
     }
+    range = range->next_sibling();
   }
 }
 
@@ -1703,6 +1726,15 @@ void FlowGraphAllocator::ConvertAllUses(LiveRange* range) {
   for (UsePosition* use = range->first_use(); use != NULL; use = use->next()) {
     ConvertUseTo(use, loc);
   }
+
+  if (range->assigned_location().IsRegister()) {
+    Register reg = range->assigned_location().reg();
+    for (SafepointPosition* safepoint = range->first_safepoint();
+         safepoint != NULL;
+         safepoint = safepoint->next()) {
+      safepoint->locs()->live_registers()->Add(reg);
+    }
+  }
 }
 
 
@@ -1729,6 +1761,33 @@ void FlowGraphAllocator::AdvanceActiveIntervals(const intptr_t start) {
 
 static inline bool ShouldBeAllocatedBefore(LiveRange* a, LiveRange* b) {
   return a->Start() <= b->Start();
+}
+
+
+bool LiveRange::Contains(intptr_t pos) const {
+  if (!CanCover(pos)) return false;
+
+  for (UseInterval* interval = first_use_interval_;
+       interval != NULL;
+       interval = interval->next()) {
+    if (interval->Contains(pos)) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+
+void FlowGraphAllocator::AssignSafepoints(LiveRange* range) {
+  for (intptr_t i = safepoints_.length() - 1; i >= 0; i--) {
+    Instruction* instr = safepoints_[i];
+
+    const intptr_t pos = instr->lifetime_position();
+    if (range->End() <= pos) break;
+
+    if (range->Contains(pos)) range->AddSafepoint(pos, instr->locs());
+  }
 }
 
 

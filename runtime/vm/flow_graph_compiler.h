@@ -172,6 +172,24 @@ class DeoptimizationStub : public ZoneAllocated {
   DISALLOW_COPY_AND_ASSIGN(DeoptimizationStub);
 };
 
+
+class SlowPathCode : public ZoneAllocated {
+ public:
+  SlowPathCode() : entry_label_(), exit_label_() { }
+
+  Label* entry_label() { return &entry_label_; }
+  Label* exit_label() { return &exit_label_; }
+
+  virtual void EmitNativeCode(FlowGraphCompiler* compiler) = 0;
+
+ private:
+  Label entry_label_;
+  Label exit_label_;
+
+  DISALLOW_COPY_AND_ASSIGN(SlowPathCode);
+};
+
+
 }  // namespace dart
 
 #if defined(TARGET_ARCH_IA32)
