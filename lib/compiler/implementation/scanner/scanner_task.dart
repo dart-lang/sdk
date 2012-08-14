@@ -6,15 +6,16 @@ class ScannerTask extends CompilerTask {
   ScannerTask(Compiler compiler) : super(compiler);
   String get name() => 'Scanner';
 
+  void scanLibrary(LibraryElement library) {
+    var compilationUnit = library.entryCompilationUnit;
+    compiler.log("scanning library ${compilationUnit.script.name}");
+    scan(compilationUnit);
+    processScriptTags(library);
+  }
+
   void scan(CompilationUnitElement compilationUnit) {
     measure(() {
-      if (compilationUnit.kind === ElementKind.LIBRARY) {
-        compiler.log("scanning library ${compilationUnit.script.name}");
-      }
       scanElements(compilationUnit);
-      if (compilationUnit.kind === ElementKind.LIBRARY) {
-        processScriptTags(compilationUnit);
-      }
     });
   }
 
@@ -35,7 +36,7 @@ class ScannerTask extends CompilerTask {
     }
 
     LinkBuilder<ScriptTag> imports = new LinkBuilder<ScriptTag>();
-    Uri base = library.script.uri;
+    Uri base = library.uri;
     for (ScriptTag tag in library.tags.reverse()) {
       StringNode argument = tag.argument;
       // TODO(lrn): Support interpolations here. We need access to the
@@ -122,7 +123,7 @@ class ScannerTask extends CompilerTask {
         });
     if (newLibrary) {
       compiler.withCurrentElement(library, () {
-        scan(library);
+        scanLibrary(library);
         compiler.onLibraryLoaded(library, uri);
       });
     }
@@ -134,7 +135,7 @@ class ScannerTask extends CompilerTask {
     if (!imported.hasLibraryName()) {
       compiler.withCurrentElement(library, () {
         compiler.reportError(tag === null ? null : tag.argument,
-                             'no #library tag found in ${imported.script.uri}');
+                             'no #library tag found in ${imported.uri}');
       });
     }
     if (tag !== null && tag.prefix !== null) {
@@ -147,7 +148,7 @@ class ScannerTask extends CompilerTask {
           enclosing = new CompilationUnitOverrideElement(override, library);
         }
         e = new PrefixElement(prefix, enclosing, tag.getBeginToken());
-        library.define(e, compiler);
+        library.addToScope(e, compiler);
       }
       if (e.kind !== ElementKind.PREFIX) {
         compiler.withCurrentElement(e, () {
@@ -174,7 +175,7 @@ class ScannerTask extends CompilerTask {
     } else {
       imported.forEachExport((Element element) {
         compiler.withCurrentElement(element, () {
-          library.define(element, compiler);
+          library.addToScope(element, compiler);
         });
       });
     }

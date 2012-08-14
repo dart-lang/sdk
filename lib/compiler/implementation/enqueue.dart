@@ -140,7 +140,7 @@ class Enqueuer {
   }
 
   void processInstantiatedClass(ClassElement cls) {
-    cls.members.forEach(processInstantiatedClassMember);
+    cls.localMembers.forEach(processInstantiatedClassMember);
   }
 
   void registerFieldClosureInvocations() {
@@ -218,7 +218,7 @@ class Enqueuer {
         if (seenClasses.contains(cls)) return;
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
-        cls.members.forEach(processInstantiatedClassMember);
+        cls.localMembers.forEach(processInstantiatedClassMember);
         cls = cls.superclass;
       }
     });

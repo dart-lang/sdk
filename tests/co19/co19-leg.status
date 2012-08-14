@@ -599,7 +599,6 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A05_t03: Fail # @compile-error
-Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t03: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A01_t06: Fail # @compile-error
 Language/07_Classes/5_Constructors/3_Constant_Constructors_A02_t01: Fail # @compile-error
@@ -623,7 +622,6 @@ Language/08_Interfaces/2_Getters_and_Setters_A06_t01: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t02: Fail # @compile-error
 Language/08_Interfaces/2_Getters_and_Setters_A06_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A01_t03: Fail # @compile-error
-Language/08_Interfaces/3_Factories_and_Constructors_A02_t03: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t05: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t07: Fail # @compile-error
 Language/08_Interfaces/3_Factories_and_Constructors_A02_t09: Fail # @compile-error

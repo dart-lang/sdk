@@ -146,7 +146,8 @@ class JavaScriptBackend extends Backend {
       // If there are field setters but there is only constructor then the type
       // of the field is determined by the assignments in the constructor
       // body.
-      if (classElement.constructors.length == 1) {
+      var constructors = classElement.constructors;
+      if (constructors.head !== null && constructors.tail === null) {
         return fieldConstructorSetters[classElement][field];
       } else {
         return HType.UNKNOWN;
