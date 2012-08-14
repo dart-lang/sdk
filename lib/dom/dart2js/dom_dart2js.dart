@@ -148,6 +148,8 @@ class _AudioContextJs extends _EventTargetJs implements AudioContext native "*Au
 
   _MediaElementAudioSourceNodeJs createMediaElementSource(_HTMLMediaElementJs mediaElement) native;
 
+  _MediaStreamAudioSourceNodeJs createMediaStreamSource(_MediaStreamJs mediaStream) native;
+
   _OscillatorJs createOscillator() native;
 
   _AudioPannerNodeJs createPanner() native;
@@ -1827,6 +1829,10 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   final int childElementCount;
 
+  final _DOMTokenListJs classList;
+
+  String className;
+
   final int clientHeight;
 
   final int clientLeft;
@@ -1867,7 +1873,7 @@ class _ElementJs extends _NodeJs implements Element native "*Element" {
 
   final String tagName;
 
-  final String webkitRegionOverflow;
+  final String webkitRegionOverset;
 
   void blur() native;
 
@@ -2990,10 +2996,6 @@ class _HTMLElementJs extends _ElementJs implements HTMLElement native "*HTMLElem
 
   final _HTMLCollectionJs children;
 
-  final _DOMTokenListJs classList;
-
-  String className;
-
   String contentEditable;
 
   String dir;
@@ -3490,12 +3492,6 @@ class _HTMLMarqueeElementJs extends _HTMLElementJs implements HTMLMarqueeElement
 
 class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement native "*HTMLMediaElement" {
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -3513,12 +3509,6 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -3584,8 +3574,6 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
 
   bool webkitPreservesPitch;
 
-  final int webkitSourceState;
-
   final int webkitVideoDecodedByteCount;
 
   _TextTrackJs addTextTrack(String kind, [String label, String language]) native;
@@ -3603,18 +3591,6 @@ class _HTMLMediaElementJs extends _HTMLElementJs implements HTMLMediaElement nat
   void webkitCancelKeyRequest(String keySystem, String sessionId) native;
 
   void webkitGenerateKeyRequest(String keySystem, [_Uint8ArrayJs initData]) native;
-
-  void webkitSourceAbort(String id) native;
-
-  void webkitSourceAddId(String id, String type) native;
-
-  void webkitSourceAppend(String id, _Uint8ArrayJs data) native;
-
-  _TimeRangesJs webkitSourceBuffered(String id) native;
-
-  void webkitSourceEndOfStream(int status) native;
-
-  void webkitSourceRemoveId(String id) native;
 }
 
 class _HTMLMenuElementJs extends _HTMLElementJs implements HTMLMenuElement native "*HTMLMenuElement" {
@@ -5053,6 +5029,27 @@ class _MediaQueryListJs extends _DOMTypeJs implements MediaQueryList native "*Me
   void removeListener(MediaQueryListListener listener) native;
 }
 
+class _MediaSourceJs extends _EventTargetJs implements MediaSource native "*MediaSource" {
+
+  final _SourceBufferListJs activeSourceBuffers;
+
+  final String readyState;
+
+  final _SourceBufferListJs sourceBuffers;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  _SourceBufferJs addSourceBuffer(String type) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void endOfStream(String error) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  void removeSourceBuffer(_SourceBufferJs buffer) native;
+}
+
 class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*MediaStream" {
 
   static final int ENDED = 2;
@@ -5072,6 +5069,11 @@ class _MediaStreamJs extends _EventTargetJs implements MediaStream native "*Medi
   bool dispatchEvent(_EventJs event) native;
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
+}
+
+class _MediaStreamAudioSourceNodeJs extends _AudioSourceNodeJs implements MediaStreamAudioSourceNode native "*MediaStreamAudioSourceNode" {
+
+  final _MediaStreamJs mediaStream;
 }
 
 class _MediaStreamEventJs extends _EventJs implements MediaStreamEvent native "*MediaStreamEvent" {
@@ -5417,8 +5419,6 @@ class _NavigatorJs extends _DOMTypeJs implements Navigator native "*Navigator" {
 
   final _BatteryManagerJs webkitBattery;
 
-  final _PointerLockJs webkitPointer;
-
   void getStorageUpdates() native;
 
   bool javaEnabled() native;
@@ -5704,6 +5704,8 @@ class _NotificationJs extends _EventTargetJs implements Notification native "*No
 
   String dir;
 
+  final String permission;
+
   String replaceId;
 
   String tag;
@@ -5956,15 +5958,6 @@ class _PerformanceTimingJs extends _DOMTypeJs implements PerformanceTiming nativ
   final int unloadEventStart;
 }
 
-class _PointerLockJs extends _DOMTypeJs implements PointerLock native "*PointerLock" {
-
-  final bool isLocked;
-
-  void lock(_ElementJs target, [VoidCallback successCallback, VoidCallback failureCallback]) native;
-
-  void unlock() native;
-}
-
 class _PopStateEventJs extends _EventJs implements PopStateEvent native "*PopStateEvent" {
 
   final Object state;
@@ -6008,6 +6001,15 @@ class _RGBColorJs extends _DOMTypeJs implements RGBColor native "*RGBColor" {
   final _CSSPrimitiveValueJs green;
 
   final _CSSPrimitiveValueJs red;
+}
+
+class _RTCPeerConnectionJs extends _EventTargetJs implements RTCPeerConnection native "*RTCPeerConnection" {
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _RadioNodeListJs extends _NodeListJs implements RadioNodeList native "*RadioNodeList" {
@@ -6239,7 +6241,8 @@ class _SVGAElementJs extends _SVGElementJs implements SVGAElement native "*SVGAE
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6468,7 +6471,8 @@ class _SVGCircleElementJs extends _SVGElementJs implements SVGCircleElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6520,7 +6524,8 @@ class _SVGClipPathElementJs extends _SVGElementJs implements SVGClipPathElement 
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6645,7 +6650,8 @@ class _SVGDefsElementJs extends _SVGElementJs implements SVGDefsElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6681,7 +6687,8 @@ class _SVGDescElementJs extends _SVGElementJs implements SVGDescElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6707,7 +6714,7 @@ class _SVGElementJs extends _ElementJs implements SVGElement native "*SVGElement
   String xmlbase;
 }
 
-class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance native "*SVGElementInstance" {
+class _SVGElementInstanceJs extends _EventTargetJs implements SVGElementInstance native "*SVGElementInstance" {
 
   final _SVGElementInstanceListJs childNodes;
 
@@ -6724,12 +6731,6 @@ class _SVGElementInstanceJs extends _DOMTypeJs implements SVGElementInstance nat
   final _SVGElementInstanceJs parentNode;
 
   final _SVGElementInstanceJs previousSibling;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
-
-  bool dispatchEvent(_EventJs event) native;
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _SVGElementInstanceListJs extends _DOMTypeJs implements SVGElementInstanceList native "*SVGElementInstanceList" {
@@ -6771,7 +6772,8 @@ class _SVGEllipseElementJs extends _SVGElementJs implements SVGEllipseElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6848,7 +6850,8 @@ class _SVGFEBlendElementJs extends _SVGElementJs implements SVGFEBlendElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6888,7 +6891,8 @@ class _SVGFEColorMatrixElementJs extends _SVGElementJs implements SVGFEColorMatr
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6914,7 +6918,8 @@ class _SVGFEComponentTransferElementJs extends _SVGElementJs implements SVGFECom
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -6966,7 +6971,8 @@ class _SVGFECompositeElementJs extends _SVGElementJs implements SVGFECompositeEl
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7022,7 +7028,8 @@ class _SVGFEConvolveMatrixElementJs extends _SVGElementJs implements SVGFEConvol
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7056,7 +7063,8 @@ class _SVGFEDiffuseLightingElementJs extends _SVGElementJs implements SVGFEDiffu
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7100,7 +7108,8 @@ class _SVGFEDisplacementMapElementJs extends _SVGElementJs implements SVGFEDispl
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7143,7 +7152,8 @@ class _SVGFEDropShadowElementJs extends _SVGElementJs implements SVGFEDropShadow
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7167,7 +7177,8 @@ class _SVGFEFloodElementJs extends _SVGElementJs implements SVGFEFloodElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7211,7 +7222,8 @@ class _SVGFEGaussianBlurElementJs extends _SVGElementJs implements SVGFEGaussian
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7251,7 +7263,8 @@ class _SVGFEImageElementJs extends _SVGElementJs implements SVGFEImageElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7275,7 +7288,8 @@ class _SVGFEMergeElementJs extends _SVGElementJs implements SVGFEMergeElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7320,7 +7334,8 @@ class _SVGFEMorphologyElementJs extends _SVGElementJs implements SVGFEMorphology
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7350,7 +7365,8 @@ class _SVGFEOffsetElementJs extends _SVGElementJs implements SVGFEOffsetElement 
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7391,7 +7407,8 @@ class _SVGFESpecularLightingElementJs extends _SVGElementJs implements SVGFESpec
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7436,7 +7453,8 @@ class _SVGFETileElementJs extends _SVGElementJs implements SVGFETileElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7484,7 +7502,8 @@ class _SVGFETurbulenceElementJs extends _SVGElementJs implements SVGFETurbulence
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7528,7 +7547,8 @@ class _SVGFilterElementJs extends _SVGElementJs implements SVGFilterElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7586,7 +7606,8 @@ class _SVGForeignObjectElementJs extends _SVGElementJs implements SVGForeignObje
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7636,7 +7657,8 @@ class _SVGGElementJs extends _SVGElementJs implements SVGGElement native "*SVGGE
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7685,7 +7707,8 @@ class _SVGGlyphRefElementJs extends _SVGElementJs implements SVGGlyphRefElement 
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7719,7 +7742,8 @@ class _SVGGradientElementJs extends _SVGElementJs implements SVGGradientElement 
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7768,7 +7792,8 @@ class _SVGImageElementJs extends _SVGElementJs implements SVGImageElement native
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7882,7 +7907,8 @@ class _SVGLineElementJs extends _SVGElementJs implements SVGLineElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -7974,7 +8000,8 @@ class _SVGMarkerElementJs extends _SVGElementJs implements SVGMarkerElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8024,7 +8051,8 @@ class _SVGMaskElementJs extends _SVGElementJs implements SVGMaskElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8208,7 +8236,8 @@ class _SVGPathElementJs extends _SVGElementJs implements SVGPathElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8515,7 +8544,8 @@ class _SVGPatternElementJs extends _SVGElementJs implements SVGPatternElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8585,7 +8615,8 @@ class _SVGPolygonElementJs extends _SVGElementJs implements SVGPolygonElement na
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8639,7 +8670,8 @@ class _SVGPolylineElementJs extends _SVGElementJs implements SVGPolylineElement 
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8760,7 +8792,8 @@ class _SVGRectElementJs extends _SVGElementJs implements SVGRectElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8901,7 +8934,8 @@ class _SVGSVGElementJs extends _SVGElementJs implements SVGSVGElement native "*S
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -8955,7 +8989,8 @@ class _SVGStopElementJs extends _SVGElementJs implements SVGStopElement native "
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -9023,7 +9058,8 @@ class _SVGSwitchElementJs extends _SVGElementJs implements SVGSwitchElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -9063,7 +9099,8 @@ class _SVGSymbolElementJs extends _SVGElementJs implements SVGSymbolElement nati
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -9139,7 +9176,8 @@ class _SVGTextContentElementJs extends _SVGElementJs implements SVGTextContentEl
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -9216,7 +9254,8 @@ class _SVGTitleElementJs extends _SVGElementJs implements SVGTitleElement native
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -9331,7 +9370,8 @@ class _SVGUseElementJs extends _SVGElementJs implements SVGUseElement native "*S
 
   // From SVGStylable
 
-  final _SVGAnimatedStringJs className;
+  // Shadowing definition.
+  _SVGAnimatedStringJs get className() native "return this.className;";
 
   // Use implementation from Element.
   // final _CSSStyleDeclarationJs style;
@@ -11623,7 +11663,7 @@ class _WebKitCSSTransformValueJs extends _CSSValueListJs implements WebKitCSSTra
   final int operationType;
 }
 
-class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
+class _WebKitNamedFlowJs extends _EventTargetJs implements WebKitNamedFlow native "*WebKitNamedFlow" {
 
   final int firstEmptyRegionIndex;
 
@@ -11631,9 +11671,17 @@ class _WebKitNamedFlowJs extends _DOMTypeJs implements WebKitNamedFlow native "*
 
   final bool overset;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]) native;
+
+  bool dispatchEvent(_EventJs event) native;
+
   _NodeListJs getContent() native;
 
+  _NodeListJs getRegions() native;
+
   _NodeListJs getRegionsByContent(_NodeJs contentNode) native;
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]) native;
 }
 
 class _WebKitPointJs extends _DOMTypeJs implements WebKitPoint native "*WebKitPoint" {
@@ -12079,6 +12127,14 @@ class _MediaControllerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _MediaSourceFactoryProvider {
+  factory MediaSource() native
+      '''return new MediaSource();''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _MediaStreamFactoryProvider {
   factory MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks) native
       '''return new MediaStream(audioTracks, videoTracks);''';
@@ -12114,6 +12170,14 @@ class _NotificationFactoryProvider {
 class _PeerConnection00FactoryProvider {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) native
       '''return new PeerConnection00(serverConfiguration, iceCallback);''';
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCPeerConnectionFactoryProvider {
+  factory RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) native
+      '''return new RTCPeerConnection(rtcICEServers, mediaConstraints);''';
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -12412,6 +12476,8 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   Oscillator createOscillator();
 
@@ -14430,6 +14496,10 @@ interface Element extends Node, ElementTraversal {
 
   final int childElementCount;
 
+  final DOMTokenList classList;
+
+  String className;
+
   final int clientHeight;
 
   final int clientLeft;
@@ -14470,7 +14540,7 @@ interface Element extends Node, ElementTraversal {
 
   final String tagName;
 
-  final String webkitRegionOverflow;
+  final String webkitRegionOverset;
 
   void blur();
 
@@ -15594,10 +15664,6 @@ interface HTMLElement extends Element {
 
   final HTMLCollection children;
 
-  final DOMTokenList classList;
-
-  String className;
-
   String contentEditable;
 
   String dir;
@@ -16192,12 +16258,6 @@ interface HTMLMarqueeElement extends HTMLElement {
 
 interface HTMLMediaElement extends HTMLElement {
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -16215,12 +16275,6 @@ interface HTMLMediaElement extends HTMLElement {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -16286,8 +16340,6 @@ interface HTMLMediaElement extends HTMLElement {
 
   bool webkitPreservesPitch;
 
-  final int webkitSourceState;
-
   final int webkitVideoDecodedByteCount;
 
   TextTrack addTextTrack(String kind, [String label, String language]);
@@ -16305,18 +16357,6 @@ interface HTMLMediaElement extends HTMLElement {
   void webkitCancelKeyRequest(String keySystem, String sessionId);
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
-
-  void webkitSourceAbort(String id);
-
-  void webkitSourceAddId(String id, String type);
-
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  TimeRanges webkitSourceBuffered(String id);
-
-  void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -17789,6 +17829,34 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
+interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
+
+  MediaSource();
+
+  final SourceBufferList activeSourceBuffers;
+
+  final String readyState;
+
+  final SourceBufferList sourceBuffers;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  SourceBuffer addSourceBuffer(String type);
+
+  bool dispatchEvent(Event event);
+
+  void endOfStream(String error);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeSourceBuffer(SourceBuffer buffer);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
@@ -17810,6 +17878,16 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   bool dispatchEvent(Event event);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamAudioSourceNode extends AudioSourceNode {
+
+  final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -18171,8 +18249,6 @@ interface Navigator {
 
   final BatteryManager webkitBattery;
 
-  final PointerLock webkitPointer;
-
   void getStorageUpdates();
 
   bool javaEnabled();
@@ -18426,6 +18502,8 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   Notification(String title, [Map options]);
 
   String dir;
+
+  final String permission;
 
   String replaceId;
 
@@ -18758,20 +18836,6 @@ interface PerformanceTiming {
 
 // WARNING: Do not edit - generated code.
 
-interface PointerLock {
-
-  final bool isLocked;
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  void unlock();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface PopStateEvent extends Event {
 
   final Object state;
@@ -18849,6 +18913,22 @@ interface RGBColor {
   final CSSPrimitiveValue green;
 
   final CSSPrimitiveValue red;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
+
+  RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -19552,7 +19632,7 @@ interface SVGElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface SVGElementInstance {
+interface SVGElementInstance extends EventTarget {
 
   final SVGElementInstanceList childNodes;
 
@@ -19569,12 +19649,6 @@ interface SVGElementInstance {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool dispatchEvent(Event event);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -23945,7 +24019,7 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitNamedFlow {
+interface WebKitNamedFlow extends EventTarget {
 
   final int firstEmptyRegionIndex;
 
@@ -23953,9 +24027,17 @@ interface WebKitNamedFlow {
 
   final bool overset;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
   NodeList getContent();
 
+  NodeList getRegions();
+
   NodeList getRegionsByContent(Node contentNode);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

@@ -335,6 +335,8 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
 
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
+
   Oscillator createOscillator() native "AudioContext_createOscillator_Callback";
 
   AudioPannerNode createPanner() native "AudioContext_createPanner_Callback";
@@ -4926,19 +4928,24 @@ class _DOMURLFactoryProvider {
 
 class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 
-  static String createObjectURL(blob_OR_stream) {
-    if ((blob_OR_stream is MediaStream || blob_OR_stream === null)) {
-      return _createObjectURL_1(blob_OR_stream);
+  static String createObjectURL(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_stream is Blob || blob_OR_stream === null)) {
-      return _createObjectURL_2(blob_OR_stream);
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_2(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_3(blob_OR_source_OR_stream);
     }
     throw "Incorrect number or type of arguments";
   }
 
-  static String _createObjectURL_1(blob_OR_stream) native "DOMURL_createObjectURL_1_Callback";
+  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
 
-  static String _createObjectURL_2(blob_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+
+  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
 
   static void revokeObjectURL(String url) native "DOMURL_revokeObjectURL_Callback";
 
@@ -7190,6 +7197,10 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   int get $dom_childElementCount() native "Element_childElementCount_Getter";
 
+  String get $dom_className() native "Element_className_Getter";
+
+  void set $dom_className(String) native "Element_className_Setter";
+
   int get $dom_clientHeight() native "Element_clientHeight_Getter";
 
   int get $dom_clientLeft() native "Element_clientLeft_Getter";
@@ -7234,7 +7245,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   String get tagName() native "Element_tagName_Getter";
 
-  String get webkitRegionOverflow() native "Element_webkitRegionOverflow_Getter";
+  String get webkitRegionOverset() native "Element_webkitRegionOverset_Getter";
 
   void blur() native "Element_blur_Callback";
 
@@ -8874,10 +8885,6 @@ class _HTMLElementImpl extends _ElementImpl implements Element {
 
   HTMLCollection get $dom_children() native "HTMLElement_children_Getter";
 
-  String get $dom_className() native "HTMLElement_className_Getter";
-
-  void set $dom_className(String) native "HTMLElement_className_Setter";
-
   String get contentEditable() native "HTMLElement_contentEditable_Getter";
 
   void set contentEditable(String) native "HTMLElement_contentEditable_Setter";
@@ -9832,12 +9839,6 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
   EventListenerList get keyMessage() => this['webkitkeymessage'];
 
   EventListenerList get needKey() => this['webkitneedkey'];
-
-  EventListenerList get sourceClose() => this['webkitsourceclose'];
-
-  EventListenerList get sourceEnded() => this['webkitsourceended'];
-
-  EventListenerList get sourceOpen() => this['webkitsourceopen'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9944,8 +9945,6 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void set webkitPreservesPitch(bool) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
-  int get webkitSourceState() native "HTMLMediaElement_webkitSourceState_Getter";
-
   int get webkitVideoDecodedByteCount() native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(kind, [label = _null, language = _null]) {
@@ -9997,18 +9996,6 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
   void _webkitGenerateKeyRequest_1(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
 
   void _webkitGenerateKeyRequest_2(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
-
-  void webkitSourceAbort(String id) native "HTMLMediaElement_webkitSourceAbort_Callback";
-
-  void webkitSourceAddId(String id, String type) native "HTMLMediaElement_webkitSourceAddId_Callback";
-
-  void webkitSourceAppend(String id, Uint8Array data) native "HTMLMediaElement_webkitSourceAppend_Callback";
-
-  TimeRanges webkitSourceBuffered(String id) native "HTMLMediaElement_webkitSourceBuffered_Callback";
-
-  void webkitSourceEndOfStream(int status) native "HTMLMediaElement_webkitSourceEndOfStream_Callback";
-
-  void webkitSourceRemoveId(String id) native "HTMLMediaElement_webkitSourceRemoveId_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12514,6 +12501,52 @@ class _MediaQueryListImpl extends NativeFieldWrapperClass1 implements MediaQuery
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _MediaSourceFactoryProvider {
+  factory MediaSource() => _createMediaSource();
+  static MediaSource _createMediaSource() native "MediaSource_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
+
+  SourceBufferList get activeSourceBuffers() native "MediaSource_activeSourceBuffers_Getter";
+
+  String get readyState() native "MediaSource_readyState_Getter";
+
+  SourceBufferList get sourceBuffers() native "MediaSource_sourceBuffers_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
+
+  SourceBuffer addSourceBuffer(String type) native "MediaSource_addSourceBuffer_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
+
+  void endOfStream(String error) native "MediaSource_endOfStream_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
+
+  void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode {
+
+  MediaStream get mediaStream() native "MediaStreamAudioSourceNode_mediaStream_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 // WARNING: Do not edit - generated code.
 
 class _MediaStreamEventImpl extends _EventImpl implements MediaStreamEvent {
@@ -13087,8 +13120,6 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   BatteryManager get webkitBattery() native "Navigator_webkitBattery_Getter";
 
-  PointerLock get webkitPointer() native "Navigator_webkitPointer_Getter";
-
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
@@ -13576,6 +13607,8 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set dir(String) native "Notification_dir_Setter";
 
+  String get permission() native "Notification_permission_Getter";
+
   String get replaceId() native "Notification_replaceId_Getter";
 
   void set replaceId(String) native "Notification_replaceId_Setter";
@@ -13591,8 +13624,6 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
   void close() native "Notification_close_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
-
-  static String permissionLevel() native "Notification_permissionLevel_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
@@ -13904,21 +13935,6 @@ class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements Perform
 
 // WARNING: Do not edit - generated code.
 
-class _PointerLockImpl extends NativeFieldWrapperClass1 implements PointerLock {
-
-  bool get isLocked() native "PointerLock_isLocked_Getter";
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]) native "PointerLock_lock_Callback";
-
-  void unlock() native "PointerLock_unlock_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
   Object get state() native "PopStateEvent_state_Getter";
@@ -13982,6 +13998,29 @@ class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
   CSSPrimitiveValue get green() native "RGBColor_green_Getter";
 
   CSSPrimitiveValue get red() native "RGBColor_red_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCPeerConnectionFactoryProvider {
+  factory RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcICEServers, mediaConstraints);
+  static RTCPeerConnection _createRTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnection {
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14967,7 +15006,7 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
 
 // WARNING: Do not edit - generated code.
 
-class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGElementInstance {
+class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
 
   _SVGElementInstanceEventsImpl get on() =>
     new _SVGElementInstanceEventsImpl(this);
@@ -14987,12 +15026,6 @@ class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGEle
   SVGElementInstance get parentNode() native "SVGElementInstance_parentNode_Getter";
 
   SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
-
-  bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20350,7 +20383,7 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNamedFlow {
+class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
   int get firstEmptyRegionIndex() native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
@@ -20358,9 +20391,17 @@ class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNam
 
   bool get overset() native "WebKitNamedFlow_overset_Getter";
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
+
   NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
 
+  NodeList getRegions() native "WebKitNamedFlow_getRegions_Callback";
+
   NodeList getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -21688,6 +21729,9 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
+
+  /** @domName AudioContext.createMediaStreamSource */
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   /** @domName AudioContext.createOscillator */
   Oscillator createOscillator();
@@ -26530,9 +26574,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
-  /** @domName HTMLElement.className */
-  String $dom_className;
-
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
 
@@ -26591,6 +26632,9 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.childElementCount */
   final int $dom_childElementCount;
+
+  /** @domName Element.className */
+  String $dom_className;
 
   /** @domName Element.clientHeight */
   final int $dom_clientHeight;
@@ -26652,8 +26696,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.tagName */
   final String tagName;
 
-  /** @domName Element.webkitRegionOverflow */
-  final String webkitRegionOverflow;
+  /** @domName Element.webkitRegionOverset */
+  final String webkitRegionOverset;
 
   /** @domName Element.blur */
   void blur();
@@ -29483,12 +29527,6 @@ interface MediaElement extends Element {
    */
   MediaElementEvents get on();
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -29506,12 +29544,6 @@ interface MediaElement extends Element {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   /** @domName HTMLMediaElement.autoplay */
   bool autoplay;
@@ -29609,9 +29641,6 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
-  /** @domName HTMLMediaElement.webkitSourceState */
-  final int webkitSourceState;
-
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
   final int webkitVideoDecodedByteCount;
 
@@ -29638,24 +29667,6 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
-
-  /** @domName HTMLMediaElement.webkitSourceAbort */
-  void webkitSourceAbort(String id);
-
-  /** @domName HTMLMediaElement.webkitSourceAddId */
-  void webkitSourceAddId(String id, String type);
-
-  /** @domName HTMLMediaElement.webkitSourceAppend */
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  /** @domName HTMLMediaElement.webkitSourceBuffered */
-  TimeRanges webkitSourceBuffered(String id);
-
-  /** @domName HTMLMediaElement.webkitSourceEndOfStream */
-  void webkitSourceEndOfStream(int status);
-
-  /** @domName HTMLMediaElement.webkitSourceRemoveId */
-  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -29667,12 +29678,6 @@ interface MediaElementEvents extends ElementEvents {
   EventListenerList get keyMessage();
 
   EventListenerList get needKey();
-
-  EventListenerList get sourceClose();
-
-  EventListenerList get sourceEnded();
-
-  EventListenerList get sourceOpen();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29825,6 +29830,44 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaSource
+interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
+
+  MediaSource();
+
+  /** @domName MediaSource.activeSourceBuffers */
+  final SourceBufferList activeSourceBuffers;
+
+  /** @domName MediaSource.readyState */
+  final String readyState;
+
+  /** @domName MediaSource.sourceBuffers */
+  final SourceBufferList sourceBuffers;
+
+  /** @domName MediaSource.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaSource.addSourceBuffer */
+  SourceBuffer addSourceBuffer(String type);
+
+  /** @domName MediaSource.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName MediaSource.endOfStream */
+  void endOfStream(String error);
+
+  /** @domName MediaSource.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaSource.removeSourceBuffer */
+  void removeSourceBuffer(SourceBuffer buffer);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName MediaStream
 interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
@@ -29864,6 +29907,18 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 interface MediaStreamEvents extends Events {
 
   EventListenerList get ended();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MediaStreamAudioSourceNode
+interface MediaStreamAudioSourceNode extends AudioSourceNode {
+
+  /** @domName MediaStreamAudioSourceNode.mediaStream */
+  final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30473,9 +30528,6 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.webkitPointer */
-  final PointerLock webkitPointer;
-
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
 
@@ -30771,6 +30823,9 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
 
   /** @domName Notification.dir */
   String dir;
+
+  /** @domName Notification.permission */
+  final String permission;
 
   /** @domName Notification.replaceId */
   String replaceId;
@@ -31474,24 +31529,6 @@ interface Point default _PointFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName PointerLock
-interface PointerLock {
-
-  /** @domName PointerLock.isLocked */
-  final bool isLocked;
-
-  /** @domName PointerLock.lock */
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  /** @domName PointerLock.unlock */
-  void unlock();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName PopStateEvent
 interface PopStateEvent extends Event {
 
@@ -31638,6 +31675,26 @@ interface RGBColor {
 
   /** @domName RGBColor.red */
   final CSSPrimitiveValue red;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCPeerConnection
+interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
+
+  RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]);
+
+  /** @domName RTCPeerConnection.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCPeerConnection.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName RTCPeerConnection.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32507,7 +32564,7 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstance
-interface SVGElementInstance {
+interface SVGElementInstance extends EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -32537,15 +32594,6 @@ interface SVGElementInstance {
 
   /** @domName SVGElementInstance.previousSibling */
   final SVGElementInstance previousSibling;
-
-  /** @domName SVGElementInstance.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName SVGElementInstance.dispatchEvent */
-  bool dispatchEvent(Event event);
-
-  /** @domName SVGElementInstance.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -38517,7 +38565,7 @@ interface WebKitCSSFilterValue extends CSSValueList {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitNamedFlow
-interface WebKitNamedFlow {
+interface WebKitNamedFlow extends EventTarget {
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
   final int firstEmptyRegionIndex;
@@ -38528,11 +38576,23 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.overset */
   final bool overset;
 
+  /** @domName WebKitNamedFlow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName WebKitNamedFlow.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName WebKitNamedFlow.getContent */
   NodeList getContent();
 
+  /** @domName WebKitNamedFlow.getRegions */
+  NodeList getRegions();
+
   /** @domName WebKitNamedFlow.getRegionsByContent */
   NodeList getRegionsByContent(Node contentNode);
+
+  /** @domName WebKitNamedFlow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -41204,21 +41264,21 @@ class _Deserializer {
 // This API is exploratory.
 spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
 
-// layoutTestController implementation.
-// FIXME: provide a separate lib for layoutTestController.
+// testRunner implementation.
+// FIXME: provide a separate lib for testRunner.
 
-var _layoutTestController;
+var _testRunner;
 
-LayoutTestController get layoutTestController() {
-  if (_layoutTestController === null)
-    _layoutTestController = new LayoutTestController._(_NPObject.retrieve("layoutTestController"));
-  return _layoutTestController;
+TestRunner get testRunner() {
+  if (_testRunner === null)
+    _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
+  return _testRunner;
 }
 
-class LayoutTestController {
+class TestRunner {
   final _NPObject _npObject;
 
-  LayoutTestController._(this._npObject);
+  TestRunner._(this._npObject);
 
   display() => _npObject.invoke('display');
   dumpAsText() => _npObject.invoke('dumpAsText');
