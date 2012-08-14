@@ -1,7 +1,7 @@
-#library("b-directives-test");
+library b_directives_test;
  
-#import("dart:core");
-#source("SomeClass.dart");
+import "dart:core";
+part "SomeClass.dart";
  
  main() {
    // something to do here

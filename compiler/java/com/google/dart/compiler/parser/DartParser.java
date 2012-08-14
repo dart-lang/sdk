@@ -135,7 +135,6 @@ public class DartParser extends CompletionHooksParserBase {
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
-  private static final String AS_KEYWORD = "as";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
@@ -164,7 +163,6 @@ public class DartParser extends CompletionHooksParserBase {
 
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
-    AS_KEYWORD,
     ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
@@ -532,9 +530,20 @@ public class DartParser extends CompletionHooksParserBase {
   private DartLibraryDirective parseLibraryDirective() {
     beginLibraryDirective();
     next(); // "library"
-    DartExpression libraryName = parseQualified();
+    DartExpression libraryName = parseLibraryName();
     expect(Token.SEMICOLON);
     return done(new DartLibraryDirective(libraryName));
+  }
+
+  private DartExpression parseLibraryName() {
+    beginQualifiedIdentifier();
+    DartExpression libraryName = parseIdentifier();
+    while (optional(Token.PERIOD)) {
+      beginQualifiedIdentifier();
+      DartIdentifier identifier = parseIdentifier();
+      libraryName = done(new DartPropertyAccess(libraryName, identifier));
+    }
+    return done(libraryName);
   }
 
   private DartLibraryDirective parseObsoleteLibraryDirective() {
@@ -556,12 +565,18 @@ public class DartParser extends CompletionHooksParserBase {
     DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
 
     DartIdentifier prefix = null;
-    if (peekPseudoKeyword(0, AS_KEYWORD)) {
+    if (optional(Token.AS)) {
       prefix = parseIdentifier();
+      if (prefix instanceof DartSyntheticErrorIdentifier) {
+        if (peekPseudoKeyword(1, HIDE_KEYWORD) || peekPseudoKeyword(1, SHOW_KEYWORD)
+            || peek(1) == Token.BIT_AND || peek(1) == Token.COLON) {
+          next();
+        }
+      }
     }
 
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
-    while (optionalPseudoKeyword(HIDE_KEYWORD) || optionalPseudoKeyword(SHOW_KEYWORD)) {
+    while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
       if (optionalPseudoKeyword(HIDE_KEYWORD)) {
         List<DartIdentifier> hiddenNames = parseIdentifierList();
         combinators.add(new ImportHideCombinator(hiddenNames));
@@ -580,8 +595,13 @@ public class DartParser extends CompletionHooksParserBase {
         reportError(position(), ParserErrorCode.EXPECTED_EXPORT);
       }
     }
-    expect(Token.SEMICOLON);
-    return new DartImportDirective(libUri, prefix, combinators, export);
+    if (!optional(Token.SEMICOLON)) {
+      // If there is no semicolon, then we probably don't want to consume the next token. It might
+      // make sense to advance to the next valid token for a directive or top-level declaration, but
+      // our recovery mechanism isn't quite sophisticated enough for that.
+      reportUnexpectedToken(position(), Token.SEMICOLON, peek(0));
+    }
+    return done(new DartImportDirective(libUri, prefix, combinators, export));
   }
 
   /**
@@ -652,7 +672,7 @@ public class DartParser extends CompletionHooksParserBase {
     beginPartOfDirective();
     next(); // "part"
     next(); // "of"
-    DartExpression libraryName = parseQualified();
+    DartExpression libraryName = parseLibraryName();
     expect(Token.SEMICOLON);
     return done(new DartPartOfDirective(libraryName));
   }

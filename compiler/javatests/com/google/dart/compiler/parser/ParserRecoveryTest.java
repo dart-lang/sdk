@@ -760,10 +760,10 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
   public void testRecoveryDirective1() {
     DartUnit unit = parseUnit("phony_recovery_directive1.dart",
         Joiner.on("\n").join(
-            "#library('a');",
-            "#library('b');"),
+            "library a;",
+            "library b;"),
             ParserErrorCode.DIRECTIVE_OUT_OF_ORDER, 2, 1,
-            ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE, 2, 14);
+            ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE, 2, 10);
     DartLibraryDirective a = (DartLibraryDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getLibraryName());
     DartLibraryDirective b = (DartLibraryDirective)unit.getDirectives().get(1);
@@ -773,8 +773,8 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
   public void testRecoveryDirective2() {
     DartUnit unit = parseUnit("phony_recovery_directive2.dart",
         Joiner.on("\n").join(
-            "#import('a');",
-            "#library('b');"),
+            "import 'a';",
+            "library b;"),
             ParserErrorCode.DIRECTIVE_OUT_OF_ORDER, 2, 1);
     DartImportDirective a = (DartImportDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getLibraryUri().getValue());
@@ -785,8 +785,8 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
   public void testRecoveryDirective3() {
     DartUnit unit = parseUnit("phony_recovery_directive3.dart",
         Joiner.on("\n").join(
-            "#source('a');",
-            "#import('b');"),
+            "part 'a';",
+            "import 'b';"),
             ParserErrorCode.DIRECTIVE_OUT_OF_ORDER, 2, 1);
     DartSourceDirective a = (DartSourceDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getSourceUri().getValue());
@@ -797,22 +797,9 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
   public void testRecoveryDirective4() {
     DartUnit unit = parseUnit("phony_recovery_directive4.dart",
         Joiner.on("\n").join(
-            "#import('a')", // missing semicolon
-            "#import('b');"),
-            ParserErrorCode.EXPECTED_TOKEN, 2, 1);
-    DartImportDirective a = (DartImportDirective)unit.getDirectives().get(0);
-    assertEquals("a", a.getLibraryUri().getValue());
-    DartImportDirective b = (DartImportDirective)unit.getDirectives().get(1);
-    assertEquals("b", b.getLibraryUri().getValue());
-  }
-
-  public void testRecoveryDirective5() {
-    DartUnit unit = parseUnit("phony_recovery_directive5.dart",
-        Joiner.on("\n").join(
-            "#import('a'", // missing paren and semicolon
-            "#import('b');"),
-            ParserErrorCode.EXPECTED_TOKEN, 1, 9,
-            ParserErrorCode.EXPECTED_TOKEN, 2, 1);
+            "import 'a'", // missing semicolon
+            "import 'b';"),
+            ParserErrorCode.EXPECTED_TOKEN, 1, 8);
     DartImportDirective a = (DartImportDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getLibraryUri().getValue());
     DartImportDirective b = (DartImportDirective)unit.getDirectives().get(1);
@@ -822,10 +809,9 @@ assertEquals("foo", ((DartIdentifier)prop.getQualifier()).getName());
   public void testRecoveryDirective6() {
     DartUnit unit = parseUnit("phony_recovery_directive6.dart",
         Joiner.on("\n").join(
-            "#import('a'", // missing paren and semicolon
+            "import 'a'", // missing semicolon
             "class b {}"),
-            ParserErrorCode.EXPECTED_TOKEN, 1, 9,
-            ParserErrorCode.EXPECTED_TOKEN, 2, 1);
+            ParserErrorCode.EXPECTED_TOKEN, 1, 8);
     DartImportDirective a = (DartImportDirective)unit.getDirectives().get(0);
     assertEquals("a", a.getLibraryUri().getValue());
     DartClass b = (DartClass)unit.getTopLevelNodes().get(0);

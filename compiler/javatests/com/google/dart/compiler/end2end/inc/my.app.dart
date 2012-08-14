@@ -2,14 +2,14 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("some.lib.dart");
-#source("my.dart");
-#source("mybase.dart");
-#source("myother0.dart");
-#source("myother1.dart");
-#source("myother2.dart");
-#source("myother3.dart");
-#source("myother4.dart");
-#source("myother5.dart");
-#source("myother6.dart");
-#source("myother7.dart");
+import "some.lib.dart";
+part "my.dart";
+part "mybase.dart";
+part "myother0.dart";
+part "myother1.dart";
+part "myother2.dart";
+part "myother3.dart";
+part "myother4.dart";
+part "myother5.dart";
+part "myother6.dart";
+part "myother7.dart";

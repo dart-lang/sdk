@@ -7,7 +7,7 @@ package com.google.dart.compiler.ast;
 import java.util.List;
 
 /**
- * Implements the #import directive.
+ * Implements the import directive.
  */
 public class DartImportDirective extends DartDirective {
   private boolean obsoleteFormat;

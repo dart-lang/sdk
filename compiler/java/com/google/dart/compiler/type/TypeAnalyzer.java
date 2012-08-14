@@ -2706,12 +2706,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitImportDirective(DartImportDirective node) {
-      return typeAsVoid(node);
+      //return typeAsVoid(node);
+      return voidType;
     }
 
     @Override
     public Type visitLibraryDirective(DartLibraryDirective node) {
-      return typeAsVoid(node);
+      //return typeAsVoid(node);
+      return voidType;
     }
 
     @Override

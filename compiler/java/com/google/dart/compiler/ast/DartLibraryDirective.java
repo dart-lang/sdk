@@ -5,7 +5,7 @@
 package com.google.dart.compiler.ast;
 
 /**
- * Implements the #library directive.
+ * Implements the library directive.
  */
 public class DartLibraryDirective extends DartDirective {
   private DartExpression name;

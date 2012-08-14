@@ -1312,31 +1312,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * If there was <code>#import</code> with invalid {@link URI}, it should be reported as error, not
+   * If there was <code>import</code> with invalid {@link URI}, it should be reported as error, not
    * as an exception.
    */
   public void test_invalidImportUri() throws Exception {
     List<DartCompilationError> errors =
         analyzeLibrarySourceErrors(makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "#library('test');",
-            "#import('badURI');",
+            "library test;",
+            "import 'badURI';",
             ""));
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 16));
   }
 
   /**
-   * If there was <code>#source</code> with invalid {@link URI}, it should be reported as error, not
+   * If there was <code>part</code> with invalid {@link URI}, it should be reported as error, not
    * as an exception.
    */
   public void test_invalidSourceUri() throws Exception {
     List<DartCompilationError> errors =
         analyzeLibrarySourceErrors(makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "#library('test');",
-            "#source('badURI');",
+            "library test;",
+            "part 'badURI';",
             ""));
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 14));
   }
 
   /**

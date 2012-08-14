@@ -19,7 +19,7 @@ public enum DartCompilerErrorCode implements ErrorCode {
   ILLEGAL_DIRECTIVES_IN_SOURCED_UNIT("This source was included by %s via a "
       + "#source directive, so cannot itself contain directives"),
   IO("Input/Output error: %s"),
-  MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a #library directive: %s"),
+  MISSING_LIBRARY_DIRECTIVE("a library which is imported is missing a library directive: %s"),
   MISSING_SOURCE("Cannot find referenced source: %s"),
   UNIT_WAS_ALREADY_INCLUDED("Unit '%s' was already included");
   private final ErrorSeverity severity;

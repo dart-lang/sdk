@@ -135,7 +135,7 @@ public class DefaultLibrarySource extends UrlSource implements LibrarySource {
       List<File> sourceFiles, String entryPoint) {
     StringWriter sw = new StringWriter(200);
     PrintWriter pw = new PrintWriter(sw);
-    pw.println("#library(\"" + name + "\");");
+    pw.println("library " + name + ";");
     if (importFiles != null) {
       for (File file : importFiles) {
         String relPath = file.getPath();
@@ -143,7 +143,7 @@ public class DefaultLibrarySource extends UrlSource implements LibrarySource {
           relPath = Paths.relativePathFor(baseFile, file);
         }
         if (relPath != null) {
-          pw.println("#import(\"" + relPath + "\");");
+          pw.println("import '" + relPath + "';");
         }
       }
     }
@@ -151,7 +151,7 @@ public class DefaultLibrarySource extends UrlSource implements LibrarySource {
       for (File file : sourceFiles) {
         String relPath = Paths.relativePathFor(baseFile, file);
         if (relPath != null) {
-          pw.println("#source(\"" + relPath + "\");");
+          pw.println("part '" + relPath + "';");
         }
       }
     }
