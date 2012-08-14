@@ -18,6 +18,8 @@ import subprocess
 import sys
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
+BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
+
 
 DART_PATH = os.path.dirname(
     os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -291,8 +293,25 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteFirefoxProfiles('/tmp')
     _DeleteFirefoxProfiles('/var/tmp')
 
+def MaybeClobber(runtime, mode, system):
+  """ Clobber the build directory if the clobber flag has been set.
+  Args:
+     - runtime: either 'd8', or one of the browsers, see GetBuildInfo
+     - mode: either 'debug' or 'release'
+     - system: either 'linux', 'mac', or 'win7'
+  """
+  builder_clobber = os.environ.get(BUILDER_CLOBBER)
+  if (builder_clobber != "1"):
+    print "Clobber flag not set, not clobbering"
+    return
+
+  # TODO(ricow): add support for browser bots - sync with Emily
+  if (runtime == "d8"):
+    delete_path = os.path.join(DART_PATH, "out")
+    print "Clobbering %s" % (delete_path)
+    shutil.rmtree("", ignore_errors=True);
+
 def main():
-  print '@@@BUILD_STEP build sdk@@@'
 
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
@@ -308,6 +327,10 @@ def main():
   if compiler is None:
     return 1
 
+  print '@@@BUILD_STEP Maybe clobber@@@'
+  MaybeClobber(runtime, mode, system)
+
+  print '@@@BUILD_STEP build sdk@@@'
   status = BuildSDK(mode, system)
   if status != 0:
     print '@@@STEP_FAILURE@@@'
