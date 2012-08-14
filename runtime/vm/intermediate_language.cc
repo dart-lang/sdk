@@ -312,9 +312,12 @@ void Definition::ReplaceUsesWith(Definition* other) {
   }
   current->definition_ = other;
 
-  current->next_use_ = other->use_list();
-  other->use_list()->previous_use_ = current;
+  if (other->use_list() != NULL) {
+    current->next_use_ = other->use_list();
+    other->use_list()->previous_use_ = current;
+  }
   other->set_use_list(head);
+  set_use_list(NULL);
 }
 
 

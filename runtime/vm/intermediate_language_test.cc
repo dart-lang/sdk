@@ -39,6 +39,12 @@ TEST_CASE(DefUseTests) {
   BindInstr* bind = new BindInstr(BindInstr::kUsed, use2);
   bind->RemoveInputUses();
   EXPECT(def1->use_list() == NULL);
+  // Test replacing with a definition without uses.
+  UseVal* use4 = new UseVal(def2);
+  def2->ReplaceUsesWith(def1);
+  EXPECT(def1->use_list() == use4);
+  EXPECT(def2->use_list() == NULL);
+  EXPECT(use4->definition() == def1);
 }
 
 }  // namespace dart
