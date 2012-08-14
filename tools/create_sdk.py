@@ -57,6 +57,9 @@
 # ......utf/
 # ......web/
 # ........web.dart
+# ....pkg/
+# ......i18n/
+# ......logging/
 # ......(more will come here)
 # ....util/
 # ......analyzer/
@@ -334,7 +337,7 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['args', 'crypto', 'i18n', 'json', 'math', 'unittest', 'uri',
+  for library in ['args', 'crypto', 'json', 'math', 'unittest', 'uri',
                   'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
@@ -418,6 +421,24 @@ def Main(argv):
     if filename.endswith('.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
+
+
+  # Create and copy pkg.
+  PKG = join(SDK_tmp, 'pkg')
+  os.makedirs(PKG)
+
+  #
+  # Create and populate pkg/{i18n, logging}
+  #
+
+  for library in ['i18n', 'logging']:
+    src_dir = join(HOME, 'pkg', library)
+    dest_dir = join(PKG, library)
+    os.makedirs(dest_dir)
+
+    for filename in os.listdir(src_dir):
+      if filename.endswith('.dart'):
+        copyfile(join(src_dir, filename), join(dest_dir, filename))
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')

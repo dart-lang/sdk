@@ -5,7 +5,7 @@
 
 #library('bidi_utils_test');
 
-#import('../../../lib/i18n/intl.dart');
+#import('../../../pkg/i18n/intl.dart');
 #import('../../../lib/unittest/unittest.dart');
 
 /**
