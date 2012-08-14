@@ -23,10 +23,10 @@ class Emitter {
     Unparser unparser = new Unparser.withRenamer(renamer.rename);
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
-    sb.add(classElement.beginToken.slowToString());
-    if (classElement.beginToken.slowToString() == 'abstract') {
+    sb.add(classNode.beginToken.slowToString());
+    if (classNode.beginToken.slowToString() == 'abstract') {
       sb.add(' ');
-      sb.add(classElement.beginToken.next.slowToString());  // 'class'
+      sb.add(classNode.beginToken.next.slowToString());  // 'class'
     }
     sb.add(' ');
     sb.add(renamer.renameElement(classElement));
@@ -66,7 +66,7 @@ class Emitter {
       // Different VariableElement's may refer to the same VariableListElement.
       // Output this list only once.
       // TODO: only emit used variables.
-      final variableList = element.variables;
+      final variableList = (element as VariableElement).variables;
       if (!processedVariableLists.contains(variableList)) {
         processedVariableLists.add(variableList);
         sb.add(unparser.unparse(variableList.parseNode(compiler)));

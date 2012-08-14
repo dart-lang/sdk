@@ -64,7 +64,7 @@ class PlaceholderCollector extends AbstractVisitor {
       placeholders = new Map<Node, Placeholder>();
 
   void collectFunctionDeclarationPlaceholders(
-      FunctionElement element, Node node) {
+      FunctionElement element, FunctionExpression node) {
     if (element.isGenerativeConstructor() || element.isFactoryConstructor()) {
       // Two complicated cases for class/interface renaming:
       // 1) class which implements constructors of other interfaces, but not
@@ -81,7 +81,8 @@ class PlaceholderCollector extends AbstractVisitor {
       Node nameNode = node.name;
       if (nameNode is Send) nameNode = nameNode.receiver;
       // For cases like class C implements I { I(); }
-      if (nameNode.token.slowToString() == enclosingClass.name.slowToString()) {
+      if (nameNode.asIdentifier().token.slowToString()
+          == enclosingClass.name.slowToString()) {
         makeTypePlaceholder(nameNode, enclosingClass.type);
       }
       // Process Ctor(this._field) correctly.
@@ -91,7 +92,8 @@ class PlaceholderCollector extends AbstractVisitor {
           for (Node definition in definitions.definitions) {
             Send send = definition.asSend();
             if (send !== null) {
-              assert(send.receiver.isThis());
+              assert(send.receiver is Identifier);
+              assert(send.receiver.asIdentifier().isThis());
               if (send.selector is Identifier) {
                 tryMakePrivateIdentifier(send.selector.asIdentifier());
               } else if (send.selector is FunctionExpression) {
@@ -125,7 +127,8 @@ class PlaceholderCollector extends AbstractVisitor {
     }
   }
 
-  void collectFieldDeclarationPlaceholders(Element element, Node node) {
+  void collectFieldDeclarationPlaceholders(
+      Element element, VariableDefinitions node) {
     if (element.isInstanceMember()) {
       for (Node definition in node.definitions) {
         if (definition is Identifier) {
@@ -150,7 +153,7 @@ class PlaceholderCollector extends AbstractVisitor {
     } else if (element.isField()) {
       // TODO(smok): In the future make sure we don't process same
       // variable list element twice, better merge this with emitter logic.
-      currentElement = element.variables;
+      currentElement = (element as VariableElement).variables;
       elementNode = currentElement.parseNode(compiler);
       collectFieldDeclarationPlaceholders(element, elementNode);
     } else if (element is ClassElement || element is TypedefElement) {
@@ -239,7 +242,7 @@ class PlaceholderCollector extends AbstractVisitor {
     // Poor man generic variables resolution.
     // TODO(antonm): get rid of it once resolver can deal with it.
     if (isPlainTypeName(node)) {
-      String name = node.typeName.source.slowToString();
+      String name = node.typeName.asIdentifier().source.slowToString();
       if (currentElement is TypedefElement) {
         TypedefElement typedefElement = currentElement;
         NodeList typeParameters = typedefElement.cachedNode.typeParameters;
@@ -253,10 +256,10 @@ class PlaceholderCollector extends AbstractVisitor {
       }
       if (currentElement is ClassElement) {
         ClassElement classElement = currentElement;
-        String name = node.typeName.source.slowToString();
+        String typeName = node.typeName.asIdentifier().source.slowToString();
         for (TypeVariableType argument in classElement.type.arguments) {
           // If names are equal, then it's a variable and sholdn't be renamed.
-          if (argument.name.slowToString() == name) return;
+          if (argument.name.slowToString() == typeName) return;
         }
       }
     }
@@ -267,8 +270,10 @@ class PlaceholderCollector extends AbstractVisitor {
       final element = treeElements[node];
       if (element !== null) {
         final send = node.typeName.asSend();
+        Identifier receiver = send.receiver;
+        Identifier selector = send.selector;
         final hasPrefix = element.lookupConstructor(
-          send.receiver.source, send.selector.source) === null;
+            receiver.source, selector.source) === null;
         if (!hasPrefix) target = send.receiver;
       }
     }
