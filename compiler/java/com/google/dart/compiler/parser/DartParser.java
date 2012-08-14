@@ -1372,6 +1372,7 @@ public class DartParser extends CompletionHooksParserBase {
 
       if (peekPseudoKeyword(0, GETTER_KEYWORD)
           || peekPseudoKeyword(0, SETTER_KEYWORD)) {
+        boolean isGetter = peekPseudoKeyword(0, GETTER_KEYWORD);
         next();
         // Using 'get' or 'set' as a field name is valid
         if (peek(0).equals(Token.SEMICOLON) || peek(0).equals(Token.ASSIGN)) {
@@ -1382,7 +1383,7 @@ public class DartParser extends CompletionHooksParserBase {
           return true;
         }
         // normal case:  get foo (
-        if (peek(0).equals(Token.IDENTIFIER) && peek(1).equals(Token.LPAREN)) {
+        if (peek(0).equals(Token.IDENTIFIER) && (isGetter || peek(1).equals(Token.LPAREN))) {
           return true;
         }
         return false;
@@ -1557,11 +1558,6 @@ public class DartParser extends CompletionHooksParserBase {
       // accepted, but eventually parameters should be disallowed.
       parameters = new ArrayList<DartParameter>();
     } else {
-      if (modifiers.isSetter()) {
-        // TODO: For now we optionally allow an equal sign before the formal parameter list, but
-        // eventually it should be required.
-        optional(Token.ASSIGN);
-      }
       parameters = parseFormalParameterList();
     }
 

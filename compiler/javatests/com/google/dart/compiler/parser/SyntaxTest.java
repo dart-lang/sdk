@@ -63,10 +63,7 @@ public class SyntaxTest extends AbstractParserTest {
   public void test_setter() {
     parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",
-        "  // Old setter syntax",
         "  void set g1(int v) {}",
-        "  // New setter syntax",
-        "  void set g2=(int v) {}",
         "}"));
   }
 

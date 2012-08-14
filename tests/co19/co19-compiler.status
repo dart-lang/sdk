@@ -21,6 +21,7 @@ Language/05_Variables/05_Variables_A04_t09: Fail # Issue 3323
 Language/06_Functions/2_Formal_Parameters/1_Positional_Formals_A02_t01: Fail # Issue 3323
 Language/07_Classes/1_Instance_Methods/2_Operators_A01_t03: Fail # Issue 379
 Language/07_Classes/2_Getters_A01_t02: Fail # Issue 379
+Language/07_Classes/2_Getters_A01_t03: Fail # out of date - getters are not allowed to have parameters
 Language/07_Classes/3_Setters_A01_t02: Fail # Issue 379
 Language/07_Classes/4_Instance_Variables_A01_t01: Skip # co19 issue 165
 Language/07_Classes/4_Instance_Variables_A01_t02: Skip # co19 issue 165
