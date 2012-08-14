@@ -133,7 +133,6 @@ class Interceptors {
 
 class SsaBuilderTask extends CompilerTask {
   final Interceptors interceptors;
-  final Map<Node, ClosureData> closureDataCache;
   final CodeEmitterTask emitter;
   // Loop tracking information.
   final Set<FunctionElement> functionsCalledInLoop;
@@ -144,7 +143,6 @@ class SsaBuilderTask extends CompilerTask {
 
   SsaBuilderTask(JavaScriptBackend backend)
     : interceptors = new Interceptors(backend.compiler),
-      closureDataCache = new HashMap<Node, ClosureData>(),
       emitter = backend.emitter,
       functionsCalledInLoop = new Set<FunctionElement>(),
       selectorsCalledInLoop = new Map<SourceString, Selector>(),
@@ -226,7 +224,7 @@ class LocalsHandler {
   Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
-  ClosureData closureData;
+  ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
       : directLocals = new Map<Element, HInstruction>(),
@@ -322,11 +320,11 @@ class LocalsHandler {
 
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
+    Compiler compiler = builder.compiler;
+    closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
+            node, builder.elements);
 
-    ClosureTranslator translator = new ClosureTranslator(builder);
-    closureData = translator.translate(node);
-
-    FunctionSignature signature = function.computeSignature(builder.compiler);
+    FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
@@ -1550,12 +1548,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData nestedClosureData = builder.closureDataCache[node];
-    if (nestedClosureData === null) {
-      // TODO(floitsch): we can only assume that the reason for not having a
-      // closure data here is, because the function is inside an initializer.
-      compiler.unimplemented("Closures inside initializers", node: node);
-    }
+    ClosureClassMap nestedClosureData =
+        compiler.closureToClassMapper.getMappingForNestedFunction(node);
     assert(nestedClosureData !== null);
     assert(nestedClosureData.closureClassElement !== null);
     ClassElement closureClassElement =

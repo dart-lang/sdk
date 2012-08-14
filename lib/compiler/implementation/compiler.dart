@@ -123,6 +123,7 @@ class Compiler implements DiagnosticListener {
   PatchParserTask patchParser;
   TreeValidatorTask validator;
   ResolverTask resolver;
+  closureMapping.ClosureTask closureToClassMapper;
   TypeCheckerTask checker;
   ti.TypesTask typesTask;
   Backend backend;
@@ -167,14 +168,15 @@ class Compiler implements DiagnosticListener {
     patchParser = new PatchParserTask(this);
     validator = new TreeValidatorTask(this);
     resolver = new ResolverTask(this);
+    closureToClassMapper = new closureMapping.ClosureTask(this);
     checker = new TypeCheckerTask(this);
     typesTask = new ti.TypesTask(this);
     backend = emitJavascript ?
         new js_backend.JavaScriptBackend(this, generateSourceMap) :
         new dart_backend.DartBackend(this, validateUnparse);
     enqueuer = new EnqueueTask(this);
-    tasks = [scanner, dietParser, parser, resolver, checker,
-             typesTask, constantHandler, enqueuer];
+    tasks = [scanner, dietParser, parser, resolver, closureToClassMapper,
+             checker, typesTask, constantHandler, enqueuer];
     tasks.addAll(backend.tasks);
   }
 

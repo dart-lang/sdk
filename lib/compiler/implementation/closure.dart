@@ -2,6 +2,51 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+#library("closureToClassMapper");
+
+#import("elements/elements.dart");
+#import("leg.dart");
+#import("scanner/scannerlib.dart");
+#import("tree/tree.dart");
+#import("util/util.dart");
+
+class ClosureTask extends CompilerTask {
+  Map<Node, ClosureClassMap> closureMappingCache;
+  ClosureTask(Compiler compiler)
+      : closureMappingCache = new Map<Node, ClosureClassMap>(),
+        super(compiler);
+
+  String get name() => "Closure Simplifier";
+
+  ClosureClassMap computeClosureToClassMapping(FunctionExpression node,
+                                                     TreeElements elements) {
+    return measure(() {
+      ClosureClassMap cached = closureMappingCache[node];
+      if (cached !== null) return cached;
+
+      ClosureTranslator translator =
+          new ClosureTranslator(compiler, elements, closureMappingCache);
+      // The translator will store the computed closure-mappings inside the
+      // cache. One for given method and one for each nested closure.
+      translator.translate(node);
+      assert(closureMappingCache[node] != null);
+      return closureMappingCache[node];
+    });
+  }
+
+  ClosureClassMap getMappingForNestedFunction(FunctionExpression node) {
+    return measure(() {
+      ClosureClassMap nestedClosureData = closureMappingCache[node];
+      if (nestedClosureData === null) {
+        // TODO(floitsch): we can only assume that the reason for not having a
+        // closure data here is, because the function is inside an initializer.
+        compiler.unimplemented("Closures inside initializers", node: node);
+      }
+      return nestedClosureData;
+    });
+  }
+}
+
 class ClosureFieldElement extends Element {
   ClosureFieldElement(SourceString name, ClassElement enclosing)
       : super(name, ElementKind.FIELD, enclosing);
@@ -64,7 +109,7 @@ class ClosureScope {
   bool hasBoxedLoopVariables() => !boxedLoopVariables.isEmpty();
 }
 
-class ClosureData {
+class ClosureClassMap {
   // The closure's element before any translation. Will be null for methods.
   final FunctionElement closureElement;
   // The closureClassElement will be null for methods that are not local
@@ -94,7 +139,7 @@ class ClosureData {
 
   final Set<Element> usedVariablesInTry;
 
-  ClosureData(this.closureElement,
+  ClosureClassMap(this.closureElement,
               this.closureClassElement,
               this.callElement,
               this.thisElement)
@@ -107,11 +152,11 @@ class ClosureData {
 }
 
 class ClosureTranslator extends AbstractVisitor {
-  final SsaBuilder builder;
+  final Compiler compiler;
   final TreeElements elements;
   int closureFieldCounter = 0;
   bool inTryStatement = false;
-  final Map<Node, ClosureData> closureDataCache;
+  final Map<Node, ClosureClassMap> closureMappingCache;
 
   // Map of captured variables. Initially they will map to themselves. If
   // a variable needs to be boxed then the scope declaring the variable
@@ -129,34 +174,22 @@ class ClosureTranslator extends AbstractVisitor {
 
   FunctionElement currentFunctionElement;
   // The closureData of the currentFunctionElement.
-  ClosureData closureData;
+  ClosureClassMap closureData;
 
   bool insideClosure = false;
 
-  Compiler get compiler() => builder.compiler;
-
-  ClosureTranslator(SsaBuilder builder)
-      : this.builder = builder,
-        this.elements = builder.elements,
-        capturedVariableMapping = new Map<Element, Element>(),
+  ClosureTranslator(this.compiler, this.elements, this.closureMappingCache)
+      : capturedVariableMapping = new Map<Element, Element>(),
         closures = <FunctionExpression>[],
-        mutatedVariables = new Set<Element>(),
-        this.closureDataCache = builder.builder.closureDataCache;
+        mutatedVariables = new Set<Element>();
 
-  ClosureData translate(Node node) {
-    // Closures have already been analyzed when visiting the surrounding
-    // method/function. This also shortcuts for bailout functions.
-    ClosureData cached = closureDataCache[node];
-    if (cached !== null) return cached;
-
+  void translate(Node node) {
     visit(node);
     // When variables need to be boxed their [capturedVariableMapping] is
     // updated, but we delay updating the similar freeVariableMapping in the
     // closure datas that capture these variables.
     // The closures don't have their fields (in the closure class) set, either.
     updateClosures();
-
-    return closureDataCache[node];
   }
 
   // This function runs through all of the existing closures and updates their
@@ -168,7 +201,7 @@ class ClosureTranslator extends AbstractVisitor {
       // The captured variables that need to be stored in a field of the closure
       // class.
       Set<Element> fieldCaptures = new Set<Element>();
-      ClosureData data = closureDataCache[closure];
+      ClosureClassMap data = closureMappingCache[closure];
       Map<Element, Element> freeVariableMapping = data.freeVariableMapping;
       // We get a copy of the keys and iterate over it, to avoid modifications
       // to the map while iterating over it.
@@ -363,7 +396,7 @@ class ClosureTranslator extends AbstractVisitor {
     scopeData.boxedLoopVariables = result;
   }
 
-  ClosureData globalizeClosure(FunctionExpression node, Element element) {
+  ClosureClassMap globalizeClosure(FunctionExpression node, Element element) {
     SourceString closureName =
         new SourceString(compiler.namer.closureName(element));
     ClassElement globalizedElement = new ClosureClassElement(
@@ -377,8 +410,8 @@ class ClosureTranslator extends AbstractVisitor {
     // The nested function's 'this' is the same as the one for the outer
     // function. It could be [null] if we are inside a static method.
     Element thisElement = closureData.thisElement;
-    return new ClosureData(element, globalizedElement,
-                           callElement, thisElement);
+    return new ClosureClassMap(element, globalizedElement,
+                               callElement, thisElement);
   }
 
   visitFunctionExpression(FunctionExpression node) {
@@ -394,7 +427,7 @@ class ClosureTranslator extends AbstractVisitor {
 
     bool oldInsideClosure = insideClosure;
     FunctionElement oldFunctionElement = currentFunctionElement;
-    ClosureData oldClosureData = closureData;
+    ClosureClassMap oldClosureData = closureData;
 
     insideClosure = isClosure;
     currentFunctionElement = elements[node];
@@ -416,7 +449,7 @@ class ClosureTranslator extends AbstractVisitor {
         }
         thisElement = new ThisElement(thisEnclosingElement);
       }
-      closureData = new ClosureData(null, null, null, thisElement);
+      closureData = new ClosureClassMap(null, null, null, thisElement);
     }
 
     inNewScope(node, () {
@@ -441,9 +474,9 @@ class ClosureTranslator extends AbstractVisitor {
       if (node.body !== null) node.body.accept(this);
     });
 
-    closureDataCache[node] = closureData;
+    closureMappingCache[node] = closureData;
 
-    ClosureData savedClosureData = closureData;
+    ClosureClassMap savedClosureData = closureData;
     bool savedInsideClosure = insideClosure;
 
     // Restore old values.

@@ -4,6 +4,7 @@
 
 #library('js_backend');
 
+#import('../closure.dart');
 #import('../../compiler.dart', prefix: 'api');
 #import('../elements/elements.dart');
 #import('../leg.dart');
