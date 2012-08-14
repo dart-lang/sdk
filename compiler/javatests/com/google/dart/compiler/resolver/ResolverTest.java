@@ -1192,7 +1192,6 @@ public class ResolverTest extends ResolverTestCase {
         "    new Foo<Param>();",
         "  }",
         "}"),
-        ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING,
         TypeErrorCode.NOT_A_TYPE);
   }
 
@@ -1219,16 +1218,6 @@ public class ResolverTest extends ResolverTestCase {
         "}"),
         errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 3, 22 , 1),
         errEx(TypeErrorCode.TYPE_VARIABLE_IN_STATIC_CONTEXT, 4, 18, 1));
-  }
-
-  public void testTypeVariableShadowsClass() {
-    resolveAndTest(Joiner.on("\n").join(
-        "class Object {}",
-        "class T {}",
-        "class A<T> {",  // type var T shadows class T
-        "  static foo() { new T(); }", // should resolve to class T
-        "}"),
-        ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING);
   }
 
   public void testConstClass() {

@@ -399,8 +399,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // But application should be build.
     assertAppBuilt();
-    // Because B was compiled, it has warning.
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 20));
   }
 
   public void test_undeclareTopLevel_conflictWithLocalVariable() {
@@ -417,7 +415,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  var duplicate;",
             "}"));
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 9));
     // Update units and compile.
     appSource.setContent("A.dart", "");
     compile();
@@ -427,8 +424,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     assertAppBuilt();
-    // Because B was recompiled, it has no warning.
-    assertErrors(errors);
   }
 
   /**
@@ -448,7 +443,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  var duplicate;",
             "}"));
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 9));
     // Exclude A and compile.
     appSource.setContent(
         APP,
@@ -464,8 +458,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     didWrite(APP, EXTENSION_DEPS);
-    // Because B was recompiled, it has no warning.
-    assertErrors(errors);
   }
 
   public void test_declareField_conflictWithLocalVariable() {
@@ -501,8 +493,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // B depends on A class, so compiled.
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     assertAppBuilt();
-    // Because B was compiled, it has warning.
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 3));
   }
 
   public void test_declareTopLevelVariable_conflictOtherTopLevelVariable() {

@@ -897,22 +897,6 @@ public class ResolverCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3793
-   */
-  public void test_functionLiteral_parameterShadowsParentLiteral() throws Exception {
-    AnalyzeLibraryResult libraryResult = analyzeLibrary(
-        "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  (foo(foo)=>foo)(1);",
-        "}",
-        "");
-    assertErrors(
-        libraryResult.getErrors(),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 3, 8, 3));
-  }
-
-  /**
    * Asserts that given nodes have same not <code>null</code> {@link Element}.
    */
   private static void assertDeclarationNameElement(

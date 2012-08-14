@@ -244,8 +244,7 @@ public class Resolver {
           }
           getContext().declare(
               parameter.getElement(),
-              ResolverErrorCode.DUPLICATE_PARAMETER,
-              ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
+              ResolverErrorCode.DUPLICATE_PARAMETER);
         }
       }
 
@@ -482,7 +481,6 @@ public class Resolver {
      * Check that used type variables are unique and don't shadow and existing elements.
      */
     private void checkClassTypeVariables(ClassElement classElement) {
-      Scope scope = context.getScope();
       Set<String> declaredVariableNames = Sets.newHashSet();
       for (Type type : classElement.getTypeParameters()) {
         if (type instanceof TypeVariable) {
@@ -493,16 +491,6 @@ public class Resolver {
             onError(typeVariableElement, ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, name);
           } else {
             declaredVariableNames.add(name);
-          }
-          // Check that type variable is not shadowing any element in enclosing context.
-          Element existingElement = scope.findElement(scope.getLibrary(), name);
-          if (existingElement != null) {
-            onError(
-                typeVariableElement,
-                ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING,
-                name,
-                Elements.getUserElementTitle(existingElement),
-                Elements.getRelativeElementLocation(typeVariableElement, existingElement));
           }
         }
       }
@@ -627,8 +615,7 @@ public class Resolver {
         if (!(parameter.getQualifier() instanceof DartThisExpression)) {
           getContext().declare(
               parameter.getElement(),
-              ResolverErrorCode.DUPLICATE_PARAMETER,
-              ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
+              ResolverErrorCode.DUPLICATE_PARAMETER);
         }
       }
       for (DartParameter parameter : parameters) {
@@ -725,8 +712,7 @@ public class Resolver {
       resolve(x.getDefaultExpr());
       getContext().declare(
           element,
-          ResolverErrorCode.DUPLICATE_PARAMETER,
-          ResolverErrorCode.DUPLICATE_PARAMETER_WARNING);
+          ResolverErrorCode.DUPLICATE_PARAMETER);
       return element;
     }
 
@@ -736,8 +722,7 @@ public class Resolver {
       VariableElement element = Elements.variableElement(enclosingElement, x, x.getVariableName(), modifiers);
       getContext().declare(
           recordElement(x, element),
-          ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR,
-          ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING);
+          ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR);
       recordElement(x.getName(), element);
       return element;
     }
