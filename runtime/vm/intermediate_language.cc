@@ -68,7 +68,7 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   // Only core library methods can be recognized.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Class& function_class = Class::Handle(function.owner());
+  const Class& function_class = Class::Handle(function.Owner());
   if ((function_class.library() != core_lib.raw()) &&
       (function_class.library() != core_impl_lib.raw())) {
     return kUnknown;
@@ -1256,7 +1256,7 @@ LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
 
 
 void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Class& cls = Class::ZoneHandle(constructor().Owner());
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),

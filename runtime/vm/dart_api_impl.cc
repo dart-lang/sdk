@@ -2686,7 +2686,7 @@ DART_EXPORT Dart_Handle Dart_FunctionOwner(Dart_Handle function) {
     RawFunction* parent_function = func.parent_function();
     return Api::NewHandle(isolate, parent_function);
   }
-  const Class& owner = Class::Handle(func.owner());
+  const Class& owner = Class::Handle(func.Owner());
   ASSERT(!owner.IsNull());
   if (owner.IsTopLevel()) {
     // Top-level functions are implemented as members of a hidden class. We hide

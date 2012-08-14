@@ -5481,6 +5481,7 @@ TEST_CASE(ParsePatchLibrary) {
   "class A {\n"
   "  var _f;\n"
   "  external method(var value);\n"
+  "  get field() => _field;\n"
   "}\n"
   "external int unpatched();\n"
   "external int topLevel(var value);\n"
@@ -5488,7 +5489,14 @@ TEST_CASE(ParsePatchLibrary) {
   "external void set topLevelSetter(int value);\n";
 
   const char* kPatchChars =
-  "var _topLevelValue = -1;"
+  "patch class A {\n"
+  "  var _g;\n"
+  "  get _field() => _g;\n"
+  "  patch method(var value) {\n"
+  "    _g = value * 5;\n"
+  "  }\n"
+  "}\n"
+  "var _topLevelValue = -1;\n"
   "patch int topLevel(var value) => value * value;\n"
   "patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
   "patch int get topLevelGetter() => 2 * _topLevelValue;\n"
@@ -5503,7 +5511,12 @@ TEST_CASE(ParsePatchLibrary) {
   "  topLevelSetter = 20;\n"
   "  return topLevelGetter;\n"
   "}\n"
-  "m3() => patch(7);\n";
+  "m3() => patch(7);\n"
+  "m4() {\n"
+  "  var a = new A();\n"
+  "  a.method(5);\n"
+  "  return a.field;\n"
+  "}\n";
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
@@ -5554,6 +5567,13 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(21, value);
+
+  value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m4"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(25, value);
 }
 
 

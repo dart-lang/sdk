@@ -24,6 +24,7 @@ namespace dart {
   V(AbstractTypeArguments)                                                     \
     V(TypeArguments)                                                           \
     V(InstantiatedTypeArguments)                                               \
+  V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
@@ -540,6 +541,21 @@ class RawInstantiatedTypeArguments : public RawAbstractTypeArguments {
 };
 
 
+class RawPatchClass : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
+  }
+  RawClass* patched_class_;
+  RawScript* script_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->script_);
+  }
+};
+
+
 class RawFunction : public RawObject {
  public:
   enum Kind {
@@ -559,7 +575,7 @@ class RawFunction : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawClass* owner_;
+  RawObject* owner_;  // Class or  patch class where this function was defined.
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;

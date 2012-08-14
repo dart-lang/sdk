@@ -44,6 +44,7 @@ class RawLiteralToken;
 class RawMint;
 class RawObject;
 class RawOneByteString;
+class RawPatchClass;
 class RawScript;
 class RawSmi;
 class RawTokenStream;
@@ -223,6 +224,7 @@ class SnapshotReader : public BaseReader {
   RawUnresolvedClass* NewUnresolvedClass();
   RawType* NewType();
   RawTypeParameter* NewTypeParameter();
+  RawPatchClass* NewPatchClass();
   RawFunction* NewFunction();
   RawField* NewField();
   RawLibrary* NewLibrary();
@@ -294,6 +296,7 @@ class SnapshotReader : public BaseReader {
   friend class Library;
   friend class LibraryPrefix;
   friend class LiteralToken;
+  friend class PatchClass;
   friend class Script;
   friend class TokenStream;
   friend class Type;

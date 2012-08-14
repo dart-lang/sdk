@@ -250,14 +250,13 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
-  static RawClass* type_class() {
-      return type_class_;
-  }
+  static RawClass* type_class() { return type_class_; }
   static RawClass* type_parameter_class() { return type_parameter_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
       return instantiated_type_arguments_class_;
   }
+  static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
@@ -387,6 +386,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
+  static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
@@ -678,6 +678,8 @@ class Class : public Object {
   RawArray* constants() const;
 
   void Finalize() const;
+
+  void ApplyPatch(const Class& with) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -1279,6 +1281,27 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
 };
 
 
+class PatchClass : public Object {
+ public:
+  RawClass* patched_class() const { return raw_ptr()->patched_class_; }
+  RawScript* script() const { return raw_ptr()->script_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawPatchClass));
+  }
+
+  static RawPatchClass* New(const Class& patched_class, const Script& script);
+
+ private:
+  void set_patched_class(const Class& value) const;
+  void set_script(const Script& value) const;
+  static RawPatchClass* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
+  friend class Class;
+};
+
+
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -1307,7 +1330,9 @@ class Function : public Object {
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature() const;
 
-  RawClass* owner() const { return raw_ptr()->owner_; }
+  RawClass* Owner() const;
+
+  RawScript* script() const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -1620,7 +1645,7 @@ class Function : public Object {
   void set_is_const(bool is_const) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
-  void set_owner(const Class& value) const;
+  void set_owner(const Object& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   void set_kind_tag(intptr_t value) const;

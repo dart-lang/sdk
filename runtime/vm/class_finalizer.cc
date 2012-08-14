@@ -742,7 +742,7 @@ RawAbstractType* ClassFinalizer::FinalizeType(const Class& cls,
         const Function& signature_fun =
             Function::Handle(type_class.signature_function());
         ASSERT(!signature_fun.is_static());
-        const Class& sig_fun_owner = Class::Handle(signature_fun.owner());
+        const Class& sig_fun_owner = Class::Handle(signature_fun.Owner());
         FinalizeTypeArguments(sig_fun_owner, full_arguments, finalization);
       } else {
         FinalizeTypeArguments(type_class, full_arguments, finalization);

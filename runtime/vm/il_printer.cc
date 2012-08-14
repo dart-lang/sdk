@@ -89,8 +89,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
                                       bool eliminated) {
-    const Class& cls = Class::Handle(parsed_function.function().owner());
-    const Script& script = Script::Handle(cls.script());
+    const Script& script = Script::Handle(parsed_function.function().script());
     const char* compile_type_name = "unknown";
     if (value != NULL) {
       const AbstractType& type = AbstractType::Handle(value->CompileType());
@@ -300,7 +299,7 @@ void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -310,7 +309,7 @@ void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
     BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     InputAt(i)->PrintTo(f);

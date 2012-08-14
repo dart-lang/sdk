@@ -257,7 +257,7 @@ Parser::Parser(const Script& script,
       allow_function_literals_(true),
       current_function_(function),
       innermost_function_(Function::Handle(function.raw())),
-      current_class_(Class::Handle(current_function_.owner())),
+      current_class_(Class::Handle(current_function_.Owner())),
       library_(Library::Handle(current_class_.library())),
       try_blocks_list_(NULL),
       expression_temp_(NULL)  {
@@ -656,8 +656,7 @@ void Parser::ParseFunction(ParsedFunction* parsed_function) {
   ASSERT(isolate->long_jump_base()->IsSafeToJump());
   ASSERT(parsed_function != NULL);
   const Function& func = parsed_function->function();
-  const Class& cls = Class::Handle(isolate, func.owner());
-  const Script& script = Script::Handle(isolate, cls.script());
+  const Script& script = Script::Handle(isolate, func.script());
   Parser parser(script, func, func.token_pos());
   SequenceNode* node_sequence = NULL;
   Array& default_parameter_values = Array::Handle(isolate, Array::null());
@@ -737,7 +736,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
   AddFormalParamsToScope(&params, current_block_->scope);
 
   const String& field_name = *ExpectIdentifier("field name expected");
-  const Class& field_class = Class::Handle(func.owner());
+  const Class& field_class = Class::Handle(func.Owner());
   const Field& field =
       Field::ZoneHandle(field_class.LookupStaticField(field_name));
 
@@ -842,7 +841,7 @@ SequenceNode* Parser::ParseStaticConstGetter(const Function& func) {
 SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   TRACE_PARSER("ParseInstanceGetter");
   ParamList params;
-  ASSERT(current_class().raw() == func.owner());
+  ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(TokenPos()));
   ASSERT(func.num_fixed_parameters() == 1);  // receiver.
   ASSERT(func.num_optional_parameters() == 0);
@@ -859,7 +858,7 @@ SequenceNode* Parser::ParseInstanceGetter(const Function& func) {
   // name of the field;
   ASSERT(IsIdentifier());
   const String& field_name = *CurrentLiteral();
-  const Class& field_class = Class::Handle(func.owner());
+  const Class& field_class = Class::Handle(func.Owner());
   const Field& field =
       Field::ZoneHandle(field_class.LookupInstanceField(field_name));
 
@@ -882,13 +881,13 @@ SequenceNode* Parser::ParseInstanceSetter(const Function& func) {
   // TokenPos() returns the function's token position which points to
   // the name of the field; we can use it to form the field_name.
   const String& field_name = *CurrentLiteral();
-  const Class& field_class = Class::ZoneHandle(func.owner());
+  const Class& field_class = Class::ZoneHandle(func.Owner());
   const Field& field =
       Field::ZoneHandle(field_class.LookupInstanceField(field_name));
   const AbstractType& field_type = AbstractType::ZoneHandle(field.type());
 
   ParamList params;
-  ASSERT(current_class().raw() == func.owner());
+  ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(TokenPos()));
   params.AddFinalParameter(TokenPos(),
                            &String::ZoneHandle(Symbols::Value()),
@@ -1188,7 +1187,7 @@ String& Parser::ParseNativeDeclaration() {
 
 void Parser::CheckFunctionIsCallable(intptr_t token_pos,
                                      const Function& function) {
-  if (Class::Handle(function.owner()).is_interface()) {
+  if (Class::Handle(function.Owner()).is_interface()) {
     ErrorMsg(token_pos, "cannot call function of interface '%s'",
         function.ToFullyQualifiedCString());
   }
@@ -1779,7 +1778,7 @@ SequenceNode* Parser::MakeImplicitConstructor(const Function& func) {
   // initializers.
   GrowableArray<FieldInitExpression> initializers;
   GrowableArray<Field*> initialized_fields;
-  Class& cls = Class::Handle(func.owner());
+  Class& cls = Class::Handle(func.Owner());
   ParseInitializedInstanceFields(cls, &initializers, &initialized_fields);
 
   LocalVariable* receiver = new LocalVariable(
@@ -1825,7 +1824,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
   ASSERT(!func.IsFactory());
   ASSERT(!func.is_static());
   ASSERT(!func.IsLocalFunction());
-  const Class& cls = Class::Handle(func.owner());
+  const Class& cls = Class::Handle(func.Owner());
   ASSERT(!cls.IsNull());
 
   if (CurrentToken() == Token::kCLASS) {
@@ -1847,7 +1846,7 @@ SequenceNode* Parser::ParseConstructor(const Function& func,
 
   // Add implicit receiver parameter which is passed the allocated
   // but uninitialized instance to construct.
-  ASSERT(current_class().raw() == func.owner());
+  ASSERT(current_class().raw() == func.Owner());
   params.AddReceiver(ReceiverType(TokenPos()));
 
   // Add implicit parameter for construction phase.
@@ -2096,7 +2095,7 @@ SequenceNode* Parser::ParseFunc(const Function& func,
   // The first parameter of a factory is the AbstractTypeArguments vector of
   // the type of the instance to be allocated.
   if (!func.is_static() && !func.IsClosureFunction()) {
-    ASSERT(current_class().raw() == func.owner());
+    ASSERT(current_class().raw() == func.Owner());
     params.AddReceiver(ReceiverType(TokenPos()));
   } else if (func.IsFactory()) {
     params.AddFinalParameter(
@@ -2626,7 +2625,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                              current_class(),
                              field->name_pos);
       ParamList params;
-      ASSERT(current_class().raw() == getter.owner());
+      ASSERT(current_class().raw() == getter.Owner());
       params.AddReceiver(ReceiverType(TokenPos()));
       getter.set_result_type(*field->type);
       AddFormalParamsToFunction(&params, getter);
@@ -2642,7 +2641,7 @@ void Parser::ParseFieldDefinition(ClassDesc* members, MemberDesc* field) {
                                current_class(),
                                field->name_pos);
         ParamList params;
-        ASSERT(current_class().raw() == setter.owner());
+        ASSERT(current_class().raw() == setter.Owner());
         params.AddReceiver(ReceiverType(TokenPos()));
         params.AddFinalParameter(TokenPos(),
                                  &String::ZoneHandle(Symbols::Value()),
@@ -2925,6 +2924,13 @@ void Parser::ParseClassMemberDefinition(ClassDesc* members) {
 void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   TRACE_PARSER("ParseClassDefinition");
   const intptr_t class_pos = TokenPos();
+  bool is_patch = false;
+  if (is_patch_source() &&
+      (CurrentToken() == Token::kIDENT) &&
+      CurrentLiteral()->Equals("patch")) {
+    ConsumeToken();
+    is_patch = true;
+  }
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
   String& class_name = *ExpectTypeIdentifier("class name expected");
@@ -2934,6 +2940,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   Class& cls = Class::Handle();
   Object& obj = Object::Handle(library_.LookupObject(class_name));
   if (obj.IsNull()) {
+    if (is_patch) {
+      ErrorMsg(classname_pos, "missing class '%s' cannot be patched",
+               class_name.ToCString());
+    }
     cls = Class::New(class_name, script_, classname_pos);
     library_.AddClass(cls);
   } else {
@@ -2943,14 +2953,29 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     }
     cls ^= obj.raw();
     if (cls.is_interface()) {
-      ErrorMsg(classname_pos, "'%s' is already defined as interface",
-               class_name.ToCString());
-    } else if (cls.functions() != Object::empty_array()) {
+      ErrorMsg(classname_pos, "'%s' %s",
+               class_name.ToCString(),
+               is_patch ?
+                   "is already defined as interface" :
+                   "interface cannot be patched");
+    } else if (!is_patch && (cls.functions() != Object::empty_array())) {
       ErrorMsg(classname_pos, "class '%s' is already defined",
                class_name.ToCString());
+    } else if (is_patch) {
+      String& patch = String::Handle(Symbols::New("patch "));
+      patch = String::Concat(patch, class_name);
+      patch = Symbols::New(patch);
+      cls = Class::New(patch, script_, classname_pos);
+    } else {
+      // Not patching a class, but it has been found. This must be one of the
+      // pre-registered classes from object.cc or a duplicate definition.
+      if (cls.functions() != Object::empty_array()) {
+        ErrorMsg(classname_pos, "class '%s' is already defined",
+                 class_name.ToCString());
+      }
+      // Pre-registered classes need their scripts connected at this time.
+      cls.set_script(script_);
     }
-    // Pre-registered classes need their scripts connected at this time.
-    cls.set_script(script_);
   }
   ASSERT(!cls.IsNull());
   ASSERT(cls.functions() == Object::empty_array());
@@ -2996,7 +3021,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   }
   ExpectToken(Token::kRBRACE);
 
-  CheckConstructors(&members);
+  if (!is_patch) {
+    // Do not install implicit constructors.
+    CheckConstructors(&members);
+  }
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3006,7 +3034,13 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   array = Array::MakeArray(members.functions());
   cls.SetFunctions(array);
 
-  pending_classes.Add(cls, Heap::kOld);
+  if (!is_patch) {
+    pending_classes.Add(cls, Heap::kOld);
+  } else {
+    // Lookup the patched class and apply the changes.
+    obj = library_.LookupObject(class_name);
+    Class::Cast(obj).ApplyPatch(cls);
+  }
 }
 
 
@@ -3034,7 +3068,7 @@ void Parser::CheckConstructors(ClassDesc* class_desc) {
                       class_desc->token_pos()));
     ParamList params;
     // Add implicit 'this' parameter.
-    ASSERT(current_class().raw() == ctor.owner());
+    ASSERT(current_class().raw() == ctor.Owner());
     params.AddReceiver(ReceiverType(TokenPos()));
     // Add implicit parameter for construction phase.
     params.AddFinalParameter(
@@ -3714,7 +3748,7 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   AbstractType& result_type = AbstractType::Handle();
   if (is_patch_source() &&
       (CurrentToken() == Token::kIDENT) &&
-      (CurrentLiteral()->Equals("patch"))) {
+      CurrentLiteral()->Equals("patch")) {
     ConsumeToken();
     is_patch = true;
   } else if (CurrentToken() == Token::kEXTERNAL) {
@@ -4006,6 +4040,11 @@ void Parser::ParseTopLevel() {
         (LookaheadToken(1) == Token::kCLASS)) {
       ConsumeToken();  // Consume and ignore 'abstract'.
       ParseClassDefinition(pending_classes);
+    } else if (is_patch_source() &&
+               (CurrentToken() == Token::kIDENT) &&
+               CurrentLiteral()->Equals("patch") &&
+               (LookaheadToken(1) == Token::kCLASS)) {
+      ParseClassDefinition(pending_classes);
     } else {
       set_current_class(toplevel_class);
       if (IsVariableDeclaration()) {
@@ -4168,7 +4207,7 @@ void Parser::ParseNativeFunctionBlock(const ParamList* params,
                                       const Function& func) {
   func.set_is_native(true);
   TRACE_PARSER("ParseNativeFunctionBlock");
-  const Class& cls = Class::Handle(func.owner());
+  const Class& cls = Class::Handle(func.Owner());
   const int num_parameters = params->parameters->length();
   const bool is_instance_closure = func.IsImplicitInstanceClosureFunction();
   int num_params_for_resolution = num_parameters;
@@ -7092,7 +7131,7 @@ AstNode* Parser::ParseSelectors(AstNode* primary, bool is_cascade) {
           String& func_name = String::ZoneHandle(func.name());
           if (func.is_static()) {
             // Parse static function call.
-            Class& cls = Class::Handle(func.owner());
+            Class& cls = Class::Handle(func.Owner());
             selector = ParseStaticCall(cls, func_name, primary_pos);
           } else {
             // Dynamic function call on implicit "this" parameter.
@@ -7648,7 +7687,7 @@ AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
     return new StaticGetterNode(qual_ident.ident_pos,
                                 NULL,
                                 false,
-                                Class::ZoneHandle(func.owner()),
+                                Class::ZoneHandle(func.Owner()),
                                 *qual_ident.ident);
   }
   if (qual_ident.lib_prefix != NULL) {
@@ -7844,7 +7883,7 @@ void Parser::CheckConstructorCallTypeArguments(
     intptr_t pos, Function& constructor,
     const AbstractTypeArguments& type_arguments) {
   if (!type_arguments.IsNull()) {
-    const Class& constructor_class = Class::Handle(constructor.owner());
+    const Class& constructor_class = Class::Handle(constructor.Owner());
     ASSERT(!constructor_class.IsNull());
     ASSERT(constructor_class.is_finalized());
     // Do not report the expected vs. actual number of type arguments, because

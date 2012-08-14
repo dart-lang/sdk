@@ -411,6 +411,52 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate function object.
+  PatchClass& cls = PatchClass::ZoneHandle(reader->isolate(),
+                                            NEW_OBJECT(PatchClass));
+  reader->AddBackRef(object_id, &cls, kIsDeserialized);
+
+  // Set the object tags.
+  cls.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(cls.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return cls.raw();
+}
+
+
+void RawPatchClass::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kPatchClassCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,

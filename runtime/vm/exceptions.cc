@@ -207,8 +207,7 @@ RawScript* Exceptions::GetCallerScript(DartFrameIterator* iterator) {
   ASSERT(caller_frame != NULL && caller_frame->IsDartFrame());
   const Function& caller = Function::Handle(caller_frame->LookupDartFunction());
   ASSERT(!caller.IsNull());
-  const Class& caller_class = Class::Handle(caller.owner());
-  return caller_class.script();
+  return caller.script();
 }
 
 

@@ -374,6 +374,13 @@ intptr_t RawInstantiatedTypeArguments::VisitInstantiatedTypeArgumentsPointers(
 }
 
 
+intptr_t RawPatchClass::VisitPatchClassPointers(RawPatchClass* raw_obj,
+                                                ObjectPointerVisitor* visitor) {
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return PatchClass::InstanceSize();
+}
+
+
 intptr_t RawFunction::VisitFunctionPointers(RawFunction* raw_obj,
                                             ObjectPointerVisitor* visitor) {
   visitor->VisitPointers(raw_obj->from(), raw_obj->to());

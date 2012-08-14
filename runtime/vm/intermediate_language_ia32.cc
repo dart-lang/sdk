@@ -350,7 +350,7 @@ static void EmitEqualityAsPolymorphicCall(FlowGraphCompiler* compiler,
     __ cmpl(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
     __ j(NOT_EQUAL, &next_test);
     const Function& target = Function::ZoneHandle(ic_data.GetTargetAt(i));
-    if (target.owner() == object_store->object_class()) {
+    if (target.Owner() == object_store->object_class()) {
       // Object.== is same as ===.
       __ Drop(2);
       __ cmpl(left, right);
@@ -1095,7 +1095,7 @@ LocationSummary*
 
 void AllocateObjectWithBoundsCheckComp::EmitNativeCode(
     FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Class& cls = Class::ZoneHandle(constructor().Owner());
   Register type_arguments = locs()->in(0).reg();
   Register instantiator_type_arguments = locs()->in(1).reg();
   Register result = locs()->out().reg();

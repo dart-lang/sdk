@@ -74,6 +74,7 @@ RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instantiated_type_arguments_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -287,6 +288,9 @@ void Object::InitOnce() {
 
   cls = Class::New<InstantiatedTypeArguments>();
   instantiated_type_arguments_class_ = cls.raw();
+
+  cls = Class::New<PatchClass>();
+  patch_class_class_ = cls.raw();
 
   cls = Class::New<Function>();
   function_class_ = cls.raw();
@@ -1230,7 +1234,7 @@ void Class::SetFunctions(const Array& value) const {
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= value.At(i);
-    ASSERT(func.owner() == raw());
+    ASSERT(func.Owner() == raw());
   }
 #endif
   StorePointer(&raw_ptr()->functions_, value.raw());
@@ -1320,7 +1324,7 @@ intptr_t Class::NumTypeArguments() const {
     const Function& signature_fun = Function::Handle(signature_function());
     if (!signature_fun.is_static() &&
         !signature_fun.HasInstantiatedSignature()) {
-      cls = signature_fun.owner();
+      cls = signature_fun.Owner();
     }
   }
   intptr_t num_type_args = NumTypeParameters();
@@ -1480,6 +1484,57 @@ void Class::Finalize() const {
 }
 
 
+void Class::ApplyPatch(const Class& with) const {
+  ASSERT(!is_finalized());
+  const Script& patch_script = Script::Handle(with.script());
+  const String& str = String::Handle(patch_script.Source());
+  OS::PrintErr("patch_script: %s\n", str.ToCString());
+  const PatchClass& patch = PatchClass::Handle(
+      PatchClass::New(*this, patch_script));
+
+  const Array& orig_functions = Array::Handle(functions());
+  intptr_t orig_len = orig_functions.Length();
+
+  const Array& patch_functions = Array::Handle(with.functions());
+  intptr_t patch_len = patch_functions.Length();
+
+  // TODO(iposva): Verify that only patching existing methods and adding only
+  // new private methods.
+  Function& func = Function::Handle();
+  const Array& new_functions = Array::Handle(Array::New(patch_len + orig_len));
+  for (intptr_t i = 0; i < patch_len; i++) {
+    func ^= patch_functions.At(i);
+    func.set_owner(patch);
+    new_functions.SetAt(i, func);
+  }
+  for (intptr_t i = 0; i < orig_len; i++) {
+    func ^= orig_functions.At(i);
+    new_functions.SetAt(patch_len + i, func);
+  }
+  SetFunctions(new_functions);
+
+  const Array& orig_fields = Array::Handle(fields());
+  orig_len = orig_fields.Length();
+
+  const Array& patch_fields = Array::Handle(with.fields());
+  patch_len = patch_fields.Length();
+
+  // TODO(iposva): Verify that no duplicate fields are entered.
+  Field& field = Field::Handle();
+  const Array& new_fields = Array::Handle(Array::New(patch_len + orig_len));
+  for (intptr_t i = 0; i < patch_len; i++) {
+    field ^= patch_fields.At(i);
+    field.set_owner(*this);
+    new_fields.SetAt(i, field);
+  }
+  for (intptr_t i = 0; i < orig_len; i++) {
+    field ^= orig_fields.At(i);
+    new_fields.SetAt(patch_len + i, field);
+  }
+  SetFields(new_fields);
+}
+
+
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
@@ -1557,7 +1612,7 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
                                    const Script& script) {
   ASSERT(!signature_function.IsNull());
-  const Class& owner_class = Class::Handle(signature_function.owner());
+  const Class& owner_class = Class::Handle(signature_function.Owner());
   ASSERT(!owner_class.IsNull());
   TypeArguments& type_parameters = TypeArguments::Handle();
   // A signature class extends class Instance and is parameterized in the same
@@ -3502,6 +3557,45 @@ const char* InstantiatedTypeArguments::ToCString() const {
 }
 
 
+const char* PatchClass::ToCString() const {
+  const char* kFormat = "PatchClass for %s";
+  const Class& cls = Class::Handle(patched_class());
+  const char* cls_name = cls.ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls_name) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, cls_name);
+  return chars;
+}
+
+
+RawPatchClass* PatchClass::New(const Class& patched_class,
+                               const Script& script) {
+  const PatchClass& result = PatchClass::Handle(PatchClass::New());
+  result.set_patched_class(patched_class);
+  result.set_script(script);
+  return result.raw();
+}
+
+
+RawPatchClass* PatchClass::New() {
+  ASSERT(Object::patch_class_class() != Class::null());
+  RawObject* raw = Object::Allocate(PatchClass::kClassId,
+                                    PatchClass::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawPatchClass*>(raw);
+}
+
+
+void PatchClass::set_patched_class(const Class& value) const {
+  StorePointer(&raw_ptr()->patched_class_, value.raw());
+}
+
+
+void PatchClass::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
 void Function::SetCode(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   ASSERT(Function::Handle(value.function()).IsNull() ||
@@ -3569,7 +3663,7 @@ void Function::set_name(const String& value) const {
 }
 
 
-void Function::set_owner(const Class& value) const {
+void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, value.raw());
 }
@@ -3813,7 +3907,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
   const Function& parent = Function::Handle(function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
-    const Class& function_class = Class::Handle(function.owner());
+    const Class& function_class = Class::Handle(function.Owner());
     ASSERT(!function_class.IsNull());
     const char* class_name = String::Handle(function_class.Name()).ToCString();
     ASSERT(class_name != NULL);
@@ -4053,7 +4147,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                                           intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
-  const Class& parent_class = Class::Handle(parent.owner());
+  const Class& parent_class = Class::Handle(parent.Owner());
   ASSERT(!parent_class.IsNull());
   const Function& result = Function::Handle(
       Function::New(name,
@@ -4115,15 +4209,15 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   // Lookup or create a new signature class for the closure function in the
   // library of the owner class.
-  const Class& owner_class = Class::Handle(owner());
-  ASSERT(!owner_class.IsNull() && (owner() == closure_function.owner()));
+  const Class& owner_class = Class::Handle(Owner());
+  ASSERT(!owner_class.IsNull() && (Owner() == closure_function.Owner()));
   const Library& library = Library::Handle(owner_class.library());
   ASSERT(!library.IsNull());
   const String& signature = String::Handle(closure_function.Signature());
   Class& signature_class = Class::ZoneHandle(
       library.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
-    const Script& script = Script::Handle(owner_class.script());
+    const Script& script = Script::Handle(this->script());
     signature_class = Class::NewSignatureClass(signature,
                                                closure_function,
                                                script);
@@ -4163,7 +4257,7 @@ RawString* Function::BuildSignature(
         String::Handle(Symbols::New(" extends "));
     const String& kLAngleBracket = String::Handle(Symbols::New("<"));
     const String& kRAngleBracket = String::Handle(Symbols::New(">"));
-    const Class& function_class = Class::Handle(owner());
+    const Class& function_class = Class::Handle(Owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
         function_class.type_parameters());
@@ -4254,6 +4348,26 @@ bool Function::HasInstantiatedSignature() const {
 }
 
 
+RawClass* Function::Owner() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).patched_class();
+}
+
+
+RawScript* Function::script() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).script();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).script();
+}
+
+
 bool Function::HasOptimizedCode() const {
   return HasCode() && Code::Handle(raw_ptr()->code_).is_optimized();
 }
@@ -4268,7 +4382,7 @@ RawString* Function::UserVisibleName() const {
 RawString* Function::QualifiedUserVisibleName() const {
   String& tmp = String::Handle();
   String& suffix = String::Handle();
-  const Class& cls = Class::Handle(owner());
+  const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
     if (IsLocalFunction()) {
@@ -5499,8 +5613,6 @@ RawArray* Library::LoadedScripts() const {
     const GrowableObjectArray& scripts =
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
-    Function& func = Function::Handle();
-    Field& field = Field::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
     DictionaryIterator it(*this);
@@ -5508,17 +5620,15 @@ RawArray* Library::LoadedScripts() const {
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
-        cls ^= entry.raw();
+        owner_script = Class::Cast(entry).script();
       } else if (entry.IsFunction()) {
-        func ^= entry.raw();
-        cls = func.owner();
+        owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        field ^= entry.raw();
-        cls = field.owner();
+        cls = Field::Cast(entry).owner();
+        owner_script = cls.script();
       } else {
         continue;
       }
-      owner_script = cls.script();
       if (owner_script.IsNull()) {
         continue;
       }
@@ -5778,7 +5888,7 @@ RawLibrary* Library::LookupObjectInImporter(const String& name) const {
         lib ^= cls.library();
       } else if (obj.IsFunction()) {
         func ^= obj.raw();
-        cls ^= func.owner();
+        cls ^= func.Owner();
         lib ^= cls.library();
       } else if (obj.IsField()) {
         field ^= obj.raw();
@@ -7642,7 +7752,7 @@ bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    cls = Function::Handle(GetTargetAt(i)).owner();
+    cls = Function::Handle(GetTargetAt(i)).Owner();
     if (cls.id() != owner_cid) {
       return false;
     }
@@ -7655,7 +7765,7 @@ bool ICData::AllReceiversAreNumbers() const {
   if (NumberOfChecks() == 0) return false;
   Class& cls = Class::Handle();
   for (intptr_t i = 0; i < NumberOfChecks(); i++) {
-    cls = Function::Handle(GetTargetAt(i)).owner();
+    cls = Function::Handle(GetTargetAt(i)).Owner();
     const intptr_t cid = cls.id();
     if ((cid != kSmiCid) &&
         (cid != kMintCid) &&
@@ -10938,7 +11048,6 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 const char* Stacktrace::ToCString() const {
   Function& function = Function::Handle();
   Code& code = Code::Handle();
-  Class& owner = Class::Handle();
   Script& script = Script::Handle();
   String& function_name = String::Handle();
   String& url = String::Handle();
@@ -10953,8 +11062,7 @@ const char* Stacktrace::ToCString() const {
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
-    owner = function.owner();
-    script = owner.script();
+    script = function.script();
     function_name = function.QualifiedUserVisibleName();
     url = script.url();
     intptr_t line = -1;

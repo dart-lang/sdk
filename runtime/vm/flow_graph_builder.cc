@@ -590,7 +590,7 @@ void EffectGraphVisitor::BuildTypecheckArguments(
   Value* instantiator = NULL;
   Value* instantiator_type_arguments = NULL;
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().owner());
+      owner()->parsed_function().function().Owner());
   // Since called only when type tested against is not instantiated.
   ASSERT(instantiator_class.NumTypeParameters() > 0);
   instantiator = BuildInstantiator();
@@ -1455,7 +1455,7 @@ void EffectGraphVisitor::VisitCloneContextNode(CloneContextNode* node) {
 
 Value* EffectGraphVisitor::BuildObjectAllocation(
     ConstructorCallNode* node) {
-  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  const Class& cls = Class::ZoneHandle(node->constructor().Owner());
   const bool requires_type_arguments = cls.HasTypeArguments();
 
   // In checked mode, if the type arguments are uninstantiated, they may need to
@@ -1551,7 +1551,7 @@ void EffectGraphVisitor::VisitConstructorCallNode(ConstructorCallNode* node) {
 
 Value* EffectGraphVisitor::BuildInstantiator() {
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().owner());
+      owner()->parsed_function().function().Owner());
   if (instantiator_class.NumTypeParameters() == 0) {
     return NULL;
   }
@@ -1577,7 +1577,7 @@ Value* EffectGraphVisitor::BuildInstantiator() {
 Value* EffectGraphVisitor::BuildInstantiatorTypeArguments(
     intptr_t token_pos, Value* instantiator) {
   const Class& instantiator_class = Class::Handle(
-      owner()->parsed_function().function().owner());
+      owner()->parsed_function().function().Owner());
   if (instantiator_class.NumTypeParameters() == 0) {
     // The type arguments are compile time constants.
     AbstractTypeArguments& type_arguments = AbstractTypeArguments::ZoneHandle();
@@ -1644,7 +1644,7 @@ void EffectGraphVisitor::BuildConstructorTypeArguments(
     Value** type_arguments,
     Value** instantiator,
     ZoneGrowableArray<PushArgumentInstr*>* call_arguments) {
-  const Class& cls = Class::ZoneHandle(node->constructor().owner());
+  const Class& cls = Class::ZoneHandle(node->constructor().Owner());
   ASSERT(cls.HasTypeArguments() && !node->constructor().IsFactory());
   if (node->type_arguments().IsNull() ||
       node->type_arguments().IsInstantiated()) {
