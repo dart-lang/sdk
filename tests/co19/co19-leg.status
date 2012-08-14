@@ -475,7 +475,6 @@ Language/03_Overview/1_Scoping_A01_t35: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t39: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t40: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t41: Fail # @compile-error
-Language/03_Overview/1_Scoping_A01_t46: Fail # @compile-error
 Language/03_Overview/1_Scoping_A02_t10: Fail # @compile-error
 Language/03_Overview/1_Scoping_A03_t05: Fail # @compile-error
 Language/03_Overview/2_Privacy_A01_t09: Fail # @compile-error
