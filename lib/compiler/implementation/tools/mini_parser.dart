@@ -22,7 +22,9 @@
 int charCount = 0;
 Stopwatch stopwatch;
 
-void main() {
+void main() { toolMain(new Options().arguments); }
+
+void toolMain(List<String> arguments) {
   filesWithCrashes = [];
   stopwatch = new Stopwatch();
   MyOptions options = new MyOptions();
@@ -47,7 +49,7 @@ void main() {
     }
   }
 
-  for (String argument in new Options().arguments) {
+  for (String argument in arguments) {
     if (argument == "--diet") {
       options.diet = true;
       continue;

@@ -10,5 +10,5 @@ type_inference4_test: Fail # Issue 2665.
 type_inference5_test: Fail # Issue 2665.
 is_inference2_test: Fail # Issue 4069.
 
-[ $compiler == dartc || $compiler == frog || $compiler == dart2js || $runtime == ie || $runtime == opera || $runtime == ff || $runtime == chrome || $runtime == safari ]
+[ $runtime == d8 || $runtime == drt || $runtime == dartium || $runtime == ff || $runtime == firefox || $runtime == chrome || $runtime == safari || $runtime == ie || $runtime == opera ]
 *: Skip # dart2js uses #import('dart:io'); and it is not self-hosted (yet).
