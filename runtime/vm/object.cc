@@ -1487,8 +1487,6 @@ void Class::Finalize() const {
 void Class::ApplyPatch(const Class& with) const {
   ASSERT(!is_finalized());
   const Script& patch_script = Script::Handle(with.script());
-  const String& str = String::Handle(patch_script.Source());
-  OS::PrintErr("patch_script: %s\n", str.ToCString());
   const PatchClass& patch = PatchClass::Handle(
       PatchClass::New(*this, patch_script));
 
