@@ -18,7 +18,7 @@ static void failed_exit(void) {
 }
 
 void DynamicAssertionHelper::Fail(const char* format, ...) {
-  std::stringstream stream;
+  std::ostringstream stream;
   stream << file_ << ":" << line_ << ": error: ";
 
   va_list arguments;
