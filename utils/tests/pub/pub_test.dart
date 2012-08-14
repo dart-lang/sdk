@@ -59,6 +59,7 @@ main() {
 
   group('pub list', listCommand);
   group('pub install', installCommand);
+  group('pub update', updateCommand);
   group('pub version', versionCommand);
 }
 
@@ -887,7 +888,7 @@ dependencies:
   foo:
     git: ../foo.git
   bar:
-    git: ../foo.git
+    git: ../bar.git
 ''')
     ]).scheduleCreate();
 
@@ -944,7 +945,7 @@ dependencies:
   foo:
     git: ../foo.git
   bar:
-    git: ../foo.git
+    git: ../bar.git
 ''')
       ]).scheduleCreate();
 
@@ -968,7 +969,7 @@ dependencies:
         file('bar.dart', 'main() => "bar 2";')
       ]).scheduleCommit();
 
-      schedulePub(args: ['update foo'],
+      schedulePub(args: ['update', 'foo'],
           output: const RegExp(@"Dependencies updated!$"));
 
       dir(packagesPath, [
@@ -983,7 +984,8 @@ dependencies:
       run();
     });
 
-    test("updates one locked Git package's dependencies", () {
+    test("doesn't update one locked Git package's dependencies if it's not "
+        "necessary", () {
       ensureGit();
 
       git('foo.git', [
@@ -999,25 +1001,10 @@ dependencies:
         file('foo-dep.dart', 'main() => "foo-dep";')
       ]).scheduleCreate();
 
-      git('bar.git', [
-        file('bar.dart', 'main() => "bar";'),
-        file('pubspec.yaml', '''
-dependencies:
-  bar-dep:
-    git: ../bar-dep.git
-''')
-      ]).scheduleCreate();
-
-      git('bar-dep.git', [
-        file('bar-dep.dart', 'main() => "bar-dep";')
-      ]).scheduleCreate();
-
       dir(appPath, [
         file('pubspec.yaml', '''
 dependencies:
   foo:
-    git: ../foo.git
-  bar:
     git: ../foo.git
 ''')
       ]).scheduleCreate();
@@ -1036,34 +1023,28 @@ dependencies:
         ]),
         dir('foo-dep', [
           file('foo-dep.dart', 'main() => "foo-dep";')
-        ]),
-        dir('bar', [
-          file('bar.dart', 'main() => "bar";'),
-          file('pubspec.yaml', '''
-dependencies:
-  bar-dep:
-    git: ../bar-dep.git
-''')
-        ]),
-        dir('bar-dep', [
-          file('bar-dep.dart', 'main() => "bar-dep";')
         ])
       ]).scheduleValidate();
+
+      git('foo.git', [
+        file('foo.dart', 'main() => "foo 2";'),
+        file('pubspec.yaml', '''
+dependencies:
+  foo-dep:
+    git: ../foo-dep.git
+''')
+      ]).scheduleCreate();
 
       git('foo-dep.git', [
         file('foo-dep.dart', 'main() => "foo-dep 2";')
       ]).scheduleCommit();
 
-      git('bar-dep.git', [
-        file('bar-dep.dart', 'main() => "bar-dep 2";')
-      ]).scheduleCommit();
-
-      schedulePub(args: ['update foo'],
+      schedulePub(args: ['update', 'foo'],
           output: const RegExp(@"Dependencies updated!$"));
 
       dir(packagesPath, [
         dir('foo', [
-          file('foo.dart', 'main() => "foo";'),
+          file('foo.dart', 'main() => "foo 2";'),
           file('pubspec.yaml', '''
 dependencies:
   foo-dep:
@@ -1071,18 +1052,88 @@ dependencies:
 ''')
         ]),
         dir('foo-dep', [
-          file('foo-dep.dart', 'main() => "foo-dep 2";')
+          file('foo-dep.dart', 'main() => "foo-dep";')
         ]),
-        dir('bar', [
-          file('bar.dart', 'main() => "bar";'),
-          file('pubspec.yaml', '''
+      ]).scheduleValidate();
+
+      run();
+    });
+
+    test("updates one locked pub server package's dependencies if it's "
+        "necessary", () {
+      servePackages("localhost", 3123, [
+        '''
+name: foo
+version: 1.0.0
 dependencies:
-  bar-dep:
-    git: ../bar-dep.git
+  foo-dep:
+    repo:
+      name: foo-dep
+      url: http://localhost:3123
+''',
+        '{name: foo-dep, version: 1.0.0}'
+      ]);
+
+      dir(appPath, [
+        file('pubspec.yaml', '''
+dependencies:
+  foo:
+    repo:
+      name: foo
+      url: http://localhost:3123
+''')
+      ]).scheduleCreate();
+
+      schedulePub(args: ['install'],
+          output: const RegExp(@"Dependencies installed!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => print("foo 1.0.0");'),
+          file('pubspec.yaml', '''
+name: foo
+version: 1.0.0
+dependencies:
+  foo-dep:
+    repo:
+      name: foo-dep
+      url: http://localhost:3123
 ''')
         ]),
-        dir('bar-dep', [
-          file('bar-dep.dart', 'main() => "bar-dep";')
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => print("foo-dep 1.0.0");')
+        ])
+      ]).scheduleValidate();
+
+      servePackages("localhost", 3123, [
+        '''
+name: foo
+version: 2.0.0
+dependencies:
+  foo-dep:
+    repo: {name: foo-dep, url: http://localhost:3123}
+    version: ">1.0.0"
+''',
+        '{name: foo-dep, version: 2.0.0}'
+      ]);
+
+      schedulePub(args: ['update', 'foo'],
+          output: const RegExp(@"Dependencies updated!$"));
+
+      dir(packagesPath, [
+        dir('foo', [
+          file('foo.dart', 'main() => print("foo 2.0.0");'),
+          file('pubspec.yaml', '''
+name: foo
+version: 2.0.0
+dependencies:
+  foo-dep:
+    repo: {name: foo-dep, url: http://localhost:3123}
+    version: ">1.0.0"
+''')
+        ]),
+        dir('foo-dep', [
+          file('foo-dep.dart', 'main() => print("foo-dep 2.0.0");')
         ])
       ]).scheduleValidate();
 
