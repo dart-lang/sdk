@@ -668,6 +668,15 @@ public class CompileTimeConstantAnalyzer {
               checkConstantExpression(node.getValue());
             }
           }
+        } else {
+          DartExpression value = node.getValue();
+          if (value instanceof DartSuperConstructorInvocation
+              || value instanceof DartRedirectConstructorInvocation) {
+            List<DartExpression> arguments = ((DartInvocation) value).getArguments();
+            for (DartExpression argument : arguments) {
+              checkConstantExpression(argument);
+            }
+          }
         }
       }
       return super.visitInitializer(node);

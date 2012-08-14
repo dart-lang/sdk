@@ -119,7 +119,46 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             ""),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 18, 5));
   }
-  
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4294
+   */
+  public void test_constConstructor_redirectInvocation() throws Exception {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  final v;",
+            "  const A(this.v);",
+            "  const A.hasValue() : this(generateValue());",
+            "  static generateValue() => 42;",
+            "}"),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 29, 15));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4294
+   */
+  public void test_constConstructor_superInvocation() throws Exception {
+    resolveAndTestCtConstExpectErrors(
+        Joiner.on("\n").join(
+            "// filler filler filler filler filler filler filler filler filler filler",
+            "class Object {}",
+            "class A {",
+            "  final v;",
+            "  const A(this.v);",
+            "}",
+            "class B extends A {",
+            "  const A() : super(generateValue());",
+            "  static generateValue() => 42;",
+            "}",
+            ""),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 8, 21, 15));
+  }
+
   /**
    * At compile time we "trust" user that parameter will have correct type.
    */
