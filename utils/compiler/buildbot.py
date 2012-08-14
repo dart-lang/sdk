@@ -217,7 +217,7 @@ def TestCompiler(runtime, mode, system, option, flags, is_buildbot):
     if runtime == 'ff' and system == 'win7':
       version_query_string += '| more'
     elif runtime == 'chrome' and system == 'win7':
-      version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' + 
+      version_query_string = ('''reg query "HKCU\\Software\\Microsoft\\''' +
           '''Windows\\CurrentVersion\\Uninstall\\Google Chrome" /v Version''')
     p = subprocess.Popen(version_query_string,
         stdout=subprocess.PIPE, stderr=subprocess.PIPE, shell=True)
@@ -293,26 +293,24 @@ def CleanUpTemporaryFiles(system, browser):
     _DeleteFirefoxProfiles('/tmp')
     _DeleteFirefoxProfiles('/var/tmp')
 
-def MaybeClobber(runtime, mode, system):
-  """ Clobber the build directory if the clobber flag has been set.
+def ClobberBuilder(mode):
+  """ Clobber the builder before we do the build.
   Args:
-     - runtime: either 'd8', or one of the browsers, see GetBuildInfo
      - mode: either 'debug' or 'release'
-     - system: either 'linux', 'mac', or 'win7'
   """
-  builder_clobber = os.environ.get(BUILDER_CLOBBER)
-  if (builder_clobber != "1"):
-    print "Clobber flag not set, not clobbering"
-    return
+  cmd = [sys.executable,
+         './tools/clean_output_directory.py',
+         '--mode=' + mode]
+  print 'Clobbering %s' % (' '.join(cmd))
+  return subprocess.call(cmd, env=NO_COLOR_ENV)
 
-  # TODO(ricow): add support for browser bots - sync with Emily
-  if (runtime == "d8"):
-    delete_path = os.path.join(DART_PATH, "out")
-    print "Clobbering %s" % (delete_path)
-    shutil.rmtree("", ignore_errors=True);
+def GetShouldClobber():
+  if os.environ.get(BUILDER_CLOBBER) == "1":
+    return True
+  else:
+    return False
 
 def main():
-
   if len(sys.argv) == 0:
     print 'Script pathname not known, giving up.'
     return 1
@@ -327,8 +325,12 @@ def main():
   if compiler is None:
     return 1
 
-  print '@@@BUILD_STEP Maybe clobber@@@'
-  MaybeClobber(runtime, mode, system)
+  if GetShouldClobber():
+    print '@@@BUILD_STEP Clobber@@@'
+    status = ClobberBuilder(mode)
+    if status != 0:
+      print '@@@STEP_FAILURE@@@'
+      return status
 
   print '@@@BUILD_STEP build sdk@@@'
   status = BuildSDK(mode, system)
