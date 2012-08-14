@@ -1318,6 +1318,13 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
       world.registerDynamicSetter(name, selector);
       // Also register the getter for compound assignments.
       world.registerDynamicGetter(name, Selector.GETTER);
+    } else if (Selector.INDEX_AND_INDEX_SET === selector) {
+      register(op, selector) {
+        world.registerDynamicInvocation(Elements.constructOperatorName(
+            const SourceString('operator'), new SourceString(op)), selector);
+      }
+      register('[]', Selector.INDEX);
+      register('[]=', Selector.INDEX_SET);
     } else {
       world.registerDynamicInvocation(name, selector);
     }

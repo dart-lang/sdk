@@ -211,8 +211,6 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-# dart2js allows duplicate constructor definitions.
-duplicate_constructor_test/01: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
 # Common with language_dart2js.

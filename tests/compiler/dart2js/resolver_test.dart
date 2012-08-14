@@ -7,6 +7,7 @@
 #import("../../../lib/compiler/implementation/leg.dart");
 #import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
+#import("../../../lib/compiler/implementation/scanner/scannerlib.dart");
 #import("../../../lib/compiler/implementation/util/util.dart");
 #import("compiler_helper.dart");
 #import("mock_compiler.dart");
@@ -73,6 +74,7 @@ main() {
   testSuperCalls();
   testTypeVariables();
   testToString();
+  testIndexedOperator();
 }
 
 testTypeVariables() {
@@ -726,12 +728,16 @@ List<String> asSortedStrings(Link link) {
   return result;
 }
 
-testToString() {
+compileScript(String source) {
   Uri uri = new Uri.fromComponents(scheme: 'source');
-  MockCompiler compiler = compilerFor(
-      @"class C { toString() => 'C'; } main() { '${new C()}'; }",
-      uri);
+  MockCompiler compiler = compilerFor(source, uri);
   compiler.runCompiler(uri);
+  return compiler;
+}
+
+testToString() {
+  final script = @"class C { toString() => 'C'; } main() { '${new C()}'; }";
+  final compiler = compileScript(script);
 
   Element toStringMethod = findElement(compiler, 'C')
       .lookupLocalMember(buildSourceString('toString'));
@@ -739,4 +745,29 @@ testToString() {
 
   Expect.isNotNull(
       compiler.enqueuer.resolution.getCachedElements(toStringMethod));
+}
+
+testIndexedOperator() {
+  final script = @"""
+      class C {
+        operator[](ix) => ix;
+        operator[]=(ix, v) {}
+      }
+      main() { var c = new C(); c[0]++ ; }""";
+  final compiler = compileScript(script);
+
+  operatorName(op) => Elements.constructOperatorName(
+      const SourceString('operator'), new SourceString(op));
+
+  Element indexedOperator = findElement(compiler, 'C')
+      .lookupLocalMember(operatorName('[]'));
+  Expect.isNotNull(indexedOperator);
+  Expect.isNotNull(
+      compiler.enqueuer.resolution.getCachedElements(indexedOperator));
+
+  Element indexedSetOperator = findElement(compiler, 'C')
+      .lookupLocalMember(operatorName('[]='));
+  Expect.isNotNull(indexedOperator);
+  Expect.isNotNull(
+      compiler.enqueuer.resolution.getCachedElements(indexedSetOperator));
 }
