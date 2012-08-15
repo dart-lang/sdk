@@ -66,7 +66,8 @@ class Emitter {
       // Different VariableElement's may refer to the same VariableListElement.
       // Output this list only once.
       // TODO: only emit used variables.
-      final variableList = (element as VariableElement).variables;
+      VariableElement variableElement = element;
+      final variableList = variableElement.variables;
       if (!processedVariableLists.contains(variableList)) {
         processedVariableLists.add(variableList);
         sb.add(unparser.unparse(variableList.parseNode(compiler)));

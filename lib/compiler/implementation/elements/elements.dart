@@ -108,7 +108,6 @@ class Element implements Hashable {
   final Element enclosingElement;
   Link<Node> metadata = const EmptyLink<Node>();
 
-
   Element(this.name, this.kind, this.enclosingElement) {
     assert(getLibrary() !== null);
   }
@@ -137,8 +136,6 @@ class Element implements Hashable {
         enclosing.kind === ElementKind.COMPILATION_UNIT_OVERRIDE) {
       enclosing = enclosing.enclosingElement;
     }
-    // TODO(lrn): Skip any synthetic elements inserted, e.g.,
-    // a compilation unit override.
     return enclosing !== null && enclosing.isClass();
   }
   bool isInstanceMember() => false;
@@ -146,17 +143,7 @@ class Element implements Hashable {
   bool isGenerativeConstructor() => kind === ElementKind.GENERATIVE_CONSTRUCTOR;
   bool isGenerativeConstructorBody() =>
       kind === ElementKind.GENERATIVE_CONSTRUCTOR_BODY;
-  bool isCompilationUnit() {
-    return kind === ElementKind.COMPILATION_UNIT ||
-           kind === ElementKind.LIBRARY ||
-           kind === ElementKind.COMPILATION_UNIT_OVERRIDE;
-  }
-  /**
-   * Provides the compilation unit corresponding to this element.
-   * Returns non-null for elements where [isCompilationUnit] returns true,
-   * but may not return the current [Element].
-   */
-  CompilationUnitElement asCompilationUnit() => null;
+  bool isCompilationUnit() => kind === ElementKind.COMPILATION_UNIT;
   bool isClass() => kind === ElementKind.CLASS;
   bool isPrefix() => kind === ElementKind.PREFIX;
   bool isVariable() => kind === ElementKind.VARIABLE;
@@ -177,7 +164,9 @@ class Element implements Hashable {
   // elements are null) and is invalid for top level variable declarations for
   // which the enclosing element is a VariableDeclarations and not a compilation
   // unit.
-  bool isTopLevel() => enclosingElement.isCompilationUnit();
+  bool isTopLevel() {
+    return enclosingElement !== null && enclosingElement.isCompilationUnit();
+  }
 
   bool isAssignable() {
     if (modifiers != null && modifiers.isFinal()) return false;
@@ -199,13 +188,26 @@ class Element implements Hashable {
   // the same hash code. Replace this with a simple id in the element?
   int hashCode() => name === null ? 0 : name.hashCode();
 
-  Script getScript() {
-    return getCompilationUnit().script;
-  }
-
   CompilationUnitElement getCompilationUnit() {
-    if (isCompilationUnit()) return this;
-    return enclosingElement.getCompilationUnit();
+    Element element = this;
+    while (element !== null && !element.isCompilationUnit()) {
+      if (element is CompilationUnitOverrideElement) {
+        CompilationUnitOverrideElement override = element;
+        return override.compilationUnit;
+      }
+      if (element.isLibrary()) {
+        LibraryElement library = element;
+        return library.entryCompilationUnit;
+      }
+      element = element.enclosingElement;
+      if (element is FunctionElement) {
+        FunctionElement function = element;
+        if (function.isPatched) {
+          element = function.patch;
+        }
+      }
+    }
+    return element;
   }
 
   LibraryElement getLibrary() {
@@ -219,6 +221,13 @@ class Element implements Hashable {
   ClassElement getEnclosingClass() {
     for (Element e = this; e !== null; e = e.enclosingElement) {
       if (e.isClass()) return e;
+    }
+    return null;
+  }
+
+  Element getEnclosingClassOrCompilationUnit() {
+   for (Element e = this; e !== null; e = e.enclosingElement) {
+      if (e.isClass() || e.isCompilationUnit()) return e;
     }
     return null;
   }
@@ -320,7 +329,7 @@ class ScopeContainerElement extends ContainerElement {
     return localScope[elementName];
   }
 
-  void addGetterOrSetter(Element element,
+  void addGetterOrSetter(FunctionElement element,
                          Element existing,
                          DiagnosticListener listener) {
     void reportError(Element other) {
@@ -348,7 +357,9 @@ class ScopeContainerElement extends ContainerElement {
         }
       }
     } else {
-      AbstractFieldElement field = new AbstractFieldElement(element.name, this);
+      Element container = element.getEnclosingClassOrCompilationUnit();
+      AbstractFieldElement field =
+          new AbstractFieldElement(element.name, container);
       if (element.kind == ElementKind.GETTER) {
         field.getter = element;
       } else {
@@ -385,10 +396,6 @@ class CompilationUnitOverrideElement extends Element {
         super(compilationUnit.name,
               ElementKind.COMPILATION_UNIT_OVERRIDE,
               enclosing);
-
-  CompilationUnitElement asCompilationUnit() => compilationUnit;
-
-  CompilationUnitElement getCompilationUnit() => compilationUnit;
 }
 
 class LibraryElement extends ScopeContainerElement {
@@ -460,8 +467,6 @@ class LibraryElement extends ScopeContainerElement {
       return path.substring(path.lastIndexOf('/') + 1);
     }
   }
-
-  CompilationUnitElement getCompilationUnit() => entryCompilationUnit;
 
   Scope buildEnclosingScope() => new TopScope(this);
 }
@@ -699,10 +704,12 @@ class AbstractFieldElement extends Element {
     // compilation units.  However, we know that one of them is
     // non-null and defined in the same compilation unit as the
     // abstract element.
+    // TODO(lrn): No we don't know that if the element from the same
+    // compilation unit is patched.
     //
     // We need to make sure that the position returned is relative to
     // the compilation unit of the abstract element.
-    if (getter !== null 
+    if (getter !== null
         && getter.getCompilationUnit() === getCompilationUnit()) {
       return getter.position();
     } else {
@@ -809,11 +816,6 @@ class FunctionElement extends Element {
                                      FunctionSignature this.functionSignature)
       : super(name, kind, enclosing) {
     defaultImplementation = this;
-  }
-
-  Script getScript() {
-    if (patch !== null) return patch.getScript();
-    return super.getScript();
   }
 
   bool get isPatched() => patch !== null;

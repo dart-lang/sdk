@@ -637,7 +637,8 @@ class Printer implements NodeVisitor {
                           newAtStatementBegin: atStatementBegin);
     Node selector = access.selector;
     if (selector is LiteralString) {
-      String fieldWithQuotes = (selector as LiteralString).value;
+      LiteralString selectorString = selector;
+      String fieldWithQuotes = selectorString.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (isDigit(lastCharCode)) out(" ");
         out(".");
@@ -721,7 +722,8 @@ class Printer implements NodeVisitor {
 
   visitProperty(Property node) {
     if (node.name is LiteralString) {
-      String name = (node.name as LiteralString).value;
+      LiteralString nameString = node.name;
+      String name = nameString.value;
       if (isValidJavaScriptId(name)) {
         out(name.substring(1, name.length - 1));
       } else {
@@ -729,7 +731,8 @@ class Printer implements NodeVisitor {
       }
     } else {
       assert(node.name is LiteralNumber);
-      out((node.name as LiteralNumber).value);
+      LiteralNumber nameNumber = node.name;
+      out(nameNumber.value);
     }
     out(":");
     spaceOut();

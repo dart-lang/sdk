@@ -184,8 +184,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isNonNegativeInt32Constant(HInstruction instruction) {
     if (instruction.isConstantInteger()) {
-      int value =
-          ((instruction as HConstant).constant as PrimitiveConstant).value;
+      HConstant constantInstruction = instruction;
+      PrimitiveConstant primitiveConstant = constantInstruction.constant;
+      int value = primitiveConstant.value;
       if (value >= 0 && value < (1 << 31)) {
         return true;
       }
@@ -213,10 +214,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // integer. Also, if we are using & with a positive constant we know
   // that the result is positive already and need no conversion.
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction is HBitAnd &&
-        (isNonNegativeInt32Constant((instruction as HBitAnd).left) ||
-         isNonNegativeInt32Constant((instruction as HBitAnd).right))) {
-      return false;
+    if (instruction is HBitAnd) {
+      HBitAnd bitAnd = instruction;
+      if (isNonNegativeInt32Constant(bitAnd.left) ||
+          isNonNegativeInt32Constant(bitAnd.right)) {
+        return false;
+      }
     }
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }

@@ -964,7 +964,8 @@ $classesCollector.$mangledName = {'':
         Type receiverType = objectType;
         ClassElement receiverClass = objectClass;
         if (selector is TypedSelector) {
-          receiverType = (selector as TypedSelector).receiverType;
+          TypedSelector typedSelector = selector;
+          receiverType = typedSelector.receiverType;
           receiverClass = receiverType.element;
         }
 

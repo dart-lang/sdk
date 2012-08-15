@@ -44,7 +44,7 @@ class UnparseValidator extends CompilerTask {
         parser.findGetOrSet(parser.parseModifiers(newTokens));
 
     // TODO(ahe): This is also too frigging complicated.
-    Script originalScript = originalFunction.getScript();
+    Script originalScript = originalFunction.getCompilationUnit().script;
     String name = SourceSpan.withCharacterOffsets(
         originalFunction.beginToken, originalFunction.endToken,
         (beginOffset, endOffset) =>
