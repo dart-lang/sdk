@@ -186,7 +186,7 @@ external_test/*: Skip
 # Final top-level field declarations without initializer do not lead to errors in dart2js frontend.
 final_syntax_test/03: Fail
 final_syntax_test/04: Fail
-# Call operator is not supported by dart2js frontend.
+# Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
