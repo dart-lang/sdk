@@ -1175,7 +1175,7 @@ class JUnitTestSuite implements TestSuite {
     configuration.forEach((key, value) {
       updatedConfiguration[key] = value;
     });
-    updatedConfiguration['timeout'] *= 2;
+    updatedConfiguration['timeout'] *= 3;
     doTest(new TestCase(suiteName,
                         [new Command('java', args)],
                         updatedConfiguration,
