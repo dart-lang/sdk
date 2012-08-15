@@ -23,5 +23,5 @@ unittest/test/mock_stepwise_negative_test: fail
 unittest/test/instance_test: Skip
 
 [ $compiler == dart2js && $checked ]
-fixnum/int_32_test: Fail # Issue 3720.
-fixnum/int_64_test: Fail # Issue 3720.
+fixnum/test/int_32_test: Fail # Issue 3720.
+fixnum/test/int_64_test: Fail # Issue 3720.
