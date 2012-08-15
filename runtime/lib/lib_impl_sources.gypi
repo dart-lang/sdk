@@ -8,7 +8,6 @@
   'sources': [
     'array.cc',
     'array.dart',
-    'arrays.dart',
     'bool.dart',
     'date.cc',
     'date.dart',
@@ -28,6 +27,5 @@
     'stopwatch_patch.dart',
     'string.cc',
     'string.dart',
-    'string_buffer.dart',
   ],
 }

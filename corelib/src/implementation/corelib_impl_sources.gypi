@@ -4,6 +4,7 @@
 
 {
   'sources': [
+    'arrays.dart',
     'collections.dart',
     'dual_pivot_quicksort.dart',
     'duration_implementation.dart',
@@ -16,5 +17,6 @@
     'queue.dart',
     'splay_tree.dart',
     'stopwatch_implementation.dart',
+    'string_buffer.dart',
   ],
 }
