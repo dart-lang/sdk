@@ -210,6 +210,8 @@ method_override2_test/03: Fail
 static_final_field_negative_test: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
+# Bug in dart2js parser: it happily parses 1is int; variable declaration.
+number_identifier_negative_test: Fail
 # Common with language_dart2js.
 function_type_alias3_test: Fail
 function_type_alias5_test/00: Fail
@@ -246,7 +248,6 @@ generic_test: Fail, Ok
 field_optimization2_test: Fail
 field_optimization_test: Fail
 library5_test: Fail
-number_identifier_negative_test: Fail
 operator1_negative_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
