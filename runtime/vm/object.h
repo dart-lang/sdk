@@ -637,27 +637,22 @@ class Class : public Object {
   }
 
   bool is_interface() const {
-    return raw_ptr()->is_interface_;
+    return InterfaceBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_interface() const;
-  static intptr_t is_interface_offset() {
-    return OFFSET_OF(RawClass, is_interface_);
-  }
 
   bool is_finalized() const {
-    return raw_ptr()->class_state_ == RawClass::kFinalized;
+    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kFinalized;
   }
   void set_is_finalized() const;
 
   bool is_prefinalized() const {
-    return raw_ptr()->class_state_ == RawClass::kPreFinalized;
+    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kPreFinalized;
   }
 
   void set_is_prefinalized() const;
 
-  bool is_const() const {
-    return raw_ptr()->is_const_;
-  }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
   int num_native_fields() const {
@@ -711,11 +706,23 @@ class Class : public Object {
   static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
  private:
+  enum {
+    kConstBit = 1,
+    kInterfaceBit = 2,
+    kStateTagBit = 3,
+    kStateTagSize = 2,
+  };
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
+  class StateBits : public BitField<RawClass::ClassState,
+                                    kStateTagBit, kStateTagSize> {};  // NOLINT
+
   void set_name(const String& value) const;
   void set_token_pos(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
-  void set_class_state(int8_t state) const;
+  void set_class_state(RawClass::ClassState state) const;
+  void set_state_bits(uint8_t bits) const;
 
   void set_constants(const Array& value) const;
 
@@ -1637,7 +1644,7 @@ class Function : public Object {
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {}; // NOLINT
+    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
@@ -1682,9 +1689,9 @@ class Field : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
 
-  bool is_static() const { return raw_ptr()->is_static_; }
-  bool is_final() const { return raw_ptr()->is_final_; }
-  bool is_const() const { return raw_ptr()->is_const_; }
+  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
+  bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value) const;
@@ -1712,9 +1719,12 @@ class Field : public Object {
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
-  bool has_initializer() const { return raw_ptr()->has_initializer_; }
+  bool has_initializer() const {
+    return HasInitializerBit::decode(raw_ptr()->kind_bits_);
+  }
   void set_has_initializer(bool has_initializer) const {
-    raw_ptr()->has_initializer_ = has_initializer;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = HasInitializerBit::update(has_initializer, bits);
   }
 
   // Constructs getter and setter names for fields and vice versa.
@@ -1728,15 +1738,29 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
 
  private:
+  enum {
+    kConstBit = 1,
+    kStaticBit,
+    kFinalBit,
+    kHasInitializerBit,
+  };
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<bool, kFinalBit, 1> {};
+  class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
+
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
-    raw_ptr()->is_static_ = is_static;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = StaticBit::update(is_static, bits);
   }
   void set_is_final(bool is_final) const {
-    raw_ptr()->is_final_ = is_final;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = FinalBit::update(is_final, bits);
   }
   void set_is_const(bool value) const {
-    raw_ptr()->is_const_ = value;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = ConstBit::update(value, bits);
   }
   void set_owner(const Class& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -1744,10 +1768,14 @@ class Field : public Object {
   void set_token_pos(intptr_t token_pos) const {
     raw_ptr()->token_pos_ = token_pos;
   }
+  void set_kind_bits(intptr_t value) const {
+    raw_ptr()->kind_bits_ = value;
+  }
   static RawField* New();
 
   HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
+  friend class HeapProfiler;
 };
 
 

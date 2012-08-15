@@ -407,9 +407,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  int8_t class_state_;  // Of type ClassState.
-  bool is_const_;
-  bool is_interface_;
+  uint8_t state_bits_;  // state, is_const, is_interface.
 
   friend class Object;
   friend class RawInstance;
@@ -611,10 +609,7 @@ class RawField : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
   intptr_t token_pos_;
-  bool is_static_;
-  bool is_final_;
-  bool is_const_;
-  bool has_initializer_;
+  uint8_t kind_bits_;  // static, final, const, has initializer.
 };
 
 

@@ -232,8 +232,7 @@ void Object::InitOnce() {
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::InstanceSize());
     cls.set_id(Class::kClassId);
-    cls.raw_ptr()->is_const_ = false;
-    cls.raw_ptr()->is_interface_ = false;
+    cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
     cls.raw_ptr()->type_arguments_instance_field_offset_ =
         Class::kNoTypeArguments;
@@ -1198,11 +1197,10 @@ RawClass* Class::New() {
   result.set_id((FakeObject::kClassId != kInstanceCid &&
                  FakeObject::kClassId != kClosureCid) ?
                 FakeObject::kClassId : kIllegalCid);
-  result.raw_ptr()->is_const_ = false;
-  result.raw_ptr()->is_interface_ = false;
+  result.raw_ptr()->state_bits_ = 0;
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
-  result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
+  result.set_is_prefinalized();
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
@@ -1300,11 +1298,17 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 
-void Class::set_class_state(int8_t state) const {
+void Class::set_class_state(RawClass::ClassState state) const {
   ASSERT((state == RawClass::kAllocated) ||
          (state == RawClass::kPreFinalized) ||
          (state == RawClass::kFinalized));
-  raw_ptr()->class_state_ = state;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(state, bits);
+}
+
+
+void Class::set_state_bits(uint8_t bits) const {
+  raw_ptr()->state_bits_ = bits;
 }
 
 
@@ -1578,9 +1582,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_id(index);
-  result.raw_ptr()->is_const_ = false;
-  result.raw_ptr()->is_interface_ = false;
-  result.raw_ptr()->class_state_ = RawClass::kAllocated;
+  result.raw_ptr()->state_bits_ = 0;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
@@ -1734,24 +1736,28 @@ void Class::set_token_pos(intptr_t token_pos) const {
 
 
 void Class::set_is_interface() const {
-  raw_ptr()->is_interface_ = true;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = InterfaceBit::update(true, bits);
 }
 
 
 void Class::set_is_const() const {
-  raw_ptr()->is_const_ = true;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = ConstBit::update(true, bits);
 }
 
 
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
-  set_class_state(RawClass::kFinalized);
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(RawClass::kFinalized, bits);
 }
 
 
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
-  set_class_state(RawClass::kPreFinalized);
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(RawClass::kPreFinalized, bits);
 }
 
 
