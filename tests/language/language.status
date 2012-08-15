@@ -211,10 +211,18 @@ operator1_negative_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
+static_top_level_test/00: Fail
+static_top_level_test/01: Fail
+static_top_level_test/02: Fail
+static_top_level_test/03: Fail
+static_top_level_test/04: Fail
+static_top_level_test/05: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
 # Bug in dart2js parser: it happily parses 1is int; variable declaration.
 number_identifier_negative_test: Fail
+# Bug in dart2js frontent: does not support this feature.
+switch_label_test: Fail
 # Common with language_dart2js.
 function_type_alias3_test: Fail
 function_type_alias5_test/00: Fail
@@ -251,10 +259,3 @@ generic_test: Fail, Ok
 field_optimization2_test: Fail
 field_optimization_test: Fail
 library5_test: Fail
-static_top_level_test/00: Fail
-static_top_level_test/01: Fail
-static_top_level_test/02: Fail
-static_top_level_test/03: Fail
-static_top_level_test/04: Fail
-static_top_level_test/05: Fail
-switch_label_test: Fail
