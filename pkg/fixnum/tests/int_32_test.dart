@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library("int32test");
-#import('../../../lib/fixnum/fixnum.dart');
+#import('../fixnum.dart');
 
 void main() {
   Expect.equals("0", new int32.fromInt(0).toString());

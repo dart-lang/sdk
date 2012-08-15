@@ -5,9 +5,9 @@
 // A test to compare the results of the fixnum library with the Dart VM
 
 #library('int64vmtest');
-#source('../../../lib/fixnum/intx.dart');
-#source('../../../lib/fixnum/int32.dart');
-#source('../../../lib/fixnum/int64.dart');
+#source('../intx.dart');
+#source('../int32.dart');
+#source('../int64.dart');
 
 void main() {
   int64VMTest test = new int64VMTest();
