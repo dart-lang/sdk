@@ -54,6 +54,11 @@ def Main():
       build_root = utils.GetBuildRoot(HOST_OS, mode=mode, arch=arch)
       print "Deleting %s" % (build_root)
       shutil.rmtree(build_root, ignore_errors=True)
+      # On windows we have additional object files within the runtime library.
+      if HOST_OS == 'win32':
+        runtime_root = 'runtime/' + build_root
+        print "Deleting %s" % (runtime_root)
+        shutil.rmtree(runtime_root, ignore_errors=True)
   return 0
 
 if __name__ == '__main__':
