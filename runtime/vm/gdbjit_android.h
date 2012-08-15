@@ -5,6 +5,8 @@
 #ifndef VM_GDBJIT_ANDROID_H_
 #define VM_GDBJIT_ANDROID_H_
 
+#include <stdint.h>
+
 extern "C" {
   void addDynamicSection(const char* symfile_addr, uint64_t symfile_size);
   void deleteDynamicSections();
