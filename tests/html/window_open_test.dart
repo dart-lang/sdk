@@ -9,7 +9,7 @@ main() {
     scriptTag.innerHTML = code;
     document.body.nodes.add(scriptTag);
   }
-  evaluateJavaScript('layoutTestController.setCanOpenWindows()');
+  evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');
 
   useHtmlConfiguration();
   test('TwoArgumentVersion', () {
