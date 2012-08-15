@@ -1365,7 +1365,7 @@ class NodeListener extends ElementListener {
     Block block = popNode();
     NodeList formals = popNode();
     TypeAnnotation type = onKeyword != null ? popNode() : null;
-    pushNode(new CatchBlock(type, formals, block, type, catchKeyword));
+    pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {
