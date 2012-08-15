@@ -76,19 +76,6 @@ class VersionSolver {
         _packages = <Dependency>{},
         _work = new Queue<WorkItem>();
 
-  /**
-   * Tell the version solver to use the most recent version of [package] that
-   * exists in whatever source it's installed from. If that version violates
-   * constraints imposed by other dependencies, an error will be raised when
-   * solving the versions, even if an earlier compatible version exists.
-   */
-  void useLatestVersion(String package) {
-    // TODO(nweiz): How do we want to detect and handle unknown dependencies
-    // here?
-    getDependency(package).useLatestVersion = true;
-    lockFile.packages.remove(package);
-  }
-
   Future<List<PackageId>> solve() {
     // Kick off the work by adding the root package at its concrete version to
     // the dependency graph.
@@ -142,56 +129,6 @@ class VersionSolver {
    */
   void setVersion(String package, Version version) {
     _packages[package].version = version;
-  }
-
-  /**
-   * Returns the most recent version of [dependency] that satisfies all of its
-   * version constraints.
-   */
-  Future<Version> getBestVersion(Dependency dependency) {
-    return dependency.source.getVersions(dependency.description)
-        .transform((versions) {
-      var best = null;
-      for (var version in versions) {
-        if (dependency.useLatestVersion ||
-            dependency.constraint.allows(version)) {
-          if (best == null || version > best) best = version;
-        }
-      }
-
-      // TODO(rnystrom): Better exception.
-      if (best == null) {
-        if (tryUnlockDepender(dependency)) return null;
-        throw new NoVersionException(dependency.name, dependency.constraint);
-      } else if (!dependency.constraint.allows(best)) {
-        if (tryUnlockDepender(dependency)) return null;
-        throw new CouldNotUpdateException(
-            dependency.name, dependency.constraint, best);
-      }
-
-      return best;
-    });
-  }
-
-  /**
-   * Looks for a package that depends (transitively) on [dependency] and has its
-   * version locked in the lockfile. If one is found, enqueues an
-   * [UnlockPackage] work item for it and returns true. Otherwise, returns
-   * false.
-   *
-   * This does a breadth-first search; immediate dependers will be unlocked
-   * first, followed by transitive dependers.
-   */
-  bool tryUnlockDepender(Dependency dependency) {
-    for (var dependerName in dependency.dependers) {
-      var depender = getDependency(dependerName);
-      var locked = lockFile.packages[dependerName];
-      if (locked != null && depender.version == locked.version) {
-        enqueue(new UnlockPackage(depender));
-        return true;
-      }
-    }
-    return dependency.dependers.map(getDependency).some(tryUnlockDepender);
   }
 
   List<PackageId> buildResults() {
@@ -324,24 +261,14 @@ class ChangeVersion implements WorkItem {
 class ChangeConstraint implements WorkItem {
   abstract Future process(VersionSolver solver);
 
-  abstract void undo(VersionSolver solver);
-
-  Future _processChange(VersionSolver solver, Dependency dependency,
-      VersionConstraint oldConstraint) {
+  Future _processChange(VersionSolver solver, Source source, description,
+      Dependency dependency, VersionConstraint oldConstraint,
+      VersionConstraint newConstraint) {
     var name = dependency.name;
-    var description = dependency.description;
-    var source = dependency.source;
-    var newConstraint = dependency.constraint;
 
     // If the package is over-constrained, i.e. the packages depending have
-    // disjoint constraints, then try unlocking a depender that's locked by the
-    // lockfile. If there are no remaining locked dependencies, throw an error.
+    // disjoint constraints, then stop.
     if (newConstraint != null && newConstraint.isEmpty) {
-      if (solver.tryUnlockDepender(dependency)) {
-        undo(solver);
-        return null;
-      }
-
       throw new DisjointConstraintException(name);
     }
 
@@ -376,10 +303,18 @@ class ChangeConstraint implements WorkItem {
 
     // The constraint has changed, so see what the best version of the package
     // that meets the new constraint is.
-    return solver.getBestVersion(dependency).transform((best) {
-      if (best == null) {
-        undo(solver);
-      } else if (dependency.version != best) {
+    return source.getVersions(description).transform((versions) {
+      var best = null;
+      for (var version in versions) {
+        if (newConstraint.allows(version)) {
+          if (best == null || version > best) best = version;
+        }
+      }
+
+      // TODO(rnystrom): Better exception.
+      if (best == null) throw new NoVersionException(name, newConstraint);
+
+      if (dependency.version != best) {
         solver.enqueue(new ChangeVersion(source, description, best));
       }
     });
@@ -408,11 +343,9 @@ class AddConstraint extends ChangeConstraint {
     var dependency = solver.getDependency(ref.name);
     var oldConstraint = dependency.constraint;
     dependency.placeConstraint(depender, ref);
-    return _processChange(solver, dependency, oldConstraint);
-  }
-
-  void undo(VersionSolver solver) {
-    solver.getDependency(ref.name).removeConstraint(depender);
+    var newConstraint = dependency.constraint;
+    return _processChange(solver, ref.source, ref.description, dependency,
+        oldConstraint, newConstraint);
   }
 }
 
@@ -430,38 +363,17 @@ class RemoveConstraint extends ChangeConstraint {
    */
   String dependent;
 
-  /** The constraint that was removed. */
-  PackageRef _removed;
-
   RemoveConstraint(this.depender, this.dependent);
 
   Future process(VersionSolver solver) {
     var dependency = solver.getDependency(dependent);
     var oldConstraint = dependency.constraint;
     var source = dependency.source;
-    _removed = dependency.removeConstraint(depender);
-    return _processChange(solver, dependency, oldConstraint);
-  }
-
-  void undo() {
-    solver.getDependency(dependent).placeConstraint(depender, _removed);
-  }
-}
-
-/** [package]'s version is no longer constrained by the lockfile. */
-class UnlockPackage implements WorkItem {
-  /** The package being unlocked. */
-  Dependency package;
-
-  UnlockPackage(this.package);
-
-  Future process(VersionSolver solver) {
-    solver.lockFile.packages.remove(package.name);
-    return solver.getBestVersion(package).transform((best) {
-      if (best == null) return null;
-      solver.enqueue(new ChangeVersion(
-          package.source, package.description, best));
-    });
+    var description = dependency.description;
+    dependency.removeConstraint(depender);
+    var newConstraint = dependency.constraint;
+    return _processChange(solver, source, description, dependency,
+        oldConstraint, newConstraint);
   }
 }
 
@@ -540,19 +452,11 @@ class Dependency {
   Version version;
 
   /**
-   * Whether this dependency should always select the latest version.
-   */
-  bool useLatestVersion = false;
-
-  /**
    * Gets whether or not any other packages are currently depending on this
    * one. If `false`, then it means this package is not part of the dependency
    * graph and should be omitted.
    */
   bool get isDependedOn() => !_refs.isEmpty();
-
-  /** The names of all the packages that depend on this dependency. */
-  Collection<String> get dependers() => _refs.getKeys();
 
   /**
    * Gets the overall constraint that all packages are placing on this one.
@@ -590,15 +494,13 @@ class Dependency {
   /**
    * Removes the constraint from [package] onto this.
    */
-  PackageRef removeConstraint(String package) {
-    var removed = _refs.remove(package);
+  void removeConstraint(String package) {
+    _refs.remove(package);
 
     if (_refs.isEmpty()) {
       source = null;
       description = null;
     }
-
-    return removed;
   }
 }
 
@@ -616,22 +518,6 @@ class NoVersionException implements Exception {
 
   String toString() =>
       "Package '$package' has no versions that match $constraint.";
-}
-
-// TODO(rnystrom): Report the list of depending packages and their constraints.
-/**
- * Exception thrown when the most recent version of [package] must be selected,
- * but doesn't match the [VersionConstraint] imposed on the package.
- */
-class CouldNotUpdateException implements Exception {
-  final String package;
-  final VersionConstraint constraint;
-  final Version best;
-
-  CouldNotUpdateException(this.package, this.constraint, this.best);
-
-  String toString() =>
-      "The latest version of '$package', $best, does not match $constraint.";
 }
 
 // TODO(rnystrom): Report the last of depending packages and their constraints.
