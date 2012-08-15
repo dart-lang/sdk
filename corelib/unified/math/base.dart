@@ -139,6 +139,7 @@ external double atan2(num a, num b);
  */
 external num pow(num x, num exponent);
 
+// TODO(4512): Add documentation.
 external double sin(num x);
 external double cos(num x);
 external double tan(num x);
