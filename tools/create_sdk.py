@@ -407,7 +407,7 @@ def Main(argv):
                join(coreimpl_dest_dir, target_dir, filename))
 
   for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart') and not filename.endswith('_patch.dart')::
+    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
       copyfile(join('runtime', 'lib', filename),
                join(coreimpl_dest_dir, 'runtime', filename))
 
@@ -417,7 +417,7 @@ def Main(argv):
   for filename in coreimpl_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart') and not filename.endswith('_patch.dart')::
+    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
 
