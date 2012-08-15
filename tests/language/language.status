@@ -226,6 +226,9 @@ closure_with_super_send_test: Fail
 constructor5_test: Fail
 constructor6_test: Fail
 fauxverride_test/none: Fail
+field_override_test/01: Fail
+field_override_test/02: Fail
+field_override_test/none: Fail
 gc_test: Fail
 prefix_core_test: Fail
 super_closure_test: Fail
@@ -236,9 +239,6 @@ disable_privacy_test: Fail
 # Should be triaged.
 field_optimization2_test: Fail
 field_optimization_test: Fail
-field_override_test/01: Fail
-field_override_test/02: Fail
-field_override_test/none: Fail
 function_field_test: Fail
 generic_test: Fail
 implicit_closure_test: Fail, Pass
