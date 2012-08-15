@@ -305,10 +305,7 @@ def ClobberBuilder(mode):
   return subprocess.call(cmd, env=NO_COLOR_ENV)
 
 def GetShouldClobber():
-  if os.environ.get(BUILDER_CLOBBER) == "1":
-    return True
-  else:
-    return False
+  return os.environ.get(BUILDER_CLOBBER) == "1"
 
 def main():
   if len(sys.argv) == 0:
