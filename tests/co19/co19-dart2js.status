@@ -12,6 +12,8 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
+# Slow tests that needs extra time to finish.
+LibTest/core/List/sort_A01_t06: Slow, Pass
 
 [ $compiler == dart2js && $system == macos && $runtime == d8 ]
 LibTest/core/Math/acos_A01_t01: Fail, OK

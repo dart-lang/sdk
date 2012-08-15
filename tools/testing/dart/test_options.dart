@@ -547,7 +547,7 @@ Note: currently only implemented for dart2js.''',
           timeout *= 4;
           break;
         case 'dart2js':
-        case 'frog':
+          timeout = 30;
           if (configuration['mode'] == 'debug') {
             timeout *= 8;
           }
@@ -556,7 +556,7 @@ Note: currently only implemented for dart2js.''',
           }
           if (Contains(configuration['runtime'],
                        const ['ie', 'ff', 'chrome', 'safari', 'opera'])) {
-            timeout *= 4; // Allow additional time for browser testing to run.
+            timeout *= 8; // Allow additional time for browser testing to run.
           }
           break;
         default:
