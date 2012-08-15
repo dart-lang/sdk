@@ -8,11 +8,10 @@
  * to test:
  *
  *     1. the dart vm
- *     2. the frog compiler (compiles dart to js)
- *     3. the leg compiler (also compiles dart to js)
- *     4. the dartc static analyzer
- *     5. the dart core library
- *     6. other standard dart libraries (DOM bindings, ui libraries,
+ *     2. the dart2js compiler
+ *     3. the dartc static analyzer
+ *     4. the dart core library
+ *     5. other standard dart libraries (DOM bindings, ui libraries,
  *            io libraries etc.)
  *
  * This script is normally invoked by test.py.  (test.py finds the dart vm
@@ -43,8 +42,6 @@
  * moved to here, if possible.
 */
 final TEST_SUITE_DIRECTORIES = const [
-    const Path('frog/tests/await'),
-    const Path('frog/tests/frog'),
     const Path('pkg'),
     const Path('runtime/tests/vm'),
     const Path('samples/tests/samples'),
