@@ -183,8 +183,7 @@ pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-# Test annotations are not processed correctly by dart2dart test
-# framework: necessary errors are thrown, but treated incorrectly.
+# Final top-level field declarations without initializer do not lead to errors in dart2js frontend.
 final_syntax_test/03: Fail
 final_syntax_test/04: Fail
 # Call operator is not supported by dart2js frontend.
