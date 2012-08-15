@@ -150,7 +150,7 @@ class Parser {
     String value = token.stringValue;
     if (value === 'var') return parseType(token);
     if (value !== 'this') {
-      Token peek = peekAfterType(token);
+      Token peek = peekAfterExpectedType(token);
       if (isIdentifier(peek) || optional('this', peek)) {
         return parseType(token);
       }
@@ -351,7 +351,7 @@ class Parser {
     token = parseModifiers(token);
     Token getOrSet = findGetOrSet(token);
     if (token === getOrSet) token = token.next;
-    Token peek = peekAfterType(token);
+    Token peek = peekAfterExpectedType(token);
     if (isIdentifier(peek)) {
       // Skip type.
       token = peek;
@@ -463,13 +463,18 @@ class Parser {
     return expect(';', token);
   }
 
+  bool isModifier(Token token) {
+    final String value = token.stringValue;
+    return ('final' === value) ||
+           ('var' === value) ||
+           ('const' === value) ||
+           ('abstract' === value) ||
+           ('static' === value) ||
+           ('external' === value);
+  }
+
   Token parseModifier(Token token) {
-    assert(('final' === token.stringValue) ||
-           ('var' === token.stringValue) ||
-           ('const' === token.stringValue) ||
-           ('abstract' === token.stringValue) ||
-           ('static' === token.stringValue) ||
-           ('external' === token.stringValue));
+    assert(isModifier(token));
     listener.handleModifier(token);
     return token.next;
   }
@@ -477,13 +482,7 @@ class Parser {
   Token parseModifiers(Token token) {
     int count = 0;
     while (token.kind === KEYWORD_TOKEN) {
-      final String value = token.stringValue;
-      if (('final' !== value) &&
-          ('var' !== value) &&
-          ('const' !== value) &&
-          ('abstract' !== value) &&
-          ('static' !== value) &&
-          ('external' !== value))
+      if (!isModifier(token))
         break;
       token = parseModifier(token);
       count++;
@@ -494,9 +493,6 @@ class Parser {
 
   Token peekAfterType(Token token) {
     // TODO(ahe): Also handle var?
-    if ('void' !== token.stringValue && !isIdentifier(token)) {
-      listener.unexpected(token);
-    }
     // We are looking at "identifier ...".
     Token peek = token.next;
     if (peek.kind === PERIOD_TOKEN) {
@@ -517,6 +513,17 @@ class Parser {
       }
     }
     return peek;
+  }
+
+  /**
+   * Returns the token after the type which is expected to begin at [token].
+   * If [token] is not the start of a type, [Listener.unexpectedType] is called.
+   */
+  Token peekAfterExpectedType(Token token) {
+    if ('void' !== token.stringValue && !isIdentifier(token)) {
+      return listener.expectedType(token);
+    }
+    return peekAfterType(token);
   }
 
   Token parseClassBody(Token token) {
@@ -544,7 +551,7 @@ class Parser {
     if (isGetOrSet(token)) {
       if (optional('<', token.next)) {
         // For example: get<T> ...
-        final Token peek = peekAfterType(token);
+        final Token peek = peekAfterExpectedType(token);
         if (isGetOrSet(peek) && isIdentifier(peek.next)) {
           // For example: get<T> get identifier
           return peek;
@@ -560,7 +567,7 @@ class Parser {
         }
       }
     } else if (token.stringValue !== 'operator') {
-      final Token peek = peekAfterType(token);
+      final Token peek = peekAfterExpectedType(token);
       if (isGetOrSet(peek) && isIdentifier(peek.next)) {
         // type? get identifier
         return peek;
@@ -580,7 +587,7 @@ class Parser {
     token = parseModifiers(token);
     Token getOrSet = findGetOrSet(token);
     if (token === getOrSet) token = token.next;
-    Token peek = peekAfterType(token);
+    Token peek = peekAfterExpectedType(token);
     if (isIdentifier(peek) && token.stringValue !== 'operator') {
       // Skip type.
       token = peek;
@@ -791,6 +798,8 @@ class Parser {
       return parseContinueStatement(token);
     } else if (value === ';') {
       return parseEmptyStatement(token);
+    } else if (value === 'const') {
+      return parseExpressionStatementOrConstDeclaration(token);
     } else if (isIdentifier(token)) {
       return parseExpressionStatementOrDeclaration(token);
     } else {
@@ -817,6 +826,19 @@ class Parser {
     if (peek !== null && isIdentifier(peek)) {
       // We are looking at "type identifier".
       return peek;
+    } else {
+      return null;
+    }
+  }
+
+  Token peekIdentifierAfterOptionalType(Token token) {
+    Token peek = peekIdentifierAfterType(token);
+    if (peek !== null) {
+      // We are looking at "type identifier".
+      return peek;
+    } else if (isIdentifier(token)) {
+      // We are looking at "identifier".
+      return token;
     } else {
       return null;
     }
@@ -856,6 +878,28 @@ class Parser {
           return parseFunctionDeclaration(token);
         }
       }
+    }
+    return parseExpressionStatement(token);
+  }
+
+  Token parseExpressionStatementOrConstDeclaration(Token token) {
+    assert(token.stringValue === 'const');
+    if (isModifier(token.next)) {
+      return parseVariablesDeclaration(token);
+    }
+    Token identifier = peekIdentifierAfterOptionalType(token.next);
+    if (identifier !== null) {
+      assert(isIdentifier(identifier));
+      Token afterId = identifier.next;
+      int afterIdKind = afterId.kind;
+      if (afterIdKind === EQ_TOKEN ||
+          afterIdKind === SEMICOLON_TOKEN ||
+          afterIdKind === COMMA_TOKEN) {
+        // We are looking at "const type identifier" followed by '=', ';', or
+        // ','.
+        return parseVariablesDeclaration(token);
+      }
+      // Fall-through to expression statement.
     }
     return parseExpressionStatement(token);
   }
@@ -1213,7 +1257,7 @@ class Parser {
 
   Token parseSendOrFunctionLiteral(Token token) {
     if (!mayParseFunctionExpressions) return parseSend(token);
-    Token peek = peekAfterType(token);
+    Token peek = peekAfterExpectedType(token);
     if (peek.kind === IDENTIFIER_TOKEN && isFunctionDeclaration(peek.next)) {
       return parseFunctionExpression(token);
     } else if (isFunctionDeclaration(token.next)) {

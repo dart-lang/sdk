@@ -60,8 +60,20 @@ Language/10_Expressions/28_Identifier_Reference_A05_t10: Fail # Compile-time err
 LibTest/isolate/SendPort/send_A02_t01: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t02: Fail # Compile-time error: error: not a compile-time constant
 LibTest/isolate/SendPort/send_A02_t03: Fail # Compile-time error: error: not a compile-time constant
-Language/05_Variables/05_Variables_A01_t01: Fail # Compile-time error: expected '(', but got '='
-Language/05_Variables/05_Variables_A04_t09: Fail # Compile-time error: expected '(', but got 'pi'
+
+Language/05_Variables/05_Variables_A04_t01: Fail # Missing check for const reassignment
+Language/05_Variables/05_Variables_A04_t02: Fail # Missing check for const reassignment
+Language/05_Variables/05_Variables_A04_t05: Fail # Missing check for const initializer
+Language/05_Variables/05_Variables_A04_t06: Fail # Missing check for const initializer
+Language/05_Variables/05_Variables_A01_t12: Fail # Missing check for 'const var ...'
+Language/05_Variables/05_Variables_A01_t13: Fail # Missing check for 'const final ...'
+Language/05_Variables/05_Variables_A01_t14: Fail # Missing check for 'const final var ...'
+Language/10_Expressions/10_Instance_Creation/2_Const_A01_t02: Fail # Missing check for const initializer
+Language/10_Expressions/10_Instance_Creation/2_Const_A02_t05: Fail # Missing check for const initializer
+Language/11_Statements/03_Variable_Declaration_A03_t04: Fail # Missing check for const initializer
+Language/11_Statements/03_Variable_Declaration_A03_t03: Fail # Missing check for const reassignment
+Language/11_Statements/03_Variable_Declaration_A04_t01: Fail # Missing check for const initializer
+
 Language/10_Expressions/18_Logical_Boolean_Expressions_A01_t01: Fail # Compile-time error: expected an expression, but got '&&'
 Language/12_Libraries_and_Scripts/4_Scripts_A01_t16: Fail # Compile-time error: expected identifier, but got '!'
 Language/10_Expressions/14_Method_Invocation/2_Cascaded_Invocation_A01_t01: Fail # Compile-time error: unexpected token '('
