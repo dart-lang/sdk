@@ -11,6 +11,11 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
+# These test the Clock class which has been removed.
+# issue co19 - 173
+LibTest/core/Clock/frequency_A01_t01: Fail, OK
+LibTest/core/Clock/now_A01_t01: Fail OK
+
 Language/03_Overview/1_Scoping_A02_t27: Fail # co19 issue 135
 Language/03_Overview/1_Scoping_A02_t28: Fail # language change 1031
 Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 143

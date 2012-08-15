@@ -3,6 +3,11 @@
 # BSD-style license that can be found in the LICENSE file.
 
 [ $runtime == vm ]
+# These test the Clock class which has been removed.
+# issue co19 - 173
+LibTest/core/Clock/frequency_A01_t01: Fail, OK
+LibTest/core/Clock/now_A01_t01: Fail OK
+
 # Rename "BadNumberFormatException" to "FormatException"
 # TODO(rnystrom): These can be enabled when
 # http://code.google.com/p/co19/issues/detail?id=167 is fixed.
