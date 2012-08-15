@@ -213,6 +213,7 @@ instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
 numbers_test: Fail
+syntax_test/47: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
 constructor5_test: Fail
@@ -223,8 +224,6 @@ prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
-# Triaged.
-syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
 # Should be triaged.
 ct_const2_test: Fail, Pass
 disable_privacy_test: Fail
