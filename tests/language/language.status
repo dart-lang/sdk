@@ -225,7 +225,6 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Should be triaged.
-ct_const2_test: Fail, Pass
 disable_privacy_test: Fail
 empty_body_member_negative_test: Fail
 factory4_test: Fail
