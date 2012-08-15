@@ -16,7 +16,7 @@ class Co19TestSuite extends StandardTestSuite {
               const Path("tests/co19/src"),
               ["tests/co19/co19-compiler.status",
                "tests/co19/co19-runtime.status",
-               "tests/co19/co19-leg.status"]);
+               "tests/co19/co19-dart2js.status"]);
 
   bool isTestFile(String filename) => _testRegExp.hasMatch(filename);
   bool listRecursively() => true;
