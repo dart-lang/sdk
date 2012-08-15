@@ -194,6 +194,7 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
+empty_body_member_negative_test: Fail
 method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
@@ -227,7 +228,6 @@ super_first_constructor_test: Fail
 # VM specific tests.
 disable_privacy_test: Fail
 # Should be triaged.
-empty_body_member_negative_test: Fail
 factory4_test: Fail
 field2_negative_test: Fail
 field4_negative_test: Fail
