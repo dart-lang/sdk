@@ -1005,6 +1005,33 @@ public class SyntaxTest extends AbstractParserTest {
     }
   }
 
+  public void test_operators_valid() throws Exception {
+    parseUnit("operators.dart",
+        Joiner.on("\n").join(
+            "class C {",
+            "  operator <(v) {}",
+            "  operator >(v) {}",
+            "  operator <=(v) {}",
+            "  operator >=(v) {}",
+            "  operator ==(v) {}",
+            "  operator -() {}",
+            "  operator -(v) {}",
+            "  operator +(v) {}",
+            "  operator /(v) {}",
+            "  operator ~/(v) {}",
+            "  operator *(v) {}",
+            "  operator %(v) {}",
+            "  operator |(v) {}",
+            "  operator ^(v) {}",
+            "  operator &(v) {}",
+            "  operator <<(v) {}",
+            "  operator >>(v) {}",
+            "  operator [](i) {}",
+            "  operator []=(i, v) {}",
+            "  operator ~() {}",
+            "}"));
+  }
+
   public void test_positionalDefaultValue() throws Exception {
     parseUnit("phony_test_abstract_var.dart",
         Joiner.on("\n").join(

@@ -1459,6 +1459,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     int arity = -1;
+    Token operation = null;
     if (peek(1) != Token.LPAREN && optionalPseudoKeyword(OPERATOR_KEYWORD)) {
       // Overloaded operator.
       if (modifiers.isStatic()) {
@@ -1467,11 +1468,13 @@ public class DartParser extends CompletionHooksParserBase {
       modifiers = modifiers.makeOperator();
 
       beginOperatorName();
-      Token operation = next();
+      operation = next();
       if (operation.isUserDefinableOperator()) {
         name = done(new DartIdentifier(operation.getSyntax()));
         if (operation == Token.ASSIGN_INDEX) {
           arity = 2;
+        } else if (operation == Token.SUB) {
+          arity = -1;
         } else if (operation.isBinaryOperator()) {
           arity = 1;
         } else if (operation == Token.INDEX) {
@@ -1563,6 +1566,16 @@ public class DartParser extends CompletionHooksParserBase {
 
     if (arity != -1) {
       if (parameters.size() != arity) {
+        reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
+      }
+      // In methods with required arity each parameter is required.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getModifiers().isNamed()) {
+          reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
+        }
+      }
+    } else if (operation == Token.SUB) {
+      if (parameters.size() != 0 && parameters.size() != 1) {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.
