@@ -405,8 +405,7 @@ static RawError* CompileFunctionHelper(const Function& function,
     if (FLAG_disassemble) {
       DisassembleCode(function, optimized);
     } else if (FLAG_disassemble_optimized && optimized) {
-      // Print unoptimized code along with the optimized code.
-      DisassembleCode(function, false);
+      // TODO(fschneider): Print unoptimized code along with the optimized code.
       DisassembleCode(function, true);
     }
     isolate->set_long_jump_base(base);

@@ -378,23 +378,23 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  intptr_t from_class_id;
-  if (recognized_kind == MethodRecognizer::kDoubleToDouble) {
-    from_class_id = kDoubleCid;
-  } else if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
-    from_class_id = kSmiCid;
-  } else {
-    return false;
+  if ((recognized_kind == MethodRecognizer::kDoubleToDouble) &&
+      (class_ids[0] == kDoubleCid)) {
+    DoubleToDoubleComp* d2d_comp =
+        new DoubleToDoubleComp(comp->ArgumentAt(0)->value(), comp);
+    instr->set_computation(d2d_comp);
+    RemovePushArguments(comp);
+    return true;
   }
-
-  if (class_ids[0] != from_class_id) {
-    return false;
+  if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
+             (class_ids[0] == kSmiCid)) {
+    SmiToDoubleComp* s2d_comp = new SmiToDoubleComp(comp);
+    instr->set_computation(s2d_comp);
+    // Pushed arguments are not removed because SmiToDouble is implemented
+    // as a call.
+    return true;
   }
-  ToDoubleComp* coerce = new ToDoubleComp(
-      comp->ArgumentAt(0)->value(), from_class_id, comp);
-  instr->set_computation(coerce);
-  RemovePushArguments(comp);
-  return true;
+  return false;
 }
 
 

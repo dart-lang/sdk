@@ -100,7 +100,8 @@ class LocalVariable;
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
-  M(ToDouble, ToDoubleComp)                                                    \
+  M(DoubleToDouble, DoubleToDoubleComp)                                        \
+  M(SmiToDouble, SmiToDoubleComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -1707,32 +1708,46 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 };
 
 
-class ToDoubleComp : public TemplateComputation<1> {
+class DoubleToDoubleComp : public TemplateComputation<1> {
  public:
-  ToDoubleComp(Value* value,
-               intptr_t from,
-               InstanceCallComp* instance_call)
-      : from_(from), instance_call_(instance_call) {
+  DoubleToDoubleComp(Value* value, InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   Value* value() const { return inputs_[0]; }
-  intptr_t from() const { return from_; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DECLARE_COMPUTATION(ToDouble)
+  DECLARE_COMPUTATION(DoubleToDouble)
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t from_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);
+  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleComp);
+};
+
+
+class SmiToDoubleComp : public TemplateComputation<0> {
+ public:
+  explicit SmiToDoubleComp(InstanceCallComp* instance_call)
+      : instance_call_(instance_call) { }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  DECLARE_CALL_COMPUTATION(SmiToDouble)
+
+  virtual intptr_t ArgumentCount() const { return 1; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(SmiToDoubleComp);
 };
 
 

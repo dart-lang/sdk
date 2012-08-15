@@ -1994,63 +1994,69 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
-LocationSummary* ToDoubleComp::MakeLocationSummary() const {
+LocationSummary* DoubleToDoubleComp::MakeLocationSummary() const {
   const intptr_t kNumInputs = 1;
-  if (from() == kDoubleCid) {
-    const intptr_t kNumTemps = 0;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_out(Location::SameAsFirstInput());
-    return locs;
-  } else {
-    ASSERT(from() == kSmiCid);
-    return MakeCallSummary();  // Calls a stub to allocate result.
-  }
+  const intptr_t kNumTemps = 0;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_out(Location::SameAsFirstInput());
+  return locs;
 }
 
 
-void ToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  Register value = (from() == kDoubleCid) ? locs()->in(0).reg() : RBX;
+void DoubleToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
   Register result = locs()->out().reg();
 
-  const DeoptReasonId deopt_reason = (from() == kDoubleCid) ?
-      kDeoptDoubleToDouble : kDeoptIntegerToDouble;
   Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
                                         instance_call()->try_index(),
-                                        deopt_reason,
+                                        kDeoptDoubleToDouble,
                                         value);
 
-  if (from() == kDoubleCid) {
-    __ testq(value, Immediate(kSmiTagMask));
-    __ j(ZERO, deopt);  // Deoptimize if Smi.
-    __ CompareClassId(value, kDoubleCid);
-    __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
-    ASSERT(value == result);
-    return;
-  }
+  __ testq(value, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);  // Deoptimize if Smi.
+  __ CompareClassId(value, kDoubleCid);
+  __ j(NOT_EQUAL, deopt);  // Deoptimize if not Double.
+  ASSERT(value == result);
+}
 
-  ASSERT(from() == kSmiCid);
+
+LocationSummary* SmiToDoubleComp::MakeLocationSummary() const {
+  return MakeCallSummary();  // Calls a stub to allocate result.
+}
+
+
+void SmiToDoubleComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register result = locs()->out().reg();
+
+  Label* deopt = compiler->AddDeoptStub(instance_call()->deopt_id(),
+                                        instance_call()->try_index(),
+                                        kDeoptIntegerToDouble);
 
   const Class& double_class = compiler->double_class();
   const Code& stub =
     Code::Handle(StubCode::GetAllocationStubForClass(double_class));
   const ExternalLabel label(double_class.ToCString(), stub.EntryPoint());
 
-  // TODO(vegorov): allocate box in the driver loop to avoid spilling.
+  // TODO(fschneider): Inline new-space allocation and move the call into
+  // deferred code.
   compiler->GenerateCall(instance_call()->token_pos(),
                          instance_call()->try_index(),
                          &label,
                          PcDescriptors::kOther,
                          locs()->stack_bitmap());
   ASSERT(result == RAX);
-  __ popq(value);
+  Register value = RBX;
+  // Preserve argument on the stack until after the deoptimization point.
+  __ movq(value, Address(RSP, 0));
 
   __ testq(value, Immediate(kSmiTagMask));
   __ j(NOT_ZERO, deopt);  // Deoptimize if not Smi.
   __ SmiUntag(value);
   __ cvtsi2sd(XMM0, value);
   __ movsd(FieldAddress(result, Double::value_offset()), XMM0);
+  __ Drop(1);
 }
 
 

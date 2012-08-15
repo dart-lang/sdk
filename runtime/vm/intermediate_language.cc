@@ -833,7 +833,12 @@ RawAbstractType* NumberNegateComp::CompileType() const {
 }
 
 
-RawAbstractType* ToDoubleComp::CompileType() const {
+RawAbstractType* DoubleToDoubleComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
+RawAbstractType* SmiToDoubleComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
