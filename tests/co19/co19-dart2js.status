@@ -306,7 +306,7 @@ LibTest/core/int/isOdd_A01_t01: Fail, OK # Not in API.
 LibTest/core/int/operator_NOT_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_left_shift_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/operator_remainder_A01_t03: Fail, OK # Leg only has double.
-LibTest/core/int/operator_truncating_division_A01_t01: Fail, OK # Requires big int.
+LibTest/core/int/operator_truncating_division_A01_t01: Fail, Pass # Requires big int unless type inference fools us.
 LibTest/core/int/operator_truncating_division_A01_t02: Fail, OK # Leg only has double.
 LibTest/core/int/remainder_A01_t01: Fail, OK # Requires big int.
 LibTest/core/int/remainder_A01_t03: Fail, OK # Leg only has double.

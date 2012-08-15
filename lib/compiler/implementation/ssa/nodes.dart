@@ -1224,6 +1224,8 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  static final int INVOKE_STATIC_TYPECODE = 30;
+
   /** The first input must be the target. */
   HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
     guaranteedType = knownType;
@@ -1231,6 +1233,7 @@ class HInvokeStatic extends HInvoke {
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
+  int typeCode() => INVOKE_STATIC_TYPECODE;
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 

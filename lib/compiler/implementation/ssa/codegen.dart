@@ -1474,6 +1474,11 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeStatic(HInvokeStatic node) {
+    if (Elements.isStaticOrTopLevelFunction(node.element) &&
+        node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE) {
+      // Register this invocation to collect the types used at all call sites.
+      backend.registerStaticInvocation(node);
+    }
     use(node.target);
     push(new js.Call(pop(), visitArguments(node.inputs)), node);
   }
@@ -1893,6 +1898,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
+    // Check whether this static is used for anything else than as a target in
+    // a static call.
+    node.usedBy.forEach((HInstruction instr) {
+      if (instr is !HInvokeStatic) {
+        backend.registerNonCallStaticUse(node);
+      } else if (instr.target !== node) {
+        backend.registerNonCallStaticUse(node);
+      } else {
+        // If invoking the static is can still be passed as an argument as well
+        // which will also be non call static use.
+        for (int i = 1; i < node.inputs.length; i++) {
+          if (node.inputs === node) {
+            backend.registerNonCallStaticUse(node);
+            break;
+          }
+        }
+      }
+    });
     world.registerStaticUse(node.element);
     push(new js.VariableUse(compiler.namer.isolateAccess(node.element)));
   }

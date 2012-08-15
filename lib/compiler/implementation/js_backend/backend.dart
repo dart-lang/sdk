@@ -3,14 +3,60 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class InvocationInfo {
-  int parameterCount;
+  int parameterCount = -1;
   List<HType> providedTypes;
   List<Element> compiledFunctions;
 
-  InvocationInfo(List<HType> types)
-      : parameterCount = types != null ? types.length : -1,
-        providedTypes = types,
-        compiledFunctions = new List<Element>();
+  InvocationInfo(HInvoke node)
+      : compiledFunctions = new List<Element>() {
+    assert(node != null);
+    // Gather the type information provided. If the types contains no useful
+    // information there is no need to actually store them.
+    bool allUnknown = true;
+    for (int i = 1; i < node.inputs.length; i++) {
+      if (node.inputs[i].propagatedType != HType.UNKNOWN) {
+        allUnknown = false;
+        break;
+      }
+    }
+    if (!allUnknown) {
+      providedTypes = new List<HType>(node.inputs.length - 1);
+      for (int i = 0; i < providedTypes.length; i++) {
+        providedTypes[i] = node.inputs[i + 1].propagatedType;
+      }
+      parameterCount = providedTypes.length;
+    }
+  }
+
+  InvocationInfo.unknownTypes();
+
+  void update(HInvoke node, var recompile) {
+    // If we don't know anything useful about the types adding more
+    // information will not help.
+    if (!hasTypeInformation) return;
+
+    // Update the type information with the provided types.
+    bool typesChanged = false;
+    bool allUnknown = true;
+    for (int i = 0; i < providedTypes.length; i++) {
+      HType newType = providedTypes[i].union(node.inputs[i + 1].propagatedType);
+      if (newType != providedTypes[i]) {
+        typesChanged = true;
+        providedTypes[i] = newType;
+      }
+      if (providedTypes[i] != HType.UNKNOWN) allUnknown = false;
+    }
+    // If the provided types change we need to recompile all functions which
+    // have been compiled under the now invalidated assumptions.
+    if (typesChanged && compiledFunctions.length != 0) {
+      if (recompile != null) {
+        compiledFunctions.forEach(recompile);
+      }
+      compiledFunctions.clear();
+    }
+    // If all information is lost no need to keep it around.
+    if (allUnknown) clearTypeInformation();
+  }
 
   addCompiledFunction(FunctionElement function) =>
       compiledFunctions.add(function);
@@ -29,6 +75,7 @@ class JavaScriptBackend extends Backend {
   final Map<Element, Map<Element, HType>> fieldConstructorSetters;
   final Map<Element, Map<Element, HType>> fieldSettersType;
 
+  final Map<Element, InvocationInfo> staticInvocationInfo;
   final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
 
   final List<Element> invalidateAfterCodegen;
@@ -43,6 +90,7 @@ class JavaScriptBackend extends Backend {
         fieldConstructorSetters = new Map<Element, Map<Element, HType>>(),
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
         invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
+        staticInvocationInfo = new Map<Element, InvocationInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
@@ -197,51 +245,54 @@ class JavaScriptBackend extends Backend {
                                    () => new Map<Selector, InvocationInfo>());
     InvocationInfo info = invocationInfos[selector];
     if (info != null) {
-      // If we don't know anything useful about the types adding more
-      // information will not help.
-      if (!info.hasTypeInformation) return;
-
-      // Update the type information with the provided types.
-      bool typesChanged = false;
-      List<HType> types = info.providedTypes;
-      bool allUnknown = true;
-      for (int i = 0; i < types.length; i++) {
-        HType newType = types[i].union(node.inputs[i + 1].propagatedType);
-        if (newType != types[i]) {
-          typesChanged = true;
-          types[i] = newType;
+      void recompile(Element element) {
+        if (compiler.phase == Compiler.PHASE_COMPILING) {
+          invalidateAfterCodegen.add(element);
         }
-        if (types[i] != HType.UNKNOWN) allUnknown = false;
       }
-      // If the provided types change we need to recompile all functions which
-      // have been compiled under the now invalidated assumptions.
-      if (typesChanged && info.compiledFunctions.length != 0) {
+
+      info.update(node, recompile);
+    } else {
+      invocationInfos[selector] = new InvocationInfo(node);
+    }
+  }
+
+  /**
+   *  Register a static invocation and collect the provided types for the
+   *  named selector.
+   */
+  void registerStaticInvocation(HInvokeStatic node) {
+    InvocationInfo info = staticInvocationInfo[node.element];
+    if (info != null) {
+      recompile(Element element) {
+        if (compiler.phase == Compiler.PHASE_COMPILING) {
+          invalidateAfterCodegen.add(element);
+        }
+      }
+      info.update(node, recompile);
+    } else {
+      staticInvocationInfo[node.element] = new InvocationInfo(node);
+    }
+  }
+
+  /**
+   *  Register that a static is used for something else than a call target.
+   */
+  void registerNonCallStaticUse(HStatic node) {
+    // When a static is used for anything else than a call target we cannot
+    // infer anything about its parameter types.
+    InvocationInfo info = staticInvocationInfo[node.element];
+    if (info == null) {
+      staticInvocationInfo[node.element] = new InvocationInfo.unknownTypes();
+    } else {
+      info.clearTypeInformation();
+      if (info.compiledFunctions != null &&
+          info.compiledFunctions.length != 0) {
         if (compiler.phase == Compiler.PHASE_COMPILING) {
           info.compiledFunctions.forEach(invalidateAfterCodegen.add);
           info.compiledFunctions.clear();
         }
       }
-      // If all information is lost no need to keep it around.
-      if (allUnknown) info.clearTypeInformation();
-    } else {
-      // Gather the type information provided. If the types contains no useful
-      // information there is no need to actually store them.
-      bool allUnknown = true;
-      for (int i = 1; i < node.inputs.length; i++) {
-        if (node.inputs[i].propagatedType != HType.UNKNOWN) {
-          allUnknown = false;
-          break;
-        }
-      }
-      List<HType> types = null;
-      if (!allUnknown) {
-        types = new List<HType>(node.inputs.length - 1);
-        for (int i = 0; i < types.length; i++) {
-          types[i] = node.inputs[i + 1].propagatedType;
-        }
-      }
-      InvocationInfo info = new InvocationInfo(types);
-      invocationInfos[selector] = info;
     }
   }
 
@@ -255,26 +306,38 @@ class JavaScriptBackend extends Backend {
    */
   List<HType> optimisticParameterTypesWithRecompilationOnTypeChange(
       FunctionElement element) {
-    Map<Selector, InvocationInfo> invocationInfos =
-        invocationInfo[element.name];
-    if (invocationInfos == null) return null;
-
-    int foundCount = 0;
-    InvocationInfo found = null;
-    invocationInfos.forEach((Selector selector, InvocationInfo info) {
-      if (selector.applies(element, compiler)) {
-        found = info;
-        foundCount++;
+    if (Elements.isStaticOrTopLevelFunction(element)) {
+      InvocationInfo found = staticInvocationInfo[element];
+      if (found != null && found.hasTypeInformation) {
+        FunctionSignature signature = element.computeSignature(compiler);
+        if (signature.parameterCount == found.parameterCount) {
+          found.addCompiledFunction(element);
+          return found.providedTypes;
+        }
       }
-    });
+      return null;
+    } else {
+      Map<Selector, InvocationInfo> invocationInfos =
+          invocationInfo[element.name];
+      if (invocationInfos == null) return null;
 
-    if (foundCount == 1 && found.hasTypeInformation) {
-      FunctionSignature signature = element.computeSignature(compiler);
-      if (signature.parameterCount == found.parameterCount) {
-        found.addCompiledFunction(element);
-        return found.providedTypes;
+      int foundCount = 0;
+      InvocationInfo found = null;
+      invocationInfos.forEach((Selector selector, InvocationInfo info) {
+        if (selector.applies(element, compiler)) {
+          found = info;
+          foundCount++;
+        }
+      });
+
+      if (foundCount == 1 && found.hasTypeInformation) {
+        FunctionSignature signature = element.computeSignature(compiler);
+        if (signature.parameterCount == found.parameterCount) {
+          found.addCompiledFunction(element);
+          return found.providedTypes;
+        }
       }
+      return null;
     }
-    return null;
   }
 }
