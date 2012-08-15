@@ -229,7 +229,6 @@ super_first_constructor_test: Fail
 # VM specific tests.
 disable_privacy_test: Fail
 # Should be triaged.
-factory4_test: Fail
 field2_negative_test: Fail
 field4_negative_test: Fail
 field5_negative_test: Fail
@@ -245,7 +244,6 @@ generic_test: Fail
 implicit_closure_test: Fail, Pass
 interface_factory_constructor_negative_test: Fail
 interface_static_method_negative_test: Fail
-interface_test: Fail
 library5_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail

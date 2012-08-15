@@ -147,6 +147,18 @@ class ReferencedElementCollector extends AbstractVisitor {
     .collect();
   }
 
+  visitClassNode(ClassNode node) {
+    super.visitClassNode(node);
+    // Temporary hack which should go away once interfaces
+    // and default clauses are out.
+    if (node.defaultClause !== null) {
+      // Resolver cannot resolve parameterized default clauses.
+      TypeAnnotation evilCousine = new TypeAnnotation(
+          node.defaultClause.typeName, null);
+      evilCousine.accept(this);
+    }
+  }
+
   visitNode(Node node) { node.visitChildren(this); }
 
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
