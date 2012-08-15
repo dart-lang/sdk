@@ -73,6 +73,7 @@ class_literal_test/04 : Fail # language change 1031
 class_literal_test/09 : Fail # language change 1031
 class_literal_test/16 : Fail # language change 1031
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+const_var_test : Fail # Issue 3550
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
