@@ -171,7 +171,9 @@ static bool CompileParsedFunctionHelper(
         optimizer.ApplyICData();
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(parsed_function, block_order);
+        FlowGraphTypePropagator propagator(parsed_function,
+                                           block_order,
+                                           optimized && use_ssa);
         propagator.PropagateTypes();
 
         // Do optimizations that depend on the propagated type information.

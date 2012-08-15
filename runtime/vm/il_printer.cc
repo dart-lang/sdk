@@ -94,7 +94,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
     if (value != NULL) {
       const AbstractType& type = AbstractType::Handle(value->CompileType());
       if (!type.IsNull()) {
-        compile_type_name = String::Handle(type.UserVisibleName()).ToCString();
+        compile_type_name = String::Handle(type.Name()).ToCString();
       }
     }
     Parser::PrintMessage(script, token_pos, "",
@@ -103,7 +103,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                          eliminated ? "Eliminated" : "Generated",
                          compile_type_name,
                          eliminated ? "more" : "not more",
-                         String::Handle(dst_type.UserVisibleName()).ToCString(),
+                         String::Handle(dst_type.Name()).ToCString(),
                          dst_name.ToCString());
 }
 

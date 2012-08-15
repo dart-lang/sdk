@@ -1838,7 +1838,12 @@ bool Class::TypeTest(
   // Check for NullType, which is not a subtype of any type, but is more
   // specific than any type.
   if (IsNullClass()) {
-    return test_kind == kIsMoreSpecificThan;
+    // User code cannot refer to class Null, therefore, we can only encounter
+    // NullType here as the type of the null constant, which must be treated
+    // separately in 'instance of' checks. Therefore, the NullType can only
+    // be encountered here during optimizations in 'more specific than' tests.
+    ASSERT(test_kind == kIsMoreSpecificThan);
+    return true;
   }
   // Check for reflexivity.
   if (raw() == other.raw()) {

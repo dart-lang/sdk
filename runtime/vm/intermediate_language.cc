@@ -35,6 +35,30 @@ void UseVal::SetDefinition(Definition* definition) {
 }
 
 
+// Returns true if the value represents a constant.
+bool UseVal::BindsToConstant() const {
+  BindInstr* bind = definition()->AsBind();
+  if (bind == NULL) {
+    return false;
+  }
+  return bind->computation()->AsConstant() != NULL;
+}
+
+
+// Returns true if the value represents constant null.
+bool UseVal::BindsToConstantNull() const {
+  BindInstr* bind = definition()->AsBind();
+  if (bind == NULL) {
+    return false;
+  }
+  ConstantVal* constant = bind->computation()->AsConstant();
+  if (constant != NULL) {
+    return constant->value().IsNull();
+  }
+  return false;
+}
+
+
 void UseVal::RemoveFromUseList() {
   ASSERT(definition_ != NULL);
   if (next_use_ != NULL) {
@@ -149,12 +173,16 @@ void ForwardInstructionIterator::RemoveCurrentFromGraph() {
 
 // Default implementation of visiting basic blocks.  Can be overridden.
 void FlowGraphVisitor::VisitBlocks() {
+  ASSERT(current_iterator_ == NULL);
   for (intptr_t i = 0; i < block_order_.length(); ++i) {
     BlockEntryInstr* entry = block_order_[i];
     entry->Accept(this);
-    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+    ForwardInstructionIterator it(entry);
+    current_iterator_ = &it;
+    for (; !it.Done(); it.Advance()) {
       it.Current()->Accept(this);
     }
+    current_iterator_ = NULL;
   }
 }
 
@@ -163,14 +191,15 @@ void FlowGraphVisitor::VisitBlocks() {
 // given dst_type.
 // TODO(regis): Support a set of compile types for the given value.
 bool Value::CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const {
-  ASSERT(!dst_type.IsMalformed());  // Should be tested by caller.
-  ASSERT(!dst_type.IsDynamicType());  // Should be tested by caller.
-  ASSERT(!dst_type.IsObjectType());  // Should be tested by caller.
+  // No type is more specific than a malformed type.
+  if (dst_type.IsMalformed()) {
+    return false;
+  }
 
   // If the value is the null constant, its type (NullType) is more specific
   // than the destination type, even if the destination type is the void type,
   // since a void function is allowed to return null.
-  if (IsConstant() && AsConstant()->value().IsNull()) {
+  if (BindsToConstantNull()) {
     return true;
   }
 
@@ -629,7 +658,10 @@ RawAbstractType* PolymorphicInstanceCallComp::CompileType() const {
 
 
 RawAbstractType* StaticCallComp::CompileType() const {
-  return function().result_type();
+  if (FLAG_enable_type_checks) {
+    return function().result_type();
+  }
+  return Type::DynamicType();
 }
 
 

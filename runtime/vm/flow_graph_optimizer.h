@@ -75,9 +75,11 @@ class ParsedFunction;
 class FlowGraphTypePropagator : public FlowGraphVisitor {
  public:
   FlowGraphTypePropagator(const ParsedFunction& parsed_function,
-                          const GrowableArray<BlockEntryInstr*>& blocks)
+                          const GrowableArray<BlockEntryInstr*>& blocks,
+                          bool is_ssa)
       : FlowGraphVisitor(blocks),
         parsed_function_(parsed_function),
+        is_ssa_(is_ssa),
         still_changing_(false) { }
   virtual ~FlowGraphTypePropagator() { }
 
@@ -87,8 +89,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
   virtual void VisitAssertAssignable(AssertAssignableComp* comp,
                                      BindInstr* instr);
-  virtual void VisitAssertBoolean(AssertBooleanComp* comp,
-                                  BindInstr* instr);
+  virtual void VisitAssertBoolean(AssertBooleanComp* comp, BindInstr* instr);
+  virtual void VisitInstanceOf(InstanceOfComp* comp, BindInstr* instr);
 
   virtual void VisitGraphEntry(GraphEntryInstr* graph_entry);
   virtual void VisitJoinEntry(JoinEntryInstr* join_entry);
@@ -98,6 +100,8 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
 
  private:
   const ParsedFunction& parsed_function_;
+  const bool is_ssa_;  // TODO(regis): Remove once virtual frame backend is
+                       // removed.
   bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
 };

@@ -296,6 +296,14 @@ class Value : public TemplateComputation<0> {
  public:
   Value() { }
 
+  // Returns true if the value represents a constant.
+  virtual bool BindsToConstant() const = 0;
+
+  // Returns true if the value represents constant null.
+  virtual bool BindsToConstantNull() const = 0;
+
+  // Reminder: The type of the constant null is the bottom type, which is more
+  // specific than any type.
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
 
   virtual void RemoveFromUseList() = 0;
@@ -347,6 +355,12 @@ class UseVal : public Value {
   inline Definition* definition() const;
   void SetDefinition(Definition* definition);
 
+  // Returns true if the value represents a constant.
+  virtual bool BindsToConstant() const;
+
+  // Returns true if the value represents constant null.
+  virtual bool BindsToConstantNull() const;
+
   virtual bool CanDeoptimize() const { return false; }
 
   UseVal* next_use() const { return next_use_; }
@@ -377,6 +391,12 @@ class ConstantVal: public Value {
   DECLARE_VALUE(Constant)
 
   const Object& value() const { return value_; }
+
+  // Returns true if the value represents a constant.
+  virtual bool BindsToConstant() const { return true; }
+
+  // Returns true if the value represents constant null.
+  virtual bool BindsToConstantNull() const { return value().IsNull(); }
 
   virtual bool CanDeoptimize() const { return false; }
 
@@ -2880,8 +2900,12 @@ class Environment : public ZoneAllocated {
 class FlowGraphVisitor : public ValueObject {
  public:
   explicit FlowGraphVisitor(const GrowableArray<BlockEntryInstr*>& block_order)
-      : block_order_(block_order) { }
+      : block_order_(block_order), current_iterator_(NULL) { }
   virtual ~FlowGraphVisitor() { }
+
+  ForwardInstructionIterator* current_iterator() const {
+    return current_iterator_;
+  }
 
   // Visit each block in the block order, and for each block its
   // instructions in order from the block entry to exit.
@@ -2903,6 +2927,7 @@ class FlowGraphVisitor : public ValueObject {
 
  protected:
   const GrowableArray<BlockEntryInstr*>& block_order_;
+  ForwardInstructionIterator* current_iterator_;
 
  private:
   DISALLOW_COPY_AND_ASSIGN(FlowGraphVisitor);
