@@ -4,3 +4,6 @@
 
 [$compiler == dart2dart]
 *: Skip
+
+[ $runtime == opera ]
+*: Skip
