@@ -37,7 +37,6 @@
 #source('../../../../corelib/src/string_buffer.dart');
 #source('../../../../corelib/src/strings.dart');
 #source('mock.dart');
-#source('clock.dart');
 
 void print(var obj) {
   if (obj is String) {

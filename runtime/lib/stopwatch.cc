@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -9,7 +9,7 @@
 
 namespace dart {
 
-DEFINE_NATIVE_ENTRY(Clock_now, 0) {
+DEFINE_NATIVE_ENTRY(Stopwatch_now, 0) {
   // TODO(iposva): investigate other hi-res time sources such as cycle count.
   const Integer& micros =
       Integer::Handle(Integer::New(OS::GetCurrentTimeMicros()));
@@ -17,7 +17,7 @@ DEFINE_NATIVE_ENTRY(Clock_now, 0) {
 }
 
 
-DEFINE_NATIVE_ENTRY(Clock_frequency, 0) {
+DEFINE_NATIVE_ENTRY(Stopwatch_frequency, 0) {
   // TODO(iposva): investigate other hi-res time sources such as cycle count.
   const Integer& frequency = Integer::Handle(Integer::New(1000000));
   arguments->SetReturn(frequency);

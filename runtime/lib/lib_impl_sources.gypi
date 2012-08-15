@@ -25,6 +25,7 @@
     'regexp_jsc.cc',
     'regexp_jsc.h',
     'regexp.dart',
+    'stopwatch_patch.dart',
     'string.cc',
     'string.dart',
     'string_buffer.dart',

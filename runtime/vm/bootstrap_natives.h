@@ -98,8 +98,8 @@ namespace dart {
   V(TypeError_throwNew, 5)                                                     \
   V(FallThroughError_throwNew, 1)                                              \
   V(StaticResolutionException_throwNew, 1)                                     \
-  V(Clock_now, 0)                                                              \
-  V(Clock_frequency, 0)                                                        \
+  V(Stopwatch_now, 0)                                                          \
+  V(Stopwatch_frequency, 0)                                                    \
   V(ByteArray_getLength, 1)                                                    \
   V(ByteArray_getInt8, 2)                                                      \
   V(ByteArray_setInt8, 3)                                                      \

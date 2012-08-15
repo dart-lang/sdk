@@ -2,8 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Patch file for dart:core's Date class.
+// Patch file for dart:core classes.
 
+// Patch for Date implementation.
+// TODO(ager): Split out into date_patch.dart and allow #source
+// in patch files?
 patch class DateImplementation {
   patch DateImplementation(int years,
                            [int month = 1,
@@ -50,4 +53,13 @@ patch class DateImplementation {
   patch int get millisecond() => Primitives.getMilliseconds(this);
 
   patch int get weekday() => Primitives.getWeekday(this);
+}
+
+
+// Patch for Stopwatch implementation.
+// TODO(ager): Split out into stopwatch_patch.dart and allow #source
+// in patch files?
+patch class StopwatchImplementation {
+  patch static int _frequency() => 1000;
+  patch static int _now() => Primitives.dateNow();
 }
