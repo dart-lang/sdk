@@ -93,10 +93,12 @@ class DartBackend extends Backend {
     classes.forEach(collectElement);
     resolvedClassMembers.getKeys().forEach(collectElement);
 
-    ConflictingRenamer renamer =
-        new ConflictingRenamer(compiler, collector);
-    Emitter emitter = new Emitter(compiler, renamer.renames);
-    emitter.outputImports(renamer.imports);
+    Map<Node, String> renames = new Map<Node, String>();
+    Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
+    renamePlaceholders(compiler, collector, renames, imports);
+
+    Emitter emitter = new Emitter(compiler, renames);
+    emitter.outputImports(imports);
     elements.forEach(emitter.outputElement);
     typedefs.forEach(emitter.outputElement);
     final emptySet = new Set<Element>();
