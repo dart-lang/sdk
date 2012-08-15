@@ -1748,6 +1748,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
         error(extra, MessageKind.EXTRA_CATCH_DECLARATION);
       }
     }
+    visitIn(node.type, blockScope);
     visitIn(node.formals, blockScope);
     visitIn(node.block, blockScope);
   }

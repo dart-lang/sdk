@@ -3206,18 +3206,33 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Link<Node> link = node.catchBlocks.nodes;
 
       void pushCondition(CatchBlock catchBlock) {
-        VariableDefinitions declaration = catchBlock.formals.nodes.head;
-        HInstruction condition = null;
-        if (declaration.type == null) {
-          condition = graph.addConstantBool(true);
-          stack.add(condition);
-        } else {
-          Type type = elements.getType(declaration.type);
+        if (catchBlock.onKeyword != null) {
+          Type type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.cancel('Catch with unresolved type', node: catchBlock);
+            compiler.cancel('On with unresolved type',
+                            node: catchBlock.type);
           }
-          condition = new HIs(type, unwrappedException, nullOk: true);
+          HInstruction condition = new HIs(type, unwrappedException);
           push(condition);
+        }
+        else {
+          VariableDefinitions declaration = catchBlock.formals.nodes.head;
+          HInstruction condition = null;
+          if (declaration.type == null) {
+            condition = graph.addConstantBool(true);
+            stack.add(condition);
+          } else {
+            // TODO(aprelev@gmail.com): Once old catch syntax is removed
+            // "if" condition above and this "else" branch should be deleted as
+            // type of declared variable won't matter for the catch 
+            // condition
+            Type type = elements.getType(declaration.type);
+            if (type == null) {
+              compiler.cancel('Catch with unresolved type', node: catchBlock);
+            }
+            condition = new HIs(type, unwrappedException, nullOk: true);
+            push(condition);
+          }
         }
       }
 

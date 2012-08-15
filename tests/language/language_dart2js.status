@@ -230,7 +230,6 @@ static_top_level_test/04: Fail # Negative language test.
 static_top_level_test/05: Fail # Negative language test.
 string_interpolation7_negative_test: Fail # Negative language test.
 throw7_negative_test: Fail # Negative language test.
-try_catch_test: Fail # Uses new catch syntax.
 try_catch_syntax_test/08: Fail # Negative language test.
 
 disable_privacy_test: Fail, OK # VM specific test.

@@ -1579,14 +1579,28 @@ class Parser {
     listener.beginTryStatement(tryKeyword);
     token = parseBlock(token.next);
     int catchCount = 0;
-    while (optional('catch', token)) {
-      Token catchKeyword = token;
-      // TODO(ahe): Validate the "parameters".
-      token = parseFormalParameters(token.next);
+
+    String value = token.stringValue;
+    while (value === 'catch' || value === 'on') {
+      var onKeyword = null;
+      if (value === 'on') {
+        // on qualified catchPart?
+        onKeyword = token;
+        token = parseType(token.next);
+        value = token.stringValue;
+      }
+      Token catchKeyword = null;
+      if (value === 'catch') {
+        catchKeyword = token;
+        // TODO(ahe): Validate the "parameters".
+        token = parseFormalParameters(token.next);
+      }
       token = parseBlock(token);
       ++catchCount;
-      listener.handleCatchBlock(catchKeyword);
+      listener.handleCatchBlock(onKeyword, catchKeyword);
+      value = token.stringValue; // while condition
     }
+
     Token finallyKeyword = null;
     if (optional('finally', token)) {
       finallyKeyword = token;

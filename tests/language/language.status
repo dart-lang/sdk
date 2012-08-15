@@ -226,7 +226,6 @@ method_override2_test/00: Fail # Must provide compiler errors, not currently sup
 method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
 method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
 syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
-try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
 # Should be triaged.
 bad_override_test/01: Fail
 bad_override_test/02: Fail

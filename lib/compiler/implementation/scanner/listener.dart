@@ -254,7 +254,7 @@ class Listener {
   void handleCaseMatch(Token caseKeyword, Token colon) {
   }
 
-  void handleCatchBlock(Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
   }
 
   void handleFinallyBlock(Token finallyKeyword) {
@@ -1361,10 +1361,11 @@ class NodeListener extends ElementListener {
     pushNode(new CaseMatch(caseKeyword, popNode(), colon));
   }
 
-  void handleCatchBlock(Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
     NodeList formals = popNode();
-    pushNode(new CatchBlock(formals, block, catchKeyword));
+    TypeAnnotation type = onKeyword != null ? popNode() : null;
+    pushNode(new CatchBlock(type, formals, block, type, catchKeyword));
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {
