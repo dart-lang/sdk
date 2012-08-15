@@ -85,7 +85,7 @@ class PlaceholderCollector extends AbstractVisitor {
   final Set<Identifier> unresolvedNodes;
   final Map<Element, Set<Node>> elementNodes;
   final Map<FunctionElement, Set<LocalPlaceholder>> localPlaceholders;
-  final Map<LibraryElement, Set<Node>> privateNodes;
+  final Map<LibraryElement, Set<Identifier>> privateNodes;
   Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   TreeElements treeElements;
@@ -95,7 +95,7 @@ class PlaceholderCollector extends AbstractVisitor {
       unresolvedNodes = new Set<Identifier>(),
       elementNodes = new Map<Element, Set<Node>>(),
       localPlaceholders = new Map<FunctionElement, Set<LocalPlaceholder>>(),
-      privateNodes = new Map<LibraryElement, Set<Node>>();
+      privateNodes = new Map<LibraryElement, Set<Identifier>>();
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
@@ -138,7 +138,8 @@ class PlaceholderCollector extends AbstractVisitor {
                 internalError('Unreachable case');
               }
             } else {
-              assert(definition is Identifier);
+              assert(definition is Identifier
+                  || definition is FunctionExpression);
             }
           }
         } else {
@@ -243,7 +244,7 @@ class PlaceholderCollector extends AbstractVisitor {
   void makePrivateIdentifier(Identifier node) {
     assert(node !== null);
     privateNodes.putIfAbsent(
-        currentElement.getLibrary(), () => new Set<Node>()).add(node);
+        currentElement.getLibrary(), () => new Set<Identifier>()).add(node);
   }
 
   void makeUnresolvedPlaceholder(Node node) {
