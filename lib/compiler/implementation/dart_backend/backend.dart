@@ -75,7 +75,7 @@ class DartBackend extends Backend {
     classes.forEach(collectElement);
 
     ConflictingRenamer renamer =
-        new ConflictingRenamer(compiler, collector.placeholders);
+        new ConflictingRenamer(compiler, collector);
     Emitter emitter = new Emitter(compiler, renamer);
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;

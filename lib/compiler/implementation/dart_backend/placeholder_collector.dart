@@ -2,6 +2,15 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class LocalPlaceholder implements Hashable {
+  final String identifier;
+  final Set<Node> nodes;
+  LocalPlaceholder(this.identifier) : nodes = new Set<Node>();
+  int hashCode() => identifier.hashCode();
+  String toString() =>
+      'local_placeholder[id($identifier), nodes($nodes)]';
+}
+
 class SendVisitor extends ResolvedVisitor {
   final PlaceholderCollector collector;
 
@@ -72,14 +81,21 @@ class SendVisitor extends ResolvedVisitor {
 
 class PlaceholderCollector extends AbstractVisitor {
   final Compiler compiler;
-  final Map<Node, Placeholder> placeholders;
-  final Map<Element, Map<String, LocalPlaceholder>> localPlaceholders;
+  final Set<Node> nullNodes;  // Nodes that should not be in output.
+  final Set<Identifier> unresolvedNodes;
+  final Map<Element, Set<Node>> elementNodes;
+  final Map<FunctionElement, Set<LocalPlaceholder>> localPlaceholders;
+  final Map<LibraryElement, Set<Node>> privateNodes;
+  Map<String, LocalPlaceholder> currentLocalPlaceholders;
   Element currentElement;
   TreeElements treeElements;
 
   PlaceholderCollector(this.compiler) :
-      placeholders = new Map<Node, Placeholder>(),
-      localPlaceholders = new Map<Element, Map<String, LocalPlaceholder>>();
+      nullNodes = new Set<Node>(),
+      unresolvedNodes = new Set<Identifier>(),
+      elementNodes = new Map<Element, Set<Node>>(),
+      localPlaceholders = new Map<FunctionElement, Set<LocalPlaceholder>>(),
+      privateNodes = new Map<LibraryElement, Set<Node>>();
 
   void collectFunctionDeclarationPlaceholders(
       FunctionElement element, FunctionExpression node) {
@@ -180,6 +196,7 @@ class PlaceholderCollector extends AbstractVisitor {
     } else {
       assert(false); // Unreachable.
     }
+    currentLocalPlaceholders = new Map<String, LocalPlaceholder>();
     compiler.withCurrentElement(element, () {
       elementNode.accept(this);
     });
@@ -214,35 +231,38 @@ class PlaceholderCollector extends AbstractVisitor {
   }
 
   void makeNullPlaceholder(Node node) {
-    placeholders[node] = new NullPlaceholder();
+    assert(node is Identifier || node is Send);
+    nullNodes.add(node);
   }
 
   void makeElementPlaceholder(Node node, Element element) {
     assert(element !== null);
-    placeholders[node] = new ElementPlaceholder(element);
+    elementNodes.putIfAbsent(element, () => new Set<Node>()).add(node);
   }
 
   void makePrivateIdentifier(Identifier node) {
     assert(node !== null);
-    placeholders[node] =
-        new PrivatePlaceholder(currentElement.getLibrary(), node);
+    privateNodes.putIfAbsent(
+        currentElement.getLibrary(), () => new Set<Node>()).add(node);
   }
 
   void makeUnresolvedPlaceholder(Node node) {
-    placeholders[node] = const UnresolvedPlaceholder();
+    unresolvedNodes.add(node);
   }
 
   void makeLocalPlaceholder(Node node) {
     assert(currentElement is FunctionElement);
     assert(node is Identifier);
-    Map<String, LocalPlaceholder> functionLocals =
-        localPlaceholders.putIfAbsent(currentElement,
-            () => <LocalPlaceholder>{});
     String identifier = node.asIdentifier().source.slowToString();
     LocalPlaceholder localPlaceholder =
-        functionLocals.putIfAbsent(identifier,
-            () => new LocalPlaceholder(currentElement, identifier));
-    placeholders[node] = localPlaceholder;
+        currentLocalPlaceholders.putIfAbsent(identifier,
+            () {
+              LocalPlaceholder localPlaceholder =
+                  new LocalPlaceholder(identifier);
+              localPlaceholders.putIfAbsent(currentElement,
+                  () => new Set<LocalPlaceholder>()).add(localPlaceholder);
+              return localPlaceholder;
+            });
   }
 
   void internalError(String reason, [Node node]) {
