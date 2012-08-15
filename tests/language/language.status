@@ -239,7 +239,6 @@ disable_privacy_test: Fail
 # Should be triaged.
 field_optimization2_test: Fail
 field_optimization_test: Fail
-function_field_test: Fail
 generic_test: Fail
 implicit_closure_test: Fail, Pass
 interface_factory_constructor_negative_test: Fail

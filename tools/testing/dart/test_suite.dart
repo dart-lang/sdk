@@ -456,7 +456,8 @@ class StandardTestSuite implements TestSuite {
       if (configuration['runtime'] == 'vm') {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
-        vmArguments.addAll(['$tempDir/out.dart']);
+        vmArguments.addAll([
+            '--ignore-unrecognized-flags', '$tempDir/out.dart']);
         commands.add(new Command(
             TestUtils.vmFileName(configuration),
             vmArguments));
