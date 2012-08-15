@@ -224,8 +224,9 @@ prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
-# Should be triaged.
+# VM specific tests.
 disable_privacy_test: Fail
+# Should be triaged.
 empty_body_member_negative_test: Fail
 factory4_test: Fail
 field2_negative_test: Fail
