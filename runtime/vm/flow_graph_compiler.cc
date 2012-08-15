@@ -685,7 +685,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 
   // If this instruction is call spill everything that was not consumed by
   // input locations.
-  if (locs->contains_call() || instr->IsBranch() || instr->IsGoto()) {
+  if (locs->can_call() || instr->IsBranch() || instr->IsGoto()) {
     Spill();
   }
 

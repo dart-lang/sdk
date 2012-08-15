@@ -255,7 +255,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_in(intptr_t index, Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     input_locations_[index] = loc;
   }
 
@@ -272,7 +272,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_temp(intptr_t index, Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     temp_locations_[index] = loc;
   }
 
@@ -285,17 +285,17 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_out(Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     output_location_ = loc;
   }
 
   BitmapBuilder* stack_bitmap() const { return stack_bitmap_; }
 
-  bool is_call() const {
+  bool always_calls() const {
     return contains_call_ == kCall;
   }
 
-  bool contains_call() const {
+  bool can_call() {
     return contains_call_ != kNoCall;
   }
 

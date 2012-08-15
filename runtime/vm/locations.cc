@@ -112,7 +112,7 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
     out().PrintTo(f);
   }
 
-  if (is_call()) f->Print(" C");
+  if (always_calls()) f->Print(" C");
 }
 
 }  // namespace dart

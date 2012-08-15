@@ -825,7 +825,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
   }
 
   // Block all allocatable registers for calls and record the stack bitmap.
-  if (locs->is_call()) {
+  if (locs->always_calls()) {
     // Expected shape of live range:
     //
     //              i  i'
@@ -854,7 +854,7 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 #endif
   }
 
-  if (locs->contains_call()) {
+  if (locs->can_call()) {
     safepoints_.Add(current);
   }
 
