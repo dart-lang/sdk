@@ -48,13 +48,13 @@ final double SQRT2 = 1.4142135623730951;
  * Parses a [String] representation of an [int], and returns an [int]. Throws a
  * [FormatException] if [str] cannot be parsed as an [int].
  */
-int parseInt(String str) => MathNatives.parseInt(str);
+external int parseInt(String str);
 
 /**
  * Parses a [String] representation of a [double], and returns a [double].
  * Throws a [FormatException] if [str] cannot be parsed as a [double].
  */
-double parseDouble(String str) => MathNatives.parseDouble(str);
+external double parseDouble(String str);
 
 /**
   * Returns the minimum of two numbers. If either argument is NaN returns NaN.
@@ -81,7 +81,7 @@ num min(num a, num b) {
           }
         }
         // Check for NaN and b == -0.0.
-        if (a == 0 && b.isNegative() || b.isNan()) return b;
+        if (a == 0 && b.isNegative() || b.isNaN()) return b;
         return a;
       }
       return a;
@@ -131,20 +131,21 @@ num max(num a, num b) {
 /**
  * Returns the arc tangent of [a]/[b] with sign according to quadrant.
  */
-double atan2(num a, num b) => MathNatives.atan2(a, b);
+external double atan2(num a, num b);
 
 /**
  * If the [exponent] is an integer the result is of the same type as [x].
  * Otherwise it is a [double].
  */
-num pow(num x, num exponent) => MathNatives.pow(x, exponent);
+external num pow(num x, num exponent);
 
-double sin(num x) => MathNatives.sin(x);
-double cos(num x) => MathNatives.cos(x);
-double tan(num x) => MathNatives.tan(x);
-double acos(num x) => MathNatives.acos(x);
-double asin(num x) => MathNatives.asin(x);
-double atan(num x) => MathNatives.atan(x);
-double sqrt(num x) => MathNatives.sqrt(x);
-double exp(num x) => MathNatives.exp(x);
-double log(num x) => MathNatives.log(x);
+// TODO(4512): Add documentation.
+external double sin(num x);
+external double cos(num x);
+external double tan(num x);
+external double acos(num x);
+external double asin(num x);
+external double atan(num x);
+external double sqrt(num x);
+external double exp(num x);
+external double log(num x);
