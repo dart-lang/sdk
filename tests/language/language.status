@@ -235,11 +235,12 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # VM specific tests.
-disable_privacy_test: Fail
+disable_privacy_test: Fail, Ok
+# This test hard codes name of file being run and precise position.
+generic_test: Fail, Ok
 # Should be triaged.
 field_optimization2_test: Fail
 field_optimization_test: Fail
-generic_test: Fail
 implicit_closure_test: Fail, Pass
 interface_factory_constructor_negative_test: Fail
 interface_static_method_negative_test: Fail
