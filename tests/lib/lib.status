@@ -2,20 +2,12 @@
 # for details. All rights reserved. Use of this source code is governed by a
 # BSD-style license that can be found in the LICENSE file.
 
-# Run this test manually to verify that the fixnum library produces
-# the same results as native ints on a set of directed and random inputs.
-# Skip it when runnimng automated tests because it times out.  This
-# test only makes sense on runtimes that support 64-bit integer
-# arithmetic natively, i.e., the VM.
-fixnum/int_64_vm_test: Skip
-
 [ $compiler == frog ]
 crypto/*: Skip
 
 [ $compiler == dart2js || $compiler == dartc || $compiler == frog ]
 math/*: Skip
 mirrors/*: Skip
-unittest/instance_test: Skip
 
 [ $compiler == dart2js && $checked ]
 # numbers typed 'int' are too big to fit in a JS int.
@@ -25,16 +17,8 @@ crypto/hmac_sha256_test: Fail
 crypto/sha1_test: Fail
 crypto/sha256_test: Fail
 
-[ $compiler == dartc ]
-unittest/mock_regexp_negative_test: fail
-unittest/mock_stepwise_negative_test: fail
-
 [ $runtime == opera ]
 *: Skip
-
-[ $compiler == dart2js && $checked ]
-fixnum/int_32_test: Fail # Issue 3720.
-fixnum/int_64_test: Fail # Issue 3720.
 
 [ $compiler == dart2dart ]
 # Skip until we stabilize language tests.
