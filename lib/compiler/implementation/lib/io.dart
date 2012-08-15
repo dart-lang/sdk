@@ -54,9 +54,6 @@
 #source('../../../../runtime/bin/stream_util.dart');
 #source('../../../../runtime/bin/string_stream.dart');
 #source('../../../../runtime/bin/timer_impl.dart');
-#source('../../../../runtime/bin/tls_socket.dart');
-// Uses native keyword.
-// #source('../../../../runtime/bin/tls_socket_impl.dart');
 #source('../../../../runtime/bin/websocket.dart');
 #source('../../../../runtime/bin/websocket_impl.dart');
 
@@ -166,9 +163,3 @@ final InputStream stdin = null;
 final OutputStream stdout = null;
 
 final OutputStream stderr = null;
-
-class _TlsSocket {
-  factory TlsSocket(String host, int port) {
-    throw new UnsupportedOperationException('new TlsSocket($host, $port)');
-  }
-}

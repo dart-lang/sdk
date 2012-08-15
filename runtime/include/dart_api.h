@@ -2173,7 +2173,7 @@ DART_EXPORT Dart_Handle Dart_FunctionParameterCounts(
  * \param target A library or class.
  *
  * \return If no error occurs, a list of strings is returned.
- *   Otherwise an error handle is returned.
+ *   Otherwise an erorr handle is returned.
  */
 DART_EXPORT Dart_Handle Dart_GetVariableNames(Dart_Handle target);
 
