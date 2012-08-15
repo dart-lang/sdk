@@ -18,9 +18,9 @@
 #import('dart:io');
 #import('dart:json');
 #import('html_diff.dart');
-#import('../../lib/dartdoc/mirrors/mirrors.dart');
-#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
-#import('../../lib/dartdoc/dartdoc.dart', prefix: 'doc');
+#import('../../pkg/dartdoc/mirrors/mirrors.dart');
+#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
+#import('../../pkg/dartdoc/dartdoc.dart', prefix: 'doc');
 #import('../../lib/compiler/implementation/library_map.dart');
 
 HtmlDiff _diff;
@@ -68,13 +68,13 @@ void main() {
   final clientScript = (mode == doc.MODE_STATIC) ?
       'static' : 'live-nav';
   final Future compiled = doc.compileScript(
-      doc.scriptDir.append('../../lib/dartdoc/client-$clientScript.dart'),
+      doc.scriptDir.append('../../pkg/dartdoc/client-$clientScript.dart'),
       outputDir.append('client-$clientScript.js'));
 
   // TODO(rnystrom): Use platform-specific path separator.
   // The basic dartdoc-provided static content.
   final Future copiedStatic = doc.copyDirectory(
-      doc.scriptDir.append('../../lib/dartdoc/static'),
+      doc.scriptDir.append('../../pkg/dartdoc/static'),
       outputDir);
 
   // The apidoc-specific static content.

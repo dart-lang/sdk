@@ -11,9 +11,9 @@
 #import('dart:coreimpl');
 #import('dart:io');
 
-#import('../../lib/dartdoc/dartdoc.dart');
-#import('../../lib/dartdoc/mirrors/mirrors.dart');
-#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
+#import('../../pkg/dartdoc/dartdoc.dart');
+#import('../../pkg/dartdoc/mirrors/mirrors.dart');
+#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 
 final HTML_LIBRARY_NAME = 'dart:html';
 final DOM_LIBRARY_NAME = 'dart:dom_deprecated';

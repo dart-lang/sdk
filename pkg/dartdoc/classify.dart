@@ -4,7 +4,7 @@
 
 #library('classify');
 
-#import('../compiler/implementation/scanner/scannerlib.dart');
+#import('../../lib/compiler/implementation/scanner/scannerlib.dart');
 #import('markdown.dart', prefix: 'md');
 
 /**

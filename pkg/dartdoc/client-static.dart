@@ -6,7 +6,7 @@
 #library('client-static');
 
 #import('dart:html');
-#import('../compiler/implementation/source_file.dart');
+#import('../../lib/compiler/implementation/source_file.dart');
 #import('classify.dart');
 
 #source('client-shared.dart');

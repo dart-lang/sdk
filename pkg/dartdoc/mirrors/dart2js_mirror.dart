@@ -4,17 +4,17 @@
 
 #library('mirrors.dart2js');
 
-#import('../../compiler/compiler.dart', prefix: 'diagnostics');
-#import('../../compiler/implementation/elements/elements.dart');
-#import('../../compiler/implementation/apiimpl.dart', prefix: 'api');
-#import('../../compiler/implementation/scanner/scannerlib.dart');
-#import('../../compiler/implementation/leg.dart');
-#import('../../compiler/implementation/filenames.dart');
-#import('../../compiler/implementation/source_file.dart');
-#import('../../compiler/implementation/tree/tree.dart');
-#import('../../compiler/implementation/util/util.dart');
-#import('../../compiler/implementation/util/uri_extras.dart');
-#import('../../compiler/implementation/dart2js.dart');
+#import('../../../lib/compiler/compiler.dart', prefix: 'diagnostics');
+#import('../../../lib/compiler/implementation/elements/elements.dart');
+#import('../../../lib/compiler/implementation/apiimpl.dart', prefix: 'api');
+#import('../../../lib/compiler/implementation/scanner/scannerlib.dart');
+#import('../../../lib/compiler/implementation/leg.dart');
+#import('../../../lib/compiler/implementation/filenames.dart');
+#import('../../../lib/compiler/implementation/source_file.dart');
+#import('../../../lib/compiler/implementation/tree/tree.dart');
+#import('../../../lib/compiler/implementation/util/util.dart');
+#import('../../../lib/compiler/implementation/util/uri_extras.dart');
+#import('../../../lib/compiler/implementation/dart2js.dart');
 #import('mirrors.dart');
 #import('util.dart');
 #import('dart:io');

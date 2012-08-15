@@ -7,7 +7,7 @@
 
 #import('dart:html');
 #import('dart:json');
-#import('../compiler/implementation/source_file.dart');
+#import('../../lib/compiler/implementation/source_file.dart');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
 

@@ -24,9 +24,9 @@
 #import('mirrors/dart2js_mirror.dart', prefix: 'dart2js');
 #import('classify.dart');
 #import('markdown.dart', prefix: 'md');
-#import('../compiler/implementation/scanner/scannerlib.dart',
+#import('../../lib/compiler/implementation/scanner/scannerlib.dart',
         prefix: 'dart2js');
-#import('../compiler/implementation/library_map.dart');
+#import('../../lib/compiler/implementation/library_map.dart');
 
 #source('comment_map.dart');
 #source('utils.dart');
@@ -60,7 +60,7 @@ final MODE_LIVE_NAV = 1;
 final API_LOCATION = 'http://api.dartlang.org/';
 
 /**
- * Run this from the `lib/dartdoc` directory.
+ * Run this from the `pkg/dartdoc` directory.
  */
 void main() {
   final args = new Options().arguments;

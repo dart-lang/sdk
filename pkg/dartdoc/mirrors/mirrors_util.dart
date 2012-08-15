@@ -5,7 +5,7 @@
 #library('mirrors.util');
 
 #import('mirrors.dart');
-#import('../../compiler/implementation/util/characters.dart');
+#import('../../../lib/compiler/implementation/util/characters.dart');
 
 //------------------------------------------------------------------------------
 // Utility functions for using the Mirror API
