@@ -47,7 +47,7 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionEntry, 1) {
   const Function& function = Function::CheckedHandle(arguments.At(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
-      String::Handle(Class::Handle(function.owner()).Name());
+      String::Handle(Class::Handle(function.Owner()).Name());
   OS::Print("> Entering '%s.%s'\n",
       class_name.ToCString(), function_name.ToCString());
 }
@@ -58,7 +58,7 @@ DEFINE_RUNTIME_ENTRY(TraceFunctionExit, 1) {
   const Function& function = Function::CheckedHandle(arguments.At(0));
   const String& function_name = String::Handle(function.name());
   const String& class_name =
-      String::Handle(Class::Handle(function.owner()).Name());
+      String::Handle(Class::Handle(function.Owner()).Name());
   OS::Print("< Exiting '%s.%s'\n",
       class_name.ToCString(), function_name.ToCString());
 }
@@ -751,13 +751,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                  &num_named_arguments,
                                  &target);
   ASSERT(function_name.IsSymbol());
-  Class& receiver_class = Class::Handle();
-  if (receiver.IsNull()) {
-    // TODO(srdjan): Clarify behavior of null objects.
-    receiver_class = isolate->object_store()->object_class();
-  } else {
-    receiver_class = receiver.clazz();
-  }
 
   Function& function = Function::Handle();
   function = Resolver::ResolveDynamic(receiver,

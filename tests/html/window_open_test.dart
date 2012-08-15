@@ -1,6 +1,6 @@
 #library('WindowOpenTest');
-#import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 main() {
@@ -9,7 +9,7 @@ main() {
     scriptTag.innerHTML = code;
     document.body.nodes.add(scriptTag);
   }
-  evaluateJavaScript('layoutTestController.setCanOpenWindows()');
+  evaluateJavaScript('(testRunner || layoutTestController).setCanOpenWindows()');
 
   useHtmlConfiguration();
   test('TwoArgumentVersion', () {

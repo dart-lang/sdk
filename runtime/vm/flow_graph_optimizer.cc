@@ -7,6 +7,9 @@
 #include "vm/flow_graph_builder.h"
 #include "vm/il_printer.h"
 #include "vm/object_store.h"
+#include "vm/parser.h"
+#include "vm/scopes.h"
+#include "vm/symbols.h"
 
 namespace dart {
 
@@ -148,6 +151,78 @@ static void RemovePushArguments(InstanceCallComp* comp) {
 }
 
 
+// Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
+static bool HasOneTarget(const ICData& ic_data) {
+  ASSERT(ic_data.NumberOfChecks() > 0);
+  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
+  Function& test_target = Function::Handle();
+  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
+    test_target = ic_data.GetTargetAt(i);
+    if (first_target.raw() != test_target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static intptr_t ReceiverClassId(Computation* comp) {
+  if (!comp->HasICData()) return kIllegalCid;
+
+  const ICData& ic_data = *comp->ic_data();
+
+  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
+  // TODO(vegorov): Add multiple receiver type support.
+  if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
+  ASSERT(HasOneTarget(ic_data));
+
+  Function& target = Function::Handle();
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  return class_id;
+}
+
+
+bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
+                                               InstanceCallComp* comp,
+                                               Token::Kind op_kind) {
+  // TODO(fschneider): Optimize []= operator in checked mode as well.
+  if (op_kind == Token::kASSIGN_INDEX && FLAG_enable_type_checks) return false;
+
+  const intptr_t class_id = ReceiverClassId(comp);
+  switch (class_id) {
+    case kImmutableArrayCid:
+      // Stores are only specialized for Array and GrowableObjectArray,
+      // not for ImmutableArray.
+      if (op_kind == Token::kASSIGN_INDEX) return false;
+      // Fall through.
+    case kArrayCid:
+    case kGrowableObjectArrayCid: {
+      Computation* array_op = NULL;
+      if (op_kind == Token::kINDEX) {
+          array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
+                                         comp->ArgumentAt(1)->value(),
+                                         class_id,
+                                         comp);
+      } else {
+          array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
+                                          comp->ArgumentAt(1)->value(),
+                                          comp->ArgumentAt(2)->value(),
+                                          class_id,
+                                          comp);
+      }
+      array_op->set_ic_data(comp->ic_data());
+      instr->set_computation(array_op);
+      RemovePushArguments(comp);
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                 InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
@@ -238,22 +313,6 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   unary_op->set_ic_data(comp->ic_data());
   instr->set_computation(unary_op);
   RemovePushArguments(comp);
-  return true;
-}
-
-
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-static bool HasOneTarget(const ICData& ic_data) {
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
-  Function& test_target = Function::Handle();
-  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    test_target = ic_data.GetTargetAt(i);
-    if (first_target.raw() != test_target.raw()) {
-      return false;
-    }
-  }
   return true;
 }
 
@@ -375,23 +434,23 @@ bool FlowGraphOptimizer::TryInlineInstanceMethod(BindInstr* instr,
   MethodRecognizer::Kind recognized_kind =
       MethodRecognizer::RecognizeKind(target);
 
-  intptr_t from_class_id;
-  if (recognized_kind == MethodRecognizer::kDoubleToDouble) {
-    from_class_id = kDoubleCid;
-  } else if (recognized_kind == MethodRecognizer::kIntegerToDouble) {
-    from_class_id = kSmiCid;
-  } else {
-    return false;
+  if ((recognized_kind == MethodRecognizer::kDoubleToDouble) &&
+      (class_ids[0] == kDoubleCid)) {
+    DoubleToDoubleComp* d2d_comp =
+        new DoubleToDoubleComp(comp->ArgumentAt(0)->value(), comp);
+    instr->set_computation(d2d_comp);
+    RemovePushArguments(comp);
+    return true;
   }
-
-  if (class_ids[0] != from_class_id) {
-    return false;
+  if ((recognized_kind == MethodRecognizer::kIntegerToDouble) &&
+             (class_ids[0] == kSmiCid)) {
+    SmiToDoubleComp* s2d_comp = new SmiToDoubleComp(comp);
+    instr->set_computation(s2d_comp);
+    // Pushed arguments are not removed because SmiToDouble is implemented
+    // as a call.
+    return true;
   }
-  ToDoubleComp* coerce = new ToDoubleComp(
-      comp->ArgumentAt(0)->value(), from_class_id, comp);
-  instr->set_computation(coerce);
-  RemovePushArguments(comp);
-  return true;
+  return false;
 }
 
 
@@ -399,6 +458,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
                                            BindInstr* instr) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = comp->token_kind();
+    if (Token::IsIndexOperator(op_kind) &&
+        TryReplaceWithArrayOp(instr, comp, op_kind)) {
+      return;
+    }
     if (Token::IsBinaryToken(op_kind) &&
         TryReplaceWithBinaryOp(instr, comp, op_kind)) {
       return;
@@ -482,54 +545,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
 }
 
 
-enum IndexedAccessType {
-  kIndexedLoad,
-  kIndexedStore
-};
-
-
-static intptr_t ReceiverClassId(Computation* comp) {
-  if (!comp->HasICData()) return kIllegalCid;
-
-  const ICData& ic_data = *comp->ic_data();
-
-  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
-  // TODO(vegorov): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
-  ASSERT(HasOneTarget(ic_data));
-
-  Function& target = Function::Handle();
-  intptr_t class_id;
-  ic_data.GetOneClassCheckAt(0, &class_id, &target);
-  return class_id;
-}
-
-
-void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp,
-                                          BindInstr* instr) {
-  const intptr_t class_id = ReceiverClassId(comp);
-  switch (class_id) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kGrowableObjectArrayCid:
-      comp->set_receiver_type(class_id);
-  }
-}
-
-
-void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
-                                           BindInstr* instr) {
-  if (FLAG_enable_type_checks) return;
-
-  const intptr_t class_id = ReceiverClassId(comp);
-  switch (class_id) {
-    case kArrayCid:
-    case kGrowableObjectArrayCid:
-      comp->set_receiver_type(class_id);
-  }
-}
-
-
 void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
                                            BindInstr* instr) {
   if (!comp->HasICData()) return;
@@ -544,13 +559,16 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
     comp->set_operands_class_id(kSmiCid);
   } else if (HasOnlyTwoDouble(ic_data)) {
     comp->set_operands_class_id(kDoubleCid);
+  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
+    comp->set_operands_class_id(kNumberCid);
   }
 }
 
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
                                               BindInstr* instr) {
-  if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() == 1)) {
+  if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
+  if (comp->ic_data()->NumberOfChecks() == 1) {
     ASSERT(comp->ic_data()->num_args_tested() == 2);
     GrowableArray<intptr_t> class_ids;
     Function& target = Function::Handle();
@@ -560,7 +578,11 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
       comp->set_receiver_class_id(kSmiCid);
     } else if ((class_ids[0] == kDoubleCid) && (class_ids[1] == kDoubleCid)) {
       comp->set_receiver_class_id(kDoubleCid);
+    } else {
+      ASSERT(comp->receiver_class_id() == kIllegalCid);
     }
+  } else if (comp->ic_data()->AllReceiversAreNumbers()) {
+    comp->set_receiver_class_id(kNumberCid);
   }
 }
 
@@ -573,17 +595,37 @@ void FlowGraphOptimizer::VisitBind(BindInstr* instr) {
 void FlowGraphTypePropagator::VisitAssertAssignable(AssertAssignableComp* comp,
                                                     BindInstr* instr) {
   if (FLAG_eliminate_type_checks &&
-      !comp->IsEliminated() &&
+      !comp->is_eliminated() &&
       !comp->dst_type().IsMalformed() &&
       comp->value()->CompileTypeIsMoreSpecificThan(comp->dst_type())) {
-    comp->Eliminate();
+    comp->eliminate();
     if (FLAG_trace_type_check_elimination) {
       FlowGraphPrinter::PrintTypeCheck(parsed_function(),
                                        comp->token_pos(),
                                        comp->value(),
                                        comp->dst_type(),
                                        comp->dst_name(),
-                                       comp->IsEliminated());
+                                       comp->is_eliminated());
+    }
+  }
+}
+
+
+void FlowGraphTypePropagator::VisitAssertBoolean(AssertBooleanComp* comp,
+                                                 BindInstr* instr) {
+  if (FLAG_eliminate_type_checks &&
+      !comp->is_eliminated() &&
+      comp->value()->CompileTypeIsMoreSpecificThan(
+          Type::Handle(Type::BoolInterface()))) {
+    comp->eliminate();
+    if (FLAG_trace_type_check_elimination) {
+      const String& name = String::Handle(Symbols::New("boolean expression"));
+      FlowGraphPrinter::PrintTypeCheck(parsed_function(),
+                                       comp->token_pos(),
+                                       comp->value(),
+                                       Type::Handle(Type::BoolInterface()),
+                                       name,
+                                       comp->is_eliminated());
     }
   }
 }
@@ -599,6 +641,7 @@ void FlowGraphTypePropagator::VisitGraphEntry(GraphEntryInstr* graph_entry) {
     if (val->IsUse()) {
       ParameterInstr* param = val->AsUse()->definition()->AsParameter();
       if (param != NULL) {
+        ASSERT(param->index() == i);
         VisitParameter(param);
       }
     }
@@ -649,9 +692,20 @@ void FlowGraphTypePropagator::VisitPhi(PhiInstr* phi) {
 void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   // TODO(regis): Once we inline functions, the propagated type of the formal
   // parameter will reflect the compile type of the passed-in argument.
-  // For now, we do not known anything about this type and therefore set it to
-  // the DynamicType.
-  bool changed = param->SetPropagatedType(Type::Handle(Type::DynamicType()));
+  // For now, we do not know anything about the argument type and therefore set
+  // it to the DynamicType, unless the argument is a compiler generated value,
+  // i.e. the receiver argument or the constructor phase argument.
+  AbstractType& param_type = AbstractType::Handle(Type::DynamicType());
+  if (param->index() < 2) {
+    const Function& function = parsed_function().function();
+    if (((param->index() == 0) && function.IsDynamicFunction()) ||
+        ((param->index() == 1) && function.IsConstructor())) {
+      // Parameter is the receiver or the constructor phase.
+      LocalScope* scope = parsed_function().node_sequence()->scope();
+      param_type = scope->VariableAt(param->index())->type().raw();
+    }
+  }
+  bool changed = param->SetPropagatedType(param_type);
   if (changed) {
     still_changing_ = true;
   }
@@ -674,7 +728,7 @@ void FlowGraphAnalyzer::Analyze() {
     BlockEntryInstr* entry = blocks_[i];
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
       LocationSummary* locs = it.Current()->locs();
-      if ((locs != NULL) && locs->is_call()) {
+      if ((locs != NULL) && locs->can_call()) {
         is_leaf_ = false;
         return;
       }

@@ -390,7 +390,7 @@ public class DartCompiler {
             // Check that the current library is not the embedded library, and
             // that the current library does not already import the embedded
             // library.
-            if (lib != imp && !lib.hasImport(null, imp)) {
+            if (lib != imp && !lib.hasImport(imp)) {
               lib.addImport(imp, null);
             }
           }

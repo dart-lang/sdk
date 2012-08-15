@@ -50,6 +50,7 @@ class Keyword implements SourceString {
   static final Keyword NATIVE = const Keyword("native", isPseudo: true);
   static final Keyword NEGATE = const Keyword("negate", isPseudo: true);
   static final Keyword OPERATOR = const Keyword("operator", isPseudo: true);
+  static final Keyword ON = const Keyword("on", isPseudo: true);
   static final Keyword SET = const Keyword("set", isPseudo: true);
   static final Keyword SOURCE = const Keyword("source", isPseudo: true);
   static final Keyword STATIC = const Keyword("static", isPseudo: true);
@@ -98,6 +99,7 @@ class Keyword implements SourceString {
       NATIVE,
       NEGATE,
       OPERATOR,
+      ON,
       SET,
       SOURCE,
       STATIC,

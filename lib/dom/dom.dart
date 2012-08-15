@@ -104,6 +104,13 @@ class _MediaControllerFactoryProvider {
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+class _MediaSourceFactoryProvider {
+  factory MediaSource() => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
 class _MessageChannelFactoryProvider {
   factory MessageChannel() => _dummy();
 }
@@ -127,6 +134,13 @@ class _NotificationFactoryProvider {
 
 class _PeerConnection00FactoryProvider {
   factory PeerConnection00(String serverConfiguration, IceCallback iceCallback) => _dummy();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCPeerConnectionFactoryProvider {
+  factory RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) => _dummy();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -399,6 +413,8 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
   JavaScriptAudioNode createJavaScriptNode(int bufferSize, [int numberOfInputChannels, int numberOfOutputChannels]);
 
   MediaElementAudioSourceNode createMediaElementSource(HTMLMediaElement mediaElement);
+
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   Oscillator createOscillator();
 
@@ -2417,6 +2433,10 @@ interface Element extends Node, ElementTraversal {
 
   final int childElementCount;
 
+  final DOMTokenList classList;
+
+  String className;
+
   final int clientHeight;
 
   final int clientLeft;
@@ -2457,7 +2477,7 @@ interface Element extends Node, ElementTraversal {
 
   final String tagName;
 
-  final String webkitRegionOverflow;
+  final String webkitRegionOverset;
 
   void blur();
 
@@ -3581,10 +3601,6 @@ interface HTMLElement extends Element {
 
   final HTMLCollection children;
 
-  final DOMTokenList classList;
-
-  String className;
-
   String contentEditable;
 
   String dir;
@@ -4179,12 +4195,6 @@ interface HTMLMarqueeElement extends HTMLElement {
 
 interface HTMLMediaElement extends HTMLElement {
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -4202,12 +4212,6 @@ interface HTMLMediaElement extends HTMLElement {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   bool autoplay;
 
@@ -4273,8 +4277,6 @@ interface HTMLMediaElement extends HTMLElement {
 
   bool webkitPreservesPitch;
 
-  final int webkitSourceState;
-
   final int webkitVideoDecodedByteCount;
 
   TextTrack addTextTrack(String kind, [String label, String language]);
@@ -4292,18 +4294,6 @@ interface HTMLMediaElement extends HTMLElement {
   void webkitCancelKeyRequest(String keySystem, String sessionId);
 
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
-
-  void webkitSourceAbort(String id);
-
-  void webkitSourceAddId(String id, String type);
-
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  TimeRanges webkitSourceBuffered(String id);
-
-  void webkitSourceEndOfStream(int status);
-
-  void webkitSourceRemoveId(String id);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -5776,6 +5766,34 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
+interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
+
+  MediaSource();
+
+  final SourceBufferList activeSourceBuffers;
+
+  final String readyState;
+
+  final SourceBufferList sourceBuffers;
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  SourceBuffer addSourceBuffer(String type);
+
+  bool dispatchEvent(Event event);
+
+  void endOfStream(String error);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  void removeSourceBuffer(SourceBuffer buffer);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
   MediaStream(MediaStreamTrackList audioTracks, MediaStreamTrackList videoTracks);
@@ -5797,6 +5815,16 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
   bool dispatchEvent(Event event);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface MediaStreamAudioSourceNode extends AudioSourceNode {
+
+  final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6158,8 +6186,6 @@ interface Navigator {
 
   final BatteryManager webkitBattery;
 
-  final PointerLock webkitPointer;
-
   void getStorageUpdates();
 
   bool javaEnabled();
@@ -6413,6 +6439,8 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
   Notification(String title, [Map options]);
 
   String dir;
+
+  final String permission;
 
   String replaceId;
 
@@ -6745,20 +6773,6 @@ interface PerformanceTiming {
 
 // WARNING: Do not edit - generated code.
 
-interface PointerLock {
-
-  final bool isLocked;
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  void unlock();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 interface PopStateEvent extends Event {
 
   final Object state;
@@ -6836,6 +6850,22 @@ interface RGBColor {
   final CSSPrimitiveValue green;
 
   final CSSPrimitiveValue red;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
+
+  RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]);
+
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -7539,7 +7569,7 @@ interface SVGElement extends Element {
 
 // WARNING: Do not edit - generated code.
 
-interface SVGElementInstance {
+interface SVGElementInstance extends EventTarget {
 
   final SVGElementInstanceList childNodes;
 
@@ -7556,12 +7586,6 @@ interface SVGElementInstance {
   final SVGElementInstance parentNode;
 
   final SVGElementInstance previousSibling;
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  bool dispatchEvent(Event event);
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -11932,7 +11956,7 @@ interface WebKitCSSTransformValue extends CSSValueList {
 
 // WARNING: Do not edit - generated code.
 
-interface WebKitNamedFlow {
+interface WebKitNamedFlow extends EventTarget {
 
   final int firstEmptyRegionIndex;
 
@@ -11940,9 +11964,17 @@ interface WebKitNamedFlow {
 
   final bool overset;
 
+  void addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  bool dispatchEvent(Event event);
+
   NodeList getContent();
 
+  NodeList getRegions();
+
   NodeList getRegionsByContent(Node contentNode);
+
+  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a

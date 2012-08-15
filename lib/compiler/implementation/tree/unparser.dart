@@ -470,6 +470,9 @@ class Unparser implements Visitor {
   }
 
   visitCatchBlock(CatchBlock node) {
+    addToken(node.onKeyword);
+    visit(node.type);
+    sb.add(' ');
     addToken(node.catchKeyword);
     visit(node.formals);
     sb.add(' ');

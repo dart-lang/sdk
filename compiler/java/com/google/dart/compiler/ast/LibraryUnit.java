@@ -1,10 +1,11 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors. Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
 package com.google.dart.compiler.ast;
 
 import com.google.common.base.Objects;
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompiler;
@@ -105,8 +106,12 @@ public class LibraryUnit {
 
   public void addImport(LibraryUnit unit, LibraryNode node) {
     if (unit != null) {
-      String prefix = node != null ? node.getPrefix() : null;
-      imports.add(new LibraryImport(prefix, unit));
+      if (node != null) {
+        imports.add(new LibraryImport(unit, node.getPrefix(), node.getCombinators(),
+            node.isExported()));
+      } else {
+        imports.add(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of(), false));
+      }
     }
   }
 
@@ -140,8 +145,9 @@ public class LibraryUnit {
     return libraries;
   }
 
-  public boolean hasImport(String prefix, LibraryUnit unit) {
-    return imports.contains(new LibraryImport(prefix, unit));
+  public boolean hasImport(LibraryUnit unit) {
+    return imports.contains(new LibraryImport(unit, null, ImmutableList.<ImportCombinator> of(),
+        false));
   }
 
   public DartExpression getEntryPoint() {
@@ -161,9 +167,9 @@ public class LibraryUnit {
   }
 
   /**
-   * Return a collection of paths to {@link LibrarySource}s upon which this
-   * library or application depends.
-   *
+   * Return a collection of paths to {@link LibrarySource}s upon which this library or application
+   * depends.
+   * 
    * @return the paths (not <code>null</code>, contains no <code>null</code>)
    */
   public Iterable<LibraryNode> getImportPaths() {
@@ -185,9 +191,9 @@ public class LibraryUnit {
   }
 
   /**
-   * Return the path for dart source that corresponds to the same dart file as
-   * this library unit. This is added to the set of sourcePaths for this unit.
-   *
+   * Return the path for dart source that corresponds to the same dart file as this library unit.
+   * This is added to the set of sourcePaths for this unit.
+   * 
    * @return the self source path for this unit.
    */
   public LibraryNode getSelfSourcePath() {
@@ -196,7 +202,7 @@ public class LibraryUnit {
 
   /**
    * Answer the source associated with this unit
-   *
+   * 
    * @return the library source (not <code>null</code>)
    */
   public LibrarySource getSource() {
@@ -204,9 +210,9 @@ public class LibraryUnit {
   }
 
   /**
-   * Return a collection of paths to {@link DartSource}s that are included in
-   * this library or application.
-   *
+   * Return a collection of paths to {@link DartSource}s that are included in this library or
+   * application.
+   * 
    * @return the paths (not <code>null</code>, contains no <code>null</code>)
    */
   public Iterable<LibraryNode> getSourcePaths() {
@@ -215,7 +221,7 @@ public class LibraryUnit {
 
   /**
    * Returns a collection of paths to native {@link DartSource}s that are included in this library.
-   *
+   * 
    * @return the paths (not <code>null</code>, contains no <code>null</code>)
    */
   public Iterable<LibraryNode> getNativePaths() {
@@ -224,7 +230,7 @@ public class LibraryUnit {
 
   /**
    * Return the declared entry method, if any
-   *
+   * 
    * @return the entry method or <code>null</code> if not defined
    */
   public LibraryNode getEntryNode() {
@@ -233,7 +239,7 @@ public class LibraryUnit {
 
   /**
    * Set the declared entry method.
-   *
+   * 
    * @param libraryNode the entry method or <code>null</code> if none
    */
   public void setEntryNode(LibraryNode libraryNode) {
@@ -241,8 +247,8 @@ public class LibraryUnit {
   }
 
   /**
-   * Gets the dependencies associated with this library. If no dependencies artifact exists,
-   * or the file is invalid, it will return an empty deps object.
+   * Gets the dependencies associated with this library. If no dependencies artifact exists, or the
+   * file is invalid, it will return an empty deps object.
    */
   public LibraryDeps getDeps(DartCompilerContext context) throws IOException {
     if (deps != null) {

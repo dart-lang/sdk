@@ -15,31 +15,31 @@ namespace dart {
 DEFINE_FLAG(bool, print_bootstrap, false, "Print the bootstrap source.");
 
 
-RawScript* Bootstrap::LoadScript() {
+RawScript* Bootstrap::LoadCoreScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
 
 
-RawScript* Bootstrap::LoadImplScript() {
+RawScript* Bootstrap::LoadCoreImplScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
 
 
-RawScript* Bootstrap::LoadMathScript() {
+RawScript* Bootstrap::LoadMathScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
 
 
-RawScript* Bootstrap::LoadIsolateScript() {
+RawScript* Bootstrap::LoadIsolateScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }
 
 
-RawScript* Bootstrap::LoadMirrorsScript() {
+RawScript* Bootstrap::LoadMirrorsScript(bool is_patch) {
   UNREACHABLE();
   return Script::null();
 }

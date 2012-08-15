@@ -18,6 +18,7 @@
 #import("test_suite.dart");
 
 final int NO_TIMEOUT = 0;
+final int SLOW_TIMEOUT_MULTIPLIER = 4;
 
 /** A command executed as a step in a test case. */
 class Command {
@@ -124,7 +125,13 @@ class TestCase {
     }
   }
 
-  int get timeout() => configuration['timeout'];
+  int get timeout() {
+    if (expectedOutcomes.contains(SLOW)) {
+      return configuration['timeout'] * SLOW_TIMEOUT_MULTIPLIER;
+    } else {
+      return configuration['timeout'];
+    }
+  }
 
   String get configurationString() {
     final compiler = configuration['compiler'];

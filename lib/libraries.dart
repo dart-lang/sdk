@@ -40,10 +40,6 @@ final Map<String, LibraryInfo> LIBRARIES = const <LibraryInfo> {
       dart2jsPath: "dom/dart2js/dom_dart2js.dart",
       internal: true),
 
-  "dartdoc": const LibraryInfo(
-      "dartdoc/dartdoc.dart",
-      category: "Tools"),
-
   "html": const LibraryInfo(
       "html/html_dartium.dart",
       category: "Client",

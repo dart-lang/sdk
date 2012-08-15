@@ -110,15 +110,15 @@ class _ArrayBufferImpl extends NativeFieldWrapperClass1 implements ArrayBuffer {
   int get byteLength() native "ArrayBuffer_byteLength_Getter";
 
   ArrayBuffer slice(begin, [end = _null]) {
-    if (end === _null) {
-      return _slice_1(begin);
+    if (end !== _null) {
+      return _slice_1(begin, end);
     }
-    return _slice_2(begin, end);
+    return _slice_2(begin);
   }
 
-  ArrayBuffer _slice_1(begin) native "ArrayBuffer_slice_1_Callback";
+  ArrayBuffer _slice_1(begin, end) native "ArrayBuffer_slice_1_Callback";
 
-  ArrayBuffer _slice_2(begin, end) native "ArrayBuffer_slice_2_Callback";
+  ArrayBuffer _slice_2(begin) native "ArrayBuffer_slice_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -279,61 +279,63 @@ class _AudioContextImpl extends _EventTargetImpl implements AudioContext {
   AudioBufferSourceNode createBufferSource() native "AudioContext_createBufferSource_Callback";
 
   AudioChannelMerger createChannelMerger([numberOfInputs = _null]) {
-    if (numberOfInputs === _null) {
-      return _createChannelMerger_1();
+    if (numberOfInputs !== _null) {
+      return _createChannelMerger_1(numberOfInputs);
     }
-    return _createChannelMerger_2(numberOfInputs);
+    return _createChannelMerger_2();
   }
 
-  AudioChannelMerger _createChannelMerger_1() native "AudioContext_createChannelMerger_1_Callback";
+  AudioChannelMerger _createChannelMerger_1(numberOfInputs) native "AudioContext_createChannelMerger_1_Callback";
 
-  AudioChannelMerger _createChannelMerger_2(numberOfInputs) native "AudioContext_createChannelMerger_2_Callback";
+  AudioChannelMerger _createChannelMerger_2() native "AudioContext_createChannelMerger_2_Callback";
 
   AudioChannelSplitter createChannelSplitter([numberOfOutputs = _null]) {
-    if (numberOfOutputs === _null) {
-      return _createChannelSplitter_1();
+    if (numberOfOutputs !== _null) {
+      return _createChannelSplitter_1(numberOfOutputs);
     }
-    return _createChannelSplitter_2(numberOfOutputs);
+    return _createChannelSplitter_2();
   }
 
-  AudioChannelSplitter _createChannelSplitter_1() native "AudioContext_createChannelSplitter_1_Callback";
+  AudioChannelSplitter _createChannelSplitter_1(numberOfOutputs) native "AudioContext_createChannelSplitter_1_Callback";
 
-  AudioChannelSplitter _createChannelSplitter_2(numberOfOutputs) native "AudioContext_createChannelSplitter_2_Callback";
+  AudioChannelSplitter _createChannelSplitter_2() native "AudioContext_createChannelSplitter_2_Callback";
 
   ConvolverNode createConvolver() native "AudioContext_createConvolver_Callback";
 
   DelayNode createDelayNode([maxDelayTime = _null]) {
-    if (maxDelayTime === _null) {
-      return _createDelayNode_1();
+    if (maxDelayTime !== _null) {
+      return _createDelayNode_1(maxDelayTime);
     }
-    return _createDelayNode_2(maxDelayTime);
+    return _createDelayNode_2();
   }
 
-  DelayNode _createDelayNode_1() native "AudioContext_createDelayNode_1_Callback";
+  DelayNode _createDelayNode_1(maxDelayTime) native "AudioContext_createDelayNode_1_Callback";
 
-  DelayNode _createDelayNode_2(maxDelayTime) native "AudioContext_createDelayNode_2_Callback";
+  DelayNode _createDelayNode_2() native "AudioContext_createDelayNode_2_Callback";
 
   DynamicsCompressorNode createDynamicsCompressor() native "AudioContext_createDynamicsCompressor_Callback";
 
   AudioGainNode createGainNode() native "AudioContext_createGainNode_Callback";
 
   JavaScriptAudioNode createJavaScriptNode(bufferSize, [numberOfInputChannels = _null, numberOfOutputChannels = _null]) {
-    if (numberOfOutputChannels === _null) {
-      return _createJavaScriptNode_1(bufferSize, numberOfInputChannels);
+    if (numberOfOutputChannels !== _null) {
+      return _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels);
     }
-    if (numberOfInputChannels === _null) {
-      return _createJavaScriptNode_2(bufferSize);
+    if (numberOfInputChannels !== _null) {
+      return _createJavaScriptNode_2(bufferSize, numberOfInputChannels);
     }
-    return _createJavaScriptNode_3(bufferSize, numberOfInputChannels, numberOfOutputChannels);
+    return _createJavaScriptNode_3(bufferSize);
   }
 
-  JavaScriptAudioNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels) native "AudioContext_createJavaScriptNode_1_Callback";
+  JavaScriptAudioNode _createJavaScriptNode_1(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_1_Callback";
 
-  JavaScriptAudioNode _createJavaScriptNode_2(bufferSize) native "AudioContext_createJavaScriptNode_2_Callback";
+  JavaScriptAudioNode _createJavaScriptNode_2(bufferSize, numberOfInputChannels) native "AudioContext_createJavaScriptNode_2_Callback";
 
-  JavaScriptAudioNode _createJavaScriptNode_3(bufferSize, numberOfInputChannels, numberOfOutputChannels) native "AudioContext_createJavaScriptNode_3_Callback";
+  JavaScriptAudioNode _createJavaScriptNode_3(bufferSize) native "AudioContext_createJavaScriptNode_3_Callback";
 
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement) native "AudioContext_createMediaElementSource_Callback";
+
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream) native "AudioContext_createMediaStreamSource_Callback";
 
   Oscillator createOscillator() native "AudioContext_createOscillator_Callback";
 
@@ -645,46 +647,46 @@ class _BlobImpl extends NativeFieldWrapperClass1 implements Blob {
   String get type() native "Blob_type_Getter";
 
   Blob slice([start = _null, end = _null, contentType = _null]) {
-    if (contentType === _null) {
-      return _slice_1(start, end);
+    if (contentType !== _null) {
+      return _slice_1(start, end, contentType);
     }
-    if (end === _null) {
-      return _slice_2(start);
+    if (end !== _null) {
+      return _slice_2(start, end);
     }
-    if (start === _null) {
-      return _slice_3();
+    if (start !== _null) {
+      return _slice_3(start);
     }
-    return _slice_4(start, end, contentType);
+    return _slice_4();
   }
 
-  Blob _slice_1(start, end) native "Blob_slice_1_Callback";
+  Blob _slice_1(start, end, contentType) native "Blob_slice_1_Callback";
 
-  Blob _slice_2(start) native "Blob_slice_2_Callback";
+  Blob _slice_2(start, end) native "Blob_slice_2_Callback";
 
-  Blob _slice_3() native "Blob_slice_3_Callback";
+  Blob _slice_3(start) native "Blob_slice_3_Callback";
 
-  Blob _slice_4(start, end, contentType) native "Blob_slice_4_Callback";
+  Blob _slice_4() native "Blob_slice_4_Callback";
 
   Blob webkitSlice([start = _null, end = _null, contentType = _null]) {
-    if (contentType === _null) {
-      return _webkitSlice_1(start, end);
+    if (contentType !== _null) {
+      return _webkitSlice_1(start, end, contentType);
     }
-    if (end === _null) {
-      return _webkitSlice_2(start);
+    if (end !== _null) {
+      return _webkitSlice_2(start, end);
     }
-    if (start === _null) {
-      return _webkitSlice_3();
+    if (start !== _null) {
+      return _webkitSlice_3(start);
     }
-    return _webkitSlice_4(start, end, contentType);
+    return _webkitSlice_4();
   }
 
-  Blob _webkitSlice_1(start, end) native "Blob_webkitSlice_1_Callback";
+  Blob _webkitSlice_1(start, end, contentType) native "Blob_webkitSlice_1_Callback";
 
-  Blob _webkitSlice_2(start) native "Blob_webkitSlice_2_Callback";
+  Blob _webkitSlice_2(start, end) native "Blob_webkitSlice_2_Callback";
 
-  Blob _webkitSlice_3() native "Blob_webkitSlice_3_Callback";
+  Blob _webkitSlice_3(start) native "Blob_webkitSlice_3_Callback";
 
-  Blob _webkitSlice_4(start, end, contentType) native "Blob_webkitSlice_4_Callback";
+  Blob _webkitSlice_4() native "Blob_webkitSlice_4_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -3664,15 +3666,15 @@ class _CSSStyleSheetImpl extends _StyleSheetImpl implements CSSStyleSheet {
   CSSRuleList get rules() native "CSSStyleSheet_rules_Getter";
 
   int addRule(selector, style, [index = _null]) {
-    if (index === _null) {
-      return _addRule_1(selector, style);
+    if (index !== _null) {
+      return _addRule_1(selector, style, index);
     }
-    return _addRule_2(selector, style, index);
+    return _addRule_2(selector, style);
   }
 
-  int _addRule_1(selector, style) native "CSSStyleSheet_addRule_1_Callback";
+  int _addRule_1(selector, style, index) native "CSSStyleSheet_addRule_1_Callback";
 
-  int _addRule_2(selector, style, index) native "CSSStyleSheet_addRule_2_Callback";
+  int _addRule_2(selector, style) native "CSSStyleSheet_addRule_2_Callback";
 
   void deleteRule(int index) native "CSSStyleSheet_deleteRule_Callback";
 
@@ -3927,80 +3929,80 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void _drawImage_9(canvas_OR_image_OR_video, sx_OR_x, sy_OR_y, sw_OR_width, height_OR_sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImage_9_Callback";
 
   void drawImageFromRect(image, [sx = _null, sy = _null, sw = _null, sh = _null, dx = _null, dy = _null, dw = _null, dh = _null, compositeOperation = _null]) {
-    if (compositeOperation === _null) {
-      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh);
+    if (compositeOperation !== _null) {
+      _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
       return;
     }
-    if (dh === _null) {
-      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw);
+    if (dh !== _null) {
+      _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh);
       return;
     }
-    if (dw === _null) {
-      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy);
+    if (dw !== _null) {
+      _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw);
       return;
     }
-    if (dy === _null) {
-      _drawImageFromRect_4(image, sx, sy, sw, sh, dx);
+    if (dy !== _null) {
+      _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy);
       return;
     }
-    if (dx === _null) {
-      _drawImageFromRect_5(image, sx, sy, sw, sh);
+    if (dx !== _null) {
+      _drawImageFromRect_5(image, sx, sy, sw, sh, dx);
       return;
     }
-    if (sh === _null) {
-      _drawImageFromRect_6(image, sx, sy, sw);
+    if (sh !== _null) {
+      _drawImageFromRect_6(image, sx, sy, sw, sh);
       return;
     }
-    if (sw === _null) {
-      _drawImageFromRect_7(image, sx, sy);
+    if (sw !== _null) {
+      _drawImageFromRect_7(image, sx, sy, sw);
       return;
     }
-    if (sy === _null) {
-      _drawImageFromRect_8(image, sx);
+    if (sy !== _null) {
+      _drawImageFromRect_8(image, sx, sy);
       return;
     }
-    if (sx === _null) {
-      _drawImageFromRect_9(image);
+    if (sx !== _null) {
+      _drawImageFromRect_9(image, sx);
       return;
     }
-    _drawImageFromRect_10(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation);
+    _drawImageFromRect_10(image);
   }
 
-  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
+  void _drawImageFromRect_1(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_1_Callback";
 
-  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
+  void _drawImageFromRect_2(image, sx, sy, sw, sh, dx, dy, dw, dh) native "CanvasRenderingContext2D_drawImageFromRect_2_Callback";
 
-  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
+  void _drawImageFromRect_3(image, sx, sy, sw, sh, dx, dy, dw) native "CanvasRenderingContext2D_drawImageFromRect_3_Callback";
 
-  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
+  void _drawImageFromRect_4(image, sx, sy, sw, sh, dx, dy) native "CanvasRenderingContext2D_drawImageFromRect_4_Callback";
 
-  void _drawImageFromRect_5(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
+  void _drawImageFromRect_5(image, sx, sy, sw, sh, dx) native "CanvasRenderingContext2D_drawImageFromRect_5_Callback";
 
-  void _drawImageFromRect_6(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
+  void _drawImageFromRect_6(image, sx, sy, sw, sh) native "CanvasRenderingContext2D_drawImageFromRect_6_Callback";
 
-  void _drawImageFromRect_7(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
+  void _drawImageFromRect_7(image, sx, sy, sw) native "CanvasRenderingContext2D_drawImageFromRect_7_Callback";
 
-  void _drawImageFromRect_8(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
+  void _drawImageFromRect_8(image, sx, sy) native "CanvasRenderingContext2D_drawImageFromRect_8_Callback";
 
-  void _drawImageFromRect_9(image) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
+  void _drawImageFromRect_9(image, sx) native "CanvasRenderingContext2D_drawImageFromRect_9_Callback";
 
-  void _drawImageFromRect_10(image, sx, sy, sw, sh, dx, dy, dw, dh, compositeOperation) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
+  void _drawImageFromRect_10(image) native "CanvasRenderingContext2D_drawImageFromRect_10_Callback";
 
   void fill() native "CanvasRenderingContext2D_fill_Callback";
 
   void fillRect(num x, num y, num width, num height) native "CanvasRenderingContext2D_fillRect_Callback";
 
   void fillText(text, x, y, [maxWidth = _null]) {
-    if (maxWidth === _null) {
-      _fillText_1(text, x, y);
+    if (maxWidth !== _null) {
+      _fillText_1(text, x, y, maxWidth);
       return;
     }
-    _fillText_2(text, x, y, maxWidth);
+    _fillText_2(text, x, y);
   }
 
-  void _fillText_1(text, x, y) native "CanvasRenderingContext2D_fillText_1_Callback";
+  void _fillText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_1_Callback";
 
-  void _fillText_2(text, x, y, maxWidth) native "CanvasRenderingContext2D_fillText_2_Callback";
+  void _fillText_2(text, x, y) native "CanvasRenderingContext2D_fillText_2_Callback";
 
   ImageData getImageData(num sx, num sy, num sw, num sh) native "CanvasRenderingContext2D_getImageData_Callback";
 
@@ -4183,28 +4185,28 @@ class _CanvasRenderingContext2DImpl extends _CanvasRenderingContextImpl implemen
   void stroke() native "CanvasRenderingContext2D_stroke_Callback";
 
   void strokeRect(x, y, width, height, [lineWidth = _null]) {
-    if (lineWidth === _null) {
-      _strokeRect_1(x, y, width, height);
+    if (lineWidth !== _null) {
+      _strokeRect_1(x, y, width, height, lineWidth);
       return;
     }
-    _strokeRect_2(x, y, width, height, lineWidth);
+    _strokeRect_2(x, y, width, height);
   }
 
-  void _strokeRect_1(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_1_Callback";
+  void _strokeRect_1(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_1_Callback";
 
-  void _strokeRect_2(x, y, width, height, lineWidth) native "CanvasRenderingContext2D_strokeRect_2_Callback";
+  void _strokeRect_2(x, y, width, height) native "CanvasRenderingContext2D_strokeRect_2_Callback";
 
   void strokeText(text, x, y, [maxWidth = _null]) {
-    if (maxWidth === _null) {
-      _strokeText_1(text, x, y);
+    if (maxWidth !== _null) {
+      _strokeText_1(text, x, y, maxWidth);
       return;
     }
-    _strokeText_2(text, x, y, maxWidth);
+    _strokeText_2(text, x, y);
   }
 
-  void _strokeText_1(text, x, y) native "CanvasRenderingContext2D_strokeText_1_Callback";
+  void _strokeText_1(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_1_Callback";
 
-  void _strokeText_2(text, x, y, maxWidth) native "CanvasRenderingContext2D_strokeText_2_Callback";
+  void _strokeText_2(text, x, y) native "CanvasRenderingContext2D_strokeText_2_Callback";
 
   void transform(num m11, num m12, num m21, num m22, num dx, num dy) native "CanvasRenderingContext2D_transform_Callback";
 
@@ -4926,19 +4928,24 @@ class _DOMURLFactoryProvider {
 
 class _DOMURLImpl extends NativeFieldWrapperClass1 implements DOMURL {
 
-  static String createObjectURL(blob_OR_stream) {
-    if ((blob_OR_stream is MediaStream || blob_OR_stream === null)) {
-      return _createObjectURL_1(blob_OR_stream);
+  static String createObjectURL(blob_OR_source_OR_stream) {
+    if ((blob_OR_source_OR_stream is MediaSource || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_1(blob_OR_source_OR_stream);
     }
-    if ((blob_OR_stream is Blob || blob_OR_stream === null)) {
-      return _createObjectURL_2(blob_OR_stream);
+    if ((blob_OR_source_OR_stream is MediaStream || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_2(blob_OR_source_OR_stream);
+    }
+    if ((blob_OR_source_OR_stream is Blob || blob_OR_source_OR_stream === null)) {
+      return _createObjectURL_3(blob_OR_source_OR_stream);
     }
     throw "Incorrect number or type of arguments";
   }
 
-  static String _createObjectURL_1(blob_OR_stream) native "DOMURL_createObjectURL_1_Callback";
+  static String _createObjectURL_1(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_1_Callback";
 
-  static String _createObjectURL_2(blob_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+  static String _createObjectURL_2(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_2_Callback";
+
+  static String _createObjectURL_3(blob_OR_source_OR_stream) native "DOMURL_createObjectURL_3_Callback";
 
   static void revokeObjectURL(String url) native "DOMURL_revokeObjectURL_Callback";
 
@@ -5391,148 +5398,148 @@ class _DataViewFactoryProvider {
 class _DataViewImpl extends _ArrayBufferViewImpl implements DataView {
 
   num getFloat32(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getFloat32_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getFloat32_1(byteOffset, littleEndian);
     }
-    return _getFloat32_2(byteOffset, littleEndian);
+    return _getFloat32_2(byteOffset);
   }
 
-  num _getFloat32_1(byteOffset) native "DataView_getFloat32_1_Callback";
+  num _getFloat32_1(byteOffset, littleEndian) native "DataView_getFloat32_1_Callback";
 
-  num _getFloat32_2(byteOffset, littleEndian) native "DataView_getFloat32_2_Callback";
+  num _getFloat32_2(byteOffset) native "DataView_getFloat32_2_Callback";
 
   num getFloat64(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getFloat64_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getFloat64_1(byteOffset, littleEndian);
     }
-    return _getFloat64_2(byteOffset, littleEndian);
+    return _getFloat64_2(byteOffset);
   }
 
-  num _getFloat64_1(byteOffset) native "DataView_getFloat64_1_Callback";
+  num _getFloat64_1(byteOffset, littleEndian) native "DataView_getFloat64_1_Callback";
 
-  num _getFloat64_2(byteOffset, littleEndian) native "DataView_getFloat64_2_Callback";
+  num _getFloat64_2(byteOffset) native "DataView_getFloat64_2_Callback";
 
   int getInt16(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getInt16_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getInt16_1(byteOffset, littleEndian);
     }
-    return _getInt16_2(byteOffset, littleEndian);
+    return _getInt16_2(byteOffset);
   }
 
-  int _getInt16_1(byteOffset) native "DataView_getInt16_1_Callback";
+  int _getInt16_1(byteOffset, littleEndian) native "DataView_getInt16_1_Callback";
 
-  int _getInt16_2(byteOffset, littleEndian) native "DataView_getInt16_2_Callback";
+  int _getInt16_2(byteOffset) native "DataView_getInt16_2_Callback";
 
   int getInt32(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getInt32_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getInt32_1(byteOffset, littleEndian);
     }
-    return _getInt32_2(byteOffset, littleEndian);
+    return _getInt32_2(byteOffset);
   }
 
-  int _getInt32_1(byteOffset) native "DataView_getInt32_1_Callback";
+  int _getInt32_1(byteOffset, littleEndian) native "DataView_getInt32_1_Callback";
 
-  int _getInt32_2(byteOffset, littleEndian) native "DataView_getInt32_2_Callback";
+  int _getInt32_2(byteOffset) native "DataView_getInt32_2_Callback";
 
   int getInt8(int byteOffset) native "DataView_getInt8_Callback";
 
   int getUint16(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getUint16_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getUint16_1(byteOffset, littleEndian);
     }
-    return _getUint16_2(byteOffset, littleEndian);
+    return _getUint16_2(byteOffset);
   }
 
-  int _getUint16_1(byteOffset) native "DataView_getUint16_1_Callback";
+  int _getUint16_1(byteOffset, littleEndian) native "DataView_getUint16_1_Callback";
 
-  int _getUint16_2(byteOffset, littleEndian) native "DataView_getUint16_2_Callback";
+  int _getUint16_2(byteOffset) native "DataView_getUint16_2_Callback";
 
   int getUint32(byteOffset, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      return _getUint32_1(byteOffset);
+    if (littleEndian !== _null) {
+      return _getUint32_1(byteOffset, littleEndian);
     }
-    return _getUint32_2(byteOffset, littleEndian);
+    return _getUint32_2(byteOffset);
   }
 
-  int _getUint32_1(byteOffset) native "DataView_getUint32_1_Callback";
+  int _getUint32_1(byteOffset, littleEndian) native "DataView_getUint32_1_Callback";
 
-  int _getUint32_2(byteOffset, littleEndian) native "DataView_getUint32_2_Callback";
+  int _getUint32_2(byteOffset) native "DataView_getUint32_2_Callback";
 
   int getUint8(int byteOffset) native "DataView_getUint8_Callback";
 
   void setFloat32(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setFloat32_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setFloat32_1(byteOffset, value, littleEndian);
       return;
     }
-    _setFloat32_2(byteOffset, value, littleEndian);
+    _setFloat32_2(byteOffset, value);
   }
 
-  void _setFloat32_1(byteOffset, value) native "DataView_setFloat32_1_Callback";
+  void _setFloat32_1(byteOffset, value, littleEndian) native "DataView_setFloat32_1_Callback";
 
-  void _setFloat32_2(byteOffset, value, littleEndian) native "DataView_setFloat32_2_Callback";
+  void _setFloat32_2(byteOffset, value) native "DataView_setFloat32_2_Callback";
 
   void setFloat64(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setFloat64_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setFloat64_1(byteOffset, value, littleEndian);
       return;
     }
-    _setFloat64_2(byteOffset, value, littleEndian);
+    _setFloat64_2(byteOffset, value);
   }
 
-  void _setFloat64_1(byteOffset, value) native "DataView_setFloat64_1_Callback";
+  void _setFloat64_1(byteOffset, value, littleEndian) native "DataView_setFloat64_1_Callback";
 
-  void _setFloat64_2(byteOffset, value, littleEndian) native "DataView_setFloat64_2_Callback";
+  void _setFloat64_2(byteOffset, value) native "DataView_setFloat64_2_Callback";
 
   void setInt16(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setInt16_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setInt16_1(byteOffset, value, littleEndian);
       return;
     }
-    _setInt16_2(byteOffset, value, littleEndian);
+    _setInt16_2(byteOffset, value);
   }
 
-  void _setInt16_1(byteOffset, value) native "DataView_setInt16_1_Callback";
+  void _setInt16_1(byteOffset, value, littleEndian) native "DataView_setInt16_1_Callback";
 
-  void _setInt16_2(byteOffset, value, littleEndian) native "DataView_setInt16_2_Callback";
+  void _setInt16_2(byteOffset, value) native "DataView_setInt16_2_Callback";
 
   void setInt32(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setInt32_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setInt32_1(byteOffset, value, littleEndian);
       return;
     }
-    _setInt32_2(byteOffset, value, littleEndian);
+    _setInt32_2(byteOffset, value);
   }
 
-  void _setInt32_1(byteOffset, value) native "DataView_setInt32_1_Callback";
+  void _setInt32_1(byteOffset, value, littleEndian) native "DataView_setInt32_1_Callback";
 
-  void _setInt32_2(byteOffset, value, littleEndian) native "DataView_setInt32_2_Callback";
+  void _setInt32_2(byteOffset, value) native "DataView_setInt32_2_Callback";
 
   void setInt8(int byteOffset, int value) native "DataView_setInt8_Callback";
 
   void setUint16(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setUint16_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setUint16_1(byteOffset, value, littleEndian);
       return;
     }
-    _setUint16_2(byteOffset, value, littleEndian);
+    _setUint16_2(byteOffset, value);
   }
 
-  void _setUint16_1(byteOffset, value) native "DataView_setUint16_1_Callback";
+  void _setUint16_1(byteOffset, value, littleEndian) native "DataView_setUint16_1_Callback";
 
-  void _setUint16_2(byteOffset, value, littleEndian) native "DataView_setUint16_2_Callback";
+  void _setUint16_2(byteOffset, value) native "DataView_setUint16_2_Callback";
 
   void setUint32(byteOffset, value, [littleEndian = _null]) {
-    if (littleEndian === _null) {
-      _setUint32_1(byteOffset, value);
+    if (littleEndian !== _null) {
+      _setUint32_1(byteOffset, value, littleEndian);
       return;
     }
-    _setUint32_2(byteOffset, value, littleEndian);
+    _setUint32_2(byteOffset, value);
   }
 
-  void _setUint32_1(byteOffset, value) native "DataView_setUint32_1_Callback";
+  void _setUint32_1(byteOffset, value, littleEndian) native "DataView_setUint32_1_Callback";
 
-  void _setUint32_2(byteOffset, value, littleEndian) native "DataView_setUint32_2_Callback";
+  void _setUint32_2(byteOffset, value) native "DataView_setUint32_2_Callback";
 
   void setUint8(int byteOffset, int value) native "DataView_setUint8_Callback";
 
@@ -7190,6 +7197,10 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   int get $dom_childElementCount() native "Element_childElementCount_Getter";
 
+  String get $dom_className() native "Element_className_Getter";
+
+  void set $dom_className(String) native "Element_className_Setter";
+
   int get $dom_clientHeight() native "Element_clientHeight_Getter";
 
   int get $dom_clientLeft() native "Element_clientLeft_Getter";
@@ -7234,7 +7245,7 @@ class _ElementImpl extends _NodeImpl implements Element {
 
   String get tagName() native "Element_tagName_Getter";
 
-  String get webkitRegionOverflow() native "Element_webkitRegionOverflow_Getter";
+  String get webkitRegionOverset() native "Element_webkitRegionOverset_Getter";
 
   void blur() native "Element_blur_Callback";
 
@@ -7263,16 +7274,16 @@ class _ElementImpl extends _NodeImpl implements Element {
   void scrollByPages(int pages) native "Element_scrollByPages_Callback";
 
   void scrollIntoView([centerIfNeeded = _null]) {
-    if (centerIfNeeded === _null) {
-      _scrollIntoViewIfNeeded_1();
+    if (centerIfNeeded !== _null) {
+      _scrollIntoViewIfNeeded_1(centerIfNeeded);
       return;
     }
-    _scrollIntoViewIfNeeded_2(centerIfNeeded);
+    _scrollIntoViewIfNeeded_2();
   }
 
-  void _scrollIntoViewIfNeeded_1() native "Element_scrollIntoViewIfNeeded_1_Callback";
+  void _scrollIntoViewIfNeeded_1(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_1_Callback";
 
-  void _scrollIntoViewIfNeeded_2(centerIfNeeded) native "Element_scrollIntoViewIfNeeded_2_Callback";
+  void _scrollIntoViewIfNeeded_2() native "Element_scrollIntoViewIfNeeded_2_Callback";
 
   void $dom_setAttribute(String name, String value) native "Element_setAttribute_Callback";
 
@@ -7413,32 +7424,32 @@ class _EntryImpl extends NativeFieldWrapperClass1 implements Entry {
   String get name() native "Entry_name_Getter";
 
   void copyTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
-    if (name === _null) {
-      _copyTo_1(parent);
+    if (name !== _null) {
+      _copyTo_1(parent, name, successCallback, errorCallback);
       return;
     }
-    _copyTo_2(parent, name, successCallback, errorCallback);
+    _copyTo_2(parent);
   }
 
-  void _copyTo_1(parent) native "Entry_copyTo_1_Callback";
+  void _copyTo_1(parent, name, successCallback, errorCallback) native "Entry_copyTo_1_Callback";
 
-  void _copyTo_2(parent, name, successCallback, errorCallback) native "Entry_copyTo_2_Callback";
+  void _copyTo_2(parent) native "Entry_copyTo_2_Callback";
 
   void getMetadata(MetadataCallback successCallback, [ErrorCallback errorCallback]) native "Entry_getMetadata_Callback";
 
   void getParent([EntryCallback successCallback, ErrorCallback errorCallback]) native "Entry_getParent_Callback";
 
   void moveTo(parent, [name = _null, successCallback = _null, errorCallback = _null]) {
-    if (name === _null) {
-      _moveTo_1(parent);
+    if (name !== _null) {
+      _moveTo_1(parent, name, successCallback, errorCallback);
       return;
     }
-    _moveTo_2(parent, name, successCallback, errorCallback);
+    _moveTo_2(parent);
   }
 
-  void _moveTo_1(parent) native "Entry_moveTo_1_Callback";
+  void _moveTo_1(parent, name, successCallback, errorCallback) native "Entry_moveTo_1_Callback";
 
-  void _moveTo_2(parent, name, successCallback, errorCallback) native "Entry_moveTo_2_Callback";
+  void _moveTo_2(parent) native "Entry_moveTo_2_Callback";
 
   void remove(VoidCallback successCallback, [ErrorCallback errorCallback]) native "Entry_remove_Callback";
 
@@ -7882,16 +7893,16 @@ class _FileReaderImpl extends _EventTargetImpl implements FileReader {
   void readAsDataURL(Blob blob) native "FileReader_readAsDataURL_Callback";
 
   void readAsText(blob, [encoding = _null]) {
-    if (encoding === _null) {
-      _readAsText_1(blob);
+    if (encoding !== _null) {
+      _readAsText_1(blob, encoding);
       return;
     }
-    _readAsText_2(blob, encoding);
+    _readAsText_2(blob);
   }
 
-  void _readAsText_1(blob) native "FileReader_readAsText_1_Callback";
+  void _readAsText_1(blob, encoding) native "FileReader_readAsText_1_Callback";
 
-  void _readAsText_2(blob, encoding) native "FileReader_readAsText_2_Callback";
+  void _readAsText_2(blob) native "FileReader_readAsText_2_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "FileReader_removeEventListener_Callback";
 
@@ -7919,15 +7930,15 @@ class _FileReaderSyncImpl extends NativeFieldWrapperClass1 implements FileReader
   String readAsDataURL(Blob blob) native "FileReaderSync_readAsDataURL_Callback";
 
   String readAsText(blob, [encoding = _null]) {
-    if (encoding === _null) {
-      return _readAsText_1(blob);
+    if (encoding !== _null) {
+      return _readAsText_1(blob, encoding);
     }
-    return _readAsText_2(blob, encoding);
+    return _readAsText_2(blob);
   }
 
-  String _readAsText_1(blob) native "FileReaderSync_readAsText_1_Callback";
+  String _readAsText_1(blob, encoding) native "FileReaderSync_readAsText_1_Callback";
 
-  String _readAsText_2(blob, encoding) native "FileReaderSync_readAsText_2_Callback";
+  String _readAsText_2(blob) native "FileReaderSync_readAsText_2_Callback";
 
 }
 
@@ -8092,15 +8103,15 @@ class _Float32ArrayImpl extends _ArrayBufferViewImpl implements Float32Array {
   void setElements(Object array, [int offset]) native "Float32Array_setElements_Callback";
 
   Float32Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Float32Array _subarray_1(start) native "Float32Array_subarray_1_Callback";
+  Float32Array _subarray_1(start, end) native "Float32Array_subarray_1_Callback";
 
-  Float32Array _subarray_2(start, end) native "Float32Array_subarray_2_Callback";
+  Float32Array _subarray_2(start) native "Float32Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8196,15 +8207,15 @@ class _Float64ArrayImpl extends _ArrayBufferViewImpl implements Float64Array {
   void setElements(Object array, [int offset]) native "Float64Array_setElements_Callback";
 
   Float64Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Float64Array _subarray_1(start) native "Float64Array_subarray_1_Callback";
+  Float64Array _subarray_1(start, end) native "Float64Array_subarray_1_Callback";
 
-  Float64Array _subarray_2(start, end) native "Float64Array_subarray_2_Callback";
+  Float64Array _subarray_2(start) native "Float64Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -8873,10 +8884,6 @@ class _HTMLDocumentImpl extends _DocumentImpl implements Document {
 class _HTMLElementImpl extends _ElementImpl implements Element {
 
   HTMLCollection get $dom_children() native "HTMLElement_children_Getter";
-
-  String get $dom_className() native "HTMLElement_className_Getter";
-
-  void set $dom_className(String) native "HTMLElement_className_Setter";
 
   String get contentEditable() native "HTMLElement_contentEditable_Getter";
 
@@ -9580,28 +9587,28 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
   void setSelectionRange(int start, int end, [String direction]) native "HTMLInputElement_setSelectionRange_Callback";
 
   void stepDown([n = _null]) {
-    if (n === _null) {
-      _stepDown_1();
+    if (n !== _null) {
+      _stepDown_1(n);
       return;
     }
-    _stepDown_2(n);
+    _stepDown_2();
   }
 
-  void _stepDown_1() native "HTMLInputElement_stepDown_1_Callback";
+  void _stepDown_1(n) native "HTMLInputElement_stepDown_1_Callback";
 
-  void _stepDown_2(n) native "HTMLInputElement_stepDown_2_Callback";
+  void _stepDown_2() native "HTMLInputElement_stepDown_2_Callback";
 
   void stepUp([n = _null]) {
-    if (n === _null) {
-      _stepUp_1();
+    if (n !== _null) {
+      _stepUp_1(n);
       return;
     }
-    _stepUp_2(n);
+    _stepUp_2();
   }
 
-  void _stepUp_1() native "HTMLInputElement_stepUp_1_Callback";
+  void _stepUp_1(n) native "HTMLInputElement_stepUp_1_Callback";
 
-  void _stepUp_2(n) native "HTMLInputElement_stepUp_2_Callback";
+  void _stepUp_2() native "HTMLInputElement_stepUp_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -9832,12 +9839,6 @@ class _MediaElementEventsImpl extends _ElementEventsImpl implements MediaElement
   EventListenerList get keyMessage() => this['webkitkeymessage'];
 
   EventListenerList get needKey() => this['webkitneedkey'];
-
-  EventListenerList get sourceClose() => this['webkitsourceclose'];
-
-  EventListenerList get sourceEnded() => this['webkitsourceended'];
-
-  EventListenerList get sourceOpen() => this['webkitsourceopen'];
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -9944,25 +9945,23 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
 
   void set webkitPreservesPitch(bool) native "HTMLMediaElement_webkitPreservesPitch_Setter";
 
-  int get webkitSourceState() native "HTMLMediaElement_webkitSourceState_Getter";
-
   int get webkitVideoDecodedByteCount() native "HTMLMediaElement_webkitVideoDecodedByteCount_Getter";
 
   TextTrack addTextTrack(kind, [label = _null, language = _null]) {
-    if (language === _null) {
-      return _addTextTrack_1(kind, label);
+    if (language !== _null) {
+      return _addTextTrack_1(kind, label, language);
     }
-    if (label === _null) {
-      return _addTextTrack_2(kind);
+    if (label !== _null) {
+      return _addTextTrack_2(kind, label);
     }
-    return _addTextTrack_3(kind, label, language);
+    return _addTextTrack_3(kind);
   }
 
-  TextTrack _addTextTrack_1(kind, label) native "HTMLMediaElement_addTextTrack_1_Callback";
+  TextTrack _addTextTrack_1(kind, label, language) native "HTMLMediaElement_addTextTrack_1_Callback";
 
-  TextTrack _addTextTrack_2(kind) native "HTMLMediaElement_addTextTrack_2_Callback";
+  TextTrack _addTextTrack_2(kind, label) native "HTMLMediaElement_addTextTrack_2_Callback";
 
-  TextTrack _addTextTrack_3(kind, label, language) native "HTMLMediaElement_addTextTrack_3_Callback";
+  TextTrack _addTextTrack_3(kind) native "HTMLMediaElement_addTextTrack_3_Callback";
 
   String canPlayType(String type, String keySystem) native "HTMLMediaElement_canPlayType_Callback";
 
@@ -9973,42 +9972,30 @@ class _HTMLMediaElementImpl extends _HTMLElementImpl implements MediaElement {
   void play() native "HTMLMediaElement_play_Callback";
 
   void webkitAddKey(keySystem, key, [initData = _null, sessionId = _null]) {
-    if (initData === _null) {
-      _webkitAddKey_1(keySystem, key);
+    if (initData !== _null) {
+      _webkitAddKey_1(keySystem, key, initData, sessionId);
       return;
     }
-    _webkitAddKey_2(keySystem, key, initData, sessionId);
+    _webkitAddKey_2(keySystem, key);
   }
 
-  void _webkitAddKey_1(keySystem, key) native "HTMLMediaElement_webkitAddKey_1_Callback";
+  void _webkitAddKey_1(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_1_Callback";
 
-  void _webkitAddKey_2(keySystem, key, initData, sessionId) native "HTMLMediaElement_webkitAddKey_2_Callback";
+  void _webkitAddKey_2(keySystem, key) native "HTMLMediaElement_webkitAddKey_2_Callback";
 
   void webkitCancelKeyRequest(String keySystem, String sessionId) native "HTMLMediaElement_webkitCancelKeyRequest_Callback";
 
   void webkitGenerateKeyRequest(keySystem, [initData = _null]) {
-    if (initData === _null) {
-      _webkitGenerateKeyRequest_1(keySystem);
+    if (initData !== _null) {
+      _webkitGenerateKeyRequest_1(keySystem, initData);
       return;
     }
-    _webkitGenerateKeyRequest_2(keySystem, initData);
+    _webkitGenerateKeyRequest_2(keySystem);
   }
 
-  void _webkitGenerateKeyRequest_1(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
+  void _webkitGenerateKeyRequest_1(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_1_Callback";
 
-  void _webkitGenerateKeyRequest_2(keySystem, initData) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
-
-  void webkitSourceAbort(String id) native "HTMLMediaElement_webkitSourceAbort_Callback";
-
-  void webkitSourceAddId(String id, String type) native "HTMLMediaElement_webkitSourceAddId_Callback";
-
-  void webkitSourceAppend(String id, Uint8Array data) native "HTMLMediaElement_webkitSourceAppend_Callback";
-
-  TimeRanges webkitSourceBuffered(String id) native "HTMLMediaElement_webkitSourceBuffered_Callback";
-
-  void webkitSourceEndOfStream(int status) native "HTMLMediaElement_webkitSourceEndOfStream_Callback";
-
-  void webkitSourceRemoveId(String id) native "HTMLMediaElement_webkitSourceRemoveId_Callback";
+  void _webkitGenerateKeyRequest_2(keySystem) native "HTMLMediaElement_webkitGenerateKeyRequest_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -10949,16 +10936,16 @@ class _HTMLTextAreaElementImpl extends _HTMLElementImpl implements TextAreaEleme
   void setCustomValidity(String error) native "HTMLTextAreaElement_setCustomValidity_Callback";
 
   void setSelectionRange(start, end, [direction = _null]) {
-    if (direction === _null) {
-      _setSelectionRange_1(start, end);
+    if (direction !== _null) {
+      _setSelectionRange_1(start, end, direction);
       return;
     }
-    _setSelectionRange_2(start, end, direction);
+    _setSelectionRange_2(start, end);
   }
 
-  void _setSelectionRange_1(start, end) native "HTMLTextAreaElement_setSelectionRange_1_Callback";
+  void _setSelectionRange_1(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_1_Callback";
 
-  void _setSelectionRange_2(start, end, direction) native "HTMLTextAreaElement_setSelectionRange_2_Callback";
+  void _setSelectionRange_2(start, end) native "HTMLTextAreaElement_setSelectionRange_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11136,16 +11123,16 @@ class _IDBCursorImpl extends NativeFieldWrapperClass1 implements IDBCursor {
   void advance(int count) native "IDBCursor_advance_Callback";
 
   void continueFunction([key = _null]) {
-    if (key === _null) {
-      _continue_1();
+    if (key !== _null) {
+      _continue_1(key);
       return;
     }
-    _continue_2(key);
+    _continue_2();
   }
 
-  void _continue_1() native "IDBCursor_continue_1_Callback";
+  void _continue_1(key) native "IDBCursor_continue_1_Callback";
 
-  void _continue_2(key) native "IDBCursor_continue_2_Callback";
+  void _continue_2() native "IDBCursor_continue_2_Callback";
 
   IDBRequest delete() native "IDBCursor_delete_Callback";
 
@@ -11212,15 +11199,15 @@ class _IDBDatabaseImpl extends _EventTargetImpl implements IDBDatabase {
   void close() native "IDBDatabase_close_Callback";
 
   IDBObjectStore createObjectStore(name, [options = _null]) {
-    if (options === _null) {
-      return _createObjectStore_1(name);
+    if (options !== _null) {
+      return _createObjectStore_1(name, options);
     }
-    return _createObjectStore_2(name, options);
+    return _createObjectStore_2(name);
   }
 
-  IDBObjectStore _createObjectStore_1(name) native "IDBDatabase_createObjectStore_1_Callback";
+  IDBObjectStore _createObjectStore_1(name, options) native "IDBDatabase_createObjectStore_1_Callback";
 
-  IDBObjectStore _createObjectStore_2(name, options) native "IDBDatabase_createObjectStore_2_Callback";
+  IDBObjectStore _createObjectStore_2(name) native "IDBDatabase_createObjectStore_2_Callback";
 
   void deleteObjectStore(String name) native "IDBDatabase_deleteObjectStore_Callback";
 
@@ -11457,44 +11444,44 @@ class _IDBKeyRangeImpl extends NativeFieldWrapperClass1 implements IDBKeyRange {
   bool get upperOpen() native "IDBKeyRange_upperOpen_Getter";
 
   static IDBKeyRange bound(lower, upper, [lowerOpen = _null, upperOpen = _null]) {
-    if (upperOpen === _null) {
-      return _bound_1(lower, upper, lowerOpen);
+    if (upperOpen !== _null) {
+      return _bound_1(lower, upper, lowerOpen, upperOpen);
     }
-    if (lowerOpen === _null) {
-      return _bound_2(lower, upper);
+    if (lowerOpen !== _null) {
+      return _bound_2(lower, upper, lowerOpen);
     }
-    return _bound_3(lower, upper, lowerOpen, upperOpen);
+    return _bound_3(lower, upper);
   }
 
-  static IDBKeyRange _bound_1(lower, upper, lowerOpen) native "IDBKeyRange_bound_1_Callback";
+  static IDBKeyRange _bound_1(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_1_Callback";
 
-  static IDBKeyRange _bound_2(lower, upper) native "IDBKeyRange_bound_2_Callback";
+  static IDBKeyRange _bound_2(lower, upper, lowerOpen) native "IDBKeyRange_bound_2_Callback";
 
-  static IDBKeyRange _bound_3(lower, upper, lowerOpen, upperOpen) native "IDBKeyRange_bound_3_Callback";
+  static IDBKeyRange _bound_3(lower, upper) native "IDBKeyRange_bound_3_Callback";
 
   static IDBKeyRange lowerBound(bound, [open = _null]) {
-    if (open === _null) {
-      return _lowerBound_1(bound);
+    if (open !== _null) {
+      return _lowerBound_1(bound, open);
     }
-    return _lowerBound_2(bound, open);
+    return _lowerBound_2(bound);
   }
 
-  static IDBKeyRange _lowerBound_1(bound) native "IDBKeyRange_lowerBound_1_Callback";
+  static IDBKeyRange _lowerBound_1(bound, open) native "IDBKeyRange_lowerBound_1_Callback";
 
-  static IDBKeyRange _lowerBound_2(bound, open) native "IDBKeyRange_lowerBound_2_Callback";
+  static IDBKeyRange _lowerBound_2(bound) native "IDBKeyRange_lowerBound_2_Callback";
 
   static IDBKeyRange only(value) native "IDBKeyRange_only_Callback";
 
   static IDBKeyRange upperBound(bound, [open = _null]) {
-    if (open === _null) {
-      return _upperBound_1(bound);
+    if (open !== _null) {
+      return _upperBound_1(bound, open);
     }
-    return _upperBound_2(bound, open);
+    return _upperBound_2(bound);
   }
 
-  static IDBKeyRange _upperBound_1(bound) native "IDBKeyRange_upperBound_1_Callback";
+  static IDBKeyRange _upperBound_1(bound, open) native "IDBKeyRange_upperBound_1_Callback";
 
-  static IDBKeyRange _upperBound_2(bound, open) native "IDBKeyRange_upperBound_2_Callback";
+  static IDBKeyRange _upperBound_2(bound) native "IDBKeyRange_upperBound_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -11516,15 +11503,15 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   IDBTransaction get transaction() native "IDBObjectStore_transaction_Getter";
 
   IDBRequest add(value, [key = _null]) {
-    if (key === _null) {
-      return _add_1(value);
+    if (key !== _null) {
+      return _add_1(value, key);
     }
-    return _add_2(value, key);
+    return _add_2(value);
   }
 
-  IDBRequest _add_1(value) native "IDBObjectStore_add_1_Callback";
+  IDBRequest _add_1(value, key) native "IDBObjectStore_add_1_Callback";
 
-  IDBRequest _add_2(value, key) native "IDBObjectStore_add_2_Callback";
+  IDBRequest _add_2(value) native "IDBObjectStore_add_2_Callback";
 
   IDBRequest clear() native "IDBObjectStore_clear_Callback";
 
@@ -11653,15 +11640,15 @@ class _IDBObjectStoreImpl extends NativeFieldWrapperClass1 implements IDBObjectS
   IDBRequest _openCursor_9(key_OR_range, direction) native "IDBObjectStore_openCursor_9_Callback";
 
   IDBRequest put(value, [key = _null]) {
-    if (key === _null) {
-      return _put_1(value);
+    if (key !== _null) {
+      return _put_1(value, key);
     }
-    return _put_2(value, key);
+    return _put_2(value);
   }
 
-  IDBRequest _put_1(value) native "IDBObjectStore_put_1_Callback";
+  IDBRequest _put_1(value, key) native "IDBObjectStore_put_1_Callback";
 
-  IDBRequest _put_2(value, key) native "IDBObjectStore_put_2_Callback";
+  IDBRequest _put_2(value) native "IDBObjectStore_put_2_Callback";
 
 }
 
@@ -11906,15 +11893,15 @@ class _Int16ArrayImpl extends _ArrayBufferViewImpl implements Int16Array {
   void setElements(Object array, [int offset]) native "Int16Array_setElements_Callback";
 
   Int16Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Int16Array _subarray_1(start) native "Int16Array_subarray_1_Callback";
+  Int16Array _subarray_1(start, end) native "Int16Array_subarray_1_Callback";
 
-  Int16Array _subarray_2(start, end) native "Int16Array_subarray_2_Callback";
+  Int16Array _subarray_2(start) native "Int16Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12010,15 +11997,15 @@ class _Int32ArrayImpl extends _ArrayBufferViewImpl implements Int32Array {
   void setElements(Object array, [int offset]) native "Int32Array_setElements_Callback";
 
   Int32Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Int32Array _subarray_1(start) native "Int32Array_subarray_1_Callback";
+  Int32Array _subarray_1(start, end) native "Int32Array_subarray_1_Callback";
 
-  Int32Array _subarray_2(start, end) native "Int32Array_subarray_2_Callback";
+  Int32Array _subarray_2(start) native "Int32Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -12114,15 +12101,15 @@ class _Int8ArrayImpl extends _ArrayBufferViewImpl implements Int8Array {
   void setElements(Object array, [int offset]) native "Int8Array_setElements_Callback";
 
   Int8Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Int8Array _subarray_1(start) native "Int8Array_subarray_1_Callback";
+  Int8Array _subarray_1(start, end) native "Int8Array_subarray_1_Callback";
 
-  Int8Array _subarray_2(start, end) native "Int8Array_subarray_2_Callback";
+  Int8Array _subarray_2(start) native "Int8Array_subarray_2_Callback";
 
 }
 
@@ -12508,6 +12495,52 @@ class _MediaQueryListImpl extends NativeFieldWrapperClass1 implements MediaQuery
   void addListener(MediaQueryListListener listener) native "MediaQueryList_addListener_Callback";
 
   void removeListener(MediaQueryListListener listener) native "MediaQueryList_removeListener_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _MediaSourceFactoryProvider {
+  factory MediaSource() => _createMediaSource();
+  static MediaSource _createMediaSource() native "MediaSource_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaSourceImpl extends _EventTargetImpl implements MediaSource {
+
+  SourceBufferList get activeSourceBuffers() native "MediaSource_activeSourceBuffers_Getter";
+
+  String get readyState() native "MediaSource_readyState_Getter";
+
+  SourceBufferList get sourceBuffers() native "MediaSource_sourceBuffers_Getter";
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_addEventListener_Callback";
+
+  SourceBuffer addSourceBuffer(String type) native "MediaSource_addSourceBuffer_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "MediaSource_dispatchEvent_Callback";
+
+  void endOfStream(String error) native "MediaSource_endOfStream_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "MediaSource_removeEventListener_Callback";
+
+  void removeSourceBuffer(SourceBuffer buffer) native "MediaSource_removeSourceBuffer_Callback";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _MediaStreamAudioSourceNodeImpl extends _AudioSourceNodeImpl implements MediaStreamAudioSourceNode {
+
+  MediaStream get mediaStream() native "MediaStreamAudioSourceNode_mediaStream_Getter";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13087,8 +13120,6 @@ class _NavigatorImpl extends NativeFieldWrapperClass1 implements Navigator {
 
   BatteryManager get webkitBattery() native "Navigator_webkitBattery_Getter";
 
-  PointerLock get webkitPointer() native "Navigator_webkitPointer_Getter";
-
   void getStorageUpdates() native "Navigator_getStorageUpdates_Callback";
 
   bool javaEnabled() native "Navigator_javaEnabled_Callback";
@@ -13576,6 +13607,8 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
 
   void set dir(String) native "Notification_dir_Setter";
 
+  String get permission() native "Notification_permission_Getter";
+
   String get replaceId() native "Notification_replaceId_Getter";
 
   void set replaceId(String) native "Notification_replaceId_Setter";
@@ -13591,8 +13624,6 @@ class _NotificationImpl extends _EventTargetImpl implements Notification {
   void close() native "Notification_close_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "Notification_dispatchEvent_Callback";
-
-  static String permissionLevel() native "Notification_permissionLevel_Callback";
 
   void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "Notification_removeEventListener_Callback";
 
@@ -13757,40 +13788,40 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "PeerConnection00_addEventListener_Callback";
 
   void addStream(stream, [mediaStreamHints = _null]) {
-    if (mediaStreamHints === _null) {
-      _addStream_1(stream);
+    if (mediaStreamHints !== _null) {
+      _addStream_1(stream, mediaStreamHints);
       return;
     }
-    _addStream_2(stream, mediaStreamHints);
+    _addStream_2(stream);
   }
 
-  void _addStream_1(stream) native "PeerConnection00_addStream_1_Callback";
+  void _addStream_1(stream, mediaStreamHints) native "PeerConnection00_addStream_1_Callback";
 
-  void _addStream_2(stream, mediaStreamHints) native "PeerConnection00_addStream_2_Callback";
+  void _addStream_2(stream) native "PeerConnection00_addStream_2_Callback";
 
   void close() native "PeerConnection00_close_Callback";
 
   SessionDescription createAnswer(offer, [mediaHints = _null]) {
-    if (mediaHints === _null) {
-      return _createAnswer_1(offer);
+    if (mediaHints !== _null) {
+      return _createAnswer_1(offer, mediaHints);
     }
-    return _createAnswer_2(offer, mediaHints);
+    return _createAnswer_2(offer);
   }
 
-  SessionDescription _createAnswer_1(offer) native "PeerConnection00_createAnswer_1_Callback";
+  SessionDescription _createAnswer_1(offer, mediaHints) native "PeerConnection00_createAnswer_1_Callback";
 
-  SessionDescription _createAnswer_2(offer, mediaHints) native "PeerConnection00_createAnswer_2_Callback";
+  SessionDescription _createAnswer_2(offer) native "PeerConnection00_createAnswer_2_Callback";
 
   SessionDescription createOffer([mediaHints = _null]) {
-    if (mediaHints === _null) {
-      return _createOffer_1();
+    if (mediaHints !== _null) {
+      return _createOffer_1(mediaHints);
     }
-    return _createOffer_2(mediaHints);
+    return _createOffer_2();
   }
 
-  SessionDescription _createOffer_1() native "PeerConnection00_createOffer_1_Callback";
+  SessionDescription _createOffer_1(mediaHints) native "PeerConnection00_createOffer_1_Callback";
 
-  SessionDescription _createOffer_2(mediaHints) native "PeerConnection00_createOffer_2_Callback";
+  SessionDescription _createOffer_2() native "PeerConnection00_createOffer_2_Callback";
 
   bool $dom_dispatchEvent(Event event) native "PeerConnection00_dispatchEvent_Callback";
 
@@ -13805,16 +13836,16 @@ class _PeerConnection00Impl extends _EventTargetImpl implements PeerConnection00
   void setRemoteDescription(int action, SessionDescription desc) native "PeerConnection00_setRemoteDescription_Callback";
 
   void startIce([iceOptions = _null]) {
-    if (iceOptions === _null) {
-      _startIce_1();
+    if (iceOptions !== _null) {
+      _startIce_1(iceOptions);
       return;
     }
-    _startIce_2(iceOptions);
+    _startIce_2();
   }
 
-  void _startIce_1() native "PeerConnection00_startIce_1_Callback";
+  void _startIce_1(iceOptions) native "PeerConnection00_startIce_1_Callback";
 
-  void _startIce_2(iceOptions) native "PeerConnection00_startIce_2_Callback";
+  void _startIce_2() native "PeerConnection00_startIce_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -13904,21 +13935,6 @@ class _PerformanceTimingImpl extends NativeFieldWrapperClass1 implements Perform
 
 // WARNING: Do not edit - generated code.
 
-class _PointerLockImpl extends NativeFieldWrapperClass1 implements PointerLock {
-
-  bool get isLocked() native "PointerLock_isLocked_Getter";
-
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]) native "PointerLock_lock_Callback";
-
-  void unlock() native "PointerLock_unlock_Callback";
-
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 class _PopStateEventImpl extends _EventImpl implements PopStateEvent {
 
   Object get state() native "PopStateEvent_state_Getter";
@@ -13982,6 +13998,29 @@ class _RGBColorImpl extends NativeFieldWrapperClass1 implements RGBColor {
   CSSPrimitiveValue get green() native "RGBColor_green_Getter";
 
   CSSPrimitiveValue get red() native "RGBColor_red_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+class _RTCPeerConnectionFactoryProvider {
+  factory RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) => _createRTCPeerConnection(rtcICEServers, mediaConstraints);
+  static RTCPeerConnection _createRTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]) native "RTCPeerConnection_constructor_Callback";
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+class _RTCPeerConnectionImpl extends _EventTargetImpl implements RTCPeerConnection {
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "RTCPeerConnection_dispatchEvent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "RTCPeerConnection_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -14967,7 +15006,7 @@ class _SVGElementInstanceEventsImpl extends _EventsImpl implements SVGElementIns
 
 // WARNING: Do not edit - generated code.
 
-class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGElementInstance {
+class _SVGElementInstanceImpl extends _EventTargetImpl implements SVGElementInstance {
 
   _SVGElementInstanceEventsImpl get on() =>
     new _SVGElementInstanceEventsImpl(this);
@@ -14987,12 +15026,6 @@ class _SVGElementInstanceImpl extends NativeFieldWrapperClass1 implements SVGEle
   SVGElementInstance get parentNode() native "SVGElementInstance_parentNode_Getter";
 
   SVGElementInstance get previousSibling() native "SVGElementInstance_previousSibling_Getter";
-
-  void addEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_addEventListener_Callback";
-
-  bool dispatchEvent(Event event) native "SVGElementInstance_dispatchEvent_Callback";
-
-  void removeEventListener(String type, EventListener listener, [bool useCapture]) native "SVGElementInstance_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -18239,28 +18272,28 @@ class _SpeechGrammarListImpl extends NativeFieldWrapperClass1 implements SpeechG
   int get length() native "SpeechGrammarList_length_Getter";
 
   void addFromString(string, [weight = _null]) {
-    if (weight === _null) {
-      _addFromString_1(string);
+    if (weight !== _null) {
+      _addFromString_1(string, weight);
       return;
     }
-    _addFromString_2(string, weight);
+    _addFromString_2(string);
   }
 
-  void _addFromString_1(string) native "SpeechGrammarList_addFromString_1_Callback";
+  void _addFromString_1(string, weight) native "SpeechGrammarList_addFromString_1_Callback";
 
-  void _addFromString_2(string, weight) native "SpeechGrammarList_addFromString_2_Callback";
+  void _addFromString_2(string) native "SpeechGrammarList_addFromString_2_Callback";
 
   void addFromUri(src, [weight = _null]) {
-    if (weight === _null) {
-      _addFromUri_1(src);
+    if (weight !== _null) {
+      _addFromUri_1(src, weight);
       return;
     }
-    _addFromUri_2(src, weight);
+    _addFromUri_2(src);
   }
 
-  void _addFromUri_1(src) native "SpeechGrammarList_addFromUri_1_Callback";
+  void _addFromUri_1(src, weight) native "SpeechGrammarList_addFromUri_1_Callback";
 
-  void _addFromUri_2(src, weight) native "SpeechGrammarList_addFromUri_2_Callback";
+  void _addFromUri_2(src) native "SpeechGrammarList_addFromUri_2_Callback";
 
   SpeechGrammar item(int index) native "SpeechGrammarList_item_Callback";
 
@@ -19224,15 +19257,15 @@ class _Uint16ArrayImpl extends _ArrayBufferViewImpl implements Uint16Array {
   void setElements(Object array, [int offset]) native "Uint16Array_setElements_Callback";
 
   Uint16Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Uint16Array _subarray_1(start) native "Uint16Array_subarray_1_Callback";
+  Uint16Array _subarray_1(start, end) native "Uint16Array_subarray_1_Callback";
 
-  Uint16Array _subarray_2(start, end) native "Uint16Array_subarray_2_Callback";
+  Uint16Array _subarray_2(start) native "Uint16Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19328,15 +19361,15 @@ class _Uint32ArrayImpl extends _ArrayBufferViewImpl implements Uint32Array {
   void setElements(Object array, [int offset]) native "Uint32Array_setElements_Callback";
 
   Uint32Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Uint32Array _subarray_1(start) native "Uint32Array_subarray_1_Callback";
+  Uint32Array _subarray_1(start, end) native "Uint32Array_subarray_1_Callback";
 
-  Uint32Array _subarray_2(start, end) native "Uint32Array_subarray_2_Callback";
+  Uint32Array _subarray_2(start) native "Uint32Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19432,15 +19465,15 @@ class _Uint8ArrayImpl extends _ArrayBufferViewImpl implements Uint8Array {
   void setElements(Object array, [int offset]) native "Uint8Array_setElements_Callback";
 
   Uint8Array subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Uint8Array _subarray_1(start) native "Uint8Array_subarray_1_Callback";
+  Uint8Array _subarray_1(start, end) native "Uint8Array_subarray_1_Callback";
 
-  Uint8Array _subarray_2(start, end) native "Uint8Array_subarray_2_Callback";
+  Uint8Array _subarray_2(start) native "Uint8Array_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -19460,15 +19493,15 @@ class _Uint8ClampedArrayImpl extends _Uint8ArrayImpl implements Uint8ClampedArra
   void setElements(Object array, [int offset]) native "Uint8ClampedArray_setElements_Callback";
 
   Uint8ClampedArray subarray(start, [end = _null]) {
-    if (end === _null) {
-      return _subarray_1(start);
+    if (end !== _null) {
+      return _subarray_1(start, end);
     }
-    return _subarray_2(start, end);
+    return _subarray_2(start);
   }
 
-  Uint8ClampedArray _subarray_1(start) native "Uint8ClampedArray_subarray_1_Callback";
+  Uint8ClampedArray _subarray_1(start, end) native "Uint8ClampedArray_subarray_1_Callback";
 
-  Uint8ClampedArray _subarray_2(start, end) native "Uint8ClampedArray_subarray_2_Callback";
+  Uint8ClampedArray _subarray_2(start) native "Uint8ClampedArray_subarray_2_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20350,7 +20383,7 @@ class _WebKitCSSTransformValueImpl extends _CSSValueListImpl implements CSSTrans
 
 // WARNING: Do not edit - generated code.
 
-class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNamedFlow {
+class _WebKitNamedFlowImpl extends _EventTargetImpl implements WebKitNamedFlow {
 
   int get firstEmptyRegionIndex() native "WebKitNamedFlow_firstEmptyRegionIndex_Getter";
 
@@ -20358,9 +20391,17 @@ class _WebKitNamedFlowImpl extends NativeFieldWrapperClass1 implements WebKitNam
 
   bool get overset() native "WebKitNamedFlow_overset_Getter";
 
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_addEventListener_Callback";
+
+  bool $dom_dispatchEvent(Event event) native "WebKitNamedFlow_dispatchEvent_Callback";
+
   NodeList getContent() native "WebKitNamedFlow_getContent_Callback";
 
+  NodeList getRegions() native "WebKitNamedFlow_getRegions_Callback";
+
   NodeList getRegionsByContent(Node contentNode) native "WebKitNamedFlow_getRegionsByContent_Callback";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "WebKitNamedFlow_removeEventListener_Callback";
 
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
@@ -20435,22 +20476,22 @@ class _WebSocketImpl extends _EventTargetImpl implements WebSocket {
   void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "WebSocket_addEventListener_Callback";
 
   void close([code = _null, reason = _null]) {
-    if (reason === _null) {
-      _close_1(code);
+    if (reason !== _null) {
+      _close_1(code, reason);
       return;
     }
-    if (code === _null) {
-      _close_2();
+    if (code !== _null) {
+      _close_2(code);
       return;
     }
-    _close_3(code, reason);
+    _close_3();
   }
 
-  void _close_1(code) native "WebSocket_close_1_Callback";
+  void _close_1(code, reason) native "WebSocket_close_1_Callback";
 
-  void _close_2() native "WebSocket_close_2_Callback";
+  void _close_2(code) native "WebSocket_close_2_Callback";
 
-  void _close_3(code, reason) native "WebSocket_close_3_Callback";
+  void _close_3() native "WebSocket_close_3_Callback";
 
   bool $dom_dispatchEvent(Event evt) native "WebSocket_dispatchEvent_Callback";
 
@@ -20641,7 +20682,11 @@ class _XMLHttpRequestFactoryProvider {
 
   factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.get(url, onSuccess);
+      _XMLHttpRequestUtils.get(url, onSuccess, false);
+
+  factory XMLHttpRequest.getWithCredentials(String url,
+                                     onSuccess(XMLHttpRequest request)) =>
+      _XMLHttpRequestUtils.get(url, onSuccess, true);
 }
 
 class _XMLHttpRequestEventsImpl extends _EventsImpl implements XMLHttpRequestEvents {
@@ -21688,6 +21733,9 @@ interface AudioContext extends EventTarget default _AudioContextFactoryProvider 
 
   /** @domName AudioContext.createMediaElementSource */
   MediaElementAudioSourceNode createMediaElementSource(MediaElement mediaElement);
+
+  /** @domName AudioContext.createMediaStreamSource */
+  MediaStreamAudioSourceNode createMediaStreamSource(MediaStream mediaStream);
 
   /** @domName AudioContext.createOscillator */
   Oscillator createOscillator();
@@ -26530,9 +26578,6 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName HTMLElement.children */
   final HTMLCollection $dom_children;
 
-  /** @domName HTMLElement.className */
-  String $dom_className;
-
   /** @domName HTMLElement.contentEditable */
   String contentEditable;
 
@@ -26591,6 +26636,9 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
 
   /** @domName Element.childElementCount */
   final int $dom_childElementCount;
+
+  /** @domName Element.className */
+  String $dom_className;
 
   /** @domName Element.clientHeight */
   final int $dom_clientHeight;
@@ -26652,8 +26700,8 @@ interface Element extends Node, NodeSelector default _ElementFactoryProvider {
   /** @domName Element.tagName */
   final String tagName;
 
-  /** @domName Element.webkitRegionOverflow */
-  final String webkitRegionOverflow;
+  /** @domName Element.webkitRegionOverset */
+  final String webkitRegionOverset;
 
   /** @domName Element.blur */
   void blur();
@@ -29483,12 +29531,6 @@ interface MediaElement extends Element {
    */
   MediaElementEvents get on();
 
-  static final int EOS_DECODE_ERR = 2;
-
-  static final int EOS_NETWORK_ERR = 1;
-
-  static final int EOS_NO_ERROR = 0;
-
   static final int HAVE_CURRENT_DATA = 2;
 
   static final int HAVE_ENOUGH_DATA = 4;
@@ -29506,12 +29548,6 @@ interface MediaElement extends Element {
   static final int NETWORK_LOADING = 2;
 
   static final int NETWORK_NO_SOURCE = 3;
-
-  static final int SOURCE_CLOSED = 0;
-
-  static final int SOURCE_ENDED = 2;
-
-  static final int SOURCE_OPEN = 1;
 
   /** @domName HTMLMediaElement.autoplay */
   bool autoplay;
@@ -29609,9 +29645,6 @@ interface MediaElement extends Element {
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
 
-  /** @domName HTMLMediaElement.webkitSourceState */
-  final int webkitSourceState;
-
   /** @domName HTMLMediaElement.webkitVideoDecodedByteCount */
   final int webkitVideoDecodedByteCount;
 
@@ -29638,24 +29671,6 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.webkitGenerateKeyRequest */
   void webkitGenerateKeyRequest(String keySystem, [Uint8Array initData]);
-
-  /** @domName HTMLMediaElement.webkitSourceAbort */
-  void webkitSourceAbort(String id);
-
-  /** @domName HTMLMediaElement.webkitSourceAddId */
-  void webkitSourceAddId(String id, String type);
-
-  /** @domName HTMLMediaElement.webkitSourceAppend */
-  void webkitSourceAppend(String id, Uint8Array data);
-
-  /** @domName HTMLMediaElement.webkitSourceBuffered */
-  TimeRanges webkitSourceBuffered(String id);
-
-  /** @domName HTMLMediaElement.webkitSourceEndOfStream */
-  void webkitSourceEndOfStream(int status);
-
-  /** @domName HTMLMediaElement.webkitSourceRemoveId */
-  void webkitSourceRemoveId(String id);
 }
 
 interface MediaElementEvents extends ElementEvents {
@@ -29667,12 +29682,6 @@ interface MediaElementEvents extends ElementEvents {
   EventListenerList get keyMessage();
 
   EventListenerList get needKey();
-
-  EventListenerList get sourceClose();
-
-  EventListenerList get sourceEnded();
-
-  EventListenerList get sourceOpen();
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -29825,6 +29834,44 @@ interface MediaQueryListListener {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName MediaSource
+interface MediaSource extends EventTarget default _MediaSourceFactoryProvider {
+
+  MediaSource();
+
+  /** @domName MediaSource.activeSourceBuffers */
+  final SourceBufferList activeSourceBuffers;
+
+  /** @domName MediaSource.readyState */
+  final String readyState;
+
+  /** @domName MediaSource.sourceBuffers */
+  final SourceBufferList sourceBuffers;
+
+  /** @domName MediaSource.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaSource.addSourceBuffer */
+  SourceBuffer addSourceBuffer(String type);
+
+  /** @domName MediaSource.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName MediaSource.endOfStream */
+  void endOfStream(String error);
+
+  /** @domName MediaSource.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName MediaSource.removeSourceBuffer */
+  void removeSourceBuffer(SourceBuffer buffer);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName MediaStream
 interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 
@@ -29864,6 +29911,18 @@ interface MediaStream extends EventTarget default _MediaStreamFactoryProvider {
 interface MediaStreamEvents extends Events {
 
   EventListenerList get ended();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName MediaStreamAudioSourceNode
+interface MediaStreamAudioSourceNode extends AudioSourceNode {
+
+  /** @domName MediaStreamAudioSourceNode.mediaStream */
+  final MediaStream mediaStream;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -30473,9 +30532,6 @@ interface Navigator {
   /** @domName Navigator.webkitBattery */
   final BatteryManager webkitBattery;
 
-  /** @domName Navigator.webkitPointer */
-  final PointerLock webkitPointer;
-
   /** @domName Navigator.getStorageUpdates */
   void getStorageUpdates();
 
@@ -30771,6 +30827,9 @@ interface Notification extends EventTarget default _NotificationFactoryProvider 
 
   /** @domName Notification.dir */
   String dir;
+
+  /** @domName Notification.permission */
+  final String permission;
 
   /** @domName Notification.replaceId */
   String replaceId;
@@ -31474,24 +31533,6 @@ interface Point default _PointFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
-/// @domName PointerLock
-interface PointerLock {
-
-  /** @domName PointerLock.isLocked */
-  final bool isLocked;
-
-  /** @domName PointerLock.lock */
-  void lock(Element target, [VoidCallback successCallback, VoidCallback failureCallback]);
-
-  /** @domName PointerLock.unlock */
-  void unlock();
-}
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
-// for details. All rights reserved. Use of this source code is governed by a
-// BSD-style license that can be found in the LICENSE file.
-
-// WARNING: Do not edit - generated code.
-
 /// @domName PopStateEvent
 interface PopStateEvent extends Event {
 
@@ -31638,6 +31679,26 @@ interface RGBColor {
 
   /** @domName RGBColor.red */
   final CSSPrimitiveValue red;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName RTCPeerConnection
+interface RTCPeerConnection extends EventTarget default _RTCPeerConnectionFactoryProvider {
+
+  RTCPeerConnection(Map rtcICEServers, [Map mediaConstraints]);
+
+  /** @domName RTCPeerConnection.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName RTCPeerConnection.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
+  /** @domName RTCPeerConnection.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -32507,7 +32568,7 @@ interface SVGElement extends Element default _SVGElementFactoryProvider {
 // WARNING: Do not edit - generated code.
 
 /// @domName SVGElementInstance
-interface SVGElementInstance {
+interface SVGElementInstance extends EventTarget {
 
   /**
    * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
@@ -32537,15 +32598,6 @@ interface SVGElementInstance {
 
   /** @domName SVGElementInstance.previousSibling */
   final SVGElementInstance previousSibling;
-
-  /** @domName SVGElementInstance.addEventListener */
-  void addEventListener(String type, EventListener listener, [bool useCapture]);
-
-  /** @domName SVGElementInstance.dispatchEvent */
-  bool dispatchEvent(Event event);
-
-  /** @domName SVGElementInstance.removeEventListener */
-  void removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 
 interface SVGElementInstanceEvents extends Events {
@@ -38517,7 +38569,7 @@ interface WebKitCSSFilterValue extends CSSValueList {
 // WARNING: Do not edit - generated code.
 
 /// @domName WebKitNamedFlow
-interface WebKitNamedFlow {
+interface WebKitNamedFlow extends EventTarget {
 
   /** @domName WebKitNamedFlow.firstEmptyRegionIndex */
   final int firstEmptyRegionIndex;
@@ -38528,11 +38580,23 @@ interface WebKitNamedFlow {
   /** @domName WebKitNamedFlow.overset */
   final bool overset;
 
+  /** @domName WebKitNamedFlow.addEventListener */
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]);
+
+  /** @domName WebKitNamedFlow.dispatchEvent */
+  bool $dom_dispatchEvent(Event event);
+
   /** @domName WebKitNamedFlow.getContent */
   NodeList getContent();
 
+  /** @domName WebKitNamedFlow.getRegions */
+  NodeList getRegions();
+
   /** @domName WebKitNamedFlow.getRegionsByContent */
   NodeList getRegionsByContent(Node contentNode);
+
+  /** @domName WebKitNamedFlow.removeEventListener */
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -39288,9 +39352,9 @@ interface WorkerNavigator {
 
 /// @domName XMLHttpRequest
 interface XMLHttpRequest extends EventTarget default _XMLHttpRequestFactoryProvider {
-  // TODO(rnystrom): This name should just be "get" which is valid in Dart, but
-  // not correctly implemented yet. (b/4970173)
   XMLHttpRequest.get(String url, onSuccess(XMLHttpRequest request));
+
+  XMLHttpRequest.getWithCredentials(String url, onSuccess(XMLHttpRequest request));
 
   XMLHttpRequest();
 
@@ -40291,13 +40355,12 @@ class _XMLHttpRequestUtils {
 
   // Helper for factory XMLHttpRequest.get
   static XMLHttpRequest get(String url,
-                            onSuccess(XMLHttpRequest request)) {
+                            onSuccess(XMLHttpRequest request),
+                            bool withCredentials) {
     final request = new XMLHttpRequest();
     request.open('GET', url, true);
 
-    // TODO(terry): Validate after client login added if necessary to forward
-    //              cookies to server.
-    request.withCredentials = true;
+    request.withCredentials = withCredentials;
 
     // Status 0 is for local XHR request.
     request.on.readyStateChange.add((e) {
@@ -40575,7 +40638,58 @@ class _JsSerializer extends _Serializer {
     return [ 'sendport', 'dart',
              x._receivePort._isolateId, x._receivePort._portId ];
   }
+
+  visitFunction(Function func) {
+    return [ 'funcref',
+              _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
+  }
 }
+
+// Leaking implementation.  Later will be backend specific and hopefully
+// not leaking (at least in most of the cases.)
+// TODO: provide better, backend specific implementation.
+class _FunctionRegistry {
+  final ReceivePortSync _port;
+  int _nextId;
+  final Map<String, Function> _registry;
+
+  _FunctionRegistry() :
+      _port = new ReceivePortSync(),
+      _nextId = 0,
+      _registry = <Function>{} {
+    _port.receive((msg) {
+      final id = msg[0];
+      final args = msg[1];
+      final f = _registry[id];
+      switch (args.length) {
+        case 0: return f();
+        case 1: return f(args[0]);
+        case 2: return f(args[0], args[1]);
+        case 3: return f(args[0], args[1], args[2]);
+        case 4: return f(args[0], args[1], args[2], args[3]);
+        default: throw 'Unsupported number of arguments.';
+      }
+    });
+  }
+
+  String _add(Function f) {
+    final id = 'func-ref-${_nextId++}';
+    _registry[id] = f;
+    return id;
+  }
+
+  get _sendPort() => _port.toSendPort();
+}
+
+_FunctionRegistry __functionRegistry;
+get _functionRegistry() {
+  if (__functionRegistry === null) __functionRegistry = new _FunctionRegistry();
+  return __functionRegistry;
+}
+
+_makeFunctionRef(f) => _functionRegistry._add(f);
+_sendPort() => _functionRegistry._sendPort;
+/// End of function serialization implementation.
 
 _deserialize(var message) {
   return new _JsDeserializer().deserialize(message);
@@ -41038,6 +41152,7 @@ class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is SendPortSync) return visitSendPortSync(x);
+    if (x is Function) return visitFunction(x);
 
     // TODO(floitsch): make this a real exception. (which one)?
     throw "Message serialization: Illegal value $x passed";
@@ -41048,6 +41163,10 @@ class _MessageTraverser {
   abstract visitMap(Map x);
   abstract visitSendPort(SendPort x);
   abstract visitSendPortSync(SendPortSync x);
+
+  visitFunction(Function func) {
+    throw "Serialization of functions is not allowed.";
+  }
 
   static bool isPrimitive(x) {
     return (x === null) || (x is String) || (x is num) || (x is bool);
@@ -41204,21 +41323,21 @@ class _Deserializer {
 // This API is exploratory.
 spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
 
-// layoutTestController implementation.
-// FIXME: provide a separate lib for layoutTestController.
+// testRunner implementation.
+// FIXME: provide a separate lib for testRunner.
 
-var _layoutTestController;
+var _testRunner;
 
-LayoutTestController get layoutTestController() {
-  if (_layoutTestController === null)
-    _layoutTestController = new LayoutTestController._(_NPObject.retrieve("layoutTestController"));
-  return _layoutTestController;
+TestRunner get testRunner() {
+  if (_testRunner === null)
+    _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
+  return _testRunner;
 }
 
-class LayoutTestController {
+class TestRunner {
   final _NPObject _npObject;
 
-  LayoutTestController._(this._npObject);
+  TestRunner._(this._npObject);
 
   display() => _npObject.invoke('display');
   dumpAsText() => _npObject.invoke('dumpAsText');

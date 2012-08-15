@@ -6,27 +6,15 @@
  * Renames only top-level elements that would let to ambiguity if not renamed.
  * TODO(smok): Make sure that top-level fields are correctly renamed.
  */
-class ConflictingRenamer {
-  final Compiler compiler;
-  final Map<LibraryElement, Map<String, String>> renamed;
-  final Set<String> usedTopLevelIdentifiers;
-  final Map<LibraryElement, String> imports;
-  final Map<Node, Placeholder> placeholders;
+void renamePlaceholders(
+    Compiler compiler,
+    PlaceholderCollector placeholderCollector,
+    Map<Node, String> renames,
+    Map<LibraryElement, String> imports) {
+  final Map<LibraryElement, Map<String, String>> renamed
+      = new Map<LibraryElement, Map<String, String>>();
+  final Set<String> usedTopLevelIdentifiers = new Set<String>();
   int privateNameCounter = 0;
-
-  ConflictingRenamer(this.compiler, this.placeholders) :
-      renamed = new Map<LibraryElement, Map<String, String>>(),
-      usedTopLevelIdentifiers = new Set<String>(),
-      imports = new Map<LibraryElement, String>() {
-    // Rename main() right now so that nobody takes its place.
-    renameElement(compiler.mainApp.find(Compiler.MAIN));
-  }
-
-  // Renamer implementation.
-  String rename(Node node) {
-    Placeholder placeholder = placeholders[node];
-    return (placeholder !== null) ? placeholder.rename(this) : null;
-  }
 
   String getName(LibraryElement library, String originalName, renamer) =>
       renamed.putIfAbsent(library, () => <String>{})
@@ -57,4 +45,38 @@ class ConflictingRenamer {
     return getName(library, originalName,
                    () => generateUniqueName(originalName));
   }
+
+  // Rename main() right now so that nobody takes its place.
+  renameElement(compiler.mainApp.find(Compiler.MAIN));
+
+  placeholderCollector.nullNodes.forEach((Node node) {
+    renames[node] = '';
+  });
+  placeholderCollector.unresolvedNodes.forEach((Node node) {
+    renames[node] = generateUniqueName('Unresolved');
+  });
+  placeholderCollector.elementNodes.forEach(
+      (Element element, Set<Node> nodes) {
+        String renamedElement = renameElement(element);
+        nodes.forEach((Node node) {
+          renames[node] = renamedElement;
+        });
+  });
+  placeholderCollector.localPlaceholders.forEach(
+      (FunctionElement element, Set<LocalPlaceholder> localPlaceholders) {
+        // TODO(smok): Check for conflicts with class fields and take usages
+        // into account.
+        localPlaceholders.forEach((LocalPlaceholder placeholder) {
+          placeholder.nodes.forEach((Node node) {
+            renames[node] = placeholder.identifier;
+          });
+        });
+      });
+  placeholderCollector.privateNodes.forEach(
+      (LibraryElement library, Set<Identifier> nodes) {
+        nodes.forEach((Identifier node) {
+          renames[node] =
+              renamePrivateIdentifier(library, node.source.slowToString());
+        });
+  });
 }

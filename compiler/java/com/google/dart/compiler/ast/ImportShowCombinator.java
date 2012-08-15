@@ -13,6 +13,8 @@
  */
 package com.google.dart.compiler.ast;
 
+import java.util.List;
+
 /**
  * Instances of the class <code>ImportShowCombinator</code> represent a combinator that restricts
  * the names being imported to those in a given list.
@@ -26,7 +28,7 @@ public class ImportShowCombinator extends ImportCombinator {
   /**
    * The list of names from the library that are made visible by this combinator.
    */
-  private DartArrayLiteral shownNames;
+  private NodeList<DartIdentifier> shownNames = new NodeList<DartIdentifier>(this);
 
   /**
    * Initialize a newly created import show combinator.
@@ -40,8 +42,8 @@ public class ImportShowCombinator extends ImportCombinator {
    * 
    * @param shownNames the list of names from the library that are made visible by this combinator
    */
-  public ImportShowCombinator(DartArrayLiteral shownNames) {
-    this.shownNames = becomeParentOf(shownNames);
+  public ImportShowCombinator(List<DartIdentifier> shownNames) {
+    this.shownNames.addAll(shownNames);
   }
 
   @Override
@@ -54,24 +56,14 @@ public class ImportShowCombinator extends ImportCombinator {
    * 
    * @return the list of names from the library that are made visible by this combinator
    */
-  public DartArrayLiteral getShownNames() {
+  public NodeList<DartIdentifier> getShownNames() {
     return shownNames;
-  }
-
-  /**
-   * Set the list of names from the library that are made visible by this combinator to the given
-   * list.
-   * 
-   * @param shownNames the list of names from the library that are made visible by this combinator
-   */
-  public void setShownNames(DartArrayLiteral shownNames) {
-    this.shownNames = becomeParentOf(shownNames);
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
     if (shownNames != null) {
-      shownNames.visitChildren(visitor);
+      shownNames.accept(visitor);
     }
   }
 }

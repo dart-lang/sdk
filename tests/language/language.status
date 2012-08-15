@@ -73,6 +73,7 @@ class_literal_test/04 : Fail # language change 1031
 class_literal_test/09 : Fail # language change 1031
 class_literal_test/16 : Fail # language change 1031
 closure_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
+const_var_test : Fail # Issue 3550
 constructor3_negative_test: Fail # Runtime only test, rewrite as multitest
 constructor_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 disable_privacy_test: Skip  # Issue 1882: Needs --disable_privacy support.
@@ -108,7 +109,6 @@ pseudo_kw_illegal_test/08: Fail # Issue 356
 pseudo_kw_illegal_test/10: Fail # Issue 356
 pseudo_kw_illegal_test/14: Fail # Issue 356
 resource_test: Skip # out of date - resource directives have been removed
-setter_no_getter_call_test/01: Fail # Issue 4383
 static_call_wrong_argument_count_negative_test: Fail # Runtime only test, rewrite as multitest
 syntax_test: Skip              # Bug 2107  Static type warnings in none case
 throw7_negative_test: Fail     # Issue 3654
@@ -163,15 +163,6 @@ field1_negative_test: Fail, OK # Bad test: assumes eager loading.
 field6_negative_test: Fail, OK # Bad test: assumes eager loading.
 field7_negative_test: Fail, OK # Bad test: assumes eager loading.
 interface_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
-# Tests that crash after reverting resolution of type variables in default clause.
-# https://chromiumcodereview.appspot.com/10824062/
-default_factory2_test/01: Fail
-type_variable_scope_test/00: Fail
-type_variable_scope_test/01: Fail
-type_variable_scope_test/02: Fail
-type_variable_scope_test/03: Fail
-type_variable_scope_test/04: Fail
-type_variable_scope_test/05: Fail
 # Common problems with dart2js.  In illegal family, invalid
 # declarations are simply not parsed.  In pseudo kw dart2js
 # chokes on things like typedef(x) => "typedef $x" and alike.
@@ -191,19 +182,12 @@ pseudo_kw_illegal_test/14: Fail
 pseudo_kw_illegal_test/15: Fail
 pseudo_kw_illegal_test/16: Fail
 pseudo_kw_test: Fail
-type_variable_bounds_test/01: Fail
 # external keyword is not yet supported by dart2js/dart2dart.
 external_test/*: Skip
-# Test annotations are not processed correctly by dart2dart test
-# framework: necessary errors are thrown, but treated incorrectly.
-assign_static_type_test/01: Fail
-assign_static_type_test/02: Fail
-assign_static_type_test/03: Fail
-assign_static_type_test/04: Fail
-assign_static_type_test/05: Fail
+# Final top-level field declarations without initializer do not lead to errors in dart2js frontend.
 final_syntax_test/03: Fail
 final_syntax_test/04: Fail
-# Call operator is not supported by dart2js frontend.
+# Call operator is not supported by DartVM (see suppression above.)
 call_operator_test: Fail
 # dart2js frontend doesn't even analyse problematic classes.
 class_extends_negative_test: Fail
@@ -211,10 +195,34 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
-# dart2js allows duplicate constructor definitions.
-duplicate_constructor_test/01: Fail
+empty_body_member_negative_test: Fail
+field2_negative_test: Fail
+field4_negative_test: Fail
+field5_negative_test: Fail
+field6a_negative_test: Fail
+field7a_negative_test: Fail
+interface_factory_constructor_negative_test: Fail
+interface_static_method_negative_test: Fail
+non_const_super_negative_test: Fail
+method_override2_test/00: Fail
+method_override2_test/02: Fail
+method_override2_test/03: Fail
+operator1_negative_test: Fail
+prefix18_negative_test: Fail
+prefix20_negative_test: Fail
+static_final_field_negative_test: Fail
+static_top_level_test/00: Fail
+static_top_level_test/01: Fail
+static_top_level_test/02: Fail
+static_top_level_test/03: Fail
+static_top_level_test/04: Fail
+static_top_level_test/05: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
+# Bug in dart2js parser: it happily parses 1is int; variable declaration.
+number_identifier_negative_test: Fail
+# Bug in dart2js frontent: does not support this feature.
+switch_label_test: Fail
 # Common with language_dart2js.
 function_type_alias3_test: Fail
 function_type_alias5_test/00: Fail
@@ -229,75 +237,25 @@ instanceof3_test: Fail
 library_prefixes_test: Fail
 method_name_test: Fail
 numbers_test: Fail
+syntax_test/47: Fail
 # DartVM problem.
 closure_with_super_send_test: Fail
 constructor5_test: Fail
 constructor6_test: Fail
 fauxverride_test/none: Fail
+field_override_test/01: Fail
+field_override_test/02: Fail
+field_override_test/none: Fail
 gc_test: Fail
 prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
-# Triaged.
-function_type_this_parameter_test: Crash # NPE in private identifiers rename.
-method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
-method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
-method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
-syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
-type_variable_bounds2_test/00: Fail # See above
-type_variable_bounds2_test/03: Fail # See above
-type_variable_bounds2_test/05: Fail # See above
-try_catch_test: Fail # New catch syntax is not supported by dart2js yet.
+# VM specific tests.
+disable_privacy_test: Fail, Ok
+# This test hard codes name of file being run and precise position.
+generic_test: Fail, Ok
 # Should be triaged.
-bad_override_test/01: Fail
-bad_override_test/02: Fail
-bad_override_test/03: Fail
-bad_override_test/04: Fail
-bad_override_test/05: Fail
-bad_override_test/06: Fail
-class_override_negative_test: Fail
-ct_const2_test: Fail, Pass
-disable_privacy_test: Fail
-empty_body_member_negative_test: Fail
-factory4_test: Fail
-field2_negative_test: Fail
-field4_negative_test: Fail
-field5_negative_test: Fail
-field6a_negative_test: Fail
-field7a_negative_test: Fail
 field_optimization2_test: Fail
 field_optimization_test: Fail
-field_override_test/01: Fail
-field_override_test/02: Fail
-field_override_test/none: Fail
-function_field_test: Fail
-generic_test: Fail
-getters_setters2_test/03: Fail
-implicit_closure_test: Fail, Pass
-interface_factory_constructor_negative_test: Fail
-interface_static_method_negative_test: Fail
-interface_test: Fail
 library5_test: Fail
-non_const_super_negative_test: Fail
-number_identifier_negative_test: Fail
-operator1_negative_test: Fail
-override_field_test/01: Fail
-override_field_method3_negative_test: Fail
-prefix15_test: Fail
-prefix18_negative_test: Fail
-prefix20_negative_test: Fail
-static_final_field_negative_test: Fail
-static_implicit_closure_test: Fail, Pass
-static_top_level_test/00: Fail
-static_top_level_test/01: Fail
-static_top_level_test/02: Fail
-static_top_level_test/03: Fail
-static_top_level_test/04: Fail
-static_top_level_test/05: Fail
-switch_label_test: Fail
-type_variable_bounds2_test/02: Fail
-type_variable_bounds2_test/06: Fail
-type_variable_bounds_test/02: Fail
-type_variable_bounds_test/04: Fail
-type_variable_bounds_test/05: Fail

@@ -517,7 +517,7 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
     for (intptr_t i = 0; i < Smi::Value(raw_array->ptr()->length_); ++i) {
       RawField* raw_field =
           reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
-      if (raw_field->ptr()->is_static_) {
+      if (Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
         ++num_static_fields;
       } else {
         ++num_instance_fields;
@@ -536,7 +536,7 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
     for (intptr_t i = 0; i < Smi::Value(raw_array->ptr()->length_); ++i) {
       RawField* raw_field =
           reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
-      if (raw_field->ptr()->is_static_) {
+      if (Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
         ASSERT(raw_field->ptr()->name_ != String::null());
         // static field name string ID
         sub.WritePointer(StringId(raw_field->ptr()->name_));
@@ -554,7 +554,7 @@ void HeapProfiler::WriteClassDump(const RawClass* raw_class) {
     for (intptr_t i = 0; i < Smi::Value(raw_array->ptr()->length_); ++i) {
       RawField* raw_field =
           reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
-      if (!raw_field->ptr()->is_static_) {
+      if (!Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
         ASSERT(raw_field->ptr()->name_ != String::null());
         // field name string ID
         sub.WritePointer(StringId(raw_field->ptr()->name_));
@@ -593,7 +593,7 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
       for (intptr_t i = 0; i < length; ++i) {
         RawField* raw_field =
             reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
-        if (!raw_field->ptr()->is_static_) {
+        if (!Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
           ++num_instance_fields;
         }
       }
@@ -611,7 +611,7 @@ void HeapProfiler::WriteInstanceDump(const RawObject* raw_obj) {
       for (intptr_t i = 0; i < length; ++i) {
         RawField* raw_field =
             reinterpret_cast<RawField*>(raw_array->ptr()->data()[i]);
-        if (!raw_field->ptr()->is_static_) {
+        if (!Field::StaticBit::decode(raw_field->ptr()->kind_bits_)) {
           intptr_t offset =
               Smi::Value(reinterpret_cast<RawSmi*>(raw_field->ptr()->value_));
           RawObject* ptr = *reinterpret_cast<RawObject**>(base + offset);

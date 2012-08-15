@@ -3,11 +3,11 @@
  * Beginning comment
  */
 
-#library("a-directives-test");
+library a_directives_test;
  
-#import("dart:core");
+import "dart:core";
  
-#source("ListObjectLiterals.dart");
+part "ListObjectLiterals.dart";
  
  main() {
    // something to do here

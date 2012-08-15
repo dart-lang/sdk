@@ -20,25 +20,15 @@ HOST_CPUS = utils.GuessCpus()
 
 def BuildOptions():
   result = optparse.OptionParser()
-  result.add_option("--executable",
+  result.add_option("--input_bin",
       action="store", type="string",
-      help="path to snapshot generator executable")
-  result.add_option("--output_bin",
-      action="store", type="string",
-      help="output file name into which snapshot in binary form is generated")
+      help="input file name of the snapshot in binary form")
   result.add_option("--input_cc",
       action="store", type="string",
       help="input file name which contains the C buffer template")
   result.add_option("--output",
       action="store", type="string",
       help="output file name into which snapshot in C buffer form is generated")
-  result.add_option("--script",
-      action="store", type="string",
-      help="Dart script for which snapshot is to be generated")
-  result.add_option("--url_mapping",
-      default=[],
-      action="append",
-      help="mapping from url to file name, used when generating snapshots")
   result.add_option("-v", "--verbose",
       help='Verbose output.',
       default=False, action="store_true")
@@ -46,11 +36,8 @@ def BuildOptions():
 
 
 def ProcessOptions(options):
-  if not options.executable:
-    sys.stderr.write('--executable not specified\n')
-    return False
-  if not options.output_bin:
-    sys.stderr.write('--output_bin not specified\n')
+  if not options.input_bin:
+    sys.stderr.write('--input_bin not specified\n')
     return False
   if not options.input_cc:
     sys.stderr.write('--input_cc not specified\n')
@@ -96,36 +83,7 @@ def Main():
     parser.print_help()
     return 1
 
-  # Setup arguments to the snapshot generator binary.
-  script_args = []
-
-  # First setup the snapshot output filename.
-  script_args.append(''.join([ "--snapshot=", options.output_bin ]))
-
-  # Next setup all url mapping options specified.
-  for url_arg in options.url_mapping:
-    url_mapping_argument = ''.join(["--url_mapping=", url_arg ])
-    script_args.append(url_mapping_argument)
-
-  # Finally append the script name if one is specified.
-  if options.script:
-    script_args.append(options.script)
-
-  # Construct command line to execute the snapshot generator binary and invoke.
-  command = [ options.executable ] + script_args
-  if options.verbose:
-    print ' '.join(command)
-  pipe = subprocess.Popen(command,
-                          stdout=subprocess.PIPE,
-                          stderr=subprocess.PIPE)
-  out, error = pipe.communicate()
-  if (pipe.returncode != 0):
-    print out, error
-    print "Snapshot generation failed"
-    print "(Command was: '", ' '.join(command), "')"
-    return -1
-
-  if not makeFile(options.output, options.input_cc, options.output_bin):
+  if not makeFile(options.output, options.input_cc, options.input_bin):
     print "Unable to generate snapshot in C buffer form"
     return -1
 

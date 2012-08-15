@@ -133,7 +133,7 @@ class Types {
 
   // TODO(karlklose): should we have a class Void?
   Types.with(Element dynamicElement, LibraryElement library)
-    : voidType = new VoidType(new VoidElement(library)),
+    : voidType = new VoidType(new VoidElement(library.entryCompilationUnit)),
       dynamicType = new InterfaceType(dynamicElement);
 
   /** Returns true if t is a subtype of s */

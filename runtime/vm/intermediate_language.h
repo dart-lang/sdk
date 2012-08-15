@@ -100,7 +100,8 @@ class LocalVariable;
   M(UnarySmiOp, UnarySmiOpComp)                                                \
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
-  M(ToDouble, ToDoubleComp)                                                    \
+  M(DoubleToDouble, DoubleToDoubleComp)                                        \
+  M(SmiToDouble, SmiToDoubleComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -403,7 +404,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
         try_index_(try_index),
         dst_type_(dst_type),
         dst_name_(dst_name),
-        eliminated_(false) {
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     ASSERT(instantiator != NULL);
     ASSERT(instantiator_type_arguments != NULL);
@@ -425,12 +426,12 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const AbstractType& dst_type() const { return dst_type_; }
   const String& dst_name() const { return dst_name_; }
 
-  bool IsEliminated() const {
-    return eliminated_;
+  bool is_eliminated() const {
+    return is_eliminated_;
   }
-  void Eliminate() {
-    ASSERT(!eliminated_);
-    eliminated_ = true;
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
   }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -442,7 +443,7 @@ class AssertAssignableComp : public TemplateComputation<3> {
   const intptr_t try_index_;
   const AbstractType& dst_type_;
   const String& dst_name_;
-  bool eliminated_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertAssignableComp);
 };
@@ -454,7 +455,8 @@ class AssertBooleanComp : public TemplateComputation<1> {
                     intptr_t try_index,
                     Value* value)
       : token_pos_(token_pos),
-        try_index_(try_index) {
+        try_index_(try_index),
+        is_eliminated_(false) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
@@ -465,11 +467,22 @@ class AssertBooleanComp : public TemplateComputation<1> {
   intptr_t try_index() const { return try_index_; }
   Value* value() const { return inputs_[0]; }
 
+  bool is_eliminated() const {
+    return is_eliminated_;
+  }
+  void eliminate() {
+    ASSERT(!is_eliminated_);
+    is_eliminated_ = true;
+  }
+
+  virtual void PrintOperandsTo(BufferFormatter* f) const;
+
   virtual bool CanDeoptimize() const { return false; }
 
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
+  bool is_eliminated_;
 
   DISALLOW_COPY_AND_ASSIGN(AssertBooleanComp);
 };
@@ -562,6 +575,7 @@ class InstanceCallComp : public TemplateComputation<0> {
     ASSERT(argument_names.IsZoneHandle());
     ASSERT(Token::IsBinaryToken(token_kind) ||
            Token::IsUnaryToken(token_kind) ||
+           Token::IsIndexOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
@@ -674,7 +688,7 @@ class EqualityCompareComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        receiver_class_id_(kObjectCid) {
+        receiver_class_id_(kIllegalCid) {
     ASSERT((kind == Token::kEQ) || (kind == Token::kNE));
   }
 
@@ -683,8 +697,10 @@ class EqualityCompareComp : public ComparisonComp {
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
 
+  // Receiver class id is computed from collected ICData.
   void set_receiver_class_id(intptr_t value) { receiver_class_id_ = value; }
   intptr_t receiver_class_id() const { return receiver_class_id_; }
+
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
@@ -708,7 +724,7 @@ class RelationalOpComp : public ComparisonComp {
       : ComparisonComp(kind, left, right),
         token_pos_(token_pos),
         try_index_(try_index),
-        operands_class_id_(kObjectCid) {
+        operands_class_id_(kIllegalCid) {
     ASSERT(Token::IsRelationalOperator(kind));
   }
 
@@ -990,13 +1006,12 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
 
 class LoadIndexedComp : public TemplateComputation<2> {
  public:
-  LoadIndexedComp(intptr_t token_pos,
-                  intptr_t try_index,
-                  Value* array,
-                  Value* index)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        receiver_type_(kIllegalCid) {
+  LoadIndexedComp(Value* array,
+                  Value* index,
+                  intptr_t receiver_type,
+                  InstanceCallComp* original)
+      : receiver_type_(receiver_type),
+        original_(original) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -1005,42 +1020,32 @@ class LoadIndexedComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(LoadIndexed)
 
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
-  void set_receiver_type(intptr_t receiver_type) {
-    receiver_type_ = receiver_type;
-  }
+  intptr_t receiver_type() const { return receiver_type_; }
 
-  intptr_t receiver_type() const {
-    return receiver_type_;
-  }
+  InstanceCallComp* original() const { return original_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t receiver_type_;
+  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
 
 
-// Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public TemplateComputation<3> {
  public:
-  StoreIndexedComp(intptr_t token_pos,
-                   intptr_t try_index,
-                   Value* array,
+  StoreIndexedComp(Value* array,
                    Value* index,
-                   Value* value)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        receiver_type_(kIllegalCid) {
+                   Value* value,
+                   intptr_t receiver_type,
+                   InstanceCallComp* original)
+        : receiver_type_(receiver_type),
+          original_(original) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -1051,26 +1056,19 @@ class StoreIndexedComp : public TemplateComputation<3> {
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  void set_receiver_type(intptr_t receiver_type) {
-    receiver_type_ = receiver_type;
-  }
+  InstanceCallComp* original() const { return original_; }
 
-  intptr_t receiver_type() const {
-    return receiver_type_;
-  }
+  intptr_t receiver_type() const { return receiver_type_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t receiver_type_;
+  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
@@ -1693,32 +1691,46 @@ class CheckStackOverflowComp : public TemplateComputation<0> {
 };
 
 
-class ToDoubleComp : public TemplateComputation<1> {
+class DoubleToDoubleComp : public TemplateComputation<1> {
  public:
-  ToDoubleComp(Value* value,
-               intptr_t from,
-               InstanceCallComp* instance_call)
-      : from_(from), instance_call_(instance_call) {
+  DoubleToDoubleComp(Value* value, InstanceCallComp* instance_call)
+      : instance_call_(instance_call) {
     ASSERT(value != NULL);
     inputs_[0] = value;
   }
 
   Value* value() const { return inputs_[0]; }
-  intptr_t from() const { return from_; }
 
   InstanceCallComp* instance_call() const { return instance_call_; }
 
-  virtual void PrintOperandsTo(BufferFormatter* f) const;
-
-  DECLARE_COMPUTATION(ToDouble)
+  DECLARE_COMPUTATION(DoubleToDouble)
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t from_;
   InstanceCallComp* instance_call_;
 
-  DISALLOW_COPY_AND_ASSIGN(ToDoubleComp);
+  DISALLOW_COPY_AND_ASSIGN(DoubleToDoubleComp);
+};
+
+
+class SmiToDoubleComp : public TemplateComputation<0> {
+ public:
+  explicit SmiToDoubleComp(InstanceCallComp* instance_call)
+      : instance_call_(instance_call) { }
+
+  InstanceCallComp* instance_call() const { return instance_call_; }
+
+  DECLARE_CALL_COMPUTATION(SmiToDouble)
+
+  virtual intptr_t ArgumentCount() const { return 1; }
+
+  virtual bool CanDeoptimize() const { return true; }
+
+ private:
+  InstanceCallComp* instance_call_;
+
+  DISALLOW_COPY_AND_ASSIGN(SmiToDoubleComp);
 };
 
 

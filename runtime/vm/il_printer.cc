@@ -89,8 +89,7 @@ void FlowGraphPrinter::PrintTypeCheck(const ParsedFunction& parsed_function,
                                       const AbstractType& dst_type,
                                       const String& dst_name,
                                       bool eliminated) {
-    const Class& cls = Class::Handle(parsed_function.function().owner());
-    const Script& script = Script::Handle(cls.script());
+    const Script& script = Script::Handle(parsed_function.function().script());
     const char* compile_type_name = "unknown";
     if (value != NULL) {
       const AbstractType& type = AbstractType::Handle(value->CompileType());
@@ -168,13 +167,19 @@ void AssertAssignableComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print(", %s, '%s'%s",
            String::Handle(dst_type().Name()).ToCString(),
            dst_name().ToCString(),
-           IsEliminated() ? " eliminated" : "");
+           is_eliminated() ? " eliminated" : "");
   f->Print(" instantiator(");
   instantiator()->PrintTo(f);
   f->Print(")");
   f->Print(" instantiator_type_arguments(");
   instantiator_type_arguments()->PrintTo(f);
   f->Print(")");
+}
+
+
+void AssertBooleanComp::PrintOperandsTo(BufferFormatter* f) const {
+  value()->PrintTo(f);
+  f->Print("%s", is_eliminated() ? " eliminated" : "");
 }
 
 
@@ -294,7 +299,7 @@ void RelationalOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 
 void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < ArgumentCount(); i++) {
     f->Print(", ");
     ArgumentAt(i)->value()->PrintTo(f);
@@ -304,7 +309,7 @@ void AllocateObjectComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
     BufferFormatter* f) const {
-  f->Print("%s", Class::Handle(constructor().owner()).ToCString());
+  f->Print("%s", Class::Handle(constructor().Owner()).ToCString());
   for (intptr_t i = 0; i < InputCount(); i++) {
     f->Print(", ");
     InputAt(i)->PrintTo(f);
@@ -386,13 +391,6 @@ void DoubleBinaryOpComp::PrintOperandsTo(BufferFormatter* f) const {
 
 void UnarySmiOpComp::PrintOperandsTo(BufferFormatter* f) const {
   f->Print("%s, ", Token::Str(op_kind()));
-  value()->PrintTo(f);
-}
-
-
-void ToDoubleComp::PrintOperandsTo(BufferFormatter* f) const {
-  ASSERT(from() == kDoubleCid || from() == kSmiCid);
-  f->Print("%s ", from() == kDoubleCid ? "double2double" : "smi2double");
   value()->PrintTo(f);
 }
 

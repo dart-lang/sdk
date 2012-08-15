@@ -54,13 +54,7 @@ RawClass* Class::ReadFrom(SnapshotReader* reader,
     cls.set_next_field_offset(reader->ReadIntptrValue());
     cls.set_num_native_fields(reader->ReadIntptrValue());
     cls.set_token_pos(reader->ReadIntptrValue());
-    cls.set_class_state(reader->Read<int8_t>());
-    if (reader->Read<bool>()) {
-      cls.set_is_const();
-    }
-    if (reader->Read<bool>()) {
-      cls.set_is_interface();
-    }
+    cls.set_state_bits(reader->Read<uint8_t>());
 
     // Set all the object fields.
     // TODO(5411462): Need to assert No GC can happen here, even though
@@ -100,9 +94,7 @@ void RawClass::WriteTo(SnapshotWriter* writer,
     writer->WriteIntptrValue(ptr()->next_field_offset_);
     writer->WriteIntptrValue(ptr()->num_native_fields_);
     writer->WriteIntptrValue(ptr()->token_pos_);
-    writer->Write<int8_t>(ptr()->class_state_);
-    writer->Write<bool>(ptr()->is_const_);
-    writer->Write<bool>(ptr()->is_interface_);
+    writer->Write<uint8_t>(ptr()->state_bits_);
 
     // Write out all the object pointer fields.
     SnapshotWriterVisitor visitor(writer);
@@ -411,6 +403,52 @@ void RawInstantiatedTypeArguments::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawPatchClass* PatchClass::ReadFrom(SnapshotReader* reader,
+                                    intptr_t object_id,
+                                    intptr_t tags,
+                                    Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+  ASSERT(kind != Snapshot::kMessage && !RawObject::IsCreatedFromSnapshot(tags));
+
+  // Allocate function object.
+  PatchClass& cls = PatchClass::ZoneHandle(reader->isolate(),
+                                            NEW_OBJECT(PatchClass));
+  reader->AddBackRef(object_id, &cls, kIsDeserialized);
+
+  // Set the object tags.
+  cls.set_tags(tags);
+
+  // Set all the object fields.
+  // TODO(5411462): Need to assert No GC can happen here, even though
+  // allocations may happen.
+  intptr_t num_flds = (cls.raw()->to() - cls.raw()->from());
+  for (intptr_t i = 0; i <= num_flds; i++) {
+    *(cls.raw()->from() + i) = reader->ReadObjectRef();
+  }
+
+  return cls.raw();
+}
+
+
+void RawPatchClass::WriteTo(SnapshotWriter* writer,
+                            intptr_t object_id,
+                            Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+  ASSERT(kind != Snapshot::kMessage &&
+         !RawObject::IsCreatedFromSnapshot(writer->GetObjectTags(this)));
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteVMIsolateObject(kPatchClassCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+  // Write out all the object pointer fields.
+  SnapshotWriterVisitor visitor(writer);
+  visitor.VisitPointers(from(), to());
+}
+
+
 RawFunction* Function::ReadFrom(SnapshotReader* reader,
                                 intptr_t object_id,
                                 intptr_t tags,
@@ -492,10 +530,7 @@ RawField* Field::ReadFrom(SnapshotReader* reader,
 
   // Set all non object fields.
   field.set_token_pos(reader->ReadIntptrValue());
-  field.set_is_static(reader->Read<bool>());
-  field.set_is_final(reader->Read<bool>());
-  field.set_is_const(reader->Read<bool>());
-  field.set_has_initializer(reader->Read<bool>());
+  field.set_kind_bits(reader->Read<uint8_t>());
 
   // Set all the object fields.
   // TODO(5411462): Need to assert No GC can happen here, even though
@@ -525,10 +560,7 @@ void RawField::WriteTo(SnapshotWriter* writer,
 
   // Write out all the non object fields.
   writer->WriteIntptrValue(ptr()->token_pos_);
-  writer->Write<bool>(ptr()->is_static_);
-  writer->Write<bool>(ptr()->is_final_);
-  writer->Write<bool>(ptr()->is_const_);
-  writer->Write<bool>(ptr()->has_initializer_);
+  writer->WriteIntptrValue(ptr()->kind_bits_);
 
   // Write out all the object pointer fields.
   SnapshotWriterVisitor visitor(writer);

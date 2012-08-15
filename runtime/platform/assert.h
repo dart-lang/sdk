@@ -99,7 +99,7 @@ class Expect: public DynamicAssertionHelper {
 template<typename E, typename A>
 void DynamicAssertionHelper::Equals(const E& expected, const A& actual) {
   if (actual == expected) return;
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << expected;
   ass << actual;
   std::string es = ess.str(), as = ass.str();
@@ -111,7 +111,7 @@ template<typename E, typename A>
 void DynamicAssertionHelper::NotEquals(const E& not_expected,
                                        const A& actual) {
   if (actual != not_expected) return;
-  std::stringstream ness;
+  std::ostringstream ness;
   ness << not_expected;
   std::string nes = ness.str();
   Fail("did not expect: <%s>", nes.c_str());
@@ -125,7 +125,7 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
   if (((expected - tol) <= actual) && (actual <= (expected + tol))) {
     return;
   }
-  std::stringstream ess, ass, tolss;
+  std::ostringstream ess, ass, tolss;
   ess << expected;
   ass << actual;
   tolss << tol;
@@ -139,7 +139,7 @@ void DynamicAssertionHelper::FloatEquals(const E& expected,
 
 template<typename E, typename A>
 void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << expected;
   ass << actual;
   std::string es = ess.str(), as = ass.str();
@@ -150,7 +150,7 @@ void DynamicAssertionHelper::StringEquals(const E& expected, const A& actual) {
 
 template<typename E, typename A>
 void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << needle;
   ass << haystack;
   std::string es = ess.str(), as = ass.str();
@@ -163,7 +163,7 @@ void DynamicAssertionHelper::IsSubstring(const E& needle, const A& haystack) {
 template<typename E, typename A>
 void DynamicAssertionHelper::IsNotSubstring(const E& needle,
                                             const A& haystack) {
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << needle;
   ass << haystack;
   std::string es = ess.str(), as = ass.str();
@@ -176,7 +176,7 @@ void DynamicAssertionHelper::IsNotSubstring(const E& needle,
 template<typename E, typename A>
 void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
   if (left < right) return;
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << left;
   ass << right;
   std::string es = ess.str(), as = ass.str();
@@ -187,7 +187,7 @@ void DynamicAssertionHelper::LessThan(const E& left, const A& right) {
 template<typename E, typename A>
 void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
   if (left <= right) return;
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << left;
   ass << right;
   std::string es = ess.str(), as = ass.str();
@@ -198,7 +198,7 @@ void DynamicAssertionHelper::LessEqual(const E& left, const A& right) {
 template<typename E, typename A>
 void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
   if (left > right) return;
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << left;
   ass << right;
   std::string es = ess.str(), as = ass.str();
@@ -209,7 +209,7 @@ void DynamicAssertionHelper::GreaterThan(const E& left, const A& right) {
 template<typename E, typename A>
 void DynamicAssertionHelper::GreaterEqual(const E& left, const A& right) {
   if (left >= right) return;
-  std::stringstream ess, ass;
+  std::ostringstream ess, ass;
   ess << left;
   ass << right;
   std::string es = ess.str(), as = ass.str();

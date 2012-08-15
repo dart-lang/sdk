@@ -1161,8 +1161,7 @@ class HInvoke extends HInstruction {
     * the receiver of a method-call. The remaining inputs are the arguments
     * to the invocation.
     */
-  final Selector selector;
-  HInvoke(Selector this.selector, List<HInstruction> inputs) : super(inputs);
+  HInvoke(List<HInstruction> inputs) : super(inputs);
   static final int ARGUMENTS_OFFSET = 1;
 
   // TODO(floitsch): make class abstract instead of adding an abstract method.
@@ -1170,11 +1169,12 @@ class HInvoke extends HInstruction {
 }
 
 class HInvokeDynamic extends HInvoke {
+  final Selector selector;
   Element element;
   SourceString name;
-  HInvokeDynamic(
-      Selector selector, this.element, this.name, List<HInstruction> inputs)
-    : super(selector, inputs);
+
+  HInvokeDynamic(this.selector, this.element, this.name,
+                 List<HInstruction> inputs) : super(inputs);
   toString() => 'invoke dynamic: $name';
   HInstruction get receiver() => inputs[0];
 
@@ -1224,14 +1224,16 @@ class HInvokeDynamicSetter extends HInvokeDynamicField {
 }
 
 class HInvokeStatic extends HInvoke {
+  static final int INVOKE_STATIC_TYPECODE = 30;
+
   /** The first input must be the target. */
-  HInvokeStatic(selector, inputs, [HType knownType = HType.UNKNOWN])
-      : super(selector, inputs) {
+  HInvokeStatic(inputs, [HType knownType = HType.UNKNOWN]) : super(inputs) {
     guaranteedType = knownType;
   }
 
   toString() => 'invoke static: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeStatic(this);
+  int typeCode() => INVOKE_STATIC_TYPECODE;
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
@@ -1247,23 +1249,24 @@ class HInvokeStatic extends HInvoke {
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  HInvokeSuper(selector, inputs) : super(selector, inputs);
+  HInvokeSuper(inputs) : super(inputs);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
 }
 
 class HInvokeInterceptor extends HInvokeStatic {
+  final Selector selector;
   final SourceString name;
   final bool getter;
   final bool setter;
 
-  HInvokeInterceptor(Selector selector,
-                     SourceString this.name,
+  HInvokeInterceptor(this.selector,
+                     this.name,
                      List<HInstruction> inputs,
                      [HType knownType = HType.UNKNOWN,
-                      bool this.getter = false,
-                      bool this.setter = false])
-      : super(selector, inputs, knownType);
+                      this.getter = false,
+                      this.setter = false])
+      : super(inputs, knownType);
 
   toString() => 'invoke interceptor: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeInterceptor(this);
@@ -1452,7 +1455,7 @@ class HForeignNew extends HForeign {
 
 class HInvokeBinary extends HInvokeStatic {
   HInvokeBinary(HStatic target, HInstruction left, HInstruction right)
-      : super(Selector.BINARY_OPERATOR, <HInstruction>[target, left, right]);
+      : super(<HInstruction>[target, left, right]);
 
   HInstruction get left() => inputs[1];
   HInstruction get right() => inputs[2];
@@ -1722,7 +1725,7 @@ class HBitXor extends HBinaryBitOp {
 
 class HInvokeUnary extends HInvokeStatic {
   HInvokeUnary(HStatic target, HInstruction input)
-      : super(Selector.UNARY_OPERATOR, <HInstruction>[target, input]);
+      : super(<HInstruction>[target, input]);
 
   HInstruction get operand() => inputs[1];
 
@@ -2257,7 +2260,7 @@ class HLiteralList extends HInstruction {
 
 class HIndex extends HInvokeStatic {
   HIndex(HStatic target, HInstruction receiver, HInstruction index)
-      : super(Selector.INDEX, <HInstruction>[target, receiver, index]);
+      : super(<HInstruction>[target, receiver, index]);
   toString() => 'index operator';
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
@@ -2291,8 +2294,7 @@ class HIndexAssign extends HInvokeStatic {
                HInstruction receiver,
                HInstruction index,
                HInstruction value)
-      : super(Selector.INDEX_SET,
-              <HInstruction>[target, receiver, index, value]);
+      : super(<HInstruction>[target, receiver, index, value]);
   toString() => 'index assign operator';
   accept(HVisitor visitor) => visitor.visitIndexAssign(this);
 

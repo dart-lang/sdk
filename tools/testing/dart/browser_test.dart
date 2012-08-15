@@ -55,8 +55,8 @@ String dartTestWrapper(Path dartHome, Path library) =>
 """
 #library('test');
 
-#import('${dartHome.append('lib/unittest/unittest.dart')}', prefix: 'unittest');
-#import('${dartHome.append('lib/unittest/html_config.dart')}',
+#import('${dartHome.append('pkg/unittest/unittest.dart')}', prefix: 'unittest');
+#import('${dartHome.append('pkg/unittest/html_config.dart')}',
         prefix: 'config');
 
 #import('${library}', prefix: "Test");

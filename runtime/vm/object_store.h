@@ -76,8 +76,9 @@ class ObjectStore {
 
   RawClass* smi_class() const { return smi_class_; }
   void set_smi_class(const Class& value) { smi_class_ = value.raw(); }
-  static intptr_t smi_class_offset() {
-    return OFFSET_OF(ObjectStore, smi_class_);
+
+  RawType* smi_type() const { return smi_type_; }
+  void set_smi_type(const Type& value) { smi_type_ = value.raw();
   }
 
   RawType* double_interface() const { return double_interface_; }
@@ -88,8 +89,14 @@ class ObjectStore {
   RawClass* double_class() const { return double_class_; }
   void set_double_class(const Class& value) { double_class_ = value.raw(); }
 
+  RawType* double_type() const { return double_type_; }
+  void set_double_type(const Type& value) { double_type_ = value.raw(); }
+
   RawClass* mint_class() const { return mint_class_; }
   void set_mint_class(const Class& value) { mint_class_ = value.raw(); }
+
+  RawType* mint_type() const { return mint_type_; }
+  void set_mint_type(const Type& value) { mint_type_ = value.raw(); }
 
   RawClass* bigint_class() const { return bigint_class_; }
   void set_bigint_class(const Class& value) { bigint_class_ = value.raw(); }
@@ -466,10 +473,13 @@ class ObjectStore {
   RawType* int_interface_;
   RawClass* integer_implementation_class_;
   RawClass* smi_class_;
+  RawType* smi_type_;
   RawClass* mint_class_;
+  RawType* mint_type_;
   RawClass* bigint_class_;
   RawType* double_interface_;
   RawClass* double_class_;
+  RawType* double_type_;
   RawType* string_interface_;
   RawClass* one_byte_string_class_;
   RawClass* two_byte_string_class_;

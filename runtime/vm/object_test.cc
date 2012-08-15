@@ -76,13 +76,13 @@ TEST_CASE(Class) {
   function = cls.LookupStaticFunction(function_name);
   EXPECT(!function.IsNull());
   EXPECT(function_name.Equals(String::Handle(function.name())));
-  EXPECT_EQ(cls.raw(), function.owner());
+  EXPECT_EQ(cls.raw(), function.Owner());
   EXPECT(function.is_static());
   function_name = String::New("baz");
   function = cls.LookupDynamicFunction(function_name);
   EXPECT(!function.IsNull());
   EXPECT(function_name.Equals(String::Handle(function.name())));
-  EXPECT_EQ(cls.raw(), function.owner());
+  EXPECT_EQ(cls.raw(), function.Owner());
   EXPECT(!function.is_static());
   function = cls.LookupStaticFunction(function_name);
   EXPECT(function.IsNull());

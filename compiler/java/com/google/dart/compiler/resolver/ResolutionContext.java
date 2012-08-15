@@ -78,26 +78,16 @@ public class ResolutionContext implements ResolutionErrorListener {
     return scope;
   }
 
-  void declare(Element element, ErrorCode errorCode, ErrorCode warningCode) {
+  void declare(Element element, ErrorCode errorCode) {
     String name = element.getName();
     Element existingLocalElement = scope.findLocalElement(name);
     // Check for duplicate declaration in the enclosing scope.
-    if (existingLocalElement == null && warningCode != null) {
+    if (existingLocalElement == null) {
       Element existingElement = scope.findElement(scope.getLibrary(), name);
       if (existingElement != null) {
-        if (!Elements.isConstructorParameter(element)
-            && !Elements.isParameterOfMethodWithoutBody(element)
-            && !(Elements.isStaticContext(element) && !Elements.isStaticContext(existingElement))
-            && !existingElement.getModifiers().isAbstractField()
-            && !Elements.isArtificialAssertMethod(existingElement)) {
-          SourceInfo nameSourceInfo = element.getNameLocation();
-          String existingTitle = Elements.getUserElementTitle(existingElement);
-          String existingLocation = Elements.getRelativeElementLocation(element, existingElement);
-          if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
-            onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
-          } else {
-            onError(nameSourceInfo, warningCode, name, existingTitle, existingLocation);
-          }
+        SourceInfo nameSourceInfo = element.getNameLocation();
+        if (existingElement.getKind() == ElementKind.LIBRARY_PREFIX) {
+          onError(nameSourceInfo, ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, name);
         }
       }
     }
@@ -362,8 +352,7 @@ public class ResolutionContext implements ResolutionErrorListener {
     if (node.getFunctionName() != null) {
       declare(
           element,
-          ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION,
-          ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING);
+          ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION);
     }
     return element;
   }

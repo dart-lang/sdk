@@ -655,11 +655,19 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
       body.Emit('    throw "Incorrect number or type of arguments";\n');
     else:
       operation = operations[0]
+      argument_count = len(operation.arguments)
       for position, argument in list(enumerate(operation.arguments))[::-1]:
         if self._IsArgumentOptionalInWebCore(operation, argument):
-          check = '%s === _null' % argument_names[position]
-          GenerateCall(operation, position, [check])
-      GenerateCall(operation, len(operation.arguments), [])
+          check = '%s !== _null' % argument_names[position]
+          # argument_count instead of position + 1 is used here to cover one
+          # complicated case.  Consider foo(x, [Optional] y, [Optional=DefaultIsNullString] z)
+          # (as of now it's modelled after HTMLMediaElement.webkitAddKey).
+          # y is optional in WebCore, while z is not.
+          # In this case, if y !== _null, we'd like to emit foo(x, y, z) invocation, not
+          # foo(x, y).
+          GenerateCall(operation, argument_count, [check])
+          argument_count = position
+      GenerateCall(operation, argument_count, [])
 
   def SecondaryContext(self, interface):
     pass

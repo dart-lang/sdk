@@ -14,7 +14,9 @@
 #include "platform/json.h"
 #include "platform/thread.h"
 // Declare the OS-specific types ahead of defining the generic class.
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
+#include "bin/dbg_connection_android.h"
+#elif defined(TARGET_OS_LINUX)
 #include "bin/dbg_connection_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/dbg_connection_macos.h"

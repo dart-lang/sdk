@@ -215,6 +215,11 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   }
 
   @Override
+  public List<Element> getExportedElements() {
+    return null;
+  }
+
+  @Override
   public LibraryUnit getLibraryUnit() {
     return null;
   }

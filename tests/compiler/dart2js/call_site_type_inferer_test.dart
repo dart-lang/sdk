@@ -91,9 +91,6 @@ final String TEST_NINE = @"""
   class A {
     x(p1, p2) => x(p1, p2);
   }
-  void f(p) {
-    p.x("x", "y");
-  }
   main() {
     new A().x(1, 2);
   }
@@ -109,6 +106,15 @@ final String TEST_TEN = @"""
   main() {
     f(null);
     new A().x(1, 2);
+  }
+""";
+
+final String TEST_ELEVEN = @"""
+  class A {
+    x(p1, p2) => x(1, 2);
+  }
+  main() {
+    new A().x("x", "y");
   }
 """;
 
@@ -137,7 +143,9 @@ void test() {
   runTest(TEST_SIX, [HType.NUMBER]);
   runTest(TEST_SEVEN);
   runTest(TEST_EIGHT, [HType.INTEGER, HType.UNKNOWN]);
+  runTest(TEST_NINE, [HType.INTEGER, HType.INTEGER]);
   runTest(TEST_TEN);
+  runTest(TEST_ELEVEN);
 }
 
 void main() {

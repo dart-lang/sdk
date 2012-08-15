@@ -445,72 +445,6 @@ public class NegativeResolverTest extends CompilerTestCase {
   }
 
   /**
-   * Shadowing top-level element with local variable.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3180
-   */
-  public void test_nameShadow_topLevel_localVariable_inFunction() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {}",
-            "interface B {}",
-            "var foo;",
-            "main() {",
-            "  var A;",
-            "  var B;",
-            "  var foo;",
-            "}",
-            ""),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 7, 1),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 7, 7, 1),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 7, 3));
-    assertEquals(
-        "Local variable 'A' is hiding class 'A' at Test.dart line:2 col:7",
-        errors.get(0).getMessage());
-    assertEquals(
-        "Local variable 'B' is hiding interface 'B' at Test.dart line:3 col:11",
-        errors.get(1).getMessage());
-    assertEquals(
-        "Local variable 'foo' is hiding top-level variable 'foo' at Test.dart line:4 col:5",
-        errors.get(2).getMessage());
-  }
-
-  /**
-   * Shadowing top-level element with local variable.
-   * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3180
-   */
-  public void test_nameShadow_topLevel_localVariable_inInstanceMethod() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {}",
-            "interface B {}",
-            "var foo;",
-            "class Z {",
-            "  m() {",
-            "    var A;",
-            "    var B;",
-            "    var foo;",
-            "  }",
-            "}",
-            ""),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 7, 9, 1),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 8, 9, 1),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 9, 9, 3));
-    assertEquals(
-        "Local variable 'A' is hiding class 'A' at Test.dart line:2 col:7",
-        errors.get(0).getMessage());
-    assertEquals(
-        "Local variable 'B' is hiding interface 'B' at Test.dart line:3 col:11",
-        errors.get(1).getMessage());
-    assertEquals(
-        "Local variable 'foo' is hiding top-level variable 'foo' at Test.dart line:4 col:5",
-        errors.get(2).getMessage());
-  }
-
-  /**
    * Multiple unnamed constructor definitions.
    */
   public void test_nameShadow_unnamedConstructors() {
@@ -649,27 +583,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_ERROR, 5, 9, 1));
   }
 
-  public void test_nameShadow_variables_enclosingBlock() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  foo() {",
-            "    var a;",
-            "    {",
-            "      var a;",
-            "    }",
-            "  }",
-            "  bar() {",
-            "    {",
-            "      var bb;",
-            "    }",
-            "    var bb;",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 11, 1));
-  }
-
   /**
    * Here we have two local variables: one in "main" and one in the scope on "block". However
    * variables are declared in lexical scopes, i.e. in "block", so using it before declaration is
@@ -689,44 +602,7 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  }",
             "}",
             ""),
-        errEx(ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, 5, 5, 1),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 6, 9, 1));
-  }
-
-  public void test_nameShadow_field_variable() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  var a;",
-            "  foo() {",
-            "    var a;",
-            "    var bb;",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 5, 9, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals("Local variable 'a' is hiding field 'a' at Test.dart class:A line:3 col:7", message);
-    }
-  }
-
-  public void test_nameShadow_classTypeVariable_variable() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class C<A> {",
-            "  foo() {",
-            "    var A;",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals(
-          "Local variable 'A' is hiding type variable 'A' at Test.dart class:C line:2 col:9",
-          message);
-    }
+        errEx(ResolverErrorCode.USING_LOCAL_VARIABLE_BEFORE_DECLARATION, 5, 5, 1));
   }
 
   public void test_nameShadow_methodParameters() {
@@ -738,22 +614,6 @@ public class NegativeResolverTest extends CompilerTestCase {
             "  }",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_PARAMETER, 3, 14, 1));
-  }
-
-  public void test_nameShadow_field_methodParameter() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  var a;",
-            "  foo(a, bb) {",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 7, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals("Parameter 'a' is hiding field 'a' at Test.dart class:A line:3 col:7", message);
-    }
   }
 
   /**
@@ -768,48 +628,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         "  static foo(a) {",
         "  }",
         "}"));
-  }
-
-  public void test_nameShadow_staticField_staticMethodParameter() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  static var a;",
-            "  static foo(a) {",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
-  }
-
-  public void test_nameShadow_topLevelVariable_staticMethodParameter() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "var a;",
-            "class A {",
-            "  static foo(a) {",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 14, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals(
-          "Parameter 'a' is hiding top-level variable 'a' at Test.dart line:2 col:5",
-          message);
-    }
-  }
-
-  public void test_nameShadow_staticField_instanceMethodParameter() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  static var a;",
-            "  foo(a) {",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 4, 7, 1));
   }
 
   public void test_nameShadow_field_methodParameterThis() {
@@ -839,27 +657,6 @@ public class NegativeResolverTest extends CompilerTestCase {
         "}"));
   }
 
-  public void test_nameShadow_variable_catchParameter() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  foo() {",
-            "    var a;",
-            "    try {",
-            "    } catch (var a) {",
-            "    }",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_PARAMETER_WARNING, 6, 18, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals(
-          "Parameter 'a' is hiding variable 'a' at Test.dart class:A line:4 col:9",
-          message);
-    }
-  }
-
   public void test_nameShadow_classTypeVariables() {
     checkSourceErrors(
         makeCode(
@@ -867,21 +664,6 @@ public class NegativeResolverTest extends CompilerTestCase {
             "class C<A, BB, A> {",
             "}"),
         errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE, 2, 16, 1));
-  }
-
-  public void test_nameShadow_class_classTypeVariable() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class BB {",
-            "}",
-            "class C<A, BB> {",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_TYPE_VARIABLE_WARNING, 4, 12, 2));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals("Type variable 'BB' is hiding class 'BB' at Test.dart line:2 col:7", message);
-    }
   }
 
   /**
@@ -1045,25 +827,6 @@ public class NegativeResolverTest extends CompilerTestCase {
     {
       String message = errors.get(0).getMessage();
       assertEquals("Duplicate function expression 'a'", message);
-    }
-  }
-
-  public void test_nameShadow_field_functionExpressionNamed() {
-    checkSourceErrors(
-        makeCode(
-            "// filler filler filler filler filler filler filler filler filler filler",
-            "class A {",
-            "  var a;",
-            "  foo() {",
-            "    a() => 0;",
-            "  }",
-            "}"),
-        errEx(ResolverErrorCode.DUPLICATE_FUNCTION_EXPRESSION_WARNING, 5, 5, 1));
-    {
-      String message = errors.get(0).getMessage();
-      assertEquals(
-          "Function expression 'a' is hiding field 'a' at Test.dart class:A line:3 col:7",
-          message);
     }
   }
 

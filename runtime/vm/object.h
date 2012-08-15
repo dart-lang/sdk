@@ -250,14 +250,13 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* dynamic_class() { return dynamic_class_; }
   static RawClass* void_class() { return void_class_; }
   static RawClass* unresolved_class_class() { return unresolved_class_class_; }
-  static RawClass* type_class() {
-      return type_class_;
-  }
+  static RawClass* type_class() { return type_class_; }
   static RawClass* type_parameter_class() { return type_parameter_class_; }
   static RawClass* type_arguments_class() { return type_arguments_class_; }
   static RawClass* instantiated_type_arguments_class() {
       return instantiated_type_arguments_class_;
   }
+  static RawClass* patch_class_class() { return patch_class_class_; }
   static RawClass* function_class() { return function_class_; }
   static RawClass* field_class() { return field_class_; }
   static RawClass* literal_token_class() { return literal_token_class_; }
@@ -284,19 +283,6 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   static RawClass* unwind_error_class() { return unwind_error_class_; }
   static RawClass* icdata_class() { return icdata_class_; }
   static RawClass* subtypetestcache_class() { return subtypetestcache_class_; }
-
-  static RawClass* CreateAndRegisterInterface(const char* cname,
-                                              const Script& script,
-                                              const Library& lib);
-  static void RegisterClass(const Class& cls,
-                            const char* cname,
-                            const Script& script,
-                            const Library& lib);
-
-  static void RegisterPrivateClass(const Class& cls,
-                                   const char* cname,
-                                   const Script& script,
-                                   const Library& lib);
 
   static RawError* Init(Isolate* isolate);
   static void InitFromSnapshot(Isolate* isolate);
@@ -365,6 +351,16 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
  private:
   static void InitializeObject(uword address, intptr_t id, intptr_t size);
 
+  static RawClass* CreateAndRegisterInterface(const char* cname,
+                                              const Script& script,
+                                              const Library& lib);
+  static void RegisterClass(const Class& cls,
+                            const char* cname,
+                            const Library& lib);
+  static void RegisterPrivateClass(const Class& cls,
+                                   const char* cname,
+                                   const Library& lib);
+
   cpp_vtable* vtable_address() const {
     uword vtable_addr = reinterpret_cast<uword>(this);
     return reinterpret_cast<cpp_vtable*>(vtable_addr);
@@ -390,6 +386,7 @@ CLASS_LIST_NO_OBJECT(DEFINE_CLASS_TESTER);
   // Class of the TypeArguments vm object.
   static RawClass* type_arguments_class_;
   static RawClass* instantiated_type_arguments_class_;  // Class of Inst..ments.
+  static RawClass* patch_class_class_;  // Class of the PatchClass vm object.
   static RawClass* function_class_;  // Class of the Function vm object.
   static RawClass* field_class_;  // Class of the Field vm object.
   static RawClass* literal_token_class_;  // Class of LiteralToken vm object.
@@ -464,6 +461,7 @@ class Class : public Object {
   RawString* UserVisibleName() const;
 
   RawScript* script() const { return raw_ptr()->script_; }
+  void set_script(const Script& value) const;
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
@@ -639,27 +637,22 @@ class Class : public Object {
   }
 
   bool is_interface() const {
-    return raw_ptr()->is_interface_;
+    return InterfaceBit::decode(raw_ptr()->state_bits_);
   }
   void set_is_interface() const;
-  static intptr_t is_interface_offset() {
-    return OFFSET_OF(RawClass, is_interface_);
-  }
 
   bool is_finalized() const {
-    return raw_ptr()->class_state_ == RawClass::kFinalized;
+    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kFinalized;
   }
   void set_is_finalized() const;
 
   bool is_prefinalized() const {
-    return raw_ptr()->class_state_ == RawClass::kPreFinalized;
+    return StateBits::decode(raw_ptr()->state_bits_) == RawClass::kPreFinalized;
   }
 
   void set_is_prefinalized() const;
 
-  bool is_const() const {
-    return raw_ptr()->is_const_;
-  }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->state_bits_); }
   void set_is_const() const;
 
   int num_native_fields() const {
@@ -680,6 +673,8 @@ class Class : public Object {
   RawArray* constants() const;
 
   void Finalize() const;
+
+  void ApplyPatch(const Class& patch) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -711,12 +706,23 @@ class Class : public Object {
   static RawClass* GetClass(intptr_t class_id, bool is_signature_class);
 
  private:
+  enum {
+    kConstBit = 1,
+    kInterfaceBit = 2,
+    kStateTagBit = 3,
+    kStateTagSize = 2,
+  };
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class InterfaceBit : public BitField<bool, kInterfaceBit, 1> {};
+  class StateBits : public BitField<RawClass::ClassState,
+                                    kStateTagBit, kStateTagSize> {};  // NOLINT
+
   void set_name(const String& value) const;
-  void set_script(const Script& value) const;
   void set_token_pos(intptr_t value) const;
   void set_signature_function(const Function& value) const;
   void set_signature_type(const AbstractType& value) const;
-  void set_class_state(int8_t state) const;
+  void set_class_state(RawClass::ClassState state) const;
+  void set_state_bits(uint8_t bits) const;
 
   void set_constants(const Array& value) const;
 
@@ -1282,6 +1288,27 @@ class InstantiatedTypeArguments : public AbstractTypeArguments {
 };
 
 
+class PatchClass : public Object {
+ public:
+  RawClass* patched_class() const { return raw_ptr()->patched_class_; }
+  RawScript* script() const { return raw_ptr()->script_; }
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawPatchClass));
+  }
+
+  static RawPatchClass* New(const Class& patched_class, const Script& script);
+
+ private:
+  void set_patched_class(const Class& value) const;
+  void set_script(const Script& value) const;
+  static RawPatchClass* New();
+
+  HEAP_OBJECT_IMPLEMENTATION(PatchClass, Object);
+  friend class Class;
+};
+
+
 class Function : public Object {
  public:
   RawString* name() const { return raw_ptr()->name_; }
@@ -1310,7 +1337,9 @@ class Function : public Object {
   // does not involve generic parameter types or generic result type.
   bool HasInstantiatedSignature() const;
 
-  RawClass* owner() const { return raw_ptr()->owner_; }
+  RawClass* Owner() const;
+
+  RawScript* script() const;
 
   RawAbstractType* result_type() const { return raw_ptr()->result_type_; }
   void set_result_type(const AbstractType& value) const;
@@ -1580,7 +1609,7 @@ class Function : public Object {
                           bool is_const,
                           bool is_abstract,
                           bool is_external,
-                          const Class& owner,
+                          const Object& owner,
                           intptr_t token_pos);
 
   // Allocates a new Function object representing a closure function, as well as
@@ -1615,7 +1644,7 @@ class Function : public Object {
   class AbstractBit : public BitField<bool, kAbstractBit, 1> {};
   class ExternalBit : public BitField<bool, kExternalBit, 1> {};
   class KindBits :
-    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {}; // NOLINT
+    public BitField<RawFunction::Kind, kKindTagBit, kKindTagSize> {};  // NOLINT
 
   void set_name(const String& value) const;
   void set_kind(RawFunction::Kind value) const;
@@ -1623,7 +1652,7 @@ class Function : public Object {
   void set_is_const(bool is_const) const;
   void set_is_external(bool value) const;
   void set_parent_function(const Function& value) const;
-  void set_owner(const Class& value) const;
+  void set_owner(const Object& value) const;
   void set_token_pos(intptr_t value) const;
   void set_implicit_closure_function(const Function& value) const;
   void set_kind_tag(intptr_t value) const;
@@ -1660,9 +1689,9 @@ class Field : public Object {
   RawString* name() const { return raw_ptr()->name_; }
   RawString* UserVisibleName() const;
 
-  bool is_static() const { return raw_ptr()->is_static_; }
-  bool is_final() const { return raw_ptr()->is_final_; }
-  bool is_const() const { return raw_ptr()->is_const_; }
+  bool is_static() const { return StaticBit::decode(raw_ptr()->kind_bits_); }
+  bool is_final() const { return FinalBit::decode(raw_ptr()->kind_bits_); }
+  bool is_const() const { return ConstBit::decode(raw_ptr()->kind_bits_); }
 
   inline intptr_t Offset() const;
   inline void SetOffset(intptr_t value) const;
@@ -1690,9 +1719,12 @@ class Field : public Object {
 
   intptr_t token_pos() const { return raw_ptr()->token_pos_; }
 
-  bool has_initializer() const { return raw_ptr()->has_initializer_; }
+  bool has_initializer() const {
+    return HasInitializerBit::decode(raw_ptr()->kind_bits_);
+  }
   void set_has_initializer(bool has_initializer) const {
-    raw_ptr()->has_initializer_ = has_initializer;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = HasInitializerBit::update(has_initializer, bits);
   }
 
   // Constructs getter and setter names for fields and vice versa.
@@ -1706,15 +1738,29 @@ class Field : public Object {
   static bool IsSetterName(const String& function_name);
 
  private:
+  enum {
+    kConstBit = 1,
+    kStaticBit,
+    kFinalBit,
+    kHasInitializerBit,
+  };
+  class ConstBit : public BitField<bool, kConstBit, 1> {};
+  class StaticBit : public BitField<bool, kStaticBit, 1> {};
+  class FinalBit : public BitField<bool, kFinalBit, 1> {};
+  class HasInitializerBit : public BitField<bool, kHasInitializerBit, 1> {};
+
   void set_name(const String& value) const;
   void set_is_static(bool is_static) const {
-    raw_ptr()->is_static_ = is_static;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = StaticBit::update(is_static, bits);
   }
   void set_is_final(bool is_final) const {
-    raw_ptr()->is_final_ = is_final;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = FinalBit::update(is_final, bits);
   }
   void set_is_const(bool value) const {
-    raw_ptr()->is_const_ = value;
+    uword bits = raw_ptr()->kind_bits_;
+    raw_ptr()->kind_bits_ = ConstBit::update(value, bits);
   }
   void set_owner(const Class& value) const {
     StorePointer(&raw_ptr()->owner_, value.raw());
@@ -1722,10 +1768,14 @@ class Field : public Object {
   void set_token_pos(intptr_t token_pos) const {
     raw_ptr()->token_pos_ = token_pos;
   }
+  void set_kind_bits(intptr_t value) const {
+    raw_ptr()->kind_bits_ = value;
+  }
   static RawField* New();
 
   HEAP_OBJECT_IMPLEMENTATION(Field, Object);
   friend class Class;
+  friend class HeapProfiler;
 };
 
 
@@ -1995,7 +2045,7 @@ class Library : public Object {
     raw_ptr()->native_entry_resolver_ = value;
   }
 
-  RawError* Patch(const String& url, const String& source) const;
+  RawError* Patch(const Script& script) const;
 
   RawString* PrivateName(const String& name) const;
 
@@ -2270,6 +2320,8 @@ class PcDescriptors : public Object {
   // Verify (assert) assumptions about pc descriptors in debug mode.
   void Verify(bool check_ids) const;
 
+  static void PrintHeaderString();
+
   // We would have a VisitPointers function here to traverse the
   // pc descriptors table to visit objects if any in the table.
 
@@ -2483,6 +2535,13 @@ class Code : public Object {
   void set_is_optimized(bool value) const {
     raw_ptr()->is_optimized_ = value ? 1 : 0;
   }
+  intptr_t spill_slot_count() const {
+    return raw_ptr()->spill_slot_count_;
+  }
+  void set_spill_slot_count(intptr_t count) const {
+    raw_ptr()->spill_slot_count_ = count;
+  }
+
   uword EntryPoint() const {
     const Instructions& instr = Instructions::Handle(instructions());
     return instr.EntryPoint();
@@ -2846,6 +2905,9 @@ class ICData : public Object {
   // Returns this->raw() if num_args_tested == 1, otherwise returns a new
   // ICData object containing only unique arg0 checks.
   RawICData* AsUnaryClassChecks() const;
+
+  bool AllTargetsHaveSameOwner(intptr_t owner_cid) const;
+  bool AllReceiversAreNumbers() const;
 
   static RawICData* New(const Function& caller_function,
                         const String& target_name,

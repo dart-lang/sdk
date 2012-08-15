@@ -84,13 +84,13 @@ public class TestLibrarySource implements LibrarySource {
   @Override
   public Reader getSourceReader() {
     StringBuilder sb = new StringBuilder();
-    sb.append("#library('");
+    sb.append("library ");
     sb.append(name);
-    sb.append("');\n");
+    sb.append(";\n");
     for (DartSource source : sourceMap.values()) {
-      sb.append("#source('");
+      sb.append("part '");
       sb.append(source.getName());
-      sb.append("');\n");
+      sb.append("';\n");
     }
     return new StringReader(sb.toString());
   }

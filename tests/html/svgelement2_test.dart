@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('SVGElement2Test');
-#import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 #import('svgelement_test.dart', prefix: 'originalTest');
 

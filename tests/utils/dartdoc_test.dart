@@ -5,11 +5,11 @@
 /// Unit tests for doc.
 #library('dartdoc_tests');
 
-#import('../../lib/dartdoc/dartdoc.dart', prefix: 'dd');
-#import('../../lib/dartdoc/markdown.dart', prefix: 'md');
+#import('../../pkg/dartdoc/dartdoc.dart', prefix: 'dd');
+#import('../../pkg/dartdoc/markdown.dart', prefix: 'md');
 
 // TODO(rnystrom): Better path to unittest.
-#import('../../lib/unittest/unittest.dart');
+#import('../../pkg/unittest/unittest.dart');
 #import('../../frog/lang.dart');
 #import('../../frog/file_system_vm.dart');
 

@@ -34,7 +34,7 @@ Node parseBodyCode(String text, Function parseMethod) {
           new MockFile(text));
   LibraryElement library = new LibraryElement(script);
   library.canUseNative = true;
-  NodeListener listener = new NodeListener(lc, library);
+  NodeListener listener = new NodeListener(lc, library.entryCompilationUnit);
   Parser parser = new Parser(listener);
   Token endToken = parseMethod(parser, tokens);
   assert(endToken.kind == EOF_TOKEN);
@@ -72,7 +72,7 @@ Link<Element> parseUnit(String text, Compiler compiler,
   ElementListener listener = new ElementListener(compiler, unit, () => id++);
   PartialParser parser = new PartialParser(listener);
   compiler.withCurrentElement(unit, () => parser.parseUnit(tokens));
-  return unit.topLevelElements;
+  return unit.localMembers;
 }
 
 // TODO(ahe): We define this method to avoid having to import

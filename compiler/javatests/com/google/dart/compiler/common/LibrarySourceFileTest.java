@@ -61,20 +61,6 @@ public class LibrarySourceFileTest extends AbstractSourceFileTest {
     assertFalse(iter.hasNext());
   }
 
-  public void testSpacesInPaths() throws IOException {
-    String sourceName = "Source with Spaces.dart";
-    LibraryUnit appUnit = getLibraryUnit("Library Source With Spaces.dart",
-      "library {\n" +
-      " import = [\n" +
-      " ]\n" +
-      " source = [\n" +
-      "'Source with Spaces.dart'\n" +
-       "]\n" +
-      "}");
-    LibrarySource source = appUnit.getSource();
-    assertNotNull(source.getSourceFor(sourceName));
-  }
-
   /**
    * Answer the {@link LibraryUnit} on which tests are performed
    *

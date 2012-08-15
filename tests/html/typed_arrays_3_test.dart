@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 #library('TypedArrays3Test');
-#import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 #import('dart:html');
 
 main() {

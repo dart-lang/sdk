@@ -492,6 +492,11 @@ RawTypeParameter* SnapshotReader::NewTypeParameter() {
 }
 
 
+RawPatchClass* SnapshotReader::NewPatchClass() {
+  ALLOC_NEW_OBJECT(PatchClass, Object::patch_class_class());
+}
+
+
 RawFunction* SnapshotReader::NewFunction() {
   ALLOC_NEW_OBJECT(Function, Object::function_class());
 }

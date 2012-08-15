@@ -34,22 +34,22 @@ DRT_VERSION = os.path.join(DRT_DIR, 'LAST_VERSION')
 DRT_LATEST_PATTERN = (
     'gs://dartium-archive/latest/drt-%(osname)s-inc-*.zip')
 DRT_PERMANENT_PATTERN = ('gs://dartium-archive/drt-%(osname)s-inc/drt-'
-                         '%(osname)s-inc-%(num)s.%(num)s.zip')
+                         '%(osname)s-inc-%(num1)s.%(num2)s.zip')
 
 DARTIUM_DIR = os.path.join('client', 'tests', 'dartium')
 DARTIUM_VERSION = os.path.join(DARTIUM_DIR, 'LAST_VERSION')
 DARTIUM_LATEST_PATTERN = (
     'gs://dartium-archive/latest/dartium-%(osname)s-inc-*.zip')
 DARTIUM_PERMANENT_PATTERN = ('gs://dartium-archive/dartium-%(osname)s-inc/'
-                             'dartium-%(osname)s-inc-%(num)s.%(num)s.zip')
+                             'dartium-%(osname)s-inc-%(num1)s.%(num2)s.zip')
 
 CHROMEDRIVER_DIR = os.path.join('tools', 'testing', 'dartium-chromedriver')
 CHROMEDRIVER_VERSION = os.path.join(CHROMEDRIVER_DIR, 'LAST_VERSION')
 CHROMEDRIVER_LATEST_PATTERN = (
     'gs://dartium-archive/latest/chromedriver-%(osname)s-inc-*.zip')
 CHROMEDRIVER_PERMANENT_PATTERN = ('gs://dartium-archive/chromedriver-%(osname)s'
-                                  '-inc/chromedriver-%(osname)s-inc-%(num)s.'
-                                  '%(num)s.zip')
+                                  '-inc/chromedriver-%(osname)s-inc-%(num1)s.'
+                                  '%(num2)s.zip')
 
 SDK_DIR = os.path.join(utils.GetBuildRoot(utils.GuessOS(), 'release', 'ia32'),
     'dart-sdk')
@@ -132,7 +132,8 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
     latest_pattern: the google store url pattern pointing to the latest binary
     permanent_prefix: stable google store folder used to download versions
     revision_num: The desired revision number to retrieve. If revision_num is
-        None, we return the latest revision.
+        None, we return the latest revision. If the revision number is specified
+        but unavailable, find the nearest older revision and use that instead.
   """
   osdict = {'Darwin':'mac', 'Linux':'lucid64', 'Windows':'win'}
 
@@ -141,7 +142,25 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
     latest = output_lines[-1]
     if not revision_num:
       revision_num = latest[latest.rindex('-') + 1 : latest.index('.')]
-    latest = (permanent_prefix % { 'osname' : osname, 'num' : revision_num })
+      latest = (permanent_prefix[:permanent_prefix.rindex('/')] % { 'osname' :
+          osname } + latest[latest.rindex('/'):])
+    else:
+      latest = (permanent_prefix % { 'osname' : osname, 'num1' : revision_num,
+          'num2' : revision_num })
+      foundURL = False
+      while not foundURL:
+        # Test to ensure this URL exists because the dartium-archive builds can
+        # have unusual numbering (a range of CL numbers) sometimes.
+        result, out = gsutil('ls', permanent_prefix % {'osname' : osname,
+            'num1': '*', 'num2': revision_num })
+        if result == 0:
+          # First try to find one with the the second number the same as the
+          # requested number.
+          latest = out.split()[0]
+          foundURL = True
+        else:
+          # Now try to find one with a nearby CL num.
+          revision_num = int(revision_num) - 1
     return latest
     
   get_from_gsutil(name, directory, version_file, latest_pattern, osdict, 

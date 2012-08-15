@@ -5,21 +5,21 @@
 // This API is exploratory.
 spawnDomFunction(Function topLevelFunction) => _Utils.spawnDomFunctionImpl(topLevelFunction);
 
-// layoutTestController implementation.
-// FIXME: provide a separate lib for layoutTestController.
+// testRunner implementation.
+// FIXME: provide a separate lib for testRunner.
 
-var _layoutTestController;
+var _testRunner;
 
-LayoutTestController get layoutTestController() {
-  if (_layoutTestController === null)
-    _layoutTestController = new LayoutTestController._(_NPObject.retrieve("layoutTestController"));
-  return _layoutTestController;
+TestRunner get testRunner() {
+  if (_testRunner === null)
+    _testRunner = new TestRunner._(_NPObject.retrieve("testRunner"));
+  return _testRunner;
 }
 
-class LayoutTestController {
+class TestRunner {
   final _NPObject _npObject;
 
-  LayoutTestController._(this._npObject);
+  TestRunner._(this._npObject);
 
   display() => _npObject.invoke('display');
   dumpAsText() => _npObject.invoke('dumpAsText');

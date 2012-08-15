@@ -8,5 +8,9 @@ class $FACTORYPROVIDER {
 
   factory XMLHttpRequest.get(String url,
                                      onSuccess(XMLHttpRequest request)) =>
-      _XMLHttpRequestUtils.get(url, onSuccess);
+      _XMLHttpRequestUtils.get(url, onSuccess, false);
+
+  factory XMLHttpRequest.getWithCredentials(String url,
+                                     onSuccess(XMLHttpRequest request)) =>
+      _XMLHttpRequestUtils.get(url, onSuccess, true);
 }

@@ -1,5 +1,5 @@
-#library("test");
-#import("QualifiedReturnTypeA.dart", prefix : "pref");
+library test;
+import "QualifiedReturnTypeA.dart" as pref;
 
 class A {
   pref.A foo() {

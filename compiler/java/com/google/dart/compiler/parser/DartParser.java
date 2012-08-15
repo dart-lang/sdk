@@ -62,6 +62,7 @@ import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartParenthesizedExpression;
+import com.google.dart.compiler.ast.DartPartOfDirective;
 import com.google.dart.compiler.ast.DartPropertyAccess;
 import com.google.dart.compiler.ast.DartRedirectConstructorInvocation;
 import com.google.dart.compiler.ast.DartReturnBlock;
@@ -90,6 +91,8 @@ import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 import com.google.dart.compiler.ast.DartWhileStatement;
 import com.google.dart.compiler.ast.ImportCombinator;
+import com.google.dart.compiler.ast.ImportHideCombinator;
+import com.google.dart.compiler.ast.ImportShowCombinator;
 import com.google.dart.compiler.ast.LibraryNode;
 import com.google.dart.compiler.ast.LibraryUnit;
 import com.google.dart.compiler.ast.Modifiers;
@@ -126,39 +129,40 @@ public class DartParser extends CompletionHooksParserBase {
   
   /**
    * Determines the maximum number of errors before terminating the parser. See
-   * {@link #reportError(com.google.dart.compiler.parser.DartScanner.Position, ErrorCode,
-   * Object...)}.
+   * {@link #reportError(int, ErrorCode, Object...)}.
    */
   final int MAX_DEFAULT_ERRORS = Short.MAX_VALUE;
 
   // Pseudo-keywords that should also be valid identifiers.
   private static final String ABSTRACT_KEYWORD = "abstract";
-  private static final String AS_KEYWORD = "as";
   private static final String ASSERT_KEYWORD = "assert";
   private static final String CALL_KEYWORD = "call";
   private static final String DYNAMIC_KEYWORD = "Dynamic";
   private static final String EQUALS_KEYWORD = "equals";
-  //private static final String EXPORT_KEYWORD = "export";
+  private static final String EXPORT_KEYWORD = "export";
   private static final String EXTERNAL_KEYWORD = "external";
   private static final String FACTORY_KEYWORD = "factory";
   private static final String GETTER_KEYWORD = "get";
-  //private static final String HIDE_KEYWORD = "hide";
+  private static final String HIDE_KEYWORD = "hide";
   private static final String IMPLEMENTS_KEYWORD = "implements";
+  private static final String IMPORT_KEYWORD = "import";
   private static final String INTERFACE_KEYWORD = "interface";
+  private static final String LIBRARY_KEYWORD = "library";
   private static final String NATIVE_KEYWORD = "native";
   private static final String NEGATE_KEYWORD = "negate";
+  private static final String OF_KEYWORD = "of";
   private static final String ON_KEYWORD = "on";
   private static final String OPERATOR_KEYWORD = "operator";
+  private static final String PART_KEYWORD = "part";
   private static final String PREFIX_KEYWORD = "prefix";
   private static final String SETTER_KEYWORD = "set";
-  //private static final String SHOW_KEYWORD = "show";
+  private static final String SHOW_KEYWORD = "show";
   private static final String STATIC_KEYWORD = "static";
   private static final String TYPEDEF_KEYWORD = "typedef";
 
 
   public static final String[] PSEUDO_KEYWORDS = {
     ABSTRACT_KEYWORD,
-    AS_KEYWORD,
     ASSERT_KEYWORD,
     DYNAMIC_KEYWORD,
     EQUALS_KEYWORD,
@@ -361,7 +365,7 @@ public class DartParser extends CompletionHooksParserBase {
       case NATIVE:
         return true;
     }
-    return false;
+    return peekPseudoKeyword(0, LIBRARY_KEYWORD) || peekPseudoKeyword(0, IMPORT_KEYWORD) || peekPseudoKeyword(0, PART_KEYWORD);
   }
 
   /**
@@ -392,22 +396,52 @@ public class DartParser extends CompletionHooksParserBase {
    * Also, this minimal parse does have benefit in the incremental compilation
    * case.
    */
+  @SuppressWarnings("deprecation")
   public LibraryUnit preProcessLibraryDirectives(LibrarySource source) {
     beginCompilationUnit();
     LibraryUnit libUnit = new LibraryUnit(source);
+    if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
+      DartLibraryDirective libraryDirective = parseLibraryDirective();
+      libUnit.setName(libraryDirective.getLibraryName());
+    }
+    while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
+      DartImportDirective importDirective = parseImportDirective();
+      LibraryNode importPath;
+      if (importDirective.getPrefix() != null) {
+          importPath =
+              new LibraryNode(importDirective);
+      } else {
+        importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
+      }
+      importPath.setSourceInfo(importDirective.getSourceInfo());
+      libUnit.addImportPath(importPath);
+    }
+    while (peekPseudoKeyword(0, PART_KEYWORD)) {
+      if (peekPseudoKeyword(1, OF_KEYWORD)) {
+        parsePartOfDirective();
+      } else {
+        DartSourceDirective sourceDirective = parsePartDirective();
+        LibraryNode sourcePath = new LibraryNode(sourceDirective.getSourceUri().getValue());
+        sourcePath.setSourceInfo(sourceDirective.getSourceInfo());
+        libUnit.addSourcePath(sourcePath);
+      }
+    }
+    //
+    // The code below is obsolete. We do not make any effort to find duplications between the old
+    // and the new syntax because support for the old syntax will be removed very soon.
+    //
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      DartLibraryDirective libDirective = done(parseLibraryDirective());
-      libUnit.setName(libDirective.getName().getValue());
+      DartLibraryDirective libDirective = done(parseObsoleteLibraryDirective());
+      libUnit.setName(libDirective.getLibraryName());
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
-      DartImportDirective importDirective = done(parseImportDirective());
+      DartImportDirective importDirective = done(parseObsoleteImportDirective());
       LibraryNode importPath;
-      if (importDirective.getPrefix() != null) {
+      if (importDirective.getOldPrefix() != null) {
         importPath =
-            new LibraryNode(importDirective.getLibraryUri().getValue(), importDirective.getPrefix()
-                .getValue());
+            new LibraryNode(importDirective);
       } else {
         importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
       }
@@ -438,9 +472,33 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private void parseDirectives(DartUnit unit) {
+    if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
+      DartLibraryDirective libraryDirective = parseLibraryDirective();
+      for (DartDirective directive : unit.getDirectives()) {
+        if (directive instanceof DartLibraryDirective) {
+          reportError(position(), ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
+          break;
+        }
+      }
+      unit.getDirectives().add(libraryDirective);
+    }
+    while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
+      unit.getDirectives().add(parseImportDirective());
+    }
+    while (peekPseudoKeyword(0, PART_KEYWORD)) {
+      if (peekPseudoKeyword(1, OF_KEYWORD)) {
+        unit.getDirectives().add(parsePartOfDirective());
+      } else {
+        unit.getDirectives().add(parsePartDirective());
+      }
+    }
+    //
+    // The code below is obsolete. We do not make any effort to find duplications between the old
+    // and the new syntax because support for the old syntax will be removed very soon.
+    //
     if (peek(0) == Token.LIBRARY) {
       beginLibraryDirective();
-      DartLibraryDirective libraryDirective = parseLibraryDirective();
+      DartLibraryDirective libraryDirective = parseObsoleteLibraryDirective();
       for (DartDirective directive : unit.getDirectives()) {
         if (directive instanceof DartLibraryDirective) {
           reportError(position(), ParserErrorCode.ONLY_ONE_LIBRARY_DIRECTIVE);
@@ -452,7 +510,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
-      unit.getDirectives().add(done(parseImportDirective()));
+      unit.getDirectives().add(done(parseObsoleteImportDirective()));
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
@@ -468,6 +526,25 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private DartLibraryDirective parseLibraryDirective() {
+    beginLibraryDirective();
+    next(); // "library"
+    DartExpression libraryName = parseLibraryName();
+    expect(Token.SEMICOLON);
+    return done(new DartLibraryDirective(libraryName));
+  }
+
+  private DartExpression parseLibraryName() {
+    beginQualifiedIdentifier();
+    DartExpression libraryName = parseIdentifier();
+    while (optional(Token.PERIOD)) {
+      beginQualifiedIdentifier();
+      DartIdentifier identifier = parseIdentifier();
+      libraryName = done(new DartPropertyAccess(libraryName, identifier));
+    }
+    return done(libraryName);
+  }
+
+  private DartLibraryDirective parseObsoleteLibraryDirective() {
     expect(Token.LIBRARY);
     expect(Token.LPAREN);
     beginLiteral();
@@ -479,6 +556,66 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   protected DartImportDirective parseImportDirective() {
+    beginImportDirective();
+    next(); // "import"
+    beginLiteral();
+    expect(Token.STRING);
+    DartStringLiteral libUri = done(DartStringLiteral.get(ctx.getTokenString()));
+
+    DartIdentifier prefix = null;
+    if (optional(Token.AS)) {
+      prefix = parseIdentifier();
+      if (prefix instanceof DartSyntheticErrorIdentifier) {
+        if (peekPseudoKeyword(1, HIDE_KEYWORD) || peekPseudoKeyword(1, SHOW_KEYWORD)
+            || peek(1) == Token.BIT_AND || peek(1) == Token.COLON) {
+          next();
+        }
+      }
+    }
+
+    List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
+    while (peekPseudoKeyword(0, HIDE_KEYWORD) || peekPseudoKeyword(0, SHOW_KEYWORD)) {
+      if (optionalPseudoKeyword(HIDE_KEYWORD)) {
+        List<DartIdentifier> hiddenNames = parseIdentifierList();
+        combinators.add(new ImportHideCombinator(hiddenNames));
+      } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
+        List<DartIdentifier> shownNames = parseIdentifierList();
+        combinators.add(new ImportShowCombinator(shownNames));
+      }
+    }
+
+    boolean export = false;
+    if (optional(Token.BIT_AND)) {
+      if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
+        export = true;
+      } else {
+        reportError(position(), ParserErrorCode.EXPECTED_EXPORT);
+      }
+    }
+    if (!optional(Token.SEMICOLON)) {
+      // If there is no semicolon, then we probably don't want to consume the next token. It might
+      // make sense to advance to the next valid token for a directive or top-level declaration, but
+      // our recovery mechanism isn't quite sophisticated enough for that.
+      reportUnexpectedToken(position(), Token.SEMICOLON, peek(0));
+    }
+    return done(new DartImportDirective(libUri, prefix, combinators, export));
+  }
+
+  /**
+   * Parse a comma-separated list of identifiers.
+   *
+   * @return the identifiers that were parsed
+   */
+  private List<DartIdentifier> parseIdentifierList() {
+    ArrayList<DartIdentifier> identifiers = new ArrayList<DartIdentifier>();
+    identifiers.add(parseIdentifier());
+    while (optional(Token.COMMA)) {
+      identifiers.add(parseIdentifier());
+    }
+    return identifiers;
+  }
+
+  protected DartImportDirective parseObsoleteImportDirective() {
     expect(Token.IMPORT);
     expect(Token.LPAREN);
     beginLiteral();
@@ -487,38 +624,7 @@ public class DartParser extends CompletionHooksParserBase {
     DartBooleanLiteral export = null;
     List<ImportCombinator> combinators = new ArrayList<ImportCombinator>();
     DartStringLiteral prefix = null;
-    // To add support for the new import syntax, change "if" to "while" and uncomment the following code.
     if (optional(Token.COMMA)) {
-//      if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
-//        expect(Token.COLON);
-//        if (peek(0) == Token.TRUE_LITERAL) {
-//          beginLiteral();
-//          consume(Token.TRUE_LITERAL);
-//          export = done(DartBooleanLiteral.get(true));
-//        } else if (peek(0) == Token.FALSE_LITERAL) {
-//          beginLiteral();
-//          consume(Token.FALSE_LITERAL);
-//          export = done(DartBooleanLiteral.get(false));
-//        } else {
-//          reportError(position(), ParserErrorCode.EXPECTED_BOOLEAN_LITERAL);
-//        }
-//      } else if (optionalPseudoKeyword(HIDE_KEYWORD)) {
-//        expect(Token.COLON);
-//        DartExpression expression = parseExpression();
-//        if (expression instanceof DartArrayLiteral) {
-//          combinators.add(new ImportHideCombinator((DartArrayLiteral) expression));
-//        } else {
-//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
-//        }
-//      } else if (optionalPseudoKeyword(SHOW_KEYWORD)) {
-//        expect(Token.COLON);
-//        DartExpression expression = parseExpression();
-//        if (expression instanceof DartArrayLiteral) {
-//          combinators.add(new ImportShowCombinator((DartArrayLiteral) expression));
-//        } else {
-//          reportError(position(), ParserErrorCode.EXPECTED_LIST_LITERAL);
-//        }
-//      } else
       if (optionalPseudoKeyword(PREFIX_KEYWORD)) {
         expect(Token.COLON);
         beginLiteral();
@@ -538,6 +644,16 @@ public class DartParser extends CompletionHooksParserBase {
     return new DartImportDirective(libUri, export, combinators, prefix);
   }
 
+  private DartSourceDirective parsePartDirective() {
+    beginPartDirective();
+    next(); // "part"
+    beginLiteral();
+    expect(Token.STRING);
+    DartStringLiteral partUri = done(DartStringLiteral.get(ctx.getTokenString()));
+    expect(Token.SEMICOLON);
+    return done(new DartSourceDirective(partUri));
+  }
+
   private DartSourceDirective parseSourceDirective() {
     expect(Token.SOURCE);
     expect(Token.LPAREN);
@@ -547,6 +663,15 @@ public class DartParser extends CompletionHooksParserBase {
     expectCloseParen();
     expect(Token.SEMICOLON);
     return new DartSourceDirective(sourceUri);
+  }
+
+  private DartPartOfDirective parsePartOfDirective() {
+    beginPartOfDirective();
+    next(); // "part"
+    next(); // "of"
+    DartExpression libraryName = parseLibraryName();
+    expect(Token.SEMICOLON);
+    return done(new DartPartOfDirective(libraryName));
   }
 
   private void parseResourceDirective() {
@@ -1244,6 +1369,7 @@ public class DartParser extends CompletionHooksParserBase {
 
       if (peekPseudoKeyword(0, GETTER_KEYWORD)
           || peekPseudoKeyword(0, SETTER_KEYWORD)) {
+        boolean isGetter = peekPseudoKeyword(0, GETTER_KEYWORD);
         next();
         // Using 'get' or 'set' as a field name is valid
         if (peek(0).equals(Token.SEMICOLON) || peek(0).equals(Token.ASSIGN)) {
@@ -1254,7 +1380,7 @@ public class DartParser extends CompletionHooksParserBase {
           return true;
         }
         // normal case:  get foo (
-        if (peek(0).equals(Token.IDENTIFIER) && peek(1).equals(Token.LPAREN)) {
+        if (peek(0).equals(Token.IDENTIFIER) && (isGetter || peek(1).equals(Token.LPAREN))) {
           return true;
         }
         return false;
@@ -1330,6 +1456,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
 
     int arity = -1;
+    Token operation = null;
     if (peek(1) != Token.LPAREN && optionalPseudoKeyword(OPERATOR_KEYWORD)) {
       // Overloaded operator.
       if (modifiers.isStatic()) {
@@ -1338,11 +1465,13 @@ public class DartParser extends CompletionHooksParserBase {
       modifiers = modifiers.makeOperator();
 
       beginOperatorName();
-      Token operation = next();
+      operation = next();
       if (operation.isUserDefinableOperator()) {
         name = done(new DartIdentifier(operation.getSyntax()));
         if (operation == Token.ASSIGN_INDEX) {
           arity = 2;
+        } else if (operation == Token.SUB) {
+          arity = -1;
         } else if (operation.isBinaryOperator()) {
           arity = 1;
         } else if (operation == Token.INDEX) {
@@ -1429,16 +1558,21 @@ public class DartParser extends CompletionHooksParserBase {
       // accepted, but eventually parameters should be disallowed.
       parameters = new ArrayList<DartParameter>();
     } else {
-      if (modifiers.isSetter()) {
-        // TODO: For now we optionally allow an equal sign before the formal parameter list, but
-        // eventually it should be required.
-        optional(Token.ASSIGN);
-      }
       parameters = parseFormalParameterList();
     }
 
     if (arity != -1) {
       if (parameters.size() != arity) {
+        reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
+      }
+      // In methods with required arity each parameter is required.
+      for (DartParameter parameter : parameters) {
+        if (parameter.getModifiers().isNamed()) {
+          reportError(parameter, ParserErrorCode.NAMED_PARAMETER_NOT_ALLOWED);
+        }
+      }
+    } else if (operation == Token.SUB) {
+      if (parameters.size() != 0 && parameters.size() != 1) {
         reportError(position(), ParserErrorCode.ILLEGAL_NUMBER_OF_PARAMETERS);
       }
       // In methods with required arity each parameter is required.

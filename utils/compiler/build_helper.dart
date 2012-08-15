@@ -41,7 +41,7 @@ main() {
   List<String> dartdocScript = buildScript(
       'dartdoc',
       dartUri, dartVmUri,
-      'lib/dartdoc/dartdoc.dart', '');
+      'pkg/dartdoc/dartdoc.dart', '');
   writeScript(dartdocUri, dartdocScript);
 }
 

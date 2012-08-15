@@ -187,9 +187,9 @@
  * options and flags from them.
  */
 class ArgParser {
-  static final _SOLO_OPT = const RegExp(@'^-([a-z0-9])$');
-  static final _ABBR_OPT = const RegExp(@'^-([a-z0-9]+)(.*)$');
-  static final _LONG_OPT = const RegExp(@'^--([a-z\-_0-9]+)(=(.*))?$');
+  static final _SOLO_OPT = const RegExp(@'^-([a-zA-Z0-9])$');
+  static final _ABBR_OPT = const RegExp(@'^-([a-zA-Z0-9]+)(.*)$');
+  static final _LONG_OPT = const RegExp(@'^--([a-zA-Z\-_0-9]+)(=(.*))?$');
 
   final Map<String, _Option> _options;
 

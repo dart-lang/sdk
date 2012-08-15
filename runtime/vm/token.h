@@ -226,6 +226,10 @@ class Token {
     return tok == kAS;
   }
 
+  static bool IsIndexOperator(Kind tok) {
+    return tok == kINDEX || tok == kASSIGN_INDEX;
+  }
+
   static bool IsPseudoKeyword(Kind tok) {
     return (Attributes(tok) & kPseudoKeyword) != 0;
   }

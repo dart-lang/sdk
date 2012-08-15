@@ -1312,31 +1312,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * If there was <code>#import</code> with invalid {@link URI}, it should be reported as error, not
+   * If there was <code>import</code> with invalid {@link URI}, it should be reported as error, not
    * as an exception.
    */
   public void test_invalidImportUri() throws Exception {
     List<DartCompilationError> errors =
         analyzeLibrarySourceErrors(makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "#library('test');",
-            "#import('badURI');",
+            "library test;",
+            "import 'badURI';",
             ""));
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 16));
   }
 
   /**
-   * If there was <code>#source</code> with invalid {@link URI}, it should be reported as error, not
+   * If there was <code>part</code> with invalid {@link URI}, it should be reported as error, not
    * as an exception.
    */
   public void test_invalidSourceUri() throws Exception {
     List<DartCompilationError> errors =
         analyzeLibrarySourceErrors(makeCode(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "#library('test');",
-            "#source('badURI');",
+            "library test;",
+            "part 'badURI';",
             ""));
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 18));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 14));
   }
 
   /**
@@ -1801,6 +1801,32 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "");
       assertErrors(result.getErrors());
     }
+  }
+
+  /**
+   * There was bug that for-in loop did not mark type of variable as inferred, so we produced
+   * warnings even when this is disabled.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4460
+   */
+  public void test_inferredTypes_noMemberWarnings_forInLoop() throws Exception {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean memberWarningForInferredTypes() {
+          return false;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "foo() {",
+          "  List<A> values;",
+          "  for (var v in values) {",
+          "    v.bar();",
+          "  }",
+          "}",
+          "");
+      assertErrors(result.getErrors());
   }
 
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
@@ -3466,6 +3492,45 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 7, 1),
         errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 7, 1),
         errEx(ResolverErrorCode.NEW_EXPRESSION_NOT_CONSTRUCTOR, 7, 7, 19));
+  }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4383
+   */
+  public void test_callFieldWithoutGetter_topLevel() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "set setOnlyField(v) {}",
+        "main() {",
+        "  setOnlyField(0);",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, 4, 3, 12));
+  }
+
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4383
+   */
+  public void test_callFieldWithoutGetter_member() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  set setOnlyField(v) {}",
+        "  foo() {",
+        "    setOnlyField(0);",
+        "  }",
+        "}",
+        "main() {",
+        "  A a = new A();",
+        "  a.setOnlyField(0);",
+        "}");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 5, 5, 12),
+        errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 10, 5, 12));
   }
 
   private static <T extends DartNode> T findNode(

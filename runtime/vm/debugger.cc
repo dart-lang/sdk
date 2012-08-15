@@ -69,8 +69,7 @@ void SourceBreakpoint::Disable() {
 
 RawScript* SourceBreakpoint::SourceCode() {
   const Function& func = Function::Handle(function_);
-  const Class& cls = Class::Handle(func.owner());
-  return cls.script();
+  return func.script();
 }
 
 
@@ -136,7 +135,7 @@ const Function& ActivationFrame::DartFunction() {
 
 const char* Debugger::QualifiedFunctionName(const Function& func) {
   const String& func_name = String::Handle(func.name());
-  Class& func_class = Class::Handle(func.owner());
+  Class& func_class = Class::Handle(func.Owner());
   String& class_name = String::Handle(func_class.Name());
 
   const char* kFormat = "%s%s%s";
@@ -168,14 +167,13 @@ RawString* ActivationFrame::SourceUrl() {
 
 RawScript* ActivationFrame::SourceScript() {
   const Function& func = DartFunction();
-  const Class& cls = Class::Handle(func.owner());
-  return cls.script();
+  return func.script();
 }
 
 
 RawLibrary* ActivationFrame::Library() {
   const Function& func = DartFunction();
-  const Class& cls = Class::Handle(func.owner());
+  const Class& cls = Class::Handle(func.Owner());
   return cls.library();
 }
 
@@ -488,8 +486,7 @@ CodeBreakpoint::~CodeBreakpoint() {
 
 RawScript* CodeBreakpoint::SourceCode() {
   const Function& func = Function::Handle(function_);
-  const Class& cls = Class::Handle(func.owner());
-  return cls.script();
+  return func.script();
 }
 
 
@@ -1275,7 +1272,7 @@ bool Debugger::IsDebuggable(const Function& func) {
       (fkind == RawFunction::kConstImplicitGetter)) {
     return false;
   }
-  const Class& cls = Class::Handle(func.owner());
+  const Class& cls = Class::Handle(func.Owner());
   const Library& lib = Library::Handle(cls.library());
   return lib.IsDebuggable();
 }
@@ -1426,7 +1423,7 @@ void Debugger::NotifyCompilation(const Function& func) {
     if (lookup_function.raw() == bpt->function()) {
       // Check if the breakpoint is inside a closure or local function
       // within the newly compiled function.
-      Class& owner = Class::Handle(lookup_function.owner());
+      Class& owner = Class::Handle(lookup_function.Owner());
       Function& closure =
           Function::Handle(owner.LookupClosureFunction(bpt->token_pos()));
       if (!closure.IsNull() && (closure.raw() != lookup_function.raw())) {

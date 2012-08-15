@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-#import("somedir/somelib.dart");
-#source("MyFirstApp.dart");
-#source("AnotherSource2.dart");
-#source("subdir2/Source3x.dart");
+import "somedir/somelib.dart";
+part "MyFirstApp.dart";
+part "AnotherSource2.dart";
+part "subdir2/Source3x.dart";

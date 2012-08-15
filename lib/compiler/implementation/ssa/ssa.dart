@@ -4,6 +4,7 @@
 
 #library('ssa');
 
+#import('../closure.dart');
 #import('../js/js.dart', prefix: 'js');
 #import('../leg.dart');
 #import('../source_file.dart');
@@ -18,7 +19,6 @@
 
 #source('bailout.dart');
 #source('builder.dart');
-#source('closure.dart');
 #source('codegen.dart');
 #source('codegen_helpers.dart');
 #source('js_names.dart');

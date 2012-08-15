@@ -6,8 +6,8 @@
 // Tests that benchmark classes used in perf testing are not broken.
 #import('benchmark_lib.dart');
 #import('dart:html');
-#import('../../lib/unittest/unittest.dart');
-#import('../../lib/unittest/html_config.dart');
+#import('../../pkg/unittest/unittest.dart');
+#import('../../pkg/unittest/html_config.dart');
 
 void main() {
   useHtmlConfiguration();

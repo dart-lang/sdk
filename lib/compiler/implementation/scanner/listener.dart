@@ -254,7 +254,7 @@ class Listener {
   void handleCaseMatch(Token caseKeyword, Token colon) {
   }
 
-  void handleCatchBlock(Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
   }
 
   void handleFinallyBlock(Token finallyKeyword) {
@@ -556,10 +556,14 @@ class ElementListener extends Listener {
     }
     StringNode firstArgument = popLiteralString();
     Identifier tag = popNode();
-    compilationUnitElement.addTag(new ScriptTag(tag, firstArgument,
-                                                argumentName, prefix,
-                                                beginToken, endToken),
-                                  listener);
+    LibraryElement library = compilationUnitElement.getLibrary();
+    if (library.entryCompilationUnit != compilationUnitElement) {
+      // Only allow script tags in the entry compilation unit.
+      listener.cancel("script tags not allowed here", node: tag);
+    }
+    ScriptTag scriptTag = new ScriptTag(tag, firstArgument, argumentName,
+                                        prefix, beginToken, endToken);
+    library.addTag(scriptTag, listener);
   }
 
   void endClassDeclaration(int interfacesCount, Token beginToken,
@@ -1357,10 +1361,11 @@ class NodeListener extends ElementListener {
     pushNode(new CaseMatch(caseKeyword, popNode(), colon));
   }
 
-  void handleCatchBlock(Token catchKeyword) {
+  void handleCatchBlock(Token onKeyword, Token catchKeyword) {
     Block block = popNode();
     NodeList formals = popNode();
-    pushNode(new CatchBlock(formals, block, catchKeyword));
+    TypeAnnotation type = onKeyword != null ? popNode() : null;
+    pushNode(new CatchBlock(type, formals, block, onKeyword, catchKeyword));
   }
 
   void endSwitchStatement(Token switchKeyword, Token endToken) {

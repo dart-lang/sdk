@@ -53,7 +53,7 @@ static bool TestFunction(const Function& function,
 bool Intrinsifier::Intrinsify(const Function& function, Assembler* assembler) {
   if (!FLAG_intrinsify) return false;
   const char* function_name = String::Handle(function.name()).ToCString();
-  const Class& function_class = Class::Handle(function.owner());
+  const Class& function_class = Class::Handle(function.Owner());
   const char* class_name = String::Handle(function_class.Name()).ToCString();
   // Only core library methods can be intrinsified.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());

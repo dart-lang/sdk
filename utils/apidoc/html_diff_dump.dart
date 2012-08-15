@@ -28,8 +28,8 @@
 #import('dart:json');
 #import('dart:io');
 #import('html_diff.dart');
-#import('../../lib/dartdoc/mirrors/mirrors.dart');
-#import('../../lib/dartdoc/mirrors/mirrors_util.dart');
+#import('../../pkg/dartdoc/mirrors/mirrors.dart');
+#import('../../pkg/dartdoc/mirrors/mirrors_util.dart');
 
 HtmlDiff diff;
 

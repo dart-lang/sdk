@@ -5480,7 +5480,9 @@ TEST_CASE(ParsePatchLibrary) {
   "#library('patched_library');\n"
   "class A {\n"
   "  var _f;\n"
+  "  callFunc(x, y) => x(y);\n"
   "  external method(var value);\n"
+  "  get field() => _field;\n"
   "}\n"
   "external int unpatched();\n"
   "external int topLevel(var value);\n"
@@ -5488,7 +5490,16 @@ TEST_CASE(ParsePatchLibrary) {
   "external void set topLevelSetter(int value);\n";
 
   const char* kPatchChars =
-  "var _topLevelValue = -1;"
+  "patch class A {\n"
+  "  var _g;\n"
+  "  get _field() => _g;\n"
+  "  patch method(var value) {\n"
+  "    int closeYourEyes(var eggs) { return eggs * -1; }\n"
+  "    value = callFunc(closeYourEyes, value);\n"
+  "    _g = value * 5;\n"
+  "  }\n"
+  "}\n"
+  "var _topLevelValue = -1;\n"
   "patch int topLevel(var value) => value * value;\n"
   "patch int set topLevelSetter(value) { _topLevelValue = value; }\n"
   "patch int get topLevelGetter() => 2 * _topLevelValue;\n"
@@ -5503,20 +5514,29 @@ TEST_CASE(ParsePatchLibrary) {
   "  topLevelSetter = 20;\n"
   "  return topLevelGetter;\n"
   "}\n"
-  "m3() => patch(7);\n";
+  "m3() => patch(7);\n"
+  "m4() {\n"
+  "  var a = new A();\n"
+  "  a.method(5);\n"
+  "  return a.field;\n"
+  "}\n";
 
   Dart_Handle result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
 
-  Dart_Handle lib_url = Dart_NewString("theLibrary");
+  Dart_Handle url = Dart_NewString("theLibrary");
   Dart_Handle source = Dart_NewString(kLibraryChars);
-  result = Dart_LoadLibrary(lib_url, source);
+  result = Dart_LoadLibrary(url, source);
   EXPECT_VALID(result);
 
-  const String& url = String::Handle(String::New("theLibrary"));
+  const String& patch_url = String::Handle(String::New("theLibrary patch"));
   const String& patch_source = String::Handle(String::New(kPatchChars));
-  const Library& lib = Library::Handle(Library::LookupLibrary(url));
-  const Error& err = Error::Handle(lib.Patch(url, patch_source));
+  const Script& patch_script = Script::Handle(Script::New(
+      patch_url, patch_source, RawScript::kPatchTag));
+
+  const String& lib_url = String::Handle(String::New("theLibrary"));
+  const Library& lib = Library::Handle(Library::LookupLibrary(lib_url));
+  const Error& err = Error::Handle(lib.Patch(patch_script));
   if (!err.IsNull()) {
     OS::Print("Patching error: %s\n", err.ToErrorCString());
     EXPECT(false);
@@ -5550,6 +5570,13 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
   EXPECT_EQ(21, value);
+
+  value = 0;
+  result = Dart_Invoke(test_script, Dart_NewString("m4"), 0, NULL);
+  EXPECT_VALID(result);
+  EXPECT(Dart_IsInteger(result));
+  EXPECT_VALID(Dart_IntegerToInt64(result, &value));
+  EXPECT_EQ(-25, value);
 }
 
 

@@ -40,7 +40,7 @@ void processNativeClassesInLibrary(Enqueuer world,
                                    LibraryElement library) {
   bool hasNativeClass = false;
   final compiler = emitter.compiler;
-  for (Link<Element> link = library.topLevelElements;
+  for (Link<Element> link = library.localMembers;
        !link.isEmpty(); link = link.tail) {
     Element element = link.head;
     if (element.kind == ElementKind.CLASS) {
@@ -77,14 +77,15 @@ void maybeEnableNative(Compiler compiler,
                        LibraryElement library,
                        Uri uri) {
   String libraryName = uri.toString();
-  if (library.script.name.contains('dart/tests/compiler/dart2js_native')
+  if (library.entryCompilationUnit.script.name.contains(
+          'dart/tests/compiler/dart2js_native')
       || libraryName == 'dart:dom_deprecated'
       || libraryName == 'dart:isolate'
       || libraryName == 'dart:html') {
     library.canUseNative = true;
-    library.define(compiler.findHelper(const SourceString('JS')), compiler);
+    library.addToScope(compiler.findHelper(const SourceString('JS')), compiler);
     if (compiler.jsIndexingBehaviorInterface !== null) {
-      library.define(compiler.jsIndexingBehaviorInterface, compiler);
+      library.addToScope(compiler.jsIndexingBehaviorInterface, compiler);
     }
   }
 }
@@ -190,24 +191,20 @@ void handleSsaNative(SsaBuilder builder, Expression nativeBody) {
   if (element.name == const SourceString('typeName')
       && element.isGetter()
       && nativeEmitter.toNativeName(element.getEnclosingClass()) == 'DOMType') {
-    Element methodElement =
+    Element helper =
         compiler.findHelper(const SourceString('getTypeNameOf'));
-    HStatic method = new HStatic(methodElement);
-    builder.add(method);
-    builder.push(new HInvokeStatic(Selector.INVOCATION_1,
-        <HInstruction>[method, builder.localsHandler.readThis()]));
+    builder.pushInvokeHelper1(helper, builder.localsHandler.readThis());
     builder.close(new HReturn(builder.pop())).addSuccessor(builder.graph.exit);
   }
 
   HInstruction convertDartClosure(Element parameter, FunctionType type) {
     HInstruction local = builder.localsHandler.readLocal(parameter);
+    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
     // TODO(ngeoffray): For static methods, we could pass a method with a
     // defined arity.
-    builder.push(new HStatic(builder.interceptors.getClosureConverter()));
-    HInstruction arity = builder.graph.addConstantInt(type.computeArity());
-    List<HInstruction> callInputs = <HInstruction>[builder.pop(), local, arity];
-    HInstruction closure = new HInvokeStatic(Selector.INVOCATION_1, callInputs);
-    builder.add(closure);
+    Element helper = builder.interceptors.getClosureConverter();
+    builder.pushInvokeHelper2(helper, local, arity);
+    HInstruction closure = builder.pop();
     return closure;
   }
 

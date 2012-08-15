@@ -9,17 +9,17 @@
 #include "vm/assembler.h"
 #include "vm/bigint_operations.h"
 #include "vm/bootstrap.h"
-#include "vm/datastream.h"
-#include "vm/deopt_instructions.h"
+#include "vm/class_finalizer.h"
 #include "vm/code_generator.h"
 #include "vm/code_patcher.h"
 #include "vm/compiler.h"
 #include "vm/compiler_stats.h"
-#include "vm/class_finalizer.h"
 #include "vm/dart.h"
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/datastream.h"
 #include "vm/debuginfo.h"
+#include "vm/deopt_instructions.h"
 #include "vm/double_conversion.h"
 #include "vm/exceptions.h"
 #include "vm/growable_array.h"
@@ -74,6 +74,7 @@ RawClass* Object::type_parameter_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::type_arguments_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::instantiated_type_arguments_class_ =
     reinterpret_cast<RawClass*>(RAW_NULL);
+RawClass* Object::patch_class_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::function_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::field_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
 RawClass* Object::literal_token_class_ = reinterpret_cast<RawClass*>(RAW_NULL);
@@ -231,8 +232,7 @@ void Object::InitOnce() {
     cls.set_instance_size(Class::InstanceSize());
     cls.set_next_field_offset(Class::InstanceSize());
     cls.set_id(Class::kClassId);
-    cls.raw_ptr()->is_const_ = false;
-    cls.raw_ptr()->is_interface_ = false;
+    cls.raw_ptr()->state_bits_ = 0;
     cls.set_is_finalized();
     cls.raw_ptr()->type_arguments_instance_field_offset_ =
         Class::kNoTypeArguments;
@@ -287,6 +287,9 @@ void Object::InitOnce() {
 
   cls = Class::New<InstantiatedTypeArguments>();
   instantiated_type_arguments_class_ = cls.raw();
+
+  cls = Class::New<PatchClass>();
+  patch_class_class_ = cls.raw();
 
   cls = Class::New<Function>();
   function_class_ = cls.raw();
@@ -430,24 +433,20 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
 
 void Object::RegisterClass(const Class& cls,
                            const char* cname,
-                           const Script& script,
                            const Library& lib) {
   const String& name = String::Handle(Symbols::New(cname));
   cls.set_name(name);
-  cls.set_script(script);
   lib.AddClass(cls);
 }
 
 
 void Object::RegisterPrivateClass(const Class& cls,
                                   const char* public_class_name,
-                                  const Script& script,
                                   const Library& lib) {
   String& str = String::Handle();
   str = Symbols::New(public_class_name);
   str = lib.PrivateName(str);
   cls.set_name(str);
-  cls.set_script(script);
   lib.AddClass(cls);
 }
 
@@ -511,95 +510,96 @@ RawError* Object::Init(Isolate* isolate) {
   // Now that the symbol table is initialized and that the core dictionary as
   // well as the core implementation dictionary have been setup, preallocate
   // remaining classes and register them by name in the dictionaries.
-  const Script& impl_script = Script::Handle(Bootstrap::LoadImplScript());
+  const Script& impl_script = Script::Handle(
+      Bootstrap::LoadCoreImplScript(false));
 
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  RegisterClass(cls, "IntegerImplementation", impl_script, core_impl_lib);
+  RegisterClass(cls, "IntegerImplementation", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  RegisterClass(cls, "Smi", impl_script, core_impl_lib);
+  RegisterClass(cls, "Smi", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  RegisterClass(cls, "Mint", impl_script, core_impl_lib);
+  RegisterClass(cls, "Mint", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  RegisterClass(cls, "Bigint", impl_script, core_impl_lib);
+  RegisterClass(cls, "Bigint", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  RegisterClass(cls, "Double", impl_script, core_impl_lib);
+  RegisterClass(cls, "Double", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  RegisterClass(cls, "Bool", impl_script, core_impl_lib);
+  RegisterClass(cls, "Bool", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  RegisterClass(cls, "ObjectArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "ObjectArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterClass(cls, "GrowableObjectArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "GrowableObjectArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  RegisterClass(cls, "ImmutableArray", impl_script, core_impl_lib);
+  RegisterClass(cls, "ImmutableArray", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  RegisterClass(cls, "OneByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "OneByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
-  RegisterClass(cls, "TwoByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "TwoByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
-  RegisterClass(cls, "FourByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "FourByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
-  RegisterClass(cls, "ExternalOneByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalOneByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
-  RegisterClass(cls, "ExternalTwoByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalTwoByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
-  RegisterClass(cls, "ExternalFourByteString", impl_script, core_impl_lib);
+  RegisterClass(cls, "ExternalFourByteString", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, "Stacktrace", impl_script, core_impl_lib);
+  RegisterClass(cls, "Stacktrace", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  RegisterClass(cls, "JSSyntaxRegExp", impl_script, core_impl_lib);
+  RegisterClass(cls, "JSSyntaxRegExp", core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
-  const Script& script = Script::Handle(Bootstrap::LoadScript());
+  const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
   // Allocate and initialize the Object class and type.  The Object
   // class and ByteArray subclasses are the only pre-allocated,
@@ -616,83 +616,83 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_Int8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int8Array", core_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint8Array", core_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_Int16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int16Array", core_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint16Array", core_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_Int32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int32Array", core_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint32Array", core_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_Int64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Int64Array", core_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Uint64Array", core_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_Float32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Float32Array", core_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_Float64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_Float64Array", core_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt8Array", core_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint8Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint8Array", core_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt16Array", core_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint16Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint16Array", core_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt32Array", core_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint32Array", core_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalInt64Array", core_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalUint64Array", core_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat32Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalFloat32Array", core_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat64Array", script, core_lib);
+  RegisterPrivateClass(cls, "_ExternalFloat64Array", core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
@@ -739,6 +739,18 @@ RawError* Object::Init(Isolate* isolate) {
   type = Type::NewNonParameterizedType(cls);
   object_store->set_byte_array_interface(type);
 
+  cls = object_store->smi_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_smi_type(type);
+
+  cls = object_store->double_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_double_type(type);
+
+  cls = object_store->mint_class();
+  type = Type::NewNonParameterizedType(cls);
+  object_store->set_mint_type(type);
+
   // The classes 'Null' and 'void' are not registered in the class dictionary,
   // because their names are reserved keywords. Their names are not heap
   // allocated, because the classes reside in the VM isolate.
@@ -778,11 +790,21 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
+  Script& patch_script = Script::Handle(Bootstrap::LoadCoreScript(true));
+  error = core_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
   error = Bootstrap::Compile(core_impl_lib, impl_script);
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript());
+  patch_script = Bootstrap::LoadCoreImplScript(true);
+  error = core_impl_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& math_script = Script::Handle(Bootstrap::LoadMathScript(false));
   Library::InitMathLibrary(isolate);
   const Library& math_lib = Library::Handle(Library::MathLibrary());
   ASSERT(!math_lib.IsNull());
@@ -790,7 +812,13 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& isolate_script = Script::Handle(Bootstrap::LoadIsolateScript());
+  patch_script = Bootstrap::LoadMathScript(true);
+  error = math_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& isolate_script = Script::Handle(
+      Bootstrap::LoadIsolateScript(false));
   Library::InitIsolateLibrary(isolate);
   const Library& isolate_lib = Library::Handle(Library::IsolateLibrary());
   ASSERT(!isolate_lib.IsNull());
@@ -798,11 +826,22 @@ RawError* Object::Init(Isolate* isolate) {
   if (!error.IsNull()) {
     return error.raw();
   }
-  const Script& mirrors_script = Script::Handle(Bootstrap::LoadMirrorsScript());
+  patch_script = Bootstrap::LoadIsolateScript(true);
+  error = isolate_lib.Patch(patch_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  const Script& mirrors_script = Script::Handle(
+      Bootstrap::LoadMirrorsScript(false));
   Library::InitMirrorsLibrary(isolate);
   const Library& mirrors_lib = Library::Handle(Library::MirrorsLibrary());
   ASSERT(!mirrors_lib.IsNull());
   error = Bootstrap::Compile(mirrors_lib, mirrors_script);
+  if (!error.IsNull()) {
+    return error.raw();
+  }
+  patch_script = Bootstrap::LoadMirrorsScript(true);
+  error = mirrors_lib.Patch(patch_script);
   if (!error.IsNull()) {
     return error.raw();
   }
@@ -1158,11 +1197,10 @@ RawClass* Class::New() {
   result.set_id((FakeObject::kClassId != kInstanceCid &&
                  FakeObject::kClassId != kClosureCid) ?
                 FakeObject::kClassId : kIllegalCid);
-  result.raw_ptr()->is_const_ = false;
-  result.raw_ptr()->is_interface_ = false;
+  result.raw_ptr()->state_bits_ = 0;
   // VM backed classes are almost ready: run checks and resolve class
   // references, but do not recompute size.
-  result.raw_ptr()->class_state_ = RawClass::kPreFinalized;
+  result.set_is_prefinalized();
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.raw_ptr()->token_pos_ = Scanner::kDummyTokenIndex;
@@ -1206,7 +1244,7 @@ void Class::SetFunctions(const Array& value) const {
   intptr_t len = value.Length();
   for (intptr_t i = 0; i < len; i++) {
     func ^= value.At(i);
-    ASSERT(func.owner() == raw());
+    ASSERT(func.Owner() == raw());
   }
 #endif
   StorePointer(&raw_ptr()->functions_, value.raw());
@@ -1260,11 +1298,17 @@ void Class::set_signature_function(const Function& value) const {
 }
 
 
-void Class::set_class_state(int8_t state) const {
+void Class::set_class_state(RawClass::ClassState state) const {
   ASSERT((state == RawClass::kAllocated) ||
          (state == RawClass::kPreFinalized) ||
          (state == RawClass::kFinalized));
-  raw_ptr()->class_state_ = state;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(state, bits);
+}
+
+
+void Class::set_state_bits(uint8_t bits) const {
+  raw_ptr()->state_bits_ = bits;
 }
 
 
@@ -1296,7 +1340,7 @@ intptr_t Class::NumTypeArguments() const {
     const Function& signature_fun = Function::Handle(signature_function());
     if (!signature_fun.is_static() &&
         !signature_fun.HasInstantiatedSignature()) {
-      cls = signature_fun.owner();
+      cls = signature_fun.Owner();
     }
   }
   intptr_t num_type_args = NumTypeParameters();
@@ -1456,6 +1500,59 @@ void Class::Finalize() const {
 }
 
 
+// Apply the members from the patch class to the original class.
+void Class::ApplyPatch(const Class& patch) const {
+  ASSERT(!is_finalized());
+  const Script& patch_script = Script::Handle(patch.script());
+  const PatchClass& patch_class = PatchClass::Handle(
+      PatchClass::New(*this, patch_script));
+
+  const Array& orig_functions = Array::Handle(functions());
+  intptr_t orig_len = orig_functions.Length();
+
+  const Array& patch_functions = Array::Handle(patch.functions());
+  intptr_t patch_len = patch_functions.Length();
+
+  // TODO(iposva): Verify that only patching existing methods and adding only
+  // new private methods. Currently we prepend all patch class members to the
+  // members lists which makes them override the orignals.
+  Function& func = Function::Handle();
+  const Array& new_functions = Array::Handle(Array::New(patch_len + orig_len));
+  for (intptr_t i = 0; i < patch_len; i++) {
+    func ^= patch_functions.At(i);
+    func.set_owner(patch_class);
+    new_functions.SetAt(i, func);
+  }
+  for (intptr_t i = 0; i < orig_len; i++) {
+    func ^= orig_functions.At(i);
+    new_functions.SetAt(patch_len + i, func);
+  }
+  SetFunctions(new_functions);
+
+  const Array& orig_fields = Array::Handle(fields());
+  orig_len = orig_fields.Length();
+
+  const Array& patch_fields = Array::Handle(patch.fields());
+  patch_len = patch_fields.Length();
+
+  // TODO(iposva): Verify that no duplicate fields are entered. Currently we
+  // prepend all patch class members to the members lists which makes them
+  // override the orignals.
+  Field& field = Field::Handle();
+  const Array& new_fields = Array::Handle(Array::New(patch_len + orig_len));
+  for (intptr_t i = 0; i < patch_len; i++) {
+    field ^= patch_fields.At(i);
+    field.set_owner(*this);
+    new_fields.SetAt(i, field);
+  }
+  for (intptr_t i = 0; i < orig_len; i++) {
+    field ^= orig_fields.At(i);
+    new_fields.SetAt(patch_len + i, field);
+  }
+  SetFields(new_fields);
+}
+
+
 void Class::SetFields(const Array& value) const {
   ASSERT(!value.IsNull());
 #if defined(DEBUG)
@@ -1489,9 +1586,7 @@ RawClass* Class::New(intptr_t index) {
   result.set_instance_size(FakeInstance::InstanceSize());
   result.set_next_field_offset(FakeInstance::InstanceSize());
   result.set_id(index);
-  result.raw_ptr()->is_const_ = false;
-  result.raw_ptr()->is_interface_ = false;
-  result.raw_ptr()->class_state_ = RawClass::kAllocated;
+  result.raw_ptr()->state_bits_ = 0;
   result.raw_ptr()->type_arguments_instance_field_offset_ = kNoTypeArguments;
   result.raw_ptr()->num_native_fields_ = 0;
   result.InitEmptyFields();
@@ -1533,7 +1628,7 @@ RawClass* Class::NewSignatureClass(const String& name,
                                    const Function& signature_function,
                                    const Script& script) {
   ASSERT(!signature_function.IsNull());
-  const Class& owner_class = Class::Handle(signature_function.owner());
+  const Class& owner_class = Class::Handle(signature_function.Owner());
   ASSERT(!owner_class.IsNull());
   TypeArguments& type_parameters = TypeArguments::Handle();
   // A signature class extends class Instance and is parameterized in the same
@@ -1645,24 +1740,28 @@ void Class::set_token_pos(intptr_t token_pos) const {
 
 
 void Class::set_is_interface() const {
-  raw_ptr()->is_interface_ = true;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = InterfaceBit::update(true, bits);
 }
 
 
 void Class::set_is_const() const {
-  raw_ptr()->is_const_ = true;
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = ConstBit::update(true, bits);
 }
 
 
 void Class::set_is_finalized() const {
   ASSERT(!is_finalized());
-  set_class_state(RawClass::kFinalized);
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(RawClass::kFinalized, bits);
 }
 
 
 void Class::set_is_prefinalized() const {
   ASSERT(!is_finalized());
-  set_class_state(RawClass::kPreFinalized);
+  uword bits = raw_ptr()->state_bits_;
+  raw_ptr()->state_bits_ = StateBits::update(RawClass::kPreFinalized, bits);
 }
 
 
@@ -3478,6 +3577,45 @@ const char* InstantiatedTypeArguments::ToCString() const {
 }
 
 
+const char* PatchClass::ToCString() const {
+  const char* kFormat = "PatchClass for %s";
+  const Class& cls = Class::Handle(patched_class());
+  const char* cls_name = cls.ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, kFormat, cls_name) + 1;
+  char* chars = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(chars, len, kFormat, cls_name);
+  return chars;
+}
+
+
+RawPatchClass* PatchClass::New(const Class& patched_class,
+                               const Script& script) {
+  const PatchClass& result = PatchClass::Handle(PatchClass::New());
+  result.set_patched_class(patched_class);
+  result.set_script(script);
+  return result.raw();
+}
+
+
+RawPatchClass* PatchClass::New() {
+  ASSERT(Object::patch_class_class() != Class::null());
+  RawObject* raw = Object::Allocate(PatchClass::kClassId,
+                                    PatchClass::InstanceSize(),
+                                    Heap::kOld);
+  return reinterpret_cast<RawPatchClass*>(raw);
+}
+
+
+void PatchClass::set_patched_class(const Class& value) const {
+  StorePointer(&raw_ptr()->patched_class_, value.raw());
+}
+
+
+void PatchClass::set_script(const Script& value) const {
+  StorePointer(&raw_ptr()->script_, value.raw());
+}
+
+
 void Function::SetCode(const Code& value) const {
   StorePointer(&raw_ptr()->code_, value.raw());
   ASSERT(Function::Handle(value.function()).IsNull() ||
@@ -3545,7 +3683,7 @@ void Function::set_name(const String& value) const {
 }
 
 
-void Function::set_owner(const Class& value) const {
+void Function::set_owner(const Object& value) const {
   ASSERT(!value.IsNull());
   StorePointer(&raw_ptr()->owner_, value.raw());
 }
@@ -3789,7 +3927,7 @@ static intptr_t ConstructFunctionFullyQualifiedCString(const Function& function,
   const Function& parent = Function::Handle(function.parent_function());
   intptr_t written = 0;
   if (parent.IsNull()) {
-    const Class& function_class = Class::Handle(function.owner());
+    const Class& function_class = Class::Handle(function.Owner());
     ASSERT(!function_class.IsNull());
     const char* class_name = String::Handle(function_class.Name()).ToCString();
     ASSERT(class_name != NULL);
@@ -3996,7 +4134,7 @@ RawFunction* Function::New(const String& name,
                            bool is_const,
                            bool is_abstract,
                            bool is_external,
-                           const Class& owner,
+                           const Object& owner,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
@@ -4029,8 +4167,9 @@ RawFunction* Function::NewClosureFunction(const String& name,
                                           intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
-  const Class& parent_class = Class::Handle(parent.owner());
-  ASSERT(!parent_class.IsNull());
+  // Use the owner defining the parent function and not the class containing it.
+  const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
+  ASSERT(!parent_owner.IsNull());
   const Function& result = Function::Handle(
       Function::New(name,
                     RawFunction::kClosureFunction,
@@ -4038,7 +4177,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    parent_class,
+                    parent_owner,
                     token_pos));
   result.set_parent_function(parent);
   return result.raw();
@@ -4091,15 +4230,15 @@ RawFunction* Function::ImplicitClosureFunction() const {
 
   // Lookup or create a new signature class for the closure function in the
   // library of the owner class.
-  const Class& owner_class = Class::Handle(owner());
-  ASSERT(!owner_class.IsNull() && (owner() == closure_function.owner()));
+  const Class& owner_class = Class::Handle(Owner());
+  ASSERT(!owner_class.IsNull() && (Owner() == closure_function.Owner()));
   const Library& library = Library::Handle(owner_class.library());
   ASSERT(!library.IsNull());
   const String& signature = String::Handle(closure_function.Signature());
   Class& signature_class = Class::ZoneHandle(
       library.LookupLocalClass(signature));
   if (signature_class.IsNull()) {
-    const Script& script = Script::Handle(owner_class.script());
+    const Script& script = Script::Handle(this->script());
     signature_class = Class::NewSignatureClass(signature,
                                                closure_function,
                                                script);
@@ -4139,7 +4278,7 @@ RawString* Function::BuildSignature(
         String::Handle(Symbols::New(" extends "));
     const String& kLAngleBracket = String::Handle(Symbols::New("<"));
     const String& kRAngleBracket = String::Handle(Symbols::New(">"));
-    const Class& function_class = Class::Handle(owner());
+    const Class& function_class = Class::Handle(Owner());
     ASSERT(!function_class.IsNull());
     const TypeArguments& type_parameters = TypeArguments::Handle(
         function_class.type_parameters());
@@ -4230,6 +4369,26 @@ bool Function::HasInstantiatedSignature() const {
 }
 
 
+RawClass* Function::Owner() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).patched_class();
+}
+
+
+RawScript* Function::script() const {
+  const Object& obj = Object::Handle(raw_ptr()->owner_);
+  if (obj.IsClass()) {
+    return Class::Cast(obj).script();
+  }
+  ASSERT(obj.IsPatchClass());
+  return PatchClass::Cast(obj).script();
+}
+
+
 bool Function::HasOptimizedCode() const {
   return HasCode() && Code::Handle(raw_ptr()->code_).is_optimized();
 }
@@ -4244,7 +4403,7 @@ RawString* Function::UserVisibleName() const {
 RawString* Function::QualifiedUserVisibleName() const {
   String& tmp = String::Handle();
   String& suffix = String::Handle();
-  const Class& cls = Class::Handle(owner());
+  const Class& cls = Class::Handle(Owner());
 
   if (IsClosureFunction()) {
     if (IsLocalFunction()) {
@@ -5475,8 +5634,6 @@ RawArray* Library::LoadedScripts() const {
     const GrowableObjectArray& scripts =
         GrowableObjectArray::Handle(GrowableObjectArray::New(8));
     Object& entry = Object::Handle();
-    Function& func = Function::Handle();
-    Field& field = Field::Handle();
     Class& cls = Class::Handle();
     Script& owner_script = Script::Handle();
     DictionaryIterator it(*this);
@@ -5484,17 +5641,15 @@ RawArray* Library::LoadedScripts() const {
     while (it.HasNext()) {
       entry = it.GetNext();
       if (entry.IsClass()) {
-        cls ^= entry.raw();
+        owner_script = Class::Cast(entry).script();
       } else if (entry.IsFunction()) {
-        func ^= entry.raw();
-        cls = func.owner();
+        owner_script = Function::Cast(entry).script();
       } else if (entry.IsField()) {
-        field ^= entry.raw();
-        cls = field.owner();
+        cls = Field::Cast(entry).owner();
+        owner_script = cls.script();
       } else {
         continue;
       }
-      owner_script = cls.script();
       if (owner_script.IsNull()) {
         continue;
       }
@@ -5754,7 +5909,7 @@ RawLibrary* Library::LookupObjectInImporter(const String& name) const {
         lib ^= cls.library();
       } else if (obj.IsFunction()) {
         func ^= obj.raw();
-        cls ^= func.owner();
+        cls ^= func.Owner();
         lib ^= cls.library();
       } else if (obj.IsField()) {
         field ^= obj.raw();
@@ -6169,9 +6324,8 @@ RawString* Library::CheckForDuplicateDefinition() {
 }
 
 
-RawError* Library::Patch(const String& url, const String& source) const {
-  const Script& script = Script::Handle(
-      Script::New(url, source, RawScript::kPatchTag));
+RawError* Library::Patch(const Script& script) const {
+  ASSERT(script.kind() == RawScript::kPatchTag);
   return Compiler::Compile(*this, script);
 }
 
@@ -6600,12 +6754,25 @@ const char* PcDescriptors::KindAsStr(intptr_t index) const {
 }
 
 
+void PcDescriptors::PrintHeaderString() {
+  // 4 bits per hex digit + 2 for "0x".
+  const int addr_width = (kBitsPerWord / 4) + 2;
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
+  OS::Print("%-*s\tkind    \ttid\ttok-ix\ttry/deopt-ix\n", addr_width, "pc");
+}
+
+
 const char* PcDescriptors::ToCString() const {
   if (Length() == 0) {
     return "No pc descriptors\n";
   }
+  // 4 bits per hex digit.
+  const int addr_width = kBitsPerWord / 4;
+  // "*" in a printf format specifier tells it to read the field width from
+  // the printf argument list.
   const char* kFormat =
-      "0x%" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
+      "0x%-*" PRIxPTR "\t%s\t%" PRIdPTR "\t%" PRIdPTR "\t%" PRIdPTR "\n";
   // First compute the buffer size required.
   intptr_t len = 1;  // Trailing '\0'.
   for (intptr_t i = 0; i < Length(); i++) {
@@ -6613,7 +6780,7 @@ const char* PcDescriptors::ToCString() const {
         DeoptReason(i) : TokenPos(i);
     intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
-    len += OS::SNPrint(NULL, 0, kFormat,
+    len += OS::SNPrint(NULL, 0, kFormat, addr_width,
         PC(i),
         KindAsStr(i),
         DeoptId(i),
@@ -6629,7 +6796,7 @@ const char* PcDescriptors::ToCString() const {
         DeoptReason(i) : TokenPos(i);
     intptr_t multi_purpose_index = DescriptorKind(i) == kDeoptIndex ?
         DeoptIndex(i) : TryIndex(i);
-    index += OS::SNPrint((buffer + index), (len - index), kFormat,
+    index += OS::SNPrint((buffer + index), (len - index), kFormat, addr_width,
         PC(i),
         KindAsStr(i),
         DeoptId(i),
@@ -7079,6 +7246,7 @@ RawCode* Code::New(intptr_t pointer_offsets_length) {
     result ^= raw;
     result.set_pointer_offsets_length(pointer_offsets_length);
     result.set_is_optimized(false);
+    result.set_spill_slot_count(0);
     result.set_comments(Comments::New(0));
   }
   return result.raw();
@@ -7612,6 +7780,36 @@ RawICData* ICData::AsUnaryClassChecks() const {
     }
   }
   return result.raw();
+}
+
+
+bool ICData::AllTargetsHaveSameOwner(intptr_t owner_cid) const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    if (cls.id() != owner_cid) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+bool ICData::AllReceiversAreNumbers() const {
+  if (NumberOfChecks() == 0) return false;
+  Class& cls = Class::Handle();
+  for (intptr_t i = 0; i < NumberOfChecks(); i++) {
+    cls = Function::Handle(GetTargetAt(i)).Owner();
+    const intptr_t cid = cls.id();
+    if ((cid != kSmiCid) &&
+        (cid != kMintCid) &&
+        (cid != kBigintCid) &&
+        (cid != kDoubleCid)) {
+      return false;
+    }
+  }
+  return true;
 }
 
 
@@ -10885,7 +11083,6 @@ void Stacktrace::Append(const GrowableObjectArray& func_list,
 const char* Stacktrace::ToCString() const {
   Function& function = Function::Handle();
   Code& code = Code::Handle();
-  Class& owner = Class::Handle();
   Script& script = Script::Handle();
   String& function_name = String::Handle();
   String& url = String::Handle();
@@ -10900,8 +11097,7 @@ const char* Stacktrace::ToCString() const {
     code = CodeAtFrame(i);
     uword pc = code.EntryPoint() + Smi::Value(PcOffsetAtFrame(i));
     intptr_t token_pos = code.GetTokenIndexOfPC(pc);
-    owner = function.owner();
-    script = owner.script();
+    script = function.script();
     function_name = function.QualifiedUserVisibleName();
     url = script.url();
     intptr_t line = -1;

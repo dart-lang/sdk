@@ -68,7 +68,7 @@ MethodRecognizer::Kind MethodRecognizer::RecognizeKind(
   // Only core library methods can be recognized.
   const Library& core_lib = Library::Handle(Library::CoreLibrary());
   const Library& core_impl_lib = Library::Handle(Library::CoreImplLibrary());
-  const Class& function_class = Class::Handle(function.owner());
+  const Class& function_class = Class::Handle(function.Owner());
   if ((function_class.library() != core_lib.raw()) &&
       (function_class.library() != core_impl_lib.raw())) {
     return kUnknown;
@@ -312,9 +312,12 @@ void Definition::ReplaceUsesWith(Definition* other) {
   }
   current->definition_ = other;
 
-  current->next_use_ = other->use_list();
-  other->use_list()->previous_use_ = current;
+  if (other->use_list() != NULL) {
+    current->next_use_ = other->use_list();
+    other->use_list()->previous_use_ = current;
+  }
   other->set_use_list(head);
+  set_use_list(NULL);
 }
 
 
@@ -648,17 +651,27 @@ RawAbstractType* StrictCompareComp::CompileType() const {
 }
 
 
+// Only known == targets return a Boolean.
 RawAbstractType* EqualityCompareComp::CompileType() const {
-  return receiver_class_id() != kObjectCid
-      ? Type::BoolInterface()
-      : Type::DynamicType();
+  if ((receiver_class_id() == kSmiCid) ||
+      (receiver_class_id() == kDoubleCid) ||
+      (receiver_class_id() == kNumberCid)) {
+    return Type::BoolInterface();
+  }
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+    return Type::BoolInterface();
+  }
+  return Type::DynamicType();
 }
 
 
 RawAbstractType* RelationalOpComp::CompileType() const {
-  return operands_class_id() != kObjectCid
-      ? Type::BoolInterface()
-      : Type::DynamicType();
+  if ((operands_class_id() == kSmiCid) ||
+      (operands_class_id() == kDoubleCid) ||
+      (operands_class_id() == kNumberCid)) {
+    return Type::BoolInterface();
+  }
+  return Type::DynamicType();
 }
 
 
@@ -793,19 +806,14 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinaryOpComp::CompileType() const {
-  // TODO(srdjan): Add mint, smi and double type to object store.
   // TODO(srdjan): Convert to use with class-ids instead of types.
   if (operands_type() == kMintOperands) {
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    return Type::NewNonParameterizedType(
-        Class::Handle(object_store->mint_class()));
+    return Isolate::Current()->object_store()->mint_type();
   } else if (op_kind() == Token::kSHL) {
     return Type::IntInterface();
   } else {
     ASSERT(operands_type() == kSmiOperands);
-    ObjectStore* object_store = Isolate::Current()->object_store();
-    return Type::NewNonParameterizedType(
-        Class::Handle(object_store->smi_class()));
+    return Isolate::Current()->object_store()->smi_type();
   }
 }
 
@@ -825,7 +833,12 @@ RawAbstractType* NumberNegateComp::CompileType() const {
 }
 
 
-RawAbstractType* ToDoubleComp::CompileType() const {
+RawAbstractType* DoubleToDoubleComp::CompileType() const {
+  return Type::DoubleInterface();
+}
+
+
+RawAbstractType* SmiToDoubleComp::CompileType() const {
   return Type::DoubleInterface();
 }
 
@@ -931,7 +944,8 @@ void ThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kThrowRuntimeEntry);
+                                kThrowRuntimeEntry,
+                                locs()->stack_bitmap());
   __ int3();
 }
 
@@ -945,7 +959,8 @@ void ReThrowInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCallRuntime(deopt_id(),
                                 token_pos(),
                                 try_index(),
-                                kReThrowRuntimeEntry);
+                                kReThrowRuntimeEntry,
+                                locs()->stack_bitmap());
   __ int3();
 }
 
@@ -1032,22 +1047,22 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
+  // TODO(srdjan): Do not use CompileType for class check elimination.
+  return NULL;
   UseVal* left_use = left()->AsUse();
   UseVal* right_use = right()->AsUse();
-  if (right_use == NULL || left_use == NULL) return NULL;
+  if ((right_use == NULL) || (left_use == NULL)) return NULL;
   Definition* left = left_use->definition();
   BindInstr* right = right_use->definition()->AsBind();
   if (right == NULL) return NULL;
   ConstantVal* right_constant = right->computation()->AsConstant();
   if (right_constant == NULL) return NULL;
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
-  const AbstractType& left_type =
-      AbstractType::Handle(left->HasPropagatedType()
-                           ? left->PropagatedType()
-                           : left->CompileType());
-  if ((left_type.raw() == Type::BoolInterface()) &&
-      (kind() == Token::kEQ_STRICT) &&
-      (right_constant->value().raw() == Bool::True())) {
+  // Handles e === true.
+  if ((kind() == Token::kEQ_STRICT) &&
+      (right_constant->value().raw() == Bool::True()) &&
+      left_use->CompileTypeIsMoreSpecificThan(
+          Type::Handle(Type::BoolInterface()))) {
     // Remove the constant from the graph.
     right->RemoveFromGraph();
     // Return left subexpression as the replacement for this instruction.
@@ -1097,7 +1112,8 @@ void ClosureCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::CallClosureFunctionLabel(),
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   __ Drop(argument_count);
 }
 
@@ -1118,7 +1134,8 @@ void InstanceCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                  function_name(),
                                  ArgumentCount(),
                                  argument_names(),
-                                 checked_argument_count());
+                                 checked_argument_count(),
+                                 locs()->stack_bitmap());
 }
 
 
@@ -1138,7 +1155,8 @@ void StaticCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                                try_index(),
                                function(),
                                ArgumentCount(),
-                               argument_names());
+                               argument_names(),
+                               locs()->stack_bitmap());
   __ Bind(&done);
 }
 
@@ -1154,12 +1172,13 @@ void UseVal::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 void AssertAssignableComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (!IsEliminated()) {
+  if (!is_eliminated()) {
     compiler->GenerateAssertAssignable(deopt_id(),
                                        token_pos(),
                                        try_index(),
                                        dst_type(),
-                                       dst_name());
+                                       dst_name(),
+                                       locs()->stack_bitmap());
   }
   ASSERT(locs()->in(0).reg() == locs()->out().reg());
 }
@@ -1246,13 +1265,14 @@ LocationSummary* AllocateObjectComp::MakeLocationSummary() const {
 
 
 void AllocateObjectComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  const Class& cls = Class::ZoneHandle(constructor().owner());
+  const Class& cls = Class::ZoneHandle(constructor().Owner());
   const Code& stub = Code::Handle(StubCode::GetAllocationStubForClass(cls));
   const ExternalLabel label(cls.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &label,
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   __ Drop(ArgumentCount());  // Discard arguments.
 }
 
@@ -1268,7 +1288,8 @@ void CreateClosureComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       StubCode::GetAllocationStubForClosure(closure_function));
   const ExternalLabel label(closure_function.ToCString(), stub.EntryPoint());
   compiler->GenerateCall(token_pos(), try_index(), &label,
-                         PcDescriptors::kOther);
+                         PcDescriptors::kOther,
+                         locs()->stack_bitmap());
   __ Drop(2);  // Discard type arguments and receiver.
 }
 

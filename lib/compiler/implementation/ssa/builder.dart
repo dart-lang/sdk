@@ -133,7 +133,6 @@ class Interceptors {
 
 class SsaBuilderTask extends CompilerTask {
   final Interceptors interceptors;
-  final Map<Node, ClosureData> closureDataCache;
   final CodeEmitterTask emitter;
   // Loop tracking information.
   final Set<FunctionElement> functionsCalledInLoop;
@@ -144,7 +143,6 @@ class SsaBuilderTask extends CompilerTask {
 
   SsaBuilderTask(JavaScriptBackend backend)
     : interceptors = new Interceptors(backend.compiler),
-      closureDataCache = new HashMap<Node, ClosureData>(),
       emitter = backend.emitter,
       functionsCalledInLoop = new Set<FunctionElement>(),
       selectorsCalledInLoop = new Map<SourceString, Selector>(),
@@ -226,7 +224,7 @@ class LocalsHandler {
   Map<Element, HInstruction> directLocals;
   Map<Element, Element> redirectionMapping;
   SsaBuilder builder;
-  ClosureData closureData;
+  ClosureClassMap closureData;
 
   LocalsHandler(this.builder)
       : directLocals = new Map<Element, HInstruction>(),
@@ -322,11 +320,11 @@ class LocalsHandler {
 
   void startFunction(FunctionElement function,
                      FunctionExpression node) {
+    Compiler compiler = builder.compiler;
+    closureData = compiler.closureToClassMapper.computeClosureToClassMapping(
+            node, builder.elements);
 
-    ClosureTranslator translator = new ClosureTranslator(builder);
-    closureData = translator.translate(node);
-
-    FunctionSignature signature = function.computeSignature(builder.compiler);
+    FunctionSignature signature = function.computeSignature(compiler);
     signature.forEachParameter((Element element) {
       HInstruction parameter = new HParameterValue(element);
       builder.add(parameter);
@@ -989,12 +987,14 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       if (enclosingClass != compiler.objectClass) {
         assert(superClass !== null);
         assert(superClass.resolutionState == ClassElement.STATE_DONE);
+        Selector selector =
+            new Selector.call(superClass.name, enclosingClass.getLibrary(), 0);
         FunctionElement target = superClass.lookupConstructor(superClass.name);
         if (target === null) {
           compiler.internalError("no default constructor available");
         }
         inlineSuperOrRedirect(target,
-                              Selector.INVOCATION_0,
+                              selector,
                               const EmptyLink<Node>(),
                               constructors,
                               fieldValues);
@@ -1548,12 +1548,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   }
 
   visitFunctionExpression(FunctionExpression node) {
-    ClosureData nestedClosureData = builder.closureDataCache[node];
-    if (nestedClosureData === null) {
-      // TODO(floitsch): we can only assume that the reason for not having a
-      // closure data here is, because the function is inside an initializer.
-      compiler.unimplemented("Closures inside initializers", node: node);
-    }
+    ClosureClassMap nestedClosureData =
+        compiler.closureToClassMapper.getMappingForNestedFunction(node);
     assert(nestedClosureData !== null);
     assert(nestedClosureData.closureClassElement !== null);
     ClassElement closureClassElement =
@@ -1563,7 +1559,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     compiler.enqueuer.codegen.addToWorkList(callElement, elements);
     // TODO(ahe): This should be registered in codegen, not here.
     compiler.enqueuer.codegen.registerInstantiatedClass(closureClassElement);
-    assert(closureClassElement.members.isEmpty());
+    assert(closureClassElement.localScope.isEmpty());
 
     List<HInstruction> capturedVariables = <HInstruction>[];
     for (Element member in closureClassElement.backendMembers) {
@@ -1773,10 +1769,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         Constant value = compiler.constantHandler.compileVariable(element);
         stack.add(graph.addConstant(value));
       } else {
-        Selector selector = elements.getSelector(send);
         push(new HStatic(element));
         if (element.kind == ElementKind.GETTER) {
-          push(new HInvokeStatic(selector, <HInstruction>[pop()]));
+          push(new HInvokeStatic(<HInstruction>[pop()]));
         }
       }
     } else if (Elements.isInstanceSend(send, elements)) {
@@ -1816,11 +1811,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
 
   void generateSetter(SendSet send, Element element, HInstruction value) {
     if (Elements.isStaticOrTopLevelField(element)) {
-      Selector selector = elements.getSelector(send);
       if (element.kind == ElementKind.SETTER) {
         HStatic target = new HStatic(element);
         add(target);
-        add(new HInvokeStatic(selector, <HInstruction>[target, value]));
+        add(new HInvokeStatic(<HInstruction>[target, value]));
       } else {
         add(new HStaticStore(element, value));
       }
@@ -1841,6 +1835,30 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
       localsHandler.updateLocal(element, checked);
     }
+  }
+
+  void pushInvokeHelper0(Element helper) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
+  void pushInvokeHelper1(Element helper, HInstruction a0) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
+  }
+
+  void pushInvokeHelper2(Element helper, HInstruction a0, HInstruction a1) {
+    HInstruction reference = new HStatic(helper);
+    add(reference);
+    List<HInstruction> inputs = <HInstruction>[reference, a0, a1];
+    HInstruction result = new HInvokeStatic(inputs);
+    push(result);
   }
 
   visitOperatorSend(node) {
@@ -1882,13 +1900,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       Type type = elements.getType(typeAnnotation);
       HInstruction typeInfo = null;
       if (compiler.codegenWorld.rti.hasTypeArguments(type)) {
-        HInstruction typeInfoGetter =
-            new HStatic(interceptors.getGetRuntimeTypeInfo());
-        add(typeInfoGetter);
-        typeInfo = new HInvokeStatic(Selector.INVOCATION_1,
-                                     <HInstruction>[typeInfoGetter,
-                                                    expression]);
-        add(typeInfo);
+        pushInvokeHelper1(interceptors.getGetRuntimeTypeInfo(), expression);
+        typeInfo = pop();
       }
       if (type.element.kind === ElementKind.TYPE_VARIABLE) {
         // TODO(karlklose): We emulate the frog behavior and answer
@@ -2142,10 +2155,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.cancel(
             'Isolate library and compiler mismatch', node: node);
       }
-      HStatic target = new HStatic(element);
-      add(target);
-      push(new HInvokeStatic(Selector.INVOCATION_0,
-                             <HInstruction>[target]));
+      pushInvokeHelper0(element);
     }
   }
 
@@ -2155,8 +2165,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       // If the isolate library is not used, we just invoke the
       // closure.
       visit(link.tail.head);
-      push(new HInvokeClosure(Selector.INVOCATION_0,
-                              <HInstruction>[pop()]));
+      Selector selector = new Selector.callAny(0);
+      push(new HInvokeClosure(selector, <HInstruction>[pop()]));
     } else {
       // Call a helper method from the isolate library.
       Element element = compiler.isolateLibrary.find(
@@ -2169,7 +2179,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       List<HInstruction> inputs = <HInstruction>[target];
       addGenericSendArgumentsToList(link, inputs);
-      push(new HInvokeStatic(Selector.INVOCATION_0, inputs));
+      push(new HInvokeStatic(inputs));
     }
   }
 
@@ -2195,7 +2205,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     visit(closure);
     List<HInstruction> inputs = <HInstruction>[pop()];
     String invocationName = compiler.namer.closureInvocationName(
-        new Selector.invocation(params.requiredParameterCount));
+        new Selector.callAny(params.requiredParameterCount));
     push(new HForeign(new DartString.literal('#.$invocationName'),
                       const LiteralDartString('var'),
                       inputs));
@@ -2235,7 +2245,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         self,
         graph.addConstantString(new DartString.literal(name), node),
         pop()];
-    push(new HInvokeSuper(Selector.INVOCATION_2, inputs));
+    push(new HInvokeSuper(inputs));
   }
 
   visitSend(Send node) {
@@ -2255,7 +2265,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     add(target);
     var inputs = <HInstruction>[target, context];
     if (node.isPropertyAccess) {
-      push(new HInvokeSuper(selector, inputs));
+      push(new HInvokeSuper(inputs));
     } else if (element.kind == ElementKind.FUNCTION ||
                element.kind == ElementKind.GENERATIVE_CONSTRUCTOR) {
       bool succeeded = addStaticSendArgumentsToList(selector, node.arguments,
@@ -2265,9 +2275,9 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node);
       }
-      push(new HInvokeSuper(selector, inputs));
+      push(new HInvokeSuper(inputs));
     } else {
-      target = new HInvokeSuper(Selector.GETTER, inputs);
+      target = new HInvokeSuper(inputs);
       add(target);
       inputs = <HInstruction>[target];
       addDynamicSendArgumentsToList(node, inputs);
@@ -2312,7 +2322,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     }
 
     HType elementType = computeType(element);
-    HInstruction newInstance = new HInvokeStatic(selector, inputs, elementType);
+    HInstruction newInstance = new HInvokeStatic(inputs, elementType);
     pushWithPosition(newInstance, node);
 
     TypeAnnotation annotation = getTypeAnnotationFromSend(node);
@@ -2327,12 +2337,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                            new LiteralDartString('Object'),
                                            <HInstruction>[]);
       add(typeInfo);
-      HInstruction typeInfoSetter =
-          new HStatic(interceptors.getSetRuntimeTypeInfo());
+      Element typeInfoSetterElement = interceptors.getSetRuntimeTypeInfo();
+      HInstruction typeInfoSetter = new HStatic(typeInfoSetterElement);
       add(typeInfoSetter);
-      Selector setSelector = Selector.INVOCATION_2;
       var inputs = <HInstruction>[typeInfoSetter, instance, typeInfo];
-      add(new HInvokeStatic(setSelector, inputs));
+      add(new HInvokeStatic(inputs));
     }
   }
 
@@ -2356,10 +2365,10 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         // exception at runtime.
         compiler.cancel('Unimplemented non-matching static call', node: node);
       }
-      pushWithPosition(new HInvokeStatic(selector, inputs), node);
+      pushWithPosition(new HInvokeStatic(inputs), node);
     } else {
       if (element.kind == ElementKind.GETTER) {
-        target = new HInvokeStatic(Selector.GETTER, inputs);
+        target = new HInvokeStatic(inputs);
         add(target);
         inputs = <HInstruction>[target];
       }
@@ -2405,7 +2414,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
   visitSendSet(SendSet node) {
     Operator op = node.assignmentOperator;
     if (node.isSuperCall) {
-      Selector selector = elements.getSelector(node);
       Element element = elements[node];
       if (element === null) return generateSuperNoSuchMethodSend(node);
       HInstruction target = new HStatic(element);
@@ -2413,7 +2421,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       var inputs = <HInstruction>[target, context];
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeSuper(selector, inputs));
+      push(new HInvokeSuper(inputs));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');
@@ -2719,29 +2727,26 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     //     <body>
     //   }
 
-    // All the generated calls are to zero-argument functions.
-    Selector selector = Selector.INVOCATION_0;
     // The iterator is shared between initializer, condition and body.
     HInstruction iterator;
     void buildInitializer() {
       SourceString iteratorName = const SourceString("iterator");
       Element interceptor = interceptors.getStaticInterceptor(iteratorName, 0);
       assert(interceptor != null);
-      HStatic target = new HStatic(interceptor);
-      add(target);
       visit(node.expression);
-      List<HInstruction> inputs = <HInstruction>[target, pop()];
-      iterator = new HInvokeInterceptor(selector, iteratorName, inputs);
-      add(iterator);
+      pushInvokeHelper1(interceptor, pop());
+      iterator = pop();
     }
     HInstruction buildCondition() {
-      push(new HInvokeDynamicMethod(
-           selector, const SourceString('hasNext'), <HInstruction>[iterator]));
+      SourceString name = const SourceString('hasNext');
+      Selector call = new Selector.call(name, work.element.getLibrary(), 0);
+      push(new HInvokeDynamicMethod(call, name, <HInstruction>[iterator]));
       return popBoolified();
     }
     void buildBody() {
-      push(new HInvokeDynamicMethod(
-           selector, const SourceString('next'), <HInstruction>[iterator]));
+      SourceString name = const SourceString('next');
+      Selector call = new Selector.call(name, work.element.getLibrary(), 0);
+      push(new HInvokeDynamicMethod(call, name, <HInstruction>[iterator]));
 
       Element variable;
       if (node.declaredIdentifier.asSend() !== null) {
@@ -2827,12 +2832,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       inputs.addLast(pop());
     }
     HLiteralList keyValuePairs = new HLiteralList(inputs);
-    HStatic mapMaker = new HStatic(interceptors.getMapMaker());
     add(keyValuePairs);
-    add(mapMaker);
-    inputs = <HInstruction>[mapMaker, keyValuePairs];
-    // TODO(ngeoffray): give the concrete type of our map literal.
-    push(new HInvokeStatic(Selector.INVOCATION_1, inputs, HType.UNKNOWN));
+    pushInvokeHelper1(interceptors.getMapMaker(), keyValuePairs);
   }
 
   visitLiteralMapEntry(LiteralMapEntry node) {
@@ -2962,10 +2963,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       localsHandler = new LocalsHandler.from(savedLocals);
       visit(switchCase.statements);
       if (!isAborted() && caseIterator.hasNext()) {
-        push(new HStatic(getFallThroughErrorElement));
-        HInstruction error = new HInvokeStatic(
-             Selector.INVOCATION_0, <HInstruction>[pop()]);
-        add(error);
+        pushInvokeHelper0(getFallThroughErrorElement);
+        HInstruction error = pop();
         close(new HThrow(error));
       }
       statements.add(
@@ -3046,10 +3045,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
         compiler.reportWarning(node, 'Missing break at end of switch case');
         Element element =
             compiler.findHelper(const SourceString("getFallThroughError"));
-        push(new HStatic(element));
-        HInstruction error = new HInvokeStatic(
-             Selector.INVOCATION_0, <HInstruction>[pop()]);
-        add(error);
+        pushInvokeHelper0(element);
+        HInstruction error = pop();
         close(new HThrow(error));
       }
     }
@@ -3202,28 +3199,40 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(exception);
       HInstruction oldRethrowableException = rethrowableException;
       rethrowableException = exception;
-      push(new HStatic(interceptors.getExceptionUnwrapper()));
-      List<HInstruction> inputs = <HInstruction>[pop(), exception];
-      HInvokeStatic unwrappedException =
-          new HInvokeStatic(Selector.INVOCATION_1, inputs);
-      add(unwrappedException);
-      tryInstruction.exception = exception;
 
+      pushInvokeHelper1(interceptors.getExceptionUnwrapper(), exception);
+      HInvokeStatic unwrappedException = pop();
+      tryInstruction.exception = exception;
       Link<Node> link = node.catchBlocks.nodes;
 
       void pushCondition(CatchBlock catchBlock) {
-        VariableDefinitions declaration = catchBlock.formals.nodes.head;
-        HInstruction condition = null;
-        if (declaration.type == null) {
-          condition = graph.addConstantBool(true);
-          stack.add(condition);
-        } else {
-          Type type = elements.getType(declaration.type);
+        if (catchBlock.onKeyword != null) {
+          Type type = elements.getType(catchBlock.type);
           if (type == null) {
-            compiler.cancel('Catch with unresolved type', node: catchBlock);
+            compiler.cancel('On with unresolved type',
+                            node: catchBlock.type);
           }
-          condition = new HIs(type, unwrappedException, nullOk: true);
+          HInstruction condition = new HIs(type, unwrappedException);
           push(condition);
+        }
+        else {
+          VariableDefinitions declaration = catchBlock.formals.nodes.head;
+          HInstruction condition = null;
+          if (declaration.type == null) {
+            condition = graph.addConstantBool(true);
+            stack.add(condition);
+          } else {
+            // TODO(aprelev@gmail.com): Once old catch syntax is removed
+            // "if" condition above and this "else" branch should be deleted as
+            // type of declared variable won't matter for the catch 
+            // condition
+            Type type = elements.getType(declaration.type);
+            if (type == null) {
+              compiler.cancel('Catch with unresolved type', node: catchBlock);
+            }
+            condition = new HIs(type, unwrappedException, nullOk: true);
+            push(condition);
+          }
         }
       }
 
@@ -3234,10 +3243,8 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
                                   unwrappedException);
         Node trace = catchBlock.trace;
         if (trace != null) {
-          push(new HStatic(interceptors.getTraceFromException()));
-          HInstruction traceInstruction = new HInvokeStatic(
-              Selector.INVOCATION_1, <HInstruction>[pop(), exception]);
-          add(traceInstruction);
+          pushInvokeHelper1(interceptors.getTraceFromException(), exception);
+          HInstruction traceInstruction = pop();
           localsHandler.updateLocal(elements[trace], traceInstruction);
         }
         visit(catchBlock);

@@ -456,8 +456,8 @@ class StandardTestSuite implements TestSuite {
       if (configuration['runtime'] == 'vm') {
         // TODO(antonm): support checked.
         var vmArguments = new List.from(vmOptions);
-        vmArguments.addAll(
-            ['--enable_checked_mode', '$tempDir/out.dart']);
+        vmArguments.addAll([
+            '--ignore-unrecognized-flags', '$tempDir/out.dart']);
         commands.add(new Command(
             TestUtils.vmFileName(configuration),
             vmArguments));
@@ -622,7 +622,7 @@ class StandardTestSuite implements TestSuite {
       } else {
         content = getHtmlContents(
           filename,
-          '$filePrefix${dartDir.append("lib/unittest/test_controller.js")}',
+          '$filePrefix${dartDir.append("pkg/unittest/test_controller.js")}',
           '$filePrefix${dartDir.append("client/dart.js")}',
           scriptType,
           '$filePrefix$scriptPath');
@@ -1175,7 +1175,7 @@ class JUnitTestSuite implements TestSuite {
     configuration.forEach((key, value) {
       updatedConfiguration[key] = value;
     });
-    updatedConfiguration['timeout'] *= 2;
+    updatedConfiguration['timeout'] *= 3;
     doTest(new TestCase(suiteName,
                         [new Command('java', args)],
                         updatedConfiguration,

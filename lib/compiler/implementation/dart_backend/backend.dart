@@ -22,7 +22,7 @@ class DartBackend extends Backend {
     // TODO(antonm): Implement this method, if needed.
   }
 
-  CodeBuffer codegen(WorkItem work) { return new CodeBuffer(); }
+  void codegen(WorkItem work) { }
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {
@@ -58,25 +58,11 @@ class DartBackend extends Backend {
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
       !isDartCoreLib(compiler, element.getLibrary());
 
+    // TODO(smok): Refactor this traverse/collect mess.
     Set<TypedefElement> typedefs = new Set<TypedefElement>();
     Set<ClassElement> classes = new Set<ClassElement>();
+    Set<Element> elements = new Set<Element>();
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
-    resolvedElements.forEach((element, treeElements) {
-      if (!shouldOutput(element)) return;
-      if (element is AbstractFieldElement) return;
-      collector.collect(element, treeElements);
-      new ReferencedElementCollector(
-          compiler, element, treeElements, typedefs, classes)
-      .collect();
-    });
-    final emptyTreeElements = new TreeElementMapping();
-    collectElement(element) { collector.collect(element, emptyTreeElements); }
-    typedefs.forEach(collectElement);
-    classes.forEach(collectElement);
-
-    ConflictingRenamer renamer =
-        new ConflictingRenamer(compiler, collector.placeholders);
-    Emitter emitter = new Emitter(compiler, renamer);
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
       if (element.isMember()) {
@@ -90,9 +76,30 @@ class DartBackend extends Backend {
         compiler.cancel(reason: 'Cannot process $element', element: element);
       }
 
-      emitter.outputElement(element);
+      elements.add(element);
+    });
+    resolvedElements.forEach((element, treeElements) {
+      if (!shouldOutput(element)) return;
+      if (element is AbstractFieldElement) return;
+      collector.collect(element, treeElements);
+      new ReferencedElementCollector(
+          compiler, element, treeElements, typedefs, classes)
+      .collect();
     });
 
+    final emptyTreeElements = new TreeElementMapping();
+    collectElement(element) { collector.collect(element, emptyTreeElements); }
+    typedefs.forEach(collectElement);
+    classes.forEach(collectElement);
+    resolvedClassMembers.getKeys().forEach(collectElement);
+
+    Map<Node, String> renames = new Map<Node, String>();
+    Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
+    renamePlaceholders(compiler, collector, renames, imports);
+
+    Emitter emitter = new Emitter(compiler, renames);
+    emitter.outputImports(imports);
+    elements.forEach(emitter.outputElement);
     typedefs.forEach(emitter.outputElement);
     final emptySet = new Set<Element>();
     classes.forEach((classElement) {
@@ -145,6 +152,18 @@ class ReferencedElementCollector extends AbstractVisitor {
     new ReferencedElementCollector(
         compiler, element, new TreeElementMapping(), typedefs, classes)
     .collect();
+  }
+
+  visitClassNode(ClassNode node) {
+    super.visitClassNode(node);
+    // Temporary hack which should go away once interfaces
+    // and default clauses are out.
+    if (node.defaultClause !== null) {
+      // Resolver cannot resolve parameterized default clauses.
+      TypeAnnotation evilCousine = new TypeAnnotation(
+          node.defaultClause.typeName, null);
+      evilCousine.accept(this);
+    }
   }
 
   visitNode(Node node) { node.visitChildren(this); }

@@ -211,7 +211,7 @@ class SpawnState {
         library_url_(NULL),
         function_name_(NULL) {
     script_url_ = strdup(GetRootScriptUri(Isolate::Current()));
-    const Class& cls = Class::Handle(func.owner());
+    const Class& cls = Class::Handle(func.Owner());
     ASSERT(cls.IsTopLevel());
     const Library& lib = Library::Handle(cls.library());
     const String& lib_url = String::Handle(lib.url());
@@ -403,7 +403,7 @@ static void Spawn(NativeArguments* arguments, SpawnState* state) {
 DEFINE_NATIVE_ENTRY(isolate_spawnFunction, 1) {
   GET_NATIVE_ARGUMENT(Closure, closure, arguments->At(0));
   const Function& func = Function::Handle(closure.function());
-  const Class& cls = Class::Handle(func.owner());
+  const Class& cls = Class::Handle(func.Owner());
   if (!func.IsClosureFunction() || !func.is_static() || !cls.IsTopLevel()) {
     const String& msg = String::Handle(String::New(
         "spawnFunction expects to be passed a closure to a top-level static "

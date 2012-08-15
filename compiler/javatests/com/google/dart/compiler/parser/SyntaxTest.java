@@ -63,10 +63,7 @@ public class SyntaxTest extends AbstractParserTest {
   public void test_setter() {
     parseUnit("setter.dart", Joiner.on("\n").join(
         "class G {",
-        "  // Old setter syntax",
         "  void set g1(int v) {}",
-        "  // New setter syntax",
-        "  void set g2=(int v) {}",
         "}"));
   }
 
@@ -174,8 +171,8 @@ public class SyntaxTest extends AbstractParserTest {
     assertEquals(
         Joiner.on("\n").join(
             "// unit QualifiedReturnTypeB.dart",
-            "#library(\"test\");",
-            "#import(\"QualifiedReturnTypeA.dart\", prefix : \"pref\");",
+            "library test;",
+            "import \"QualifiedReturnTypeA.dart\" as pref;",
             "class A {",
             "",
             "  pref.A foo() {",
@@ -1008,6 +1005,33 @@ public class SyntaxTest extends AbstractParserTest {
     }
   }
 
+  public void test_operators_valid() throws Exception {
+    parseUnit("operators.dart",
+        Joiner.on("\n").join(
+            "class C {",
+            "  operator <(v) {}",
+            "  operator >(v) {}",
+            "  operator <=(v) {}",
+            "  operator >=(v) {}",
+            "  operator ==(v) {}",
+            "  operator -() {}",
+            "  operator -(v) {}",
+            "  operator +(v) {}",
+            "  operator /(v) {}",
+            "  operator ~/(v) {}",
+            "  operator *(v) {}",
+            "  operator %(v) {}",
+            "  operator |(v) {}",
+            "  operator ^(v) {}",
+            "  operator &(v) {}",
+            "  operator <<(v) {}",
+            "  operator >>(v) {}",
+            "  operator [](i) {}",
+            "  operator []=(i, v) {}",
+            "  operator ~() {}",
+            "}"));
+  }
+
   public void test_positionalDefaultValue() throws Exception {
     parseUnit("phony_test_abstract_var.dart",
         Joiner.on("\n").join(
@@ -1059,17 +1083,6 @@ public class SyntaxTest extends AbstractParserTest {
             "  static operator +(arg) {}",
             "}"),
             ParserErrorCode.OPERATOR_CANNOT_BE_STATIC, 2, 10);
-  }
-
-  public void test_expectedPrefixIdentifier() throws Exception {
-    parseUnit("phony_expected_prefix_identifier.dart",
-        Joiner.on("\n").join(
-            "#import(\"l.dart\", postfix : \"l\");",
-            "#import(\"l.dart\", );",
-            "#import(\"l.dart\", prefix : \"1\");"),
-            ParserErrorCode.EXPECTED_PREFIX_KEYWORD, 1, 17,
-            ParserErrorCode.EXPECTED_PREFIX_KEYWORD, 2, 17,
-            ParserErrorCode.EXPECTED_PREFIX_IDENTIFIER, 3, 28);
   }
 
   public void test_nonFinalStaticMemberInInterface() throws Exception {

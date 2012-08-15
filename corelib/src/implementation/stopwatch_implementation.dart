@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -22,14 +22,14 @@ class StopwatchImplementation implements Stopwatch {
   void start() {
     if (_start === null) {
       // This stopwatch has never been started.
-      _start = Clock.now();
+      _start = _now();
     } else {
       if (_stop === null) {
         return;
       }
       // Restarting this stopwatch. Prepend the elapsed time to the current
       // start time.
-      _start = Clock.now() - (_stop - _start);
+      _start = _now() - (_stop - _start);
       _stop = null;
     }
   }
@@ -38,14 +38,14 @@ class StopwatchImplementation implements Stopwatch {
     if (_start === null || _stop !== null) {
       return;
     }
-    _stop = Clock.now();
+    _stop = _now();
   }
 
   void reset() {
     if (_start === null) return;
     // If [_start] is not null, then the stopwatch had already been started. It
     // may running right now.
-    _start = Clock.now();
+    _start = _now();
     if (_stop !== null) {
       // The watch is not running. So simply set the [_stop] to [_start] thus
       // having an elapsed time of 0.
@@ -57,7 +57,7 @@ class StopwatchImplementation implements Stopwatch {
     if (_start === null) {
       return 0;
     }
-    return (_stop === null) ? (Clock.now() - _start) : (_stop - _start);
+    return (_stop === null) ? (_now() - _start) : (_stop - _start);
   }
 
   int elapsedInUs() {
@@ -68,8 +68,8 @@ class StopwatchImplementation implements Stopwatch {
     return (elapsed() * 1000) ~/ frequency();
   }
 
-  int frequency() {
-    return Clock.frequency();
-  }
+  int frequency() => _frequency();
 
+  external static int _frequency();
+  external static int _now();
 }

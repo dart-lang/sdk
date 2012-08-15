@@ -682,6 +682,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
             // if we fell back to Dynamic, keep it
           } else {
             Type unionType = getUnionType(currentType, inferredType);
+            unionType = Types.makeInferred(unionType);
             Elements.setType(element, unionType);
           }
         }
@@ -705,7 +706,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           return b;
         }
         // TODO(scheglov) return union of types, but this is not easy
-        return Types.makeInferred(dynamicType);
+        return dynamicType;
       }
 
       void restore() {
@@ -915,12 +916,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
               return Types.asFunctionType((FunctionAliasType) member.getType());
             default:
               // target.field() as Function invocation.
-              if (types.isAssignable(functionType, field.getType())) {
-                return dynamicType;
+              if (Elements.isFieldWithGetter(field)) {
+                Type fieldType = field.getType();
+                if (!types.isAssignable(functionType, fieldType)) {
+                  onError(diagnosticNode, TypeErrorCode.NOT_A_FUNCTION_TYPE, fieldType);
+                }
               }
-              // "field" is not Function, so bad structure.
-              return typeError(diagnosticNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER,
-                               name, receiver);
+              return dynamicType;
           }
         }
         default:
@@ -1282,6 +1284,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
         if (nameNode != null) {
           nameNode.setElement(element);
         }
+      }
+      if (Elements.isAbstractFieldWithoutGetter(element)) {
+        onError(nameNode, TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, name);
       }
       checkDeprecated(nameNode, nameNode.getElement());
       FunctionType methodType = getMethodType(receiver, member, name, nameNode);
@@ -2702,12 +2707,14 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
     @Override
     public Type visitImportDirective(DartImportDirective node) {
-      return typeAsVoid(node);
+      //return typeAsVoid(node);
+      return voidType;
     }
 
     @Override
     public Type visitLibraryDirective(DartLibraryDirective node) {
-      return typeAsVoid(node);
+      //return typeAsVoid(node);
+      return voidType;
     }
 
     @Override

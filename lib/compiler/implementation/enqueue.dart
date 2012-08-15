@@ -71,6 +71,9 @@ class Enqueuer {
     return compiler.enqueuer.resolution.resolvedElements[owner];
   }
 
+  String lookupCode(Element element) =>
+      universe.generatedCode[element].toString();
+
   void addToWorkList(Element element, [TreeElements elements]) {
     if (element.isForeign()) return;
     if (compiler.phase == Compiler.PHASE_RECOMPILING) return;
@@ -137,7 +140,7 @@ class Enqueuer {
   }
 
   void processInstantiatedClass(ClassElement cls) {
-    cls.members.forEach(processInstantiatedClassMember);
+    cls.localMembers.forEach(processInstantiatedClassMember);
   }
 
   void registerFieldClosureInvocations() {
@@ -152,8 +155,13 @@ class Enqueuer {
         Set<Selector> invokedSelectors = universe.invokedNames[name];
         if (invokedSelectors != null) {
           for (Selector selector in invokedSelectors) {
+            Selector call = new Selector.call(
+                compiler.namer.CLOSURE_INVOCATION_NAME,
+                selector.library,  // TODO(kasperl): Use "default" library?
+                selector.argumentCount,
+                selector.namedArguments);
             registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                      selector);
+                                      call);
           }
         }
       }
@@ -211,12 +219,22 @@ class Enqueuer {
 
   void onRegisterInstantiatedClass(ClassElement cls) {
     task.measure(() {
-      while (cls !== null) {
-        if (seenClasses.contains(cls)) return;
+      // The class must be resolved to compute the set of all
+      // supertypes.
+      cls.ensureResolved(compiler);
+
+      for (Link<Type> supertypes = cls.allSupertypesAndSelf;
+           !supertypes.isEmpty(); supertypes = supertypes.tail) {
+        cls = supertypes.head.element;
+        if (seenClasses.contains(cls)) continue;
         seenClasses.add(cls);
         cls.ensureResolved(compiler);
-        cls.members.forEach(processInstantiatedClassMember);
-        cls = cls.superclass;
+        if (!cls.isInterface()) {
+          cls.localMembers.forEach(processInstantiatedClassMember);
+        }
+        if (isResolutionQueue) {
+          compiler.resolver.checkMembers(cls);
+        }
       }
     });
   }
@@ -224,6 +242,10 @@ class Enqueuer {
   void registerNewSelector(SourceString name,
                            Selector selector,
                            Map<SourceString, Set<Selector>> selectorsMap) {
+    if (name != selector.name) {
+      String message = "$name != ${selector.name} (${selector.kind})";
+      compiler.internalError("Wrong selector name: $message.");
+    }
     Set<Selector> selectors =
         selectorsMap.putIfAbsent(name, () => new Set<Selector>());
     if (!selectors.contains(selector)) {
@@ -298,18 +320,24 @@ class Enqueuer {
     registerInvokedSetter(methodName, selector);
   }
 
-  void registerFieldGetter(SourceString getterName, Type type) {
+  void registerFieldGetter(SourceString getterName,
+                           LibraryElement library,
+                           Type type) {
     task.measure(() {
+      Selector getter = new Selector.getter(getterName, library);
       registerNewSelector(getterName,
-                          new TypedSelector(type, Selector.GETTER),
+                          new TypedSelector(type, getter),
                           universe.fieldGetters);
     });
   }
 
-  void registerFieldSetter(SourceString setterName, Type type) {
+  void registerFieldSetter(SourceString setterName,
+                           LibraryElement library,
+                           Type type) {
     task.measure(() {
+      Selector setter = new Selector.setter(setterName, library);
       registerNewSelector(setterName,
-                          new TypedSelector(type, Selector.SETTER),
+                          new TypedSelector(type, setter),
                           universe.fieldSetters);
     });
   }

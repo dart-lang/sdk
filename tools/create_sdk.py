@@ -36,7 +36,6 @@
 # ........coreimpl_runtime.dart
 # ........runtime/
 # ......dart2js/
-# ......dartdoc/
 # ......isolate/
 # ........isolate_{frog, runtime}.dart
 # ........{frog, runtime}/
@@ -57,6 +56,10 @@
 # ......utf/
 # ......web/
 # ........web.dart
+# ....pkg/
+# ......dartdoc/
+# ......i18n/
+# ......logging/
 # ......(more will come here)
 # ....util/
 # ......analyzer/
@@ -334,8 +337,7 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['args', 'crypto', 'i18n', 'json', 'math', 'unittest', 'uri',
-                  'utf', 'web']:
+  for library in ['args', 'crypto', 'json', 'math', 'uri', 'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -343,20 +345,6 @@ def Main(argv):
     for filename in os.listdir(src_dir):
       if filename.endswith('.dart'):
         copyfile(join(src_dir, filename), join(dest_dir, filename))
-
-  # Create and populate lib/dartdoc.
-  dartdoc_src_dir = join(HOME, 'lib', 'dartdoc')
-  dartdoc_dest_dir = join(LIB, 'dartdoc')
-  copytree(dartdoc_src_dir, dartdoc_dest_dir,
-           ignore=ignore_patterns('.svn', 'docs'))
-
-  # Fixup dart2js dependencies.
-  ReplaceInFiles([
-      join(LIB, 'dartdoc', 'dartdoc.dart'),
-    ], [
-      ("final bool IN_SDK = false;",
-       "final bool IN_SDK = true;"),
-    ])
 
   # Create and populate lib/isolate
   copytree(join(HOME, 'lib', 'isolate'), join(LIB, 'isolate'),
@@ -405,7 +393,7 @@ def Main(argv):
                join(coreimpl_dest_dir, target_dir, filename))
 
   for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart'):
+    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
       copyfile(join('runtime', 'lib', filename),
                join(coreimpl_dest_dir, 'runtime', filename))
 
@@ -415,9 +403,42 @@ def Main(argv):
   for filename in coreimpl_sources:
     dest_file.write('#source("runtime/' + filename + '");\n')
   for filename in coreimpl_runtime_sources:
-    if filename.endswith('.dart'):
+    if filename.endswith('.dart') and not filename.endswith('_patch.dart'):
       dest_file.write('#source("runtime/' + filename + '");\n')
   dest_file.close()
+
+
+  # Create and copy pkg.
+  PKG = join(SDK_tmp, 'pkg')
+  os.makedirs(PKG)
+
+  #
+  # Create and populate pkg/{i18n, logging}
+  #
+
+  for library in ['i18n', 'logging', 'unittest']:
+    src_dir = join(HOME, 'pkg', library)
+    dest_dir = join(PKG, library)
+    os.makedirs(dest_dir)
+
+    for filename in os.listdir(src_dir):
+      if filename.endswith('.dart'):
+        copyfile(join(src_dir, filename), join(dest_dir, filename))
+
+  # Create and populate pkg/dartdoc.
+  dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')
+  dartdoc_dest_dir = join(PKG, 'dartdoc')
+  copytree(dartdoc_src_dir, dartdoc_dest_dir,
+           ignore=ignore_patterns('.svn', 'docs'))
+
+  # Fixup dart2js dependencies.
+  ReplaceInFiles([
+      join(PKG, 'dartdoc', 'dartdoc.dart'),
+    ], [
+      ("final bool IN_SDK = false;",
+       "final bool IN_SDK = true;"),
+    ])
+
 
   # Create and copy tools.
   UTIL = join(SDK_tmp, 'util')

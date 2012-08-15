@@ -7,14 +7,21 @@
 #import("dart:io");
 #import("status_expression.dart");
 
-// Possible outcomes of running a test.
+/** Possible outcomes of running a test. */
 final CRASH = "crash";
 final TIMEOUT = "timeout";
 final FAIL = "fail";
 final PASS = "pass";
-// An indication to skip the test.  The caller is responsible for skipping it.
+/**
+ * An indication to skip the test.  The caller is responsible for skipping it.
+ */
 final SKIP = "skip";
 final OK = "ok";
+/**
+ * An indication that a test is slow and we should allow extra time for
+ * completion.
+ */
+final SLOW = "slow";
 
 final RegExp StripComment = const RegExp("^[^#]*");
 final RegExp HeaderPattern = const RegExp(@"^\[([^\]]+)\]");

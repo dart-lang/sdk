@@ -208,12 +208,34 @@ class Location : public ValueObject {
 };
 
 
+class RegisterSet : public ValueObject {
+ public:
+  RegisterSet() : registers_(0) {
+    ASSERT(kNumberOfCpuRegisters < (kWordSize * kBitsPerByte));
+  }
+
+  void Add(Register reg) {
+    registers_ |= (1 << reg);
+  }
+
+  bool Contains(Register reg) {
+    return (registers_ & (1 << reg)) != 0;
+  }
+
+ private:
+  intptr_t registers_;
+
+  DISALLOW_COPY_AND_ASSIGN(RegisterSet);
+};
+
+
 // Specification of locations for inputs and output.
 class LocationSummary : public ZoneAllocated {
  public:
   enum ContainsCall {
     kNoCall,
     kCall,
+    kCallOnSlowPath
   };
 
   LocationSummary(intptr_t input_count,
@@ -233,7 +255,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_in(intptr_t index, Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     input_locations_[index] = loc;
   }
 
@@ -250,7 +272,7 @@ class LocationSummary : public ZoneAllocated {
   }
 
   void set_temp(intptr_t index, Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     temp_locations_[index] = loc;
   }
 
@@ -262,29 +284,40 @@ class LocationSummary : public ZoneAllocated {
     return &output_location_;
   }
 
-
   void set_out(Location loc) {
-    ASSERT(!is_call() || loc.IsRegister());
+    ASSERT(!always_calls() || loc.IsRegister());
     output_location_ = loc;
   }
 
-  bool is_call() const {
-    return is_call_;
+  BitmapBuilder* stack_bitmap() const { return stack_bitmap_; }
+
+  bool always_calls() const {
+    return contains_call_ == kCall;
+  }
+
+  bool can_call() {
+    return contains_call_ != kNoCall;
   }
 
   void PrintTo(BufferFormatter* f) const;
 
   static LocationSummary* Make(intptr_t input_count,
                                Location out,
-                               LocationSummary::ContainsCall contains_call);
+                               ContainsCall contains_call);
+
+  RegisterSet* live_registers() {
+    return &live_registers_;
+  }
 
  private:
   // TODO(vegorov): replace with ZoneArray.
   GrowableArray<Location> input_locations_;
   GrowableArray<Location> temp_locations_;
   Location output_location_;
+  BitmapBuilder* stack_bitmap_;
 
-  const bool is_call_;
+  const ContainsCall contains_call_;
+  RegisterSet live_registers_;
 };
 
 

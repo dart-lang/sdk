@@ -11,7 +11,9 @@
 #include "platform/globals.h"
 #include "platform/thread.h"
 // Declare the OS-specific types ahead of defining the generic class.
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
+#include "bin/socket_android.h"
+#elif defined(TARGET_OS_LINUX)
 #include "bin/socket_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "bin/socket_macos.h"

@@ -44,7 +44,7 @@ class UnparseValidator extends CompilerTask {
         parser.findGetOrSet(parser.parseModifiers(newTokens));
 
     // TODO(ahe): This is also too frigging complicated.
-    Script originalScript = originalFunction.getScript();
+    Script originalScript = originalFunction.getCompilationUnit().script;
     String name = SourceSpan.withCharacterOffsets(
         originalFunction.beginToken, originalFunction.endToken,
         (beginOffset, endOffset) =>
@@ -55,7 +55,8 @@ class UnparseValidator extends CompilerTask {
     LibraryElement lib = new LibraryElement(synthesizedScript);
     lib.canUseNative = originalFunction.getLibrary().canUseNative;
     NodeListener listener =
-        new NodeListener(new ValidatorListener(synthesizedSourceFile), lib);
+        new NodeListener(new ValidatorListener(synthesizedSourceFile),
+                         lib.entryCompilationUnit);
     parser = new Parser(listener);
     parser.parseFunction(newTokens, getOrSet);
     FunctionExpression newNode = listener.popNode();

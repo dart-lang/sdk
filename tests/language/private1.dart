@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -62,6 +62,9 @@ class C3 extends C2 {
 int c_field1a(c) => c._field1;
 int c_field2a(c) => c._field2;
 
+int _field1FromNewC4() => new C4()._field1;
+int _field2FromNewC4() => new C4()._field2;
+
 void testPrivateClasses() {
   _A a = new _A();
   Expect.equals(499, a.fieldA);
@@ -87,4 +90,6 @@ void testPrivateClasses() {
   Expect.equals(1024, c.field2b());
   Expect.equals(499, c.field1c());
   Expect.equals(99, c.field1d());
+  Expect.equals(499, _field1FromNewC4());
+  Expect.equals(42, _field2FromNewC4());
 }

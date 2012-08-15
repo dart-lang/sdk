@@ -87,7 +87,7 @@ FlowGraphCompiler::FlowGraphCompiler(
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
-      stackmap_table_builder_(NULL),
+      stackmap_table_builder_(is_ssa ? new StackmapTableBuilder() : NULL),
       block_info_(block_order.length()),
       deopt_stubs_(),
       object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
@@ -153,9 +153,8 @@ void FlowGraphCompiler::VisitBlocks() {
     set_current_block(entry);
     entry->PrepareEntry(this);
     // Compile all successors until an exit, branch, or a block entry.
-    Instruction* instr = entry;
     for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
-      instr = it.Current();
+      Instruction* instr = it.Current();
       if (FLAG_code_comments) EmitComment(instr);
       if (instr->IsParallelMove()) {
         parallel_move_resolver_.EmitNativeCode(instr->AsParallelMove());
@@ -164,14 +163,6 @@ void FlowGraphCompiler::VisitBlocks() {
         EmitInstructionPrologue(instr);
         pending_deoptimization_env_ = instr->env();
         instr->EmitNativeCode(this);
-      }
-    }
-    if (instr->next() != NULL) {
-      BlockEntryInstr* successor = instr->next()->AsBlockEntry();
-      ASSERT(successor != NULL);
-      frame_register_allocator()->Spill();
-      if (!IsNextBlock(successor)) {
-        assembler()->jmp(GetBlockLabel(successor));
       }
     }
   }
@@ -214,7 +205,36 @@ bool FlowGraphCompiler::IsNextBlock(BlockEntryInstr* block_entry) const {
 }
 
 
+void FlowGraphCompiler::SaveLiveRegisters(LocationSummary* locs) {
+  // TODO(vegorov): consider saving only caller save (volatile) registers.
+  for (intptr_t reg_idx = 0; reg_idx < kNumberOfCpuRegisters; ++reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->Contains(reg)) {
+      assembler()->PushRegister(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::RestoreLiveRegisters(LocationSummary* locs) {
+  for (intptr_t reg_idx = kNumberOfCpuRegisters - 1; reg_idx >= 0; --reg_idx) {
+    Register reg = static_cast<Register>(reg_idx);
+    if (locs->live_registers()->Contains(reg)) {
+      assembler()->PopRegister(reg);
+    }
+  }
+}
+
+
+void FlowGraphCompiler::AddSlowPathCode(SlowPathCode* code) {
+  slow_path_code_.Add(code);
+}
+
+
 void FlowGraphCompiler::GenerateDeferredCode() {
+  for (intptr_t i = 0; i < slow_path_code_.length(); i++) {
+    slow_path_code_[i]->EmitNativeCode(this);
+  }
   for (intptr_t i = 0; i < deopt_stubs_.length(); i++) {
     deopt_stubs_[i]->GenerateCode(this, i);
   }
@@ -304,6 +324,7 @@ void FlowGraphCompiler::FinalizeStackmaps(const Code& code) {
     // Finalize the stack map array and add it to the code object.
     code.set_stackmaps(
         Array::Handle(stackmap_table_builder_->FinalizeStackmaps(code)));
+    ASSERT(is_ssa() && is_optimizing());
   }
 }
 
@@ -369,7 +390,8 @@ void FlowGraphCompiler::GenerateInstanceCall(
     const String& function_name,
     intptr_t argument_count,
     const Array& argument_names,
-    intptr_t checked_argument_count) {
+    intptr_t checked_argument_count,
+    BitmapBuilder* stack_bitmap) {
   ASSERT(!IsLeaf());
   ASSERT(frame_register_allocator()->IsSpilled());
   ICData& ic_data =
@@ -396,6 +418,9 @@ void FlowGraphCompiler::GenerateInstanceCall(
                                                  ic_data,
                                                  arguments_descriptor,
                                                  argument_count);
+  if (is_ssa() && (stack_bitmap != NULL)) {
+    stackmap_table_builder_->AddEntry(descr_offset, stack_bitmap);
+  }
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kIcCall,
                                        descr_offset,
                                        deopt_id,
@@ -409,7 +434,8 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
                                            intptr_t try_index,
                                            const Function& function,
                                            intptr_t argument_count,
-                                           const Array& argument_names) {
+                                           const Array& argument_names,
+                                           BitmapBuilder* stack_bitmap) {
   ASSERT(frame_register_allocator()->IsSpilled());
 
   const Array& arguments_descriptor =
@@ -417,6 +443,9 @@ void FlowGraphCompiler::GenerateStaticCall(intptr_t deopt_id,
   const intptr_t descr_offset = EmitStaticCall(function,
                                                arguments_descriptor,
                                                argument_count);
+  if (is_ssa() && (stack_bitmap != NULL)) {
+    stackmap_table_builder_->AddEntry(descr_offset, stack_bitmap);
+  }
   pc_descriptors_list()->AddDescriptor(PcDescriptors::kFuncCall,
                                        descr_offset,
                                        deopt_id,
@@ -478,27 +507,6 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
-
-  AddCurrentDescriptor(PcDescriptors::kDeopt,
-                       comp->deopt_id(),
-                       comp->token_pos(),
-                       comp->try_index());
-
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  GenerateInstanceCall(comp->deopt_id(),
-                       comp->token_pos(),
-                       comp->try_index(),
-                       function_name,
-                       kNumArguments,
-                       Array::ZoneHandle(),  // No optional arguments.
-                       kNumArgsChecked);
-}
-
-
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
                                         intptr_t arg_count,
@@ -507,7 +515,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Label* done,
                                         intptr_t deopt_id,
                                         intptr_t token_index,
-                                        intptr_t try_index) {
+                                        intptr_t try_index,
+                                        BitmapBuilder* stack_bitmap) {
   ASSERT(!ic_data.IsNull() && (ic_data.NumberOfChecks() > 0));
   Label match_found;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
@@ -525,7 +534,8 @@ void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                        try_index,
                        target,
                        arg_count,
-                       arg_names);
+                       arg_names,
+                       stack_bitmap);
     if (!is_last_check) {
       assembler()->jmp(&match_found);
     }
@@ -675,7 +685,7 @@ void FrameRegisterAllocator::AllocateRegisters(Instruction* instr) {
 
   // If this instruction is call spill everything that was not consumed by
   // input locations.
-  if (locs->is_call() || instr->IsBranch() || instr->IsGoto()) {
+  if (locs->can_call() || instr->IsBranch() || instr->IsGoto()) {
     Spill();
   }
 

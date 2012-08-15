@@ -6,6 +6,7 @@
 
 #import('dart:uri');
 
+#import('closure.dart', prefix: 'closureMapping');
 #import('dart_backend/dart_backend.dart', prefix: 'dart_backend');
 #import('elements/elements.dart');
 #import('js_backend/js_backend.dart', prefix: 'js_backend');

@@ -284,6 +284,15 @@ const Instance* UnaryOpNode::EvalConstExpr() const {
 }
 
 
+const Instance* ClosureNode::EvalConstExpr() const {
+  if (function().IsImplicitStaticClosureFunction()) {
+    // Return a value that represents a closure. Only the type is relevant.
+    return &Closure::Handle();
+  }
+  return NULL;
+}
+
+
 const char* UnaryOpNode::Name() const {
   return Token::Str(kind_);
 }

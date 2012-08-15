@@ -184,8 +184,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   bool isNonNegativeInt32Constant(HInstruction instruction) {
     if (instruction.isConstantInteger()) {
-      int value =
-          ((instruction as HConstant).constant as PrimitiveConstant).value;
+      HConstant constantInstruction = instruction;
+      PrimitiveConstant primitiveConstant = constantInstruction.constant;
+      int value = primitiveConstant.value;
       if (value >= 0 && value < (1 << 31)) {
         return true;
       }
@@ -213,10 +214,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // integer. Also, if we are using & with a positive constant we know
   // that the result is positive already and need no conversion.
   bool requiresUintConversion(HInstruction instruction) {
-    if (instruction is HBitAnd &&
-        (isNonNegativeInt32Constant((instruction as HBitAnd).left) ||
-         isNonNegativeInt32Constant((instruction as HBitAnd).right))) {
-      return false;
+    if (instruction is HBitAnd) {
+      HBitAnd bitAnd = instruction;
+      if (isNonNegativeInt32Constant(bitAnd.left) ||
+          isNonNegativeInt32Constant(bitAnd.right)) {
+        return false;
+      }
     }
     return hasNonBitOpUser(instruction, new Set<HPhi>());
   }
@@ -1420,7 +1423,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     push(jsPropertyCall(object, methodName, arguments), node);
   }
 
-  Selector getOptimizedSelectorFor(HInvoke node, Selector defaultSelector) {
+  Selector getOptimizedSelectorFor(HInvokeDynamic node,
+                                   Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
     if (node.name.isPrivate()) return defaultSelector;
     Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
@@ -1437,8 +1441,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         compiler.namer.setterName(currentLibrary, node.name),
                         visitArguments(node.inputs)),
          node);
+    Selector setter = new Selector.setter(node.name, currentLibrary);
     world.registerDynamicSetter(
-        node.name, getOptimizedSelectorFor(node, Selector.SETTER));
+        node.name, getOptimizedSelectorFor(node, setter));
   }
 
   visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
@@ -1447,8 +1452,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         compiler.namer.getterName(currentLibrary, node.name),
                         visitArguments(node.inputs)),
          node);
+    Selector getter = new Selector.getter(node.name, currentLibrary);
     world.registerDynamicGetter(
-        node.name, getOptimizedSelectorFor(node, Selector.GETTER));
+        node.name, getOptimizedSelectorFor(node, getter));
   }
 
   visitInvokeClosure(HInvokeClosure node) {
@@ -1458,11 +1464,21 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         visitArguments(node.inputs)),
          node);
     // TODO(floitsch): we should have a separate list for closure invocations.
+    Selector call = new Selector.call(
+        compiler.namer.CLOSURE_INVOCATION_NAME,
+        node.selector.library,
+        node.selector.argumentCount,
+        node.selector.namedArguments);
     world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                    node.selector);
+                                    call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
+    if (Elements.isStaticOrTopLevelFunction(node.element) &&
+        node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE) {
+      // Register this invocation to collect the types used at all call sites.
+      backend.registerStaticInvocation(node);
+    }
     use(node.target);
     push(new js.Call(pop(), visitArguments(node.inputs)), node);
   }
@@ -1517,11 +1533,12 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't have an element we register a dynamic field getter.
       // This might lead to unnecessary getters, but these cases should be
       // rare.
-      world.registerDynamicGetter(node.fieldName, Selector.GETTER);
+      Selector getter = new Selector.getter(node.fieldName, node.library);
+      world.registerDynamicGetter(node.fieldName, getter);
     } else {
       Type type = node.receiver.propagatedType.computeType(compiler);
       if (type != null) {
-        world.registerFieldGetter(node.element.name, type);
+        world.registerFieldGetter(node.element.name, node.library, type);
       }
     }
   }
@@ -1554,12 +1571,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       // If we don't have an element we register a dynamic field setter.
       // This might lead to unnecessary setters, but these cases should be
       // rare.
-      world.registerDynamicSetter(node.fieldName, Selector.SETTER);
+      Selector setter = new Selector.setter(node.fieldName, node.library);
+      world.registerDynamicSetter(node.fieldName, setter);
     } else {
       Type type = node.receiver.propagatedType.computeType(compiler);
       if (type != null) {
         if (!work.element.isGenerativeConstructorBody()) {
-          world.registerFieldSetter(node.element.name, type);
+          world.registerFieldSetter(node.element.name, node.library, type);
         }
         // Determine the types seen so far for the field. If only number
         // types have been seen and the value of the field set is a
@@ -1880,6 +1898,24 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitStatic(HStatic node) {
+    // Check whether this static is used for anything else than as a target in
+    // a static call.
+    node.usedBy.forEach((HInstruction instr) {
+      if (instr is !HInvokeStatic) {
+        backend.registerNonCallStaticUse(node);
+      } else if (instr.target !== node) {
+        backend.registerNonCallStaticUse(node);
+      } else {
+        // If invoking the static is can still be passed as an argument as well
+        // which will also be non call static use.
+        for (int i = 1; i < node.inputs.length; i++) {
+          if (node.inputs === node) {
+            backend.registerNonCallStaticUse(node);
+            break;
+          }
+        }
+      }
+    });
     world.registerStaticUse(node.element);
     push(new js.VariableUse(compiler.namer.isolateAccess(node.element)));
   }

@@ -557,7 +557,11 @@ class Binary extends Call {
   Binary(String op, Expression left, Expression right)
       : super(new VariableUse(op), <Expression>[left, right]);
 
-  String get op() => (target as VariableUse).name;
+  String get op() {
+    VariableUse use = target;
+    return use.name;
+  }
+
   Expression get left() => arguments[0];
   Expression get right() => arguments[1];
 

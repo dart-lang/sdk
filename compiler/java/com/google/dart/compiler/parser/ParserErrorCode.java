@@ -46,6 +46,7 @@ public enum ParserErrorCode implements ErrorCode {
   EXPECTED_COMMA_OR_RIGHT_PAREN("Expected ',' or ')', but got '%s'"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_EOS("Unexpected token '%s' (expected end of file)"),
+  EXPECTED_EXPORT("Expected 'export'"),
   // TODO(zundel): error message needs JUnit test
   EXPECTED_EXPRESSION_AFTER_COMMA("Expected expression after comma"),
   EXPECTED_EXTENDS("Expected 'extends'"),

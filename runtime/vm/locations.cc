@@ -16,12 +16,18 @@ LocationSummary::LocationSummary(intptr_t input_count,
     : input_locations_(input_count),
       temp_locations_(temp_count),
       output_location_(),
-      is_call_(contains_call == LocationSummary::kCall) {
+      stack_bitmap_(NULL),
+      contains_call_(contains_call),
+      live_registers_() {
   for (intptr_t i = 0; i < input_count; i++) {
     input_locations_.Add(Location());
   }
   for (intptr_t i = 0; i < temp_count; i++) {
     temp_locations_.Add(Location());
+  }
+
+  if (contains_call_ != kNoCall) {
+    stack_bitmap_ = new BitmapBuilder();
   }
 }
 
@@ -106,7 +112,7 @@ void LocationSummary::PrintTo(BufferFormatter* f) const {
     out().PrintTo(f);
   }
 
-  if (is_call()) f->Print(" C");
+  if (always_calls()) f->Print(" C");
 }
 
 }  // namespace dart

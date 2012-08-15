@@ -78,11 +78,11 @@ public class LibraryParserTest extends TestCase {
   public void testLibrary() {
     // "library { import = ['foo.lib', 'bar.lib'] source = ['this.dart', 'that.dart'] }";
     String text =
-        "#library(\"testLibrary\");\n" 
-      + "#import(\"foo.dart\");\n" 
-      + "#import(\"bar.dart\");\n"
-      + "#source(\"this.dart\");\n" 
-      + "#source(\"that.dart\");\n";
+        "library testLibrary;\n" 
+      + "import \"foo.dart\";\n" 
+      + "import \"bar.dart\";\n"
+      + "part \"this.dart\";\n" 
+      + "part \"that.dart\";\n";
 
     LibraryUnit unit = parse(text);
 
@@ -95,9 +95,9 @@ public class LibraryParserTest extends TestCase {
   public void testNative() {
       // "library { import = ['foo.lib'] source = ['this.dart'] native = ['impl.js'] }";
     String text =
-        "#library(\"testLibrary\");\n" 
-      + "#import(\"foo.dart\");\n" 
-      + "#source(\"this.dart\");\n" 
+        "library testLibrary;\n" 
+      + "import \"foo.dart\";\n" 
+      + "part \"this.dart\";\n" 
       + "#native(\"impl.js\");\n";
       
     LibraryUnit unit = parse(text);
@@ -110,10 +110,10 @@ public class LibraryParserTest extends TestCase {
   public void testImportPrefix() {
 //      "library { import = [foo:'foo.lib', 'bar.lib'] source = ['this.dart', 'that.dart'] }";
     String text =
-        "#library(\"testLibrary\");\n" 
-      + "#import(\"foo.dart\", prefix:\"foo\");\n" 
-      + "#import(\"bar.dart\");\n" 
-      + "#source(\"this.dart\");\n" 
+        "library testLibrary;\n" 
+      + "import \"foo.dart\" as foo;\n" 
+      + "import \"bar.dart\";\n" 
+      + "part \"this.dart\";\n" 
       + "#native(\"impl.js\");\n";
     LibraryUnit unit = parse(text);
 

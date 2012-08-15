@@ -24,6 +24,7 @@ namespace dart {
   V(AbstractTypeArguments)                                                     \
     V(TypeArguments)                                                           \
     V(InstantiatedTypeArguments)                                               \
+  V(PatchClass)                                                                \
   V(Function)                                                                  \
   V(Field)                                                                     \
   V(LiteralToken)                                                              \
@@ -406,9 +407,7 @@ class RawClass : public RawObject {
   intptr_t next_field_offset_;  // Offset of the next instance field.
   intptr_t num_native_fields_;  // Number of native fields in class.
   intptr_t token_pos_;
-  int8_t class_state_;  // Of type ClassState.
-  bool is_const_;
-  bool is_interface_;
+  uint8_t state_bits_;  // state, is_const, is_interface.
 
   friend class Object;
   friend class RawInstance;
@@ -540,6 +539,21 @@ class RawInstantiatedTypeArguments : public RawAbstractTypeArguments {
 };
 
 
+class RawPatchClass : public RawObject {
+ private:
+  RAW_HEAP_OBJECT_IMPLEMENTATION(PatchClass);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->patched_class_);
+  }
+  RawClass* patched_class_;
+  RawScript* script_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->script_);
+  }
+};
+
+
 class RawFunction : public RawObject {
  public:
   enum Kind {
@@ -559,7 +573,7 @@ class RawFunction : public RawObject {
 
   RawObject** from() { return reinterpret_cast<RawObject**>(&ptr()->name_); }
   RawString* name_;
-  RawClass* owner_;
+  RawObject* owner_;  // Class or  patch class where this function was defined.
   RawAbstractType* result_type_;
   RawArray* parameter_types_;
   RawArray* parameter_names_;
@@ -595,10 +609,7 @@ class RawField : public RawObject {
   RawObject** to() { return reinterpret_cast<RawObject**>(&ptr()->value_); }
 
   intptr_t token_pos_;
-  bool is_static_;
-  bool is_final_;
-  bool is_const_;
-  bool has_initializer_;
+  uint8_t kind_bits_;  // static, final, const, has initializer.
 };
 
 
@@ -733,6 +744,10 @@ class RawCode : public RawObject {
   intptr_t pointer_offsets_length_;
   // This cannot be boolean because of alignment issues on x64 architectures.
   intptr_t is_optimized_;
+
+  // The number of spill slots used by an optimized code object.  This is
+  // used as the length of each stackmap in the code.
+  intptr_t spill_slot_count_;
 
   // Variable length data follows here.
   int32_t data_[0];

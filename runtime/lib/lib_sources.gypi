@@ -8,8 +8,7 @@
   'sources': [
     'byte_array.cc',
     'byte_array.dart',
-    'clock.cc',
-    'clock.dart',
+    'stopwatch.cc',
     'error.cc',
     'error.dart',
     'error.h',

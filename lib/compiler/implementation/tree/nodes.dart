@@ -1671,12 +1671,15 @@ class CascadeReceiver extends Expression {
 }
 
 class CatchBlock extends Node {
+  final TypeAnnotation type;
   final NodeList formals;
   final Block block;
 
-  final catchKeyword;
+  final Token onKeyword;
+  final Token catchKeyword;
 
-  CatchBlock(this.formals, this.block, this.catchKeyword);
+  CatchBlock(this.type, this.formals, this.block, 
+             this.onKeyword, this.catchKeyword);
 
   CatchBlock asCatchBlock() => this;
 
@@ -1697,11 +1700,12 @@ class CatchBlock extends Node {
   }
 
   visitChildren(Visitor visitor) {
+    if (type != null) type.accept(visitor);
     formals.accept(visitor);
     block.accept(visitor);
   }
 
-  Token getBeginToken() => catchKeyword;
+  Token getBeginToken() => onKeyword != null ? onKeyword : catchKeyword;
 
   Token getEndToken() => block.getEndToken();
 }

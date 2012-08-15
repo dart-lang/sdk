@@ -172,7 +172,9 @@ class Utils {
 
 }  // namespace dart
 
-#if defined(TARGET_OS_LINUX)
+#if defined(TARGET_OS_ANDROID)
+#include "platform/utils_android.h"
+#elif defined(TARGET_OS_LINUX)
 #include "platform/utils_linux.h"
 #elif defined(TARGET_OS_MACOS)
 #include "platform/utils_macos.h"

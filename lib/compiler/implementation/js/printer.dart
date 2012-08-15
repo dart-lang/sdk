@@ -10,9 +10,12 @@ class Printer implements NodeVisitor {
   int indentLevel = 0;
   bool inForInit = false;
   bool atStatementBegin = false;
+  final DanglingElseVisitor danglingElseVisitor;
 
-  Printer(this.compiler, this.positionElement)
-      : outBuffer = new leg.CodeBuffer();
+  Printer(leg.Compiler compiler, this.positionElement)
+      : this.compiler = compiler,
+        outBuffer = new leg.CodeBuffer(),
+        danglingElseVisitor = new DanglingElseVisitor(compiler);
 
   void spaceOut() {
     if (!shouldCompressOutput) out(" ");
@@ -137,22 +140,13 @@ class Printer implements NodeVisitor {
     Node then = node.then;
     Node elsePart = node.otherwise;
     bool hasElse = node.hasElse;
+
     // Handle dangling elses.
-    // If the then-branch is an if, which has no else-branch, but we do
-    // have one, then we need to put the nested if into braces.
-    if (hasElse && then is If) {
-      Node nested = then;
-      do {
-        If nestedIf = nested;
-        if (!nestedIf.hasElse) {
-          then = new Block(<Statement>[then]);
-          break;
-        }
-        nested = nestedIf.otherwise;
-      } while (nested is If);
-    }
-    if (then is If && !(then as If).hasElse && hasElse) {
-      then = new Block(<Statement>[then]);
+    if (hasElse) {
+      bool needsBraces = node.then.accept(danglingElseVisitor);
+      if (needsBraces) {
+        then = new Block(<Statement>[then]);
+      }
     }
     if (shouldIndent) indent();
     out("if");
@@ -643,7 +637,8 @@ class Printer implements NodeVisitor {
                           newAtStatementBegin: atStatementBegin);
     Node selector = access.selector;
     if (selector is LiteralString) {
-      String fieldWithQuotes = (selector as LiteralString).value;
+      LiteralString selectorString = selector;
+      String fieldWithQuotes = selectorString.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
         if (isDigit(lastCharCode)) out(" ");
         out(".");
@@ -727,7 +722,8 @@ class Printer implements NodeVisitor {
 
   visitProperty(Property node) {
     if (node.name is LiteralString) {
-      String name = (node.name as LiteralString).value;
+      LiteralString nameString = node.name;
+      String name = nameString.value;
       if (isValidJavaScriptId(name)) {
         out(name.substring(1, name.length - 1));
       } else {
@@ -735,7 +731,8 @@ class Printer implements NodeVisitor {
       }
     } else {
       assert(node.name is LiteralNumber);
-      out((node.name as LiteralNumber).value);
+      LiteralNumber nameNumber = node.name;
+      out(nameNumber.value);
     }
     out(":");
     spaceOut();
@@ -768,6 +765,56 @@ class Printer implements NodeVisitor {
     outLn(node.code);
   }
 }
+
+/**
+ * Returns true, if the given node must be wrapped into braces when used
+ * as then-statement in an [If] that has an else branch.
+ */
+class DanglingElseVisitor extends BaseVisitor<bool> {
+  leg.Compiler compiler;
+
+  DanglingElseVisitor(this.compiler);
+
+  bool visitProgram(Program node) => false;
+
+  bool visitNode(Statement node) {
+    compiler.internalError("Forgot node: $node");
+  }
+
+  bool visitBlock(Block node) => false;
+  bool visitExpressionStatement(ExpressionStatement node) => false;
+  bool visitEmptyStatement(EmptyStatement node) => false;
+  bool visitIf(If node) {
+    if (!node.hasElse) return true;
+    return node.otherwise.accept(this);
+  }
+  bool visitFor(For node) => node.body.accept(this);
+  bool visitForIn(ForIn node) => node.body.accept(this);
+  bool visitWhile(While node) => node.body.accept(this);
+  bool visitDo(Do node) => false;
+  bool visitContinue(Continue node) => false;
+  bool visitBreak(Break node) => false;
+  bool visitReturn(Return node) => false;
+  bool visitThrow(Throw node) => false;
+  bool visitTry(Try node) {
+    if (node.finallyPart != null) {
+      return node.finallyPart.accept(this);
+    } else {
+      return node.catchPart.accept(this);
+    }
+  }
+  bool visitCatch(Catch node) => node.body.accept(this);
+  bool visitSwitch(Switch node) => false;
+  bool visitCase(Case node) => false;
+  bool visitDefault(Default node) => false;
+  bool visitFunctionDeclaration(FunctionDeclaration node) => false;
+  bool visitLabeledStatement(LabeledStatement node)
+      => node.body.accept(this);
+  bool visitLiteralStatement(LiteralStatement node) => true;
+
+  bool visitExpression(Expression node) => false;
+}
+
 
 leg.CodeBuffer prettyPrint(Node node,
                            leg.Compiler compiler,

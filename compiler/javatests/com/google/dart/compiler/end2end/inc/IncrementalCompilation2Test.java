@@ -86,10 +86,10 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#source('A.dart');",
-            "#source('B.dart');",
-            "#source('C.dart');",
+            "library application;",
+            "part 'A.dart';",
+            "part 'B.dart';",
+            "part 'C.dart';",
             ""));
     appSource.setContent("A.dart", "");
     appSource.setContent("B.dart", "");
@@ -399,8 +399,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // But application should be build.
     assertAppBuilt();
-    // Because B was compiled, it has warning.
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 20));
   }
 
   public void test_undeclareTopLevel_conflictWithLocalVariable() {
@@ -417,7 +415,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  var duplicate;",
             "}"));
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 9));
     // Update units and compile.
     appSource.setContent("A.dart", "");
     compile();
@@ -427,8 +424,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     assertAppBuilt();
-    // Because B was recompiled, it has no warning.
-    assertErrors(errors);
   }
 
   /**
@@ -448,14 +443,13 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
             "  var duplicate;",
             "}"));
     compile();
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 3, 7, 9));
     // Exclude A and compile.
     appSource.setContent(
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('app');",
-            "#source('B.dart');",
+            "library app;",
+            "part 'B.dart';",
             ""));
     compile();
     // Now there is top-level declarations conflict between A and B.
@@ -464,8 +458,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     // ... but application should be rebuild.
     didWrite(APP, EXTENSION_DEPS);
-    // Because B was recompiled, it has no warning.
-    assertErrors(errors);
   }
 
   public void test_declareField_conflictWithLocalVariable() {
@@ -501,8 +493,6 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // B depends on A class, so compiled.
     didWrite("B.dart", EXTENSION_TIMESTAMP);
     assertAppBuilt();
-    // Because B was compiled, it has warning.
-    assertErrors(errors, errEx(ResolverErrorCode.DUPLICATE_LOCAL_VARIABLE_WARNING, 4, 9, 3));
   }
 
   public void test_declareTopLevelVariable_conflictOtherTopLevelVariable() {
@@ -531,7 +521,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   }
 
   /**
-   * Test that invalid "#import" is reported as any other error between "unitAboutToCompile" and
+   * Test that invalid "import" is reported as any other error between "unitAboutToCompile" and
    * "unitCompiled".
    */
   public void test_reportMissingImport() throws Exception {
@@ -539,8 +529,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('app');",
-            "#import('dart:noSuchLib.dart');",
+            "library app;",
+            "import 'dart:noSuchLib.dart';",
             ""));
     // Remember errors only between unitAboutToCompile/unitCompiled.
     errors.clear();
@@ -566,7 +556,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     };
     DartCompiler.compileLib(appSource, config, provider, listener);
     // Check that errors where reported (and in correct time).
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 31));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 29));
   }
 
   /**
@@ -577,9 +567,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart', prefix: 'p');",
-            "#import('B.dart', prefix: 'p');",
+            "library application;",
+            "import 'A.dart' as p;",
+            "import 'B.dart' as p;",
             "f() {",
             "  p.a = 1;",
             "  p.b = 2;",
@@ -589,14 +579,14 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             "var a;",
             ""));
     appSource.setContent(
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('B');",
+            "library B;",
             "var b;",
             ""));
     // do compile, no errors expected
@@ -613,24 +603,24 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart', prefix: 'p');",
-            "#import('B.dart', prefix: 'p');",
-//            "#import('A.dart');",
-//            "#import('B.dart');",
+            "library application;",
+            "import 'A.dart' as p;",
+            "import 'B.dart' as p;",
+//            "import 'A.dart';",
+//            "import 'B.dart';",
             ""));
     appSource.setContent(
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             "var someVar;",
             ""));
     appSource.setContent(
         "B.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('B');",
+            "library B;",
             "var someVar;",
             ""));
     // do compile
@@ -646,12 +636,12 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('app');",
-            "#source('noSuchUnit.dart');",
+            "library app;",
+            "part 'noSuchUnit.dart';",
             ""));
     compile();
     // Check that errors where reported (and in correct time).
-    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 27));
+    assertErrors(errors, errEx(DartCompilerErrorCode.MISSING_SOURCE, 3, 1, 23));
   }
   
   public void test_reportMissingSource_withSchema_file() throws Exception {
@@ -691,13 +681,13 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#source('A.dart');",
-            "#source('A.dart');",
+            "library application;",
+            "part 'A.dart';",
+            "part 'A.dart';",
             ""));
     // do compile, no errors expected
     compile();
-    assertErrors(errors, errEx(DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, 4, 1, 18));
+    assertErrors(errors, errEx(DartCompilerErrorCode.UNIT_WAS_ALREADY_INCLUDED, 4, 1, 14));
   }
 
   /**
@@ -712,8 +702,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('app');",
-            "#import('canNotRead.dart');",
+            "library app;",
+            "import 'canNotRead.dart';",
             ""));
     // use same config as Editor - resolve despite of errors
     config = new DefaultCompilerConfiguration() {
@@ -735,7 +725,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             "class A {",
             "  static _privateStatic() {}",
             "}",
@@ -744,8 +734,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart');",
+            "library application;",
+            "import 'A.dart';",
             "main() {",
             "  A._privateStatic();",
             "}",
@@ -766,7 +756,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             "class A {",
             "  _privateInstance() {}",
             "}",
@@ -775,8 +765,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart');",
+            "library application;",
+            "import 'A.dart';",
             "main() {",
             "  A a = new A();",
             "  a._privateInstance();",
@@ -798,7 +788,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             "class A {",
             "  _method() {}",
             "}",
@@ -807,8 +797,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart');",
+            "library application;",
+            "import 'A.dart';",
             "class B extends A {",
             "  test1() {",
             "    _method();",
@@ -837,8 +827,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
-            "#import('" + APP + "');",
+            "library A;",
+            "import '" + APP + "';",
             "interface I default A {",
             "  I();",
             "  I.named();",
@@ -848,8 +838,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart', prefix: 'lib');",
+            "library application;",
+            "import 'A.dart' as lib;",
             "class A {",
             "  factory lib.I() {}",
             "  factory lib.I.named() {}",
@@ -869,14 +859,14 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             ""));
     appSource.setContent(
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart', prefix: 'prf');",
+            "library application;",
+            "import 'A.dart' as prf;",
             "main() {",
             "  var prf;",
             "}",
@@ -888,6 +878,178 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
   
   /**
    * <p>
+   * http://code.google.com/p/dart/issues/detail?id=3340
+   */
+  public void test_useImportPrefix_asTopLevelFieldName() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library A;",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library application;",
+            "import 'A.dart' as prf;",
+            "var prf;",
+            "main() {",
+            "}",
+            ""));
+    // do compile, no errors expected
+    compile();
+    assertErrors(errors, errEx(ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, 4, 5, 3));
+  }
+
+  public void test_newLibrarySyntax_show() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "class TypeA {}",
+            "class TypeB {}",
+            "class TypeC {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart' as libA show TypeA, TypeB;",
+            "main() {",
+            "  libA.TypeA v1;",
+            "  libA.TypeB v2;",
+            "  libA.TypeC v3;",
+            "}",
+            ""));
+    // TypeC not listed in "show"
+    compile();
+    assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
+  }
+  
+  public void test_newLibrarySyntax_hide() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "class TypeA {}",
+            "class TypeB {}",
+            "class TypeC {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'A.dart' as libA hide TypeC;",
+            "main() {",
+            "  libA.TypeA v1;",
+            "  libA.TypeB v2;",
+            "  libA.TypeC v3;",
+            "}",
+            ""));
+    // TypeC is listed in "hide"
+    compile();
+    assertErrors(errors, errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 10));
+  }
+
+  public void test_newLibrarySyntax_export() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "class TypeAA {}",
+            "class TypeAB {}",
+            "class TypeAC {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.B;",
+            "import 'A.dart' as libA hide TypeAC & export;",
+            "class TypeBA {}",
+            "class TypeBB {}",
+            "class TypeBC {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart' as libB hide TypeAA, TypeBB;",
+            "main() {",
+            "  libB.TypeAA aa;",
+            "  libB.TypeAB ab;",
+            "  libB.TypeAC ac;",
+            "  libB.TypeBA ba;",
+            "  libB.TypeBB bb;",
+            "  libB.TypeBC bc;",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 5, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 9, 3, 11));
+    assertTrue(errors.toString().contains("libB.TypeAA"));
+    assertTrue(errors.toString().contains("libB.TypeAC"));
+    assertTrue(errors.toString().contains("libB.TypeBB"));
+  }
+  
+  public void test_newLibrarySyntax_noExport() throws Exception {
+    appSource.setContent(
+        "A.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.A;",
+            "class TypeAA {}",
+            "class TypeAB {}",
+            "class TypeAC {}",
+            ""));
+    appSource.setContent(
+        "B.dart",
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.B;",
+            "import 'A.dart' as libA;",
+            "class TypeBA {}",
+            "class TypeBB {}",
+            "class TypeBC {}",
+            ""));
+    appSource.setContent(
+        APP,
+        makeCode(
+            "// filler filler filler filler filler filler filler filler filler filler filler",
+            "library test.app;",
+            "import 'B.dart' as libB;",
+            "main() {",
+            "  libB.TypeAA aa;",
+            "  libB.TypeAB ab;",
+            "  libB.TypeAC ac;",
+            "  libB.TypeBA ba;",
+            "  libB.TypeBB bb;",
+            "  libB.TypeBC bc;",
+            "}",
+            ""));
+    compile();
+    assertErrors(
+        errors,
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 5, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 6, 3, 11),
+        errEx(TypeErrorCode.NO_SUCH_TYPE, 7, 3, 11));
+    assertTrue(errors.toString().contains("libB.TypeAA"));
+    assertTrue(errors.toString().contains("libB.TypeAB"));
+    assertTrue(errors.toString().contains("libB.TypeAC"));
+  }
+  
+  /**
+   * <p>
    * http://code.google.com/p/dart/issues/detail?id=4238
    */
   public void test_typesPropagation_html_query() throws Exception {
@@ -895,8 +1057,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('dart:html');",
+            "library application;",
+            "import 'dart:html';",
             "main() {",
             "  var v1 = query('a');",
             "  var v2 = query('A');",
@@ -942,9 +1104,9 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('dart:io');",
-            "#import('dart:html');",
+            "library application;",
+            "import 'dart:io';",
+            "import 'dart:html';",
             ""));
     // do compiled
     compile();
@@ -965,27 +1127,27 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         "A.dart",
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('A');",
+            "library A;",
             ""));
     appSource.setContent(
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('A.dart', prefix: 'abstract');",
-            "#import('A.dart', prefix: 'as');",
-            "#import('A.dart', prefix: 'assert');",
-            "#import('A.dart', prefix: 'Dynamic');",
-            "#import('A.dart', prefix: 'equals');",
-            "#import('A.dart', prefix: 'factory');",
-            "#import('A.dart', prefix: 'get');",
-            "#import('A.dart', prefix: 'implements');",
-            "#import('A.dart', prefix: 'interface');",
-            "#import('A.dart', prefix: 'negate');",
-            "#import('A.dart', prefix: 'operator');",
-            "#import('A.dart', prefix: 'set');",
-            "#import('A.dart', prefix: 'static');",
-            "#import('A.dart', prefix: 'typedef');",
+            "library application;",
+            "import 'A.dart' as abstract;",
+            "import 'A.dart' as as;",
+            "import 'A.dart' as assert;",
+            "import 'A.dart' as Dynamic;",
+            "import 'A.dart' as equals;",
+            "import 'A.dart' as factory;",
+            "import 'A.dart' as get;",
+            "import 'A.dart' as implements;",
+            "import 'A.dart' as interface;",
+            "import 'A.dart' as negate;",
+            "import 'A.dart' as operator;",
+            "import 'A.dart' as set;",
+            "import 'A.dart' as static;",
+            "import 'A.dart' as typedef;",
             "main() {",
             "  var prf;",
             "}",
@@ -993,7 +1155,7 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
     // do compile, no errors expected
     compile();
     {
-      assertEquals(14, errors.size());
+      assertEquals(13, errors.size());
       for (DartCompilationError error : errors) {
         assertEquals(ResolverErrorCode.BUILT_IN_IDENTIFIER_AS_IMPORT_PREFIX, error.getErrorCode());
       }
@@ -1005,8 +1167,8 @@ public class IncrementalCompilation2Test extends CompilerTestCase {
         APP,
         makeCode(
             "// filler filler filler filler filler filler filler filler filler filler filler",
-            "#library('application');",
-            "#import('dart:core');",
+            "library application;",
+            "import 'dart:core';",
             ""));
     compile();
     ErrorExpectation.assertErrors(errors);
