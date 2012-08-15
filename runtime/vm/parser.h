@@ -311,7 +311,8 @@ class Parser : ValueObject {
   void ParseFormalParameterList(bool allow_explicit_default_values,
                                 ParamList* params);
   void CheckConstFieldsInitialized(const Class& cls);
-  void CheckConstructors(ClassDesc* members);
+  void AddImplicitConstructor(ClassDesc* members);
+  void CheckConstructorCycles(ClassDesc* members);
   void ParseInitializedInstanceFields(const Class& cls,
            LocalVariable* receiver,
            GrowableArray<Field*>* initialized_fields);

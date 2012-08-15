@@ -5480,6 +5480,7 @@ TEST_CASE(ParsePatchLibrary) {
   "#library('patched_library');\n"
   "class A {\n"
   "  var _f;\n"
+  "  callFunc(x, y) => x(y);\n"
   "  external method(var value);\n"
   "  get field() => _field;\n"
   "}\n"
@@ -5493,6 +5494,8 @@ TEST_CASE(ParsePatchLibrary) {
   "  var _g;\n"
   "  get _field() => _g;\n"
   "  patch method(var value) {\n"
+  "    int closeYourEyes(var eggs) { return eggs * -1; }\n"
+  "    value = callFunc(closeYourEyes, value);\n"
   "    _g = value * 5;\n"
   "  }\n"
   "}\n"
@@ -5573,7 +5576,7 @@ TEST_CASE(ParsePatchLibrary) {
   EXPECT_VALID(result);
   EXPECT(Dart_IsInteger(result));
   EXPECT_VALID(Dart_IntegerToInt64(result, &value));
-  EXPECT_EQ(25, value);
+  EXPECT_EQ(-25, value);
 }
 
 

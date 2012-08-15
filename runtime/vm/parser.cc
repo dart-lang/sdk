@@ -2947,9 +2947,6 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
                is_patch ?
                    "is already defined as interface" :
                    "interface cannot be patched");
-    } else if (!is_patch && (cls.functions() != Object::empty_array())) {
-      ErrorMsg(classname_pos, "class '%s' is already defined",
-               class_name.ToCString());
     } else if (is_patch) {
       String& patch = String::Handle(Symbols::New("patch "));
       patch = String::Concat(patch, class_name);
@@ -3010,10 +3007,12 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   }
   ExpectToken(Token::kRBRACE);
 
-  if (!is_patch) {
-    // Do not install implicit constructors.
-    CheckConstructors(&members);
+  // Add an implicit constructor if no explicit constructor is present. No
+  // implicit constructors are needed for patch classes.
+  if (!members.has_constructor() && !is_patch) {
+    AddImplicitConstructor(&members);
   }
+  CheckConstructorCycles(&members);
 
   Array& array = Array::Handle();
   array = Array::MakeArray(members.fields());
@@ -3033,45 +3032,43 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
 }
 
 
-// 1. Add an implicit constructor if no explicit constructor is present.
-// 2. Check for cycles in constructor redirection.
-void Parser::CheckConstructors(ClassDesc* class_desc) {
-  // Add an implicit constructor if no explicit constructor is present.
-  if (!class_desc->has_constructor()) {
-    // The implicit constructor is unnamed, has no explicit parameter,
-    // and contains a supercall in the initializer list.
-    String& ctor_name = String::ZoneHandle(
-        String::Concat(class_desc->class_name(),
-                       String::Handle(Symbols::Dot())));
-    ctor_name = Symbols::New(ctor_name);
-    // The token position for the implicit constructor is the 'class'
-    // keyword of the constructor's class.
-    Function& ctor = Function::Handle(
-        Function::New(ctor_name,
-                      RawFunction::kConstructor,
-                      /* is_static = */ false,
-                      /* is_const = */ false,
-                      /* is_abstract = */ false,
-                      /* is_external = */ false,
-                      current_class(),
-                      class_desc->token_pos()));
-    ParamList params;
-    // Add implicit 'this' parameter.
-    ASSERT(current_class().raw() == ctor.Owner());
-    params.AddReceiver(ReceiverType(TokenPos()));
-    // Add implicit parameter for construction phase.
-    params.AddFinalParameter(
-        TokenPos(),
-        &String::ZoneHandle(Symbols::PhaseParameter()),
-        &Type::ZoneHandle(Type::IntInterface()));
+// Add an implicit constructor if no explicit constructor is present.
+void Parser::AddImplicitConstructor(ClassDesc* class_desc) {
+  // The implicit constructor is unnamed, has no explicit parameter,
+  // and contains a supercall in the initializer list.
+  String& ctor_name = String::ZoneHandle(
+    String::Concat(class_desc->class_name(), String::Handle(Symbols::Dot())));
+  ctor_name = Symbols::New(ctor_name);
+  // The token position for the implicit constructor is the 'class'
+  // keyword of the constructor's class.
+  Function& ctor = Function::Handle(
+      Function::New(ctor_name,
+                    RawFunction::kConstructor,
+                    /* is_static = */ false,
+                    /* is_const = */ false,
+                    /* is_abstract = */ false,
+                    /* is_external = */ false,
+                    current_class(),
+                    class_desc->token_pos()));
+  ParamList params;
+  // Add implicit 'this' parameter.
+  ASSERT(current_class().raw() == ctor.Owner());
+  params.AddReceiver(ReceiverType(TokenPos()));
+  // Add implicit parameter for construction phase.
+  params.AddFinalParameter(TokenPos(),
+                           &String::ZoneHandle(Symbols::PhaseParameter()),
+                           &Type::ZoneHandle(Type::IntInterface()));
 
-    AddFormalParamsToFunction(&params, ctor);
-    // The body of the constructor cannot modify the type of the constructed
-    // instance, which is passed in as the receiver.
-    ctor.set_result_type(*((*params.parameters)[0].type));
-    class_desc->AddFunction(ctor);
-  }
+  AddFormalParamsToFunction(&params, ctor);
+  // The body of the constructor cannot modify the type of the constructed
+  // instance, which is passed in as the receiver.
+  ctor.set_result_type(*((*params.parameters)[0].type));
+  class_desc->AddFunction(ctor);
+}
 
+
+// Check for cycles in constructor redirection.
+void Parser::CheckConstructorCycles(ClassDesc* class_desc) {
   // Check for cycles in constructor redirection.
   const GrowableArray<MemberDesc>& members = class_desc->members();
   for (int i = 0; i < members.length(); i++) {

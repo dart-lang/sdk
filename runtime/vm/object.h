@@ -674,7 +674,7 @@ class Class : public Object {
 
   void Finalize() const;
 
-  void ApplyPatch(const Class& with) const;
+  void ApplyPatch(const Class& patch) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
@@ -1609,7 +1609,7 @@ class Function : public Object {
                           bool is_const,
                           bool is_abstract,
                           bool is_external,
-                          const Class& owner,
+                          const Object& owner,
                           intptr_t token_pos);
 
   // Allocates a new Function object representing a closure function, as well as

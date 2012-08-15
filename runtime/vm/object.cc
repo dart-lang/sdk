@@ -1500,25 +1500,27 @@ void Class::Finalize() const {
 }
 
 
-void Class::ApplyPatch(const Class& with) const {
+// Apply the members from the patch class to the original class.
+void Class::ApplyPatch(const Class& patch) const {
   ASSERT(!is_finalized());
-  const Script& patch_script = Script::Handle(with.script());
-  const PatchClass& patch = PatchClass::Handle(
+  const Script& patch_script = Script::Handle(patch.script());
+  const PatchClass& patch_class = PatchClass::Handle(
       PatchClass::New(*this, patch_script));
 
   const Array& orig_functions = Array::Handle(functions());
   intptr_t orig_len = orig_functions.Length();
 
-  const Array& patch_functions = Array::Handle(with.functions());
+  const Array& patch_functions = Array::Handle(patch.functions());
   intptr_t patch_len = patch_functions.Length();
 
   // TODO(iposva): Verify that only patching existing methods and adding only
-  // new private methods.
+  // new private methods. Currently we prepend all patch class members to the
+  // members lists which makes them override the orignals.
   Function& func = Function::Handle();
   const Array& new_functions = Array::Handle(Array::New(patch_len + orig_len));
   for (intptr_t i = 0; i < patch_len; i++) {
     func ^= patch_functions.At(i);
-    func.set_owner(patch);
+    func.set_owner(patch_class);
     new_functions.SetAt(i, func);
   }
   for (intptr_t i = 0; i < orig_len; i++) {
@@ -1530,10 +1532,12 @@ void Class::ApplyPatch(const Class& with) const {
   const Array& orig_fields = Array::Handle(fields());
   orig_len = orig_fields.Length();
 
-  const Array& patch_fields = Array::Handle(with.fields());
+  const Array& patch_fields = Array::Handle(patch.fields());
   patch_len = patch_fields.Length();
 
-  // TODO(iposva): Verify that no duplicate fields are entered.
+  // TODO(iposva): Verify that no duplicate fields are entered. Currently we
+  // prepend all patch class members to the members lists which makes them
+  // override the orignals.
   Field& field = Field::Handle();
   const Array& new_fields = Array::Handle(Array::New(patch_len + orig_len));
   for (intptr_t i = 0; i < patch_len; i++) {
@@ -4130,7 +4134,7 @@ RawFunction* Function::New(const String& name,
                            bool is_const,
                            bool is_abstract,
                            bool is_external,
-                           const Class& owner,
+                           const Object& owner,
                            intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   ASSERT(!owner.IsNull());
@@ -4163,8 +4167,9 @@ RawFunction* Function::NewClosureFunction(const String& name,
                                           intptr_t token_pos) {
   ASSERT(name.IsOneByteString());
   ASSERT(!parent.IsNull());
-  const Class& parent_class = Class::Handle(parent.Owner());
-  ASSERT(!parent_class.IsNull());
+  // Use the owner defining the parent function and not the class containing it.
+  const Object& parent_owner = Object::Handle(parent.raw_ptr()->owner_);
+  ASSERT(!parent_owner.IsNull());
   const Function& result = Function::Handle(
       Function::New(name,
                     RawFunction::kClosureFunction,
@@ -4172,7 +4177,7 @@ RawFunction* Function::NewClosureFunction(const String& name,
                     /* is_const = */ false,
                     /* is_abstract = */ false,
                     /* is_external = */ false,
-                    parent_class,
+                    parent_owner,
                     token_pos));
   result.set_parent_function(parent);
   return result.raw();
