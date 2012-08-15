@@ -23,14 +23,15 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 
   virtual void VisitStaticCall(StaticCallComp* comp, BindInstr* instr);
   virtual void VisitInstanceCall(InstanceCallComp* comp, BindInstr* instr);
-  virtual void VisitLoadIndexed(LoadIndexedComp* comp, BindInstr* instr);
-  virtual void VisitStoreIndexed(StoreIndexedComp* comp, BindInstr* instr);
   virtual void VisitRelationalOp(RelationalOpComp* comp, BindInstr* instr);
   virtual void VisitEqualityCompare(EqualityCompareComp* comp,
                                     BindInstr* instr);
   virtual void VisitBind(BindInstr* instr);
 
  private:
+  bool TryReplaceWithArrayOp(BindInstr* instr,
+                             InstanceCallComp* comp,
+                             Token::Kind op_kind);
   bool TryReplaceWithBinaryOp(BindInstr* instr,
                               InstanceCallComp* comp,
                               Token::Kind op_kind);

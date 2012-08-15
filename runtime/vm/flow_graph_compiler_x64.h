@@ -149,7 +149,6 @@ class FlowGraphCompiler : public ValueObject {
                             const Array& arguments_descriptor,
                             intptr_t argument_count);
 
-  void EmitLoadIndexedGeneric(LoadIndexedComp* comp);
   void EmitTestAndCall(const ICData& ic_data,
                        Register class_id_reg,
                        intptr_t arg_count,

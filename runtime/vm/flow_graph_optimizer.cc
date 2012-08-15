@@ -151,6 +151,78 @@ static void RemovePushArguments(InstanceCallComp* comp) {
 }
 
 
+// Returns true if all targets are the same.
+// TODO(srdjan): if targets are native use their C_function to compare.
+static bool HasOneTarget(const ICData& ic_data) {
+  ASSERT(ic_data.NumberOfChecks() > 0);
+  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
+  Function& test_target = Function::Handle();
+  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
+    test_target = ic_data.GetTargetAt(i);
+    if (first_target.raw() != test_target.raw()) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
+static intptr_t ReceiverClassId(Computation* comp) {
+  if (!comp->HasICData()) return kIllegalCid;
+
+  const ICData& ic_data = *comp->ic_data();
+
+  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
+  // TODO(vegorov): Add multiple receiver type support.
+  if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
+  ASSERT(HasOneTarget(ic_data));
+
+  Function& target = Function::Handle();
+  intptr_t class_id;
+  ic_data.GetOneClassCheckAt(0, &class_id, &target);
+  return class_id;
+}
+
+
+bool FlowGraphOptimizer::TryReplaceWithArrayOp(BindInstr* instr,
+                                               InstanceCallComp* comp,
+                                               Token::Kind op_kind) {
+  // TODO(fschneider): Optimize []= operator in checked mode as well.
+  if (op_kind == Token::kASSIGN_INDEX && FLAG_enable_type_checks) return false;
+
+  const intptr_t class_id = ReceiverClassId(comp);
+  switch (class_id) {
+    case kImmutableArrayCid:
+      // Stores are only specialized for Array and GrowableObjectArray,
+      // not for ImmutableArray.
+      if (op_kind == Token::kASSIGN_INDEX) return false;
+      // Fall through.
+    case kArrayCid:
+    case kGrowableObjectArrayCid: {
+      Computation* array_op = NULL;
+      if (op_kind == Token::kINDEX) {
+          array_op = new LoadIndexedComp(comp->ArgumentAt(0)->value(),
+                                         comp->ArgumentAt(1)->value(),
+                                         class_id,
+                                         comp);
+      } else {
+          array_op = new StoreIndexedComp(comp->ArgumentAt(0)->value(),
+                                          comp->ArgumentAt(1)->value(),
+                                          comp->ArgumentAt(2)->value(),
+                                          class_id,
+                                          comp);
+      }
+      array_op->set_ic_data(comp->ic_data());
+      instr->set_computation(array_op);
+      RemovePushArguments(comp);
+      return true;
+    }
+    default:
+      return false;
+  }
+}
+
+
 bool FlowGraphOptimizer::TryReplaceWithBinaryOp(BindInstr* instr,
                                                 InstanceCallComp* comp,
                                                 Token::Kind op_kind) {
@@ -241,22 +313,6 @@ bool FlowGraphOptimizer::TryReplaceWithUnaryOp(BindInstr* instr,
   unary_op->set_ic_data(comp->ic_data());
   instr->set_computation(unary_op);
   RemovePushArguments(comp);
-  return true;
-}
-
-
-// Returns true if all targets are the same.
-// TODO(srdjan): if targets are native use their C_function to compare.
-static bool HasOneTarget(const ICData& ic_data) {
-  ASSERT(ic_data.NumberOfChecks() > 0);
-  const Function& first_target = Function::Handle(ic_data.GetTargetAt(0));
-  Function& test_target = Function::Handle();
-  for (intptr_t i = 1; i < ic_data.NumberOfChecks(); i++) {
-    test_target = ic_data.GetTargetAt(i);
-    if (first_target.raw() != test_target.raw()) {
-      return false;
-    }
-  }
   return true;
 }
 
@@ -402,6 +458,10 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
                                            BindInstr* instr) {
   if (comp->HasICData() && (comp->ic_data()->NumberOfChecks() > 0)) {
     const Token::Kind op_kind = comp->token_kind();
+    if (Token::IsIndexOperator(op_kind) &&
+        TryReplaceWithArrayOp(instr, comp, op_kind)) {
+      return;
+    }
     if (Token::IsBinaryToken(op_kind) &&
         TryReplaceWithBinaryOp(instr, comp, op_kind)) {
       return;
@@ -482,54 +542,6 @@ bool FlowGraphOptimizer::TryInlineInstanceSetter(BindInstr* instr,
   instr->set_computation(store);
   RemovePushArguments(comp);
   return true;
-}
-
-
-enum IndexedAccessType {
-  kIndexedLoad,
-  kIndexedStore
-};
-
-
-static intptr_t ReceiverClassId(Computation* comp) {
-  if (!comp->HasICData()) return kIllegalCid;
-
-  const ICData& ic_data = *comp->ic_data();
-
-  if (ic_data.NumberOfChecks() == 0) return kIllegalCid;
-  // TODO(vegorov): Add multiple receiver type support.
-  if (ic_data.NumberOfChecks() != 1) return kIllegalCid;
-  ASSERT(HasOneTarget(ic_data));
-
-  Function& target = Function::Handle();
-  intptr_t class_id;
-  ic_data.GetOneClassCheckAt(0, &class_id, &target);
-  return class_id;
-}
-
-
-void FlowGraphOptimizer::VisitLoadIndexed(LoadIndexedComp* comp,
-                                          BindInstr* instr) {
-  const intptr_t class_id = ReceiverClassId(comp);
-  switch (class_id) {
-    case kArrayCid:
-    case kImmutableArrayCid:
-    case kGrowableObjectArrayCid:
-      comp->set_receiver_type(class_id);
-  }
-}
-
-
-void FlowGraphOptimizer::VisitStoreIndexed(StoreIndexedComp* comp,
-                                           BindInstr* instr) {
-  if (FLAG_enable_type_checks) return;
-
-  const intptr_t class_id = ReceiverClassId(comp);
-  switch (class_id) {
-    case kArrayCid:
-    case kGrowableObjectArrayCid:
-      comp->set_receiver_type(class_id);
-  }
 }
 
 

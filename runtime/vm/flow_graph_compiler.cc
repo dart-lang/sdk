@@ -507,28 +507,6 @@ void FlowGraphCompiler::EmitComment(Instruction* instr) {
 }
 
 
-void FlowGraphCompiler::EmitLoadIndexedGeneric(LoadIndexedComp* comp) {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
-
-  AddCurrentDescriptor(PcDescriptors::kDeopt,
-                       comp->deopt_id(),
-                       comp->token_pos(),
-                       comp->try_index());
-
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  GenerateInstanceCall(comp->deopt_id(),
-                       comp->token_pos(),
-                       comp->try_index(),
-                       function_name,
-                       kNumArguments,
-                       Array::ZoneHandle(),  // No optional arguments.
-                       kNumArgsChecked,
-                       comp->locs()->stack_bitmap());
-}
-
-
 void FlowGraphCompiler::EmitTestAndCall(const ICData& ic_data,
                                         Register class_id_reg,
                                         intptr_t arg_count,

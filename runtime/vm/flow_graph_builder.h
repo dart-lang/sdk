@@ -206,10 +206,14 @@ class EffectGraphVisitor : public AstNodeVisitor {
                               const AbstractType& dst_type,
                               const String& dst_name);
 
-  void BuildStoreIndexedValues(StoreIndexedNode* node,
-                               Value** array,
-                               Value** index,
-                               Value** value);
+  enum ResultKind {
+    kResultNotNeeded,
+    kResultNeeded
+  };
+
+  Computation* BuildStoreIndexedValues(StoreIndexedNode* node,
+                                       bool result_is_needed);
+
   void BuildInstanceSetterArguments(
       InstanceSetterNode* node,
       ZoneGrowableArray<PushArgumentInstr*>* arguments,

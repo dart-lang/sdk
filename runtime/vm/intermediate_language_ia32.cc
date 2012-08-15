@@ -743,66 +743,22 @@ void NativeCallComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* LoadIndexedComp::MakeLocationSummary() const {
+  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
+         (receiver_type() == kArrayCid) ||
+         (receiver_type() == kImmutableArrayCid));
   const intptr_t kNumInputs = 2;
-  if ((receiver_type() == kGrowableObjectArrayCid) ||
-      (receiver_type() == kArrayCid) ||
-      (receiver_type() == kImmutableArrayCid)) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_out(Location::RequiresRegister());
-    return locs;
-  } else {
-    ASSERT(receiver_type() == kIllegalCid);
-    return MakeCallSummary();
-  }
-}
-
-
-static void EmitLoadIndexedPolymorphic(FlowGraphCompiler* compiler,
-                                       LoadIndexedComp* comp) {
-  Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->try_index(),
-                                        kDeoptLoadIndexedPolymorphic);
-  ASSERT(comp->ic_data()->NumberOfChecks() > 0);
-  ASSERT(comp->HasICData());
-  const ICData& ic_data = *comp->ic_data();
-  ASSERT(ic_data.num_args_tested() == 1);
-  // No indexed access on Smi.
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
-  // Load receiver into EAX.
-  const intptr_t kNumArguments = 2;
-  __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  __ LoadClassId(EDI, EAX);
-  compiler->EmitTestAndCall(ic_data,
-                            EDI,  // Class id register.
-                            kNumArguments,
-                            Array::Handle(),  // No named arguments.
-                            deopt,  // Deoptimize target.
-                            NULL,   // Fallthrough when done.
-                            comp->deopt_id(),
-                            comp->token_pos(),
-                            comp->try_index(),
-                            comp->locs()->stack_bitmap());
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::RequiresRegister());
+  return locs;
 }
 
 
 void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_type() == kIllegalCid) {
-    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-      EmitLoadIndexedPolymorphic(compiler, this);
-    } else {
-      compiler->EmitLoadIndexedGeneric(this);
-    }
-    ASSERT(locs()->out().reg() == EAX);
-    return;
-  }
-
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register result = locs()->out().reg();
@@ -812,8 +768,8 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
       (receiver_type() == kGrowableObjectArrayCid) ?
       kDeoptLoadIndexedGrowableArray : kDeoptLoadIndexedFixedArray;
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        try_index(),
+  Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
+                                        original()->try_index(),
                                         deopt_reason,
                                         receiver,
                                         index);
@@ -857,95 +813,29 @@ void LoadIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 LocationSummary* StoreIndexedComp::MakeLocationSummary() const {
+  ASSERT((receiver_type() == kGrowableObjectArrayCid) ||
+         (receiver_type() == kArrayCid));
   const intptr_t kNumInputs = 3;
-  if ((receiver_type() == kGrowableObjectArrayCid) ||
-      (receiver_type() == kArrayCid)) {
-    const intptr_t kNumTemps = 1;
-    LocationSummary* locs =
-        new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
-    locs->set_in(0, Location::RequiresRegister());
-    locs->set_in(1, Location::RequiresRegister());
-    locs->set_in(2, Location::RequiresRegister());
-    locs->set_temp(0, Location::RequiresRegister());
-    locs->set_out(Location::NoLocation());
-    return locs;
-  } else {
-    ASSERT(receiver_type() == kIllegalCid);
-    return MakeCallSummary();
-  }
-}
-
-
-static void EmitStoreIndexedGeneric(FlowGraphCompiler* compiler,
-                                    StoreIndexedComp* comp) {
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
-
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 comp->deopt_id(),
-                                 comp->token_pos(),
-                                 comp->try_index());
-
-  const intptr_t kNumArguments = 3;
-  const intptr_t kNumArgsChecked = 1;  // Type-feedback.
-  compiler->GenerateInstanceCall(comp->deopt_id(),
-                                 comp->token_pos(),
-                                 comp->try_index(),
-                                 function_name,
-                                 kNumArguments,
-                                 Array::ZoneHandle(),  // No named arguments.
-                                 kNumArgsChecked,
-                                 comp->locs()->stack_bitmap());
-}
-
-
-static void EmitStoreIndexedPolymorphic(FlowGraphCompiler* compiler,
-                                        StoreIndexedComp* comp) {
-  Label* deopt = compiler->AddDeoptStub(comp->deopt_id(),
-                                        comp->try_index(),
-                                        kDeoptStoreIndexedPolymorphic);
-  ASSERT(comp->ic_data()->NumberOfChecks() > 0);
-  ASSERT(comp->HasICData());
-  const ICData& ic_data = *comp->ic_data();
-  ASSERT(ic_data.num_args_tested() == 1);
-  // No indexed access on Smi.
-  ASSERT(ic_data.GetReceiverClassIdAt(0) != kSmiCid);
-  // Load receiver into EAX.
-  const intptr_t kNumArguments = 3;
-  __ movl(EAX, Address(ESP, (kNumArguments - 1) * kWordSize));
-  __ testl(EAX, Immediate(kSmiTagMask));
-  __ j(ZERO, deopt);
-  __ LoadClassId(EDI, EAX);
-  compiler->EmitTestAndCall(ic_data,
-                            EDI,  // Class id register.
-                            kNumArguments,
-                            Array::Handle(),  // No named arguments.
-                            deopt,  // Deoptimize target.
-                            NULL,   // Fallthrough when done.
-                            comp->deopt_id(),
-                            comp->token_pos(),
-                            comp->try_index(),
-                            comp->locs()->stack_bitmap());
+  const intptr_t kNumTemps = 1;
+  LocationSummary* locs =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  locs->set_in(0, Location::RequiresRegister());
+  locs->set_in(1, Location::RequiresRegister());
+  locs->set_in(2, Location::RequiresRegister());
+  locs->set_temp(0, Location::RequiresRegister());
+  locs->set_out(Location::NoLocation());
+  return locs;
 }
 
 
 void StoreIndexedComp::EmitNativeCode(FlowGraphCompiler* compiler) {
-  if (receiver_type() == kIllegalCid) {
-    if (HasICData() && (ic_data()->NumberOfChecks() > 0)) {
-      EmitStoreIndexedPolymorphic(compiler, this);
-    } else {
-      EmitStoreIndexedGeneric(compiler, this);
-    }
-    return;
-  }
-
   Register receiver = locs()->in(0).reg();
   Register index = locs()->in(1).reg();
   Register value = locs()->in(2).reg();
   Register temp = locs()->temp(0).reg();
 
-  Label* deopt = compiler->AddDeoptStub(deopt_id(),
-                                        try_index(),
+  Label* deopt = compiler->AddDeoptStub(original()->deopt_id(),
+                                        original()->try_index(),
                                         kDeoptStoreIndexed,
                                         receiver,
                                         index,

@@ -2033,64 +2033,88 @@ void EffectGraphVisitor::VisitStoreStaticFieldNode(StoreStaticFieldNode* node) {
 
 
 void EffectGraphVisitor::VisitLoadIndexedNode(LoadIndexedNode* node) {
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(2);
   ValueGraphVisitor for_array(owner(), temp_index());
   node->array()->Visit(&for_array);
   Append(for_array);
-  ValueGraphVisitor for_index(owner(), for_array.temp_index());
+  arguments->Add(PushArgument(for_array.value()));
+
+  ValueGraphVisitor for_index(owner(), temp_index());
   node->index_expr()->Visit(&for_index);
   Append(for_index);
+  arguments->Add(PushArgument(for_index.value()));
 
-  LoadIndexedComp* load = new LoadIndexedComp(
-      node->token_pos(),
-      owner()->try_index(),
-      for_array.value(),
-      for_index.value());
+  const intptr_t checked_argument_count = 1;
+  const String& name =
+      String::ZoneHandle(Symbols::New(Token::Str(Token::kINDEX)));
+  InstanceCallComp* load = new InstanceCallComp(node->token_pos(),
+                                                owner()->try_index(),
+                                                name,
+                                                Token::kINDEX,
+                                                arguments,
+                                                Array::ZoneHandle(),
+                                                checked_argument_count);
   ReturnComputation(load);
 }
 
 
-void EffectGraphVisitor::BuildStoreIndexedValues(
-    StoreIndexedNode* node, Value** array, Value** index, Value** value) {
+Computation* EffectGraphVisitor::BuildStoreIndexedValues(
+    StoreIndexedNode* node,
+    bool result_is_needed) {
+  ZoneGrowableArray<PushArgumentInstr*>* arguments =
+      new ZoneGrowableArray<PushArgumentInstr*>(3);
   ValueGraphVisitor for_array(owner(), temp_index());
   node->array()->Visit(&for_array);
   Append(for_array);
-  ValueGraphVisitor for_index(owner(), for_array.temp_index());
+  arguments->Add(PushArgument(for_array.value()));
+
+  ValueGraphVisitor for_index(owner(), temp_index());
   node->index_expr()->Visit(&for_index);
   Append(for_index);
-  ValueGraphVisitor for_value(owner(), for_index.temp_index());
+  arguments->Add(PushArgument(for_index.value()));
+
+  ValueGraphVisitor for_value(owner(), temp_index());
   node->value()->Visit(&for_value);
   Append(for_value);
-  *array = for_array.value();
-  *index = for_index.value();
-  *value = for_value.value();
+  Value* value = NULL;
+  if (result_is_needed) {
+    value = Bind(
+        BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
+                        for_value.value()));
+  } else {
+    value = for_value.value();
+  }
+  arguments->Add(PushArgument(value));
+
+  const intptr_t checked_argument_count = 1;
+  const String& name =
+      String::ZoneHandle(Symbols::New(Token::Str(Token::kASSIGN_INDEX)));
+  InstanceCallComp* store = new InstanceCallComp(node->token_pos(),
+                                                 owner()->try_index(),
+                                                 name,
+                                                 Token::kASSIGN_INDEX,
+                                                 arguments,
+                                                 Array::ZoneHandle(),
+                                                 checked_argument_count);
+  if (result_is_needed) {
+    Do(store);
+    return BuildLoadLocal(*owner()->parsed_function().expression_temp_var());
+  } else {
+    return store;
+  }
 }
 
 
 void EffectGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  Value *array, *index, *value;
-  BuildStoreIndexedValues(node, &array, &index, &value);
-  StoreIndexedComp* store = new StoreIndexedComp(node->token_pos(),
-                                                 owner()->try_index(),
-                                                 array,
-                                                 index,
-                                                 value);
-  ReturnComputation(store);
+  ReturnComputation(BuildStoreIndexedValues(node,
+                                            false));  // Result not needed.
 }
 
 
 void ValueGraphVisitor::VisitStoreIndexedNode(StoreIndexedNode* node) {
-  Value *array, *index, *value;
-  BuildStoreIndexedValues(node, &array, &index, &value);
-  Value* saved_value = Bind(
-      BuildStoreLocal(*owner()->parsed_function().expression_temp_var(),
-                      value));
-  Do(new StoreIndexedComp(node->token_pos(),
-                          owner()->try_index(),
-                          array,
-                          index,
-                          saved_value));
-  ReturnComputation(
-       BuildLoadLocal(*owner()->parsed_function().expression_temp_var()));
+  ReturnComputation(BuildStoreIndexedValues(node,
+                                            true));  // Result is needed.
 }
 
 

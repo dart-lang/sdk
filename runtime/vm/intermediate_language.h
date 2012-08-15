@@ -575,6 +575,7 @@ class InstanceCallComp : public TemplateComputation<0> {
     ASSERT(argument_names.IsZoneHandle());
     ASSERT(Token::IsBinaryToken(token_kind) ||
            Token::IsUnaryToken(token_kind) ||
+           Token::IsIndexOperator(token_kind) ||
            token_kind == Token::kGET ||
            token_kind == Token::kSET ||
            token_kind == Token::kILLEGAL);
@@ -1005,13 +1006,12 @@ class StoreStaticFieldComp : public TemplateComputation<1> {
 
 class LoadIndexedComp : public TemplateComputation<2> {
  public:
-  LoadIndexedComp(intptr_t token_pos,
-                  intptr_t try_index,
-                  Value* array,
-                  Value* index)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        receiver_type_(kIllegalCid) {
+  LoadIndexedComp(Value* array,
+                  Value* index,
+                  intptr_t receiver_type,
+                  InstanceCallComp* original)
+      : receiver_type_(receiver_type),
+        original_(original) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     inputs_[0] = array;
@@ -1020,42 +1020,32 @@ class LoadIndexedComp : public TemplateComputation<2> {
 
   DECLARE_COMPUTATION(LoadIndexed)
 
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
 
-  void set_receiver_type(intptr_t receiver_type) {
-    receiver_type_ = receiver_type;
-  }
+  intptr_t receiver_type() const { return receiver_type_; }
 
-  intptr_t receiver_type() const {
-    return receiver_type_;
-  }
+  InstanceCallComp* original() const { return original_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t receiver_type_;
+  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadIndexedComp);
 };
 
 
-// Not simply an InstanceCall because it has somewhat more complicated
-// semantics: the value operand is preserved before the call.
 class StoreIndexedComp : public TemplateComputation<3> {
  public:
-  StoreIndexedComp(intptr_t token_pos,
-                   intptr_t try_index,
-                   Value* array,
+  StoreIndexedComp(Value* array,
                    Value* index,
-                   Value* value)
-      : token_pos_(token_pos),
-        try_index_(try_index),
-        receiver_type_(kIllegalCid) {
+                   Value* value,
+                   intptr_t receiver_type,
+                   InstanceCallComp* original)
+        : receiver_type_(receiver_type),
+          original_(original) {
     ASSERT(array != NULL);
     ASSERT(index != NULL);
     ASSERT(value != NULL);
@@ -1066,26 +1056,19 @@ class StoreIndexedComp : public TemplateComputation<3> {
 
   DECLARE_COMPUTATION(StoreIndexed)
 
-  intptr_t token_pos() const { return token_pos_; }
-  intptr_t try_index() const { return try_index_; }
   Value* array() const { return inputs_[0]; }
   Value* index() const { return inputs_[1]; }
   Value* value() const { return inputs_[2]; }
 
-  void set_receiver_type(intptr_t receiver_type) {
-    receiver_type_ = receiver_type;
-  }
+  InstanceCallComp* original() const { return original_; }
 
-  intptr_t receiver_type() const {
-    return receiver_type_;
-  }
+  intptr_t receiver_type() const { return receiver_type_; }
 
   virtual bool CanDeoptimize() const { return true; }
 
  private:
-  const intptr_t token_pos_;
-  const intptr_t try_index_;
   intptr_t receiver_type_;
+  InstanceCallComp* original_;
 
   DISALLOW_COPY_AND_ASSIGN(StoreIndexedComp);
 };
