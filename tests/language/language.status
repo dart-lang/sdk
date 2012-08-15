@@ -227,13 +227,6 @@ method_override2_test/02: Fail # Must provide compiler errors, not currently sup
 method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
 syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
 # Should be triaged.
-bad_override_test/01: Fail
-bad_override_test/02: Fail
-bad_override_test/03: Fail
-bad_override_test/04: Fail
-bad_override_test/05: Fail
-bad_override_test/06: Fail
-class_override_negative_test: Fail
 ct_const2_test: Fail, Pass
 disable_privacy_test: Fail
 empty_body_member_negative_test: Fail
@@ -258,8 +251,6 @@ library5_test: Fail
 non_const_super_negative_test: Fail
 number_identifier_negative_test: Fail
 operator1_negative_test: Fail
-override_field_test/01: Fail
-override_field_method3_negative_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
@@ -271,3 +262,5 @@ static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
 switch_label_test: Fail
+try_catch_test: Fail # Most probably recent changes to try/catch
+try_catch_on_syntax_test/none: Fail # Most probably recent changes to try/catch
