@@ -194,6 +194,9 @@ duplicate_implements_test/01: Fail
 duplicate_implements_test/02: Fail
 duplicate_implements_test/03: Fail
 duplicate_implements_test/04: Fail
+method_override2_test/00: Fail
+method_override2_test/02: Fail
+method_override2_test/03: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
 # Common with language_dart2js.
@@ -221,9 +224,6 @@ super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
 # Triaged.
-method_override2_test/00: Fail # Must provide compiler errors, not currently supported by framework.
-method_override2_test/02: Fail # Must provide compiler errors, not currently supported by framework.
-method_override2_test/03: Fail # Must provide compiler errors, not currently supported by framework.
 syntax_test/47: Fail  # We should get compile-time error on const constructor having body. But we don't emit default constructors with empty body.
 # Should be triaged.
 ct_const2_test: Fail, Pass
