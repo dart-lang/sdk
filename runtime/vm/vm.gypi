@@ -262,7 +262,7 @@
       'type': 'none',
       'includes': [
         # Load the shared math library sources.
-        '../../lib/math/math_sources.gypi',
+        '../../corelib/unified/math/math_sources.gypi',
       ],
       'sources/': [
         # Exclude all .[cc|h] files.
