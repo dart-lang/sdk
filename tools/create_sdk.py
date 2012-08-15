@@ -427,13 +427,13 @@ def Main(argv):
 
   # Create and populate pkg/dartdoc.
   dartdoc_src_dir = join(HOME, 'pkg', 'dartdoc')
-  dartdoc_dest_dir = join(LIB, 'dartdoc')
+  dartdoc_dest_dir = join(PKG, 'dartdoc')
   copytree(dartdoc_src_dir, dartdoc_dest_dir,
            ignore=ignore_patterns('.svn', 'docs'))
 
   # Fixup dart2js dependencies.
   ReplaceInFiles([
-      join(LIB, 'dartdoc', 'dartdoc.dart'),
+      join(PKG, 'dartdoc', 'dartdoc.dart'),
     ], [
       ("final bool IN_SDK = false;",
        "final bool IN_SDK = true;"),
