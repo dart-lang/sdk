@@ -207,6 +207,9 @@ non_const_super_negative_test: Fail
 method_override2_test/00: Fail
 method_override2_test/02: Fail
 method_override2_test/03: Fail
+operator1_negative_test: Fail
+prefix18_negative_test: Fail
+prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
 # Bug in dart2js frontend: cannot find the constructor.
 default_factory_library_test: Fail
@@ -248,9 +251,6 @@ generic_test: Fail, Ok
 field_optimization2_test: Fail
 field_optimization_test: Fail
 library5_test: Fail
-operator1_negative_test: Fail
-prefix18_negative_test: Fail
-prefix20_negative_test: Fail
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
 static_top_level_test/02: Fail
