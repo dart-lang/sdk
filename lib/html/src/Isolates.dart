@@ -28,7 +28,58 @@ class _JsSerializer extends _Serializer {
     return [ 'sendport', 'dart',
              x._receivePort._isolateId, x._receivePort._portId ];
   }
+
+  visitFunction(Function func) {
+    return [ 'funcref',
+              _makeFunctionRef(func), visitSendPortSync(_sendPort()), null ];
+  }
 }
+
+// Leaking implementation.  Later will be backend specific and hopefully
+// not leaking (at least in most of the cases.)
+// TODO: provide better, backend specific implementation.
+class _FunctionRegistry {
+  final ReceivePortSync _port;
+  int _nextId;
+  final Map<String, Function> _registry;
+
+  _FunctionRegistry() :
+      _port = new ReceivePortSync(),
+      _nextId = 0,
+      _registry = <Function>{} {
+    _port.receive((msg) {
+      final id = msg[0];
+      final args = msg[1];
+      final f = _registry[id];
+      switch (args.length) {
+        case 0: return f();
+        case 1: return f(args[0]);
+        case 2: return f(args[0], args[1]);
+        case 3: return f(args[0], args[1], args[2]);
+        case 4: return f(args[0], args[1], args[2], args[3]);
+        default: throw 'Unsupported number of arguments.';
+      }
+    });
+  }
+
+  String _add(Function f) {
+    final id = 'func-ref-${_nextId++}';
+    _registry[id] = f;
+    return id;
+  }
+
+  get _sendPort() => _port.toSendPort();
+}
+
+_FunctionRegistry __functionRegistry;
+get _functionRegistry() {
+  if (__functionRegistry === null) __functionRegistry = new _FunctionRegistry();
+  return __functionRegistry;
+}
+
+_makeFunctionRef(f) => _functionRegistry._add(f);
+_sendPort() => _functionRegistry._sendPort;
+/// End of function serialization implementation.
 
 _deserialize(var message) {
   return new _JsDeserializer().deserialize(message);

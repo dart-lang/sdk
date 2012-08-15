@@ -108,6 +108,7 @@ function ReceivePortSync() {
       case 'map': return deserializeMap(x);
       case 'sendport': return deserializeSendPort(x);
       case 'list': return deserializeList(x);
+      case 'funcref': return deserializeFunction(x);
       default: throw 'unimplemented';
     }
   }
@@ -148,6 +149,14 @@ function ReceivePortSync() {
       result[i] = deserializeHelper(values[i]);
     }
     return result;
+  }
+
+  function deserializeFunction(x) {
+    var ref = x[1];
+    var sendPort = deserializeSendPort(x[2]);
+    // Number of arguments is not used as of now
+    // we cannot find it out for Dart function in pure Dart.
+    return _makeFunctionFromRef(ref, sendPort);
   }
 
   window.registerPort = function(name, port) {
@@ -232,5 +241,13 @@ function ReceivePortSync() {
     dispatchEvent(target, [source, serialized]);
     window.removeEventListener(source, listener, false);
     return deserialize(result);
+  }
+
+  // Leaking implementation.
+  // TODO: provide proper, backend-specific implementation.
+  function _makeFunctionFromRef(ref, sendPort) {
+    return function() {
+      return sendPort.callSync([ref, Array.prototype.slice.call(arguments)]);
+    }
   }
 })();

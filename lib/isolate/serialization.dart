@@ -37,6 +37,7 @@ class _MessageTraverser {
     if (x is Map) return visitMap(x);
     if (x is SendPort) return visitSendPort(x);
     if (x is SendPortSync) return visitSendPortSync(x);
+    if (x is Function) return visitFunction(x);
 
     // TODO(floitsch): make this a real exception. (which one)?
     throw "Message serialization: Illegal value $x passed";
@@ -47,6 +48,10 @@ class _MessageTraverser {
   abstract visitMap(Map x);
   abstract visitSendPort(SendPort x);
   abstract visitSendPortSync(SendPortSync x);
+
+  visitFunction(Function func) {
+    throw "Serialization of functions is not allowed.";
+  }
 
   static bool isPrimitive(x) {
     return (x === null) || (x is String) || (x is num) || (x is bool);
