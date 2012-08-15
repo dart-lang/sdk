@@ -262,5 +262,3 @@ static_top_level_test/03: Fail
 static_top_level_test/04: Fail
 static_top_level_test/05: Fail
 switch_label_test: Fail
-try_catch_test: Fail # Most probably recent changes to try/catch
-try_catch_on_syntax_test/none: Fail # Most probably recent changes to try/catch
