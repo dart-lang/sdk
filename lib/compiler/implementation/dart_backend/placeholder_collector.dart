@@ -396,4 +396,10 @@ class PlaceholderCollector extends AbstractVisitor {
     }
     node.visitChildren(this);
   }
+
+  visitClassNode(ClassNode node) {
+    assert(currentElement is ClassElement);
+    makeElementPlaceholder(node.name, currentElement);
+    node.visitChildren(this);
+  }
 }

@@ -62,9 +62,6 @@ class ConflictingRenamer {
     });
   }
 
-  // Renamer implementation.
-  String rename(Node node) => renames[node];
-
   String getName(LibraryElement library, String originalName, renamer) =>
       renamed.putIfAbsent(library, () => <String>{})
           .putIfAbsent(originalName, renamer);

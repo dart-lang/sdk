@@ -8,19 +8,21 @@
 class Emitter {
 
   final Compiler compiler;
+  final Map<Node, String> renames;
   final StringBuffer sb;
-  final ConflictingRenamer renamer;
   final Set<VariableListElement> processedVariableLists;
+  Unparser unparser;
 
-  Emitter(this.compiler, this.renamer) :
+  Emitter(this.compiler, this.renames) :
       sb = new StringBuffer(),
-      processedVariableLists = new Set<VariableListElement>();
+      processedVariableLists = new Set<VariableListElement>() {
+    unparser = new Unparser.withRenamer((Node node) => renames[node]);
+  }
 
   /**
    * Outputs given class element with selected inner elements.
    */
   void outputClass(ClassElement classElement, Set<Element> innerElements) {
-    Unparser unparser = new Unparser.withRenamer(renamer.rename);
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
     sb.add(classNode.beginToken.slowToString());
@@ -29,7 +31,7 @@ class Emitter {
       sb.add(classNode.beginToken.next.slowToString());  // 'class'
     }
     sb.add(' ');
-    sb.add(renamer.renameElement(classElement));
+    sb.add(unparser.unparse(classNode.name));
     if (classNode.typeParameters !== null) {
       sb.add(unparser.unparse(classNode.typeParameters));
     }
@@ -56,7 +58,6 @@ class Emitter {
   }
 
   void outputElement(Element element) {
-    Unparser unparser = new Unparser.withRenamer(renamer.rename);
     // TODO(smok): Figure out why AbstractFieldElement appears here,
     // we have used getters/setters resolved instead of it.
     if (element is SynthesizedConstructorElement
@@ -77,8 +78,7 @@ class Emitter {
     }
   }
 
-  String toString() {
-    final result = new StringBuffer();
+  void outputImports(Map<LibraryElement, String> imports) {
     final libraries = compiler.libraries;
     for (final uri in libraries.getKeys()) {
       // Same library element may be a value for different uris as of now
@@ -86,11 +86,11 @@ class Emitter {
       // and full file name.  Only care about uris with dart scheme.
       if (!uri.startsWith('dart:')) continue;
       final lib = libraries[uri];
-      if (renamer.imports.containsKey(lib)) {
-        result.add('#import("$uri", prefix: "${renamer.imports[lib]}");');
+      if (imports.containsKey(lib)) {
+        sb.add('#import("$uri", prefix: "${imports[lib]}");');
       }
     }
-    result.add(sb);
-    return result.toString();
   }
+
+  String toString() => sb.toString();
 }

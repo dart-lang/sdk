@@ -58,25 +58,11 @@ class DartBackend extends Backend {
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
       !isDartCoreLib(compiler, element.getLibrary());
 
+    // TODO(smok): Refactor this traverse/collect mess.
     Set<TypedefElement> typedefs = new Set<TypedefElement>();
     Set<ClassElement> classes = new Set<ClassElement>();
+    Set<Element> elements = new Set<Element>();
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
-    resolvedElements.forEach((element, treeElements) {
-      if (!shouldOutput(element)) return;
-      if (element is AbstractFieldElement) return;
-      collector.collect(element, treeElements);
-      new ReferencedElementCollector(
-          compiler, element, treeElements, typedefs, classes)
-      .collect();
-    });
-    final emptyTreeElements = new TreeElementMapping();
-    collectElement(element) { collector.collect(element, emptyTreeElements); }
-    typedefs.forEach(collectElement);
-    classes.forEach(collectElement);
-
-    ConflictingRenamer renamer =
-        new ConflictingRenamer(compiler, collector);
-    Emitter emitter = new Emitter(compiler, renamer);
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
       if (element.isMember()) {
@@ -90,9 +76,28 @@ class DartBackend extends Backend {
         compiler.cancel(reason: 'Cannot process $element', element: element);
       }
 
-      emitter.outputElement(element);
+      elements.add(element);
+    });
+    resolvedElements.forEach((element, treeElements) {
+      if (!shouldOutput(element)) return;
+      if (element is AbstractFieldElement) return;
+      collector.collect(element, treeElements);
+      new ReferencedElementCollector(
+          compiler, element, treeElements, typedefs, classes)
+      .collect();
     });
 
+    final emptyTreeElements = new TreeElementMapping();
+    collectElement(element) { collector.collect(element, emptyTreeElements); }
+    typedefs.forEach(collectElement);
+    classes.forEach(collectElement);
+    resolvedClassMembers.getKeys().forEach(collectElement);
+
+    ConflictingRenamer renamer =
+        new ConflictingRenamer(compiler, collector);
+    Emitter emitter = new Emitter(compiler, renamer.renames);
+    emitter.outputImports(renamer.imports);
+    elements.forEach(emitter.outputElement);
     typedefs.forEach(emitter.outputElement);
     final emptySet = new Set<Element>();
     classes.forEach((classElement) {
