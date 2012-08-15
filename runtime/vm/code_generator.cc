@@ -751,13 +751,6 @@ RawCode* ResolveCompileInstanceCallTarget(Isolate* isolate,
                                  &num_named_arguments,
                                  &target);
   ASSERT(function_name.IsSymbol());
-  Class& receiver_class = Class::Handle();
-  if (receiver.IsNull()) {
-    // TODO(srdjan): Clarify behavior of null objects.
-    receiver_class = isolate->object_store()->object_class();
-  } else {
-    receiver_class = receiver.clazz();
-  }
 
   Function& function = Function::Handle();
   function = Resolver::ResolveDynamic(receiver,
