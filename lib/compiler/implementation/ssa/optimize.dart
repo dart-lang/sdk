@@ -563,6 +563,10 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     if (type === null) return node;
     Element field = compiler.world.locateSingleField(type, node.name);
     if (field === null) return node;
+    if (node.name.isPrivate() &&
+        field.getLibrary() !== work.element.getLibrary()) {
+      return node;
+    }
     Modifiers modifiers = field.modifiers;
     bool isFinalOrConst = false;
     if (modifiers != null) {
