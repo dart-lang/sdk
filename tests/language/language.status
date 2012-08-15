@@ -241,7 +241,6 @@ generic_test: Fail, Ok
 # Should be triaged.
 field_optimization2_test: Fail
 field_optimization_test: Fail
-implicit_closure_test: Fail, Pass
 interface_factory_constructor_negative_test: Fail
 interface_static_method_negative_test: Fail
 library5_test: Fail
@@ -251,7 +250,6 @@ operator1_negative_test: Fail
 prefix18_negative_test: Fail
 prefix20_negative_test: Fail
 static_final_field_negative_test: Fail
-static_implicit_closure_test: Fail, Pass
 static_top_level_test/00: Fail
 static_top_level_test/01: Fail
 static_top_level_test/02: Fail
