@@ -11,12 +11,14 @@ if (navigator.webkitStartDart) {
   navigator.webkitStartDart();
 }
 
+var testRunner = window.testRunner || window.layoutTestController;
+
 function processMessage(msg) {
-  if (window.layoutTestController) {
+  if (testRunner) {
     if (msg == 'unittest-suite-done') {
-      window.layoutTestController.notifyDone();
+      testRunner.notifyDone();
     } else if (msg == 'unittest-suite-wait-for-done') {
-      window.layoutTestController.startedDartTest = true;
+      testRunner.startedDartTest = true;
     }
   }
 }
@@ -25,9 +27,9 @@ function onReceive(e) {
   processMessage(e.data);
 }
 
-if (window.layoutTestController) {
-  window.layoutTestController.dumpAsText();
-  window.layoutTestController.waitUntilDone();
+if (testRunner) {
+  testRunner.dumpAsText();
+  testRunner.waitUntilDone();
 }
 window.addEventListener("message", onReceive, false);
 
@@ -37,8 +39,8 @@ function showErrorAndExit(message) {
     element.innerHTML = message;
     document.body.appendChild(element);
   }
-  if (window.layoutTestController) {
-    window.layoutTestController.notifyDone();
+  if (testRunner) {
+    testRunner.notifyDone();
   }
 }
 
@@ -67,8 +69,8 @@ document.onreadystatechange = function() {
     // Just sleep another time to give the browser the time to process the
     // posted message.
     setTimeout(function() {
-      if (layoutTestController && !layoutTestController.startedDartTest) {
-        layoutTestController.notifyDone();
+      if (testRunner && !testRunner.startedDartTest) {
+        testRunner.notifyDone();
       }
     }, 0);
   }, 50);
