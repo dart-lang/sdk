@@ -1042,6 +1042,7 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
+  // TODO(srdjan): Do not use CompileType for class check elimination.
   return NULL;
   UseVal* left_use = left()->AsUse();
   UseVal* right_use = right()->AsUse();
@@ -1053,7 +1054,6 @@ Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
   if (right_constant == NULL) return NULL;
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
-  // const AbstractType& left_type = AbstractType::Handle(left->CompileType());
   if ((kind() == Token::kEQ_STRICT) &&
       (right_constant->value().raw() == Bool::True()) &&
       left_use->CompileTypeIsMoreSpecificThan(

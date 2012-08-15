@@ -510,8 +510,10 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 
 
 static intptr_t GetCid(const Value& v) {
-  const AbstractType& type = AbstractType::Handle(v.CompileType());
-  return Class::Handle(type.type_class()).id();
+  // TODO(srdjan): CompileType does not give us correct type for optimizations.
+  // const AbstractType& type = AbstractType::Handle(v.CompileType());
+  // return Class::Handle(type.type_class()).id();
+  return kIllegalCid;
 }
 
 
