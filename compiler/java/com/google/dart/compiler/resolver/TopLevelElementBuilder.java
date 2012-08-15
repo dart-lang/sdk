@@ -5,7 +5,9 @@
 package com.google.dart.compiler.resolver;
 
 import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.Lists;
 import com.google.common.collect.Maps;
+import com.google.common.collect.Sets;
 import com.google.dart.compiler.DartCompilationError;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.DartCompilerListener;
@@ -27,10 +29,13 @@ import com.google.dart.compiler.common.SourceInfo;
 import com.google.dart.compiler.type.Type;
 import com.google.dart.compiler.type.TypeVariable;
 import com.google.dart.compiler.type.Types;
+import com.google.dart.compiler.util.apache.ObjectUtils;
+import com.google.dart.compiler.util.apache.StringUtils;
 
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 /**
  * Builds all class elements and types of a library. Once all libraries
@@ -55,65 +60,101 @@ public class TopLevelElementBuilder {
   }
 
   /**
-   * Create the scope for this library. First declare imported elements, then declare top-level
-   * elements of this library.
-   *
-   * @param library a library (that must have an empty scope).
+   * Fill the scope for this library, using its own top-level elements and elements from imported
+   * libraries.
    */
   public void fillInLibraryScope(LibraryUnit library, DartCompilerListener listener) {
     Scope importScope = library.getElement().getImportScope();
     Scope scope = library.getElement().getScope();
-    assert scope.getElements().isEmpty();
+    
+    // We are processing this library now, or already done this. 
+    if (library.getElement().getScope().isStateProgress()
+        || library.getElement().getScope().isStateReady()) {
+      return;
+    }
+    library.getElement().getScope().markStateProgress();
+
+    // Fill "library" scope.
+    {
+      List<Element> exportedElements = Lists.newArrayList();
+      for (DartUnit unit : library.getUnits()) {
+        fillInUnitScope(unit, listener, scope, exportedElements);
+      }
+      // Remember exported elements.
+      for (Element exportedElement : exportedElements) {
+        Elements.addExportedElement(library.getElement(), exportedElement);
+      }
+    }
 
     Map<String, LibraryPrefixElement> libraryPrefixElements = Maps.newHashMap();
     for (LibraryImport libraryImport : library.getImports()) {
       LibraryUnit lib = libraryImport.getLibrary();
-      String prefix = libraryImport.getPrefix();
-      if (prefix != null) {
-        // Put the prefix in the scope.
-        LibraryPrefixElement libraryPrefixElement = libraryPrefixElements.get(prefix);
-        if (libraryPrefixElement == null) {
-          libraryPrefixElement = new LibraryPrefixElementImplementation(prefix, scope);
-          libraryPrefixElements.put(prefix, libraryPrefixElement);
-          scope.declareElement(prefix, libraryPrefixElement);
+      // Prepare scope for this import.
+      Scope scopeForImport;
+      {
+        String prefix = libraryImport.getPrefix();
+        if (prefix != null) {
+          // Put the prefix in the scope.
+          LibraryPrefixElement libraryPrefixElement = libraryPrefixElements.get(prefix);
+          if (libraryPrefixElement == null) {
+            libraryPrefixElement = new LibraryPrefixElementImplementation(prefix, scope);
+            libraryPrefixElements.put(prefix, libraryPrefixElement);
+            Element existingElement = scope.declareElement(prefix, libraryPrefixElement);
+            // Check for conflict between import prefix and top-level element.
+            if (existingElement != null) {
+              listener.onError(new DartCompilationError(existingElement.getNameLocation(),
+                  ResolverErrorCode.CANNOT_HIDE_IMPORT_PREFIX, prefix));
+            }
+          }
+          libraryPrefixElement.addLibrary(lib.getElement());
+          // Fill prefix scope.
+          scopeForImport = libraryPrefixElement.getScope();
+        } else {
+          scopeForImport = importScope;
         }
-        libraryPrefixElement.addLibrary(lib.getElement());
-        // Fill library prefix scope.
-        for (DartUnit unit : lib.getUnits()) {
-          fillInUnitScope(unit, listener, libraryPrefixElement.getScope(), false);
-        }
-      } else {
-        // Put the elements of the library in the scope.
-        for (DartUnit unit : lib.getUnits()) {
-          fillInUnitScope(unit, listener, importScope, false);
+      }
+      // Prepare "lib" scope.
+      fillInLibraryScope(lib, listener);
+      // Fill "library" scope with element exported from "lib".
+      for (Element element : lib.getElement().getExportedElements()) {
+        String name = element.getName();
+        if (libraryImport.isVisible(name)) {
+          declare(element, listener, scopeForImport);
+          // May re-export.
+          if (libraryImport.isExported()) {
+            Elements.addExportedElement(library.getElement(), element);
+          }
         }
       }
     }
-
-    for (DartUnit unit : library.getUnits()) {
-      fillInUnitScope(unit, listener, scope, true);
-    }
+    // Done.
+    library.getElement().getScope().markStateReady();
   }
 
   @VisibleForTesting
-  void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope, boolean includePrivate) {
+  void fillInUnitScope(DartUnit unit, DartCompilerListener listener, Scope scope,
+      List<Element> exportedElements) {
     for (DartNode node : unit.getTopLevelNodes()) {
       if (node instanceof DartFieldDefinition) {
         for (DartField field : ((DartFieldDefinition) node).getFields()) {
-          Element element = field.getElement();
-          if (includePrivate || !DartIdentifier.isPrivateName(element.getName())) {
-            declare(element, listener, scope);
-          }
+          declareNodeInScope(field, listener, scope, exportedElements);
         }
       } else {
-        Element element = node.getElement();
-        if (includePrivate || !DartIdentifier.isPrivateName(element.getName())) {
-          declare(element, listener, scope);
-        }
+        declareNodeInScope(node, listener, scope, exportedElements);
       }
     }
   }
 
+  void declareNodeInScope(DartNode node, DartCompilerListener listener, Scope scope,
+      List<Element> exportedElements) {
+    Element element = node.getElement();
+    String name = element.getName();
+    declare(element, listener, scope);
+    if (exportedElements != null && !DartIdentifier.isPrivateName(name)) {
+      exportedElements.add(element);
+    }
+  }
+  
   private void compilationError(DartCompilerListener listener, SourceInfo node, ErrorCode errorCode,
                         Object... args) {
     DartCompilationError error = new DartCompilationError(node, errorCode, args);

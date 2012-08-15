@@ -55,6 +55,17 @@ public class DartImportDirective extends DartDirective {
     return combinators;
   }
 
+  public String getPrefixValue() {
+    if (prefix != null) {
+      return prefix.getName();
+    }
+    // TODO(brianwilkerson) Remove this part once the obsolete format is no longer supported.
+    if (oldPrefix != null) {
+      return oldPrefix.getValue();
+    }
+    return null;
+  }
+  
   @Deprecated
   public DartStringLiteral getOldPrefix() {
     // TODO(brianwilkerson) Remove this method once the obsolete format is no longer supported.

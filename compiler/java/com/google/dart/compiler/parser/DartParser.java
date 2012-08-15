@@ -409,8 +409,7 @@ public class DartParser extends CompletionHooksParserBase {
       LibraryNode importPath;
       if (importDirective.getPrefix() != null) {
           importPath =
-              new LibraryNode(importDirective.getLibraryUri().getValue(), importDirective.getPrefix()
-                  .getName());
+              new LibraryNode(importDirective);
       } else {
         importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
       }
@@ -442,8 +441,7 @@ public class DartParser extends CompletionHooksParserBase {
       LibraryNode importPath;
       if (importDirective.getOldPrefix() != null) {
         importPath =
-            new LibraryNode(importDirective.getLibraryUri().getValue(), importDirective.getOldPrefix()
-                .getValue());
+            new LibraryNode(importDirective);
       } else {
         importPath = new LibraryNode(importDirective.getLibraryUri().getValue());
       }
@@ -589,7 +587,6 @@ public class DartParser extends CompletionHooksParserBase {
     boolean export = false;
     if (optional(Token.BIT_AND)) {
       if (optionalPseudoKeyword(EXPORT_KEYWORD)) {
-        next();
         export = true;
       } else {
         reportError(position(), ParserErrorCode.EXPECTED_EXPORT);

@@ -27,6 +27,8 @@ public class Scope {
   private final String name;
   private List<LabelElement> labels;
   private LibraryElement library;
+  private boolean stateProgress;
+  private boolean stateReady;
 
   @VisibleForTesting
   public Scope(String name, LibraryElement library, Scope parent) {
@@ -97,6 +99,22 @@ public class Scope {
       }
     }
     return false;
+  }
+  
+  public void markStateProgress() {
+    this.stateProgress = true;
+  }
+  
+  public boolean isStateProgress() {
+    return stateProgress;
+  }
+  
+  public void markStateReady() {
+    this.stateReady = true;
+  }
+  
+  public boolean isStateReady() {
+    return stateReady;
   }
 
   public Map<String, Element> getElements() {

@@ -101,6 +101,10 @@ public class Elements {
   public static LibraryElement libraryElement(LibraryUnit libraryUnit) {
     return new LibraryElementImplementation(libraryUnit);
   }
+  
+  public static void addExportedElement(LibraryElement libraryElement, Element element) {
+    ((LibraryElementImplementation) libraryElement).addExportedElements(element);
+  }
 
   public static LibraryElement getLibraryElement(Element element) {
     do {
