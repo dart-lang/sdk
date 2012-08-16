@@ -23,6 +23,7 @@ import shutil
 import glob
 
 BUILDER_NAME = 'BUILDBOT_BUILDERNAME'
+BUILDER_CLOBBER = 'BUILDBOT_CLOBBER'
 REVISION = 'BUILDBOT_REVISION'
 
 # latest dartium location
