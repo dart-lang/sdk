@@ -175,6 +175,15 @@ class PlaceholderCollector extends AbstractVisitor {
           internalError('Unreachable case');
         }
       }
+    } else if (element.isTopLevel()) {
+      Node fieldNode = element.parseNode(compiler);
+      if (fieldNode is Identifier) {
+        makeElementPlaceholder(fieldNode, element);
+      } else if (fieldNode is SendSet) {
+        makeElementPlaceholder(fieldNode.selector, element);
+      } else {
+        internalError('Unreachable case');
+      }
     }
   }
   
@@ -190,6 +199,8 @@ class PlaceholderCollector extends AbstractVisitor {
       // variable list element twice, better merge this with emitter logic.
       currentElement = (element as VariableElement).variables;
       elementNode = currentElement.parseNode(compiler);
+      // We don't collect other elements from the same variable lists
+      // if they are not used. http://dartbug.com/4536
       collectFieldDeclarationPlaceholders(element, elementNode);
     } else if (element is ClassElement || element is TypedefElement) {
       currentElement = element;

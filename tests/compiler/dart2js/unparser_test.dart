@@ -227,6 +227,8 @@ testConflictSendsRename() {
 #library("mylib.dart");
 
 globalfoo() {}
+var globalVar;
+var globalVarInitialized = 6, globalVarInitialized2 = 7;
 
 class A {
   A(){}
@@ -240,6 +242,8 @@ class A {
 #import("mylib.dart", prefix: "mylib");
 
 globalfoo() {}
+var globalVar;
+var globalVarInitialized = 6, globalVarInitialized2 = 7;
 
 class A {
   A(){}
@@ -250,6 +254,9 @@ class A {
 }
 
 main() {
+  globalVar;
+  globalVarInitialized;
+  globalVarInitialized2;
   globalfoo();
   A.field;
   A.staticfoo();
@@ -257,6 +264,9 @@ main() {
   new A.fromFoo();
   new A().foo();
 
+  mylib.globalVar;
+  mylib.globalVarInitialized;
+  mylib.globalVarInitialized2;
   mylib.globalfoo();
   mylib.A.field;
   mylib.A.staticfoo();
@@ -265,7 +275,7 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'globalfoo(){}p_globalfoo(){}main(){p_globalfoo(); p_A.field; p_A.staticfoo(); new p_A(); new p_A.fromFoo(); new p_A().foo(); globalfoo(); A.field; A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}class p_A{p_A(){}p_A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}class A{A(){}A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}';
+  var expectedResult = 'globalfoo(){}p_globalfoo(){}main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo(); A.field; A.staticfoo(); new A(); new A.fromFoo(); new A().foo(); p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo(); p_A.field; p_A.staticfoo(); new p_A(); new p_A.fromFoo(); new p_A().foo();}var globalVar;var p_globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;var globalVarInitialized=6,p_globalVarInitialized2=7;class A{A.fromFoo(){}A(){}foo(){}static staticfoo(){}static final field=5;}class p_A{p_A(){}p_A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
