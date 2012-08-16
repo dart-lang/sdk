@@ -9,6 +9,7 @@
 #error Include flow_graph_compiler.h instead of flow_graph_compiler_arm.h.
 #endif
 
+#include "vm/flow_graph.h"
 #include "vm/intermediate_language.h"
 
 namespace dart {
@@ -23,11 +24,10 @@ class ParsedFunction;
 class FlowGraphCompiler : public FlowGraphVisitor {
  public:
   FlowGraphCompiler(Assembler* assembler,
-                    const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>& blocks,
+                    const FlowGraph& flow_graph,
                     bool is_optimizing)
-      : FlowGraphVisitor(blocks),
-        parsed_function_(parsed_function),
+      : FlowGraphVisitor(flow_graph.reverse_postorder()),
+        parsed_function_(flow_graph.parsed_function()),
         is_optimizing_(is_optimizing) {
   }
 

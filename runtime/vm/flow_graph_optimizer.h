@@ -6,6 +6,7 @@
 #define VM_FLOW_GRAPH_OPTIMIZER_H_
 
 #include "vm/intermediate_language.h"
+#include "vm/flow_graph.h"
 
 namespace dart {
 
@@ -13,8 +14,8 @@ template <typename T> class GrowableArray;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(const GrowableArray<BlockEntryInstr*>& blocks)
-      : FlowGraphVisitor(blocks) {}
+  explicit FlowGraphOptimizer(const FlowGraph& flow_graph)
+      : FlowGraphVisitor(flow_graph.reverse_postorder()) {}
   virtual ~FlowGraphOptimizer() {}
 
   void ApplyICData();
@@ -53,8 +54,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
 // method, i.e., does not contain any calls to runtime or other Dart code.
 class FlowGraphAnalyzer : public ValueObject {
  public:
-  explicit FlowGraphAnalyzer(const GrowableArray<BlockEntryInstr*>& blocks)
-      : blocks_(blocks), is_leaf_(false) {}
+  explicit FlowGraphAnalyzer(const FlowGraph& flow_graph)
+      : blocks_(flow_graph.reverse_postorder()), is_leaf_(false) {}
   virtual ~FlowGraphAnalyzer() {}
 
   void Analyze();
@@ -74,11 +75,10 @@ class ParsedFunction;
 
 class FlowGraphTypePropagator : public FlowGraphVisitor {
  public:
-  FlowGraphTypePropagator(const ParsedFunction& parsed_function,
-                          const GrowableArray<BlockEntryInstr*>& blocks,
-                          bool is_ssa)
-      : FlowGraphVisitor(blocks),
-        parsed_function_(parsed_function),
+  explicit FlowGraphTypePropagator(const FlowGraph& flow_graph,
+                                   bool is_ssa)
+      : FlowGraphVisitor(flow_graph.reverse_postorder()),
+        parsed_function_(flow_graph.parsed_function()),
         is_ssa_(is_ssa),
         still_changing_(false) { }
   virtual ~FlowGraphTypePropagator() { }

@@ -76,19 +76,18 @@ RawDeoptInfo* DeoptimizationStub::CreateDeoptInfo(FlowGraphCompiler* compiler) {
 
 FlowGraphCompiler::FlowGraphCompiler(
     Assembler* assembler,
-    const ParsedFunction& parsed_function,
-    const GrowableArray<BlockEntryInstr*>& block_order,
+    const FlowGraph& flow_graph,
     bool is_optimizing,
     bool is_ssa,
     bool is_leaf)
     : assembler_(assembler),
-      parsed_function_(parsed_function),
-      block_order_(block_order),
+      parsed_function_(flow_graph.parsed_function()),
+      block_order_(flow_graph.reverse_postorder()),
       current_block_(NULL),
       exception_handlers_list_(NULL),
       pc_descriptors_list_(NULL),
       stackmap_table_builder_(is_ssa ? new StackmapTableBuilder() : NULL),
-      block_info_(block_order.length()),
+      block_info_(block_order_.length()),
       deopt_stubs_(),
       object_table_(GrowableObjectArray::Handle(GrowableObjectArray::New())),
       is_optimizing_(is_optimizing),

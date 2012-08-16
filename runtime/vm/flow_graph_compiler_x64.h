@@ -13,6 +13,7 @@ namespace dart {
 
 class Code;
 class DeoptimizationStub;
+class FlowGraph;
 template <typename T> class GrowableArray;
 class ParsedFunction;
 
@@ -26,8 +27,7 @@ class FlowGraphCompiler : public ValueObject {
 
  public:
   FlowGraphCompiler(Assembler* assembler,
-                    const ParsedFunction& parsed_function,
-                    const GrowableArray<BlockEntryInstr*>& block_order,
+                    const FlowGraph& flow_graph,
                     bool is_optimizing,
                     bool is_ssa,
                     bool is_leaf);

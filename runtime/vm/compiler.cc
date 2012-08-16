@@ -13,6 +13,7 @@
 #include "vm/disassembler.h"
 #include "vm/exceptions.h"
 #include "vm/flags.h"
+#include "vm/flow_graph.h"
 #include "vm/flow_graph_allocator.h"
 #include "vm/flow_graph_builder.h"
 #include "vm/flow_graph_compiler.h"
@@ -132,7 +133,7 @@ static bool CompileParsedFunctionHelper(
   LongJump bailout_jump;
   isolate->set_long_jump_base(&bailout_jump);
   if (setjmp(*bailout_jump.Set()) == 0) {
-    GrowableArray<BlockEntryInstr*> block_order;
+    FlowGraph* flow_graph = NULL;
     // TimerScope needs an isolate to be properly terminated in case of a
     // LongJump.
     {
@@ -156,24 +157,31 @@ static bool CompileParsedFunctionHelper(
               ExtractTypeFeedbackArray(unoptimized_code));
         }
       }
-      FlowGraphBuilder graph_builder(parsed_function);
-      graph_builder.BuildGraph(optimized, use_ssa);
 
-      // The non-optimizing compiler compiles blocks in reverse postorder,
-      // because it is a 'natural' order for the human reader of the
-      // generated code.
-      intptr_t length = graph_builder.postorder_block_entries().length();
-      for (intptr_t i = length - 1; i >= 0; --i) {
-        block_order.Add(graph_builder.postorder_block_entries()[i]);
+      // Build the flow graph.
+      FlowGraphBuilder builder(parsed_function);
+      flow_graph = builder.BuildGraph();
+
+      // Transform to SSA.
+      if (optimized && use_ssa) flow_graph->ComputeSSA();
+
+      if (FLAG_print_flow_graph) {
+        OS::Print("Before Optimizations\n");
+        FlowGraphPrinter printer(*flow_graph);
+        printer.PrintBlocks();
       }
+      if (Dart::flow_graph_writer() != NULL) {
+        // Write flow graph to file.
+        FlowGraphVisualizer printer(*flow_graph);
+        printer.PrintFunction();
+      }
+
       if (optimized) {
-        FlowGraphOptimizer optimizer(block_order);
+        FlowGraphOptimizer optimizer(*flow_graph);
         optimizer.ApplyICData();
 
         // Propagate types and eliminate more type tests.
-        FlowGraphTypePropagator propagator(parsed_function,
-                                           block_order,
-                                           optimized && use_ssa);
+        FlowGraphTypePropagator propagator(*flow_graph, optimized && use_ssa);
         propagator.PropagateTypes();
 
         // Do optimizations that depend on the propagated type information.
@@ -181,12 +189,13 @@ static bool CompileParsedFunctionHelper(
 
         if (use_ssa) {
           // Perform register allocation on the SSA graph.
-          FlowGraphAllocator allocator(block_order, &graph_builder);
+          FlowGraphAllocator allocator(*flow_graph);
           allocator.AllocateRegisters();
         }
+
         if (FLAG_print_flow_graph) {
           OS::Print("After Optimizations:\n");
-          FlowGraphPrinter printer(Function::Handle(), block_order);
+          FlowGraphPrinter printer(*flow_graph);
           printer.PrintBlocks();
         }
       }
@@ -194,14 +203,13 @@ static bool CompileParsedFunctionHelper(
 
     bool is_leaf = false;
     if (optimized) {
-      FlowGraphAnalyzer analyzer(block_order);
+      FlowGraphAnalyzer analyzer(*flow_graph);
       analyzer.Analyze();
       is_leaf = analyzer.is_leaf();
     }
     Assembler assembler;
     FlowGraphCompiler graph_compiler(&assembler,
-                                     parsed_function,
-                                     block_order,
+                                     *flow_graph,
                                      optimized,
                                      optimized && use_ssa,
                                      is_leaf);

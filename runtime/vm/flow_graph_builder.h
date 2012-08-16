@@ -12,6 +12,7 @@
 
 namespace dart {
 
+class FlowGraph;
 class Instruction;
 class ParsedFunction;
 
@@ -20,13 +21,9 @@ class FlowGraphBuilder: public ValueObject {
  public:
   explicit FlowGraphBuilder(const ParsedFunction& parsed_function);
 
-  void BuildGraph(bool for_optimized, bool use_ssa);
+  FlowGraph* BuildGraph();
 
   const ParsedFunction& parsed_function() const { return parsed_function_; }
-
-  const GrowableArray<BlockEntryInstr*>& postorder_block_entries() const {
-    return postorder_block_entries_;
-  }
 
   void Bailout(const char* reason);
 
@@ -42,15 +39,15 @@ class FlowGraphBuilder: public ValueObject {
 
   void AddCatchEntry(TargetEntryInstr* entry);
 
-  intptr_t current_ssa_temp_index() const {
-    return current_ssa_temp_index_;
+  intptr_t copied_parameter_count() const {
+    return copied_parameter_count_;
   }
-
-  intptr_t alloc_ssa_temp_index() {
-    return current_ssa_temp_index_++;
+  intptr_t non_copied_parameter_count() const {
+    return non_copied_parameter_count_;
   }
-
-  intptr_t copied_parameter_count() const { return copied_parameter_count_; }
+  intptr_t stack_local_count() const {
+    return stack_local_count_;
+  }
 
  private:
   intptr_t parameter_count() const {
@@ -60,39 +57,16 @@ class FlowGraphBuilder: public ValueObject {
     return parameter_count() + stack_local_count_;
   }
 
-  void ComputeDominators(GrowableArray<BlockEntryInstr*>* preorder,
-                         GrowableArray<intptr_t>* parent,
-                         GrowableArray<BitVector*>* dominance_frontier);
-
-  void CompressPath(intptr_t start_index,
-                    intptr_t current_index,
-                    GrowableArray<intptr_t>* parent,
-                    GrowableArray<intptr_t>* label);
-
-  void Rename(GrowableArray<PhiInstr*>* live_phis);
-  void RenameRecursive(BlockEntryInstr* block_entry,
-                       GrowableArray<Value*>* env,
-                       GrowableArray<PhiInstr*>* live_phis);
-
-  void InsertPhis(const GrowableArray<BlockEntryInstr*>& preorder,
-                  const GrowableArray<BitVector*>& assigned_vars,
-                  const GrowableArray<BitVector*>& dom_frontier);
-
-  void MarkLivePhis(GrowableArray<PhiInstr*>* live_phis);
-
   const ParsedFunction& parsed_function_;
 
   const intptr_t copied_parameter_count_;
   const intptr_t non_copied_parameter_count_;
   const intptr_t stack_local_count_;  // Does not include any parameters.
 
-  GrowableArray<BlockEntryInstr*> preorder_block_entries_;
-  GrowableArray<BlockEntryInstr*> postorder_block_entries_;
   intptr_t context_level_;
   intptr_t last_used_try_index_;
   intptr_t try_index_;
   GraphEntryInstr* graph_entry_;
-  intptr_t current_ssa_temp_index_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(FlowGraphBuilder);
 };

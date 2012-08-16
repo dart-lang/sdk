@@ -5,6 +5,7 @@
 #ifndef VM_IL_PRINTER_H_
 #define VM_IL_PRINTER_H_
 
+#include "vm/flow_graph.h"
 #include "vm/intermediate_language.h"
 
 namespace dart {
@@ -34,11 +35,10 @@ class ParsedFunction;
 // Graph printing.
 class FlowGraphPrinter : public ValueObject {
  public:
-  FlowGraphPrinter(const Function& function,
-                   const GrowableArray<BlockEntryInstr*>& block_order,
+  FlowGraphPrinter(const FlowGraph& flow_graph,
                    bool print_locations = false)
-      : function_(function),
-        block_order_(block_order),
+      : function_(flow_graph.parsed_function().function()),
+        block_order_(flow_graph.reverse_postorder()),
         print_locations_(print_locations) { }
 
   // Print the instructions in a block terminated by newlines.  Add "goto N"
@@ -63,9 +63,10 @@ class FlowGraphPrinter : public ValueObject {
 
 class FlowGraphVisualizer : public ValueObject {
  public:
-  FlowGraphVisualizer(const Function& function,
-                      const GrowableArray<BlockEntryInstr*>& block_order)
-      : function_(function), block_order_(block_order), indent_(0) { }
+  explicit FlowGraphVisualizer(const FlowGraph& flow_graph)
+      : function_(flow_graph.parsed_function().function()),
+        block_order_(flow_graph.reverse_postorder()),
+        indent_(0) { }
 
   void PrintFunction();
 
