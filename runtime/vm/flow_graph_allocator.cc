@@ -744,10 +744,8 @@ void FlowGraphAllocator::ProcessOneInstruction(BlockEntryInstr* block,
 
   LocationSummary* locs = current->locs();
 
-  // TODO(vegorov): number of inputs must match number of input locations.
-  if (locs->input_count() != current->InputCount()) {
-    builder_->Bailout("ssa allocator: number of input locations mismatch");
-  }
+  // Number of input locations and number of input operands have to agree.
+  ASSERT(locs->input_count() == current->InputCount());
 
   // Normalize same-as-first-input output if input is specified as
   // fixed register.
