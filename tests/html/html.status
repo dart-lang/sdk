@@ -60,6 +60,7 @@ callbacks_test: Fail
 canvas_test: Fail
 canvas_using_html_test: Fail
 css_test: Fail
+datalistelement_test: Fail    # ie9 does not have HTMLDataListElement
 dom_constructors_test: Fail
 exceptions_test: Fail
 hidden_dom_1_test: Fail
