@@ -59,6 +59,16 @@ bool UseVal::BindsToConstantNull() const {
 }
 
 
+const Object& UseVal::BoundConstant() const {
+  ASSERT(BindsToConstant());
+  BindInstr* bind = definition()->AsBind();
+  ASSERT(bind != NULL);
+  ConstantVal* constant = bind->computation()->AsConstant();
+  ASSERT(constant != NULL);
+  return constant->value();
+}
+
+
 void UseVal::RemoveFromUseList() {
   ASSERT(definition_ != NULL);
   if (next_use_ != NULL) {
@@ -736,13 +746,39 @@ RawAbstractType* EqualityCompareComp::CompileType() const {
 }
 
 
+intptr_t EqualityCompareComp::ResultCid() const {
+  if ((receiver_class_id() == kSmiCid) ||
+      (receiver_class_id() == kDoubleCid) ||
+      (receiver_class_id() == kNumberCid)) {
+    // Known/library equalities that are guaranteed to return Boolean.
+    return kBoolCid;
+  }
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+    return kBoolCid;
+  }
+  return kDynamicCid;
+}
+
+
 RawAbstractType* RelationalOpComp::CompileType() const {
   if ((operands_class_id() == kSmiCid) ||
       (operands_class_id() == kDoubleCid) ||
       (operands_class_id() == kNumberCid)) {
+    // Known/library relational ops that are guaranteed to return Boolean.
     return Type::BoolInterface();
   }
   return Type::DynamicType();
+}
+
+
+intptr_t RelationalOpComp::ResultCid() const {
+  if ((operands_class_id() == kSmiCid) ||
+      (operands_class_id() == kDoubleCid) ||
+      (operands_class_id() == kNumberCid)) {
+    // Known/library relational ops that are guaranteed to return Boolean.
+    return kBoolCid;
+  }
+  return kDynamicCid;
 }
 
 
@@ -877,20 +913,34 @@ RawAbstractType* CheckStackOverflowComp::CompileType() const {
 
 
 RawAbstractType* BinaryOpComp::CompileType() const {
-  // TODO(srdjan): Convert to use with class-ids instead of types.
+  ObjectStore* object_store = Isolate::Current()->object_store();
   if (operands_type() == kMintOperands) {
-    return Isolate::Current()->object_store()->mint_type();
-  } else if (op_kind() == Token::kSHL) {
-    return Type::IntInterface();
-  } else {
-    ASSERT(operands_type() == kSmiOperands);
-    return Isolate::Current()->object_store()->smi_type();
+    return object_store->mint_type();
   }
+  if (op_kind() == Token::kSHL) {
+    return Type::IntInterface();
+  }
+  ASSERT(operands_type() == kSmiOperands);
+  return object_store->smi_type();
+}
+
+
+intptr_t BinaryOpComp::ResultCid() const {
+  if (operands_type() == kMintOperands) {
+    return kMintCid;
+  }
+  ASSERT(operands_type() == kSmiOperands);
+  return (op_kind() == Token::kSHL) ? kDynamicCid : kSmiCid;
 }
 
 
 RawAbstractType* DoubleBinaryOpComp::CompileType() const {
   return Type::DoubleInterface();
+}
+
+
+intptr_t DoubleBinaryOpComp::ResultCid() const {
+  return kDoubleCid;
 }
 
 
@@ -900,7 +950,8 @@ RawAbstractType* UnarySmiOpComp::CompileType() const {
 
 
 RawAbstractType* NumberNegateComp::CompileType() const {
-  return Type::NumberInterface();
+  // Implemented only for doubles.
+  return Type::DoubleInterface();
 }
 
 
@@ -1118,24 +1169,23 @@ void StoreContextComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
 
 Definition* StrictCompareComp::TryReplace(BindInstr* instr) {
-  // TODO(srdjan): Do not use CompileType for class check elimination.
-  return NULL;
   UseVal* left_use = left()->AsUse();
   UseVal* right_use = right()->AsUse();
   if ((right_use == NULL) || (left_use == NULL)) return NULL;
+  if (!right_use->BindsToConstant()) return NULL;
+  const Object& right_constant = right_use->BoundConstant();
   Definition* left = left_use->definition();
-  BindInstr* right = right_use->definition()->AsBind();
-  if (right == NULL) return NULL;
-  ConstantVal* right_constant = right->computation()->AsConstant();
-  if (right_constant == NULL) return NULL;
   // TODO(fschneider): Handle other cases: e === false and e !== true/false.
   // Handles e === true.
   if ((kind() == Token::kEQ_STRICT) &&
-      (right_constant->value().raw() == Bool::True()) &&
-      left_use->CompileTypeIsMoreSpecificThan(
-          Type::Handle(Type::BoolInterface()))) {
+      (right_constant.raw() == Bool::True()) &&
+      (left_use->ResultCid() == kBoolCid)) {
     // Remove the constant from the graph.
-    right->RemoveFromGraph();
+    BindInstr* right = right_use->definition()->AsBind();
+    if (right != NULL) {
+      right->set_use_list(NULL);
+      right->RemoveFromGraph();
+    }
     // Return left subexpression as the replacement for this instruction.
     return left;
   }

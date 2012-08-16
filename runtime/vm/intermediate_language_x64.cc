@@ -509,14 +509,6 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
 }
 
 
-static intptr_t GetCid(const Value& v) {
-  // TODO(srdjan): CompileType does not give us correct type for optimizations.
-  // const AbstractType& type = AbstractType::Handle(v.CompileType());
-  // return Class::Handle(type.type_class()).id();
-  return kIllegalCid;
-}
-
-
 static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
                                 const LocationSummary& locs,
                                 Token::Kind kind,
@@ -527,9 +519,9 @@ static void EmitSmiComparisonOp(FlowGraphCompiler* compiler,
   Register left = locs.in(0).reg();
   Register right = locs.in(1).reg();
   const bool left_is_smi = (branch == NULL) ?
-      false : (GetCid(*branch->left()) == kSmiCid);
+      false : (branch->left()->ResultCid() == kSmiCid);
   const bool right_is_smi = (branch == NULL) ?
-      false : (GetCid(*branch->right()) == kSmiCid);
+      false : (branch->right()->ResultCid() == kSmiCid);
   if (!left_is_smi || !right_is_smi) {
     Register temp = locs.temp(0).reg();
     Label* deopt = compiler->AddDeoptStub(deopt_id,
@@ -1465,8 +1457,8 @@ static void EmitSmiBinaryOp(FlowGraphCompiler* compiler, BinaryOpComp* comp) {
   Register result = comp->locs()->out().reg();
   Register temp = comp->locs()->temp(0).reg();
   ASSERT(left == result);
-  const bool left_is_smi = (GetCid(*comp->left()) == kSmiCid);
-  const bool right_is_smi = (GetCid(*comp->right()) == kSmiCid);
+  const bool left_is_smi = comp->left()->ResultCid() == kSmiCid;
+  const bool right_is_smi = comp->right()->ResultCid() == kSmiCid;
   bool can_deopt;
   switch (comp->op_kind()) {
     case Token::kBIT_AND:
@@ -1903,6 +1895,7 @@ void NumberNegateComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     UNREACHABLE();
   }
+  ASSERT(ResultCid() == kDoubleCid);
 }
 
 

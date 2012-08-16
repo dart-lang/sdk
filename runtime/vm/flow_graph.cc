@@ -340,7 +340,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         // Assert exactly one use.
         ASSERT(as_bind->use_list() == v);
         ASSERT(as_bind->use_list()->next_use() == NULL);
-        // Remove the use, its defintion and copy the environment value.
+        // Remove the use, its definition and copy the environment value.
         v->RemoveFromUseList();
         as_bind->RemoveFromGraph();
         current->SetInputAt(i, CopyValue(input_value));

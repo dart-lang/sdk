@@ -156,8 +156,6 @@ class Computation : public ZoneAllocated {
   // Compile time type of the computation, which typically depends on the
   // compile time types (and possibly propagated types) of its inputs.
   virtual RawAbstractType* CompileType() const = 0;
-  // TODO(srdjan): Make this abstract so that it gets correctly implemented
-  // in all computations.
   virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   // Mutate assigned_vars to add the local variable index for all
@@ -305,6 +303,9 @@ class Value : public TemplateComputation<0> {
   // Returns true if the value represents constant null.
   virtual bool BindsToConstantNull() const = 0;
 
+  // Assert if BindsToConstant() is false, otherwise returns constant.
+  virtual const Object& BoundConstant() const = 0;
+
   // Reminder: The type of the constant null is the bottom type, which is more
   // specific than any type.
   bool CompileTypeIsMoreSpecificThan(const AbstractType& dst_type) const;
@@ -360,6 +361,7 @@ class UseVal : public Value {
 
   // Returns true if the value represents a constant.
   virtual bool BindsToConstant() const;
+  virtual const Object& BoundConstant() const;
 
   // Returns true if the value represents constant null.
   virtual bool BindsToConstantNull() const;
@@ -399,6 +401,7 @@ class ConstantVal : public Value {
 
   // Returns true if the value represents a constant.
   virtual bool BindsToConstant() const { return true; }
+  virtual const Object& BoundConstant() const { return value(); }
 
   // Returns true if the value represents constant null.
   virtual bool BindsToConstantNull() const { return value().IsNull(); }
@@ -505,7 +508,6 @@ class AssertBooleanComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
-
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -701,7 +703,6 @@ class StrictCompareComp : public ComparisonComp {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual Definition* TryReplace(BindInstr* instr);
-
   virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
@@ -735,8 +736,7 @@ class EqualityCompareComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kBoolCid; }
+  virtual intptr_t ResultCid() const;
 
  private:
   const intptr_t token_pos_;
@@ -777,8 +777,7 @@ class RelationalOpComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
-
-  virtual intptr_t ResultCid() const { return kBoolCid; }
+  virtual intptr_t ResultCid() const;
 
  private:
   const intptr_t token_pos_;
@@ -1164,6 +1163,7 @@ class InstanceOfComp : public TemplateComputation<3> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const intptr_t token_pos_;
@@ -1616,6 +1616,7 @@ class BinaryOpComp : public TemplateComputation<2> {
   DECLARE_COMPUTATION(BinaryOp)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const;
 
  private:
   const Token::Kind op_kind_;
@@ -1642,6 +1643,7 @@ class DoubleBinaryOpComp : public TemplateComputation<0> {
   virtual intptr_t ArgumentCount() const { return 2; }
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const;
 
  private:
   const Token::Kind op_kind_;
@@ -1672,6 +1674,7 @@ class UnarySmiOpComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(UnarySmiOp)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kSmiCid; }
 
  private:
   const Token::Kind op_kind_;
@@ -1741,6 +1744,7 @@ class DoubleToDoubleComp : public TemplateComputation<1> {
   DECLARE_COMPUTATION(DoubleToDouble)
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
   InstanceCallComp* instance_call_;
@@ -1761,6 +1765,7 @@ class SmiToDoubleComp : public TemplateComputation<0> {
   virtual intptr_t ArgumentCount() const { return 1; }
 
   virtual bool CanDeoptimize() const { return true; }
+  virtual intptr_t ResultCid() const { return kDoubleCid; }
 
  private:
   InstanceCallComp* instance_call_;
