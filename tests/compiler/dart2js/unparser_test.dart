@@ -434,6 +434,10 @@ main() {
       (String result) { Expect.equals(expectedResult, result); });
 }
 
+testFieldTypeOutput() {
+  testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -462,4 +466,5 @@ main() {
   testClassExtendsWithArgs();
   testStaticInvocation();
   testLibraryGetSet();
+  testFieldTypeOutput();
 }

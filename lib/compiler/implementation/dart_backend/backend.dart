@@ -161,8 +161,10 @@ class ReferencedElementCollector extends AbstractVisitor {
 
   ReferencedElementCollector(
       this.compiler,
-      this.rootElement, this.treeElements,
-      this.newTypedefElementCallback, this.newClassElementCallback);
+      Element rootElement, this.treeElements,
+      this.newTypedefElementCallback, this.newClassElementCallback)
+      : this.rootElement = (rootElement is VariableElement)
+          ? (rootElement as VariableElement).variables : rootElement;
 
   visitClassNode(ClassNode node) {
     super.visitClassNode(node);
