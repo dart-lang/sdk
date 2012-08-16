@@ -2945,8 +2945,8 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
       ErrorMsg(classname_pos, "'%s' %s",
                class_name.ToCString(),
                is_patch ?
-                   "is already defined as interface" :
-                   "interface cannot be patched");
+                   "interface cannot be patched" :
+                   "is already defined as interface");
     } else if (is_patch) {
       String& patch = String::Handle(Symbols::New("patch "));
       patch = String::Concat(patch, class_name);
@@ -3027,7 +3027,10 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   } else {
     // Lookup the patched class and apply the changes.
     obj = library_.LookupObject(class_name);
-    Class::Cast(obj).ApplyPatch(cls);
+    const char* err_msg = Class::Cast(obj).ApplyPatch(cls);
+    if (err_msg != NULL) {
+      ErrorMsg(classname_pos, "applying patch failed with '%s'", err_msg);
+    }
   }
 }
 

@@ -1500,56 +1500,85 @@ void Class::Finalize() const {
 }
 
 
+static const char* FormatPatchError(const char* format, const Object& obj) {
+  const char* msg = obj.ToCString();
+  intptr_t len = OS::SNPrint(NULL, 0, format, msg) + 1;
+  char* result = Isolate::Current()->current_zone()->Alloc<char>(len);
+  OS::SNPrint(result, len, format, msg);
+  return result;
+}
+
+
 // Apply the members from the patch class to the original class.
-void Class::ApplyPatch(const Class& patch) const {
+const char* Class::ApplyPatch(const Class& patch) const {
   ASSERT(!is_finalized());
+  // Shared handles used during the iteration.
+  String& member_name = String::Handle();
+
   const Script& patch_script = Script::Handle(patch.script());
   const PatchClass& patch_class = PatchClass::Handle(
       PatchClass::New(*this, patch_script));
 
-  const Array& orig_functions = Array::Handle(functions());
-  intptr_t orig_len = orig_functions.Length();
-
-  const Array& patch_functions = Array::Handle(patch.functions());
-  intptr_t patch_len = patch_functions.Length();
+  Array& orig_list = Array::Handle(functions());
+  intptr_t orig_len = orig_list.Length();
+  Array& patch_list = Array::Handle(patch.functions());
+  intptr_t patch_len = patch_list.Length();
 
   // TODO(iposva): Verify that only patching existing methods and adding only
-  // new private methods. Currently we prepend all patch class members to the
-  // members lists which makes them override the orignals.
+  // new private methods.
   Function& func = Function::Handle();
-  const Array& new_functions = Array::Handle(Array::New(patch_len + orig_len));
+  Function& orig_func = Function::Handle();
+  const GrowableObjectArray& new_functions = GrowableObjectArray::Handle(
+      GrowableObjectArray::New(orig_len));
+  for (intptr_t i = 0; i < orig_len; i++) {
+    orig_func ^= orig_list.At(i);
+    member_name = orig_func.name();
+    func = patch.LookupFunction(member_name);
+    if (func.IsNull()) {
+      // Non-patched function is preserved, all patched functions are added in
+      // the loop below.
+      new_functions.Add(orig_func);
+    } else if (!func.HasCompatibleParametersWith(orig_func)) {
+      return FormatPatchError("mismatched parameters: %s", member_name);
+    }
+  }
   for (intptr_t i = 0; i < patch_len; i++) {
-    func ^= patch_functions.At(i);
+    func ^= patch_list.At(i);
     func.set_owner(patch_class);
-    new_functions.SetAt(i, func);
+    new_functions.Add(func);
   }
-  for (intptr_t i = 0; i < orig_len; i++) {
-    func ^= orig_functions.At(i);
-    new_functions.SetAt(patch_len + i, func);
-  }
-  SetFunctions(new_functions);
+  Array& new_list = Array::Handle(Array::MakeArray(new_functions));
+  SetFunctions(new_list);
 
-  const Array& orig_fields = Array::Handle(fields());
-  orig_len = orig_fields.Length();
+  // Merge the two list of fields. Raise an error when duplicates are found or
+  // when a public field is being added.
+  orig_list = fields();
+  orig_len = orig_list.Length();
+  patch_list = patch.fields();
+  patch_len = patch_list.Length();
 
-  const Array& patch_fields = Array::Handle(patch.fields());
-  patch_len = patch_fields.Length();
-
-  // TODO(iposva): Verify that no duplicate fields are entered. Currently we
-  // prepend all patch class members to the members lists which makes them
-  // override the orignals.
   Field& field = Field::Handle();
-  const Array& new_fields = Array::Handle(Array::New(patch_len + orig_len));
+  Field& orig_field = Field::Handle();
+  new_list = Array::New(patch_len + orig_len);
   for (intptr_t i = 0; i < patch_len; i++) {
-    field ^= patch_fields.At(i);
+    field ^= patch_list.At(i);
     field.set_owner(*this);
-    new_fields.SetAt(i, field);
+    member_name = field.name();
+    // TODO(iposva): Verify non-public fields only.
+
+    // Verify no duplicate additions.
+    orig_field = LookupField(member_name);
+    if (!orig_field.IsNull()) {
+      return FormatPatchError("duplicate field: %s", member_name);
+    }
+    new_list.SetAt(i, field);
   }
   for (intptr_t i = 0; i < orig_len; i++) {
-    field ^= orig_fields.At(i);
-    new_fields.SetAt(patch_len + i, field);
+    field ^= orig_list.At(i);
+    new_list.SetAt(patch_len + i, field);
   }
-  SetFields(new_fields);
+  SetFields(new_list);
+  return NULL;
 }
 
 

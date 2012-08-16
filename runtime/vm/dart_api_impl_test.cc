@@ -5479,6 +5479,7 @@ TEST_CASE(ParsePatchLibrary) {
   const char* kLibraryChars =
   "#library('patched_library');\n"
   "class A {\n"
+  "  final fvalue;\n"
   "  var _f;\n"
   "  callFunc(x, y) => x(y);\n"
   "  external method(var value);\n"
@@ -5492,6 +5493,7 @@ TEST_CASE(ParsePatchLibrary) {
   const char* kPatchChars =
   "patch class A {\n"
   "  var _g;\n"
+  "  A() : fvalue = 13;\n"
   "  get _field() => _g;\n"
   "  patch method(var value) {\n"
   "    int closeYourEyes(var eggs) { return eggs * -1; }\n"
@@ -5546,6 +5548,10 @@ TEST_CASE(ParsePatchLibrary) {
   source = Dart_NewString(kScriptChars);
   Dart_Handle test_script = Dart_LoadScript(script_url, source);
   EXPECT_VALID(test_script);
+
+  // Make sure that we can compile all of the patched code.
+  result = Dart_CompileAll();
+  EXPECT_VALID(result);
 
   result = Dart_Invoke(test_script, Dart_NewString("e1"), 0, NULL);
   EXPECT_ERROR(result, "External implementation missing");

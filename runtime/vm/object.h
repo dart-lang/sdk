@@ -674,7 +674,7 @@ class Class : public Object {
 
   void Finalize() const;
 
-  void ApplyPatch(const Class& patch) const;
+  const char* ApplyPatch(const Class& patch) const;
 
   // Allocate a class used for VM internal objects.
   template <class FakeObject> static RawClass* New();
