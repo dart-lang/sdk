@@ -78,6 +78,10 @@ class SendVisitor extends ResolvedVisitor {
     }
   }
 
+  internalError(String reason, [Node node]) {
+    collector.internalError(reason, node);
+  }
+
   tryRenamePrivateSelector(Send node) {
     collector.tryMakePrivateIdentifier(node.selector.asIdentifier());
   }
@@ -190,7 +194,7 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
   }
-  
+
   void collect(Element element, TreeElements elements) {
     treeElements = elements;
     Node elementNode;

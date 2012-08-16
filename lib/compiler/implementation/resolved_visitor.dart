@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-class ResolvedVisitor<R> implements Visitor<R> {
+class ResolvedVisitor<R> extends AbstractVisitor<R> {
   TreeElements elements;
 
   ResolvedVisitor(this.elements);
@@ -49,4 +49,8 @@ class ResolvedVisitor<R> implements Visitor<R> {
   abstract R visitStaticSend(Send node);
 
   abstract void internalError(String reason, [Node node]);
+
+  R visitNode(Node node) {
+    internalError("Unhandled node", node);
+  }
 }
