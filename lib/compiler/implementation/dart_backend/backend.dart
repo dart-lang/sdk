@@ -42,7 +42,8 @@ class DartBackend extends Backend {
     bool shouldOutput(Element element) =>
       element.kind !== ElementKind.VOID &&
       LIBS_TO_IGNORE.indexOf(element.getLibrary()) == -1 &&
-      !isDartCoreLib(compiler, element.getLibrary());
+      !isDartCoreLib(compiler, element.getLibrary()) &&
+      element is !AbstractFieldElement;
 
     // TODO(smok): Refactor this traverse/collect mess.
     Set<TypedefElement> typedefs = new Set<TypedefElement>();
@@ -70,7 +71,6 @@ class DartBackend extends Backend {
     });
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
-      if (element is AbstractFieldElement) return;
       collector.collect(element, treeElements);
       new ReferencedElementCollector(
           compiler, element, treeElements, typedefs, classes)
