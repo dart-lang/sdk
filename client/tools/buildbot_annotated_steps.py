@@ -138,6 +138,18 @@ def FixJavaHome():
     print 'Setting java home to'
     print java_home
 
+def ClobberBuilder():
+  """ Clobber the builder before we do the build.
+  Args:
+     - mode: either 'debug' or 'release'
+  """
+  cmd = [sys.executable,
+         './tools/clean_output_directory.py']
+  print 'Clobbering %s' % (' '.join(cmd))
+  return subprocess.call(cmd, env=NO_COLOR_ENV)
+
+def GetShouldClobber():
+  return os.environ.get(BUILDER_CLOBBER) == "1"
 
 def main():
   print 'main'
@@ -148,6 +160,14 @@ def main():
   scriptdir = os.path.dirname(sys.argv[0])
   # Get at the top-level directory. This script is in client/tools
   os.chdir(os.path.abspath(os.path.join(scriptdir, os.pardir, os.pardir)))
+
+  if GetShouldClobber():
+    print '@@@BUILD_STEP Clobber@@@'
+    status = ClobberBuilder()
+    if status != 0:
+      print '@@@STEP_FAILURE@@@'
+      return status
+
 
   #TODO(sigmund): remove this indirection once we update our bots
   (name, version) = GetBuildInfo()
