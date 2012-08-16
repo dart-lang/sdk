@@ -181,7 +181,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
     private final InterfaceType dynamicIteratorType;
     private final boolean developerModeChecks;
     private final boolean suppressSdkWarnings;
-    private final boolean memberWarningForInferredTypes;
+    private final boolean typeChecksForInferredTypes;
     private final Map<DartBlock, VariableElementsRestorer> restoreOnBlockExit = Maps.newHashMap();
 
     /**
@@ -208,7 +208,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       this.dynamicIteratorType = typeProvider.getIteratorType(dynamicType);
       CompilerOptions compilerOptions = context.getCompilerConfiguration().getCompilerOptions();
       this.suppressSdkWarnings = compilerOptions.suppressSdkWarnings();
-      this.memberWarningForInferredTypes = compilerOptions.memberWarningForInferredTypes();
+      this.typeChecksForInferredTypes = compilerOptions.typeChecksForInferredTypes();
     }
 
     @VisibleForTesting
@@ -562,7 +562,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       }
       Member member = itype.lookupMember(methodName);
       if (member == null) {
-        if (memberWarningForInferredTypes || !receiver.isInferred()) {
+        if (typeChecksForInferredTypes || !receiver.isInferred()) {
           typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
         }
@@ -860,8 +860,10 @@ public class TypeAnalyzer implements DartCompilationPhase {
       t.getClass(); // Null check.
       s.getClass(); // Null check.
       // ignore inferred types, treat them as Dynamic
-      if (t.isInferred() || s.isInferred()) {
-        return true;
+      if (!typeChecksForInferredTypes) {
+        if (t.isInferred() || s.isInferred()) {
+          return true;
+        }
       }
       // do check and report error
       if (!types.isAssignable(t, s)) {
@@ -926,7 +928,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
         }
         default:
-          if (memberWarningForInferredTypes || !receiver.isInferred()) {
+          if (typeChecksForInferredTypes || !receiver.isInferred()) {
             typeError(diagnosticNode, TypeErrorCode.NOT_A_METHOD_IN, name, receiver);
           }
           return dynamicType;
@@ -2030,7 +2032,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
       String name = node.getPropertyName();
       InterfaceType.Member member = cls.lookupMember(name);
       if (member == null) {
-        if (memberWarningForInferredTypes || !receiver.isInferred()) {
+        if (typeChecksForInferredTypes || !receiver.isInferred()) {
           typeError(node.getName(), TypeErrorCode.NOT_A_MEMBER_OF, name, cls);
         }
         return dynamicType;

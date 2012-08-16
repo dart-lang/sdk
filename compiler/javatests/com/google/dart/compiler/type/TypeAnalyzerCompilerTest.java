@@ -276,15 +276,15 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   /**
-   * It is a compile-time error if the values of the case expressions do not all have the same type.
+   * It is a compile-time error if the values of the case expressions are not compile-time
+   * constants, of type int or String.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3528
    */
   public void test_switchExpression_case_notIntString() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var v = 1;",
+        "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
         "  }",
@@ -298,7 +298,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 11, 10, 3));
+        errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 10, 10, 3));
   }
 
   /**
@@ -309,8 +309,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_switchExpression_case_differentTypes() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
-        "main() {",
-        "  var v = 1;",
+        "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
         "    case 'a': break;",
@@ -319,7 +318,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 6, 10, 3));
+        errEx(TypeErrorCode.CASE_EXPRESSIONS_SHOULD_BE_SAME_TYPE, 5, 10, 3));
   }
 
   /**
@@ -1772,8 +1771,31 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   }
 
   public void test_inferredTypes_noMemberWarnings() throws Exception {
-    // report by default
+    // disabled by default
     {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B extends A {",
+          "  var f;",
+          "  m() {}",
+          "}",
+          "foo(A a) {",
+          "  var v = a;",
+          "  v.f = 0;",
+          "  v.m();",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+    // use CompilerConfiguration to enable
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean typeChecksForInferredTypes() {
+          return true;
+        }
+      });
       AnalyzeLibraryResult result = analyzeLibrary(
           "// filler filler filler filler filler filler filler filler filler filler",
           "class A {}",
@@ -1792,29 +1814,6 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           errEx(TypeErrorCode.NOT_A_MEMBER_OF, 9, 5, 1),
           errEx(TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, 10, 5, 1));
     }
-    // use CompilerConfiguration to suppress
-    {
-      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
-        @Override
-        public boolean memberWarningForInferredTypes() {
-          return false;
-        }
-      });
-      AnalyzeLibraryResult result = analyzeLibrary(
-          "// filler filler filler filler filler filler filler filler filler filler",
-          "class A {}",
-          "class B extends A {",
-          "  var f;",
-          "  m() {}",
-          "}",
-          "foo(A a) {",
-          "  var v = a;",
-          "  v.f = 0;",
-          "  v.m();",
-          "}",
-          "");
-      assertErrors(result.getErrors());
-    }
   }
 
   /**
@@ -1826,7 +1825,7 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
   public void test_inferredTypes_noMemberWarnings_forInLoop() throws Exception {
       compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
         @Override
-        public boolean memberWarningForInferredTypes() {
+        public boolean typeChecksForInferredTypes() {
           return false;
         }
       });
@@ -1841,6 +1840,45 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
           "}",
           "");
       assertErrors(result.getErrors());
+  }
+
+  public void test_inferredTypes_whenInvocationArgument_checkAssignable() throws Exception {
+    // disabled by default
+    {
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B {}",
+          "foo(A a) {}",
+          "main() {",
+          "  var v = new B();",
+          "  foo(v);",
+          "}",
+          "");
+      assertErrors(result.getErrors());
+    }
+    // use CompilerConfiguration to enable
+    {
+      compilerConfiguration = new DefaultCompilerConfiguration(new CompilerOptions() {
+        @Override
+        public boolean typeChecksForInferredTypes() {
+          return true;
+        }
+      });
+      AnalyzeLibraryResult result = analyzeLibrary(
+          "// filler filler filler filler filler filler filler filler filler filler",
+          "class A {}",
+          "class B {}",
+          "foo(A a) {}",
+          "main() {",
+          "  var v = new B();",
+          "  foo(v);",
+          "}",
+          "");
+      assertErrors(
+          result.getErrors(),
+          errEx(TypeErrorCode.TYPE_NOT_ASSIGNMENT_COMPATIBLE, 7, 7, 1));
+    }
   }
 
   public void test_typesPropagation_assignAtDeclaration() throws Exception {
@@ -2521,6 +2559,10 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
    * should not do this to completely satisfy specification.
    * <p>
    * http://code.google.com/p/dart/issues/detail?id=3223
+   * <p>
+   * This feature was requested by users, so we introduce it again, but disabled to command line.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4518
    */
   public void test_typesPropagation_noExtraWarnings() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(

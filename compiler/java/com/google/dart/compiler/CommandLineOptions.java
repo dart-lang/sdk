@@ -162,10 +162,10 @@ public class CommandLineOptions {
     }
     
     /**
-     * Returns whether "not a member" warnings should be reported for inferred types.
+     * Returns whether inferred types should be used for type checks.
      */
-    public boolean memberWarningForInferredTypes() {
-      return true;
+    public boolean typeChecksForInferredTypes() {
+      return false;
     }
     
     /**
