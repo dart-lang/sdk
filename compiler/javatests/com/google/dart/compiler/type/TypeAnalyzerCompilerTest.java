@@ -1701,6 +1701,20 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
       assertTrue(message.contains("'bool'"));
     }
   }
+  
+  /**
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4394
+   */
+  public void test_conditionalExpressionType_genericInterface() throws Exception {
+    AnalyzeLibraryResult result = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "main() {",
+        "  Collection<int> test = true ? new Set<int>() : const [null];",
+        "}",
+        "");
+    assertErrors(result.getErrors());
+  }
 
   public void test_typeVariableBoundsMismatch() throws Exception {
     AnalyzeLibraryResult result =
