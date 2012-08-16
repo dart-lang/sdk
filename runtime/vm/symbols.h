@@ -84,6 +84,44 @@ class ObjectPointerVisitor;
   V(LanguageError, "LanguageError")                                            \
   V(UnhandledException, "UnhandledException")                                  \
   V(UnwindError, "UnwindError")                                                \
+  V(IntegerImplementation, "IntegerImplementation")                            \
+  V(Smi, "Smi")                                                                \
+  V(Mint, "Mint")                                                              \
+  V(Bigint, "Bigint")                                                          \
+  V(Double, "Double")                                                          \
+  V(Bool, "Bool")                                                              \
+  V(ObjectArray, "ObjectArray")                                                \
+  V(GrowableObjectArray, "GrowableObjectArray")                                \
+  V(ImmutableArray, "ImmutableArray")                                          \
+  V(OneByteString, "OneByteString")                                            \
+  V(TwoByteString, "TwoByteString")                                            \
+  V(FourByteString, "FourByteString")                                          \
+  V(ExternalOneByteString, "ExternalOneByteString")                            \
+  V(ExternalTwoByteString, "ExternalTwoByteString")                            \
+  V(ExternalFourByteString, "ExternalFourByteString")                          \
+  V(Stacktrace, "Stacktrace")                                                  \
+  V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
+  V(Object, "Object")                                                          \
+  V(_Int8Array, "_Int8Array")                                                  \
+  V(_Uint8Array, "_Uint8Array")                                                \
+  V(_Int16Array, "_Int16Array")                                                \
+  V(_Uint16Array, "_Uint16Array")                                              \
+  V(_Int32Array, "_Int32Array")                                                \
+  V(_Uint32Array, "_Uint32Array")                                              \
+  V(_Int64Array, "_Int64Array")                                                \
+  V(_Uint64Array, "_Uint64Array")                                              \
+  V(_Float32Array, "_Float32Array")                                            \
+  V(_Float64Array, "_Float64Array")                                            \
+  V(_ExternalInt8Array, "_ExternalInt8Array")                                  \
+  V(_ExternalUint8Array, "_ExternalUint8Array")                                \
+  V(_ExternalInt16Array, "_ExternalInt16Array")                                \
+  V(_ExternalUint16Array, "_ExternalUint16Array")                              \
+  V(_ExternalInt32Array, "_ExternalInt32Array")                                \
+  V(_ExternalUint32Array, "_ExternalUint32Array")                              \
+  V(_ExternalInt64Array, "_ExternalInt64Array")                                \
+  V(_ExternalUint64Array, "_ExternalUint64Array")                              \
+  V(_ExternalFloat32Array, "_ExternalFloat32Array")                            \
+  V(_ExternalFloat64Array, "_ExternalFloat64Array")                            \
 
 // Contains a list of frequently used strings in a canonicalized form. This
 // list is kept in the vm_isolate in order to share the copy across isolates

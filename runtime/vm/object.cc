@@ -386,6 +386,7 @@ void Object::RegisterSingletonClassNames() {
   Class& cls = Class::Handle();
   String& str = String::Handle();
 
+  // Set up names for all VM singleton classes.
   SET_CLASS_NAME(class, Class);
   SET_CLASS_NAME(null, Null);
   SET_CLASS_NAME(dynamic, Dynamic);
@@ -417,6 +418,15 @@ void Object::RegisterSingletonClassNames() {
   SET_CLASS_NAME(language_error, LanguageError);
   SET_CLASS_NAME(unhandled_exception, UnhandledException);
   SET_CLASS_NAME(unwind_error, UnwindError);
+
+  // Set up names for object array and one byte string class which are
+  // pre-allocated in the vm isolate also.
+  cls = Dart::vm_isolate()->object_store()->array_class();
+  str = Symbols::ObjectArray();
+  cls.set_name(str);
+  cls = Dart::vm_isolate()->object_store()->one_byte_string_class();
+  str = Symbols::OneByteString();
+  cls.set_name(str);
 }
 
 
@@ -432,20 +442,18 @@ RawClass* Object::CreateAndRegisterInterface(const char* cname,
 
 
 void Object::RegisterClass(const Class& cls,
-                           const char* cname,
+                           const String& name,
                            const Library& lib) {
-  const String& name = String::Handle(Symbols::New(cname));
   cls.set_name(name);
   lib.AddClass(cls);
 }
 
 
 void Object::RegisterPrivateClass(const Class& cls,
-                                  const char* public_class_name,
+                                  const String& public_class_name,
                                   const Library& lib) {
   String& str = String::Handle();
-  str = Symbols::New(public_class_name);
-  str = lib.PrivateName(str);
+  str = lib.PrivateName(public_class_name);
   cls.set_name(str);
   lib.AddClass(cls);
 }
@@ -513,89 +521,107 @@ RawError* Object::Init(Isolate* isolate) {
   const Script& impl_script = Script::Handle(
       Bootstrap::LoadCoreImplScript(false));
 
+  String& name = String::Handle();
   cls = Class::New<Integer>();
   object_store->set_integer_implementation_class(cls);
-  RegisterClass(cls, "IntegerImplementation", core_impl_lib);
+  name = Symbols::IntegerImplementation();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Smi>();
   object_store->set_smi_class(cls);
-  RegisterClass(cls, "Smi", core_impl_lib);
+  name = Symbols::Smi();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Mint>();
   object_store->set_mint_class(cls);
-  RegisterClass(cls, "Mint", core_impl_lib);
+  name = Symbols::Mint();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bigint>();
   object_store->set_bigint_class(cls);
-  RegisterClass(cls, "Bigint", core_impl_lib);
+  name = Symbols::Bigint();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Double>();
   object_store->set_double_class(cls);
-  RegisterClass(cls, "Double", core_impl_lib);
+  name = Symbols::Double();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Bool>();
   object_store->set_bool_class(cls);
-  RegisterClass(cls, "Bool", core_impl_lib);
+  name = Symbols::Bool();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->array_class();  // Was allocated above.
-  RegisterClass(cls, "ObjectArray", core_impl_lib);
+  name = Symbols::ObjectArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->growable_object_array_class();  // Was allocated above.
-  RegisterClass(cls, "GrowableObjectArray", core_impl_lib);
+  name = Symbols::GrowableObjectArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ImmutableArray>();
   object_store->set_immutable_array_class(cls);
   cls.set_type_arguments_instance_field_offset(Array::type_arguments_offset());
   ASSERT(object_store->immutable_array_class() != object_store->array_class());
-  RegisterClass(cls, "ImmutableArray", core_impl_lib);
+  name = Symbols::ImmutableArray();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = object_store->one_byte_string_class();  // Was allocated above.
-  RegisterClass(cls, "OneByteString", core_impl_lib);
+  name = Symbols::OneByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<TwoByteString>();
   object_store->set_two_byte_string_class(cls);
-  RegisterClass(cls, "TwoByteString", core_impl_lib);
+  name = Symbols::TwoByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<FourByteString>();
   object_store->set_four_byte_string_class(cls);
-  RegisterClass(cls, "FourByteString", core_impl_lib);
+  name = Symbols::FourByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalOneByteString>();
   object_store->set_external_one_byte_string_class(cls);
-  RegisterClass(cls, "ExternalOneByteString", core_impl_lib);
+  name = Symbols::ExternalOneByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalTwoByteString>();
   object_store->set_external_two_byte_string_class(cls);
-  RegisterClass(cls, "ExternalTwoByteString", core_impl_lib);
+  name = Symbols::ExternalTwoByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<ExternalFourByteString>();
   object_store->set_external_four_byte_string_class(cls);
-  RegisterClass(cls, "ExternalFourByteString", core_impl_lib);
+  name = Symbols::ExternalFourByteString();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   cls = Class::New<Stacktrace>();
   object_store->set_stacktrace_class(cls);
-  RegisterClass(cls, "Stacktrace", core_impl_lib);
+  name = Symbols::Stacktrace();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
   // Super type set below, after Object is allocated.
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
-  RegisterClass(cls, "JSSyntaxRegExp", core_impl_lib);
+  name = Symbols::JSSyntaxRegExp();
+  RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
   // Initialize the base interfaces used by the core VM classes.
@@ -606,7 +632,8 @@ RawError* Object::Init(Isolate* isolate) {
   // non-interface classes in the core library.
   cls = Class::New<Instance>();
   object_store->set_object_class(cls);
-  cls.set_name(String::Handle(Symbols::New("Object")));
+  name = Symbols::Object();
+  cls.set_name(name);
   cls.set_script(script);
   cls.set_is_prefinalized();
   core_lib.AddClass(cls);
@@ -616,83 +643,103 @@ RawError* Object::Init(Isolate* isolate) {
 
   cls = Class::New<Int8Array>();
   object_store->set_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_Int8Array", core_lib);
+  name = Symbols::_Int8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint8Array>();
   object_store->set_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint8Array", core_lib);
+  name = Symbols::_Uint8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int16Array>();
   object_store->set_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_Int16Array", core_lib);
+  name = Symbols::_Int16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint16Array>();
   object_store->set_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint16Array", core_lib);
+  name = Symbols::_Uint16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int32Array>();
   object_store->set_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_Int32Array", core_lib);
+  name = Symbols::_Int32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint32Array>();
   object_store->set_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint32Array", core_lib);
+  name = Symbols::_Uint32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Int64Array>();
   object_store->set_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_Int64Array", core_lib);
+  name = Symbols::_Int64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Uint64Array>();
   object_store->set_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_Uint64Array", core_lib);
+  name = Symbols::_Uint64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Float32Array>();
   object_store->set_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_Float32Array", core_lib);
+  name = Symbols::_Float32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<Float64Array>();
   object_store->set_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_Float64Array", core_lib);
+  name = Symbols::_Float64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt8Array>();
   object_store->set_external_int8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt8Array", core_lib);
+  name = Symbols::_ExternalInt8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint8Array>();
   object_store->set_external_uint8_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint8Array", core_lib);
+  name = Symbols::_ExternalUint8Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt16Array>();
   object_store->set_external_int16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt16Array", core_lib);
+  name = Symbols::_ExternalInt16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint16Array>();
   object_store->set_external_uint16_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint16Array", core_lib);
+  name = Symbols::_ExternalUint16Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt32Array>();
   object_store->set_external_int32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt32Array", core_lib);
+  name = Symbols::_ExternalInt32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint32Array>();
   object_store->set_external_uint32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint32Array", core_lib);
+  name = Symbols::_ExternalUint32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalInt64Array>();
   object_store->set_external_int64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalInt64Array", core_lib);
+  name = Symbols::_ExternalInt64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalUint64Array>();
   object_store->set_external_uint64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalUint64Array", core_lib);
+  name = Symbols::_ExternalUint64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalFloat32Array>();
   object_store->set_external_float32_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat32Array", core_lib);
+  name = Symbols::_ExternalFloat32Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   cls = Class::New<ExternalFloat64Array>();
   object_store->set_external_float64_array_class(cls);
-  RegisterPrivateClass(cls, "_ExternalFloat64Array", core_lib);
+  name = Symbols::_ExternalFloat64Array();
+  RegisterPrivateClass(cls, name, core_lib);
 
   // Set the super type of class Stacktrace to Object type so that the
   // 'toString' method is implemented.
