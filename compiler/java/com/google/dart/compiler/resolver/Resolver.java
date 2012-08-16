@@ -2098,6 +2098,7 @@ public class Resolver {
       if (classElement != null && methodElement != null
           && !classElement.isInterface()
           && !classElement.getModifiers().isNative()
+          && !methodElement.getModifiers().isExternal()
           && !methodElement.getModifiers().isRedirectedConstructor()) {
         for (Element member : classElement.getMembers()) {
           switch (ElementKind.of(member)) {

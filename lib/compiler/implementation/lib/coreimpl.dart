@@ -7,7 +7,7 @@
 #import('js_helper.dart');
 
 #source('../../../../corelib/src/implementation/collections.dart');
-#source('../../../../corelib/unified/core/implementation/date.dart');
+#source('../../../../corelib/src/implementation/date.dart');
 #source('../../../../corelib/src/implementation/dual_pivot_quicksort.dart');
 #source('../../../../corelib/src/implementation/duration_implementation.dart');
 #source('../../../../corelib/src/implementation/exceptions.dart');
