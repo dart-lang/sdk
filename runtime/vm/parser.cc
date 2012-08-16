@@ -3766,13 +3766,13 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
   const intptr_t name_pos = TokenPos();
   const String* field_name = ExpectIdentifier("accessor name expected");
 
-  if (CurrentToken() != Token::kLPAREN) {
-    ErrorMsg("'(' expected");
-  }
   const intptr_t accessor_pos = TokenPos();
   ParamList params;
-  const bool allow_explicit_default_values = true;
-  ParseFormalParameterList(allow_explicit_default_values, &params);
+  // TODO(hausner): Remove the ( check once we remove old getter syntax.
+  if (!is_getter || (CurrentToken() == Token::kLPAREN)) {
+    const bool allow_explicit_default_values = true;
+    ParseFormalParameterList(allow_explicit_default_values, &params);
+  }
   String& accessor_name = String::ZoneHandle();
   int expected_num_parameters = -1;
   if (is_getter) {
