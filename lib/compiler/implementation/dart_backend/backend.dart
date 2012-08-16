@@ -45,43 +45,61 @@ class DartBackend extends Backend {
       !isDartCoreLib(compiler, element.getLibrary()) &&
       element is !AbstractFieldElement;
 
-    // TODO(smok): Refactor this traverse/collect mess.
-    Set<TypedefElement> typedefs = new Set<TypedefElement>();
-    Set<ClassElement> classes = new Set<ClassElement>();
-    Set<Element> elements = new Set<Element>();
-    Map<ClassElement, Set<Element>> resolvedClassMembers =
+    final emptyTreeElements = new TreeElementMapping();
+
+    Set<Element> topLevelElements = new Set<Element>();
+    Map<ClassElement, Set<Element>> classes =
         new Map<ClassElement, Set<Element>>();
+
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
+    var newTypedefElementCallback, newClassElementCallback;
+
+    processElement(element, treeElements) {
+      collector.collect(element, treeElements);
+      new ReferencedElementCollector(
+          compiler,
+          element, treeElements,
+          newTypedefElementCallback, newClassElementCallback).collect();
+    }
+
+    addTopLevel(element, treeElements) {
+      if (topLevelElements.contains(element)) return;
+      topLevelElements.add(element);
+      processElement(element, treeElements);
+    }
+    addClass(classElement) {
+      if (classes.containsKey(classElement)) return;
+      classes[classElement] = new Set<Element>();
+      processElement(classElement, emptyTreeElements);
+    }
+
+    newTypedefElementCallback = (TypedefElement element) {
+      if (!shouldOutput(element)) return;
+      addTopLevel(element, emptyTreeElements);
+    };
+    newClassElementCallback = (ClassElement classElement) {
+      if (!shouldOutput(classElement)) return;
+      addClass(classElement);
+    };
+
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
+
       if (element.isMember()) {
         ClassElement enclosingClass = element.getEnclosingClass();
         assert(enclosingClass.isClass());
         assert(enclosingClass.isTopLevel());
-        resolvedClassMembers
-            .putIfAbsent(enclosingClass, () => new Set<Element>())
-            .add(element);
-        return;
+        assert(shouldOutput(enclosingClass));
+        addClass(enclosingClass);
+        classes[enclosingClass].add(element);
+        processElement(element, treeElements);
+      } else {
+        if (!element.isTopLevel()) {
+          compiler.cancel(reason: 'Cannot process $element', element: element);
+        }
+        addTopLevel(element, treeElements);
       }
-      if (!element.isTopLevel()) {
-        compiler.cancel(reason: 'Cannot process $element', element: element);
-      }
-
-      elements.add(element);
     });
-    resolvedElements.forEach((element, treeElements) {
-      if (!shouldOutput(element)) return;
-      collector.collect(element, treeElements);
-      new ReferencedElementCollector(
-          compiler, element, treeElements, typedefs, classes)
-      .collect();
-    });
-
-    final emptyTreeElements = new TreeElementMapping();
-    collectElement(element) { collector.collect(element, emptyTreeElements); }
-    typedefs.forEach(collectElement);
-    classes.forEach(collectElement);
-    resolvedClassMembers.getKeys().forEach(collectElement);
 
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
@@ -89,17 +107,9 @@ class DartBackend extends Backend {
 
     Emitter emitter = new Emitter(compiler, renames);
     emitter.outputImports(imports);
-    elements.forEach(emitter.outputElement);
-    typedefs.forEach(emitter.outputElement);
-    final emptySet = new Set<Element>();
-    classes.forEach((classElement) {
-      if (!shouldOutput(classElement)) return;
-      if (resolvedClassMembers.containsKey(classElement)) return;
-      emitter.outputClass(classElement, emptySet);
-    });
+    topLevelElements.forEach(emitter.outputElement);
+    classes.forEach(emitter.outputClass);
 
-    // Now output resolved classes with inner elements we met before.
-    resolvedClassMembers.forEach(emitter.outputClass);
     compiler.assembledCode = emitter.toString();
   }
 
@@ -130,19 +140,13 @@ class ReferencedElementCollector extends AbstractVisitor {
   final Compiler compiler;
   final Element rootElement;
   final TreeElements treeElements;
-  final Set<TypedefElement> typedefs;
-  final Set<ClassElement> classes;
+  final newTypedefElementCallback;
+  final newClassElementCallback;
 
   ReferencedElementCollector(
       this.compiler,
       this.rootElement, this.treeElements,
-      this.typedefs, this.classes);
-
-  void collectElement(Element element) {
-    new ReferencedElementCollector(
-        compiler, element, new TreeElementMapping(), typedefs, classes)
-    .collect();
-  }
+      this.newTypedefElementCallback, this.newClassElementCallback);
 
   visitClassNode(ClassNode node) {
     super.visitClassNode(node);
@@ -161,14 +165,8 @@ class ReferencedElementCollector extends AbstractVisitor {
   visitTypeAnnotation(TypeAnnotation typeAnnotation) {
     final type = compiler.resolveTypeAnnotation(rootElement, typeAnnotation);
     Element typeElement = type.element;
-    if (typeElement.isTypedef() && !typedefs.contains(typeElement)) {
-      typedefs.add(typeElement);
-      collectElement(typeElement);
-    }
-    if (typeElement.isClass() && !classes.contains(typeElement)) {
-      classes.add(typeElement);
-      collectElement(typeElement);
-    }
+    if (typeElement.isTypedef()) newTypedefElementCallback(typeElement);
+    if (typeElement.isClass()) newClassElementCallback(typeElement);
     typeAnnotation.visitChildren(this);
   }
 

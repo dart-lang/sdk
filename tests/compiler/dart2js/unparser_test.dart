@@ -188,7 +188,7 @@ testVariableDefinitions() {
   // Maybe typedef should be included in the result too, but it
   // works fine without it.
   testDart2Dart(
-    'main(){new A((arg){});}typedef void foofunc(arg);'
+    'typedef void foofunc(arg);main(){new A((arg){});}'
     'class A{A(foofunc this.handler);final foofunc handler;}');
 }
 
