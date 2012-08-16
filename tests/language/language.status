@@ -156,6 +156,8 @@ prefix_core_test: Fail # Issue 2264.
 *: Skip
 
 [ $compiler == dart2dart ]
+const_var_test: Fail # Map literals take 2 type arguments.
+map_literal3_test: Fail # Map literals take 2 type arguments.
 class_cycle_negative_test: Fail, OK # Bad test: assumes eager loading.
 field1_negative_test: Fail, OK # Bad test: assumes eager loading.
 field6_negative_test: Fail, OK # Bad test: assumes eager loading.
