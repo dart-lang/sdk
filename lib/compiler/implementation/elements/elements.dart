@@ -1286,6 +1286,7 @@ class Elements {
   static bool isStaticOrTopLevel(Element element) {
     return (element != null)
            && !element.isInstanceMember()
+           && !element.isPrefix()
            && element.enclosingElement !== null
            && (element.enclosingElement.kind == ElementKind.CLASS ||
                element.enclosingElement.kind == ElementKind.COMPILATION_UNIT ||

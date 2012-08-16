@@ -35,7 +35,8 @@ class Namer {
   /** Some closures must contain their name. The name is stored in
     * [STATIC_CLOSURE_NAME_NAME]. */
   final String STATIC_CLOSURE_NAME_NAME = @'$name';
-  final SourceString CLOSURE_INVOCATION_NAME = Compiler.CALL_OPERATOR_NAME;
+  static final SourceString CLOSURE_INVOCATION_NAME =
+      Compiler.CALL_OPERATOR_NAME;
 
 
   String closureInvocationName(Selector selector) {

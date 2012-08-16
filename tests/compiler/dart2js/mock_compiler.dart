@@ -135,7 +135,7 @@ class MockCompiler extends Compiler {
   TreeElementMapping resolveNodeStatement(Node tree, Element element) {
     ResolverVisitor visitor = new ResolverVisitor(this, element);
     if (visitor.scope is TopScope) {
-      visitor.scope = new BlockScope(visitor.scope);
+      visitor.scope = new MethodScope(visitor.scope, element);
     }
     visitor.visit(tree);
     visitor.scope = new TopScope(element.getLibrary());
@@ -146,7 +146,7 @@ class MockCompiler extends Compiler {
     Element mockElement =
         new Element(buildSourceString(''), ElementKind.FUNCTION, mainApp);
     ResolverVisitor visitor = new ResolverVisitor(this, mockElement);
-    visitor.scope = new BlockScope(visitor.scope);
+    visitor.scope = new MethodScope(visitor.scope, mockElement);
     return visitor;
   }
 

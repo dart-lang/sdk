@@ -194,7 +194,7 @@ testVariableDefinitions() {
 
 testGetSet() {
   // Top-level get/set.
-  testDart2Dart('get foo(){return 5;}set foo(arg){}main(){foo; foo=5;}');
+  testDart2Dart('set foo(arg){}get foo(){return 5;}main(){foo; foo=5;}');
   // Field get/set.
   testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}'
       'class A{set foo(a){}get foo(){return 5;}}');

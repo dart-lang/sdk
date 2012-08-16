@@ -685,7 +685,7 @@ function(collectedClasses) {
       // create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, element);
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, element);
       String staticName = namer.getName(element);
       int parameterCount = element.parameterCount(compiler);
       String invocationName =
@@ -753,7 +753,7 @@ $classesCollector.$mangledName = {'':
       // its stubs we simply create a fake element with the correct name.
       // Note: the callElement will not have any enclosingElement.
       FunctionElement callElement =
-          new ClosureInvocationElement(namer.CLOSURE_INVOCATION_NAME, member);
+          new ClosureInvocationElement(Namer.CLOSURE_INVOCATION_NAME, member);
 
       String invocationName =
           namer.instanceMethodName(member.getLibrary(),
@@ -805,7 +805,7 @@ $classesCollector.$mangledName = {'':
         String invocationName =
             namer.instanceMethodInvocationName(member.getLibrary(), member.name,
                                                selector);
-        SourceString callName = namer.CLOSURE_INVOCATION_NAME;
+        SourceString callName = Namer.CLOSURE_INVOCATION_NAME;
         String closureCallName =
             namer.instanceMethodInvocationName(member.getLibrary(), callName,
                                                selector);
@@ -1017,13 +1017,13 @@ $classesCollector.$mangledName = {'':
         for (LibraryElement lib in libraries) {
           String jsName = null;
           String methodName = null;
-          if (selector.kind === SelectorKind.GETTER) {
+          if (selector.isGetter()) {
             jsName = namer.getterName(lib, name);
             methodName = 'get:$nameString';
-          } else if (selector.kind === SelectorKind.SETTER) {
+          } else if (selector.isSetter()) {
             jsName = namer.setterName(lib, name);
             methodName = 'set:$nameString';
-          } else if (selector.kind === SelectorKind.INVOCATION) {
+          } else if (selector.isCall()) {
             jsName = namer.instanceMethodInvocationName(lib, name, selector);
             methodName = nameString;
           } else {
@@ -1054,7 +1054,7 @@ $classesCollector.$mangledName = {'':
     // Since we pass the closurized version of the main method to
     // the isolate method, we must make sure that it exists.
     if (!compiler.codegenWorld.staticFunctionsNeedingGetter.contains(appMain)) {
-      Selector selector = new Selector.callAny(0);
+      Selector selector = new Selector.callClosure(0);
       String invocationName = "${namer.closureInvocationName(selector)}";
       mainEnsureGetter = "$mainAccess.$invocationName = $mainAccess";
     }

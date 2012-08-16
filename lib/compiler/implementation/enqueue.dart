@@ -143,31 +143,6 @@ class Enqueuer {
     cls.localMembers.forEach(processInstantiatedClassMember);
   }
 
-  void registerFieldClosureInvocations() {
-    task.measure(() {
-      // Make sure that the closure understands a call with the given
-      // selector. For a method-invocation of the form o.foo(a: 499), we
-      // need to make sure that closures can handle the optional argument if
-      // there exists a field or getter 'foo'.
-      var names = universe.instantiatedClassInstanceFields;
-      // TODO(ahe): Might be enough to use invokedGetters.
-      for (SourceString name in names) {
-        Set<Selector> invokedSelectors = universe.invokedNames[name];
-        if (invokedSelectors != null) {
-          for (Selector selector in invokedSelectors) {
-            Selector call = new Selector.call(
-                compiler.namer.CLOSURE_INVOCATION_NAME,
-                selector.library,  // TODO(kasperl): Use "default" library?
-                selector.argumentCount,
-                selector.namedArguments);
-            registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                      call);
-          }
-        }
-      }
-    });
-  }
-
   void processInstantiatedClassMember(Element member) {
     if (universe.generatedCode.containsKey(member)) return;
     if (resolvedElements[member] !== null) return;
@@ -295,7 +270,7 @@ class Enqueuer {
   }
 
   void registerStaticUse(Element element) {
-    addToWorkList(element);
+    if (element !== null) addToWorkList(element);
   }
 
   void registerGetOfStaticFunction(FunctionElement element) {
@@ -349,11 +324,7 @@ class Enqueuer {
 
   void forEach(f(WorkItem work)) {
     while (!queue.isEmpty()) {
-      do {
-        f(queue.removeLast());
-      } while (!queue.isEmpty());
-      // TODO(ahe): we shouldn't register the field closure invocations here.
-      registerFieldClosureInvocations();
+      f(queue.removeLast()); // TODO(kasperl): Why isn't this removeFirst?
     }
   }
 }

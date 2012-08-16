@@ -1410,11 +1410,23 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector selector = getOptimizedSelectorFor(node, node.selector);
       backend.registerDynamicInvocation(node, selector);
 
-      if (node.element !== null) {
+      // If we don't know what we're calling or if we are calling a getter,
+      // we need to register that fact that we may be calling a closure
+      // with the same arguments.
+      Element target = node.element;
+      if (target === null || target.isGetter()) {
+        // TODO(kasperl): If we have a typed selector for the call, we
+        // may know something about the types of closures that need
+        // the specific closure call method.
+        Selector call = new Selector.callClosureFrom(selector);
+        world.registerDynamicInvocation(call.name, call);
+      }
+
+      if (target !== null) {
         // If we know we're calling a specific method, register that
         // method only.
-        if (inLoop) backend.builder.functionsCalledInLoop.add(node.element);
-        world.registerDynamicInvocationOf(node.element);
+        if (inLoop) backend.builder.functionsCalledInLoop.add(target);
+        world.registerDynamicInvocationOf(target);
       } else {
         if (inLoop) backend.builder.selectorsCalledInLoop[node.name] = selector;
         world.registerDynamicInvocation(node.name, selector);
@@ -1463,14 +1475,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                         compiler.namer.closureInvocationName(node.selector),
                         visitArguments(node.inputs)),
          node);
-    // TODO(floitsch): we should have a separate list for closure invocations.
-    Selector call = new Selector.call(
-        compiler.namer.CLOSURE_INVOCATION_NAME,
-        node.selector.library,
-        node.selector.argumentCount,
-        node.selector.namedArguments);
-    world.registerDynamicInvocation(compiler.namer.CLOSURE_INVOCATION_NAME,
-                                    call);
+    Selector call = new Selector.callClosureFrom(node.selector);
+    world.registerDynamicInvocation(call.name, call);
   }
 
   visitInvokeStatic(HInvokeStatic node) {
