@@ -10,7 +10,7 @@
     'array.dart',
     'bool.dart',
     'date.cc',
-    'date.dart',
+    'date_patch.dart',
     'double.cc',
     'double.dart',
     'growable_array.cc',
