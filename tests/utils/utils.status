@@ -19,7 +19,7 @@ utf8_test: Crash
 utf8_test: Fail # compiler cancelled: Unhandled non-BMP character: U+10412
 
 [ $compiler == dart2js && $checked ]
-dummy_compiler_test: Slow, Fail
+dummy_compiler_test: Slow, Pass
 
 [ $compiler == dart2js && $unchecked ]
 dummy_compiler_test: Slow, Pass
