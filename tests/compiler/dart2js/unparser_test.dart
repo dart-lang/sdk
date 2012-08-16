@@ -396,6 +396,26 @@ testStaticInvocation() {
   testDart2Dart('main(){var x=Math.parseDouble("1");}');
 }
 
+testLibraryGetSet() {
+  var librarySrc = '''
+#library('mylib');
+
+get topgetset() => 5;
+set topgetset(arg) {}
+''';
+  var mainSrc = '''
+#import('mylib.dart', prefix: 'mylib');
+
+main() {
+  mylib.topgetset;
+  mylib.topgetset = 5;
+}
+''';
+  var expectedResult = 'set topgetset(arg){}get topgetset()=> 5;main(){topgetset; topgetset=5;}';
+  testDart2DartWithLibrary(mainSrc, librarySrc,
+      (String result) { Expect.equals(expectedResult, result); });
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -423,4 +443,5 @@ main() {
   testDefaultClassWithArgs();
   testClassExtendsWithArgs();
   testStaticInvocation();
+  testLibraryGetSet();
 }

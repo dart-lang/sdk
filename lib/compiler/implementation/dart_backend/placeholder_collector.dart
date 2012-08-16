@@ -40,7 +40,11 @@ class SendVisitor extends ResolvedVisitor {
     }
     // We don't want to rename non top-level element access
     // unless it's a local variable.
-    if (!element.isTopLevel()) {
+    if (element.isPrefix()) {
+      // Node is prefix part in case of source 'lib.somesetter = 5;'
+      collector.makeNullPlaceholder(node);
+      return;
+    } else if (!element.isTopLevel()) {
       // May get FunctionExpression here in selector
       // in case of A(int this.f());
       if (node.selector is Identifier) {
