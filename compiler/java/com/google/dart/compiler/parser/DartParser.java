@@ -1849,15 +1849,26 @@ public class DartParser extends CompletionHooksParserBase {
   /**
    * <pre>
    * formalParameterList
-   *     : '(' restFormalParameter? ')'
-   *     | '(' namedFormalParameters ')'
-   *     | '(' legacyNormalFormalParameter normalFormalParameterTail? ')'
+   *     : '(' ')'
+   *     | '(' normalFormalParameters (',' optionalFormalParameters)? ')'
+   *     | '(' optionalFormalParameters ')'
    *     ;
    *
-   * normalFormalParameterTail
-   *     : ',' namedFormalParameters
-   *     | ',' restFormalParameter
-   *     | ',' legacyNormalFormalParameter normalFormalParameterTail?
+   * normalFormalParameters
+   *     : normalFormalParameter (',' normalFormalParameter)*
+   *     ;
+   *
+   * optionalFormalParameters
+   *     : optionalPositionalFormalParameters
+   *     | namedFormalParameters
+   *     ;
+   *
+   * optionalPositionalFormalParameters
+   *     : '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
+   *     ;
+   *
+   * namedFormalParameters
+   *     : '{' defaultNamedParameter (',' defaultNamedParameter)* '}'
    *     ;
    * </pre>
    */
@@ -1867,16 +1878,30 @@ public class DartParser extends CompletionHooksParserBase {
     List<DartParameter> params = new ArrayList<DartParameter>();
     expect(Token.LPAREN);
     boolean done = optional(Token.RPAREN);
+    boolean isOptional = false;
     boolean isNamed = false;
     while (!done) {
-      if (!isNamed && optional(Token.LBRACK)) {
+      if (!isOptional && optional(Token.LBRACK)) {
+        if (isNamed) {
+          reportErrorWithoutAdvancing(ParserErrorCode.CANNOT_MIX_OPTIONAL_AND_NAMED_PARAMETERS);
+        }
+        isOptional = true;
+      }
+      if (!isNamed && optional(Token.LBRACE)) {
+        if (isOptional) {
+          reportErrorWithoutAdvancing(ParserErrorCode.CANNOT_MIX_OPTIONAL_AND_NAMED_PARAMETERS);
+        }
         isNamed = true;
       }
 
-      DartParameter param = parseFormalParameter(isNamed);
+      DartParameter param = parseFormalParameter(isOptional, isNamed);
       params.add(param);
 
-      if (isNamed && optional(Token.RBRACK)) {
+      if (isOptional && optional(Token.RBRACK)) {
+        expectCloseParen();
+        break;
+      }
+      if (isNamed && optional(Token.RBRACE)) {
         expectCloseParen();
         break;
       }
@@ -1884,6 +1909,9 @@ public class DartParser extends CompletionHooksParserBase {
       // Ensure termination if token is anything other than COMMA.
       // Must keep Token.COMMA in sync with @Terminals above
       if (!optional(Token.COMMA)) {
+        if (isOptional && !optional(Token.RBRACE)) {
+          reportErrorWithoutAdvancing(ParserErrorCode.MISSING_OPTIONAL_PARAMETER_END);
+        }
         if (isNamed && !optional(Token.RBRACK)) {
           reportErrorWithoutAdvancing(ParserErrorCode.MISSING_NAMED_PARAMETER_END);
         }
@@ -1904,16 +1932,16 @@ public class DartParser extends CompletionHooksParserBase {
    *     | simpleFormalParameter
    *     ;
    *
-   * namedFormalParameters
-   *     : '[' defaultFormalParameter (',' defaultFormalParameter)* ']'
-   *     ;
-   *
    * defaultFormalParameter
    *     : normalFormalParameter ('=' constantExpression)?
    *     ;
+   * 
+   * defaultNamedParameter
+   *     : normalFormalParameter (':' constantExpression)?
+   *     ;
    * </pre>
    */
-  private DartParameter parseFormalParameter(boolean isNamed) {
+  private DartParameter parseFormalParameter(boolean isOptional, boolean isNamed) {
     beginFormalParameter();
     DartExpression paramName = null;
     DartTypeNode type = null;
@@ -1922,6 +1950,11 @@ public class DartParser extends CompletionHooksParserBase {
     boolean hasVar = false;
     Modifiers modifiers = Modifiers.NONE;
 
+    if (isOptional) {
+      modifiers = modifiers.makeOptional();
+      // TODO(brianwilkerson) Remove the line below when we no longer need to support the old syntax.
+      modifiers = modifiers.makeNamed();
+    }
     if (isNamed) {
       modifiers = modifiers.makeNamed();
     }
@@ -1940,8 +1973,10 @@ public class DartParser extends CompletionHooksParserBase {
       } else if ((peek(0) != Token.ELLIPSIS)
                  && (peek(1) != Token.COMMA)
                  && (peek(1) != Token.RPAREN)
+                 && (peek(1) != Token.RBRACE)
                  && (peek(1) != Token.RBRACK)
                  && (peek(1) != Token.ASSIGN)
+                 && (peek(1) != Token.COLON)
                  && (peek(1) != Token.LPAREN)
                  && (peek(0) != Token.THIS)) {
         // Must be a type specification.
@@ -1974,14 +2009,33 @@ public class DartParser extends CompletionHooksParserBase {
     switch (peek(0)) {
       case COMMA:
       case RPAREN:
+      case RBRACE:
       case RBRACK:
         // It is a simple parameter.
         break;
 
       case ASSIGN:
+        // Default parameter -- only allowed for optional parameters.
+        if (isOptional) {
+          consume(Token.ASSIGN);
+          defaultExpr = parseExpression();
+        } else if (isNamed) {
+          reportError(position(), ParserErrorCode.INVALID_SEPARATOR_FOR_NAMED);
+          consume(Token.ASSIGN);
+          defaultExpr = parseExpression();
+        } else {
+          reportError(position(), ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER);
+        }
+        break;
+
+      case COLON:
         // Default parameter -- only allowed for named parameters.
         if (isNamed) {
-          consume(Token.ASSIGN);
+          consume(Token.COLON);
+          defaultExpr = parseExpression();
+        } else if (isOptional) {
+          reportError(position(), ParserErrorCode.INVALID_SEPARATOR_FOR_OPTIONAL);
+          consume(Token.COLON);
           defaultExpr = parseExpression();
         } else {
           reportError(position(), ParserErrorCode.DEFAULT_POSITIONAL_PARAMETER);

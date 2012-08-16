@@ -26,7 +26,8 @@ public class Modifiers {
   private static final int FLAG_ABSTRACTFIELD = FLAG_INLINABLE << 1;
   private static final int FLAG_REDIRECTEDCONSTRUCTOR = FLAG_ABSTRACTFIELD << 1;
   private static final int FLAG_FINAL = FLAG_REDIRECTEDCONSTRUCTOR << 1;
-  private static final int FLAG_NAMED = FLAG_FINAL << 1;
+  private static final int FLAG_OPTIONAL = FLAG_FINAL << 1;
+  private static final int FLAG_NAMED = FLAG_OPTIONAL << 1;
   private static final int FLAG_INITIALIZED = FLAG_NAMED << 1;
   private static final int FLAG_EXTERNAL = FLAG_INITIALIZED << 1;
 
@@ -44,6 +45,7 @@ public class Modifiers {
   public boolean isAbstractField() { return is(FLAG_ABSTRACTFIELD); }
   public boolean isRedirectedConstructor() { return is(FLAG_REDIRECTEDCONSTRUCTOR); }
   public boolean isFinal() { return is(FLAG_FINAL); }
+  public boolean isOptional() { return is(FLAG_OPTIONAL); }
   public boolean isNamed() { return is(FLAG_NAMED); }
   public boolean isInitialized() { return is(FLAG_INITIALIZED); }
   public boolean isExternal() { return is(FLAG_EXTERNAL); }
@@ -60,6 +62,7 @@ public class Modifiers {
   public Modifiers makeAbstractField() { return make(FLAG_ABSTRACTFIELD); }
   public Modifiers makeRedirectedConstructor() { return make(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers makeFinal() { return make(FLAG_FINAL); }
+  public Modifiers makeOptional() { return make(FLAG_OPTIONAL); }
   public Modifiers makeNamed() { return make(FLAG_NAMED); }
   public Modifiers makeInitialized() { return make(FLAG_INITIALIZED); }
   public Modifiers makeExternal() { return make(FLAG_EXTERNAL); }
@@ -76,6 +79,7 @@ public class Modifiers {
   public Modifiers removeAbstractField() { return remove(FLAG_ABSTRACTFIELD); }
   public Modifiers removeRedirectedConstructor() { return remove(FLAG_REDIRECTEDCONSTRUCTOR); }
   public Modifiers removeFinal() { return remove(FLAG_FINAL); }
+  public Modifiers removeOptional() { return remove(FLAG_OPTIONAL); }
   public Modifiers removeNamed() { return remove(FLAG_NAMED); }
   public Modifiers removeIniitalized() { return remove(FLAG_INITIALIZED); }
   public Modifiers removeExternal() { return remove(FLAG_EXTERNAL); }
