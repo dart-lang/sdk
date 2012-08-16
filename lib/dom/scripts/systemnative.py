@@ -367,10 +367,13 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           INTERFACE=self._interface.id)
 
     to_dart_emitter = emitter.Emitter()
-    if ('CustomToJS' in self._interface.ext_attrs or
-        'CustomToJSObject' in self._interface.ext_attrs or
-        'PureInterface' in self._interface.ext_attrs or
-        'CPPPureInterface' in self._interface.ext_attrs or
+
+    ext_attrs = self._interface.ext_attrs
+
+    if ('CustomToJS' in ext_attrs or
+        ('CustomToJSObject' in ext_attrs and 'TypedArray' not in ext_attrs) or
+        'PureInterface' in ext_attrs or
+        'CPPPureInterface' in ext_attrs or
         self._interface_type_info.custom_to_dart()):
       to_dart_emitter.Emit(
           '    static Dart_Handle toDart(NativeType* value);\n')
