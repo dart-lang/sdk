@@ -7,7 +7,7 @@ class Foo {
   var y;
   var z;
   var v;
-  Foo() : x = {}, y = <int>{}, z = const {}, v = const <int>{};
+  Foo() : x = {}, y = <String, int>{}, z = const {}, v = const <String, int>{};
 }
 
 main() {

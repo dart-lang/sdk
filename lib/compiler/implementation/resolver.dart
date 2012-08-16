@@ -1600,7 +1600,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
   visitLabeledStatement(LabeledStatement node) {
     Statement body = node.statement;
     TargetElement targetElement = getOrCreateTargetElement(body);
-    Map<String, LabelElement> labelElements = <LabelElement>{};
+    Map<String, LabelElement> labelElements = <String, LabelElement>{};
     for (Label label in node.labels) {
       String labelName = label.slowToString();
       if (labelElements.containsKey(labelName)) continue;
@@ -1640,7 +1640,7 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     node.expression.accept(this);
 
     TargetElement breakElement = getOrCreateTargetElement(node);
-    Map<String, LabelElement> continueLabels = <LabelElement>{};
+    Map<String, LabelElement> continueLabels = <String, LabelElement>{};
     Link<Node> cases = node.cases.nodes;
     while (!cases.isEmpty()) {
       SwitchCase switchCase = cases.head;

@@ -9,16 +9,16 @@
 
 const untypedTopLevel = 1;
 const int typedTopLevel = 2;
-const Map<String,String> genericTopLevel = const <String>{};
+const Map<String, String> genericTopLevel = const <String, String>{};
 
 main() {
   const untypedLocal = 3;
   const int typedLocal = 4;
-  const Map<String,String> genericLocal = const <String>{};
+  const Map<String,String> genericLocal = const <String, String>{};
   const [];
   const {};
   const <int>[];
-  const <int>{};
+  const <String, int>{};
   const Foo();
   const Foo<int>();
   const foo.Foo();

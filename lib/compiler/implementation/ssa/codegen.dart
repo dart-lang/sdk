@@ -1767,7 +1767,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                !input.inputs[1].isDouble(types)) {
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be non-Double.
-      Map<String, String> inverseOperator = const <String>{
+      Map<String, String> inverseOperator = const <String, String>{
         "==" : "!=",
         "!=" : "==",
         "===": "!==",
@@ -2281,7 +2281,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitTypeConversion(HTypeConversion node) {
-    Map<String, SourceString> castNames = const <SourceString> {
+    Map<String, SourceString> castNames = const <String, SourceString> {
       "stringTypeCheck":
           const SourceString("stringTypeCast"),
       "doubleTypeCheck":

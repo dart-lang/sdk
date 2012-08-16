@@ -61,18 +61,18 @@ class MapLiteralTest {
     Expect.equals(14, m.length);
 
     // Check that last value of duplicate key wins for const maps.
-    final cmap = const <num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
+    final cmap = const <String, num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
     Expect.equals(2, cmap.length);
     Expect.equals(1000, cmap["a"]);
     Expect.equals(100, cmap["b"]);
 
-    final cmap2 = const <num>{"a": 10, "a": 100, "a": 1000}; /// static type warning
+    final cmap2 = const <String, num>{"a": 10, "a": 100, "a": 1000}; /// static type warning
     Expect.equals(1, cmap2.length);
     Expect.equals(1000, cmap["a"]);
 
     // Check that last value of duplicate key wins for mutable maps.
-    var mmap = <num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
-                     
+    var mmap = <String, num>{"a": 10, "b": 100, "a": 1000}; /// static type warning
+
     Expect.equals(2, mmap.length);
     Expect.equals(1000, mmap["a"]);
     Expect.equals(100, mmap["b"]);
@@ -81,20 +81,20 @@ class MapLiteralTest {
     // are still evaluated, including side effects.
     int counter = 0;
     int ctr() { counter += 10; return counter; }
-    mmap = <num>{"a": ctr(), "b": ctr(), "a": ctr()}; /// static type warning
+    mmap = <String, num>{"a": ctr(), "b": ctr(), "a": ctr()}; /// static type warning
     Expect.equals(2, mmap.length);
     Expect.equals(40, ctr());
     Expect.equals(30, mmap["a"]);
     Expect.equals(20, mmap["b"]);
 
     Expect.equals(10, { "beta": 100, "alpha": 9 + 1 }["alpha"]);
-    Expect.equals(10, <Map>{
+    Expect.equals(10, <String, Map>{
        "beta": {"delta": 10},
        "alpha": {"gamma": 10} }["alpha"]["gamma"]);
 
     // Map literals at beginning of statement.
-    <num>{"pink": 100};
-    const <num>{"floyd": 100};
+    <String, num>{"pink": 100};
+    const <String, num>{"floyd": 100};
   }
 }
 

@@ -391,7 +391,7 @@ class Compiler implements DiagnosticListener {
     applyContainerPatch(original, patches);
 
     // Copy imports from patch to original library.
-    Map<String, LibraryElement> delayedPatches = <LibraryElement>{};
+    Map<String, LibraryElement> delayedPatches = <String, LibraryElement>{};
     Uri patchBase = patch.uri;
     for (ScriptTag tag in patch.tags.reverse()) {
       if (tag.isImport()) {

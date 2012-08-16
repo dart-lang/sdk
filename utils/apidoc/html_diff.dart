@@ -279,9 +279,9 @@ class HtmlDiff {
    * At time of writing, the only tag that's used is `@domName`.
    */
   Map<String, String> _getTags(String comment) {
-    if (comment == null) return const <String>{};
+    if (comment == null) return const <String, String>{};
     final re = const RegExp("@([a-zA-Z]+) ([^;]+)(?:;|\$)");
-    final tags = <String>{};
+    final tags = <String, String>{};
     for (var m in re.allMatches(comment.trim())) {
       tags[m[1]] = m[2];
     }

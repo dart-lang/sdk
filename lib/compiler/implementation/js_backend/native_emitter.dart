@@ -283,7 +283,7 @@ function(cls, fields, methods) {
     // Temporary variables for common substrings.
     List<String> varNames = <String>[];
     // var -> expression
-    Map<String, String> varDefns = <String>{};
+    Map<String, String> varDefns = <String, String>{};
     // tag -> expression (a string or a variable)
     Map<ClassElement, String> tagDefns = new Map<ClassElement, String>();
 

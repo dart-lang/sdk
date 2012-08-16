@@ -16,7 +16,7 @@ class SourceRegistry {
   /**
    * Creates a new registry with no packages registered.
    */
-  SourceRegistry() : _map = <Source>{};
+  SourceRegistry() : _map = <String, Source>{};
 
   /**
    * Returns the default source, which is used when no source is specified.

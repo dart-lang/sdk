@@ -208,7 +208,7 @@ class ArgParser {
 
   /** Creates a new ArgParser. */
   ArgParser()
-    : _options = <_Option>{},
+    : _options = <String, _Option>{},
       _optionNames = <String>[];
 
   /**
@@ -308,7 +308,7 @@ class ArgParser {
     for (var name in _optionNames) {
       var option = _options[name];
       if (option.allowMultiple &&
-          results[name].length == 0 && 
+          results[name].length == 0 &&
           option.defaultValue != null) {
         results[name].add(option.defaultValue);
       }

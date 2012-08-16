@@ -5,7 +5,7 @@
 
 class MapLiteralNegativeTest {
   static testMain() {
-    var map = new Map<String,int>{ "a": 1, "b": 2, "c": 3 };
+    var map = new Map<int>{ "a": 1, "b": 2, "c": 3 };
   }
 }
 

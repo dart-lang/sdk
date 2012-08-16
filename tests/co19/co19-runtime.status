@@ -21,6 +21,21 @@ Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in c
 Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 171
 
+# co19 175 - related to issue 4522, all need fixing, some passes because of temporary warning.
+Language/10_Expressions/07_Maps_A03_t01: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A04_t01: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A04_t02: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A06_t01: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A06_t02: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A07_t04: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A07_t03: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A08_t01: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A10_t01: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A10_t02: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A10_t03: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A10_t04: Pass, Fail # co19 175
+Language/10_Expressions/07_Maps_A10_t05: Pass, Fail # co19 175
+
 #co19 issue 172: instance field initializer no longer needs to be CT const.
 Language/07_Classes/4_Instance_Variables_A01_t07: Fail # co19 issue 172
 Language/07_Classes/4_Instance_Variables_A01_t02: Fail # co19 issue 172

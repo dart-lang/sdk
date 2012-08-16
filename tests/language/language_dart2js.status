@@ -55,6 +55,8 @@ function_type_alias6_test: Crash, Fail
 static_initializer_type_error_test: Fail # Checked mode not supported.
 
 # Compilation errors.
+const_var_test: Fail # Map literals take 2 type arguments.
+map_literal3_test: Fail # Map literals take 2 type arguments.
 ct_const_test: Fail # We don't take the generic type into account yet.
 char_escape_test: Fail # Unhandled non-BMP character: U+10000
 constructor6_test: Fail # Closures inside initializers not implemented.

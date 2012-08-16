@@ -27,7 +27,7 @@ class ArchiveOptions {
   /** The internal options map. */
   final Map<String, ArchiveOption> _options;
 
-  ArchiveOptions() : _options = <ArchiveOption>{};
+  ArchiveOptions() : _options = <String, ArchiveOption>{};
 
   /** Returns whether any options have been set. */
   bool get isEmpty() => _options.isEmpty();

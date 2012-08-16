@@ -109,9 +109,9 @@ Content-Transfer-Encoding: base64\r
 PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg
 Ym9keSBvZiB0aGUgbWVzc2FnZS48L3A+CiAgPC9ib2R5Pgo8L2h0bWw+Cg=\r
 --frontier--\r\n""";
-  headers1 = <String>{"content-type": "text/plain"};
-  headers2 = <String>{"content-type": "application/octet-stream",
-                      "content-transfer-encoding": "base64"};
+  headers1 = <String, String>{"content-type": "text/plain"};
+  headers2 = <String, String>{"content-type": "application/octet-stream",
+                              "content-transfer-encoding": "base64"};
   body1 = "This is the body of the message.";
   body2 = """
 PGh0bWw+CiAgPGhlYWQ+CiAgPC9oZWFkPgogIDxib2R5PgogICAgPHA+VGhpcyBpcyB0aGUg
@@ -130,10 +130,11 @@ Content-Type: text/plain\r
 \r
 ... contents of file1.txt ...\r
 --AaB03x--\r\n""";
-  headers1 = <String>{"content-disposition": "form-data; name=\"submit-name\""};
-  headers2 = <String>{
-    "content-type": "text/plain",
-    "content-disposition": "form-data; name=\"files\"; filename=\"file1.txt\""
+  headers1 = <String, String>{
+      "content-disposition": "form-data; name=\"submit-name\""};
+  headers2 = <String, String>{
+      "content-type": "text/plain",
+      "content-disposition": "form-data; name=\"files\"; filename=\"file1.txt\""
   };
   body1 = "Larry";
   body2 = "... contents of file1.txt ...";
@@ -175,12 +176,14 @@ Content-Disposition: form-data; name=\"radio_input\"\r
 \r
 on\r
 ------WebKitFormBoundaryQ3cgYAmGRF8yOeYB--\r\n""";
-  headers1 = <String>{"content-disposition": "form-data; name=\"text_input\""};
-  headers2 =
-      <String>{"content-disposition": "form-data; name=\"password_input\""};
-  headers3 =
-      <String>{"content-disposition": "form-data; name=\"checkbox_input\""};
-  headers4 = <String>{"content-disposition": "form-data; name=\"radio_input\""};
+  headers1 = <String, String>{
+      "content-disposition": "form-data; name=\"text_input\""};
+  headers2 = <String, String>{
+      "content-disposition": "form-data; name=\"password_input\""};
+  headers3 = <String, String>{
+      "content-disposition": "form-data; name=\"checkbox_input\""};
+  headers4 = <String, String>{
+      "content-disposition": "form-data; name=\"radio_input\""};
   body1 = "text";
   body2 = "password";
   body3 = "on";
@@ -274,7 +277,7 @@ Content-Type: text/plain\r
 --\r\r\r
 -\r\r
 --boundary--\r\n""";
-  headers = <String>{"content-type": "text/plain"};
+  headers = <String, String>{"content-type": "text/plain"};
   body1 = """
 -\r
 --\r

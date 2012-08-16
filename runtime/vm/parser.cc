@@ -28,6 +28,8 @@ DEFINE_FLAG(bool, trace_parser, false, "Trace parser operations.");
 DEFINE_FLAG(bool, warning_as_error, false, "Treat warnings as errors.");
 DEFINE_FLAG(bool, silent_warnings, false, "Silence warnings.");
 DEFINE_FLAG(bool, warn_legacy_catch, false, "Warning on legacy catch syntax");
+DEFINE_FLAG(bool, warn_legacy_map_literal, false,
+            "Warning on legacy map literal syntax (single type argument)");
 
 static void CheckedModeHandler(bool value) {
   FLAG_enable_asserts = value;
@@ -8067,29 +8069,30 @@ AstNode* Parser::ParseMapLiteral(intptr_t type_pos,
   // equivalent to using Dynamic as the type argument for the value type.
   if (!map_type_arguments.IsNull()) {
     ASSERT(map_type_arguments.Length() > 0);
-    // Map literals take a single type argument.
-    value_type = map_type_arguments.TypeAt(0);
-    if (map_type_arguments.Length() > 1) {
-      // We temporarily accept two type arguments, as long as the first one is
-      // type String.
-      if (map_type_arguments.Length() != 2) {
-        ErrorMsg(type_pos,
-                 "a map literal takes one type argument specifying "
-                 "the value type");
+    // Map literals take two type arguments.
+    if (map_type_arguments.Length() < 2) {
+      // TODO(hausner): Remove legacy syntax support.
+      // We temporarily accept a single type argument.
+      if (FLAG_warn_legacy_map_literal) {
+        Warning(type_pos,
+                "a map literal takes two type arguments specifying "
+                "the key type and the value type");
       }
-      if (!value_type.IsStringInterface()) {
-        ErrorMsg(type_pos,
-                 "the key type of a map literal is implicitly 'String'");
-      }
-      Warning(type_pos,
-              "a map literal takes one type argument specifying "
-              "the value type");
-      value_type = map_type_arguments.TypeAt(1);
-    } else {
       TypeArguments& type_array = TypeArguments::Handle(TypeArguments::New(2));
       type_array.SetTypeAt(0, Type::Handle(Type::StringInterface()));
       type_array.SetTypeAt(1, value_type);
       map_type_arguments = type_array.raw();
+    } else if (map_type_arguments.Length() > 2) {
+      ErrorMsg(type_pos,
+               "a map literal takes two type arguments specifying "
+               "the key type and the value type");
+    } else {
+      const AbstractType& key_type =
+          AbstractType::Handle(map_type_arguments.TypeAt(0));
+      value_type = map_type_arguments.TypeAt(1);
+      if (!key_type.IsStringInterface()) {
+        ErrorMsg(type_pos, "the key type of a map literal must be 'String'");
+      }
     }
     if (is_const && !value_type.IsInstantiated()) {
       ErrorMsg(type_pos,
