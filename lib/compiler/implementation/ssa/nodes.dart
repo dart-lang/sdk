@@ -1249,9 +1249,16 @@ class HInvokeStatic extends HInvoke {
 }
 
 class HInvokeSuper extends HInvokeStatic {
-  HInvokeSuper(inputs) : super(inputs);
+  final bool isSetter;
+  HInvokeSuper(inputs, [this.isSetter = false]) : super(inputs);
   toString() => 'invoke super: ${element.name}';
   accept(HVisitor visitor) => visitor.visitInvokeSuper(this);
+
+  HInstruction get value() {
+    assert(isSetter);
+    // Index 0: the element, index 1: 'this'.
+    return inputs[2];
+  }
 }
 
 class HInvokeInterceptor extends HInvokeStatic {

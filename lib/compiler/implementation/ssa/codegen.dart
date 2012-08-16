@@ -1499,7 +1499,14 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
         SourceString name = superMethod.name;
         fieldName = compiler.namer.instanceFieldName(library, name);
       }
-      push(new js.PropertyAccess.field(new js.This(), fieldName), node);
+      js.PropertyAccess access =
+          new js.PropertyAccess.field(new js.This(), fieldName);
+      if (node.isSetter) {
+        use(node.value);
+        push(new js.Assignment(access, pop()), node);
+      } else {
+        push(access, node);
+      }
     } else {
       String methodName;
       if (superMethod.kind == ElementKind.FUNCTION ||

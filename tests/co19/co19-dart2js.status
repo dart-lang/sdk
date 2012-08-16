@@ -115,7 +115,6 @@ Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A05_t01: Fail #
 Language/10_Expressions/14_Method_Invocation/3_Static_Invocation_A06_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t03: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
-Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A03_t04: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A07_t01: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 Language/10_Expressions/14_Method_Invocation/4_Super_Invocation_A08_t02: Fail # Runtime error: TypeError: Cannot call method '$call$0' of undefined
 LibTest/core/Future/handleException_A01_t07: Fail # Runtime error: TypeError: Cannot call method '$call$1' of undefined

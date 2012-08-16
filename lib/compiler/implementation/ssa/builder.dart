@@ -2421,7 +2421,11 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       add(target);
       var inputs = <HInstruction>[target, context];
       addDynamicSendArgumentsToList(node, inputs);
-      push(new HInvokeSuper(inputs));
+      if (node.assignmentOperator.source.stringValue !== '=') {
+        compiler.unimplemented('complex super assignment',
+                               node: node.assignmentOperator);
+      }
+      push(new HInvokeSuper(inputs, isSetter: true));
     } else if (node.isIndex) {
       if (!methodInterceptionEnabled) {
         assert(op.source.stringValue === '=');

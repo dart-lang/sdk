@@ -77,7 +77,6 @@ generic_instanceof3_test: Fail # cannot handle generics.
 generic_test: Fail # cannot resolve type T
 get_set_syntax_test/none: Fail # Parsing of pseudo keywords.
 getter_no_setter_test/01: Crash # Internal error: NullPointerException : method: 'get:enclosingElement'
-getters_setters_test: Fail # Internal Error: SsaBuilder.visitIdentifier on non-this
 implicit_scope_test: Fail # duplicate definition of a="bar"
 library_prefixes_test: Fail # other is not a type
 local_function_test: Fail # TypeError: Object #<Closure> has no method '$call$2' (bad exception mapping).
