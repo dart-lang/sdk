@@ -1897,15 +1897,15 @@ public class Resolver {
           new DartIdentifier("String"));
       switch (originalTypeArgs.size()) {
         case 1:
+          // Old (pre spec 0.11) map specification
           typeArgs.add(implicitKey);
-          typeArgs.addAll(originalTypeArgs);
+          typeArgs.add(originalTypeArgs.get(0));
+          // TODO(scheglov) enable this warning
+//          topLevelContext.onError(originalTypeArgs.get(0), ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX);
           break;
         case 2:
-          // Old (pre spec 0.6) map specification
-          // TODO(zundel): remove this case after a while (added on 24 Jan 2012)
-          typeArgs.add(implicitKey);
+          typeArgs.add(originalTypeArgs.get(0));
           typeArgs.add(originalTypeArgs.get(1));
-          topLevelContext.onError(originalTypeArgs.get(0), ResolverErrorCode.DEPRECATED_MAP_LITERAL_SYNTAX);
           break;
         default:
           topLevelContext.onError(node, ResolverErrorCode.WRONG_NUMBER_OF_TYPE_ARGUMENTS,

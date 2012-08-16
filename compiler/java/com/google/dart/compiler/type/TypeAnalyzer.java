@@ -1709,7 +1709,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
       // The Map literal has an implicit key type of String, so only one parameter is
       // specified <V> where V is the type of the value.
-      checkAssignable(node, type, defaultLiteralMapType);
+      checkAssignable(node, defaultLiteralMapType, type);
 
       // Check the map literal entries against the return type.
       Type valueType = type.getArguments().get(1);
