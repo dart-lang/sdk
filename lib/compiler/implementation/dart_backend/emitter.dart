@@ -58,10 +58,7 @@ class Emitter {
   }
 
   void outputElement(Element element) {
-    // TODO(smok): Figure out why AbstractFieldElement appears here,
-    // we have used getters/setters resolved instead of it.
-    if (element is SynthesizedConstructorElement
-        || element is AbstractFieldElement) return;
+    if (element is SynthesizedConstructorElement) return;
     if (element.isField()) {
       assert(element is VariableElement);
       // Different VariableElement's may refer to the same VariableListElement.
