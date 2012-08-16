@@ -4,7 +4,7 @@
 
 package com.google.dart.compiler.resolver;
 
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.Modifiers;
 import com.google.dart.compiler.common.SourceInfo;
@@ -61,8 +61,8 @@ abstract class AbstractNodeElement implements Element, NodeElement {
   }
 
   @Override
-  public DartMetadata getMetadata() {
-    return DartMetadata.EMPTY;
+  public DartObsoleteMetadata getMetadata() {
+    return DartObsoleteMetadata.EMPTY;
   }
 
   @Override

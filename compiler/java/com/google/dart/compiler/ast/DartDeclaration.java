@@ -14,7 +14,7 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
 
   private N name; // Not visited.
   private DartComment dartDoc;
-  private DartMetadata metadata = DartMetadata.EMPTY;
+  private DartObsoleteMetadata metadata = DartObsoleteMetadata.EMPTY;
 
   protected DartDeclaration(N name) {
     this.name = becomeParentOf(name);
@@ -37,11 +37,11 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
     this.dartDoc = dartDoc;
   }
 
-  public DartMetadata getMetadata() {
+  public DartObsoleteMetadata getMetadata() {
     return metadata;
   }
 
-  public void setMetadata(DartMetadata metadata) {
+  public void setMetadata(DartObsoleteMetadata metadata) {
     this.metadata = metadata;
   }
 

@@ -10,7 +10,7 @@ import com.google.dart.compiler.ast.DartBlock;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNode;
@@ -25,7 +25,7 @@ import java.util.List;
 import java.util.Set;
 
 class MethodElementImplementation extends AbstractNodeElement implements MethodNodeElement {
-  private final DartMetadata metadata;
+  private final DartObsoleteMetadata metadata;
   private final Modifiers modifiers;
   private final EnclosingElement holder;
   private final ElementKind kind;
@@ -39,7 +39,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   @VisibleForTesting
   MethodElementImplementation(DartFunctionExpression node, String name, Modifiers modifiers) {
     super(node, name);
-    this.metadata = DartMetadata.EMPTY;
+    this.metadata = DartObsoleteMetadata.EMPTY;
     this.modifiers = modifiers;
     this.hasBody = true;
     this.holder = findParentEnclosingElement(node);
@@ -61,7 +61,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
       DartBlock body = node.getFunction().getBody();
       this.hasBody = body != null && !(body instanceof DartNativeBlock);
     } else {
-      this.metadata = DartMetadata.EMPTY;
+      this.metadata = DartObsoleteMetadata.EMPTY;
       this.modifiers = Modifiers.NONE;
       this.nameLocation = SourceInfo.UNKNOWN;
       this.hasBody = false;
@@ -71,7 +71,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
   }
 
   @Override
-  public DartMetadata getMetadata() {
+  public DartObsoleteMetadata getMetadata() {
     return metadata;
   }
 

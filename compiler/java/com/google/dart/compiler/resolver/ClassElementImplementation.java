@@ -7,7 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.common.collect.Lists;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
-import com.google.dart.compiler.ast.DartMetadata;
+import com.google.dart.compiler.ast.DartObsoleteMetadata;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
 import com.google.dart.compiler.ast.DartStringLiteral;
 import com.google.dart.compiler.ast.Modifiers;
@@ -31,7 +31,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   private final List<InterfaceType> interfaces = Lists.newArrayList();
   private final boolean isInterface;
   private final String nativeName;
-  private final DartMetadata metadata;
+  private final DartObsoleteMetadata metadata;
   private final Modifiers modifiers;
   private final AtomicReference<List<InterfaceType>> allSupertypes =
       new AtomicReference<List<InterfaceType>>();
@@ -68,7 +68,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
       declarationNameWithTypeParameter = new DartParameterizedTypeNode(node.getName(), node.getTypeParameters()).toSource();
     } else {
       isInterface = false;
-      metadata = DartMetadata.EMPTY;
+      metadata = DartObsoleteMetadata.EMPTY;
       modifiers = Modifiers.NONE;
       nameLocation = SourceInfo.UNKNOWN;
       declarationNameWithTypeParameter = "";
@@ -161,7 +161,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
   }
 
   @Override
-  public DartMetadata getMetadata() {
+  public DartObsoleteMetadata getMetadata() {
     return metadata;
   }
 
