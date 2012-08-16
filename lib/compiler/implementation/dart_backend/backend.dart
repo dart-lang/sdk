@@ -8,12 +8,10 @@ class DartBackend extends Backend {
 
   Map<Element, TreeElements> get resolvedElements() =>
       compiler.enqueuer.resolution.resolvedElements;
-  Map<ClassElement, Set<Element>> resolvedClassMembers;
 
   DartBackend(Compiler compiler, [bool validateUnparse = false])
       : tasks = <CompilerTask>[],
       unparseValidator = new UnparseValidator(compiler, validateUnparse),
-      resolvedClassMembers = new Map<ClassElement, Set<Element>>(),
       super(compiler) {
     tasks.add(unparseValidator);
   }
@@ -26,18 +24,6 @@ class DartBackend extends Backend {
 
   void processNativeClasses(Enqueuer world,
                             Collection<LibraryElement> libraries) {
-  }
-
-  /**
-   * Adds given class element with its member element to resolved classes
-   * collections.
-   */
-  void addMemberToClass(Element element, ClassElement classElement) {
-    // ${element} should have ${classElement} as enclosing.
-    assert(element.isMember());
-    Set<Element> resolvedElementsInClass = resolvedClassMembers.putIfAbsent(
-        classElement, () => new Set<Element>());
-    resolvedElementsInClass.add(element);
   }
 
   void assembleProgram() {
@@ -62,6 +48,8 @@ class DartBackend extends Backend {
     Set<TypedefElement> typedefs = new Set<TypedefElement>();
     Set<ClassElement> classes = new Set<ClassElement>();
     Set<Element> elements = new Set<Element>();
+    Map<ClassElement, Set<Element>> resolvedClassMembers =
+        new Map<ClassElement, Set<Element>>();
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
     resolvedElements.forEach((element, treeElements) {
       if (!shouldOutput(element)) return;
@@ -69,7 +57,9 @@ class DartBackend extends Backend {
         ClassElement enclosingClass = element.getEnclosingClass();
         assert(enclosingClass.isClass());
         assert(enclosingClass.isTopLevel());
-        addMemberToClass(element, enclosingClass);
+        resolvedClassMembers
+            .putIfAbsent(enclosingClass, () => new Set<Element>())
+            .add(element);
         return;
       }
       if (!element.isTopLevel()) {
