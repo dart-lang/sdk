@@ -4,6 +4,8 @@
  * BSD-style license that can be found in the LICENSE file.
  */
 
+#library('number_format_test');
+
 #import('../../../pkg/unittest/unittest.dart');
 #import('../number_format.dart');
 #import('../intl.dart');
