@@ -147,7 +147,7 @@ def ClobberBuilder():
   cmd = [sys.executable,
          './tools/clean_output_directory.py']
   print 'Clobbering %s' % (' '.join(cmd))
-  return subprocess.call(cmd, env=NO_COLOR_ENV)
+  return subprocess.call(cmd)
 
 def GetShouldClobber():
   return os.environ.get(BUILDER_CLOBBER) == "1"
