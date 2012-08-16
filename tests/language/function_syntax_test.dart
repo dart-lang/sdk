@@ -6,7 +6,11 @@
 
 class FunctionSyntaxTest {
 
-  static void testMain() {
+  static void testMain
+/* /// 00: compile-time error
+()
+*/ /// 00: continued
+ {
     testNestedFunctions();
     testFunctionExpressions();
     testPrecedence();
@@ -16,132 +20,392 @@ class FunctionSyntaxTest {
     testFunctionIdentifierStatement();
   }
 
-  static void testNestedFunctions() {
+  static void testNestedFunctions
+/* /// 01: compile-time error
+()
+*/ /// 01: continued
+ {
     // No types - braces.
-    nb0() { return 42; }
-    nb1(a) { return a; }
-    nb2(a, b) { return a + b; }
+    nb0
+/* /// 02: compile-time error
+()
+*/ /// 02: continued
+ { return 42; }
+    nb1
+/* /// 03: compile-time error
+(a)
+*/ /// 03: continued
+ { return a; }
+    nb2
+/* /// 04: compile-time error
+(a, b)
+*/ /// 04: continued
+ { return a + b; }
     Expect.equals(42, nb0());
     Expect.equals(87, nb1(87));
     Expect.equals(1 + 2, nb2(1, 2));
 
     // No types - arrows.
-    na0() => 42;
-    na1(a) => a;
-    na2(a, b) => a + b;
+    na0
+/* /// 05: compile-time error
+()
+*/ /// 05: continued
+ => 42;
+    na1
+/* /// 06: compile-time error
+(a)
+*/ /// 06: continued
+ => a;
+    na2
+/* /// 07: compile-time error
+(a, b)
+*/ /// 07: continued
+ => a + b;
     Expect.equals(42, na0());
     Expect.equals(87, na1(87));
     Expect.equals(1 + 2, na2(1, 2));
 
     // Return type - braces.
-    int rb0() { return 42; }
-    int rb1(a) { return a; }
-    int rb2(a, b) { return a + b; }
+    int rb0
+/* /// 08: compile-time error
+()
+*/ /// 08: continued
+ { return 42; }
+    int rb1
+/* /// 09: compile-time error
+(a)
+*/ /// 09: continued
+ { return a; }
+    int rb2
+/* /// 10: compile-time error
+(a, b)
+*/ /// 10: continued
+ { return a + b; }
     Expect.equals(42, rb0());
     Expect.equals(87, rb1(87));
     Expect.equals(1 + 2, rb2(1, 2));
 
     // Return type - arrows.
-    int ra0() => 42;
-    int ra1(a) => a;
-    int ra2(a, b) => a + b;
+    int ra0
+/* /// 11: compile-time error
+()
+*/ /// 11: continued
+ => 42;
+    int ra1
+/* /// 12: compile-time error
+(a)
+*/ /// 12: continued
+ => a;
+    int ra2
+/* /// 13: compile-time error
+(a, b)
+*/ /// 13: continued
+ => a + b;
     Expect.equals(42, ra0());
     Expect.equals(87, ra1(87));
     Expect.equals(1 + 2, ra2(1, 2));
 
     // Fully typed - braces.
-    int fb1(int a) { return a; }
-    int fb2(int a, int b) { return a + b; }
+    int fb1
+/* /// 14: compile-time error
+(int a)
+*/ /// 14: continued
+ { return a; }
+    int fb2
+/* /// 15: compile-time error
+(int a, int b)
+*/ /// 15: continued
+ { return a + b; }
     Expect.equals(42, rb0());
     Expect.equals(87, rb1(87));
     Expect.equals(1 + 2, rb2(1, 2));
 
     // Fully typed - arrows.
-    int fa1(int a) => a;
-    int fa2(int a, int b) => a + b;
+    int fa1
+/* /// 16: compile-time error
+(int a)
+*/ /// 16: continued
+ => a;
+    int fa2
+/* /// 17: compile-time error
+(int a, int b)
+*/ /// 17: continued
+ => a + b;
     Expect.equals(42, ra0());
     Expect.equals(87, ra1(87));
     Expect.equals(1 + 2, ra2(1, 2));
 
     // Generic types - braces.
-    List<int> gb0() { return [42]; }
-    List<int> gb1(List<int> a) { return a; }
+    List<int> gb0
+/* /// 18: compile-time error
+()
+*/ /// 18: continued
+ { return [42]; }
+    List<int> gb1
+/* /// 19: compile-time error
+(List<int> a)
+*/ /// 19: continued
+ { return a; }
     Expect.equals(42, gb0()[0]);
     Expect.equals(87, gb1([87])[0]);
 
     // Generic types - arrows.
-    List<int> ga0() => [42];
-    List<int> ga1(List<int> a) => a;
+    List<int> ga0
+/* /// 20: compile-time error
+()
+*/ /// 20: continued
+ => [42];
+    List<int> ga1
+/* /// 21: compile-time error
+(List<int> a)
+*/ /// 21: continued
+ => a;
     Expect.equals(42, ga0()[0]);
     Expect.equals(87, ga1([87])[0]);
   }
 
-  static void testFunctionExpressions() {
-    eval0(fn) => fn();
-    eval1(fn, a) => fn(a);
-    eval2(fn, a, b) => fn(a, b);
+  static void testFunctionExpressions
+/* /// 22: compile-time error
+()
+*/ /// 22: continued
+ {
+    eval0
+/* /// 23: compile-time error
+(fn)
+*/ /// 23: continued
+ => fn();
+    eval1
+/* /// 24: compile-time error
+(fn, a)
+*/ /// 24: continued
+ => fn(a);
+    eval2
+/* /// 25: compile-time error
+(fn, a, b)
+*/ /// 25: continued
+ => fn(a, b);
 
     // No types - braces.
-    Expect.equals(42, eval0(() { return 42; }));
-    Expect.equals(87, eval1((a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2((a, b) { return a + b; }, 1, 2));
-    Expect.equals(42, eval0(nb0() { return 42; }));
-    Expect.equals(87, eval1(nb1(a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2(nb2(a, b) { return a + b; }, 1, 2));
+    Expect.equals(42, eval0(
+/* /// 26: compile-time error
+()
+*/ /// 26: continued
+ { return 42; }));
+    Expect.equals(87, eval1(
+/* /// 27: compile-time error
+(a)
+*/ /// 27: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(
+/* /// 28: compile-time error
+(a, b)
+*/ /// 28: continued
+ { return a + b; }, 1, 2));
+    Expect.equals(42, eval0(nb0
+/* /// 29: compile-time error
+()
+*/ /// 29: continued
+ { return 42; }));
+    Expect.equals(87, eval1(nb1
+/* /// 30: compile-time error
+(a)
+*/ /// 30: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(nb2
+/* /// 31: compile-time error
+(a, b)
+*/ /// 31: continued
+ { return a + b; }, 1, 2));
 
     // No types - arrows.
-    Expect.equals(42, eval0(() => 42));
-    Expect.equals(87, eval1((a) => a, 87));
-    Expect.equals(1 + 2, eval2((a, b) => a + b, 1, 2));
-    Expect.equals(42, eval0(na0() => 42));
-    Expect.equals(87, eval1(na1(a) => a, 87));
-    Expect.equals(1 + 2, eval2(na2(a, b) => a + b, 1, 2));
+    Expect.equals(42, eval0(
+/* /// 32: compile-time error
+()
+*/ /// 32: continued
+ => 42));
+    Expect.equals(87, eval1(
+/* /// 33: compile-time error
+(a)
+*/ /// 33: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(
+/* /// 34: compile-time error
+(a, b)
+*/ /// 34: continued
+ => a + b, 1, 2));
+    Expect.equals(42, eval0(na0
+/* /// 35: compile-time error
+()
+*/ /// 35: continued
+ => 42));
+    Expect.equals(87, eval1(na1
+/* /// 36: compile-time error
+(a)
+*/ /// 36: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(na2
+/* /// 37: compile-time error
+(a, b)
+*/ /// 37: continued
+ => a + b, 1, 2));
 
     // Return type - braces.
-    Expect.equals(42, eval0(int rb0() { return 42; }));
-    Expect.equals(87, eval1(int rb1(a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2(int rb2(a, b) { return a + b; }, 1, 2));
+    Expect.equals(42, eval0(int rb0
+/* /// 38: compile-time error
+()
+*/ /// 38: continued
+ { return 42; }));
+    Expect.equals(87, eval1(int rb1
+/* /// 39: compile-time error
+(a)
+*/ /// 39: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(int rb2
+/* /// 40: compile-time error
+(a, b)
+*/ /// 40: continued
+ { return a + b; }, 1, 2));
 
     // Return type - arrows.
-    Expect.equals(42, eval0(int ra0() => 42));
-    Expect.equals(87, eval1(int ra1(a) => a, 87));
-    Expect.equals(1 + 2, eval2(int ra2(a, b) => a + b, 1, 2));
+    Expect.equals(42, eval0(int ra0
+/* /// 41: compile-time error
+()
+*/ /// 41: continued
+ => 42));
+    Expect.equals(87, eval1(int ra1
+/* /// 42: compile-time error
+(a)
+*/ /// 42: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(int ra2
+/* /// 43: compile-time error
+(a, b)
+*/ /// 43: continued
+ => a + b, 1, 2));
 
     // Argument types - braces.
-    Expect.equals(42, eval0(() { return 42; }));
-    Expect.equals(87, eval1((int a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2((int a, int b) { return a + b; }, 1, 2));
-    Expect.equals(42, eval0( ab0() { return 42; }));
-    Expect.equals(87, eval1(ab1(int a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2(ab2(int a, int b) { return a + b; }, 1, 2));
+    Expect.equals(42, eval0(
+/* /// 44: compile-time error
+()
+*/ /// 44: continued
+ { return 42; }));
+    Expect.equals(87, eval1(
+/* /// 45: compile-time error
+(int a)
+*/ /// 45: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(
+/* /// 46: compile-time error
+(int a, int b)
+*/ /// 46: continued
+ { return a + b; }, 1, 2));
+    Expect.equals(42, eval0( ab0
+/* /// 47: compile-time error
+()
+*/ /// 47: continued
+ { return 42; }));
+    Expect.equals(87, eval1(ab1
+/* /// 48: compile-time error
+(int a)
+*/ /// 48: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(ab2
+/* /// 49: compile-time error
+(int a, int b)
+*/ /// 49: continued
+ { return a + b; }, 1, 2));
 
     // Argument types - arrows.
-    Expect.equals(42, eval0(() => 42));
-    Expect.equals(87, eval1((int a) => a, 87));
-    Expect.equals(1 + 2, eval2((int a, int b) => a + b, 1, 2));
-    Expect.equals(42, eval0(aa0() => 42));
-    Expect.equals(87, eval1(aa1(int a) => a, 87));
-    Expect.equals(1 + 2, eval2(aa2(int a, int b) => a + b, 1, 2));
+    Expect.equals(42, eval0(
+/* /// 50: compile-time error
+()
+*/ /// 50: continued
+ => 42));
+    Expect.equals(87, eval1(
+/* /// 51: compile-time error
+(int a)
+*/ /// 51: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(
+/* /// 52: compile-time error
+(int a, int b)
+*/ /// 52: continued
+ => a + b, 1, 2));
+    Expect.equals(42, eval0(aa0
+/* /// 53: compile-time error
+()
+*/ /// 53: continued
+ => 42));
+    Expect.equals(87, eval1(aa1
+/* /// 54: compile-time error
+(int a)
+*/ /// 54: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(aa2
+/* /// 55: compile-time error
+(int a, int b)
+*/ /// 55: continued
+ => a + b, 1, 2));
 
     // Fully typed - braces.
-    Expect.equals(87, eval1(int fb1(int a) { return a; }, 87));
-    Expect.equals(1 + 2, eval2(int fb2(int a, int b) { return a + b; }, 1, 2));
+    Expect.equals(87, eval1(int fb1
+/* /// 56: compile-time error
+(int a)
+*/ /// 56: continued
+ { return a; }, 87));
+    Expect.equals(1 + 2, eval2(int fb2
+/* /// 57: compile-time error
+(int a, int b)
+*/ /// 57: continued
+ { return a + b; }, 1, 2));
 
     // Fully typed - arrows.
-    Expect.equals(87, eval1(int fa1(int a) => a, 87));
-    Expect.equals(1 + 2, eval2(int fa2(int a, int b) => a + b, 1, 2));
+    Expect.equals(87, eval1(int fa1
+/* /// 58: compile-time error
+(int a)
+*/ /// 58: continued
+ => a, 87));
+    Expect.equals(1 + 2, eval2(int fa2
+/* /// 59: compile-time error
+(int a, int b)
+*/ /// 59: continued
+ => a + b, 1, 2));
 
     // Generic types - braces.
-    Expect.equals(42, eval0(List<int> gb0() { return [42]; })[0]);
-    Expect.equals(87, eval1(List<int> gb1(List<int> a) { return a; }, [87])[0]);
+    Expect.equals(42, eval0(List<int> gb0
+/* /// 60: compile-time error
+()
+*/ /// 60: continued
+ { return [42]; })[0]);
+    Expect.equals(87, eval1(List<int> gb1
+/* /// 61: compile-time error
+(List<int> a)
+*/ /// 61: continued
+ { return a; }, [87])[0]);
 
     // Generic types - arrows.
-    Expect.equals(42, eval0(List<int> ga0() => [42])[0]);
-    Expect.equals(87, eval1(List<int> ga1(List<int> a) => a, [87])[0]);
+    Expect.equals(42, eval0(List<int> ga0
+/* /// 62: compile-time error
+()
+*/ /// 62: continued
+ => [42])[0]);
+    Expect.equals(87, eval1(List<int> ga1
+/* /// 63: compile-time error
+(List<int> a)
+*/ /// 63: continued
+ => a, [87])[0]);
   }
 
-  static void testPrecedence() {
-    expectEvaluatesTo(value, fn) { Expect.equals(value, fn()); }
+  static void testPrecedence
+/* /// 64: compile-time error
+()
+*/ /// 64: continued
+ {
+    expectEvaluatesTo
+/* /// 65: compile-time error
+(value, fn)
+*/ /// 65: continued
+ { Expect.equals(value, fn()); }
 
     // Assignment.
     var x;
@@ -218,7 +482,11 @@ class FunctionSyntaxTest {
     Expect.equals(0, y);
 
     // Selector.
-    fn() => 42;
+    fn
+/* /// 66: compile-time error
+()
+*/ /// 66: continued
+ => 42;
     var list = [87];
     expectEvaluatesTo(42, ()=> fn());
     expectEvaluatesTo(1, ()=> list.length);
@@ -226,7 +494,11 @@ class FunctionSyntaxTest {
     expectEvaluatesTo(87, ()=> list.removeLast());
   }
 
-  static void testInitializers() {
+  static void testInitializers
+/* /// 67: compile-time error
+()
+*/ /// 67: continued
+ {
     Expect.equals(42, (new C.cb0().fn)());
     Expect.equals(43, (new C.ca0().fn)());
     Expect.equals(44, (new C.cb1().fn)());
@@ -255,7 +527,11 @@ class FunctionSyntaxTest {
     Expect.equals(69, (new C.ra3().fn)());
   }
 
-  static void testFunctionParameter() {
+  static void testFunctionParameter
+/* /// 68: compile-time error
+()
+*/ /// 68: continued
+ {
     f0(fn()) => fn();
     Expect.equals(42, f0(()=> 42));
 
@@ -269,12 +545,28 @@ class FunctionSyntaxTest {
     Expect.equals(44, f3((int a)=> a + 2));
   }
 
-  static void testFunctionIdentifierExpression() {
-    Expect.equals(87, (function() => 87)());
+  static void testFunctionIdentifierExpression
+/* /// 69: compile-time error
+()
+*/ /// 69: continued
+ {
+    Expect.equals(87, (function
+/* /// 70: compile-time error
+()
+*/ /// 70: continued
+ => 87)());
   }
 
-  static void testFunctionIdentifierStatement() {
-    function() => 42;
+  static void testFunctionIdentifierStatement
+/* /// 71: compile-time error
+()
+*/ /// 71: continued
+ {
+    function
+/* /// 72: compile-time error
+()
+*/ /// 72: continued
+ => 42;
     Expect.equals(42, function());
     Expect.equals(true, function is Function);
   }
@@ -320,12 +612,20 @@ class C {
   C.rb3() : fn = {'x': int _() { return 68; }}['x'] { }
   C.ra3() : fn = {'x': int _() => 69}['x'] { }
 
-  static wrap(fn) { return fn; }
+  static wrap
+/* /// 73: compile-time error
+(fn)
+*/ /// 73: continued
+ { return fn; }
 
   final fn;
 
 }
 
-main() {
+main
+/* /// 74: compile-time error
+()
+*/ /// 74: continued
+ {
   FunctionSyntaxTest.testMain();
 }
