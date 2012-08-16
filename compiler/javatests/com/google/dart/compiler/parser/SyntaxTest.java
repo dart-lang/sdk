@@ -30,6 +30,7 @@ import com.google.dart.compiler.ast.DartTypeExpression;
 import com.google.dart.compiler.ast.DartTypeNode;
 import com.google.dart.compiler.ast.DartUnaryExpression;
 import com.google.dart.compiler.ast.DartUnit;
+import com.google.dart.compiler.ast.DartVariable;
 import com.google.dart.compiler.ast.DartVariableStatement;
 
 import java.util.List;
@@ -915,6 +916,18 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.DISALLOWED_ABSTRACT_KEYWORD, 3, 3);
   }
 
+  public void test_localVariable_const() {
+    DartUnit unit = parseUnit("constVar.dart", makeCode(
+        "main() {",
+        "  const v = 1;",
+        "}"));
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartMethodDefinition);
+    DartStatement statement = ((DartMethodDefinition) firstNode).getFunction().getBody().getStatements().get(0);
+    assertTrue(((DartVariableStatement) statement).getModifiers().isConstant());
+  }
+
   public void test_metadata_deprecated() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -1064,6 +1077,15 @@ public class SyntaxTest extends AbstractParserTest {
             ParserErrorCode.VOID_FIELD, 2, 1,
             ParserErrorCode.VOID_PARAMETER, 4, 10,
             ParserErrorCode.VOID_FIELD, 5, 3);
+  }
+
+  public void test_topLevelVariable_const() {
+    DartUnit unit = parseUnit("constVar.dart", "const v = 1;");
+    assertNotNull(unit);
+    DartNode firstNode = unit.getTopLevelNodes().get(0);
+    assertTrue(firstNode instanceof DartFieldDefinition);
+    DartField field = ((DartFieldDefinition) firstNode).getFields().get(0);
+    assertTrue(field.getModifiers().isConstant());
   }
 
   public void test_unexpectedTypeArgument() throws Exception {

@@ -1357,6 +1357,15 @@ public class ResolverTest extends ResolverTestCase {
         errEx(ResolverErrorCode.CONST_REQUIRES_VALUE, 4, 7, 1));
   }
 
+  public void test_const_requiresConstValue() {
+    resolveAndTestCtConstExpectErrors(Joiner.on("\n").join(
+        "class Object {}",
+        "f() {",
+        "  const id = 1.toString();",
+        "}"),
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 14, 12));
+  }
+
   public void testNoGetterOrSetter() {
     resolveAndTest(Joiner.on("\n").join(
         "class Object {}",

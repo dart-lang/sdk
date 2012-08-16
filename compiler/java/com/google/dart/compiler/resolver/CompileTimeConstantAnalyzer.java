@@ -720,7 +720,7 @@ public class CompileTimeConstantAnalyzer {
     @Override
     public Void visitVariableStatement(DartVariableStatement node) {
       Modifiers modifiers = node.getModifiers();
-      if (modifiers.isStatic() && modifiers.isFinal()) {
+      if (modifiers.isConstant() || (modifiers.isStatic() && modifiers.isFinal())) {
         for (DartVariable variable : node.getVariables()) {
           if (variable.getValue() != null) {
             checkConstantExpression(variable.getValue());

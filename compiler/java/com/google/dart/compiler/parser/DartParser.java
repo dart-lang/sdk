@@ -2619,6 +2619,54 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   /**
+   * Return the offset of the first token after a type name, or {@code -1} if the token at the given
+   * offset is not the start of a type name.
+   * 
+   * @param offset the offset of the first token of the type name
+   * @return the offset of the first token after a type name
+   */
+  private int skipTypeArguments(int offset) {
+    if (peek(offset) != Token.LT) {
+      return -1;
+    }
+    offset = skipTypeName(offset + 1);
+    if (offset < 0) {
+      return offset;
+    }
+    while (peek(offset) == Token.COMMA) {
+      offset = skipTypeName(offset + 1);
+      if (offset < 0) {
+        return offset;
+      }
+    }
+    if (peek(offset) != Token.GT) {
+      return -1;
+    }
+    return offset + 1;
+  }
+
+  /**
+   * Return the offset of the first token after a type name, or {@code -1} if the token at the given
+   * offset is not the start of a type name.
+   * 
+   * @param offset the offset of the first token of the type name
+   * @return the offset of the first token after a type name
+   */
+  private int skipTypeName(int offset) {
+    if (peek(offset) != Token.IDENTIFIER) {
+      return -1;
+    }
+    offset++;
+    if (peek(offset) == Token.PERIOD && peek(offset + 1) == Token.IDENTIFIER) {
+      offset += 2;
+    }
+    if (peek(offset) == Token.LT) {
+      offset = skipTypeArguments(offset);
+    }
+    return offset;
+  }
+
+  /**
    * Parse any literal that is not a function literal (those have already been
    * handled before this method is called, so we don't need to handle them
    * here).
@@ -3902,6 +3950,25 @@ public class DartParser extends CompletionHooksParserBase {
         consume(Token.SEMICOLON);
         return done(new DartEmptyStatement());
 
+      case CONST:
+        // Check to see whether this is a variable declaration. If not, then default to parsing an
+        // expression statement.
+        int offset = skipTypeName(1);
+        if (offset > 1 && (peek(offset) == Token.IDENTIFIER || (offset == 2
+            && (peek(offset) == Token.ASSIGN || peek(offset) == Token.COMMA || peek(offset) == Token.SEMICOLON)))) {
+          boolean hasType = peek(offset) == Token.IDENTIFIER;
+          beginVariableDeclaration();
+          next();
+          DartTypeNode type = null;
+          if (hasType) {
+            type = parseTypeAnnotation();
+          }
+          List<DartVariable> vars = parseInitializedVariableList();
+          expect(Token.SEMICOLON);
+          return done(new DartVariableStatement(vars, type, Modifiers.NONE.makeConstant().makeFinal()));
+        }
+        break;
+
       case IDENTIFIER:
         // We have already eliminated function declarations earlier, so check for:
         // a) variable declarations;
@@ -3921,11 +3988,9 @@ public class DartParser extends CompletionHooksParserBase {
             rollback();
           }
         }
-        //$FALL-THROUGH$
-
-      default:
-        return parseExpressionStatement();
+        break;
     }
+    return parseExpressionStatement();
   }
 
   /**
