@@ -7,14 +7,14 @@ class InvocationInfo {
   List<HType> providedTypes;
   List<Element> compiledFunctions;
 
-  InvocationInfo(HInvoke node)
+  InvocationInfo(HInvoke node, HTypeMap types)
       : compiledFunctions = new List<Element>() {
     assert(node != null);
     // Gather the type information provided. If the types contains no useful
     // information there is no need to actually store them.
     bool allUnknown = true;
     for (int i = 1; i < node.inputs.length; i++) {
-      if (node.inputs[i].propagatedType != HType.UNKNOWN) {
+      if (types[node.inputs[i]] != HType.UNKNOWN) {
         allUnknown = false;
         break;
       }
@@ -22,7 +22,7 @@ class InvocationInfo {
     if (!allUnknown) {
       providedTypes = new List<HType>(node.inputs.length - 1);
       for (int i = 0; i < providedTypes.length; i++) {
-        providedTypes[i] = node.inputs[i + 1].propagatedType;
+        providedTypes[i] = types[node.inputs[i + 1]];
       }
       parameterCount = providedTypes.length;
     }
@@ -30,7 +30,7 @@ class InvocationInfo {
 
   InvocationInfo.unknownTypes();
 
-  void update(HInvoke node, var recompile) {
+  void update(HInvoke node, HTypeMap types, var recompile) {
     // If we don't know anything useful about the types adding more
     // information will not help.
     if (!hasTypeInformation) return;
@@ -39,7 +39,7 @@ class InvocationInfo {
     bool typesChanged = false;
     bool allUnknown = true;
     for (int i = 0; i < providedTypes.length; i++) {
-      HType newType = providedTypes[i].union(node.inputs[i + 1].propagatedType);
+      HType newType = providedTypes[i].union(types[node.inputs[i + 1]]);
       if (newType != providedTypes[i]) {
         typesChanged = true;
         providedTypes[i] = newType;
@@ -64,6 +64,12 @@ class InvocationInfo {
   void clearTypeInformation() => providedTypes = null;
   bool get hasTypeInformation() => providedTypes != null;
 
+}
+
+class JavaScriptItemCompilationContext extends ItemCompilationContext {
+  final HTypeMap types;
+
+  JavaScriptItemCompilationContext() : types = new HTypeMap();
 }
 
 class JavaScriptBackend extends Backend {
@@ -96,6 +102,10 @@ class JavaScriptBackend extends Backend {
     builder = new SsaBuilderTask(this);
     optimizer = new SsaOptimizerTask(this);
     generator = new SsaCodeGeneratorTask(this);
+  }
+
+  JavaScriptItemCompilationContext createItemCompilationContext() {
+    return new JavaScriptItemCompilationContext();
   }
 
   void enqueueHelpers(Enqueuer world) {
@@ -239,7 +249,9 @@ class JavaScriptBackend extends Backend {
    *  Register a dynamic invocation and collect the provided types for the
    *  named selector.
    */
-  void registerDynamicInvocation(HInvokeDynamicMethod node, Selector selector) {
+  void registerDynamicInvocation(HInvokeDynamicMethod node,
+                                 Selector selector,
+                                 HTypeMap types) {
     Map<Selector, InvocationInfo> invocationInfos =
         invocationInfo.putIfAbsent(node.name,
                                    () => new Map<Selector, InvocationInfo>());
@@ -251,9 +263,9 @@ class JavaScriptBackend extends Backend {
         }
       }
 
-      info.update(node, recompile);
+      info.update(node, types, recompile);
     } else {
-      invocationInfos[selector] = new InvocationInfo(node);
+      invocationInfos[selector] = new InvocationInfo(node, types);
     }
   }
 
@@ -261,7 +273,7 @@ class JavaScriptBackend extends Backend {
    *  Register a static invocation and collect the provided types for the
    *  named selector.
    */
-  void registerStaticInvocation(HInvokeStatic node) {
+  void registerStaticInvocation(HInvokeStatic node, HTypeMap types) {
     InvocationInfo info = staticInvocationInfo[node.element];
     if (info != null) {
       recompile(Element element) {
@@ -269,9 +281,9 @@ class JavaScriptBackend extends Backend {
           invalidateAfterCodegen.add(element);
         }
       }
-      info.update(node, recompile);
+      info.update(node, types, recompile);
     } else {
-      staticInvocationInfo[node.element] = new InvocationInfo(node);
+      staticInvocationInfo[node.element] = new InvocationInfo(node, types);
     }
   }
 

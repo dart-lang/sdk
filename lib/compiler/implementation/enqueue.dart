@@ -9,8 +9,10 @@ class EnqueueTask extends CompilerTask {
   String get name() => 'Enqueue';
 
   EnqueueTask(Compiler compiler)
-    : codegen = new Enqueuer(compiler),
-      resolution = new Enqueuer(compiler),
+    : codegen = new Enqueuer(compiler,
+                             compiler.backend.createItemCompilationContext),
+      resolution = new Enqueuer(compiler,
+                                compiler.backend.createItemCompilationContext),
       super(compiler) {
     codegen.task = this;
     resolution.task = this;
@@ -18,18 +20,20 @@ class EnqueueTask extends CompilerTask {
 }
 
 class RecompilationQueue {
+  final Function itemCompilationContextCreator;
   final Queue<WorkItem> queue;
   final Set<Element> queueElements;
   int processed = 0;
 
-  RecompilationQueue()
-    : queue = new Queue<WorkItem>(),
+  RecompilationQueue(ItemCompilationContext itemCompilationContextCreator())
+    : this.itemCompilationContextCreator = itemCompilationContextCreator,
+      queue = new Queue<WorkItem>(),
       queueElements = new Set<Element>();
 
   void add(Element element, TreeElements elements) {
     if (queueElements.contains(element)) return;
     queueElements.add(element);
-    queue.add(new WorkItem(element, elements));
+    queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
   }
 
   int get length() => queue.length;
@@ -46,6 +50,7 @@ class RecompilationQueue {
 
 class Enqueuer {
   final Compiler compiler; // TODO(ahe): Remove this dependency.
+  final Function itemCompilationContextCreator;
   final Map<String, Link<Element>> instanceMembersByName;
   final Set<ClassElement> seenClasses;
   final Universe universe;
@@ -56,13 +61,16 @@ class Enqueuer {
   bool queueIsClosed = false;
   EnqueueTask task;
 
-  Enqueuer(this.compiler)
-    : instanceMembersByName = new Map<String, Link<Element>>(),
+  Enqueuer(this.compiler,
+           ItemCompilationContext itemCompilationContextCreator())
+    : this.itemCompilationContextCreator = itemCompilationContextCreator,
+      instanceMembersByName = new Map<String, Link<Element>>(),
       seenClasses = new Set<ClassElement>(),
       universe = new Universe(),
       queue = new Queue<WorkItem>(),
       resolvedElements = new Map<Element, TreeElements>(),
-      recompilationCandidates = new RecompilationQueue();
+      recompilationCandidates =
+          new RecompilationQueue(itemCompilationContextCreator);
 
   bool get isResolutionQueue() => compiler.enqueuer.resolution === this;
 
@@ -88,7 +96,7 @@ class Enqueuer {
     if (elements === null) {
       elements = getCachedElements(element);
     }
-    queue.add(new WorkItem(element, elements));
+    queue.add(new WorkItem(element, elements, itemCompilationContextCreator()));
   }
 
   void eagerRecompile(Element element) {

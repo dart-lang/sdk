@@ -13,15 +13,16 @@
  *   t2 = add(4, 3);
  */
 class SsaInstructionMerger extends HBaseVisitor {
+  HTypeMap types;
   List<HInstruction> expectedInputs;
   Set<HInstruction> generateAtUseSite;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isStatement);
+    assert(!instruction.isStatement(types));
     generateAtUseSite.add(instruction);
   }
 
-  SsaInstructionMerger(this.generateAtUseSite);
+  SsaInstructionMerger(this.types, this.generateAtUseSite);
 
   void visitGraph(HGraph graph) {
     visitDominatorTree(graph);
@@ -56,8 +57,10 @@ class SsaInstructionMerger extends HBaseVisitor {
   // at use site if it does not require an expression with repeated uses
   // (because of null / undefined).
   void visitEquals(HEquals instruction) {
-    if (!instruction.builtin ||
-        singleIdentityComparison(instruction.left, instruction.right) != null) {
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    if (!instruction.isBuiltin(types) ||
+        singleIdentityComparison(left, right, types) != null) {
       super.visitEquals(instruction);
     }
     // Do nothing.
@@ -67,7 +70,9 @@ class SsaInstructionMerger extends HBaseVisitor {
   // does not require an expression with multiple uses (because of null /
   // undefined).
   void visitIdentity(HIdentity instruction) {
-    if (singleIdentityComparison(instruction.left, instruction.right) != null) {
+    HInstruction left = instruction.left;
+    HInstruction right = instruction.right;
+    if (singleIdentityComparison(left, right, types) != null) {
       super.visitIdentity(instruction);
     }
     // Do nothing.
@@ -137,7 +142,7 @@ class SsaInstructionMerger extends HBaseVisitor {
         markAsGenerateAtUseSite(instruction);
         continue;
       }
-      if (instruction.isStatement) {
+      if (instruction.isStatement(types)) {
         expectedInputs.clear();
       }
       // See if the current instruction is the next non-trivial
@@ -166,15 +171,18 @@ class SsaInstructionMerger extends HBaseVisitor {
  *  using these operators instead of nested ifs and boolean variables.
  */
 class SsaConditionMerger extends HGraphVisitor {
+  final HTypeMap types;
   Set<HInstruction> generateAtUseSite;
   Set<HInstruction> controlFlowOperators;
 
   void markAsGenerateAtUseSite(HInstruction instruction) {
-    assert(!instruction.isStatement);
+    assert(!instruction.isStatement(types));
     generateAtUseSite.add(instruction);
   }
 
-  SsaConditionMerger(this.generateAtUseSite, this.controlFlowOperators);
+  SsaConditionMerger(this.types,
+                     this.generateAtUseSite,
+                     this.controlFlowOperators);
 
   void visitGraph(HGraph graph) {
     visitPostDominatorTree(graph);
@@ -264,7 +272,7 @@ class SsaConditionMerger extends HGraphVisitor {
     HPhi phi = end.phis.first;
     HInstruction thenInput = phi.inputs[0];
     HInstruction elseInput = phi.inputs[1];
-    if (thenInput.isStatement || elseInput.isStatement) return;
+    if (thenInput.isStatement(types) || elseInput.isStatement(types)) return;
 
     if (hasAnyStatement(elseBlock, elseInput)) return;
     assert(elseBlock.successors.length == 1);

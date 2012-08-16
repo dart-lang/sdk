@@ -131,6 +131,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
   final JavaScriptBackend backend;
   final WorkItem work;
+  final HTypeMap types;
 
   final Set<HInstruction> generateAtUseSite;
   final Set<HInstruction> controlFlowOperators;
@@ -172,6 +173,22 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // The subgraph is used to delimit traversal for some constructions, e.g.,
   // if branches.
   SubGraph subGraph;
+
+  SsaCodeGenerator(this.backend,
+                   WorkItem work,
+                   this.parameterNames)
+    : this.work = work,
+      this.types =
+          (work.compilationContext as JavaScriptItemCompilationContext).types,
+      declaredVariables = new Set<String>(),
+      delayedVariableDeclarations = new Set<String>(),
+      currentContainer = new js.Block.empty(),
+      expressionStack = <js.Expression>[],
+      oldContainerStack = <js.Block>[],
+      generateAtUseSite = new Set<HInstruction>(),
+      controlFlowOperators = new Set<HInstruction>(),
+      breakAction = new Map<Element, ElementAction>(),
+      continueAction = new Map<Element, ElementAction>();
 
   LibraryElement get currentLibrary() => work.element.getLibrary();
   Compiler get compiler() => backend.compiler;
@@ -277,19 +294,6 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     return jsNode;
   }
 
-  SsaCodeGenerator(this.backend,
-                   this.work,
-                   this.parameterNames)
-    : declaredVariables = new Set<String>(),
-      delayedVariableDeclarations = new Set<String>(),
-      currentContainer = new js.Block.empty(),
-      expressionStack = <js.Expression>[],
-      oldContainerStack = <js.Block>[],
-      generateAtUseSite = new Set<HInstruction>(),
-      controlFlowOperators = new Set<HInstruction>(),
-      breakAction = new Map<Element, ElementAction>(),
-      continueAction = new Map<Element, ElementAction>();
-
   abstract visitTypeGuard(HTypeGuard node);
   abstract visitBailoutTarget(HBailoutTarget node);
 
@@ -305,9 +309,9 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   abstract endLabeledBlock(HLabeledBlockInformation labeledBlockInfo);
 
   void preGenerateMethod(HGraph graph) {
-    new SsaInstructionMerger(generateAtUseSite).visitGraph(graph);
-    new SsaConditionMerger(generateAtUseSite,
-                           controlFlowOperators).visitGraph(graph);
+    new SsaInstructionMerger(types, generateAtUseSite).visitGraph(graph);
+    new SsaConditionMerger(
+        types, generateAtUseSite, controlFlowOperators).visitGraph(graph);
     SsaLiveIntervalBuilder intervalBuilder =
         new SsaLiveIntervalBuilder(compiler, generateAtUseSite);
     intervalBuilder.visitGraph(graph);
@@ -1134,7 +1138,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitInvokeBinary(HInvokeBinary node, String op) {
-    if (node.builtin) {
+    if (node.isBuiltin(types)) {
       use(node.left);
       js.Expression jsLeft = pop();
       use(node.right);
@@ -1148,13 +1152,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeBinary(HBinaryBitOp node, String op) {
     visitInvokeBinary(node, op);
-    if (node.builtin && requiresUintConversion(node)) {
+    if (node.isBuiltin(types) && requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
 
   visitInvokeUnary(HInvokeUnary node, String op) {
-    if (node.builtin) {
+    if (node.isBuiltin(types)) {
       use(node.operand);
       push(new js.Prefix(op, pop()), node);
     } else {
@@ -1166,13 +1170,13 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   // shift operator to achieve this.
   visitBitInvokeUnary(HInvokeUnary node, String op) {
     visitInvokeUnary(node, op);
-    if (node.builtin && requiresUintConversion(node)) {
+    if (node.isBuiltin(types) && requiresUintConversion(node)) {
       push(new js.Binary(">>>", pop(), new js.LiteralNumber("0")), node);
     }
   }
 
   void emitIdentityComparison(HInstruction left, HInstruction right) {
-    String op = singleIdentityComparison(left, right);
+    String op = singleIdentityComparison(left, right, types);
     if (op != null) {
       use(left);
       js.Expression jsLeft = pop();
@@ -1195,7 +1199,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitEquals(HEquals node) {
-    if (node.builtin) {
+    if (node.isBuiltin(types)) {
       emitIdentityComparison(node.left, node.right);
     } else {
       visitInvokeStatic(node);
@@ -1203,7 +1207,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   visitIdentity(HIdentity node) {
-    assert(node.builtin);
+    assert(node.isBuiltin(types));
     emitIdentityComparison(node.left, node.right);
   }
 
@@ -1408,7 +1412,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
 
       // Register this invocation to collect the types used at all call sites.
       Selector selector = getOptimizedSelectorFor(node, node.selector);
-      backend.registerDynamicInvocation(node, selector);
+      backend.registerDynamicInvocation(node, selector, types);
 
       // If we don't know what we're calling or if we are calling a getter,
       // we need to register that fact that we may be calling a closure
@@ -1439,7 +1443,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                                    Selector defaultSelector) {
     // TODO(4434): For private members we need to use the untyped selector.
     if (node.name.isPrivate()) return defaultSelector;
-    Type receiverType = node.inputs[0].propagatedType.computeType(compiler);
+    HType receiverHType = types[node.inputs[0]];
+    Type receiverType = receiverHType.computeType(compiler);
     if (receiverType !== null) {
       return new TypedSelector(receiverType, defaultSelector);
     } else {
@@ -1483,7 +1488,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     if (Elements.isStaticOrTopLevelFunction(node.element) &&
         node.typeCode() == HInvokeStatic.INVOKE_STATIC_TYPECODE) {
       // Register this invocation to collect the types used at all call sites.
-      backend.registerStaticInvocation(node);
+      backend.registerStaticInvocation(node, types);
     }
     use(node.target);
     push(new js.Call(pop(), visitArguments(node.inputs)), node);
@@ -1549,7 +1554,8 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector getter = new Selector.getter(node.fieldName, node.library);
       world.registerDynamicGetter(node.fieldName, getter);
     } else {
-      Type type = node.receiver.propagatedType.computeType(compiler);
+      HType receiverHType = types[node.receiver];
+      Type type = receiverHType.computeType(compiler);
       if (type != null) {
         world.registerFieldGetter(node.element.name, node.library, type);
       }
@@ -1587,7 +1593,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       Selector setter = new Selector.setter(node.fieldName, node.library);
       world.registerDynamicSetter(node.fieldName, setter);
     } else {
-      Type type = node.receiver.propagatedType.computeType(compiler);
+      Type type = types[node.receiver].computeType(compiler);
       if (type != null) {
         if (!work.element.isGenerativeConstructorBody()) {
           world.registerFieldSetter(node.element.name, node.library, type);
@@ -1604,8 +1610,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
             isSimpleFieldNumberComputation(node.value, node)) {
           backend.updateFieldSetters(node.element, HType.NUMBER);
         } else {
-          backend.updateFieldSetters(node.element,
-                                     node.value.propagatedType);
+          backend.updateFieldSetters(node.element, types[node.value]);
         }
       }
     }
@@ -1628,7 +1633,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   visitForeign(HForeign node) {
     String code = node.code.slowToString();
     List<HInstruction> inputs = node.inputs;
-    if (node.isStatement) {
+    if (node.isStatement(types)) {
       if (!inputs.isEmpty()) {
         compiler.internalError("foreign statement with inputs: $code",
                                instruction: node);
@@ -1650,8 +1655,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       includeBackendMembers: true,
       includeSuperMembers: true,
       f: (ClassElement enclosingClass, Element member) {
-        backend.updateFieldInitializers(member,
-                                        node.inputs[j].propagatedType);
+        backend.updateFieldInitializers(member, types[node.inputs[j]]);
         j++;
       });
     String jsClassReference = compiler.namer.isolateAccess(node.element);
@@ -1749,7 +1753,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     bool isBuiltinRelational(HInstruction instruction) {
       if (instruction is !HRelational) return false;
       HRelational relational = instruction;
-      return relational.builtin;
+      return relational.isBuiltin(types);
     }
 
     if (input is HBoolify && isGenerateAtUseSite(input)) {
@@ -1757,10 +1761,10 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
       push(new js.Binary("!==", pop(), new js.LiteralBool(true)), input);
     } else if (isBuiltinRelational(input) &&
                isGenerateAtUseSite(input) &&
-               input.inputs[0].propagatedType.isUseful() &&
-               !input.inputs[0].isDouble() &&
-               input.inputs[1].propagatedType.isUseful() &&
-               !input.inputs[1].isDouble()) {
+               types[input.inputs[0]].isUseful() &&
+               !input.inputs[0].isDouble(types) &&
+               types[input.inputs[1]].isUseful() &&
+               !input.inputs[1].isDouble(types)) {
       // This optimization doesn't work for NaN, so we only do it if the
       // type is known to be non-Double.
       Map<String, String> inverseOperator = const <String>{
@@ -1962,7 +1966,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void useStringified(HInstruction node) {
-    if (node.isString()) {
+    if (node.isString(types)) {
       use(node);
     } else {
       Element convertToString = compiler.findHelper(const SourceString("S"));
@@ -1989,7 +1993,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndex(HIndex node) {
-    if (node.builtin) {
+    if (node.isBuiltin(types)) {
       use(node.inputs[1]);
       js.Expression receiver = pop();
       use(node.inputs[2]);
@@ -2000,7 +2004,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
   }
 
   void visitIndexAssign(HIndexAssign node) {
-    if (node.builtin) {
+    if (node.isBuiltin(types)) {
       use(node.inputs[1]);
       js.Expression receiver = pop();
       use(node.inputs[2]);
@@ -2020,19 +2024,19 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
     bool getter = interceptor.getter;
     SourceString name = interceptor.name;
 
-    if (interceptor.isLengthGetterOnStringOrArray()) {
+    if (interceptor.isLengthGetterOnStringOrArray(types)) {
       return 'length';
-    } else if (receiver.isExtendableArray() && !getter) {
+    } else if (receiver.isExtendableArray(types) && !getter) {
       if (name == const SourceString('add') && arity == 1) {
         return 'push';
       }
       if (name == const SourceString('removeLast') && arity == 0) {
         return 'pop';
       }
-    } else if (receiver.isString() && !getter) {
+    } else if (receiver.isString(types) && !getter) {
       if (name == const SourceString('concat') &&
           arity == 1 &&
-          interceptor.inputs[2].isString()) {
+          interceptor.inputs[2].isString(types)) {
         return '+';
       }
     }
@@ -2241,8 +2245,7 @@ class SsaCodeGenerator implements HVisitor, HBlockInformationVisitor {
                || Elements.isListSupertype(element, compiler)) {
       handleListOrSupertypeCheck(input, element);
       attachLocationToLast(node);
-    } else if (input.propagatedType.canBePrimitive()
-               || input.propagatedType.canBeNull()) {
+    } else if (types[input].canBePrimitive() || types[input].canBeNull()) {
       checkObject(input, '===');
       js.Expression objectTest = pop();
       checkType(input, element);
@@ -2453,25 +2456,25 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
   void visitTypeGuard(HTypeGuard node) {
     HInstruction input = node.guarded;
     Element indexingBehavior = compiler.jsIndexingBehaviorInterface;
-    if (node.isInteger()) {
+    if (node.isInteger(types)) {
       // if (input is !int) bailout
       checkInt(input, '!==');
       pushStatement(new js.If.then(pop(), bailout(node, 'Not an integer')),
                     node);
-    } else if (node.isNumber()) {
+    } else if (node.isNumber(types)) {
       // if (input is !num) bailout
       checkNum(input, '!==');
       pushStatement(new js.If.then(pop(), bailout(node, 'Not a number')), node);
-    } else if (node.isBoolean()) {
+    } else if (node.isBoolean(types)) {
       // if (input is !bool) bailout
       checkBool(input, '!==');
       pushStatement(new js.If.then(pop(), bailout(node, 'Not a boolean')),
                     node);
-    } else if (node.isString()) {
+    } else if (node.isString(types)) {
       // if (input is !string) bailout
       checkString(input, '!==');
       pushStatement(new js.If.then(pop(), bailout(node, 'Not a string')), node);
-    } else if (node.isExtendableArray()) {
+    } else if (node.isExtendableArray(types)) {
       // if (input is !Object || input is !Array || input.isFixed) bailout
       checkObject(input, '!==');
       js.Expression objectTest = pop();
@@ -2483,7 +2486,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       pushStatement(new js.If.then(test,
                                    bailout(node, 'Not an extendable array')),
                     node);
-    } else if (node.isMutableArray()) {
+    } else if (node.isMutableArray(types)) {
       // if (input is !Object
       //     || ((input is !Array || input.isImmutable)
       //         && input is !JsIndexingBehavior)) bailout
@@ -2498,7 +2501,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
                                    bailout(node, 'Not a mutable array')),
                     node);
-    } else if (node.isReadableArray()) {
+    } else if (node.isReadableArray(types)) {
       // if (input is !Object
       //     || (input is !Array && input is !JsIndexingBehavior)) bailout
       checkObject(input, '!==');
@@ -2510,7 +2513,7 @@ class SsaOptimizedCodeGenerator extends SsaCodeGenerator {
       pushStatement(new js.If.then(new js.Binary('||', objectTest, notIndexing),
                                    bailout(node, 'Not an array')),
                     node);
-    } else if (node.isIndexablePrimitive()) {
+    } else if (node.isIndexablePrimitive(types)) {
       // if (input is !String
       //     && (input is !Object
       //         || (input is !Array && input is !JsIndexingBehavior))) bailout
@@ -2888,11 +2891,13 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
   }
 }
 
-String singleIdentityComparison(HInstruction left, HInstruction right) {
+String singleIdentityComparison(HInstruction left,
+                                HInstruction right,
+                                HTypeMap propagatedTypes) {
   // Returns the single identity comparison (== or ===) or null if a more
   // complex expression is required.
-  HType leftType = left.propagatedType;
-  HType rightType = right.propagatedType;
+  HType leftType = propagatedTypes[left];
+  HType rightType = propagatedTypes[right];
   if (leftType.canBeNull() && rightType.canBeNull()) {
     if (left.isConstantNull() || right.isConstantNull() ||
         (leftType.isPrimitive() && leftType == rightType)) {

@@ -12,6 +12,7 @@ final bool GENERATE_SSA_TRACE = false;
 final String SSA_TRACE_FILTER = null;
 
 class HTracer extends HGraphVisitor implements Tracer {
+  JavaScriptItemCompilationContext context;
   int indent = 0;
   final RandomAccessFile output;
   final bool enabled = GENERATE_SSA_TRACE;
@@ -25,8 +26,10 @@ class HTracer extends HGraphVisitor implements Tracer {
     if (enabled) output.closeSync();
   }
 
-  void traceCompilation(String methodName) {
+  void traceCompilation(String methodName,
+                        JavaScriptItemCompilationContext compilationContext) {
     if (!enabled) return;
+    this.context = compilationContext;
     traceActive =
         SSA_TRACE_FILTER == null || methodName.contains(SSA_TRACE_FILTER);
     if (!traceActive) return;
@@ -73,12 +76,13 @@ class HTracer extends HGraphVisitor implements Tracer {
 
   void addInstructions(HInstructionStringifier stringifier,
                        HInstructionList list) {
+    HTypeMap types = context.types;
     for (HInstruction instruction = list.first;
          instruction !== null;
          instruction = instruction.next) {
       int bci = 0;
       int uses = instruction.usedBy.length;
-      String changes = instruction.hasSideEffects() ? '!' : ' ';
+      String changes = instruction.hasSideEffects(types) ? '!' : ' ';
       String depends = instruction.dependsOnSomething() ? '?' : '';
       addIndent();
       String temporaryId = stringifier.temporaryId(instruction);
@@ -88,7 +92,8 @@ class HTracer extends HGraphVisitor implements Tracer {
   }
 
   void visitBasicBlock(HBasicBlock block) {
-    HInstructionStringifier stringifier = new HInstructionStringifier(block);
+    HInstructionStringifier stringifier =
+        new HInstructionStringifier(context, block);
     assert(block.id !== null);
     tag("block", () {
       printProperty("name", "B${block.id}");
@@ -161,15 +166,16 @@ class HTracer extends HGraphVisitor implements Tracer {
 }
 
 class HInstructionStringifier implements HVisitor<String> {
+  JavaScriptItemCompilationContext context;
   HBasicBlock currentBlock;
 
-  HInstructionStringifier(this.currentBlock);
+  HInstructionStringifier(this.context, this.currentBlock);
 
   visit(HInstruction node) => node.accept(this);
 
   String temporaryId(HInstruction instruction) {
     String prefix;
-    HType type = instruction.propagatedType;
+    HType type = context.types[instruction];
     if (!type.isPrimitive()) {
       prefix = 'U';
     } else {
@@ -511,7 +517,6 @@ class HInstructionStringifier implements HVisitor<String> {
   }
 
   String visitTypeConversion(HTypeConversion node) {
-    String type = node.propagatedType.toString();
-    return "TypeConversion: ${temporaryId(node.inputs[0])} to $type";
+    return "TypeConversion: ${temporaryId(node.inputs[0])} to ${node.type}";
   }
 }

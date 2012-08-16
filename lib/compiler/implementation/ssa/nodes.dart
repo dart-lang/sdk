@@ -731,9 +731,7 @@ class HInstruction implements Hashable {
 
   HInstruction(this.inputs)
       : id = idCounter++,
-        usedBy = <HInstruction>[] {
-    if (guaranteedType.isUseful()) propagatedType = guaranteedType;
-  }
+        usedBy = <HInstruction>[];
 
   int hashCode() => id;
 
@@ -744,8 +742,8 @@ class HInstruction implements Hashable {
   static int computeDependsOnFlags(int flags) => flags << FLAG_CHANGES_COUNT;
 
   int getChangesFlags() => flags & ((1 << FLAG_CHANGES_COUNT) - 1);
-  bool hasSideEffects() => getChangesFlags() != 0;
-  void prepareGvn() { setAllSideEffects(); }
+  bool hasSideEffects(HTypeMap types) => getChangesFlags() != 0;
+  void prepareGvn(HTypeMap types) { setAllSideEffects(); }
 
   void setAllSideEffects() { flags |= ((1 << FLAG_CHANGES_COUNT) - 1); }
   void clearAllSideEffects() { flags &= ~((1 << FLAG_CHANGES_COUNT) - 1); }
@@ -759,20 +757,21 @@ class HInstruction implements Hashable {
   bool isControlFlow() => false;
 
   // All isFunctions work on the propagated types.
-  bool isArray() => propagatedType.isArray();
-  bool isReadableArray() => propagatedType.isReadableArray();
-  bool isMutableArray() => propagatedType.isMutableArray();
-  bool isExtendableArray() => propagatedType.isExtendableArray();
-  bool isBoolean() => propagatedType.isBoolean();
-  bool isInteger() => propagatedType.isInteger();
-  bool isDouble() => propagatedType.isDouble();
-  bool isNumber() => propagatedType.isNumber();
-  bool isString() => propagatedType.isString();
-  bool isTypeUnknown() => propagatedType.isUnknown();
-  bool isIndexablePrimitive() => propagatedType.isIndexablePrimitive();
-  bool isPrimitive() => propagatedType.isPrimitive();
-  bool canBePrimitive() => propagatedType.canBePrimitive();
-  bool canBeNull() => propagatedType.canBeNull();
+  bool isArray(HTypeMap types) => types[this].isArray();
+  bool isReadableArray(HTypeMap types) => types[this].isReadableArray();
+  bool isMutableArray(HTypeMap types) => types[this].isMutableArray();
+  bool isExtendableArray(HTypeMap types) => types[this].isExtendableArray();
+  bool isBoolean(HTypeMap types) => types[this].isBoolean();
+  bool isInteger(HTypeMap types) => types[this].isInteger();
+  bool isDouble(HTypeMap types) => types[this].isDouble();
+  bool isNumber(HTypeMap types) => types[this].isNumber();
+  bool isString(HTypeMap types) => types[this].isString();
+  bool isTypeUnknown(HTypeMap types) => types[this].isUnknown();
+  bool isIndexablePrimitive(HTypeMap types)
+      => types[this].isIndexablePrimitive();
+  bool isPrimitive(HTypeMap types) => types[this].isPrimitive();
+  bool canBePrimitive(HTypeMap types) => types[this].canBePrimitive();
+  bool canBeNull(HTypeMap types) => types[this].canBeNull();
 
   /**
    * This is the type the instruction is guaranteed to have. It does not
@@ -782,33 +781,19 @@ class HInstruction implements Hashable {
   bool hasGuaranteedType() => !guaranteedType.isUnknown();
 
   /**
-   * The [propagatedType] is the type the instruction is assumed to have.
-   * Without speculative type assumptions it is computed frome the propagated
-   * type of the instruction's inputs and does not any guess work.
-   *
-   * With speculative types [computeTypeFromInputTypes()] and [propagatedType]
-   * may differ. In this case the instruction's type must be guarded.
-   *
-   * Note that the [propagatedType] may only be set to [HType.CONFLICTING] with
-   * speculative types (as otherwise the instruction either sets the output
-   * type to [HType.UNKNOWN] or a specific type.
-   */
-  HType propagatedType = HType.UNKNOWN;
-
-  /**
    * Some instructions have a good idea of their return type, but cannot
-   * guarantee the type. The [likelyType] does not need to be more specialized
-   * than the [propagatedType].
+   * guarantee the type. The computed does not need to be more specialized
+   * than the provided type for [this].
    *
-   * Examples: the [likelyType] of [:x == y:] is a boolean. In most cases this
+   * Examples: the likely type of [:x == y:] is a boolean. In most cases this
    * cannot be guaranteed, but when merging types we still want to use this
    * information.
    *
    * Similarily the [HAdd] instruction is likely a number. Note that, even if
-   * the [propagatedType] is already set to integer, the [likelyType] still
-   * might just return the number type.
+   * the incoming type is already set to integer, the likely type might still
+   * just return the number type.
    */
-  HType get likelyType() => propagatedType;
+  HType computeLikelyType(HTypeMap types) => types[this];
 
   /**
    * Compute the type of the instruction by propagating the input types through
@@ -816,15 +801,17 @@ class HInstruction implements Hashable {
    *
    * By default just copy the guaranteed type.
    */
-  HType computeTypeFromInputTypes() => guaranteedType;
+  HType computeTypeFromInputTypes(HTypeMap types) => guaranteedType;
 
   /**
    * Compute the desired type for the the given [input]. Aside from using
    * other inputs to compute the desired type one should also use
-   * the [propagatedType] which, during the invocation of this method,
+   * the given [types] which, during the invocation of this method,
    * represents the desired type of [this].
    */
-  HType computeDesiredTypeForInput(HInstruction input) => HType.UNKNOWN;
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types) {
+    return HType.UNKNOWN;
+  }
 
   bool isInBasicBlock() => block !== null;
 
@@ -1015,13 +1002,13 @@ class HInstruction implements Hashable {
    */
   bool isCodeMotionInvariant() => false;
 
-  bool get isStatement() => false;
+  bool isStatement(HTypeMap types) => false;
 }
 
 class HBoolify extends HInstruction {
   HBoolify(HInstruction value) : super(<HInstruction>[value]);
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
     setUseGvn();
   }
 
@@ -1043,9 +1030,9 @@ class HBoolify extends HInstruction {
 abstract class HCheck extends HInstruction {
   HCheck(inputs) : super(inputs);
   HInstruction get checkedInput() => inputs[0];
-  bool get isStatement() => true;
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  bool isStatement(HTypeMap types) => true;
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
     setUseGvn();
   }
 }
@@ -1054,13 +1041,13 @@ class HBailoutTarget extends HInstruction {
   final int state;
   bool isEnabled = false;
   HBailoutTarget(this.state) : super(<HInstruction>[]);
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
     setUseGvn();
   }
 
   bool isControlFlow() => true;
-  bool get isStatement() => isEnabled;
+  bool isStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitBailoutTarget(this);
   int typeCode() => 29;
@@ -1080,15 +1067,15 @@ class HTypeGuard extends HCheck {
   HBailoutTarget get bailoutTarget() => inputs[1];
   int get state() => bailoutTarget.state;
 
-  HType computeTypeFromInputTypes() {
-    return isEnabled ? guardedType : guarded.propagatedType;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    return isEnabled ? guardedType : types[guarded];
   }
 
   HType get guaranteedType() => isEnabled ? guardedType : HType.UNKNOWN;
 
   bool isControlFlow() => true;
 
-  bool get isStatement() => isEnabled;
+  bool isStatement(HTypeMap types) => isEnabled;
 
   accept(HVisitor visitor) => visitor.visitTypeGuard(this);
   int typeCode() => 1;
@@ -1148,11 +1135,11 @@ class HConditionalBranch extends HControlFlow {
 class HControlFlow extends HInstruction {
   HControlFlow(inputs) : super(inputs);
   abstract toString();
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // Control flow does not have side-effects.
   }
   bool isControlFlow() => true;
-  final bool isStatement = true;
+  bool isStatement(HTypeMap types) => true;
 }
 
 class HInvoke extends HInstruction {
@@ -1237,13 +1224,14 @@ class HInvokeStatic extends HInvoke {
   Element get element() => target.element;
   HStatic get target() => inputs[0];
 
-  HType computeDesiredTypeForInput(HInstruction input) {
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types) {
     // TODO(floitsch): we want the target to be a function.
     if (input == target) return HType.UNKNOWN;
-    return computeDesiredTypeForNonTargetInput(input);
+    return computeDesiredTypeForNonTargetInput(input, types);
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
     return HType.UNKNOWN;
   }
 }
@@ -1282,26 +1270,27 @@ class HInvokeInterceptor extends HInvokeStatic {
     return getter && name == const SourceString('length');
   }
 
-  bool isLengthGetterOnStringOrArray() {
-    return isLengthGetter() && inputs[1].isIndexablePrimitive();
+  bool isLengthGetterOnStringOrArray(HTypeMap types) {
+    return isLengthGetter() && inputs[1].isIndexablePrimitive(types);
   }
 
-  HType get likelyType() {
+  HType computeLikelyType(HTypeMap types) {
     // In general a length getter or method returns an int.
     if (name == const SourceString('length')) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeTypeFromInputTypes() {
-    if (isLengthGetterOnStringOrArray()) return HType.INTEGER;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    if (isLengthGetterOnStringOrArray(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
     // If the first argument is a string or an array and we invoke methods
     // on it that mutate it, then we want to restrict the incoming type to be
     // a mutable array.
-    if (input == inputs[1] && input.isIndexablePrimitive()) {
+    if (input == inputs[1] && input.isIndexablePrimitive(types)) {
       if (name == const SourceString('add')
           || name == const SourceString('removeLast')) {
         return HType.MUTABLE_ARRAY;
@@ -1310,8 +1299,8 @@ class HInvokeInterceptor extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  void prepareGvn() {
-    if (isLengthGetterOnStringOrArray()) {
+  void prepareGvn(HTypeMap types) {
+    if (isLengthGetterOnStringOrArray(types)) {
       setUseGvn();
       clearAllSideEffects();
       setDependsOnSomething();
@@ -1357,7 +1346,7 @@ class HFieldGet extends HFieldAccess {
 
   accept(HVisitor visitor) => visitor.visitFieldGet(this);
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     setUseGvn();
     clearAllSideEffects();
     if (!isFinalOrConst) setDependsOnSomething();
@@ -1385,12 +1374,12 @@ class HFieldSet extends HFieldAccess {
   HInstruction get value() => inputs[1];
   accept(HVisitor visitor) => visitor.visitFieldSet(this);
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // TODO(ngeoffray): implement more fine grained side effects.
     setAllSideEffects();
   }
 
-  final bool isStatement = true;
+  bool isStatement(HTypeMap types) => true;
   String toString() => "FieldSet ${element == null ? fieldName : element}";
 }
 
@@ -1402,7 +1391,7 @@ class HLocalGet extends HFieldGet {
 
   HLocalValue get local() => inputs[0];
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     setUseGvn();
     // TODO(floitsch): if the variable is not captured then it only depends
     // on assignments to the same variable. Otherwise we need to see if the
@@ -1419,7 +1408,7 @@ class HLocalSet extends HFieldSet {
 
   HLocalValue get local() => inputs[0];
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // TODO(floitsch): implement more fine grained side effects.
     setAllSideEffects();
   }
@@ -1428,13 +1417,15 @@ class HLocalSet extends HFieldSet {
 class HForeign extends HInstruction {
   final DartString code;
   final HType foreignType;
+  final bool _isStatement;
+
   HForeign(this.code, DartString declaredType, List<HInstruction> inputs)
       : foreignType = computeTypeFromDeclaredType(declaredType),
-        isStatement = false,
+        _isStatement = false,
         super(inputs);
   HForeign.statement(this.code, List<HInstruction> inputs)
       : foreignType = HType.UNKNOWN,
-        isStatement = true,
+        _isStatement = true,
         super(inputs);
   accept(HVisitor visitor) => visitor.visitForeign(this);
 
@@ -1449,7 +1440,7 @@ class HForeign extends HInstruction {
 
   HType get guaranteedType() => foreignType;
 
-  final bool isStatement;
+  bool isStatement(HTypeMap types) => _isStatement;
 }
 
 class HForeignNew extends HForeign {
@@ -1468,18 +1459,18 @@ class HInvokeBinary extends HInvokeStatic {
   HInstruction get right() => inputs[2];
 
   abstract BinaryOperation get operation();
-  abstract get builtin();
+  abstract isBuiltin(HTypeMap types);
 }
 
 class HBinaryArithmetic extends HInvokeBinary {
   HBinaryArithmetic(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // An arithmetic expression can take part in global value
     // numbering and do not have any side-effects if we know that all
     // inputs are numbers.
-    if (builtin) {
+    if (isBuiltin(types)) {
       clearAllSideEffects();
       setUseGvn();
     } else {
@@ -1487,18 +1478,21 @@ class HBinaryArithmetic extends HInvokeBinary {
     }
   }
 
-  bool get builtin() => left.isNumber() && right.isNumber();
+  bool isBuiltin(HTypeMap types)
+      => left.isNumber(types) && right.isNumber(types);
 
-  HType computeTypeFromInputTypes() {
-    if (left.isInteger() && right.isInteger()) return HType.INTEGER;
-    if (left.isNumber()) {
-      if (left.isDouble() || right.isDouble()) return HType.DOUBLE;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    if (left.isInteger(types) && right.isInteger(types)) return HType.INTEGER;
+    if (left.isNumber(types)) {
+      if (left.isDouble(types) || right.isDouble(types)) return HType.DOUBLE;
       return HType.NUMBER;
     }
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
     // If the desired output type should be an integer we want to get two
     // integers as arguments.
     if (propagatedType.isInteger()) return HType.INTEGER;
@@ -1515,12 +1509,12 @@ class HBinaryArithmetic extends HInvokeBinary {
     // TODO(floitsch): normally we shouldn't request a number, but simply
     // throw an IllegalArgumentException if it isn't. This would be similar
     // to the array case.
-    if (input == right && left.isNumber()) return HType.NUMBER;
+    if (input == right && left.isNumber(types)) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
-  HType get likelyType() {
-    if (left.isTypeUnknown()) return HType.NUMBER;
+  HType computeLikelyType(HTypeMap types) {
+    if (left.isTypeUnknown(types)) return HType.NUMBER;
     return HType.UNKNOWN;
   }
 
@@ -1544,15 +1538,16 @@ class HDivide extends HBinaryArithmetic {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitDivide(this);
 
-  HType computeTypeFromInputTypes() {
-    if (left.isNumber()) return HType.DOUBLE;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    if (left.isNumber(types)) return HType.DOUBLE;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
     // A division can never return an integer. So don't ask for integer inputs.
-    if (propagatedType.isInteger()) return HType.UNKNOWN;
-    return super.computeDesiredTypeForNonTargetInput(input);
+    if (isInteger(types)) return HType.UNKNOWN;
+    return super.computeDesiredTypeForNonTargetInput(input, types);
   }
 
   DivideOperation get operation() => const DivideOperation();
@@ -1636,14 +1631,16 @@ class HBinaryBitOp extends HBinaryArithmetic {
   HBinaryBitOp(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
-  HType computeTypeFromInputTypes() {
+  HType computeTypeFromInputTypes(HTypeMap types) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
-    if (left.isPrimitive()) return HType.INTEGER;
+    if (left.isPrimitive(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
     // If the outgoing type should be a number we can get that only if both
     // inputs are integers. If we don't know the outgoing type we try to make
     // it an integer.
@@ -1653,8 +1650,8 @@ class HBinaryBitOp extends HBinaryArithmetic {
     return HType.UNKNOWN;
   }
 
-  HType get likelyType() {
-    if (left.isTypeUnknown()) return HType.INTEGER;
+  HType computeLikelyType(HTypeMap types) {
+    if (left.isTypeUnknown(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
@@ -1669,8 +1666,8 @@ class HShiftLeft extends HBinaryBitOp {
 
   // Shift left cannot be mapped to the native operator unless the
   // shift count is guaranteed to be an integer in the [0,31] range.
-  bool get builtin() {
-    if (!left.isNumber() || !right.isConstantInteger()) return false;
+  bool isBuiltin(HTypeMap types) {
+    if (!left.isNumber(types) || !right.isConstantInteger()) return false;
     HConstant rightConstant = right;
     IntConstant intConstant = rightConstant.constant;
     int count = intConstant.value;
@@ -1689,7 +1686,7 @@ class HShiftRight extends HBinaryBitOp {
   accept(HVisitor visitor) => visitor.visitShiftRight(this);
 
   // Shift right cannot be mapped to the native operator easily.
-  bool get builtin() => false;
+  bool isBuiltin(HTypeMap types) => false;
 
   ShiftRightOperation get operation() => const ShiftRightOperation();
   int typeCode() => 12;
@@ -1736,11 +1733,11 @@ class HInvokeUnary extends HInvokeStatic {
 
   HInstruction get operand() => inputs[1];
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // A unary arithmetic expression can take part in global value
     // numbering and does not have any side-effects if its input is a
     // number.
-    if (builtin) {
+    if (isBuiltin(types)) {
       clearAllSideEffects();
       setUseGvn();
     } else {
@@ -1748,15 +1745,17 @@ class HInvokeUnary extends HInvokeStatic {
     }
   }
 
-  bool get builtin() => operand.isNumber();
+  bool isBuiltin(HTypeMap types) => operand.isNumber(types);
 
-  HType computeTypeFromInputTypes() {
-    HType operandType = operand.propagatedType;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    HType operandType = types[operand];
     if (operandType.isNumber()) return operandType;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
     // If the outgoing type should be a number (integer, double or both) we
     // want the outgoing type to be the input too.
     // If we don't know the outgoing type we try to make it a number.
@@ -1765,7 +1764,7 @@ class HInvokeUnary extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  HType get likelyType() => HType.NUMBER;
+  HType computeLikelyType(HTypeMap types) => HType.NUMBER;
 
   abstract UnaryOperation get operation();
 }
@@ -1784,14 +1783,16 @@ class HBitNot extends HInvokeUnary {
   HBitNot(HStatic target, HInstruction input) : super(target, input);
   accept(HVisitor visitor) => visitor.visitBitNot(this);
 
-  HType computeTypeFromInputTypes() {
+  HType computeTypeFromInputTypes(HTypeMap types) {
     // All bitwise operations on primitive types either produce an
     // integer or throw an error.
-    if (operand.isPrimitive()) return HType.INTEGER;
+    if (operand.isPrimitive(types)) return HType.INTEGER;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
     // Bit operations only work on integers. If there is no desired output
     // type or if it as a number we want to get an integer as input.
     if (propagatedType.isUnknown() || propagatedType.isNumber()) {
@@ -1890,8 +1891,8 @@ class HConstant extends HInstruction {
   HConstant.internal(this.constant, HType this.constantType)
       : super(<HInstruction>[]);
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
   }
 
   toString() => 'literal: $constant';
@@ -1916,15 +1917,17 @@ class HConstant extends HInstruction {
 
 class HNot extends HInstruction {
   HNot(HInstruction value) : super(<HInstruction>[value]);
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
     setUseGvn();
   }
 
   HType get guaranteedType() => HType.BOOLEAN;
 
   // 'Not' only works on booleans. That's what we want as input.
-  HType computeDesiredTypeForInput(HInstruction input) => HType.BOOLEAN;
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types) {
+    return HType.BOOLEAN;
+  }
 
   accept(HVisitor visitor) => visitor.visitNot(this);
   int typeCode() => 18;
@@ -1942,8 +1945,8 @@ class HLocalValue extends HInstruction {
     sourceElement = element;
   }
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
   }
   toString() => 'local ${sourceElement.name}';
   accept(HVisitor visitor) => visitor.visitLocalValue(this);
@@ -1994,10 +1997,10 @@ class HPhi extends HInstruction {
   // have the same known type return it. If any two inputs have
   // different known types, we'll return a conflict -- otherwise we'll
   // simply return an unknown type.
-  HType computeInputsType(bool ignoreUnknowns) {
+  HType computeInputsType(bool ignoreUnknowns, HTypeMap types) {
     HType candidateType = HType.CONFLICTING;
     for (int i = 0, length = inputs.length; i < length; i++) {
-      HType inputType = inputs[i].propagatedType;
+      HType inputType = types[inputs[i]];
       if (ignoreUnknowns && inputType.isUnknown()) continue;
       // Phis need to combine the incoming types using the union operation.
       // For example, if one incoming edge has type integer and the other has
@@ -2009,17 +2012,18 @@ class HPhi extends HInstruction {
     return candidateType;
   }
 
-  HType computeTypeFromInputTypes() {
-    HType inputsType = computeInputsType(false);
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    HType inputsType = computeInputsType(false, types);
     if (inputsType.isConflicting()) return HType.UNKNOWN;
     return inputsType;
   }
 
-  HType computeDesiredTypeForInput(HInstruction input) {
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types) {
+    HType propagatedType = types[this];
     // Best case scenario for a phi is, when all inputs have the same type. If
     // there is no desired outgoing type we therefore try to unify the input
     // types (which is basically the [likelyType]).
-    if (propagatedType.isUnknown()) return likelyType;
+    if (propagatedType.isUnknown()) return computeLikelyType(types);
     // When the desired outgoing type is conflicting we don't need to give any
     // requirements on the inputs.
     if (propagatedType.isConflicting()) return HType.UNKNOWN;
@@ -2027,8 +2031,8 @@ class HPhi extends HInstruction {
     return propagatedType;
   }
 
-  HType get likelyType() {
-    HType agreedType = computeInputsType(true);
+  HType computeLikelyType(HTypeMap types) {
+    HType agreedType = computeInputsType(true, types);
     if (agreedType.isConflicting()) return HType.UNKNOWN;
     // Don't be too restrictive. If the agreed type is integer or double just
     // say that the likely type is number. If more is expected the type will be
@@ -2055,11 +2059,11 @@ class HRelational extends HInvokeBinary {
   HRelational(HStatic target, HInstruction left, HInstruction right)
       : super(target, left, right);
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     // Relational expressions can take part in global value numbering
     // and do not have any side-effects if we know all the inputs are
     // numbers. This can be improved for at least equality.
-    if (builtin) {
+    if (isBuiltin(types)) {
       clearAllSideEffects();
       setUseGvn();
     } else {
@@ -2067,8 +2071,8 @@ class HRelational extends HInvokeBinary {
     }
   }
 
-  HType computeTypeFromInputTypes() {
-    if (left.isNumber() || usesBoolifiedInterceptor) return HType.BOOLEAN;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    if (left.isNumber(types) || usesBoolifiedInterceptor) return HType.BOOLEAN;
     return HType.UNKNOWN;
   }
 
@@ -2077,21 +2081,24 @@ class HRelational extends HInvokeBinary {
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
     // For all relational operations exept HEquals, we expect to get numbers
     // only. With numbers the outgoing type is a boolean. If something else
     // is desired, then numbers are incorrect, though.
     if (propagatedType.isUnknown() || propagatedType.isBoolean()) {
-      if (left.isTypeUnknown() || left.isNumber()) {
+      if (left.isTypeUnknown(types) || left.isNumber(types)) {
         return HType.NUMBER;
       }
     }
     return HType.UNKNOWN;
   }
 
-  HType get likelyType() => HType.BOOLEAN;
+  HType computeLikelyType(HTypeMap types) => HType.BOOLEAN;
 
-  bool get builtin() => left.isNumber() && right.isNumber();
+  bool isBuiltin(HTypeMap types)
+      => left.isNumber(types) && right.isNumber(types);
   // TODO(1603): the class should be marked as abstract.
   abstract BinaryOperation get operation();
 }
@@ -2101,40 +2108,42 @@ class HEquals extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitEquals(this);
 
-  bool get builtin() {
+  bool isBuiltin(HTypeMap types) {
     // All primitive types have === semantics.
     // Note that this includes all constants except the user-constructed
     // objects.
-    return left.propagatedType.isPrimitive() ||
+    return types[left].isPrimitive() ||
         left.isConstantNull() ||
         right.isConstantNull();
   }
 
-  HType computeTypeFromInputTypes() {
-    if (builtin || usesBoolifiedInterceptor) return HType.BOOLEAN;
+  HType computeTypeFromInputTypes(HTypeMap types) {
+    if (isBuiltin(types) || usesBoolifiedInterceptor) return HType.BOOLEAN;
     return HType.UNKNOWN;
   }
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
-    if (input == left && right.propagatedType.isUseful()) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    HType propagatedType = types[this];
+    if (input == left && types[right].isUseful()) {
       // All our useful types have === semantics. But we don't want to
       // speculatively test for all possible types. Therefore we try to match
       // the two types. That is, if we see x == 3, then we speculatively test
       // if x is a number and bailout if it isn't.
       // If right is a number we don't need more than a number (no need to match
       // the exact type of right).
-      if (right.isNumber()) return HType.NUMBER;
+      if (right.isNumber(types)) return HType.NUMBER;
       // String equality testing is much more common than array equality
       // testing.
-      if (right.isIndexablePrimitive()) return HType.STRING;
-      return right.propagatedType;
+      if (right.isIndexablePrimitive(types)) return HType.STRING;
+      return types[right];
     }
     // String equality testing is much more common than array equality testing.
-    if (input == left && left.isIndexablePrimitive()) {
+    if (input == left && left.isIndexablePrimitive(types)) {
       return HType.READABLE_ARRAY;
     }
     // String equality testing is much more common than array equality testing.
-    if (input == right && right.isIndexablePrimitive()) {
+    if (input == right && right.isIndexablePrimitive(types)) {
       return HType.STRING;
     }
     return HType.UNKNOWN;
@@ -2151,12 +2160,14 @@ class HIdentity extends HRelational {
       : super(target, left, right);
   accept(HVisitor visitor) => visitor.visitIdentity(this);
 
-  bool get builtin() => true;
+  bool isBuiltin(HTypeMap types) => true;
 
   HType get guaranteedType() => HType.BOOLEAN;
-  HType computeTypeFromInputTypes() => HType.BOOLEAN;
+  HType computeTypeFromInputTypes(HTypeMap types)
+      => HType.BOOLEAN;
   // Note that the identity operator really does not care for its input types.
-  HType computeDesiredTypeForInput(HInstruction input) => HType.UNKNOWN;
+  HType computeDesiredTypeForInput(HInstruction input, HTypeMap types)
+      => HType.UNKNOWN;
 
   IdentityOperation get operation() => const IdentityOperation();
   int typeCode() => 20;
@@ -2225,7 +2236,7 @@ class HStatic extends HInstruction {
   final Element element;
   HStatic(this.element) : super(<HInstruction>[]) { assert(element !== null); }
 
-  void prepareGvn() {
+  void prepareGvn(HTypeMap types) {
     if (!element.isAssignable()) {
       clearAllSideEffects();
       setUseGvn();
@@ -2250,7 +2261,7 @@ class HStaticStore extends HInstruction {
   int typeCode() => 26;
   bool typeEquals(other) => other is HStaticStore;
   bool dataEquals(HStaticStore other) => element == other.element;
-  final bool isStatement = true;
+  bool isStatement(HTypeMap types) => true;
 }
 
 class HLiteralList extends HInstruction {
@@ -2260,8 +2271,8 @@ class HLiteralList extends HInstruction {
 
   HType get guaranteedType() => HType.MUTABLE_ARRAY;
 
-  void prepareGvn() {
-    assert(!hasSideEffects());
+  void prepareGvn(HTypeMap types) {
+    assert(!hasSideEffects(types));
   }
 }
 
@@ -2271,8 +2282,8 @@ class HIndex extends HInvokeStatic {
   toString() => 'index operator';
   accept(HVisitor visitor) => visitor.visitIndex(this);
 
-  void prepareGvn() {
-    if (builtin) {
+  void prepareGvn(HTypeMap types) {
+    if (isBuiltin(types)) {
       clearAllSideEffects();
     } else {
       setAllSideEffects();
@@ -2282,8 +2293,10 @@ class HIndex extends HInvokeStatic {
   HInstruction get receiver() => inputs[1];
   HInstruction get index() => inputs[2];
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
-    if (input == receiver && (index.isTypeUnknown() || index.isNumber())) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    if (input == receiver &&
+        (index.isTypeUnknown(types) || index.isNumber(types))) {
       return HType.INDEXABLE_PRIMITIVE;
     }
     // The index should be an int when the receiver is a string or array.
@@ -2293,7 +2306,8 @@ class HIndex extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isIndexablePrimitive() && index.isInteger();
+  bool isBuiltin(HTypeMap types)
+      => receiver.isIndexablePrimitive(types) && index.isInteger(types);
 }
 
 class HIndexAssign extends HInvokeStatic {
@@ -2312,8 +2326,10 @@ class HIndexAssign extends HInvokeStatic {
   // Note, that we don't have a computeTypeFromInputTypes, since [HIndexAssign]
   // is never used as input.
 
-  HType computeDesiredTypeForNonTargetInput(HInstruction input) {
-    if (input == receiver && (index.isTypeUnknown() || index.isNumber())) {
+  HType computeDesiredTypeForNonTargetInput(HInstruction input,
+                                            HTypeMap types) {
+    if (input == receiver &&
+        (index.isTypeUnknown(types) || index.isNumber(types))) {
       return HType.MUTABLE_ARRAY;
     }
     // The index should be an int when the receiver is a string or array.
@@ -2323,8 +2339,9 @@ class HIndexAssign extends HInvokeStatic {
     return HType.UNKNOWN;
   }
 
-  bool get builtin() => receiver.isMutableArray() && index.isInteger();
-  bool get isStatement() => !builtin;
+  bool isBuiltin(HTypeMap types)
+      => receiver.isMutableArray(types) && index.isInteger(types);
+  bool isStatement(HTypeMap types) => !isBuiltin(types);
 }
 
 class HIs extends HInstruction {
@@ -2379,7 +2396,7 @@ class HTypeConversion extends HCheck {
 
   accept(HVisitor visitor) => visitor.visitTypeConversion(this);
 
-  bool get isStatement() => kind == ARGUMENT_TYPE_CHECK;
+  bool isStatement(HTypeMap types) => kind == ARGUMENT_TYPE_CHECK;
   bool isControlFlow() => kind == ARGUMENT_TYPE_CHECK;
 
   int typeCode() => 28;
