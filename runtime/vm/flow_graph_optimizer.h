@@ -97,6 +97,7 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   virtual void VisitBind(BindInstr* bind);
   virtual void VisitPhi(PhiInstr* phi);
   virtual void VisitParameter(ParameterInstr* param);
+  virtual void VisitPushArgument(PushArgumentInstr* bind);
 
  private:
   const ParsedFunction& parsed_function_;

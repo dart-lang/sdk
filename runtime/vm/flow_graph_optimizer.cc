@@ -749,6 +749,12 @@ void FlowGraphTypePropagator::VisitJoinEntry(JoinEntryInstr* join_entry) {
 }
 
 
+// TODO(srdjan): Investigate if the propagated cid should be more specific.
+void FlowGraphTypePropagator::VisitPushArgument(PushArgumentInstr* push) {
+  if (!push->has_propagated_cid()) push->SetPropagatedCid(kDynamicCid);
+}
+
+
 void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
   // No need to propagate the input types of the bound computation, as long as
   // PhiInstr's are handled as part of JoinEntryInstr.
@@ -764,6 +770,12 @@ void FlowGraphTypePropagator::VisitBind(BindInstr* bind) {
     if (changed) {
       still_changing_ = true;
     }
+    // Propagate class ids.
+    intptr_t cid = bind->computation()->ResultCid();
+    changed = bind->SetPropagatedCid(cid);
+    if (changed) {
+      still_changing_ = true;
+    }
   }
 }
 
@@ -776,6 +788,32 @@ void FlowGraphTypePropagator::VisitPhi(PhiInstr* phi) {
   // least specific of the input propagated types.
   AbstractType& type = AbstractType::Handle(phi->LeastSpecificInputType());
   bool changed = phi->SetPropagatedType(type);
+  if (changed) {
+    still_changing_ = true;
+  }
+
+  // Merge class ids: if any two inputs have different class ids then result
+  // is kDynamicCid.
+  intptr_t merged_cid = kIllegalCid;
+  for (intptr_t i = 0; i < phi->InputCount(); i++) {
+    // Result cid of UseVal can be kIllegalCid if the referred definition
+    // has not been visited yet.
+    intptr_t cid = phi->InputAt(i)->ResultCid();
+    if (cid == kIllegalCid) {
+      still_changing_ = true;
+      continue;
+    }
+    if (merged_cid == kIllegalCid) {
+      // First time set.
+      merged_cid = cid;
+    } else if (merged_cid != cid) {
+      merged_cid = kDynamicCid;
+    }
+  }
+  if (merged_cid == kIllegalCid) {
+    merged_cid = kDynamicCid;
+  }
+  changed = phi->SetPropagatedCid(merged_cid);
   if (changed) {
     still_changing_ = true;
   }
@@ -802,6 +840,7 @@ void FlowGraphTypePropagator::VisitParameter(ParameterInstr* param) {
   if (changed) {
     still_changing_ = true;
   }
+  param->SetPropagatedCid(kDynamicCid);
 }
 
 

@@ -436,7 +436,13 @@ static void PrintPropagatedType(BufferFormatter* f, const Definition& def) {
     name = AbstractType::Handle(def.PropagatedType()).Name();
     f->Print(" {PT: %s}", name.ToCString());
   }
+  if (def.has_propagated_cid()) {
+    const Class& cls = Class::Handle(
+        Isolate::Current()->class_table()->At(def.propagated_cid()));
+    f->Print(" {PCid: %s}", String::Handle(cls.Name()).ToCString());
+  }
 }
+
 
 void PhiInstr::PrintTo(BufferFormatter* f) const {
   f->Print("    v%d <- phi(", ssa_temp_index());

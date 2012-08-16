@@ -351,6 +351,18 @@ void Definition::ReplaceUsesWith(Definition* other) {
 }
 
 
+bool Definition::SetPropagatedCid(intptr_t cid) {
+  ASSERT(cid != kIllegalCid);
+  if (propagated_cid_ == kIllegalCid) {
+    // First setting, nothing has changed.
+    propagated_cid_ = cid;
+    return false;
+  }
+  bool has_changed = (propagated_cid_ != cid);
+  propagated_cid_ = cid;
+  return has_changed;
+}
+
 RawAbstractType* BindInstr::CompileType() const {
   ASSERT(!HasPropagatedType());
   // The compile type may be requested when building the flow graph, i.e. before
@@ -358,6 +370,14 @@ RawAbstractType* BindInstr::CompileType() const {
   return computation()->CompileType();
 }
 
+
+intptr_t BindInstr::GetPropagatedCid() {
+  if (has_propagated_cid()) return propagated_cid();
+  intptr_t cid = computation()->ResultCid();
+  ASSERT(cid != kIllegalCid);
+  SetPropagatedCid(cid);
+  return cid;
+}
 
 void BindInstr::RecordAssignedVars(BitVector* assigned_vars,
                                    intptr_t fixed_parameter_count) {
@@ -598,6 +618,19 @@ RawAbstractType* ConstantVal::CompileType() const {
 }
 
 
+intptr_t ConstantVal::ResultCid() const {
+  if (value().IsNull()) {
+    return kNullCid;
+  }
+  if (value().IsInstance()) {
+    return Class::Handle(value().clazz()).id();
+  } else {
+    ASSERT(value().IsAbstractTypeArguments());
+    return kDynamicCid;
+  }
+}
+
+
 RawAbstractType* UseVal::CompileType() const {
   if (definition()->HasPropagatedType()) {
     return definition()->PropagatedType();
@@ -608,6 +641,11 @@ RawAbstractType* UseVal::CompileType() const {
   AbstractType& type = AbstractType::Handle(definition()->CompileType());
   definition()->SetPropagatedType(type);
   return type.raw();
+}
+
+
+intptr_t UseVal::ResultCid() const {
+  return definition()->GetPropagatedCid();
 }
 
 

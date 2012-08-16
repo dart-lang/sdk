@@ -156,6 +156,9 @@ class Computation : public ZoneAllocated {
   // Compile time type of the computation, which typically depends on the
   // compile time types (and possibly propagated types) of its inputs.
   virtual RawAbstractType* CompileType() const = 0;
+  // TODO(srdjan): Make this abstract so that it gets correctly implemented
+  // in all computations.
+  virtual intptr_t ResultCid() const { return kDynamicCid; }
 
   // Mutate assigned_vars to add the local variable index for all
   // frame-allocated locals assigned to by the computation.
@@ -368,6 +371,8 @@ class UseVal : public Value {
   virtual void RemoveFromUseList();
   virtual void RemoveInputUses() { RemoveFromUseList(); }
 
+  virtual intptr_t ResultCid() const;
+
  private:
   void AddToUseList();
   Definition* definition_;
@@ -380,7 +385,7 @@ class UseVal : public Value {
 };
 
 
-class ConstantVal: public Value {
+class ConstantVal : public Value {
  public:
   explicit ConstantVal(const Object& value)
       : value_(value) {
@@ -401,6 +406,8 @@ class ConstantVal: public Value {
   virtual bool CanDeoptimize() const { return false; }
 
   virtual void RemoveFromUseList() { }
+
+  virtual intptr_t ResultCid() const;
 
  private:
   const Object& value_;
@@ -498,6 +505,8 @@ class AssertBooleanComp : public TemplateComputation<1> {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return false; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const intptr_t token_pos_;
@@ -693,6 +702,8 @@ class StrictCompareComp : public ComparisonComp {
 
   virtual Definition* TryReplace(BindInstr* instr);
 
+  virtual intptr_t ResultCid() const { return kBoolCid; }
+
  private:
   DISALLOW_COPY_AND_ASSIGN(StrictCompareComp);
 };
@@ -724,6 +735,8 @@ class EqualityCompareComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const intptr_t token_pos_;
@@ -764,6 +777,8 @@ class RelationalOpComp : public ComparisonComp {
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
   virtual bool CanDeoptimize() const { return true; }
+
+  virtual intptr_t ResultCid() const { return kBoolCid; }
 
  private:
   const intptr_t token_pos_;
@@ -2375,6 +2390,7 @@ class Definition : public Instruction {
       : temp_index_(-1),
         ssa_temp_index_(-1),
         propagated_type_(AbstractType::Handle()),
+        propagated_cid_(kIllegalCid),
         use_list_(NULL) { }
 
   virtual bool IsDefinition() const { return true; }
@@ -2413,6 +2429,14 @@ class Definition : public Instruction {
     return changed;
   }
 
+  bool has_propagated_cid() const { return propagated_cid_ != kIllegalCid; }
+  intptr_t propagated_cid() const { return propagated_cid_; }
+  // May compute and set propagated cid.
+  virtual intptr_t GetPropagatedCid() = 0;
+
+  // Returns true if the propagated cid has changed.
+  bool SetPropagatedCid(intptr_t cid);
+
   UseVal* use_list() { return use_list_; }
   void set_use_list(UseVal* head) {
     ASSERT(head == NULL || head->previous_use() == NULL);
@@ -2427,6 +2451,7 @@ class Definition : public Instruction {
   // TODO(regis): GrowableArray<const AbstractType*> propagated_types_;
   // For now:
   AbstractType& propagated_type_;
+  intptr_t propagated_cid_;
   UseVal* use_list_;
 
   DISALLOW_COPY_AND_ASSIGN(Definition);
@@ -2469,6 +2494,7 @@ class BindInstr : public Definition {
   bool is_used() const { return is_used_; }
 
   virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid();
 
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
@@ -2499,6 +2525,7 @@ class PhiInstr : public Definition {
   }
 
   virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2544,6 +2571,8 @@ class ParameterInstr : public Definition {
 
   // Compile type of the passed-in parameter.
   virtual RawAbstractType* CompileType() const;
+  // No known propagated cid for parameters.
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
 
   virtual intptr_t ArgumentCount() const { return 0; }
 
@@ -2586,6 +2615,7 @@ class PushArgumentInstr : public Definition {
   virtual intptr_t ArgumentCount() const { return 0; }
 
   virtual RawAbstractType* CompileType() const;
+  virtual intptr_t GetPropagatedCid() { return propagated_cid(); }
 
   Value* value() const { return value_; }
 
