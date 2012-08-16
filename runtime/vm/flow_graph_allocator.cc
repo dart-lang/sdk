@@ -102,6 +102,9 @@ void FlowGraphAllocator::EliminateEnvironmentUses() {
 
           PushArgumentInstr* push_argument = def->AsPushArgument();
           if ((push_argument != NULL) && push_argument->WasEliminated()) {
+            // TODO(zerny): This should be unreachable if we could properly
+            // replace uses by values. (See RemovePushArguments in
+            // flow_graph_optimizer.cc).
             (*values)[i] = push_argument->value();
             continue;
           }

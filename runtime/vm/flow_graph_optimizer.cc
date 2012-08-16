@@ -146,7 +146,14 @@ static bool HasOnlyTwoDouble(const ICData& ic_data) {
 static void RemovePushArguments(InstanceCallComp* comp) {
   // Remove original push arguments.
   for (intptr_t i = 0; i < comp->ArgumentCount(); ++i) {
-    comp->ArgumentAt(i)->RemoveFromGraph();
+    PushArgumentInstr* push = comp->ArgumentAt(i);
+    // TODO(zerny): Currently the register allocator replaces unused pushes with
+    // their definitions. To do so here, we need first to link uses to their
+    // instructions and input index. Here push->ReplaceUsesWith requires that
+    // push->value() is a UseVal.
+    // (See FlowGraphAllocator::EliminateEnvironmentUses).
+    push->set_use_list(NULL);
+    push->RemoveFromGraph();
   }
 }
 

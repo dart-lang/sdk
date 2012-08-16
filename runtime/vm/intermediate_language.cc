@@ -162,6 +162,7 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   // that the instruction is removed from the graph.
   set_previous(NULL);
   set_next(NULL);
+  ASSERT(!IsDefinition() || AsDefinition()->use_list() == NULL);
   return return_previous ? prev_instr : next_instr;
 }
 
