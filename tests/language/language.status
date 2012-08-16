@@ -255,6 +255,3 @@ super_first_constructor_test: Fail
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
-# Should be triaged.
-field_optimization2_test: Fail
-field_optimization_test: Fail

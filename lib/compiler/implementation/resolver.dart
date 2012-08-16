@@ -1308,21 +1308,30 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // unqualified.
 
     Selector selector = mapping.getSelector(node);
-    Identifier identifier = node.assignmentOperator;
-    bool isCompound = identifier.source.stringValue !== '=';
-    if (isCompound) {
+    String source = node.assignmentOperator.source.stringValue;
+    bool isComplex = source !== '=';
+    if (isComplex) {
       if (selector.isSetter()) {
         useElement(node.selector, getter);
         registerSend(new Selector.getterFrom(selector), getter);
       } else {
         // TODO(kasperl): If [getter] is resolved, it will actually
         // refer to the []= operator which isn't the one we want to
-        // register here. We should consider using some notation of
+        // register here. We should consider using some notion of
         // abstract indexable element that we can resolve to so we can
         // distinguish the two.
         assert(selector.isIndexSet());
         registerSend(new Selector.index(), null);
       }
+
+      // Make sure we include the + and - operators if we are using
+      // the ++ and -- ones.
+      void registerBinaryOperator(SourceString name) {
+        Selector binop = new Selector.binaryOperator(name);
+        world.registerDynamicInvocation(binop.name, binop);
+      }
+      if (source === '++') registerBinaryOperator(const SourceString('+'));
+      if (source === '--') registerBinaryOperator(const SourceString('-'));
     }
 
     registerSend(selector, setter);
