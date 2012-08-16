@@ -30,7 +30,8 @@ class World {
 
   /**
    * Returns a [MemberSet] that contains the possible targets of the given
-   * [selector] on a receiver with the given [type].
+   * [selector] on a receiver with the given [type]. This includes all sub
+   * types.
    */
   MemberSet _memberSetFor(Type type, Selector selector) {
     assert(compiler !== null);
@@ -55,23 +56,21 @@ class World {
   }
 
   /**
-   * Returns the single field with the given [selector]. If there is no such
-   * field, or there are multiple possible fields returns [:null:].
+   * Returns the field in [type] described by the given [selector].
+   * If no such field exists, or a subclass overrides the field
+   * returns [:null:].
    */
   VariableElement locateSingleField(Type type, Selector selector) {
     MemberSet memberSet = _memberSetFor(type, selector);
-    int fieldCount = 0;
-    int nonFieldCount = 0;
-    VariableElement field;
-    memberSet.elements.forEach((Element element) {
-      if (element.isField()) {
-        field = element;
-        fieldCount++;
-      } else {
-        nonFieldCount++;
-      }
-    });
-    return (fieldCount == 1 && nonFieldCount == 0) ? field : null;
+    ClassElement cls = type.element;
+    Element result = cls.lookupSelector(selector);
+    if (result == null) return null;
+    if (!result.isField()) return null;
+
+    // Verify that no subclass overrides the field.
+    if (memberSet.elements.length != 1) return null;
+    assert(memberSet.elements.contains(result));
+    return result;
   }
 
   Set<ClassElement> findNoSuchMethodHolders(Type type) {
