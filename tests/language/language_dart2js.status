@@ -42,6 +42,9 @@ arithmetic_test: Fail
 assertion_test: Fail
 
 [ $compiler == dart2js ]
+top_level_getter_arrow_syntax_test: Fail # TODO(ahe): I'm working on this.
+getters_setters_test: Fail # TODO(ahe): I'm working on this.
+
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.
 
