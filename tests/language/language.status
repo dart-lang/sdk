@@ -258,4 +258,3 @@ generic_test: Fail, Ok
 # Should be triaged.
 field_optimization2_test: Fail
 field_optimization_test: Fail
-library5_test: Fail

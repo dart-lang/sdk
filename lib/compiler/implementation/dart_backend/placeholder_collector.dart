@@ -331,24 +331,26 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
-    if (type is !InterfaceType) return null;
-    var target = node.typeName;
-    if (node.typeName is Send) {
-      final element = treeElements[node];
-      if (element !== null) {
-        final send = node.typeName.asSend();
-        Identifier receiver = send.receiver;
-        Identifier selector = send.selector;
-        final hasPrefix = element.lookupConstructor(
-            receiver.source, selector.source) === null;
-        if (!hasPrefix) target = send.receiver;
+    if (type is InterfaceType || type is FunctionType) {
+      var target = node.typeName;
+      if (node.typeName is Send) {
+        final element = treeElements[node];
+        if (element !== null) {
+          final send = node.typeName.asSend();
+          Identifier receiver = send.receiver;
+          Identifier selector = send.selector;
+          final hasPrefix = element is TypedefElement ||
+              element.lookupConstructor(receiver.source, selector.source)
+                  === null;
+          if (!hasPrefix) target = send.receiver;
+        }
       }
-    }
-    // TODO(antonm): is there a better way to detect unresolved types?
-    if (type !== compiler.types.dynamicType) {
-      makeTypePlaceholder(target, type);
-    } else {
-      if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+      // TODO(antonm): is there a better way to detect unresolved types?
+      if (type !== compiler.types.dynamicType) {
+        makeTypePlaceholder(target, type);
+      } else {
+        if (!isDynamicType(node)) makeUnresolvedPlaceholder(target);
+      }
     }
     node.visitChildren(this);
   }
@@ -400,6 +402,12 @@ class PlaceholderCollector extends AbstractVisitor {
 
   visitClassNode(ClassNode node) {
     assert(currentElement is ClassElement);
+    makeElementPlaceholder(node.name, currentElement);
+    node.visitChildren(this);
+  }
+
+  visitTypedef(Typedef node) {
+    assert(currentElement is TypedefElement);
     makeElementPlaceholder(node.name, currentElement);
     node.visitChildren(this);
   }
