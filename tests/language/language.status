@@ -53,6 +53,7 @@ bad_override_test/02: Fail # Issue 3859.
 
 setter_no_getter_call_test/01: Crash # Issue 4360
 
+top_level_getter_arrow_syntax_test: Fail # http://dartbug.com/4538
 
 # DartC specific tests that should not be run by the VM
 *dartc_test: Skip
@@ -255,3 +256,5 @@ super_first_constructor_test: Fail
 disable_privacy_test: Fail, Ok
 # This test hard codes name of file being run and precise position.
 generic_test: Fail, Ok
+top_level_getter_arrow_syntax_test: Fail # TODO(ahe): I'm working on this.
+getters_setters_test: Fail # TODO(ahe): I'm working on this.
