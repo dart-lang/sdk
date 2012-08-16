@@ -6,6 +6,7 @@
 
 #import('dart:io');
 #import('ssa.dart');
+#import('../js_backend/js_backend.dart');
 #import('../leg.dart');
 
 final bool GENERATE_SSA_TRACE = false;
