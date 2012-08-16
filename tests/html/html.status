@@ -175,12 +175,7 @@ unknownelement_test: Fail # Issue 4189
 *: Fail, Pass # TODO(ahe): Triage these tests.
 
 [ $compiler == dart2js ]
-svgelement2_test: Fail # Html library relies on mangling. Issue 3039.
 transferables_test: Skip # until isInstance works in dart2js
-
-[ $compiler == dart2js && $runtime == d8 ]
-# Should investigate why this test succeeds on d8.
-svgelement2_test: Pass
 
 [ $compiler == dart2js && ($runtime == drt || $runtime == ff) ]
 request_animation_frame_test: Skip # Async test hangs.

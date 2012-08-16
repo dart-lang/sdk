@@ -9404,8 +9404,8 @@ class _ChildNodeListLazy implements NodeList {
   _ChildNodeListLazy(this._this);
 
 
-  _NodeImpl get first() native "return this._this.firstChild;";
-  _NodeImpl last() native "return this._this.lastChild;";
+  _NodeImpl get first() => JS('_NodeImpl', '#.firstChild', _this);
+  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
 
   void add(_NodeImpl value) {
     _this.$dom_appendChild(value);

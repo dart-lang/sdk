@@ -14,8 +14,8 @@ class _ChildNodeListLazy implements NodeList {
 
 
 $if DART2JS
-  _NodeImpl get first() native "return this._this.firstChild;";
-  _NodeImpl last() native "return this._this.lastChild;";
+  _NodeImpl get first() => JS('_NodeImpl', '#.firstChild', _this);
+  _NodeImpl last() => JS('_NodeImpl', '#.lastChild', _this);
 $else
   _NodeImpl get first() => _this.$dom_firstChild;
   _NodeImpl last() => _this.$dom_lastChild;
