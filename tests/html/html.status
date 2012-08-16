@@ -119,6 +119,7 @@ indexeddb_4_test: Fail     # Need window.mozIndexedDB instead of window.webkitIn
 inner_frame_test: Skip
 js_interop_3_test: Fail
 js_interop_4_test: Fail
+js_interop_func_passing_test: Fail
 # Interfaces not implemented: SVGTests, SVGLangSpace, SVGExternalResourcesRequired, SVGStylable
 svg_3_test: Fail
 svgelement_test: Fail
