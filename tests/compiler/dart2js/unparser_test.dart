@@ -275,7 +275,17 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'globalfoo(){}p_globalfoo(){}main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo(); A.field; A.staticfoo(); new A(); new A.fromFoo(); new A().foo(); p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo(); p_A.field; p_A.staticfoo(); new p_A(); new p_A.fromFoo(); new p_A().foo();}var globalVar;var p_globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;var globalVarInitialized=6,p_globalVarInitialized2=7;class A{A.fromFoo(){}A(){}foo(){}static staticfoo(){}static final field=5;}class p_A{p_A(){}p_A.fromFoo(){}foo(){}static staticfoo(){}static final field=5;}';
+  var expectedResult =
+      'globalfoo(){}var p_globalVar;var globalVarInitialized=6,p_globalVarInitialized2=7;'
+      'class p_A{p_A(){}p_A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'p_globalfoo(){}var globalVar;var p_globalVarInitialized=6,globalVarInitialized2=7;'
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'main(){globalVar; p_globalVarInitialized; globalVarInitialized2; p_globalfoo();'
+         ' A.field; A.staticfoo();'
+         ' new A(); new A.fromFoo(); new A().foo();'
+         ' p_globalVar; globalVarInitialized; p_globalVarInitialized2; globalfoo();'
+         ' p_A.field; p_A.staticfoo();'
+         ' new p_A(); new p_A.fromFoo(); new p_A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -325,15 +335,14 @@ main() {
   new mylib.A().foo();
 }
 ''';
-  var expectedResult = 'myglobalfoo(){}'
+  var expectedResult =
       'globalfoo(){}'
-      'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA(); '
-          'new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field; '
-          'A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}'
-      'class MyA{MyA(){}MyA.myfromFoo(){}myfoo(){}'
-          'static final myfield=5;static mystaticfoo(){}}'
-      'class A{A(){}A.fromFoo(){}foo(){}'
-          'static staticfoo(){}static final field=5;}';
+      'class A{A(){}A.fromFoo(){}static staticfoo(){}foo(){}static final field=5;}'
+      'myglobalfoo(){}'
+      'class MyA{MyA(){}MyA.myfromFoo(){}static mystaticfoo(){}myfoo(){}static final myfield=5;}'
+      'main(){myglobalfoo(); MyA.myfield; MyA.mystaticfoo(); new MyA();'
+          ' new MyA.myfromFoo(); new MyA().myfoo(); globalfoo(); A.field;'
+          ' A.staticfoo(); new A(); new A.fromFoo(); new A().foo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -375,7 +384,13 @@ main() {
   mylib.topfoo();
 }
 ''';
-  var expectedResult = 'topfoo(){}p_topfoo(){var x=5;}p_A getA()=> null;main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}class A{A.fromFoo(){}List<A> mylist;num foo(){}p_A myliba;}class p_A{foo(){}}';
+  var expectedResult =
+    'topfoo(){}'
+    'class p_A{foo(){}}'
+    'p_topfoo(){var x=5;}'
+    'class A{num foo(){}A.fromFoo(){}p_A myliba;List<A> mylist;}'
+    'p_A getA()=> null;'
+    'main(){var a=new p_A(); a.foo(); var b=new A.fromFoo(); b.foo(); var GREATVAR=b.myliba; b.mylist; a=getA(); p_topfoo(); topfoo();}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
@@ -411,7 +426,10 @@ main() {
   mylib.topgetset = 5;
 }
 ''';
-  var expectedResult = 'set topgetset(arg){}get topgetset()=> 5;main(){topgetset; topgetset=5;}';
+  var expectedResult =
+    'get topgetset()=> 5;'
+    'set topgetset(arg){}'
+    'main(){topgetset; topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }

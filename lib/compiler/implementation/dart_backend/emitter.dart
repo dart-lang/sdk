@@ -9,11 +9,12 @@ class Emitter {
 
   final Compiler compiler;
   final Map<Node, String> renames;
+  final Map<ClassElement, Collection<Element>> classMembers;
   final StringBuffer sb;
   final Set<VariableListElement> processedVariableLists;
   Unparser unparser;
 
-  Emitter(this.compiler, this.renames) :
+  Emitter(this.compiler, this.renames, this.classMembers) :
       sb = new StringBuffer(),
       processedVariableLists = new Set<VariableListElement>() {
     unparser = new Unparser.withRenamer((Node node) => renames[node]);
@@ -22,7 +23,7 @@ class Emitter {
   /**
    * Outputs given class element with selected inner elements.
    */
-  void outputClass(ClassElement classElement, Set<Element> innerElements) {
+  void outputClass(ClassElement classElement, Collection<Element> members) {
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
     sb.add(classNode.beginToken.slowToString());
@@ -50,7 +51,7 @@ class Emitter {
       sb.add(unparser.unparse(classNode.defaultClause));
     }
     sb.add('{');
-    innerElements.forEach((element) {
+    members.forEach((element) {
       // TODO(smok): Filter out default constructors here.
       outputElement(element);
     });
@@ -58,6 +59,11 @@ class Emitter {
   }
 
   void outputElement(Element element) {
+    if (element is ClassElement) {
+      outputClass(element, classMembers[element]);
+      return;
+    }
+
     if (element is SynthesizedConstructorElement) return;
     if (element.isField()) {
       assert(element is VariableElement);

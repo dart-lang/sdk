@@ -48,7 +48,7 @@ class DartBackend extends Backend {
     final emptyTreeElements = new TreeElementMapping();
 
     Set<Element> topLevelElements = new Set<Element>();
-    Map<ClassElement, Set<Element>> classes =
+    Map<ClassElement, Set<Element>> classMembers =
         new Map<ClassElement, Set<Element>>();
 
     PlaceholderCollector collector = new PlaceholderCollector(compiler);
@@ -68,9 +68,8 @@ class DartBackend extends Backend {
       processElement(element, treeElements);
     }
     addClass(classElement) {
-      if (classes.containsKey(classElement)) return;
-      classes[classElement] = new Set<Element>();
-      processElement(classElement, emptyTreeElements);
+      addTopLevel(classElement, emptyTreeElements);
+      classMembers.putIfAbsent(classElement, () => new Set());
     }
 
     newTypedefElementCallback = (TypedefElement element) {
@@ -91,7 +90,7 @@ class DartBackend extends Backend {
         assert(enclosingClass.isTopLevel());
         assert(shouldOutput(enclosingClass));
         addClass(enclosingClass);
-        classes[enclosingClass].add(element);
+        classMembers[enclosingClass].add(element);
         processElement(element, treeElements);
       } else {
         if (!element.isTopLevel()) {
@@ -105,10 +104,27 @@ class DartBackend extends Backend {
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
     renamePlaceholders(compiler, collector, renames, imports);
 
-    Emitter emitter = new Emitter(compiler, renames);
+    // Sort elements.
+    compareElements(e0, e1) {
+      compareBy(x, y, f) => f(x).compareTo(f(y));
+      int result = compareBy(e0, e1, (e) => e.getLibrary().uri.toString());
+      if (result != 0) return result;
+      return compareBy(e0, e1, (e) => e.position().charOffset);
+    }
+
+    final sortedTopLevels = new List<Element>.from(topLevelElements);
+    sortedTopLevels.sort(compareElements);
+
+    final sortedClassMembers = new Map<ClassElement, List<Element>>();
+    classMembers.forEach((classElement, members) {
+      final sortedMembers = new List<Element>.from(members);
+      sortedMembers.sort(compareElements);
+      sortedClassMembers[classElement] = sortedMembers;
+    });
+
+    Emitter emitter = new Emitter(compiler, renames, sortedClassMembers);
     emitter.outputImports(imports);
-    topLevelElements.forEach(emitter.outputElement);
-    classes.forEach(emitter.outputClass);
+    sortedTopLevels.forEach(emitter.outputElement);
 
     compiler.assembledCode = emitter.toString();
   }
