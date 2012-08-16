@@ -134,6 +134,9 @@ def CopyDart2Js(build_dir, sdk_root):
   copytree(os.path.join('corelib', 'src'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'src'),
            ignore=ignore_patterns('.svn'))
+  copytree(os.path.join('corelib', 'unified'),
+           os.path.join(sdk_root, 'lib', 'dart2js', 'corelib', 'unified'),
+           ignore=ignore_patterns('.svn'))
   copytree(os.path.join('runtime', 'lib'),
            os.path.join(sdk_root, 'lib', 'dart2js', 'runtime', 'lib'),
            ignore=ignore_patterns('.svn'))

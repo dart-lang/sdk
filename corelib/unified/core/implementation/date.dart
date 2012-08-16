@@ -17,7 +17,7 @@ class DateImplementation implements Date {
     //    - "2012-02-27T14Z"
     //    - "-123450101 00:00:00 Z"  // In the year -12345.
     final RegExp re = const RegExp(
-        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
+        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)' // The day part.
         @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
     Match match = re.firstMatch(formattedString);
     if (match !== null) {
@@ -47,7 +47,7 @@ class DateImplementation implements Date {
       }
       // TODO(floitsch): we should not need to test against the empty string.
       bool isUtc = (match[8] !== null) && (match[8] != "");
-      int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
+      int millisecondsSinceEpoch = Primitives.valueFromDecomposedDate(
           years, month, day, hour, minute, second, millisecond, isUtc);
       if (millisecondsSinceEpoch === null) {
         throw new IllegalArgumentException(formattedString);
@@ -138,21 +138,21 @@ class DateImplementation implements Date {
     }
   }
 
-  /** Returns a new [Date] with the [duration] added to [this]. */
+  // Adds the [duration] to this Date instance.
   Date add(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new Date.fromMillisecondsSinceEpoch(
         ms + duration.inMilliseconds, isUtc);
   }
 
-  /** Returns a new [Date] with the [duration] subtracted from [this]. */
+  // Subtracts the [duration] from this Date instance.
   Date subtract(Duration duration) {
     int ms = millisecondsSinceEpoch;
     return new Date.fromMillisecondsSinceEpoch(
         ms - duration.inMilliseconds, isUtc);
   }
 
-  /** Returns a [Duration] with the difference of [this] and [other]. */
+  // Returns a [Duration] with the difference of [this] and [other].
   Duration difference(Date other) {
     int ms = millisecondsSinceEpoch;
     int otherMs = other.millisecondsSinceEpoch;
@@ -168,9 +168,6 @@ class DateImplementation implements Date {
                                int millisecond,
                                bool isUtc]);
   external DateImplementation.now();
-  external static int _brokenDownDateToMillisecondsSinceEpoch(
-      int years, int month, int day, int hour, int minute, int second,
-      int millisecond, bool isUtc);
   external String get timeZoneName();
   external Duration get timeZoneOffset();
   external int get year();

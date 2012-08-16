@@ -1,18 +1,20 @@
-// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 // Dart core library.
 
 // VM implementation of DateImplementation.
-patch class DateImplementation {
-  /* patch */ DateImplementation(int years,
-                                 [int month = 1,
-                                  int day = 1,
-                                  int hour = 0,
-                                  int minute = 0,
-                                  int second = 0,
-                                  int millisecond = 0,
-                                  bool isUtc = false])
+class DateImplementation implements Date {
+  static final int _MAX_MILLISECONDS_SINCE_EPOCH = 8640000000000000;
+
+  DateImplementation(int years,
+                     [int month = 1,
+                      int day = 1,
+                      int hour = 0,
+                      int minute = 0,
+                      int second = 0,
+                      int millisecond = 0,
+                      bool isUtc = false])
       : this.isUtc = isUtc,
         this.millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
             years, month, day, hour, minute, second, millisecond, isUtc) {
@@ -20,41 +22,149 @@ patch class DateImplementation {
     if (isUtc === null) throw new IllegalArgumentException();
   }
 
-  /* patch */ DateImplementation.now()
+  DateImplementation.now()
       : isUtc = false,
         millisecondsSinceEpoch = _getCurrentMs() {
   }
 
-  /* patch */ String get timeZoneName() {
+  factory DateImplementation.fromString(String formattedString) {
+    // Read in (a subset of) ISO 8601.
+    // Examples:
+    //    - "2012-02-27 13:27:00"
+    //    - "2012-02-27 13:27:00.423z"
+    //    - "20120227 13:27:00"
+    //    - "20120227T132700"
+    //    - "20120227"
+    //    - "2012-02-27T14Z"
+    //    - "-123450101 00:00:00 Z"  // In the year -12345.
+    final RegExp re = const RegExp(
+        @'^([+-]?\d?\d\d\d\d)-?(\d\d)-?(\d\d)'  // The day part.
+        @'(?:[ T](\d\d)(?::?(\d\d)(?::?(\d\d)(.\d{1,6})?)?)? ?([zZ])?)?$');
+    Match match = re.firstMatch(formattedString);
+    if (match !== null) {
+      int parseIntOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0;
+        return Math.parseInt(matched);
+      }
+
+      double parseDoubleOrZero(String matched) {
+        // TODO(floitsch): we should not need to test against the empty string.
+        if (matched === null || matched == "") return 0.0;
+        return Math.parseDouble(matched);
+      }
+
+      int years = Math.parseInt(match[1]);
+      int month = Math.parseInt(match[2]);
+      int day = Math.parseInt(match[3]);
+      int hour = parseIntOrZero(match[4]);
+      int minute = parseIntOrZero(match[5]);
+      int second = parseIntOrZero(match[6]);
+      bool addOneMillisecond = false;
+      int millisecond = (parseDoubleOrZero(match[7]) * 1000).round().toInt();
+      if (millisecond == 1000) {
+        addOneMillisecond = true;
+        millisecond = 999;
+      }
+      // TODO(floitsch): we should not need to test against the empty string.
+      bool isUtc = (match[8] !== null) && (match[8] != "");
+      int millisecondsSinceEpoch = _brokenDownDateToMillisecondsSinceEpoch(
+          years, month, day, hour, minute, second, millisecond, isUtc);
+      if (millisecondsSinceEpoch === null) {
+        throw new IllegalArgumentException(formattedString);
+      }
+      if (addOneMillisecond) millisecondsSinceEpoch++;
+      return new DateImplementation.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch, isUtc);
+    } else {
+      throw new IllegalArgumentException(formattedString);
+    }
+  }
+
+  DateImplementation.fromMillisecondsSinceEpoch(
+      int this.millisecondsSinceEpoch, [bool isUtc = false])
+      : this.isUtc = isUtc {
+    if (millisecondsSinceEpoch.abs() > _MAX_MILLISECONDS_SINCE_EPOCH) {
+      throw new IllegalArgumentException(millisecondsSinceEpoch);
+    }
+    if (isUtc === null) {
+      throw new IllegalArgumentException(isUtc);
+    }
+  }
+
+  bool operator ==(Object other) {
+    if (other is !DateImplementation) return false;
+    DateImplementation otherDate = other;
+    return millisecondsSinceEpoch == otherDate.millisecondsSinceEpoch;
+  }
+
+  bool operator <(Date other)
+      => millisecondsSinceEpoch < other.millisecondsSinceEpoch;
+
+  bool operator <=(Date other)
+      => millisecondsSinceEpoch <= other.millisecondsSinceEpoch;
+
+  bool operator >(Date other)
+      => millisecondsSinceEpoch > other.millisecondsSinceEpoch;
+
+  bool operator >=(Date other)
+      => millisecondsSinceEpoch >= other.millisecondsSinceEpoch;
+
+  int compareTo(Date other)
+      => millisecondsSinceEpoch.compareTo(other.millisecondsSinceEpoch);
+
+  int hashCode() => millisecondsSinceEpoch;
+
+  Date toLocal() {
+    if (isUtc) {
+      return new DateImplementation.fromMillisecondsSinceEpoch(
+          millisecondsSinceEpoch, false);
+    }
+    return this;
+  }
+
+  Date toUtc() {
+    if (isUtc) return this;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        millisecondsSinceEpoch, true);
+  }
+
+  String get timeZoneName() {
     if (isUtc) return "UTC";
     return _timeZoneName(millisecondsSinceEpoch);
   }
 
-  /* patch */ Duration get timeZoneOffset() {
+  Duration get timeZoneOffset() {
     if (isUtc) return new Duration(0);
     int offsetInSeconds = _timeZoneOffsetInSeconds(millisecondsSinceEpoch);
     return new Duration(seconds: offsetInSeconds);
   }
 
-  /* patch */ int get year() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
+  int get year() {
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[0];
+  }
 
-  /* patch */ int get month() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
+  int get month() {
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[1];
+  }
 
-  /* patch */ int get day() => _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
+  int get day() {
+    return _decomposeIntoYearMonthDay(_localDateInUtcMs)[2];
+  }
 
-  /* patch */ int get hour() {
+  int get hour() {
     int valueInHours = _flooredDivision(_localDateInUtcMs,
                                         Duration.MILLISECONDS_PER_HOUR);
     return valueInHours % Duration.HOURS_PER_DAY;
   }
 
-  /* patch */ int get minute() {
+  int get minute() {
     int valueInMinutes = _flooredDivision(_localDateInUtcMs,
                                           Duration.MILLISECONDS_PER_MINUTE);
     return valueInMinutes % Duration.MINUTES_PER_HOUR;
   }
 
-  /* patch */ int get second() {
+  int get second() {
     // Seconds are unaffected by the timezone the user is in. So we can
     // directly use the millisecondsSinceEpoch and not [_localDateInUtcMs].
     int valueInSeconds =
@@ -63,7 +173,7 @@ patch class DateImplementation {
     return valueInSeconds % Duration.SECONDS_PER_MINUTE;
   }
 
-  /* patch */ int get millisecond() {
+  int get millisecond() {
     // Milliseconds are unaffected by the timezone the user is in. So we can
     // directly use the value and not the [_localDateInUtcValue].
     return millisecondsSinceEpoch % Duration.MILLISECONDS_PER_SECOND;
@@ -71,7 +181,7 @@ patch class DateImplementation {
 
   /** Returns the weekday of [this]. In accordance with ISO 8601 a week
     * starts with Monday. Monday has the value 1 up to Sunday with 7. */
-  /* patch */ int get weekday() {
+  int get weekday() {
     int daysSince1970 =
         _flooredDivision(_localDateInUtcMs, Duration.MILLISECONDS_PER_DAY);
     // 1970-1-1 was a Thursday.
@@ -79,6 +189,59 @@ patch class DateImplementation {
         Date.MON;
   }
 
+  String toString() {
+    String fourDigits(int n) {
+      int absN = n.abs();
+      String sign = n < 0 ? "-" : "";
+      if (absN >= 1000) return "$n";
+      if (absN >= 100) return "${sign}0$absN";
+      if (absN >= 10) return "${sign}00$absN";
+      return "${sign}000$absN";
+    }
+    String threeDigits(int n) {
+      if (n >= 100) return "${n}";
+      if (n >= 10) return "0${n}";
+      return "00${n}";
+    }
+    String twoDigits(int n) {
+      if (n >= 10) return "${n}";
+      return "0${n}";
+    }
+
+    String y = fourDigits(year);
+    String m = twoDigits(month);
+    String d = twoDigits(day);
+    String h = twoDigits(hour);
+    String min = twoDigits(minute);
+    String sec = twoDigits(second);
+    String ms = threeDigits(millisecond);
+    if (isUtc) {
+      return "$y-$m-$d $h:$min:$sec.${ms}Z";
+    } else {
+      return "$y-$m-$d $h:$min:$sec.$ms";
+    }
+  }
+
+  /** Returns a new [Date] with the [duration] added to [this]. */
+  Date add(Duration duration) {
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms + duration.inMilliseconds, isUtc);
+  }
+
+  /** Returns a new [Date] with the [duration] subtracted from [this]. */
+  Date subtract(Duration duration) {
+    int ms = millisecondsSinceEpoch;
+    return new DateImplementation.fromMillisecondsSinceEpoch(
+        ms - duration.inMilliseconds, isUtc);
+  }
+
+  /** Returns a [Duration] with the difference of [this] and [other]. */
+  Duration difference(Date other) {
+    int ms = millisecondsSinceEpoch;
+    int otherMs = other.millisecondsSinceEpoch;
+    return new DurationImplementation(milliseconds: ms - otherMs);
+  }
 
   /** The first list contains the days until each month in non-leap years. The
     * second list contains the days in leap years. */
@@ -225,11 +388,6 @@ patch class DateImplementation {
     return millisecondsSinceEpoch;
   }
 
-  static int _weekDay(y) {
-    // 1/1/1970 was a Thursday.
-    return (_dayFromYear(y) + 4) % 7;
-  }
-
   /**
    * Returns a year in the range 2008-2035 matching
    * * leap year, and
@@ -240,6 +398,10 @@ patch class DateImplementation {
    */
   static _equivalentYear(int year) {
     // Returns the week day (in range 0 - 6).
+    int weekDay(y) {
+      // 1/1/1970 was a Thursday.
+      return (_dayFromYear(y) + 4) % 7;
+    }
     // 1/1/1956 was a Sunday (i.e. weekday 0). 1956 was a leap-year.
     // 1/1/1967 was a Sunday (i.e. weekday 0).
     // Without leap years a subsequent year has a week day + 1 (for example
@@ -249,7 +411,7 @@ patch class DateImplementation {
     // 15 days. 15 % 7 = 1. So after 12 years the week day has always
     // (now independently of leap-years) advanced by one.
     // weekDay * 12 gives thus a year starting with the wanted weekDay.
-    int recentYear = (_isLeapYear(year) ? 1956 : 1967) + (_weekDay(year) * 12);
+    int recentYear = (_isLeapYear(year) ? 1956 : 1967) + (weekDay(year) * 12);
     // Close to the year 2008 the calendar cycles every 4 * 7 years (4 for the
     // leap years, 7 for the weekdays).
     // Find the year in the range 2008..2037 that is equivalent mod 28.
@@ -312,6 +474,9 @@ patch class DateImplementation {
     int equivalentSeconds = _equivalentSeconds(millisecondsSinceEpoch);
     return _timeZoneNameForClampedSeconds(equivalentSeconds);
   }
+
+  final bool isUtc;
+  final int millisecondsSinceEpoch;
 
   // Natives
   static int _getCurrentMs() native "DateNatives_currentTimeMillis";
