@@ -246,7 +246,6 @@ class LibraryCompiler extends api.Compiler {
     });
     //world.queueIsClosed = true;
     assert(world.checkNoEnqueuedInvokedInstanceMethods());
-    world.registerFieldClosureInvocations();
   }
 
   String codegen(WorkItem work, Enqueuer world) {
