@@ -567,19 +567,21 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
     return (combinedType == types[value]) ? value : node;
   }
 
-  HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
-    HInstruction receiver = node.inputs[0];
+  Element findConcreteFieldForDynamicAccess(HInstruction receiver,
+                                            Selector selector) {
     HType receiverType = types[receiver];
-    if (!receiverType.isUseful()) return node;
-    if (receiverType.canBeNull()) return node;
+    if (!receiverType.isUseful()) return null;
+    if (receiverType.canBeNull()) return null;
     Type type = receiverType.computeType(compiler);
-    if (type === null) return node;
-    Element field = compiler.world.locateSingleField(type, node.name);
-    if (field === null) return node;
-    if (node.name.isPrivate() &&
-        field.getLibrary() !== work.element.getLibrary()) {
-      return node;
-    }
+    if (type === null) return null;
+    return compiler.world.locateSingleField(type, selector);
+  }
+
+  HInstruction visitInvokeDynamicGetter(HInvokeDynamicGetter node) {
+    Element field =
+        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
+    if (field == null) return node;
+
     Modifiers modifiers = field.modifiers;
     bool isFinalOrConst = false;
     if (modifiers != null) {
@@ -611,13 +613,8 @@ class SsaConstantFolder extends HBaseVisitor implements OptimizationPhase {
   }
 
   HInstruction visitInvokeDynamicSetter(HInvokeDynamicSetter node) {
-    HInstruction receiver = node.inputs[0];
-    HType receiverType = types[receiver];
-    if (!receiverType.isUseful()) return node;
-    if (receiverType.canBeNull()) return node;
-    Type type = receiverType.computeType(compiler);
-    if (type === null) return node;
-    Element field = compiler.world.locateSingleField(type, node.name);
+    Element field =
+        findConcreteFieldForDynamicAccess(node.receiver, node.selector);
     if (field === null) return node;
     return new HFieldSet.withElement(field, node.inputs[0], node.inputs[1]);
   }
