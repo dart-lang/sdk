@@ -250,6 +250,7 @@ _html_element_constructors = {
   'CanvasElement':
     ElementConstructorInfo(tag='canvas',
                            opt_params=[('int', 'width'), ('int', 'height')]),
+  'DataListElement': 'datalist',
   'DListElement': 'dl',
   'DetailsElement': 'details',
   'DivElement': 'div',

@@ -8831,6 +8831,17 @@ class _HTMLDListElementImpl extends _HTMLElementImpl implements DListElement {
 
 // WARNING: Do not edit - generated code.
 
+class _HTMLDataListElementImpl extends _HTMLElementImpl implements DataListElement {
+
+  HTMLCollection get options() native "HTMLDataListElement_options_Getter";
+
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 class _HTMLDetailsElementImpl extends _HTMLElementImpl implements DetailsElement {
 
   bool get open() native "HTMLDetailsElement_open_Getter";
@@ -9473,6 +9484,8 @@ class _HTMLInputElementImpl extends _HTMLElementImpl implements InputElement {
   void set indeterminate(bool) native "HTMLInputElement_indeterminate_Setter";
 
   NodeList get labels() native "HTMLInputElement_labels_Getter";
+
+  Element get list() native "HTMLInputElement_list_Getter";
 
   String get max() native "HTMLInputElement_max_Getter";
 
@@ -20998,6 +21011,11 @@ class _Elements {
     return _e;
   }
 
+  factory DataListElement() {
+    _HTMLDataListElementImpl _e = _document.$dom_createElement("datalist");
+    return _e;
+  }
+
   factory DetailsElement() {
     _HTMLDetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
@@ -25786,6 +25804,20 @@ interface DOMURL default _DOMURLFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDataListElement
+interface DataListElement extends Element default _Elements {
+
+  DataListElement();
+
+  /** @domName HTMLDataListElement.options */
+  final HTMLCollection options;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DataTransferItem
 interface DataTransferItem {
 
@@ -28892,6 +28924,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.labels */
   final NodeList labels;
+
+  /** @domName HTMLInputElement.list */
+  final Element list;
 
   /** @domName HTMLInputElement.max */
   String max;

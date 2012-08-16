@@ -4526,6 +4526,11 @@ class _DOMTokenListImpl implements DOMTokenList native "*DOMTokenList" {
 class _DOMURLImpl implements DOMURL native "*DOMURL" {
 }
 
+class _DataListElementImpl extends _ElementImpl implements DataListElement native "*HTMLDataListElement" {
+
+  final _HTMLCollectionImpl options;
+}
+
 class _DataTransferItemImpl implements DataTransferItem native "*DataTransferItem" {
 
   final String kind;
@@ -7938,6 +7943,8 @@ class _InputElementImpl extends _ElementImpl implements InputElement native "*HT
   bool indeterminate;
 
   final _NodeListImpl labels;
+
+  final _ElementImpl list;
 
   String max;
 
@@ -17387,6 +17394,11 @@ class _Elements {
     return _e;
   }
 
+  factory DataListElement() {
+    _DataListElementImpl _e = _document.$dom_createElement("datalist");
+    return _e;
+  }
+
   factory DetailsElement() {
     _DetailsElementImpl _e = _document.$dom_createElement("details");
     return _e;
@@ -22402,6 +22414,20 @@ interface DOMURL default _DOMURLFactoryProvider {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName HTMLDataListElement
+interface DataListElement extends Element default _Elements {
+
+  DataListElement();
+
+  /** @domName HTMLDataListElement.options */
+  final HTMLCollection options;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName DataTransferItem
 interface DataTransferItem {
 
@@ -25508,6 +25534,9 @@ interface InputElement extends Element default _Elements {
 
   /** @domName HTMLInputElement.labels */
   final NodeList labels;
+
+  /** @domName HTMLInputElement.list */
+  final Element list;
 
   /** @domName HTMLInputElement.max */
   String max;

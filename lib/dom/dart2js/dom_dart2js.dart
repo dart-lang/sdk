@@ -2925,6 +2925,11 @@ class _HTMLDListElementJs extends _HTMLElementJs implements HTMLDListElement nat
   bool compact;
 }
 
+class _HTMLDataListElementJs extends _HTMLElementJs implements HTMLDataListElement native "*HTMLDataListElement" {
+
+  final _HTMLCollectionJs options;
+}
+
 class _HTMLDetailsElementJs extends _HTMLElementJs implements HTMLDetailsElement native "*HTMLDetailsElement" {
 
   bool open;
@@ -3307,6 +3312,8 @@ class _HTMLInputElementJs extends _HTMLElementJs implements HTMLInputElement nat
   bool indeterminate;
 
   final _NodeListJs labels;
+
+  final _HTMLElementJs list;
 
   String max;
 
@@ -15574,6 +15581,16 @@ interface HTMLDListElement extends HTMLElement {
 
 // WARNING: Do not edit - generated code.
 
+interface HTMLDataListElement extends HTMLElement {
+
+  final HTMLCollection options;
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface HTMLDetailsElement extends HTMLElement {
 
   bool open;
@@ -16033,6 +16050,8 @@ interface HTMLInputElement extends HTMLElement {
   bool indeterminate;
 
   final NodeList labels;
+
+  final HTMLElement list;
 
   String max;
 
