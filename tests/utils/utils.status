@@ -17,6 +17,7 @@ dartdoc_test: Skip # http://dartbug.com/4541
 
 [ $compiler == dartc ]
 dummy_compiler_test: Fail # http://dartbug.com/4539
+markdown_test: Fail # http://dartbug.com/4545
 
 [ $compiler == dart2js && $browser ]
 *: Skip
