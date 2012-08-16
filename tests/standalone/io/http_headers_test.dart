@@ -101,6 +101,32 @@ void testExpires() {
   Expect.equals(null, headers.expires);
 }
 
+void testIfModifiedSince() {
+  Date date1 = new Date(1999, Date.JUN, 11, 18, 46, 53, 0, isUtc: true);
+  String httpDate1 = "Fri, 11 Jun 1999 18:46:53 GMT";
+  Date date2 = new Date(2000, Date.AUG, 16, 12, 34, 56, 0, isUtc: true);
+  String httpDate2 = "Wed, 16 Aug 2000 12:34:56 GMT";
+
+  _HttpHeaders headers = new _HttpHeaders();
+  Expect.isNull(headers.ifModifiedSince);
+  headers.ifModifiedSince = date1;
+  Expect.equals(date1, headers.ifModifiedSince);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
+  headers.add(HttpHeaders.IF_MODIFIED_SINCE, httpDate2);
+  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
+  Expect.equals(date2, headers.ifModifiedSince);
+  Expect.equals(httpDate2, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+  headers.set(HttpHeaders.IF_MODIFIED_SINCE, httpDate1);
+  Expect.equals(1, headers[HttpHeaders.IF_MODIFIED_SINCE].length);
+  Expect.equals(date1, headers.ifModifiedSince);
+  Expect.equals(httpDate1, headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+
+  headers.set(HttpHeaders.IF_MODIFIED_SINCE, "xxx");
+  Expect.equals("xxx", headers.value(HttpHeaders.IF_MODIFIED_SINCE));
+  Expect.equals(null, headers.ifModifiedSince);
+}
+
 void testHost() {
   String host = "www.google.com";
   _HttpHeaders headers = new _HttpHeaders();
@@ -362,7 +388,9 @@ void testInvalidCookie() {
 
 main() {
   testMultiValue();
+  testDate();
   testExpires();
+  testIfModifiedSince();
   testHost();
   testEnumeration();
   testHeaderValue();
