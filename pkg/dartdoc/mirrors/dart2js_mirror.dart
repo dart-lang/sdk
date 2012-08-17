@@ -61,13 +61,11 @@ Dart2JsTypeMirror _convertTypeToTypeMirror(
   } else if (type is TypeVariableType) {
     return new Dart2JsTypeVariableMirror(system, type);
   } else if (type is FunctionType) {
-    if (type.element is TypedefElement) {
-      return new Dart2JsTypedefMirror(system, type.element);
-    } else {
-      return new Dart2JsFunctionTypeMirror(system, type, functionSignature);
-    }
+    return new Dart2JsFunctionTypeMirror(system, type, functionSignature);
   } else if (type is VoidType) {
     return new Dart2JsVoidMirror(system, type);
+  } else if (type is TypedefType) {
+    return new Dart2JsTypedefMirror(system, type);
   }
   throw new IllegalArgumentException("Unexpected interface type $type");
 }
@@ -500,7 +498,8 @@ class Dart2JsLibraryMirror extends Dart2JsObjectMirror
             var type = new Dart2JsInterfaceMirror.fromLibrary(this, e);
             _types[type.canonicalName] = type;
           } else if (e.isTypedef()) {
-            var type = new Dart2JsTypedefMirror.fromLibrary(this, e);
+            var type = new Dart2JsTypedefMirror.fromLibrary(this,
+                e.computeType(system.compiler));
             _types[type.canonicalName] = type;
           }
         }
@@ -785,31 +784,31 @@ class Dart2JsInterfaceMirror extends Dart2JsObjectMirror
   }
 }
 
-class Dart2JsTypedefMirror extends Dart2JsElementMirror
+class Dart2JsTypedefMirror extends Dart2JsTypeElementMirror
     implements Dart2JsTypeMirror, TypedefMirror {
   final Dart2JsLibraryMirror _library;
   List<TypeVariableMirror> _typeVariables;
   TypeMirror _definition;
 
-  Dart2JsTypedefMirror(Dart2JsMirrorSystem system, TypedefElement _typedef)
-      : this._library = system.getLibrary(_typedef.getLibrary()),
+  Dart2JsTypedefMirror(Dart2JsMirrorSystem system, TypedefType _typedef)
+      : this._library = system.getLibrary(_typedef.element.getLibrary()),
         super(system, _typedef);
 
   Dart2JsTypedefMirror.fromLibrary(Dart2JsLibraryMirror library,
-                                   TypedefElement _typedef)
+                                   TypedefType _typedef)
       : this._library = library,
         super(library.system, _typedef);
 
-  TypedefElement get _typedef() => _element;
+  TypedefType get _typedef() => _type;
 
   String get canonicalName() => simpleName;
 
   String get qualifiedName() => '${library.qualifiedName}.${simpleName}';
 
   Location get location() {
-    var node = _typedef.parseNode(_diagnosticListener);
+    var node = _typedef.element.parseNode(_diagnosticListener);
     if (node !== null) {
-      var script = _typedef.getCompilationUnit().script;
+      var script = _typedef.element.getCompilationUnit().script;
       var span = system.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     }
@@ -899,7 +898,8 @@ class Dart2JsTypeVariableMirror extends Dart2JsTypeElementMirror
             _typeVariableType.element.enclosingElement);
       } else if (_typeVariableType.element.enclosingElement.isTypedef()) {
         _declarer = new Dart2JsTypedefMirror(system,
-            _typeVariableType.element.enclosingElement);
+            _typeVariableType.element.enclosingElement.computeType(
+                system.compiler));
       }
     }
     return _declarer;

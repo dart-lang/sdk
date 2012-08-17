@@ -32,7 +32,7 @@ audiocontext_test: Pass, Fail
 [ $compiler == none && $runtime == drt && $system == linux]
 documentfragment_test: Pass, Timeout
 
-[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera ]
+[ $runtime == ie || $runtime == safari || $runtime == ff || $runtime == chrome || $runtime == opera || $runtime == drt ]
 # TODO(vsm): Triage DOM tests.
 indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
 htmloptionscollection_test: Fail # Issue 3813.
@@ -198,10 +198,6 @@ indexeddb_3_test: Fail  # Caught Error: DATA_ERR: DOM IDBDatabase Exception 5 Er
 instance_of_test: Fail     # Issue 2535
 localstorage_test: Fail
 mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
-
-[ $compiler == dart2js && ($runtime == drt || $runtime == ff) && $system == linux]
-# DOM errors.
-indexeddb_2_test: Fail # Uncaught error
 
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 fileapi_test: Skip # Issue 3022

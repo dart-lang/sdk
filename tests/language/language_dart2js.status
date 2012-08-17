@@ -72,6 +72,7 @@ function_type_alias4_test: Fail # cannot resolve type F
 function_type_alias5_test/00: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/01: Fail # visitIs for typedefs not implemented
 function_type_alias5_test/02: Fail # visitIs for typedefs not implemented
+function_type_alias6_test: Fail # visitIs for typedefs not implemented.
 function_type_alias7_test/00: Fail # wrongly accepts default values in typedef
 function_type_alias_test: Fail # cannot resolve type Fun
 function_type_parameter2_test: Fail # Internal Error: expected optional parameters

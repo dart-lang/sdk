@@ -184,8 +184,10 @@ function(cls, fields, methods) {
       // If [name] is not in [argumentsBuffer], then the parameter is
       // an optional parameter that was not provided for that stub.
       if (argumentsBuffer.indexOf(name) == -1) return;
-      Type type = parameter.computeType(compiler);
+      Type type = parameter.computeType(compiler).unalias(compiler);
       if (type is FunctionType) {
+        // The parameter type is a function type either directly or through
+        // typedef(s).
         int arity = type.computeArity();
         code.add('  $name = $closureConverter($name, $arity);\n');
       }
@@ -359,7 +361,11 @@ function(cls, fields, methods) {
       compiler.cancel("Is check for type variable", element: element);
       return false;
     }
-    if (element.computeType(compiler) is FunctionType) return false;
+    if (element.computeType(compiler).unalias(compiler) is FunctionType) {
+      // The element type is a function type either directly or through
+      // typedef(s).
+      return false;
+    }
 
     if (!element.isClass()) {
       compiler.cancel("Is check does not handle element", element: element);

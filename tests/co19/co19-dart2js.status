@@ -34,6 +34,13 @@ Language/07_Classes/5_Constructors/2_Factories_A01_t01: Crash
 Language/10_Expressions/09_This_A03_t04: Crash
 Language/11_Statements/05_For_A01_t13: Crash
 
+# This test sometimes passes (as a negative test), sometimes it
+# crashes. The problem is that there is a stack overflow in
+# dart2js. The reason for the test sometimes passing is VM issue
+# 3874. The stack overflow is addressed in
+# https://chromiumcodereview.appspot.com/10661029/.
+Language/13_Types/3_Type_Declarations/1_Typedef_A07_t01: Crash, Fail # Cyclic typedef check is not implemented.
+
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t01: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t04: Fail # Compile-time error: Unimplemented non-matching static call
 Language/10_Expressions/13_Function_Invocation/2_Binding_Actuals_to_Formals_A06_t05: Fail # Compile-time error: Unimplemented non-matching static call
@@ -456,7 +463,6 @@ LibTest/core/Expect/identical_A01_t01: Fail # TODO(floitsch): Is NaN identical t
 # The following tests are all negative tests that should be fixed.
 #
 [ $compiler == dart2js ]
-Language/03_Overview/1_Scoping_A01_t35: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t39: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t40: Fail # @compile-error
 Language/03_Overview/1_Scoping_A01_t41: Fail # @compile-error
