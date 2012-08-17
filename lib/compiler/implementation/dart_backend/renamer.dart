@@ -17,7 +17,7 @@ void renamePlaceholders(
   int privateNameCounter = 0;
 
   String getName(LibraryElement library, String originalName, renamer) =>
-      renamed.putIfAbsent(library, () => <String, String>{})
+      renamed.putIfAbsent(library, () => <String>{})
           .putIfAbsent(originalName, renamer);
 
   String renamePrivateIdentifier(LibraryElement library, String id) =>
