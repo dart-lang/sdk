@@ -377,9 +377,37 @@ main() {
       test('returns the default value for multi-valued arguments '
            'if not explicitly set', () {
         var parser = new ArgParser();
-        parser.addOption('define', defaultsTo:'0', allowMultiple: true);
+        parser.addOption('define', defaultsTo: '0', allowMultiple: true);
         var args = parser.parse(['']);
         expect(args['define'], equals(['0']));
+      });
+    });
+
+    group('query default values', () {
+      test('queries the default value', () {
+        var parser = new ArgParser();
+        parser.addOption('define', defaultsTo: '0');
+        expect(()=>parser.getDefault('undefine'),
+            throwsIllegalArgumentException);
+      });
+
+      test('queries the default value for an unknown option', () {
+        var parser = new ArgParser();
+        parser.addOption('define', defaultsTo: '0');
+        expect(()=>parser.getDefault('undefine'),
+            throwsIllegalArgumentException);
+      });
+    });
+
+    group('gets the option names from an ArgsResult', () {
+      test('queries the set options', () {
+        var parser = new ArgParser();
+        parser.addFlag('woof', defaultsTo: false);
+        parser.addOption('meow', defaultsTo: 'kitty');
+        var args = parser.parse([]);
+        expect(args.options, hasLength(2));
+        expect(args.options.some((o) => o == 'woof'), isTrue);
+        expect(args.options.some((o) => o == 'meow'), isTrue);
       });
     });
 

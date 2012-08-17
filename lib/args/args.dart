@@ -489,6 +489,17 @@ class ArgParser {
 
     return null;
   }
+
+  /**
+   * Get the default value for an option. Useful after parsing to test
+   * if the user specified something other than the default.
+   */
+  getDefault(String option) {
+    if (!_options.containsKey(option)) {
+      throw new IllegalArgumentException('No option named $option');
+    }
+    return _options[option].defaultValue;
+  }
 }
 
 /**
@@ -518,6 +529,9 @@ class ArgResults {
 
     return _options[name];
   }
+
+  /** Get the names of the options as a [Collection]. */
+  Collection<String> get options => _options.getKeys();
 }
 
 class _Option {
