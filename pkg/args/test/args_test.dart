@@ -4,8 +4,8 @@
 
 #library('args_test');
 
-#import('../../../pkg/unittest/unittest.dart');
-#import('../../../lib/args/args.dart');
+#import('../../unittest/unittest.dart');
+#import('../args.dart');
 
 main() {
   group('ArgParser.addFlag()', () {

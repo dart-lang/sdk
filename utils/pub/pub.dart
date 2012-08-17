@@ -7,7 +7,7 @@
  */
 #library('pub');
 
-#import('../../lib/args/args.dart');
+#import('../../pkg/args/args.dart');
 #import('dart:io');
 #import('io.dart');
 #import('command_help.dart');

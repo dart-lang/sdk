@@ -22,7 +22,6 @@
 # ......dart_api.h
 # ......dart_debugger_api.h
 # ....lib/
-# ......args/
 # ......builtin/
 # ........builtin_runtime.dart
 # ......io/
@@ -57,6 +56,7 @@
 # ......web/
 # ........web.dart
 # ....pkg/
+# ......args/
 # ......dartdoc/
 # ......i18n/
 # ......logging/
@@ -334,7 +334,7 @@ def Main(argv):
   # Create and populate lib/{crypto, json, uri, utf, ...}.
   #
 
-  for library in ['args', 'crypto', 'json', 'math', 'uri', 'utf', 'web']:
+  for library in ['crypto', 'json', 'math', 'uri', 'utf', 'web']:
     src_dir = join(HOME, 'lib', library)
     dest_dir = join(LIB, library)
     os.makedirs(dest_dir)
@@ -410,10 +410,10 @@ def Main(argv):
   os.makedirs(PKG)
 
   #
-  # Create and populate pkg/{i18n, logging}
+  # Create and populate pkg/{args, i18n, logging, unittest}
   #
 
-  for library in ['i18n', 'logging', 'unittest']:
+  for library in ['args', 'i18n', 'logging', 'unittest']:
     src_dir = join(HOME, 'pkg', library)
     dest_dir = join(PKG, library)
     os.makedirs(dest_dir)
