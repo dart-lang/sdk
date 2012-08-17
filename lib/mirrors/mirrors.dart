@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// #library("mirrors");
-
 // The dart:mirrors library provides reflective access for Dart program.
 //
 // For the purposes of the mirrors library, we adopt a naming
@@ -15,8 +13,8 @@
 // ...the getter is named 'myField' and the setter is named
 // 'myField='.  This allows us to assign unique names to getters and
 // setters for the purposes of member lookup.
-//
-// TODO(turnidge): Finish implementing this api.
+
+// #library("mirrors");
 
 /**
  * A [MirrorSystem] is the main interface used to reflect on a set of
@@ -32,29 +30,26 @@
  */
 interface MirrorSystem {
   /**
-   * A mirror on the root library of the mirror system.
-   */
-  final LibraryMirror rootLibrary;
-
-  /**
    * An immutable map from from library names to mirrors for all
    * libraries known to this mirror system.
-  */
-  Map<String, LibraryMirror> libraries();
+   */
+  final Map<String, LibraryMirror> libraries;
 
   /**
    * A mirror on the isolate associated with this [MirrorSystem].
    * This may be null if this mirror system is not running.
    */
-  IsolateMirror isolate;
+  final IsolateMirror isolate;
 
   /**
-   * Returns an [InstanceMirror] for some Dart language object.
-   *
-   * This only works if this mirror system is associated with the
-   * current running isolate.
+   * A mirror on the [:Dynamic:] type.
    */
-  InstanceMirror mirrorOf(Object reflectee);
+  final TypeMirror dynamicType;
+
+  /**
+   * A mirror on the [:void:] type.
+   */
+  final TypeMirror voidType;
 }
 
 /**
@@ -73,13 +68,23 @@ Future<MirrorSystem> mirrorSystemOf(SendPort port) {
 }
 
 /**
+ * Returns an [InstanceMirror] for some Dart language object.
+ *
+ * This only works if this mirror system is associated with the
+ * current running isolate.
+ */
+InstanceMirror reflect(Object reflectee) {
+  return _Mirrors.reflect(reflectee);
+}
+
+/**
  * A [Mirror] reflects some Dart language entity.
  *
  * Every [Mirror] originates from some [MirrorSystem].
  */
-interface Mirror {
+interface Mirror extends Hashable {
   /**
-   * The originating [MirrorSystem] for this mirror.
+   * The [MirrorSystem] that contains this mirror.
    */
   final MirrorSystem mirrors;
 }
@@ -97,12 +102,16 @@ interface IsolateMirror extends Mirror {
    * Does this mirror reflect the currently running isolate?
    */
   final bool isCurrent;
-}
 
+  /**
+   * A mirror on the root library for this isolate.
+   */
+  final LibraryMirror rootLibrary;
+}
 
 /**
  * An [ObjectMirror] is a common superinterface of [InstanceMirror],
- * [InterfaceMirror], and [LibraryMirror] that represents their shared
+ * [ClassMirror], and [LibraryMirror] that represents their shared
  * functionality.
  *
  * For the purposes of the mirrors library, these types are all
@@ -110,28 +119,35 @@ interface IsolateMirror extends Mirror {
  * access.  Real Dart objects are represented by the [InstanceMirror]
  * type.
  *
- * See [InstanceMirror], [InterfaceMirror], and [LibraryMirror].
+ * See [InstanceMirror], [ClassMirror], and [LibraryMirror].
  */
 interface ObjectMirror extends Mirror {
   /**
    * Invokes the named function and returns a mirror on the result.
    *
    * TODO(turnidge): Properly document.
+   * TODO(turnidge): Handle ambiguous names.
+   * TODO(turnidge): Handle optional & named arguments.
    */
   Future<InstanceMirror> invoke(String memberName,
                                 List<Object> positionalArguments,
                                 [Map<String,Object> namedArguments]);
 
   /**
-   * Invokes a getter and returns a mirror on the result. The getter may be 
-   * either the implicit getter for a field or a user-defined getter method.
+   * Invokes a getter and returns a mirror on the result. The getter
+   * can be the implicit getter for a field or a user-defined getter
+   * method.
+   *
+   * TODO(turnidge): Handle ambiguous names.
    */
   Future<InstanceMirror> getField(String fieldName);
 
   /**
-   * Invokes a setter and returns a mirror on the result. The setter may be 
-   * either the implicit setter for a non-final field or a user-defined setter
-   * method.
+   * Invokes a setter and returns a mirror on the result. The setter
+   * may be either the implicit setter for a non-final field or a
+   * user-defined setter method.
+   *
+   * TODO(turnidge): Handle ambiguous names.
    */
   Future<InstanceMirror> setField(String fieldName, Object value);
 }
@@ -141,15 +157,15 @@ interface ObjectMirror extends Mirror {
  */
 interface InstanceMirror extends ObjectMirror {
   /**
-   * Returns a mirror on the class of the reflectee.
+   * A mirror on the type of the reflectee.
    */
-  InterfaceMirror getClass();
+  final ClassMirror type;
 
   /**
-   * Does [reflectee] contain the instance reflected by this mirror? This will
-   * always be true in the local case (reflecting instances in the same 
-   * isolate), but only true in the remote case if this mirror reflects a 
-   * simple value.
+   * Does [reflectee] contain the instance reflected by this mirror?
+   * This will always be true in the local case (reflecting instances
+   * in the same isolate), but only true in the remote case if this
+   * mirror reflects a simple value.
    *
    * A value is simple if one of the following holds:
    *  - the value is null
@@ -160,8 +176,9 @@ interface InstanceMirror extends ObjectMirror {
   final bool hasReflectee;
 
   /**
-   * If the [InstanceMirror] reflects an instance it is meaningful to have a
-   * local reference to, we provide access to the actual instance here.
+   * If the [InstanceMirror] reflects an instance it is meaningful to
+   * have a local reference to, we provide access to the actual
+   * instance here.
    *
    * If you access [reflectee] when [hasReflectee] is false, an
    * exception is thrown.
@@ -170,35 +187,42 @@ interface InstanceMirror extends ObjectMirror {
 }
 
 /**
- * A [ClosureMirror] reflects a closure. Closures are special, because we do not
- * wish to reflect the internals of a particular closure implementation. And
- * yet, we need access to details of the closure internals - for example, its
- * enclosing context and its source code.
+ * A [ClosureMirror] reflects a closure.
+ *
+ * A [ClosureMirror] provides access to its captured variables and
+ * provides the ability to execute its reflectee.
  */
 interface ClosureMirror extends InstanceMirror {
-
   /**
-   * Return the source code for the closure, if available.
-   */ 
-  String source();
-  
-  /**
-   * Call the closure. The arguments given in the descriptor need to be
-   * ObjectMirrors or values. Asynchronous.
-   */  
-  Future<ObjectMirror> apply(List<Object> positionalArguments,
-                             [Map<String,Object> namedArguments]); 
-
-  /**
-   * Look up the value of name in the scope of the closure. The result is a
-   * mirror on that value. Asynchronous.
+   * A mirror on the function associated with this closure.
    */
-  Future<ObjectMirror> findInContext(String name);
+  final MethodMirror function;
 
   /**
-   * Return a mirror on the function of this closure.
+   * The source code for this closure, if available.  Otherwise null.
+   *
+   * TODO(turnidge): Would this just be available in function?
    */
-  MethodMirror function();
+  final String source;
+
+  /**
+   * Executes the closure. The arguments given in the descriptor need to
+   * be InstanceMirrors or simple values.
+   *
+   * A value is simple if one of the following holds:
+   *  - the value is null
+   *  - the value is of type [num]
+   *  - the value is of type [bool]
+   *  - the value is of type [String]
+   */
+  Future<InstanceMirror> apply(List<Object> positionalArguments,
+                               [Map<String,Object> namedArguments]);
+
+  /**
+   * Looks up the value of a name in the scope of the closure. The
+   * result is a mirror on that value.
+   */
+  Future<InstanceMirror> findInContext(String name);
 }
 
 /**
@@ -213,9 +237,9 @@ interface TypeMirror extends Mirror {
 }
 
 /**
- * An [InterfaceMirror] reflects a Dart language class or interface.
+ * A [ClassMirror] reflects a Dart language class or interface.
  */
-interface InterfaceMirror extends TypeMirror, ObjectMirror {
+interface ClassMirror extends TypeMirror, ObjectMirror {
   /**
    * The name of this interface.
    */
@@ -231,18 +255,18 @@ interface InterfaceMirror extends TypeMirror, ObjectMirror {
    *
    * For interfaces, the superclass is Object.
    */
-  InterfaceMirror superclass();
+  final ClassMirror superclass;
 
   /**
    * Returns a list of mirrors on the superinterfaces for the reflectee.
    */
-  List<InterfaceMirror> superinterfaces();
+  final List<ClassMirror> superinterfaces;
 
   /**
    * Returns a mirror on the default factory class or null if there is
    * none.
    */
-  InterfaceMirror defaultFactory();
+  final ClassMirror defaultFactory;
 
   /**
    * An immutable map from from names to mirrors for all members of
@@ -253,19 +277,19 @@ interface InterfaceMirror extends TypeMirror, ObjectMirror {
    *
    * This does not include inherited members.
    */
-  Map<String, Mirror> members();
+  final Map<String, Mirror> members;
 
   /**
    * An immutable map from names to mirrors for all method,
    * constructor, getter, and setter declarations in this library.
    */
-  Map<String, MethodMirror> methods();
+  final Map<String, MethodMirror> methods;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations in this library.
    */
-  Map<String, VariableMirror> variables();
+  final Map<String, VariableMirror> variables;
 
   /**
    * Invokes the named constructor and returns a mirror on the result.
@@ -303,25 +327,25 @@ interface LibraryMirror extends ObjectMirror {
    * The members of a library are its top-level classes, interfaces,
    * functions, variables, getters, and setters.
    */
-  Map<String, Mirror> members();
+  final Map<String, Mirror> members;
 
   /**
    * An immutable map from names to mirrors for all class and
    * interface declarations in this library.
    */
-  Map<String, InterfaceMirror> classes();
+  final Map<String, ClassMirror> classes;
 
   /**
    * An immutable map from names to mirrors for all function
    * declarations in this library.
    */
-  Map<String, MethodMirror> functions();
+  final Map<String, MethodMirror> functions;
 
   /**
    * An immutable map from names to mirrors for all variable
    * declarations in this library.
    */
-  Map<String, VariableMirror> variables();
+  final Map<String, VariableMirror> variables;
 }
 
 /**
@@ -340,16 +364,21 @@ interface MethodMirror {
    *
    * For top-level functions, this will be a [LibraryMirror] and for
    * methods, constructors, getters, and setters, this will be an
-   * [InterfaceMirror].
+   * [ClassMirror].
    */
-  Mirror owner;
+  final Mirror owner;
+
+  /**
+   * Returns the list of parameters for this method.
+   */
+  final List<ParameterMirror> parameters;
 
   // Ownership
 
   /**
    * Does this mirror reflect a top-level function?
    */
-  bool isTopLevel;
+  final bool isTopLevel;
 
   /**
    * Does this mirror reflect a static method?
@@ -357,7 +386,7 @@ interface MethodMirror {
    * For the purposes of the mirrors library, a top-level function is
    * considered static.
    */
-  bool isStatic;
+  final bool isStatic;
 
   // Method kind
 
@@ -366,54 +395,49 @@ interface MethodMirror {
    *
    * A method is regular if it is not a getter, setter, or constructor.
    */
-  bool isMethod;
+  final bool isMethod;
 
   /**
    * Does this mirror reflect an abstract method?
    */
-  bool isAbstract;
+  final bool isAbstract;
 
   /**
    * Does this mirror reflect a getter?
    */
-  bool isGetter;
+  final bool isGetter;
 
   /**
    * Does this mirror reflect a setter?
    */
-  bool isSetter;
+  final bool isSetter;
 
   /**
    * Does this mirror reflect a constructor?
    */
-  bool isConstructor;
+  final bool isConstructor;
 
   // Constructor kind
 
   /**
    * Does this mirror reflect a const constructor?
    */
-  bool isConstConstructor;
+  final bool isConstConstructor;
 
   /**
    * Does this mirror reflect a generative constructor?
    */
-  bool isGenerativeConstructor;
+  final bool isGenerativeConstructor;
 
   /**
    * Does this mirror reflect a redirecting constructor?
    */
-  bool isRedirectingConstructor;
+  final bool isRedirectingConstructor;
 
   /**
    * Does this mirror reflect a factory constructor?
    */
-  bool isFactoryConstructor;
-
-  /**
-   * Returns the list of parameters for this method.
-   */
-  List<ParameterMirror> parameters();
+  final bool isFactoryConstructor;
 }
 
 /**
@@ -423,22 +447,22 @@ interface ParameterMirror extends VariableMirror {
   /**
    * Returns the type of this parameter.
    */
-  TypeMirror type;
+  final TypeMirror type;
 
   /**
    * Returns the default value for this parameter.
    */
-  String defaultValue;
+  final String defaultValue;
 
   /**
    * Returns true if this parameter has a default value.
    */
-  bool hasDefaultValue;
+  final bool hasDefaultValue;
 
   /**
    * Returns true if this parameter is optional.
    */
-  bool isOptional;
+  final bool isOptional;
 }
 
 /**
@@ -455,14 +479,14 @@ interface VariableMirror {
    * declaration immediately surrounding the reflectee.
    *
    * For top-level variables, this will be a [LibraryMirror] and for
-   * class and interface variables, this will be an [InterfaceMirror].
+   * class and interface variables, this will be a [ClassMirror].
    */
-  Mirror owner;
+  final Mirror owner;
 
   /**
    * Does this mirror reflect a top-level variable?
    */
-  bool isTopLevel;
+  final bool isTopLevel;
 
   /**
    * Does this mirror reflect a static variable?
@@ -470,12 +494,12 @@ interface VariableMirror {
    * For the purposes of the mirror library, top-level variables are
    * implicitly declared static.
    */
-  bool isStatic;
+  final bool isStatic;
 
   /**
    * Does this mirror reflect a final variable?
    */
-  bool isFinal;
+  final bool isFinal;
 }
 
 

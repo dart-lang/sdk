@@ -182,7 +182,7 @@ namespace dart {
   V(LocalObjectMirrorImpl_getField, 2)                                         \
   V(LocalObjectMirrorImpl_setField, 3)                                         \
   V(LocalClosureMirrorImpl_apply, 2)                                           \
-  V(LocalInterfaceMirrorImpl_invokeConstructor, 3)                             \
+  V(LocalClassMirrorImpl_invokeConstructor, 3)                                 \
   V(GrowableObjectArray_allocate, 2)                                           \
   V(GrowableObjectArray_getIndexed, 2)                                         \
   V(GrowableObjectArray_setIndexed, 3)                                         \

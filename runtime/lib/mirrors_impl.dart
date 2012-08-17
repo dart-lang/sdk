@@ -20,38 +20,31 @@ Map filterMap(Map old_map, bool filter(key, value)) {
 }
 
 class _LocalMirrorSystemImpl implements MirrorSystem {
-  _LocalMirrorSystemImpl(this.rootLibrary, this._libraries, this.isolate) {}
+  _LocalMirrorSystemImpl(this.libraries, this.isolate) {}
 
-  final LibraryMirror rootLibrary;
-  final Map<String, LibraryMirror> _libraries;
+  final Map<String, LibraryMirror> libraries;
   final IsolateMirror isolate;
 
-  Map<String, LibraryMirror> libraries() { return _libraries; }
+  TypeMirror _dynamicType = null;
 
-  Mirror mirrorOf(Object reflectee) {
-    return _Mirrors.mirrorOf(reflectee);
-  }
-
-  InterfaceMirror _sharedDynamic = null;
-
-  InterfaceMirror _dynamicMirror() {
-    if (_sharedDynamic === null) {
-      _sharedDynamic =
-          new _LocalInterfaceMirrorImpl(
+  TypeMirror get dynamicType() {
+    if (_dynamicType === null) {
+      _dynamicType =
+          new _LocalClassMirrorImpl(
               null, 'Dynamic', false, null, null, [], null, const {});
     }
-    return _sharedDynamic;
+    return _dynamicType;
   }
 
-  InterfaceMirror _sharedVoid = null;
+  TypeMirror _voidType = null;
 
-  InterfaceMirror _voidMirror() {
-    if (_sharedVoid === null) {
-      _sharedVoid =
-          new _LocalInterfaceMirrorImpl(
+  TypeMirror get voidType() {
+    if (_voidType === null) {
+      _voidType =
+          new _LocalClassMirrorImpl(
               null, 'void', false, null, null, [], null, const {});
     }
-    return _sharedVoid;
+    return _voidType;
   }
 
   String toString() {
@@ -60,6 +53,10 @@ class _LocalMirrorSystemImpl implements MirrorSystem {
 }
 
 abstract class _LocalMirrorImpl implements Mirror {
+  int hashCode() {
+    throw new NotImplementedException('Mirror.hashCode() not yet implemented');
+  }
+
   // Local mirrors always return the same MirrorSystem.  This field
   // is more interesting once we implement remote mirrors.
   MirrorSystem get mirrors() { return _Mirrors.currentMirrorSystem(); }
@@ -67,10 +64,18 @@ abstract class _LocalMirrorImpl implements Mirror {
 
 class _LocalIsolateMirrorImpl extends _LocalMirrorImpl
     implements IsolateMirror {
-  _LocalIsolateMirrorImpl(this.debugName) {}
+  _LocalIsolateMirrorImpl(this.debugName, this._rootLibrary) {}
 
   final String debugName;
   final bool isCurrent = true;
+
+  var _rootLibrary;
+  LibraryMirror get rootLibrary() {
+    if (_rootLibrary is _LazyLibraryMirror) {
+      _rootLibrary = _rootLibrary.resolve(mirrors);
+    }
+    return _rootLibrary;
+  }
 
   String toString() {
     return "IsolateMirror on '$debugName'";
@@ -217,19 +222,19 @@ String _dartEscape(String str) {
 class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
     implements InstanceMirror {
   _LocalInstanceMirrorImpl(ref,
-                           this._class,
+                           this._type,
                            this._reflectee) : super(ref) {}
 
-  var _class;
-  InterfaceMirror getClass() {
-    if (_class is _LazyInterfaceMirror) {
-      _class = _class.resolve(mirrors);
+  var _type;
+  ClassMirror get type() {
+    if (_type is _LazyClassMirror) {
+      _type = _type.resolve(mirrors);
     }
-    return _class;
+    return _type;
   }
 
   // LocalInstanceMirrors always reflect local instances
-  bool hasReflectee = true; 
+  bool hasReflectee = true;
 
   var _reflectee;
   get reflectee() => _reflectee;
@@ -242,7 +247,7 @@ class _LocalInstanceMirrorImpl extends _LocalObjectMirrorImpl
         return "InstanceMirror on <$_reflectee>";
       }
     } else {
-      return "InstanceMirror on instance of '${getClass().simpleName}'";
+      return "InstanceMirror on instance of '${type.simpleName}'";
     }
   }
 }
@@ -281,44 +286,45 @@ class _LocalClosureMirrorImpl extends _LocalInstanceMirrorImpl
   }
 
   Future<ObjectMirror> findInContext(String name) {
-    throw "asYetUnimplemented";
+    throw new NotImplementedException(
+        'ClosureMirror.findInContext() not implemented');
   }
 
   static _apply(ref, positionalArguments)
       native 'LocalClosureMirrorImpl_apply';
 }
 
-class _LazyInterfaceMirror {
-  _LazyInterfaceMirror(this.libraryName, this.interfaceName) {}
+class _LazyClassMirror {
+  _LazyClassMirror(this.libraryName, this.interfaceName) {}
 
-  InterfaceMirror resolve(MirrorSystem mirrors) {
+  ClassMirror resolve(MirrorSystem mirrors) {
     if (libraryName === null) {
       if (interfaceName == 'Dynamic') {
-        return mirrors._dynamicMirror();
+        return mirrors.dynamicType();
       } else if (interfaceName == 'void') {
-        return mirrors._dynamicMirror();
+        return mirrors.voidType();
       } else {
         throw new NotImplementedException(
             "Mirror for type '$interfaceName' not implemented");
       }
     }
-    return mirrors.libraries()[libraryName].members()[interfaceName];
+    return mirrors.libraries[libraryName].members[interfaceName];
   }
 
   final String libraryName;
   final String interfaceName;
 }
 
-class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
-    implements InterfaceMirror {
-  _LocalInterfaceMirrorImpl(ref,
-                            this.simpleName,
-                            this.isClass,
-                            this._library,
-                            this._superclass,
-                            this._superinterfaces,
-                            this._defaultFactory,
-                            this._members) : super(ref) {}
+class _LocalClassMirrorImpl extends _LocalObjectMirrorImpl
+    implements ClassMirror {
+  _LocalClassMirrorImpl(ref,
+                        this.simpleName,
+                        this.isClass,
+                        this._library,
+                        this._superclass,
+                        this._superinterfaces,
+                        this._defaultFactory,
+                        this.members) : super(ref) {}
 
   final String simpleName;
   final bool isClass;
@@ -332,18 +338,18 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   var _superclass;
-  InterfaceMirror superclass() {
-    if (_superclass is _LazyInterfaceMirror) {
+  ClassMirror get superclass() {
+    if (_superclass is _LazyClassMirror) {
       _superclass = _superclass.resolve(mirrors);
     }
     return _superclass;
   }
 
   var _superinterfaces;
-  List<InterfaceMirror> superinterfaces() {
+  List<ClassMirror> get superinterfaces() {
     if (_superinterfaces.length > 0 &&
-        _superinterfaces[0] is _LazyInterfaceMirror) {
-      List<InterfaceMirror> resolved = new List<InterfaceMirror>();
+        _superinterfaces[0] is _LazyClassMirror) {
+      List<ClassMirror> resolved = new List<ClassMirror>();
       for (int i = 0; i < _superinterfaces.length; i++) {
         resolved.add(_superinterfaces[i].resolve(mirrors));
       }
@@ -353,37 +359,36 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   var _defaultFactory;
-  InterfaceMirror defaultFactory() {
-    if (_defaultFactory is _LazyInterfaceMirror) {
+  ClassMirror get defaultFactory() {
+    if (_defaultFactory is _LazyClassMirror) {
       _defaultFactory = _defaultFactory.resolve(mirrors);
     }
     return _defaultFactory;
   }
 
-  Map<String, InterfaceMirror> _members;
-  Map<String, InterfaceMirror> _methods = null;
-  Map<String, InterfaceMirror> _variables = null;
+  final Map<String, ClassMirror> members;
 
-  Map<String, Mirror> members() { return _members; }
+  Map<String, ClassMirror> _methods = null;
+  Map<String, ClassMirror> _variables = null;
 
-  Map<String, MethodMirror> methods() {
+  Map<String, MethodMirror> get methods() {
     if (_methods == null) {
-      _methods = filterMap(members(),
+      _methods = filterMap(members,
                            (key, value) => (value is MethodMirror));
     }
     return _methods;
   }
 
-  Map<String, VariableMirror> variables() {
+  Map<String, VariableMirror> get variables() {
     if (_variables == null) {
-      _variables = filterMap(members(),
+      _variables = filterMap(members,
                              (key, value) => (value is VariableMirror));
     }
     return _variables;
   }
 
   String toString() {
-    return "InterfaceMirror on '$simpleName'";
+    return "ClassMirror on '$simpleName'";
   }
 
   Future<InstanceMirror> newInstance(String constructorName,
@@ -408,14 +413,14 @@ class _LocalInterfaceMirrorImpl extends _LocalObjectMirrorImpl
   }
 
   static _invokeConstructor(ref, constructorName, positionalArguments)
-      native 'LocalInterfaceMirrorImpl_invokeConstructor';
+      native 'LocalClassMirrorImpl_invokeConstructor';
 }
 
 class _LazyLibraryMirror {
   _LazyLibraryMirror(this.libraryName) {}
 
   LibraryMirror resolve(MirrorSystem mirrors) {
-    return mirrors.libraries()[libraryName];
+    return mirrors.libraries[libraryName];
   }
 
   final String libraryName;
@@ -426,36 +431,35 @@ class _LocalLibraryMirrorImpl extends _LocalObjectMirrorImpl
   _LocalLibraryMirrorImpl(ref,
                           this.simpleName,
                           this.url,
-                          this._members) : super(ref) {}
+                          this.members) : super(ref) {}
 
   final String simpleName;
   final String url;
-  Map<String, InterfaceMirror> _members;
-  Map<String, InterfaceMirror> _classes = null;
-  Map<String, InterfaceMirror> _functions = null;
-  Map<String, InterfaceMirror> _variables = null;
+  final Map<String, ClassMirror> members;
 
-  Map<String, Mirror> members() { return _members; }
+  Map<String, ClassMirror> _classes = null;
+  Map<String, ClassMirror> _functions = null;
+  Map<String, ClassMirror> _variables = null;
 
-  Map<String, InterfaceMirror> classes() {
+  Map<String, ClassMirror> get classes() {
     if (_classes == null) {
-      _classes = filterMap(members(),
-                           (key, value) => (value is InterfaceMirror));
+      _classes = filterMap(members,
+                           (key, value) => (value is ClassMirror));
     }
     return _classes;
   }
 
-  Map<String, MethodMirror> functions() {
+  Map<String, MethodMirror> get functions() {
     if (_functions == null) {
-      _functions = filterMap(members(),
+      _functions = filterMap(members,
                              (key, value) => (value is MethodMirror));
     }
     return _functions;
   }
 
-  Map<String, VariableMirror> variables() {
+  Map<String, VariableMirror> get variables() {
     if (_variables == null) {
-      _variables = filterMap(members(),
+      _variables = filterMap(members,
                              (key, value) => (value is VariableMirror));
     }
     return _variables;
@@ -470,7 +474,7 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     implements MethodMirror {
   _LocalMethodMirrorImpl(this.simpleName,
                          this._owner,
-                         this._parameters,
+                         this.parameters,
                          this.isStatic,
                          this.isAbstract,
                          this.isGetter,
@@ -490,6 +494,8 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
     }
     return _owner;
   }
+
+  final List<ParameterMirror> parameters;
 
   bool get isTopLevel() {
     return owner is LibraryMirror;
@@ -511,9 +517,6 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
   final bool isRedirectingConstructor;
   final bool isFactoryConstructor;
 
-  List<ParameterMirror> _parameters;
-  List<ParameterMirror> parameters() => _parameters;
-
   String toString() {
     return "MethodMirror on '$simpleName'";
   }
@@ -522,9 +525,9 @@ class _LocalMethodMirrorImpl extends _LocalMirrorImpl
 class _LocalParameterMirrorImpl extends _LocalVariableMirrorImpl
     implements ParameterMirror {
   // TODO(rmacnak): Fill these mirrors will real information
-  _LocalParameterMirrorImpl(this.isOptional) 
+  _LocalParameterMirrorImpl(this.isOptional)
     : super(null, null, false, false) {}
-  
+
   final bool isOptional;
 
   TypeMirror get type() => null;
@@ -600,7 +603,7 @@ class _Mirrors {
       native 'Mirrors_makeLocalInstanceMirror';
 
   // Creates a new local mirror for some Object.
-  static InstanceMirror mirrorOf(Object reflectee) {
+  static InstanceMirror reflect(Object reflectee) {
     return makeLocalInstanceMirror(reflectee);
   }
 }
