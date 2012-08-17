@@ -2,27 +2,33 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-/**
- * Dart backend helper for converting program IR back to source code.
- */
-class Emitter {
+String emitCode(
+      Compiler compiler,
+      Unparser unparser,
+      Map<LibraryElement, String> imports,
+      Collection<Element> topLevelElements,
+      Map<ClassElement, Collection<Element>> classMembers) {
+  final sb = new StringBuffer();
+  final processedVariableLists = new Set<VariableListElement>();
 
-  final Compiler compiler;
-  final Map<Node, String> renames;
-  final Map<ClassElement, Collection<Element>> classMembers;
-  final StringBuffer sb;
-  final Set<VariableListElement> processedVariableLists;
-  Unparser unparser;
-
-  Emitter(this.compiler, this.renames, this.classMembers) :
-      sb = new StringBuffer(),
-      processedVariableLists = new Set<VariableListElement>() {
-    unparser = new Unparser.withRenamer((Node node) => renames[node]);
+  void outputElement(Element element) {
+    if (element is SynthesizedConstructorElement) return;
+    if (element.isField()) {
+      assert(element is VariableElement);
+      // Different VariableElement's may refer to the same VariableListElement.
+      // Output this list only once.
+      // TODO: only emit used variables.
+      VariableElement variableElement = element;
+      final variableList = variableElement.variables;
+      if (!processedVariableLists.contains(variableList)) {
+        processedVariableLists.add(variableList);
+        sb.add(unparser.unparse(variableList.parseNode(compiler)));
+      }
+    } else {
+      sb.add(unparser.unparse(element.parseNode(compiler)));
+    }
   }
 
-  /**
-   * Outputs given class element with selected inner elements.
-   */
   void outputClass(ClassElement classElement, Collection<Element> members) {
     ClassNode classNode = classElement.parseNode(compiler);
     // classElement.beginToken is 'class', 'interface', or 'abstract'.
@@ -58,42 +64,25 @@ class Emitter {
     sb.add('}');
   }
 
-  void outputElement(Element element) {
+  final libraries = compiler.libraries;
+  for (final uri in libraries.getKeys()) {
+    // Same library element may be a value for different uris as of now
+    // e.g., core libraryElement is a value for both keys 'dart:core'
+    // and full file name.  Only care about uris with dart scheme.
+    if (!uri.startsWith('dart:')) continue;
+    final lib = libraries[uri];
+    if (imports.containsKey(lib)) {
+      sb.add('#import("$uri", prefix: "${imports[lib]}");');
+    }
+  }
+
+  for (final element in topLevelElements) {
     if (element is ClassElement) {
       outputClass(element, classMembers[element]);
-      return;
-    }
-
-    if (element is SynthesizedConstructorElement) return;
-    if (element.isField()) {
-      assert(element is VariableElement);
-      // Different VariableElement's may refer to the same VariableListElement.
-      // Output this list only once.
-      // TODO: only emit used variables.
-      VariableElement variableElement = element;
-      final variableList = variableElement.variables;
-      if (!processedVariableLists.contains(variableList)) {
-        processedVariableLists.add(variableList);
-        sb.add(unparser.unparse(variableList.parseNode(compiler)));
-      }
     } else {
-      sb.add(unparser.unparse(element.parseNode(compiler)));
+      outputElement(element);
     }
   }
 
-  void outputImports(Map<LibraryElement, String> imports) {
-    final libraries = compiler.libraries;
-    for (final uri in libraries.getKeys()) {
-      // Same library element may be a value for different uris as of now
-      // e.g., core libraryElement is a value for both keys 'dart:core'
-      // and full file name.  Only care about uris with dart scheme.
-      if (!uri.startsWith('dart:')) continue;
-      final lib = libraries[uri];
-      if (imports.containsKey(lib)) {
-        sb.add('#import("$uri", prefix: "${imports[lib]}");');
-      }
-    }
-  }
-
-  String toString() => sb.toString();
+  return sb.toString();
 }

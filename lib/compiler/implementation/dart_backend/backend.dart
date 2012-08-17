@@ -122,11 +122,9 @@ class DartBackend extends Backend {
       sortedClassMembers[classElement] = sortedMembers;
     });
 
-    Emitter emitter = new Emitter(compiler, renames, sortedClassMembers);
-    emitter.outputImports(imports);
-    sortedTopLevels.forEach(emitter.outputElement);
-
-    compiler.assembledCode = emitter.toString();
+    final unparser = new Unparser.withRenamer((Node node) => renames[node]);
+    compiler.assembledCode = emitCode(
+        compiler, unparser, imports, sortedTopLevels, sortedClassMembers);
   }
 
   log(String message) => compiler.log('[DartBackend] $message');
