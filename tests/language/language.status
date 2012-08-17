@@ -44,8 +44,6 @@ closure_with_super_send_test: Fail # Issue 3197.
 super_closure_test: Fail # Issue 3197.
 parameter_initializer6_negative_test: Fail # Issue 3502
 
-prefix_core_test: Fail # Issue 3638.
-
 fauxverride_test/none: Fail # Issue 3778.
 
 bad_override_test/01: Fail # Issue 3859.
@@ -147,7 +145,7 @@ string_escape1_negative_test: Skip
 *: Skip
 
 [ $browser ]
-prefix_core_test: Fail # Issue 2264.
+
 
 [ $arch == simarm ]
 *: Skip
@@ -247,7 +245,6 @@ field_override_test/01: Fail
 field_override_test/02: Fail
 field_override_test/none: Fail
 gc_test: Fail
-prefix_core_test: Fail
 super_closure_test: Fail
 super_field_access_test: Fail
 super_first_constructor_test: Fail
