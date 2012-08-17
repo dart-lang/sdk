@@ -291,7 +291,11 @@ class DisassemblerX64 : public ValueObject {
   DisassemblerX64(char* buffer, intptr_t buffer_size)
       : buffer_(buffer),
         buffer_size_(buffer_size),
-        buffer_pos_(0) {
+        buffer_pos_(0),
+        rex_(0),
+        operand_size_(0),
+        group_1_prefix_(0),
+        byte_size_operand_(false) {
     buffer_[buffer_pos_] = '\0';
   }
 
@@ -398,7 +402,7 @@ class DisassemblerX64 : public ValueObject {
   int MemoryFPUInstruction(int escape_opcode, int regop, uint8_t* modrm_start);
   int RegisterFPUInstruction(int escape_opcode, uint8_t modrm_byte);
 
-  bool DecodeInstructionType(const InstructionDesc& idesc, uint8_t** data);
+  bool DecodeInstructionType(uint8_t** data);
 
   void UnimplementedInstruction() {
     AppendToBuffer("'Unimplemented Instruction'");
@@ -1037,9 +1041,29 @@ int DisassemblerX64::RegisterFPUInstruction(int escape_opcode,
 
 
 // TODO(srdjan): Should we add a branch hint argument?
-bool DisassemblerX64::DecodeInstructionType(const InstructionDesc& idesc,
-                                            uint8_t** data) {
-  uint8_t current = **data;
+bool DisassemblerX64::DecodeInstructionType(uint8_t** data) {
+  uint8_t current;
+
+  // Scan for prefixes.
+  while (true) {
+    current = **data;
+    if (current == OPERAND_SIZE_OVERRIDE_PREFIX) {  // Group 3 prefix.
+      operand_size_ = current;
+    } else if ((current & 0xF0) == 0x40) {  // REX prefix.
+      setRex(current);
+      // TODO(srdjan): Should we enable printing of REX.W?
+      // if (rex_w()) AppendToBuffer("REX.W ");
+    } else if ((current & 0xFE) == 0xF2) {  // Group 1 prefix (0xF2 or 0xF3).
+      group_1_prefix_ = current;
+    } else {  // Not a prefix - an opcode.
+      break;
+    }
+    (*data)++;
+  }
+
+  const InstructionDesc& idesc = instruction_table.Get(current);
+  byte_size_operand_ = idesc.byte_size_operation;
+
   switch (idesc.type) {
     case ZERO_OPERANDS_INSTR:
       if (current >= 0xA4 && current <= 0xA7) {
@@ -1442,28 +1466,8 @@ const char* DisassemblerX64::TwoByteMnemonic(uint8_t opcode) {
 
 int DisassemblerX64::InstructionDecode(uword pc) {
   uint8_t* data = reinterpret_cast<uint8_t*>(pc);
-  uint8_t current;
 
-  // Scan for prefixes.
-  while (true) {
-    current = *data;
-    if (current == OPERAND_SIZE_OVERRIDE_PREFIX) {  // Group 3 prefix.
-      operand_size_ = current;
-    } else if ((current & 0xF0) == 0x40) {  // REX prefix.
-      setRex(current);
-      // TODO(srdjan): Should we enable printing of REX.W?
-      // if (rex_w()) AppendToBuffer("REX.W ");
-    } else if ((current & 0xFE) == 0xF2) {  // Group 1 prefix (0xF2 or 0xF3).
-      group_1_prefix_ = current;
-    } else {  // Not a prefix - an opcode.
-      break;
-    }
-    data++;
-  }
-
-  const InstructionDesc& idesc = instruction_table.Get(current);
-  byte_size_operand_ = idesc.byte_size_operation;
-  bool processed = DecodeInstructionType(idesc, &data);
+  const bool processed = DecodeInstructionType(&data);
 
   if (!processed) {
     switch (*data) {
