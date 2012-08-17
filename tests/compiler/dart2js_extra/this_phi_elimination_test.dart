@@ -5,7 +5,7 @@
 class A {
   foo(a) {
     while (false) {
-      // This call will make the builder want to put this as a phi.
+      // This call will make the builder want to put [this] as a phi.
       foo(0);
     }
     // This computation makes sure there will be a bailout version.
@@ -15,5 +15,5 @@ class A {
 
 main() {
   Expect.equals(42, new A().foo(0));
-  Expect.equals("42", new A().foo(""));
+  Expect.throws(() => new A().foo(""), (e) => e is NoSuchMethodException);
 }
