@@ -36,13 +36,7 @@ class TreeElementMapping implements TreeElements {
 }
 
 class ResolverTask extends CompilerTask {
-  // Caches the elements of analyzed constructors to make them available
-  // for inlining in later tasks.
-  Map<FunctionElement, TreeElements> constructorElements;
-
-  ResolverTask(Compiler compiler)
-    : super(compiler),
-      constructorElements = new Map<FunctionElement, TreeElements>();
+  ResolverTask(Compiler compiler) : super(compiler);
 
   String get name() => 'Resolver';
 
@@ -112,10 +106,11 @@ class ResolverTask extends CompilerTask {
   TreeElements resolveMethodElement(FunctionElement element) {
     return compiler.withCurrentElement(element, () {
       bool isConstructor = element.kind === ElementKind.GENERATIVE_CONSTRUCTOR;
-      if (constructorElements.containsKey(element)) {
+      TreeElements elements =
+          compiler.enqueuer.resolution.getCachedElements(element);
+      if (elements !== null) {
         assert(isConstructor);
-        TreeElements elements = constructorElements[element];
-        if (elements !== null) return elements;
+        return elements;
       }
       FunctionExpression tree = element.parseNode(compiler);
       if (isConstructor) {
@@ -139,9 +134,6 @@ class ResolverTask extends CompilerTask {
       }
       visitBody(visitor, tree.body);
 
-      if (isConstructor) {
-        constructorElements[element] = visitor.mapping;
-      }
       return visitor.mapping;
     });
   }

@@ -939,6 +939,7 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
     buildInitializers(constructor, constructors, fieldValues);
     elements = oldElements;
   }
+
   /**
    * Run through the initializers and inline all field initializers. Recursively
    * inlines super initializers.
@@ -1033,8 +1034,6 @@ class SsaBuilder extends ResolvedVisitor implements Visitor {
       }
     });
 
-    final Map<FunctionElement, TreeElements> constructorElements =
-        compiler.resolver.constructorElements;
     List<FunctionElement> constructors = <FunctionElement>[functionElement];
 
     // Analyze the constructor and all referenced constructors and collect
