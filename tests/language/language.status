@@ -129,10 +129,14 @@ disable_privacy_test: Skip
 richards_test: Fail
 string_escape1_negative_test: Skip
 gc_test: Skip # Issue 1487
+import_core_no_prefix_test: Fail
 
+[ $runtime == dartium ]
+import_core_no_prefix_test: Fail
 
 [ $runtime == chrome ]
 string_escape1_negative_test: Skip
+import_core_no_prefix_test: Fail
 
 # TODO(jmesserly): now that we have a bot, we need to set up Opera testing.
 [ $runtime == opera ]
