@@ -305,24 +305,24 @@ def main():
   args, positional = parser.parse_args()
 
   if positional[0] == 'dartium':
-    if args.revision < 4285:
+    if args.revision and args.revision < 4285:
       return too_early_error()
     get_dartium_revision('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
                          DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PATTERN,
                          args.revision)
   elif positional[0] == 'chromedriver':
-    if args.revision < 7823:
+    if args.revision and args.revision < 7823:
       return too_early_error()
     get_dartium_revision('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
                          CHROMEDRIVER_LATEST_PATTERN,
                          CHROMEDRIVER_PERMANENT_PATTERN, args.revision)
   elif positional[0] == 'sdk':
-    if args.revision < 9761:
+    if args.revision and args.revision < 9761:
       return too_early_error()
     get_sdk_revision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)
   elif positional[0] == 'drt':
-    if args.revision < 5342:
+    if args.revision and args.revision < 5342:
       return too_early_error()
     get_dartium_revision('DumpRenderTree', DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
