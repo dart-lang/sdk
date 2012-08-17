@@ -852,8 +852,7 @@ class FunctionElement extends Element {
 
   bool isInstanceMember() {
     return isMember()
-           && kind != ElementKind.GENERATIVE_CONSTRUCTOR
-           && !modifiers.isFactory()
+           && !isConstructor()
            && !modifiers.isStatic();
   }
 

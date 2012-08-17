@@ -238,7 +238,7 @@ class JavaScriptBackend extends Backend {
       // of the field is determined by the assignments in the constructor
       // body.
       var constructors = classElement.constructors;
-      if (constructors.head !== null && constructors.tail === null) {
+      if (constructors.head !== null && constructors.tail.isEmpty()) {
         return fieldConstructorSetters[classElement][field];
       } else {
         return HType.UNKNOWN;
