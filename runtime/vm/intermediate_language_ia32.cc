@@ -280,19 +280,23 @@ LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
 
 
 static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
-                                       EqualityCompareComp* comp) {
+                                       intptr_t deopt_id,
+                                       intptr_t token_pos,
+                                       intptr_t try_index,
+                                       Token::Kind kind,
+                                       const LocationSummary& locs) {
   compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 comp->deopt_id(),
-                                 comp->token_pos(),
-                                 comp->try_index());
+                                 deopt_id,
+                                 token_pos,
+                                 try_index);
   const String& operator_name = String::ZoneHandle(Symbols::New("=="));
   const int kNumberOfArguments = 2;
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
 
   Label done, false_label, true_label;
-  Register left = comp->locs()->in(0).reg();
-  Register right = comp->locs()->in(1).reg();
+  Register left = locs.in(0).reg();
+  Register right = locs.in(1).reg();
   __ popl(right);
   __ popl(left);
   const Immediate raw_null =
@@ -306,30 +310,29 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   __ Bind(&check_identity);
   __ cmpl(left, right);
   __ j(EQUAL, &true_label);
-  if (comp->kind() == Token::kEQ) {
+  if (kind == Token::kEQ) {
     __ LoadObject(EAX, compiler->bool_false());
     __ jmp(&done);
     __ Bind(&true_label);
     __ LoadObject(EAX, compiler->bool_true());
     __ jmp(&done);
   } else {
-    ASSERT(comp->kind() == Token::kNE);
+    ASSERT(kind == Token::kNE);
     __ jmp(&false_label);
   }
 
   __ Bind(&instance_call);
   __ pushl(left);
   __ pushl(right);
-  compiler->GenerateInstanceCall(comp->deopt_id(),
-                                 comp->token_pos(),
-                                 comp->try_index(),
+  compiler->GenerateInstanceCall(deopt_id,
+                                 token_pos,
+                                 try_index,
                                  operator_name,
                                  kNumberOfArguments,
                                  kNoArgumentNames,
                                  kNumArgumentsChecked,
-                                 comp->locs()->stack_bitmap());
-  ASSERT(comp->locs()->out().reg() == EAX);
-  if (comp->kind() == Token::kNE) {
+                                 locs.stack_bitmap());
+  if (kind == Token::kNE) {
     // Negate the condition: true label returns false and vice versa.
     __ CompareObject(EAX, compiler->bool_true());
     __ j(EQUAL, &true_label, Assembler::kNearJump);
@@ -658,7 +661,13 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
     Register right = locs()->in(1).reg();
     __ pushl(left);
     __ pushl(right);
-    EmitEqualityAsInstanceCall(compiler, this);
+    EmitEqualityAsInstanceCall(compiler,
+                               deopt_id(),
+                               token_pos(),
+                               try_index(),
+                               kind(),
+                               *locs());
+    ASSERT(locs()->out().reg() == EAX);
   }
 }
 
@@ -2151,25 +2160,32 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register right = locs()->in(1).reg();
   __ pushl(left);
   __ pushl(right);
-  // Not equal is always split into '==' and negate,
+  if ((kind() == Token::kNE) || (kind() == Token::kEQ)) {
+    EmitEqualityAsInstanceCall(compiler,
+                               deopt_id(),
+                               token_pos(),
+                               try_index(),
+                               Token::kEQ,  // kNE reverse occurs at branch.
+                               *locs());
+  } else {
+    const String& function_name =
+        String::ZoneHandle(Symbols::New(Token::Str(kind())));
+    compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
+                                   deopt_id(),
+                                   token_pos(),
+                                   try_index());
+    const intptr_t kNumArguments = 2;
+    const intptr_t kNumArgsChecked = 2;  // Type-feedback.
+    compiler->GenerateInstanceCall(deopt_id(),
+                                   token_pos(),
+                                   try_index(),
+                                   function_name,
+                                   kNumArguments,
+                                   Array::ZoneHandle(),  // No optional args.
+                                   kNumArgsChecked,
+                                   locs()->stack_bitmap());
+  }
   Condition branch_condition = (kind() == Token::kNE) ? NOT_EQUAL : EQUAL;
-  Token::Kind call_kind = (kind() == Token::kNE) ? Token::kEQ : kind();
-  const String& function_name =
-      String::ZoneHandle(Symbols::New(Token::Str(call_kind)));
-  compiler->AddCurrentDescriptor(PcDescriptors::kDeopt,
-                                 deopt_id(),
-                                 token_pos(),
-                                 try_index());
-  const intptr_t kNumArguments = 2;
-  const intptr_t kNumArgsChecked = 2;  // Type-feedback.
-  compiler->GenerateInstanceCall(deopt_id(),
-                                 token_pos(),
-                                 try_index(),
-                                 function_name,
-                                 kNumArguments,
-                                 Array::ZoneHandle(),  // No optional arguments.
-                                 kNumArgsChecked,
-                                 locs()->stack_bitmap());
   __ CompareObject(EAX, compiler->bool_true());
   EmitBranchOnCondition(compiler, branch_condition);
 }

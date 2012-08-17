@@ -435,10 +435,8 @@ Language/13_Types/4_Interface_Types_A12_t12: Fail # Expect.isFalse(true) fails.
 Language/13_Types/4_Interface_Types_A12_t16: Fail # Expect.isFalse(true) fails.
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Expect/throws_A02_t01: Fail # reason (sdsds sd dsf) not mentioned in ExpectException message (Expect.isTrue(false) fails.)
-LibTest/core/Expect/equals_A01_t03: Fail # not following the spec and expects the user-defined equality operator
-                                         # to be called when comparing for equality with null.
-LibTest/core/Expect/notEquals_A01_t03: Fail # not following the spec and expects the user-defined equality operator
-                                            # to be called when comparing for equality with null.
+LibTest/core/Expect/equals_A01_t03: Fail  # Issue co19 - 178
+LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
 LibTest/core/Math/parseDouble_A02_t01: Fail # Expect.fail('BadNumberFormatException is expected')
 LibTest/core/Queue/iterator_A01_t01: Fail # Expect.isFalse(true) fails.
 LibTest/core/RegExp/Pattern_semantics/firstMatch_CharacterEscape_A06_t02: Fail # IllegalJSRegExpException: '\c(' 'SyntaxError: Invalid regular expression: /\c(/: Unterminated group'

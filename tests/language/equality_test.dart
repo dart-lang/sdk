@@ -40,6 +40,14 @@ tests() {
   Expect.isTrue(death() != nullFn());
   Expect.isTrue(nullFn() != death());
   Expect.isFalse(nullFn() != nullFn());
+
+  if (death() == nullFn()) {
+    throw "failed";
+  }
+  if (death() != nullFn()) {
+  } else {
+    throw "failed";
+  }
 }
 
 main() {

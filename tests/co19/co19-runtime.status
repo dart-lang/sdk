@@ -98,6 +98,8 @@ LibTest/core/Date/Date.fromEpoch_A01_t02: Fail # Issue 445
 LibTest/core/Date/Date.fromString_A03_t01: Fail # Issue co19 - 121
 LibTest/core/Date/Date_A01_t01: Fail # Issue 445
 LibTest/core/Expect/throws_A02_t01: Fail # Issue co19 - 42
+LibTest/core/Expect/notEquals_A01_t03: Fail # Issue co19 - 178
+LibTest/core/Expect/equals_A01_t03: Fail # Issue co19 - 178
 LibTest/core/Match/operator_subscript_A01_t01: Fail
 LibTest/core/Math/pow_A01_t01: Fail  # Issue co19 - 44
 LibTest/core/Math/pow_A11_t01: Fail  # Issue 449
@@ -498,8 +500,6 @@ Language/13_Types/7_Type_Void_A04_t03: Fail # co19 issue 158
 Language/13_Types/7_Type_Void_A04_t04: Fail # co19 issue 158
 Language/13_Types/7_Type_Void_A04_t05: Fail # co19 issue 158
 Language/07_Classes/4_Instance_Variables_A02_t06: Fail # type error
-LibTest/core/Expect/notEquals_A01_t03: Fail # Looking at it right now (srdjan).
-LibTest/core/Expect/equals_A01_t03: Fail # Looking at it right now (srdjan).
 
 
 [ $runtime == vm && $mode == debug && $unchecked ]
