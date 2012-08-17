@@ -299,6 +299,36 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
   const Array& kNoArgumentNames = Array::Handle();
   const int kNumArgumentsChecked = 2;
 
+  Label done, false_label, true_label;
+  Register left = comp->locs()->in(0).reg();
+  Register right = comp->locs()->in(1).reg();
+  __ popq(right);
+  __ popq(left);
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label check_identity, instance_call;
+  __ cmpq(right, raw_null);
+  __ j(EQUAL, &check_identity, Assembler::kNearJump);
+  __ cmpq(left, raw_null);
+  __ j(NOT_EQUAL, &instance_call, Assembler::kNearJump);
+
+  __ Bind(&check_identity);
+  __ cmpq(left, right);
+  __ j(EQUAL, &true_label);
+  if (comp->kind() == Token::kEQ) {
+    __ LoadObject(RAX, compiler->bool_false());
+    __ jmp(&done);
+    __ Bind(&true_label);
+    __ LoadObject(RAX, compiler->bool_true());
+    __ jmp(&done);
+  } else {
+    ASSERT(comp->kind() == Token::kNE);
+    __ jmp(&false_label);
+  }
+
+  __ Bind(&instance_call);
+  __ pushq(left);
+  __ pushq(right);
   compiler->GenerateInstanceCall(comp->deopt_id(),
                                  comp->token_pos(),
                                  comp->try_index(),
@@ -309,15 +339,16 @@ static void EmitEqualityAsInstanceCall(FlowGraphCompiler* compiler,
                                  comp->locs()->stack_bitmap());
   ASSERT(comp->locs()->out().reg() == RAX);
   if (comp->kind() == Token::kNE) {
-    Label done, false_label;
+    // Negate the condition: true label returns false and vice versa.
     __ CompareObject(RAX, compiler->bool_true());
-    __ j(EQUAL, &false_label, Assembler::kNearJump);
+    __ j(EQUAL, &true_label, Assembler::kNearJump);
+    __ Bind(&false_label);
     __ LoadObject(RAX, compiler->bool_true());
     __ jmp(&done, Assembler::kNearJump);
-    __ Bind(&false_label);
+    __ Bind(&true_label);
     __ LoadObject(RAX, compiler->bool_false());
-    __ Bind(&done);
   }
+  __ Bind(&done);
 }
 
 
@@ -433,17 +464,25 @@ static void EmitCheckedStrictEqual(FlowGraphCompiler* compiler,
                                         right);
   __ testq(left, Immediate(kSmiTagMask));
   __ j(ZERO, deopt);
+  // 'left' is not Smi.
+  const Immediate raw_null =
+      Immediate(reinterpret_cast<intptr_t>(Object::null()));
+  Label identity_compare;
+  __ cmpq(right, raw_null);
+  __ j(EQUAL, &identity_compare);
+  __ cmpq(left, raw_null);
+  __ j(EQUAL, &identity_compare);
+
   __ LoadClassId(temp, left);
-  Label done;
   for (intptr_t i = 0; i < ic_data.NumberOfChecks(); i++) {
     __ cmpq(temp, Immediate(ic_data.GetReceiverClassIdAt(i)));
     if (i == (ic_data.NumberOfChecks() - 1)) {
       __ j(NOT_EQUAL, deopt);
     } else {
-      __ j(EQUAL, &done);
+      __ j(EQUAL, &identity_compare);
     }
   }
-  __ Bind(&done);
+  __ Bind(&identity_compare);
   __ cmpq(left, right);
   if (branch == NULL) {
     Label done, is_equal;
@@ -481,10 +520,13 @@ static void EmitGenericEqualityCompare(FlowGraphCompiler* compiler,
   Register right = locs.in(1).reg();
   const Immediate raw_null =
       Immediate(reinterpret_cast<intptr_t>(Object::null()));
-  Label done, non_null_compare;
+  Label done, identity_compare, non_null_compare;
+  __ cmpq(right, raw_null);
+  __ j(EQUAL, &identity_compare, Assembler::kNearJump);
   __ cmpq(left, raw_null);
   __ j(NOT_EQUAL, &non_null_compare, Assembler::kNearJump);
   // Comparison with NULL is "===".
+  __ Bind(&identity_compare);
   __ cmpq(left, right);
   Condition cond = TokenKindToSmiCondition(kind);
   if (branch != NULL) {
@@ -600,11 +642,13 @@ static void EmitDoubleComparisonOp(FlowGraphCompiler* compiler,
 
 void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   if (receiver_class_id() == kSmiCid) {
+    // Deoptimizes if both arguments not Smi.
     EmitSmiComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
                         deopt_id(), token_pos(), try_index());
     return;
   }
   if (receiver_class_id() == kDoubleCid) {
+    // Deoptimizes if both arguments are Smi, or if none is Double or Smi.
     EmitDoubleComparisonOp(compiler, *locs(), kind(), NULL,  // No branch.
                            deopt_id(), token_pos(), try_index());
     return;
