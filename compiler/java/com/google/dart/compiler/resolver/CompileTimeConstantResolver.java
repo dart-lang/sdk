@@ -7,6 +7,7 @@ package com.google.dart.compiler.resolver;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.dart.compiler.DartCompilerContext;
 import com.google.dart.compiler.ast.DartBlock;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -209,6 +210,12 @@ public class CompileTimeConstantResolver {
         super.visitBlock(body);
       }
       return null;
+    }
+    
+    @Override
+    public Element visitCase(DartCase node) {
+      resolveConstantExpression(node.getExpr());
+      return super.visitCase(node);
     }
 
     @Override

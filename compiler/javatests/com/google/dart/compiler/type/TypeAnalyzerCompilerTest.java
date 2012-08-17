@@ -277,13 +277,18 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
 
   /**
    * It is a compile-time error if the values of the case expressions are not compile-time
-   * constants, of type int or String.
+   * constants.
    * <p>
-   * http://code.google.com/p/dart/issues/detail?id=3528
+   * http://code.google.com/p/dart/issues/detail?id=4553
    */
-  public void test_switchExpression_case_notIntString() throws Exception {
+  public void test_switchExpression_case_anyConst() throws Exception {
     AnalyzeLibraryResult libraryResult = analyzeLibrary(
         "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A();",
+        "}",
+        "final A CONST_1 = const A();",
+        "final A CONST_2 = const A();",
         "foo(var v) {",
         "  switch (v) {",
         "    case 0: break;",
@@ -294,11 +299,59 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         "  switch (v) {",
         "    case 0.0: break;",
         "  }",
+        "  switch (v) {",
+        "    case CONST_1: break;",
+        "    case CONST_2: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(libraryResult.getErrors());
+  }
+
+  /**
+   * It is a compile-time error if the values of the case expressions are not compile-time
+   * constants.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4553
+   */
+  public void test_switchExpression_case_notConst() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "foo(var v) {",
+        "  A notConst = new A();",
+        "  switch (v) {",
+        "    case notConst: break;",
+        "  }",
         "}",
         "");
     assertErrors(
         libraryResult.getErrors(),
-        errEx(TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, 10, 10, 3));
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 6, 10, 8));
+  }
+  
+  /**
+   * It is a compile-time error if the class C implements the operator ==.
+   * <p>
+   * http://code.google.com/p/dart/issues/detail?id=4553
+   */
+  public void test_switchExpression_case_hasOperatorEquals() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class C {",
+        "  const C();",
+        "  operator equals(other) => false;",
+        "}",
+        "const C CONST = const C();",
+        "foo(var v) {",
+        "  switch (v) {",
+        "    case CONST: break;",
+        "  }",
+        "}",
+        "");
+    assertErrors(
+        libraryResult.getErrors(),
+        errEx(TypeErrorCode.CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS, 9, 10, 5));
   }
 
   /**

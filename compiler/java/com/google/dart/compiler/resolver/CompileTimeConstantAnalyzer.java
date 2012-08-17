@@ -14,6 +14,7 @@ import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartArrayLiteral;
 import com.google.dart.compiler.ast.DartBinaryExpression;
 import com.google.dart.compiler.ast.DartBooleanLiteral;
+import com.google.dart.compiler.ast.DartCase;
 import com.google.dart.compiler.ast.DartClass;
 import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartDoubleLiteral;
@@ -680,6 +681,12 @@ public class CompileTimeConstantAnalyzer {
         }
       }
       return super.visitInitializer(node);
+    }
+    
+    @Override
+    public Void visitCase(DartCase node) {
+      checkConstantExpression(node.getExpr());
+      return super.visitCase(node);
     }
 
     @Override

@@ -561,7 +561,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
         return null;
       }
       Member member = itype.lookupMember(methodName);
-      if (member == null) {
+      if (member == null && problemTarget != null) {
         if (typeChecksForInferredTypes || !receiver.isInferred()) {
           typeError(problemTarget, TypeErrorCode.INTERFACE_HAS_NO_METHOD_NAMED, receiver,
               methodName);
@@ -2164,11 +2164,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
             continue;
           }
           Type caseType = nonVoidTypeOf(caseExpr);
-          // should be "int" or "String"
-          if (!Objects.equal(caseType, intType) && !Objects.equal(caseType, stringType)) {
-            onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_SHOULD_BE_INT_STRING, caseType);
-            continue;
-          }
           // all "case expressions" should be same type
           if (sameCaseType == null) {
             sameCaseType = caseType;
@@ -2179,6 +2174,13 @@ public class TypeAnalyzer implements DartCompilationPhase {
           }
           // compatibility of "switch expression" and "case expression" types
           checkAssignable(caseExpr, switchType, caseType);
+          // should not have "operator =="
+          {
+            Member operator = lookupMember(caseType, methodNameForBinaryOperator(Token.EQ), null);
+            if (operator != null) {
+              onError(caseExpr, TypeErrorCode.CASE_EXPRESSION_TYPE_SHOULD_NOT_HAVE_EQUALS, caseType);
+            }
+          }
         }
       }
       return voidType;
