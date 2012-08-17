@@ -1311,6 +1311,13 @@ class Elements {
   }
 
   static bool isStaticOrTopLevel(Element element) {
+    // TODO(ager): This should not be necessary when patch support has
+    // been reworked.
+    if (element != null
+        && element.modifiers != null
+        && element.modifiers.isStatic()) {
+      return true;
+    }
     return (element != null)
            && !element.isInstanceMember()
            && !element.isPrefix()

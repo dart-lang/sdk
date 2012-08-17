@@ -32,7 +32,7 @@
             '<(PRODUCT_DIR)/dart2js',
             '<(PRODUCT_DIR)/dart2js.bat',
             '<!@(["python", "../../tools/list_files.py", "\\.(css|ico|js|json|png|sh|txt|yaml|py)$", ".", "../../pkg/dartdoc"])',
-            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib", "../../runtime/lib", "../../runtime/bin"])',
+            '<!@(["python", "../../tools/list_files.py", "\\.dart$", "../../lib", "../../runtime/lib", "../../runtime/bin", "../../pkg/dartdoc"])',
           ],
           'outputs': [
             '<(PRODUCT_DIR)/api_docs/index.html',

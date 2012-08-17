@@ -244,8 +244,6 @@ class LibraryCompiler extends api.Compiler {
     world.forEach((WorkItem work) {
       withCurrentElement(work.element, () => work.run(this, world));
     });
-    //world.queueIsClosed = true;
-    assert(world.checkNoEnqueuedInvokedInstanceMethods());
   }
 
   String codegen(WorkItem work, Enqueuer world) {
@@ -1308,6 +1306,11 @@ class Dart2JsMethodMirror extends Dart2JsElementMirror
     var node = _function.parseNode(_diagnosticListener);
     if (node !== null) {
       var script = _function.getCompilationUnit().script;
+      if (_function.isPatched) {
+        // TODO(ager): This should not be necessary when patch
+        // support has been reworked.
+        script = _function.patch.getCompilationUnit().script;
+      }
       var span = system.compiler.spanFromNode(node, script.uri);
       return new Dart2JsLocation(script, span);
     }
