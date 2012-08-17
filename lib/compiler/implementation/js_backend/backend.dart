@@ -402,16 +402,16 @@ class JavaScriptBackend extends Backend {
   }
 
   /**
-   * Retreive the return type of the function [calee]. The type is optimistic
-   * in the sense that is is based on the compilation of [callee]. If [calee] is
-   * recompiled the return type might change to someting broader. For that
+   * Retreive the return type of the function [callee]. The type is optimistic
+   * in the sense that is is based on the compilation of [callee]. If [callee]
+   * is recompiled the return type might change to someting broader. For that
    * reason [caller] is registered for recompilation if this happens. If the
    * function [callee] has not yet been compiled the returned type is [null].
    */
   HType optimisticReturnTypesWithRecompilationOnTypeChange(
       FunctionElement caller, FunctionElement callee) {
-    returnInfo.putIfAbsent(calee, () => new ReturnInfo.unknownType());
-    ReturnInfo info = returnInfo[calee];
+    returnInfo.putIfAbsent(callee, () => new ReturnInfo.unknownType());
+    ReturnInfo info = returnInfo[callee];
     if (info.returnType != HType.UNKNOWN && caller != null) {
       info.addCompiledFunction(caller);
     }
