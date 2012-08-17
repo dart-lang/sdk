@@ -226,6 +226,53 @@ interface ClosureMirror extends InstanceMirror {
 }
 
 /**
+ * A [LibraryMirror] reflects a Dart language library, providing
+ * access to the variables, functions, classes, and interfaces of the
+ * library.
+ */
+interface LibraryMirror extends ObjectMirror {
+  /**
+   * The name of this library, as provided in the [#library] declaration.
+   */
+  final String simpleName;
+
+  /**
+   * The url of the library.
+   *
+   * TODO(turnidge): Document where this url comes from.  Will this
+   * value be sensible?
+   */
+  final String url;
+
+  /**
+   * An immutable map from from names to mirrors for all members in
+   * this library.
+   *
+   * The members of a library are its top-level classes, interfaces,
+   * functions, variables, getters, and setters.
+   */
+  final Map<String, Mirror> members;
+
+  /**
+   * An immutable map from names to mirrors for all class and
+   * interface declarations in this library.
+   */
+  final Map<String, ClassMirror> classes;
+
+  /**
+   * An immutable map from names to mirrors for all function
+   * declarations in this library.
+   */
+  final Map<String, MethodMirror> functions;
+
+  /**
+   * An immutable map from names to mirrors for all variable
+   * declarations in this library.
+   */
+  final Map<String, VariableMirror> variables;
+}
+
+/**
  * A [TypeMirror] reflects a Dart language class, interface, typedef
  * or type variable.
  */
@@ -299,53 +346,6 @@ interface ClassMirror extends TypeMirror, ObjectMirror {
   Future<InstanceMirror> newInstance(String constructorName,
                                 List<Object> positionalArguments,
                                 [Map<String,Object> namedArguments]);
-}
-
-/**
- * A [LibraryMirror] reflects a Dart language library, providing
- * access to the variables, functions, classes, and interfaces of the
- * library.
- */
-interface LibraryMirror extends ObjectMirror {
-  /**
-   * The name of this library, as provided in the [#library] declaration.
-   */
-  final String simpleName;
-
-  /**
-   * The url of the library.
-   *
-   * TODO(turnidge): Document where this url comes from.  Will this
-   * value be sensible?
-   */
-  final String url;
-
-  /**
-   * An immutable map from from names to mirrors for all members in
-   * this library.
-   *
-   * The members of a library are its top-level classes, interfaces,
-   * functions, variables, getters, and setters.
-   */
-  final Map<String, Mirror> members;
-
-  /**
-   * An immutable map from names to mirrors for all class and
-   * interface declarations in this library.
-   */
-  final Map<String, ClassMirror> classes;
-
-  /**
-   * An immutable map from names to mirrors for all function
-   * declarations in this library.
-   */
-  final Map<String, MethodMirror> functions;
-
-  /**
-   * An immutable map from names to mirrors for all variable
-   * declarations in this library.
-   */
-  final Map<String, VariableMirror> variables;
 }
 
 /**
@@ -441,31 +441,6 @@ interface MethodMirror {
 }
 
 /**
- * A [ParameterMirror] reflects a Dart formal parameter declaration.
- */
-interface ParameterMirror extends VariableMirror {
-  /**
-   * Returns the type of this parameter.
-   */
-  final TypeMirror type;
-
-  /**
-   * Returns the default value for this parameter.
-   */
-  final String defaultValue;
-
-  /**
-   * Returns true if this parameter has a default value.
-   */
-  final bool hasDefaultValue;
-
-  /**
-   * Returns true if this parameter is optional.
-   */
-  final bool isOptional;
-}
-
-/**
  * A [VariableMirror] reflects a Dart language variable declaration.
  */
 interface VariableMirror {
@@ -502,6 +477,30 @@ interface VariableMirror {
   final bool isFinal;
 }
 
+/**
+ * A [ParameterMirror] reflects a Dart formal parameter declaration.
+ */
+interface ParameterMirror extends VariableMirror {
+  /**
+   * Returns the type of this parameter.
+   */
+  final TypeMirror type;
+
+  /**
+   * Returns the default value for this parameter.
+   */
+  final String defaultValue;
+
+  /**
+   * Returns true if this parameter has a default value.
+   */
+  final bool hasDefaultValue;
+
+  /**
+   * Returns true if this parameter is optional.
+   */
+  final bool isOptional;
+}
 
 /**
  * When an error occurs during the mirrored execution of code, a
