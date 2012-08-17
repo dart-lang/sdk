@@ -37,10 +37,12 @@ class Printer implements NodeVisitor {
       lastAddedString = str;
     }
   }
+
   void outLn(String str) {
     out(str);
     lineOut();
   }
+
   void outIndent(String str) { indent(); out(str); }
   void outIndentLn(String str) { indent(); outLn(str); }
   void indent() {
@@ -752,13 +754,15 @@ class Printer implements NodeVisitor {
     if (parts.length != inputs.length + 1) {
       compiler.internalError('Wrong number of arguments for JS: $template');
     }
-    out("(");
+    // Save [atStatementBegin] because visiting the parts might change it.
+    bool beginStatement = atStatementBegin;
+    if (!beginStatement) out("(");
     out(parts[0]);
     for (int i = 0; i < inputs.length; i++) {
       visit(inputs[i]);
       out(parts[i + 1]);
     }
-    out(")");
+    if (!beginStatement) out(")");
   }
 
   visitLiteralStatement(LiteralStatement node) {
