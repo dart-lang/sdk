@@ -148,7 +148,7 @@ void testPostfix() {
 
   text = "++a[b]";
   // TODO(johnniwinther): SendSet generates the wrong end token in the following
-  // line. We should have [:testExpression(text):] instead of 
+  // line. We should have [:testExpression(text):] instead of
   // [:testExpression(text, "++a"):].
   node = testExpression(text, "++a");
   Expect.isNotNull(sendSet = node.asSendSet());
