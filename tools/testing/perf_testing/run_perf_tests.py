@@ -11,6 +11,7 @@ import os
 from os.path import dirname, abspath
 import pickle
 import platform
+import random
 import re
 import shutil
 import stat
@@ -58,7 +59,7 @@ class TestRunner(object):
     if outfile:
       mode = 'w'
       if append:
-        mode = 'a'
+        mode = 'a+'
       out = open(outfile, mode)
       if append:
         # Annoying Windows "feature" -- append doesn't actually append unless
@@ -94,15 +95,15 @@ class TestRunner(object):
           else:
             os.remove(to_remove)
 
-  def get_archive(archive_name):
+  def get_archive(self, archive_name):
     """Wrapper around the pulling down a specific archive from Google Storage.
     Adds a specific revision argument as needed.
     Returns: The stderr from running this command."""
     cmd = ['python', os.path.join(DART_REPO_LOC, 'tools', 'get_archive.py'),
            archive_name]
     if self.current_revision_num != -1:
-      cmd += ['-r', revision_num]
-    _, stderr = self.test.test_runner.run_cmd(cmd)
+      cmd += ['-r', self.current_revision_num]
+    _, stderr = self.run_cmd(cmd)
     return stderr
 
   def sync_and_build(self, suites, revision_num=''):
@@ -130,13 +131,13 @@ class TestRunner(object):
         os.path.join(DART_REPO_LOC, 'tools', 'testing', 'run_selenium.py'))
 
     if revision_num == '':
-      revision_num = search_for_revision(['svn', 'info'])
-      if revision_num == -1:
-        revision_num = search_for_revision(['git', 'svn', 'info'])
+      revision_num = search_for_revision()
 
     self.current_revision_num = revision_num
-    stderr = get_archive('sdk')
-    if not os.path.exists(get_archive_path) or 'InvalidUriError' in stderr:
+    stderr = self.get_archive('sdk')
+    if not os.path.exists(os.path.join(
+        DART_REPO_LOC, 'tools', 'get_archive.py')) \
+        or 'InvalidUriError' in stderr:
       # Couldn't find the SDK on Google Storage. Build it locally.
 
       # On Windows, the output directory is marked as "Read Only," which causes
@@ -175,17 +176,46 @@ class TestRunner(object):
       os.makedirs(dir_path)
       print 'Creating output directory ', dir_path
 
-  def has_new_code(self):
-    """Tests if there are any newer versions of files on the server."""
+  def has_interesting_code(self, past_revision_num=None):
+    """Tests if there are any versions of files that might change performance
+    results on the server."""
     if not os.path.exists(DART_REPO_LOC):
       return True
     os.chdir(DART_REPO_LOC)
+    no_effect = ['client', 'compiler', 'editor', 'pkg', 'samples', 'tests',
+                 'third_party', 'tools', 'utils']
     # Pass 'p' in if we have a new certificate for the svn server, we want to
     # (p)ermanently accept it.
-    results, _ = self.run_cmd(['svn', 'st', '-u'], std_in='p\r\n')
+    if past_revision_num:
+      # TODO(efortuna): This assumes you're using svn. Have a git fallback as
+      # well.
+      results, _ = self.run_cmd(['svn', 'log', '-v', '-r',
+                                 str(past_revision_num)], std_in='p\r\n')
+      results = results.split('\n')
+      if len(results) <= 3:
+        results = []
+      else:
+        # Trim off the details about revision number and commit message. We're
+        # only interested in the files that are changed.
+        results = results[3:]
+        changed_files = []
+        for result in results:
+          if result == '':
+            break
+          changed_files += [result.replace('/branches/bleeding_edge/dart/', '')]
+        results = changed_files
+    else:
+      results, _ = self.run_cmd(['svn', 'st', '-u'], std_in='p\r\n')
+      results = results.split('\n')
     for line in results:
-      if '*' in line:
-        return True
+      tokens = line.split()
+      if past_revision_num or len(tokens) >= 3 and '*' in tokens[-3]:
+        # Loop through the changed files to see if it contains any files that
+        # are NOT listed in the no_effect list (directories not listed in
+        # the "no_effect" list are assumed to potentially affect performance.
+        if not reduce(lambda x, y: x or y, 
+            [tokens[-1].startswith(item) for item in no_effect], False):
+          return True
     return False
     
   def get_os_directory(self):
@@ -247,7 +277,7 @@ class TestRunner(object):
     success = True
     if not self.no_build and self.sync_and_build(suites, revision_num) == 1:
       return -1 # The build is broken.
-    
+
     for name in self.suite_names:
       for run in range(num_reruns):
         suites += [TestBuilder.make_test(name, self)]
@@ -373,9 +403,7 @@ class Tester(object):
       revision = get_dartium_revision()
       self.test.test_runner.run_cmd(['echo', 'Revision: ' + revision], outfile)
     else:
-      revision = search_for_revision(['svn', 'info'])
-      if revision == -1:
-        revision = search_for_revision(['git', 'svn', 'info'])
+      revision = search_for_revision()
       self.test.test_runner.run_cmd(['echo', 'Revision: ' + revision], outfile)
 
 
@@ -424,7 +452,7 @@ class Processor(object):
                                        revision_number, metric)
 
   def calculate_geometric_mean(self, platform, variant, svn_revision):
-    """Calculate the aggregate geometric mean for JS and frog benchmark sets,
+    """Calculate the aggregate geometric mean for JS and dart2js benchmark sets,
     given two benchmark dictionaries."""
     geo_mean = 0		
     if self.test.is_valid_combination(platform, variant):
@@ -498,7 +526,7 @@ class CommonBrowserTest(RuntimePerformanceTest):
       test_runner: Reference to the object that notifies us when to run."""
     super(CommonBrowserTest, self).__init__(
         self.name(), BrowserTester.get_browsers(False),
-        'browser', ['js', 'frog', 'dart2js'],
+        'browser', ['js', 'dart2js'],
         self.get_standalone_benchmarks(), test_runner, 
         self.CommonBrowserTester(self),
         self.CommonBrowserFileProcessor(self))
@@ -665,7 +693,7 @@ class DromaeoTester(Tester):
 
   @staticmethod
   def get_dromaeo_versions():
-    return ['js', 'dart2js_dom', 'dart2js_html']
+    return ['js', 'dart2js_html']
 
 
 class DromaeoTest(RuntimePerformanceTest):
@@ -707,7 +735,6 @@ class DromaeoTest(RuntimePerformanceTest):
       """
       current_dir = os.getcwd()
       self.test.test_runner.get_archive('chromedriver')
-      self.test.test_runner.run_cmd(['python', os.path.join(
       path = os.environ['PATH'].split(os.pathsep)
       orig_chromedriver_path = os.path.join(DART_REPO_LOC, 'tools', 'testing',
                                             'orig-chromedriver')
@@ -848,248 +875,10 @@ class DromaeoTest(RuntimePerformanceTest):
       self.calculate_geometric_mean(browser, version, revision_num)
       return upload_success
 
-
-class DromaeoSizeTest(Test):
-  """Run tests to determine the compiled file output size of Dromaeo."""
-  def __init__(self, test_runner):
-    super(DromaeoSizeTest, self).__init__(
-        self.name(),
-        ['commandline'], ['dart', 'frog_dom', 'frog_html',
-         'frog_htmlidiomatic'],
-        DromaeoTester.DROMAEO_BENCHMARKS.keys(), test_runner, 
-        self.DromaeoSizeTester(self),
-        self.DromaeoSizeProcessor(self), extra_metrics=['sum'])
-  
-  @staticmethod
-  def name():
-    return 'dromaeo-size'
-
-
-  class DromaeoSizeTester(DromaeoTester):
-    def run_tests(self):
-      # Build tests.
-      dromaeo_path = os.path.join('samples', 'third_party', 'dromaeo')
-      current_path = os.getcwd()
-      os.chdir(dromaeo_path)
-      self.test.test_runner.run_cmd(
-          ['python', os.path.join('generate_dart2js_tests.py')])
-      self.test.test_runner.get_archive('dartium')
-      os.chdir(current_path)
-
-      self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
-          'tools', 'testing', 'perf_testing', self.test.result_folder_name,
-          self.test.result_folder_name + self.test.cur_time)
-      self.add_svn_revision_to_trace(self.test.trace_file)
-
-      variants = [
-          ('frog_dom', ''),
-          ('frog_html', '-html'),
-          ('frog_htmlidiomatic', '-htmlidiomatic')]
-
-      test_path = os.path.join(dromaeo_path, 'tests')
-      frog_path = os.path.join(test_path, 'frog')
-      total_size = {}
-      for (variant, _) in variants:
-        total_size[variant] = 0
-      total_dart_size = 0
-      for suite in DromaeoTester.DROMAEO_BENCHMARKS.keys():
-        dart_size = 0
-        try:
-          dart_size = os.path.getsize(os.path.join(test_path,
-                                                   'dom-%s.dart' % suite))
-        except OSError:
-          pass #If compilation failed, continue on running other tests.
-
-        total_dart_size += dart_size
-        self.test.test_runner.run_cmd(
-            ['echo', 'Size (dart, %s): %s' % (suite, str(dart_size))],
-            self.test.trace_file, append=True)
-
-        for (variant, suffix) in variants:
-          name = 'dom-%s%s.dart.js' % (suite, suffix)
-          js_size = 0
-          try:
-            # TODO(vsm): Strip comments at least.  Consider compression.
-            js_size = os.path.getsize(os.path.join(frog_path, name))
-          except OSError:
-            pass #If compilation failed, continue on running other tests.
-
-          total_size[variant] += js_size
-          self.test.test_runner.run_cmd(
-              ['echo', 'Size (%s, %s): %s' % (variant, suite, str(js_size))],
-              self.test.trace_file, append=True)
-
-      self.test.test_runner.run_cmd(
-          ['echo', 'Size (dart, %s): %s' % (total_dart_size,
-                                            self.test.extra_metrics[0])],
-          self.test.trace_file, append=True)
-      for (variant, _) in variants:
-        self.test.test_runner.run_cmd(
-            ['echo', 'Size (%s, %s): %s' % (variant, self.test.extra_metrics[0],
-                                            total_size[variant])],
-            self.test.trace_file, append=True)
-
-
-  class DromaeoSizeProcessor(Processor):
-    def process_file(self, afile, should_post_file):
-      """Pull all the relevant information out of a given tracefile.
-
-      Args:
-        afile: is the filename string we will be processing.
-      Returns: True if we successfully posted our data to storage."""
-      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
-          'testing', 'perf_testing'))
-      f = self.open_trace_file(afile, should_post_file)
-      tabulate_data = False
-      revision_num = 0
-      revision_pattern = r'Revision: (\d+)'
-      result_pattern = r'Size \((\w+), ([a-zA-Z0-9-]+)\): (\d+)'
-
-      upload_success = True
-      for line in f.readlines():
-        rev = re.match(revision_pattern, line.strip())
-        if rev:
-          revision_num = int(rev.group(1))
-          continue
-
-        result = re.match(result_pattern, line.strip())
-        if result:
-          variant = result.group(1)
-          metric = result.group(2)
-          num = result.group(3)
-          if num.find('.') == -1:
-            num = int(num)
-          else:
-            num = float(num)
-          self.test.values_dict['commandline'][variant][metric] += [num]
-          self.test.revision_dict['commandline'][variant][metric] += \
-              [revision_num]
-          if not self.test.test_runner.no_upload and should_post_file:
-            upload_success = upload_success and self.report_results(
-                metric, num, 'commandline', variant, revision_num,
-                self.get_score_type(metric))
-          else:
-            upload_success = False
-
-      f.close()
-      return upload_success
-    
-    def get_score_type(self, metric):
-      return self.CODE_SIZE
-
-
-class CompileTimeAndSizeTest(Test):
-  """Run tests to determine how long frogc takes to compile, and the compiled
-  file output size of some benchmarking files.
-  Note: This test is now 'deprecated' since frog is no longer in the sdk. We
-  just return the last numbers found for frog."""
-  def __init__(self, test_runner):
-    """Reference to the test_runner object that notifies us when to begin
-    testing."""
-    super(CompileTimeAndSizeTest, self).__init__(
-        self.name(), ['commandline'], ['dart2js'], ['swarm'],
-        test_runner, self.CompileTester(self),
-        self.CompileProcessor(self))
-    self.dart_compiler = os.path.join(
-        DART_REPO_LOC, utils.GetBuildRoot(utils.GuessOS(),
-        'release', 'ia32'), 'dart-sdk', 'bin', 'dart2js')
-    _suffix = ''
-    if platform.system() == 'Windows':
-      _suffix = '.exe'
-    self.failure_threshold = {'swarm' : 100}
-
-  @staticmethod
-  def name():
-    return 'time-size'
-
-  class CompileTester(Tester):
-    def run_tests(self):
-      self.test.trace_file = os.path.join(TOP_LEVEL_DIR,
-          'tools', 'testing', 'perf_testing', 
-          self.test.result_folder_name,
-          self.test.result_folder_name + self.test.cur_time)
-
-      self.add_svn_revision_to_trace(self.test.trace_file)
-
-      self.test.test_runner.run_cmd(
-          ['./xcodebuild/ReleaseIA32/dart-sdk/dart2js', '-c', '-o',
-           'swarm-result', os.path.join('samples', 'swarm', 'swarm.dart')])
-      swarm_size = 0
-      try:
-        swarm_size = os.path.getsize('swarm-result')
-      except OSError:
-        pass #If compilation failed, continue on running other tests.
-
-      self.test.test_runner.run_cmd(
-          ['echo', '%d Generated checked swarm size' % swarm_size],
-          self.test.trace_file, append=True)
-
-  class CompileProcessor(Processor):
-    def process_file(self, afile, should_post_file):
-      """Pull all the relevant information out of a given tracefile.
-
-      Args:
-        afile: is the filename string we will be processing.
-      Returns: True if we successfully posted our data to storage."""
-      os.chdir(os.path.join(TOP_LEVEL_DIR, 'tools',
-          'testing', 'perf_testing'))
-      f = self.open_trace_file(afile, should_post_file)
-      tabulate_data = False
-      revision_num = 0
-      upload_success = True
-      for line in f.readlines():
-        tokens = line.split()
-        if 'Revision' in line:
-          revision_num = int(line.split()[1])
-        else:
-          for metric in self.test.values_list:
-            if metric in line:
-              num = tokens[0]
-              if num.find('.') == -1:
-                num = int(num)
-              else:
-                num = float(num)
-              self.test.values_dict['commandline']['dart2js'][metric] += [num]
-              self.test.revision_dict['commandline']['dart2js'][metric] += \
-                  [revision_num]
-              score_type = self.get_score_type(metric)
-              if not self.test.test_runner.no_upload and should_post_file:
-                if num < self.test.failure_threshold[metric]:
-                  num = 0
-                upload_success = upload_success and self.report_results(
-                    metric, num, 'commandline', 'dart2js', revision_num,
-                    score_type)
-              else:
-                upload_success = False
-      if revision_num != 0:
-        for metric in self.test.values_list:
-          try:
-            self.test.revision_dict['commandline']['dart2js'][metric].pop()
-            self.test.revision_dict['commandline']['dart2js'][metric] += \
-                [revision_num]
-            # Fill in 0 if compilation failed.
-            if self.test.values_dict['commandline']['dart2js'][metric][-1] < \
-                self.test.failure_threshold[metric]:
-              self.test.values_dict['commandline']['dart2js'][metric] += [0]
-              self.test.revision_dict['commandline']['dart2js'][metric] += \
-                  [revision_num]
-          except IndexError:
-            # We tried to pop from an empty list. This happens if the first
-            # trace file we encounter is incomplete.
-            pass
-
-      f.close()
-      return upload_success
-
-    def get_score_type(self, metric):
-      if 'Compiling' in metric or 'Bootstrapping' in metric:
-        return self.COMPILE_TIME
-      return self.CODE_SIZE
-
 class TestBuilder(object):
   """Construct the desired test object."""
   available_suites = dict((suite.name(), suite) for suite in [
-      CompileTimeAndSizeTest, CommonBrowserTest, DromaeoTest, DromaeoSizeTest])
+      CommonBrowserTest, DromaeoTest])
 
   @staticmethod
   def make_test(test_name, test_runner):
@@ -1099,15 +888,28 @@ class TestBuilder(object):
   def available_suite_names():
     return TestBuilder.available_suites.keys()
 
-def search_for_revision(svn_info_command):
-  p = subprocess.Popen(svn_info_command, stdout = subprocess.PIPE,
-                       stderr = subprocess.STDOUT,
-                       shell = (platform.system() == 'Windows'))
-  output, _ = p.communicate()
-  for line in output.split('\n'):
-    if 'Revision' in line:
-      return line.split()[1]
-  return -1
+def search_for_revision(directory = None):
+  """Find the current revision number in the desired directory. If directory is
+  None, find the revision number in the current directory."""
+  def find_revision(svn_info_command):
+    p = subprocess.Popen(svn_info_command, stdout = subprocess.PIPE,
+                         stderr = subprocess.STDOUT,
+                         shell = (platform.system() == 'Windows'))
+    output, _ = p.communicate()
+    for line in output.split('\n'):
+      if 'Revision' in line:
+        return int(line.split()[1])
+    return -1
+
+  cwd = os.getcwd()
+  if not directory:
+    directory = cwd
+  os.chdir(directory)
+  revision_num = int(find_revision(['svn', 'info']))
+  if revision_num == -1:
+    revision_num = int(find_revision(['git', 'svn', 'info']))
+  os.chdir(cwd)
+  return str(revision_num)
 
 def update_set_of_done_cls(revision_num=None):
   """Update the set of CLs that do not need additional performance runs.
@@ -1129,6 +931,86 @@ def update_set_of_done_cls(revision_num=None):
   f.close()
   return result_set
 
+def fill_in_back_history(results_set, runner):
+  """Fill in back history performance data. This is done one of two ways, with
+  equal probability of trying each way (falling back on the sequential version
+  as our data becomes more densely populated)."""
+  has_run_extra = False
+  revision_num = int(search_for_revision(DART_REPO_LOC))
+
+  def try_to_run_additional(revision_number):
+    """Determine the number of results we have stored for a particular revision
+    number, and if it is less than 10, run some extra tests.
+    Args: 
+      - revision_number: the revision whose performance we want to potentially
+        test.
+    Returns: True if we successfully ran some additional tests."""
+    if not runner.has_interesting_code(revision_number):
+      results_set = update_set_of_done_cls(revision_number)
+      return False
+    a_test = TestBuilder.make_test(runner.suite_names[0], runner)
+    benchmark_name = a_test.values_list[0]
+    platform_name = a_test.platform_list[0]
+    variant = a_test.values_dict[platform_name].keys()[0]
+    num_results = post_results.get_num_results(benchmark_name,
+        platform_name, variant, revision_number,
+        a_test.file_processor.get_score_type(benchmark_name))
+    if num_results < 10:
+      # Run at most two more times.
+      if num_results > 8:
+        reruns = 10 - num_results
+      else:
+        reruns = 2
+      run = runner.run_test_sequence(revision_num=str(revision_number),
+          num_reruns=reruns)
+    if num_results >= 10 or run == 0 and num_results + reruns >= 10:
+      results_set = update_set_of_done_cls(revision_number)
+    else:
+      return False
+    return True
+
+  if random.choice([True, False]):
+    # Select a random CL number, with greater likelihood of selecting a CL in
+    # the more recent history than the distant past (using a simplified weighted
+    # bucket algorithm). If that CL has less than 10 runs, run additional. If it
+    # already has 10 runs, look for another CL number that is not yet have all
+    # of its additional runs (do this up to 15 times).
+    tries = 0
+    # Select which "thousands bucket" we're going to run additional tests for.
+    bucket_size = 1000
+    thousands_list = range(1, int(revision_num)/bucket_size + 1)
+    weighted_total = sum(thousands_list)
+    generated_random_number = random.randint(0, weighted_total - 1)
+    for i in list(reversed(thousands_list)):
+      thousands = thousands_list[i - 1]
+      weighted_total -= thousands_list[i - 1]
+      if weighted_total <= generated_random_number:
+        break
+    while tries < 15 and not has_run_extra:
+      # Now select a particular revision in that bucket.
+      if thousands == int(revision_num)/bucket_size:
+        max_range = 1 + revision_num % bucket_size
+      else:
+        max_range = bucket_size
+      rev = thousands * bucket_size + random.randrange(0, max_range)
+      if rev not in results_set:
+        has_run_extra = try_to_run_additional(rev)
+      tries += 1
+
+  if not has_run_extra:
+    # Try to get up to 10 runs of each CL, starting with the most recent
+    # CL that does not yet have 10 runs. But only perform a set of extra
+    # runs at most 2 at a time before checking to see if new code has been
+    # checked in.
+    while revision_num > 0 and not has_run_extra:
+      if revision_num not in results_set:
+        has_run_extra = try_to_run_additional(revision_num)
+      revision_num -= 1
+  if not has_run_extra:
+    # No more extra back-runs to do (for now). Wait for new code.
+    time.sleep(200)
+  return results_set
+
 def main():
   runner = TestRunner()
   continuous = runner.parse_args()
@@ -1144,38 +1026,10 @@ def main():
   if continuous:
     while True:
       results_set = update_set_of_done_cls()
-      if runner.has_new_code():
+      if runner.has_interesting_code():
         runner.run_test_sequence()
       else:
-        # Try to get up to 10 runs of each CL, starting with the most recent CL
-        # that does not yet have 10 runs. But only perform a set of extra runs
-        # at most 10 at a time (get all the extra runs for one CL) before
-        # checking to see if new code has been checked in.
-        has_run_extra = False
-        revision_num = int(search_for_revision(['svn', 'info']))
-        if revision_num == -1:
-          revision_num = int(search_for_revision(['git', 'svn', 'info']))
-        
-        # No need to track the performance before revision 3000. That's way in
-        # the past.
-        while revision_num > 3000 and not has_run_extra:
-          if revision_num not in results_set:
-            a_test = TestBuilder.make_test(runner.suite_names[0], runner)
-            benchmark_name = a_test.values_list[0]
-            platform_name = a_test.platform_list[0]
-            variant = a_test.values_dict[platform_name].keys()[0]
-            number_of_results = post_results.get_num_results(benchmark_name,
-                platform_name, variant, revision_num,
-                a_test.file_processor.get_score_type(benchmark_name))
-            if number_of_results < 10 and number_of_results >= 0:
-              run = runner.run_test_sequence(revision_num=str(revision_num),
-                  num_reruns=(10-number_of_results))
-              if run == 0:
-                has_run_extra = True
-                results_set = update_set_of_done_cls(revision_num)
-          revision_num -= 1
-        # No more extra back-runs to do (for now). Wait for new code.
-        time.sleep(200)
+        results_set = fill_in_back_history(results_set, runner)
   else:
     runner.run_test_sequence()
 
