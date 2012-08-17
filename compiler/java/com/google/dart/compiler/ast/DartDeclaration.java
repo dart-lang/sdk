@@ -10,11 +10,11 @@ package com.google.dart.compiler.ast;
  * considered a part of the declaration, not an independent node. So the name is not visited when
  * traversing the AST.
  */
-public abstract class DartDeclaration<N extends DartExpression> extends DartNode {
+public abstract class DartDeclaration<N extends DartExpression> extends DartNodeWithMetadata {
 
   private N name; // Not visited.
   private DartComment dartDoc;
-  private DartObsoleteMetadata metadata = DartObsoleteMetadata.EMPTY;
+  private DartObsoleteMetadata obsoleteMetadata = DartObsoleteMetadata.EMPTY;
 
   protected DartDeclaration(N name) {
     this.name = becomeParentOf(name);
@@ -37,16 +37,17 @@ public abstract class DartDeclaration<N extends DartExpression> extends DartNode
     this.dartDoc = dartDoc;
   }
 
-  public DartObsoleteMetadata getMetadata() {
-    return metadata;
+  public DartObsoleteMetadata getObsoleteMetadata() {
+    return obsoleteMetadata;
   }
 
-  public void setMetadata(DartObsoleteMetadata metadata) {
-    this.metadata = metadata;
+  public void setObsoleteMetadata(DartObsoleteMetadata metadata) {
+    this.obsoleteMetadata = metadata;
   }
 
   @Override
   public void visitChildren(ASTVisitor<?> visitor) {
+    super.visitChildren(visitor);
     safelyVisitChild(name, visitor);
   }
 }

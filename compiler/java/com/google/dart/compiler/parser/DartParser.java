@@ -51,6 +51,7 @@ import com.google.dart.compiler.ast.DartLabel;
 import com.google.dart.compiler.ast.DartLibraryDirective;
 import com.google.dart.compiler.ast.DartMapLiteral;
 import com.google.dart.compiler.ast.DartMapLiteralEntry;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartMethodInvocation;
 import com.google.dart.compiler.ast.DartNamedExpression;
@@ -58,6 +59,7 @@ import com.google.dart.compiler.ast.DartNativeBlock;
 import com.google.dart.compiler.ast.DartNativeDirective;
 import com.google.dart.compiler.ast.DartNewExpression;
 import com.google.dart.compiler.ast.DartNode;
+import com.google.dart.compiler.ast.DartNodeWithMetadata;
 import com.google.dart.compiler.ast.DartNullLiteral;
 import com.google.dart.compiler.ast.DartParameter;
 import com.google.dart.compiler.ast.DartParameterizedTypeNode;
@@ -303,8 +305,9 @@ public class DartParser extends CompletionHooksParserBase {
       parseDirectives(unit);
 
       while (!EOS()) {
-        DartNode node = null;
+        DartNodeWithMetadata node = null;
         beginTopLevelElement();
+        List<DartAnnotation> metadata = parseMetadata();
         isParsingClass = isParsingInterface = false;
         // Check for ABSTRACT_KEYWORD.
         isTopLevelAbstract = false;
@@ -333,6 +336,7 @@ public class DartParser extends CompletionHooksParserBase {
         }
         // Parsing was successful, add node.
         if (node != null) {
+          node.setMetadata(metadata);
           unit.getTopLevelNodes().add(node);
           // Only "class" can be top-level abstract element.
           if (isTopLevelAbstract && !isParsingClass) {
@@ -472,6 +476,7 @@ public class DartParser extends CompletionHooksParserBase {
   }
 
   private void parseDirectives(DartUnit unit) {
+    List<DartAnnotation> metadata = parseMetadata();
     if (peekPseudoKeyword(0, LIBRARY_KEYWORD)) {
       DartLibraryDirective libraryDirective = parseLibraryDirective();
       for (DartDirective directive : unit.getDirectives()) {
@@ -480,16 +485,23 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
+      libraryDirective.setMetadata(metadata);
       unit.getDirectives().add(libraryDirective);
     }
     while (peekPseudoKeyword(0, IMPORT_KEYWORD)) {
-      unit.getDirectives().add(parseImportDirective());
+      DartImportDirective importDirective = parseImportDirective();
+      importDirective.setMetadata(metadata);
+      unit.getDirectives().add(importDirective);
     }
     while (peekPseudoKeyword(0, PART_KEYWORD)) {
       if (peekPseudoKeyword(1, OF_KEYWORD)) {
-        unit.getDirectives().add(parsePartOfDirective());
+        DartPartOfDirective partOfDirective = parsePartOfDirective();
+        partOfDirective.setMetadata(metadata);
+        unit.getDirectives().add(partOfDirective);
       } else {
-        unit.getDirectives().add(parsePartDirective());
+        DartSourceDirective partDirective = parsePartDirective();
+        partDirective.setMetadata(metadata);
+        unit.getDirectives().add(partDirective);
       }
     }
     //
@@ -505,23 +517,30 @@ public class DartParser extends CompletionHooksParserBase {
           break;
         }
       }
+      libraryDirective.setMetadata(metadata);
       unit.getDirectives().add(libraryDirective);
       done(libraryDirective);
     }
     while (peek(0) == Token.IMPORT) {
       beginImportDirective();
-      unit.getDirectives().add(done(parseObsoleteImportDirective()));
+      DartImportDirective importDirective = parseObsoleteImportDirective();
+      importDirective.setMetadata(metadata);
+      unit.getDirectives().add(done(importDirective));
     }
     while (peek(0) == Token.SOURCE) {
       beginSourceDirective();
-      unit.getDirectives().add(done(parseSourceDirective()));
+      DartSourceDirective sourceDirective = parseSourceDirective();
+      sourceDirective.setMetadata(metadata);
+      unit.getDirectives().add(done(sourceDirective));
     }
     while (peek(0) == Token.RESOURCE) {
       parseResourceDirective();
     }
     while (peek(0) == Token.NATIVE) {
       beginNativeDirective();
-      unit.getDirectives().add(done(parseNativeDirective()));
+      DartNativeDirective nativeDirective = parseNativeDirective();
+      nativeDirective.setMetadata(metadata);
+      unit.getDirectives().add(done(nativeDirective));
     }
   }
 
@@ -694,6 +713,26 @@ public class DartParser extends CompletionHooksParserBase {
     expect(Token.RPAREN);
     expect(Token.SEMICOLON);
     return new DartNativeDirective(nativeUri);
+  }
+
+  private List<DartAnnotation> parseMetadata() {
+    List<DartAnnotation> metadata = new ArrayList<DartAnnotation>();
+    while (match(Token.AT)) {
+      beginMetadata();
+      next();
+      beginQualifiedIdentifier();
+      DartExpression name = parseQualified();
+      if (optional(Token.PERIOD)) {
+        name = new DartPropertyAccess(name, parseIdentifier());
+      }
+      done(name);
+      List<DartExpression> arguments = null;
+      if (match(Token.LPAREN)) {
+        arguments = parseArguments();
+      }
+      metadata.add(done(new DartAnnotation(name, arguments)));
+    }
+    return metadata;
   }
 
   /**
@@ -886,14 +925,15 @@ public class DartParser extends CompletionHooksParserBase {
    * Helper for {@link #parseClass()}.
    *
    * '{' classMemberDefinition* '}'
-   *
    */
   @Terminals(tokens={Token.RBRACE, Token.SEMICOLON})
   private void parseClassOrInterfaceBody(List<DartNode> members) {
     if (optional(Token.LBRACE)) {
       while (!match(Token.RBRACE) && !EOS() && !looksLikeTopLevelKeyword()) {
-        DartNode member = parseFieldOrMethod(true);
+        List<DartAnnotation> metadata = parseMetadata();
+        DartNodeWithMetadata member = parseFieldOrMethod(true);
         if (member != null) {
+          member.setMetadata(metadata);
           members.add(member);
         }
         // Recover at a semicolon
@@ -1120,7 +1160,7 @@ public class DartParser extends CompletionHooksParserBase {
    * @return a {@link DartNode} representing the grammar fragment above
    */
   @Terminals(tokens={Token.SEMICOLON})
-  private DartNode parseFieldOrMethod(boolean allowStatic) {
+  private DartNodeWithMetadata parseFieldOrMethod(boolean allowStatic) {
     beginClassMember();
     Modifiers modifiers = Modifiers.NONE;
     if (peek(1) != Token.LPAREN && optionalPseudoKeyword(EXTERNAL_KEYWORD)) {
@@ -1188,7 +1228,7 @@ public class DartParser extends CompletionHooksParserBase {
       return done(factoryNode);
     }
 
-    final DartNode member;
+    final DartNodeWithMetadata member;
 
     switch (peek(0)) {
       case VAR: {
@@ -1634,7 +1674,7 @@ public class DartParser extends CompletionHooksParserBase {
     }
   }
 
-  private DartNode parseMethodOrAccessor(Modifiers modifiers, DartTypeNode returnType) {
+  private DartNodeWithMetadata parseMethodOrAccessor(Modifiers modifiers, DartTypeNode returnType) {
     DartMethodDefinition method = done(parseMethod(modifiers, returnType));
     // Abstract method can not have a body.
     if (method.getFunction().getBody() != null) {
@@ -1943,6 +1983,7 @@ public class DartParser extends CompletionHooksParserBase {
    */
   private DartParameter parseFormalParameter(boolean isOptional, boolean isNamed) {
     beginFormalParameter();
+    List<DartAnnotation> metadata = parseMetadata();
     DartExpression paramName = null;
     DartTypeNode type = null;
     DartExpression defaultExpr = null;
@@ -2047,7 +2088,9 @@ public class DartParser extends CompletionHooksParserBase {
         break;
     }
 
-    return done(new DartParameter(paramName, type, functionParams, defaultExpr, modifiers));
+    DartParameter parameter = new DartParameter(paramName, type, functionParams, defaultExpr, modifiers);
+    parameter.setMetadata(metadata);
+    return done(parameter);
   }
 
   /**

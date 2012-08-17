@@ -149,10 +149,10 @@ public class DartParserCommentsHelper {
               comment.getSourceInfo().getEnd());
           // may be @Metadata
           if (commentStr.contains("@deprecated")) {
-            decl.setMetadata(decl.getMetadata().makeDeprecated());
+            decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeDeprecated());
           }
           if (commentStr.contains("@override")) {
-            decl.setMetadata(decl.getMetadata().makeOverride());
+            decl.setObsoleteMetadata(decl.getObsoleteMetadata().makeOverride());
           }
           // DartDoc
           if (comment.isDartDoc()) {

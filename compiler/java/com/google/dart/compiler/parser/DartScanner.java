@@ -1208,7 +1208,7 @@ public class DartScanner {
           boolean isRaw = true;
           return scanString(isRaw);
         } else {
-          return select(Token.ILLEGAL);
+          return Token.AT;
         }
 
       case '#':

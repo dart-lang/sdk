@@ -9,7 +9,7 @@ import java.util.List;
 /**
  * Represents a Dart field definition.
  */
-public class DartFieldDefinition extends DartNode {
+public class DartFieldDefinition extends DartNodeWithMetadata {
 
   private DartTypeNode typeNode;
   private final NodeList<DartField> fields = NodeList.create(this);

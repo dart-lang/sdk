@@ -19,6 +19,7 @@ import com.google.dart.compiler.ast.DartFunctionExpression;
 import com.google.dart.compiler.ast.DartIdentifier;
 import com.google.dart.compiler.ast.DartIntegerLiteral;
 import com.google.dart.compiler.ast.DartMapLiteral;
+import com.google.dart.compiler.ast.DartAnnotation;
 import com.google.dart.compiler.ast.DartMethodDefinition;
 import com.google.dart.compiler.ast.DartNode;
 import com.google.dart.compiler.ast.DartPropertyAccess;
@@ -928,6 +929,59 @@ public class SyntaxTest extends AbstractParserTest {
     assertTrue(((DartVariableStatement) statement).getModifiers().isConstant());
   }
 
+  public void test_metadata_identifier() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "const int annotation = 0;",
+        "class A {",
+        "  m0() {}",
+        "  @annotation",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    DartClass classA = (DartClass) unit.getTopLevelNodes().get(1);
+
+    DartMethodDefinition method0 = (DartMethodDefinition) classA.getMembers().get(0);
+    assertEquals("m0", method0.getName().toSource());
+    assertEquals(0, method0.getMetadata().size());
+
+    DartMethodDefinition method1 = (DartMethodDefinition) classA.getMembers().get(1);
+    assertEquals("m1", method1.getName().toSource());
+    assertEquals(1, method1.getMetadata().size());
+    DartAnnotation metadata = method1.getMetadata().get(0);
+    assertNotNull(metadata);
+    DartExpression name = metadata.getName();
+    assertTrue(name instanceof DartIdentifier);
+    assertEquals("annotation", name.toSource());
+    assertEquals(0, metadata.getArguments().size());
+  }
+
+  public void test_metadata_constructor() {
+    String code = makeCode(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {",
+        "  const A();",
+        "}",
+        "",
+        "class B {",
+        "  m0() {}",
+        "  @A()",
+        "  m1() {}",
+        "}",
+        "");
+    DartUnit unit = parseUnit(getName() + ".dart", code);
+    DartClass classB = (DartClass) unit.getTopLevelNodes().get(1);
+
+    DartMethodDefinition method0 = (DartMethodDefinition) classB.getMembers().get(0);
+    assertEquals("m0", method0.getName().toSource());
+    assertEquals(0, method0.getMetadata().size());
+
+    DartMethodDefinition method1 = (DartMethodDefinition) classB.getMembers().get(1);
+    assertEquals("m1", method1.getName().toSource());
+    assertEquals(1, method1.getMetadata().size());
+  }
+
   public void test_metadata_deprecated() {
     String code = makeCode(
         "// filler filler filler filler filler filler filler filler filler filler",
@@ -945,13 +999,13 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
         assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getMetadata().isDeprecated());
+        assertEquals(false, method.getObsoleteMetadata().isDeprecated());
       }
       // m1()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
         assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isDeprecated());
+        assertEquals(true, method.getObsoleteMetadata().isDeprecated());
       }
     }
   }
@@ -981,21 +1035,21 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(0);
         assertEquals("m0", method.getName().toSource());
-        assertEquals(false, method.getMetadata().isOverride());
+        assertEquals(false, method.getObsoleteMetadata().isOverride());
         assertNull(method.getDartDoc());
       }
       // m1()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(1);
         assertEquals("m1", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         assertNull(method.getDartDoc());
       }
       // m2()
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(2);
         assertEquals("m2", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         {
           DartComment dartDoc = method.getDartDoc();
           assertNotNull(dartDoc);
@@ -1006,7 +1060,7 @@ public class SyntaxTest extends AbstractParserTest {
       {
         DartMethodDefinition method = (DartMethodDefinition) classA.getMembers().get(3);
         assertEquals("m3", method.getName().toSource());
-        assertEquals(true, method.getMetadata().isOverride());
+        assertEquals(true, method.getObsoleteMetadata().isOverride());
         {
           DartComment dartDoc = method.getDartDoc();
           assertNotNull(dartDoc);

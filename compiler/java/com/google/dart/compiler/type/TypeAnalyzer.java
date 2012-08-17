@@ -2886,7 +2886,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           Collection<Element> overridden = superMembers.removeAll(name);
           Elements.setOverridden(method, ImmutableSet.copyOf(overridden));
           // Check for invalid @override metadata.
-          if (overridden.isEmpty() && node.getMetadata().isOverride()) {
+          if (overridden.isEmpty() && node.getObsoleteMetadata().isOverride()) {
             typeError(node.getName(), ResolverErrorCode.INVALID_OVERRIDE_METADATA);
           }
           // Check that override is valid.

@@ -55,7 +55,7 @@ class MethodElementImplementation extends AbstractNodeElement implements MethodN
                                         EnclosingElement holder) {
     super(node, name);
     if (node != null) {
-      this.metadata = node.getMetadata();
+      this.metadata = node.getObsoleteMetadata();
       this.modifiers = node.getModifiers();
       this.nameLocation = node.getName().getSourceInfo();
       DartBlock body = node.getFunction().getBody();

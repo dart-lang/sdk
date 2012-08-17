@@ -62,7 +62,7 @@ class ClassElementImplementation extends AbstractNodeElement implements ClassNod
     this.library = library;
     if (node != null) {
       isInterface = node.isInterface();
-      metadata = node.getMetadata();
+      metadata = node.getObsoleteMetadata();
       modifiers = node.getModifiers();
       nameLocation = node.getName().getSourceInfo();
       declarationNameWithTypeParameter = new DartParameterizedTypeNode(node.getName(), node.getTypeParameters()).toSource();
