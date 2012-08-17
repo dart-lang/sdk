@@ -6966,30 +6966,38 @@ void Stackmap::SetBit(intptr_t bit_index, bool value) const {
 }
 
 
-RawStackmap* Stackmap::New(uword pc_offset, BitmapBuilder* bmap) {
+RawStackmap* Stackmap::New(intptr_t pc_offset,
+                           intptr_t length_in_bits,
+                           BitmapBuilder* bmap) {
   ASSERT(Object::stackmap_class() != Class::null());
   ASSERT(bmap != NULL);
   Stackmap& result = Stackmap::Handle();
-  intptr_t size = bmap->SizeInBytes();
-  if (size < 0 || size > kMaxElements) {
+  intptr_t length_in_bytes =
+      Utils::RoundUp(length_in_bits, kBitsPerByte) / kBitsPerByte;
+  if (length_in_bytes < 0 || length_in_bytes > kMaxLengthInBytes) {
     // This should be caught before we reach here.
-    FATAL1("Fatal error in PcDescriptors::New: invalid size %ld\n", size);
+    FATAL1("Fatal error in Stackmap::New: invalid length %" PRIdPTR "\n",
+           length_in_bytes);
   }
   {
     // Stackmap data objects are associated with a code object, allocate them
     // in old generation.
     RawObject* raw = Object::Allocate(Stackmap::kClassId,
-                                      Stackmap::InstanceSize(size),
+                                      Stackmap::InstanceSize(length_in_bytes),
                                       Heap::kOld);
     NoGCScope no_gc;
     result ^= raw;
-    result.set_bitmap_size_in_bytes(size);
+    result.set_bitmap_size_in_bytes(length_in_bytes);
   }
+  // When constructing a stackmap we store the pc offset in the stackmap's
+  // PC. StackmapTableBuilder::FinalizeStackmaps will replace it with the pc
+  // address.
+  ASSERT(pc_offset >= 0);
   result.SetPC(pc_offset);
-  intptr_t bound = bmap->SizeInBits();
-  for (intptr_t i = 0; i < bound; i++) {
+  for (intptr_t i = 0; i < length_in_bits; i++) {
     result.SetBit(i, bmap->Get(i));
   }
+  ASSERT(bmap->Maximum() < length_in_bits);
   result.SetMinBitIndex(bmap->Minimum());
   result.SetMaxBitIndex(bmap->Maximum());
   return result.raw();
@@ -7009,15 +7017,15 @@ const char* Stackmap::ToCString() const {
   } else {
     // Guard against integer overflow, though it is highly unlikely.
     if (MaximumBitIndex() > kIntptrMax / 4) {
-      FATAL1("MaximumBitIndex() is unexpectedly large (%ld)",
+      FATAL1("MaximumBitIndex() is unexpectedly large (%" PRIdPTR ")",
              MaximumBitIndex());
     }
-    intptr_t index = OS::SNPrint(NULL, 0, "0x%lx { ", PC());
+    intptr_t index = OS::SNPrint(NULL, 0, "0x%" PRIxPTR " { ", PC());
     intptr_t alloc_size =
         index + ((MaximumBitIndex() + 1) * 2) + 2;  // "{ 1 0 .... }".
     Isolate* isolate = Isolate::Current();
     char* chars = isolate->current_zone()->Alloc<char>(alloc_size);
-    index = OS::SNPrint(chars, alloc_size, "0x%lx { ", PC());
+    index = OS::SNPrint(chars, alloc_size, "0x%" PRIxPTR " { ", PC());
     for (intptr_t i = 0; i <= MaximumBitIndex(); i++) {
       index += OS::SNPrint((chars + index),
                            (alloc_size - index),

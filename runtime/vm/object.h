@@ -2368,19 +2368,20 @@ class Stackmap : public Object {
   // Return the index of the lowest stack slot that has an object.
   intptr_t MinimumBitIndex() const { return raw_ptr()->min_set_bit_index_; }
 
-  static const intptr_t kBytesPerElement = kWordSize;
-  static const intptr_t kMaxElements = kSmiMax / kBytesPerElement;
+  static const intptr_t kMaxLengthInBytes = kSmiMax;
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(RawStackmap) == OFFSET_OF(RawStackmap, data_));
     return 0;
   }
-  static intptr_t InstanceSize(intptr_t len) {
-    ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(RawStackmap) + (len * kBytesPerElement));
+  static intptr_t InstanceSize(intptr_t length_in_bytes) {
+    ASSERT(length_in_bytes >= 0);
+    ASSERT(length_in_bytes <= kMaxLengthInBytes);
+    return RoundedAllocationSize(sizeof(RawStackmap) + length_in_bytes);
   }
-  static RawStackmap* New(uword pc, BitmapBuilder* bmap);
+  static RawStackmap* New(intptr_t pc_offset,
+                          intptr_t length_in_bits,
+                          BitmapBuilder* bmap);
 
  private:
   inline intptr_t SizeInBits() const;

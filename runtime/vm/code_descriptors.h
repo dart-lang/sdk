@@ -65,10 +65,11 @@ class DescriptorList : public ZoneAllocated {
 
 class StackmapTableBuilder : public ZoneAllocated {
  public:
-  StackmapTableBuilder() :
-      stack_map_(Stackmap::ZoneHandle()),
-      list_(GrowableObjectArray::ZoneHandle(
-          GrowableObjectArray::New(Heap::kOld))) { }
+  explicit StackmapTableBuilder(intptr_t entry_length_in_bits)
+      : entry_length_in_bits_(entry_length_in_bits),
+        stack_map_(Stackmap::ZoneHandle()),
+        list_(GrowableObjectArray::ZoneHandle(
+            GrowableObjectArray::New(Heap::kOld))) { }
   ~StackmapTableBuilder() { }
 
   void AddEntry(intptr_t pc_offset, BitmapBuilder* bitmap);
@@ -79,8 +80,10 @@ class StackmapTableBuilder : public ZoneAllocated {
 
  private:
   intptr_t Length() const { return list_.Length(); }
-  RawStackmap* Map(int index) const;
+  RawStackmap* MapAt(int index) const;
 
+  // All the stackmaps in a function have the same length.
+  intptr_t entry_length_in_bits_;
   Stackmap& stack_map_;
   GrowableObjectArray& list_;
   DISALLOW_COPY_AND_ASSIGN(StackmapTableBuilder);
