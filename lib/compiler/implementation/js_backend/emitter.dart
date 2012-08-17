@@ -921,16 +921,7 @@ $classesCollector.$mangledName = {'':
       return buffer;
     }
 
-    void addNoSuchMethodHandlers(SourceString name, Set<Selector> selectors) {
-      // TODO(kasperl): We should really teach private selectors about
-      // which libraries they are used from. That way, we wouldn't
-      // have to conservatively generate versions for all libraries
-      // the name is used from.
-      String nameString = name.slowToString();
-      Collection<LibraryElement> libraries = name.isPrivate()
-          ? namer.usedPrivateNames[nameString]
-          : const [ null ];
-
+    void addNoSuchMethodHandlers(SourceString ignore, Set<Selector> selectors) {
       // Cache the object class and type.
       ClassElement objectClass = compiler.objectClass;
       Type objectType = objectClass.computeType(compiler);
@@ -940,7 +931,7 @@ $classesCollector.$mangledName = {'':
         // class has a member that matches the current name and
         // selector (grabbed from the scope).
         bool hasMatchingMember(ClassElement holder) {
-          Element element = holder.lookupMember(name);
+          Element element = holder.lookupMember(selector.name);
           if (element === null) return false;
 
           // TODO(kasperl): Consider folding this logic into the
@@ -1014,28 +1005,29 @@ $classesCollector.$mangledName = {'':
         Set<ClassElement> holders = noSuchMethodHoldersFor(receiverType);
         if (holders.every(hasMatchingMember)) continue;
 
-        for (LibraryElement lib in libraries) {
-          String jsName = null;
-          String methodName = null;
-          if (selector.isGetter()) {
-            jsName = namer.getterName(lib, name);
-            methodName = 'get:$nameString';
-          } else if (selector.isSetter()) {
-            jsName = namer.setterName(lib, name);
-            methodName = 'set:$nameString';
-          } else if (selector.isCall()) {
-            jsName = namer.instanceMethodInvocationName(lib, name, selector);
-            methodName = nameString;
-          } else {
-            // We simply ignore selectors that do not need
-            // noSuchMethod handlers.
-            continue;
-          }
-          if (!addedJsNames.contains(jsName)) {
-            CodeBuffer jsCode = generateMethod(methodName, selector);
-            defineInstanceMember(jsName, jsCode);
-            addedJsNames.add(jsName);
-          }
+        String jsName = null;
+        String methodName = null;
+        String nameString = selector.name.slowToString();
+        if (selector.isGetter()) {
+          jsName = namer.getterName(selector.library, selector.name);
+          methodName = 'get:$nameString';
+        } else if (selector.isSetter()) {
+          jsName = namer.setterName(selector.library, selector.name);
+          methodName = 'set:$nameString';
+        } else if (selector.isCall()) {
+          jsName = namer.instanceMethodInvocationName(
+              selector.library, selector.name, selector);
+          methodName = nameString;
+        } else {
+          // We simply ignore selectors that do not need
+          // noSuchMethod handlers.
+          continue;
+        }
+
+        if (!addedJsNames.contains(jsName)) {
+          CodeBuffer jsCode = generateMethod(methodName, selector);
+          defineInstanceMember(jsName, jsCode);
+          addedJsNames.add(jsName);
         }
       }
     }

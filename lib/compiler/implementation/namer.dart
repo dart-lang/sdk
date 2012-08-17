@@ -20,13 +20,11 @@ class Namer {
 
   Map<Element, String> globals;
   Map<String, int> usedGlobals;
-  Map<String, Set<LibraryElement>> usedPrivateNames;
   Map<String, LibraryElement> shortPrivateNameOwners;
 
   Namer(this.compiler)
       : globals = new Map<Element, String>(),
         usedGlobals = new Map<String, int>(),
-        usedPrivateNames = new Map<String, Set<LibraryElement>>(),
         shortPrivateNameOwners = new Map<String, LibraryElement>();
 
   final String CURRENT_ISOLATE = @'$';
@@ -98,14 +96,6 @@ class Namer {
   String privateName(LibraryElement lib, SourceString name) {
     if (name.isPrivate()) {
       String nameString = name.slowToString();
-
-      // TODO(kasperl): This is a bit of a hacky way of keeping track
-      // of the libraries that use a particular private name.
-      Set<LibraryElement> usedBy =
-          usedPrivateNames.putIfAbsent(nameString, () =>
-                                       new Set<LibraryElement>());
-      usedBy.add(lib);
-
       // The first library asking for a short private name wins.
       LibraryElement owner =
           shortPrivateNameOwners.putIfAbsent(nameString, () => lib);
