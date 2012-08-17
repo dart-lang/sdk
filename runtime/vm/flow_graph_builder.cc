@@ -1284,19 +1284,20 @@ void EffectGraphVisitor::VisitArgumentListNode(ArgumentListNode* node) {
 
 void EffectGraphVisitor::VisitArrayNode(ArrayNode* node) {
   // Translate the array elements and collect their values.
-  ZoneGrowableArray<PushArgumentInstr*>* arguments =
-      new ZoneGrowableArray<PushArgumentInstr*>(node->length());
+  ZoneGrowableArray<Value*>* values =
+      new ZoneGrowableArray<Value*>(node->length());
   for (int i = 0; i < node->length(); ++i) {
     ValueGraphVisitor for_value(owner(), temp_index());
     node->ElementAt(i)->Visit(&for_value);
     Append(for_value);
-    arguments->Add(PushArgument(for_value.value()));
+    PushArgument(for_value.value());
+    values->Add(for_value.value());
   }
   Value* element_type = BuildInstantiatedTypeArguments(node->token_pos(),
                                                        node->type_arguments());
   CreateArrayComp* create = new CreateArrayComp(node->token_pos(),
                                                 owner()->try_index(),
-                                                arguments,
+                                                values,
                                                 element_type);
   ReturnComputation(create);
 }

@@ -318,11 +318,11 @@ void AllocateObjectWithBoundsCheckComp::PrintOperandsTo(
 
 
 void CreateArrayComp::PrintOperandsTo(BufferFormatter* f) const {
-  for (int i = 0; i < ArgumentCount(); ++i) {
+  for (int i = 0; i < ElementCount(); ++i) {
     if (i != 0) f->Print(", ");
-    ArgumentAt(i)->value()->PrintTo(f);
+    ElementAt(i)->PrintTo(f);
   }
-  if (ArgumentCount() > 0) f->Print(", ");
+  if (ElementCount() > 0) f->Print(", ");
   element_type()->PrintTo(f);
 }
 

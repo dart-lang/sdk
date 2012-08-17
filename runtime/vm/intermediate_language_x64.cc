@@ -987,7 +987,7 @@ LocationSummary* CreateArrayComp::MakeLocationSummary() const {
 void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
   // Allocate the array.  R10 = length, RBX = element type.
   ASSERT(locs()->in(0).reg() == RBX);
-  __ movq(R10, Immediate(Smi::RawValue(ArgumentCount())));
+  __ movq(R10, Immediate(Smi::RawValue(ElementCount())));
   compiler->GenerateCall(token_pos(),
                          try_index(),
                          &StubCode::AllocateArrayLabel(),
@@ -997,8 +997,8 @@ void CreateArrayComp::EmitNativeCode(FlowGraphCompiler* compiler) {
 
   // Pop the element values from the stack into the array.
   __ leaq(R10, FieldAddress(RAX, Array::data_offset()));
-  for (int i = ArgumentCount() - 1; i >= 0; --i) {
-    ASSERT(ArgumentAt(i)->value()->IsUse());
+  for (int i = ElementCount() - 1; i >= 0; --i) {
+    ASSERT(ElementAt(i)->IsUse());
     __ popq(Address(R10, i * kWordSize));
   }
 }

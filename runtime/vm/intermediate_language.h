@@ -1212,14 +1212,14 @@ class CreateArrayComp : public TemplateComputation<1> {
  public:
   CreateArrayComp(intptr_t token_pos,
                   intptr_t try_index,
-                  ZoneGrowableArray<PushArgumentInstr*>* arguments,
+                  ZoneGrowableArray<Value*>* elements,
                   Value* element_type)
       : token_pos_(token_pos),
         try_index_(try_index),
-        arguments_(arguments) {
+        elements_(elements) {
 #if defined(DEBUG)
-    for (int i = 0; i < ArgumentCount(); ++i) {
-      ASSERT(ArgumentAt(i) != NULL);
+    for (int i = 0; i < ElementCount(); ++i) {
+      ASSERT(ElementAt(i) != NULL);
     }
     ASSERT(element_type != NULL);
 #endif
@@ -1228,11 +1228,12 @@ class CreateArrayComp : public TemplateComputation<1> {
 
   DECLARE_CALL_COMPUTATION(CreateArray)
 
-  virtual intptr_t ArgumentCount() const { return arguments_->length(); }
+  virtual intptr_t ArgumentCount() const { return ElementCount(); }
 
   intptr_t token_pos() const { return token_pos_; }
   intptr_t try_index() const { return try_index_; }
-  PushArgumentInstr* ArgumentAt(intptr_t i) const { return (*arguments_)[i]; }
+  intptr_t ElementCount() const { return elements_->length(); }
+  Value* ElementAt(intptr_t i) const { return (*elements_)[i]; }
   Value* element_type() const { return inputs_[0]; }
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
@@ -1242,7 +1243,7 @@ class CreateArrayComp : public TemplateComputation<1> {
  private:
   const intptr_t token_pos_;
   const intptr_t try_index_;
-  ZoneGrowableArray<PushArgumentInstr*>* const arguments_;
+  ZoneGrowableArray<Value*>* const elements_;
 
   DISALLOW_COPY_AND_ASSIGN(CreateArrayComp);
 };
