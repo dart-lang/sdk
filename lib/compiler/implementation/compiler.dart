@@ -375,11 +375,9 @@ class Compiler implements DiagnosticListener {
   }
 
   void patchDartLibrary(LibraryElement library, String dartLibraryPath) {
-    print("[Patching; $library ($dartLibraryPath)");
     if (library.isPatched) return;
     Uri patchUri = resolvePatchUri(dartLibraryPath);
     if (patchUri !== null) {
-      print("[... loading patch ...]");
        patchParser.patchLibrary(patchUri, library);
       // We allow foreign functions in patched libraries.
       addForeignFunctions(library);  // Is safe even if already added.

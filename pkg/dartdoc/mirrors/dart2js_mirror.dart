@@ -219,7 +219,7 @@ class LibraryCompiler extends api.Compiler {
     scanBuiltinLibraries();
     var elementList = <LibraryElement>[];
     for (var uri in uriList) {
-      elementList.add(scanner.loadLibrary(uri, null));
+      elementList.add(scanner.loadLibrary(uri, null, uri));
     }
 
     world.populate(this);
