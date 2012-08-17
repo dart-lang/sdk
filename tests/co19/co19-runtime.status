@@ -17,6 +17,8 @@ LibTest/core/double/toInt_A01_t04: Fail
 LibTest/core/Math/parseInt_A02_t01: Fail
 LibTest/core/Math/parseDouble_A02_t01: Fail
 
+Language/03_Overview/1_Scoping_A03_t04: Fail # co19 issue 177
+
 Language/10_Expressions/01_Constants_A17_t03: Crash # issue 1681 (recursion in compile-time constant expression)
 Language/10_Expressions/01_Constants_A16_t02: Crash, Pass # Should result in OOM
 Language/10_Expressions/01_Constants_A15_t48: Fail # co19 issue 171
@@ -71,6 +73,7 @@ Language/11_Statements/02_Expression_Statements_A01_t07: Fail # co19 issue 91: m
 Language/11_Statements/09_Try_A01_t14: Fail # co19 issue 168
 Language/11_Statements/09_Try_A02_t02: Fail # co19 issue 119
 Language/11_Statements/09_Try_A05_t06: Fail # issue 430
+Language/12_Libraries_and_Scripts/2_Imports_A04_t01: Fail # issue 4564
 Language/13_Types/5_Function_Types_A02_t01: Fail # issue 1604 (call operator not implemented)
 LibTest/core/Math/parseDouble_A02_t01: Fail # issue 1929
 
@@ -317,7 +320,8 @@ LibTest/core/int/operator_left_shift_A01_t02: Fail # co19 issue 129
 
 [ $runtime == vm && $unchecked ]
 Language/13_Types/2_Dynamic_Type_System_A02_t01: Fail # co19 issue 97
-
+Language/12_Libraries_and_Scripts/2_Imports_A03_t02: Fail # co19 issue 176
+Language/12_Libraries_and_Scripts/2_Imports_A03_t01: Fail # co19 issue 176
 
 [ $arch == simarm ]
 *: Skip
@@ -365,7 +369,6 @@ Language/11_Statements/08_Switch_A06_t01: Fail
 Language/11_Statements/08_Switch_A06_t02: Fail
 Language/11_Statements/08_Switch_A06_t03: Fail
 Language/11_Statements/08_Switch_A06_t04: Fail
-Language/12_Libraries_and_Scripts/2_Imports_A02_t10: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A05_t01: Fail
 Language/12_Libraries_and_Scripts/2_Imports_A08_t02: Fail
 LibTest/core/Future/handleException_A01_t07: Fail

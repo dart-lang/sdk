@@ -5617,7 +5617,7 @@ void Library::AddObject(const Object& obj, const String& name) const {
          obj.IsFunction() ||
          obj.IsField() ||
          obj.IsLibraryPrefix());
-  ASSERT((LookupObject(name) == Object::null()) ||
+  ASSERT((LookupLocalObject(name) == Object::null()) ||
          ((obj.IsLibraryPrefix() ||
            (obj.IsClass() &&
             Class::CheckedHandle(obj.raw()).IsCanonicalSignatureClass())) &&
@@ -5661,29 +5661,18 @@ RawObject* Library::LookupEntry(const String& name, intptr_t *index) const {
   *index = name.Hash() % dict_size;
 
   Object& entry = Object::Handle(isolate);
-  Class& cls = Class::Handle(isolate);
-  Function& func = Function::Handle(isolate);
-  Field& field = Field::Handle(isolate);
-  LibraryPrefix& library_prefix = LibraryPrefix::Handle(isolate);
   String& entry_name = String::Handle(isolate);
   entry = dict.At(*index);
   // Search the entry in the hash set.
   while (!entry.IsNull()) {
-    // TODO(hausner): find a better way to handle this polymorphism.
-    // Either introduce a common base class for Class, Function, Field
-    // and LibraryPrefix or make the name() function virtual in Object.
     if (entry.IsClass()) {
-      cls ^= entry.raw();
-      entry_name = cls.Name();
+      entry_name = Class::Cast(entry).Name();
     } else if (entry.IsFunction()) {
-      func ^= entry.raw();
-      entry_name = func.name();
+      entry_name = Function::Cast(entry).name();
     } else if (entry.IsField()) {
-      field ^= entry.raw();
-      entry_name = field.name();
+      entry_name = Field::Cast(entry).name();
     } else if (entry.IsLibraryPrefix()) {
-      library_prefix ^= entry.raw();
-      entry_name = library_prefix.name();
+      entry_name = LibraryPrefix::Cast(entry).name();
     } else {
       UNREACHABLE();
     }

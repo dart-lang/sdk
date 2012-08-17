@@ -5689,56 +5689,21 @@ TEST_CASE(SetNativeResolver) {
 }
 
 
-TEST_CASE(ImportLibrary1) {
-  const char* kScriptChars =
-      "#import('library1.dart');"
-      "#import('library2.dart');"
-      "var foo;  // library2 defines foo, so should be error."
-      "main() {}";
-  const char* kLibrary1Chars =
-      "#library('library1.dart');"
-      "#import('library2.dart');"
-      "var foo1;";
-  const char* kLibrary2Chars =
-      "#library('library2.dart');"
-      "var foo;";
-  Dart_Handle result;
-  // Create a test library and Load up a test script in it.
-  Dart_Handle url = Dart_NewString(TestCase::url());
-  Dart_Handle source = Dart_NewString(kScriptChars);
-  result = Dart_SetLibraryTagHandler(library_handler);
-  EXPECT_VALID(result);
-  result = Dart_LoadScript(url, source);
-
-  url = Dart_NewString("library1.dart");
-  source = Dart_NewString(kLibrary1Chars);
-  Dart_LoadLibrary(url, source);
-
-  url = Dart_NewString("library2.dart");
-  source = Dart_NewString(kLibrary2Chars);
-  Dart_LoadLibrary(url, source);
-
-  result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
-               " 'library2.dart' and 'dart:test-lib'",
-               Dart_GetError(result));
-}
-
-
+// Test that an imported name does not clash with the same name defined
+// in the importing library.
 TEST_CASE(ImportLibrary2) {
   const char* kScriptChars =
-      "#import('library1.dart');"
-      "var foo;"
-      "main() {}";
+      "#import('library1.dart');\n"
+      "var foo;\n"
+      "main() { foo = 0; }\n";
   const char* kLibrary1Chars =
-      "#library('library1.dart');"
-      "#import('library2.dart');"
-      "var foo1;";
+      "#library('library1.dart');\n"
+      "#import('library2.dart');\n"
+      "var foo;\n";
   const char* kLibrary2Chars =
-      "#library('library2.dart');"
-      "#import('library1.dart');"
-      "var foo;";
+      "#library('library2.dart');\n"
+      "#import('library1.dart');\n"
+      "var foo;\n";
   Dart_Handle result;
   // Create a test library and Load up a test script in it.
   Dart_Handle url = Dart_NewString(TestCase::url());
@@ -5760,17 +5725,19 @@ TEST_CASE(ImportLibrary2) {
 }
 
 
+// Test that if the same name is imported from two libraries, it is
+// an error if that name is referenced.
 TEST_CASE(ImportLibrary3) {
   const char* kScriptChars =
-      "#import('library2.dart');"
-      "#import('library1.dart');"
-      "var foo_top = 10;  // foo has dup def. So should be an error."
-      "main() {}";
+      "#import('library2.dart');\n"
+      "#import('library1.dart');\n"
+      "var foo_top = 10;  // foo has dup def. So should be an error.\n"
+      "main() { foo = 0; }\n";
   const char* kLibrary1Chars =
-      "#library('library1.dart');"
+      "#library('library1.dart');\n"
       "var foo;";
   const char* kLibrary2Chars =
-      "#library('library2.dart');"
+      "#library('library2.dart');\n"
       "var foo;";
   Dart_Handle result;
 
@@ -5780,6 +5747,7 @@ TEST_CASE(ImportLibrary3) {
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
   result = Dart_LoadScript(url, source);
+  EXPECT_VALID(result);
 
   url = Dart_NewString("library2.dart");
   source = Dart_NewString(kLibrary2Chars);
@@ -5791,43 +5759,23 @@ TEST_CASE(ImportLibrary3) {
 
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
   EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Duplicate definition : 'foo' is defined in"
-               " 'library2.dart' and 'library1.dart'",
-               Dart_GetError(result));
+  EXPECT_SUBSTRING("ambiguous reference: 'foo'", Dart_GetError(result));
 }
 
 
+// Test that if the same name is imported from two libraries, it is
+// not an error if that name is not used.
 TEST_CASE(ImportLibrary4) {
   const char* kScriptChars =
-      "#import('libraryA.dart');"
-      "#import('libraryB.dart');"
-      "#import('libraryD.dart');"
-      "#import('libraryE.dart');"
-      "var fooApp;"
-      "main() {}";
-  const char* kLibraryAChars =
-      "#library('libraryA.dart');"
-      "#import('libraryC.dart');"
-      "var fooA;";
-  const char* kLibraryBChars =
-      "#library('libraryB.dart');"
-      "#import('libraryC.dart');"
-      "var fooB;";
-  const char* kLibraryCChars =
-      "#library('libraryC.dart');"
-      "var fooC;";
-  const char* kLibraryDChars =
-      "#library('libraryD.dart');"
-      "#import('libraryF.dart');"
-      "var fooD;";
-  const char* kLibraryEChars =
-      "#library('libraryE.dart');"
-      "#import('libraryC.dart');"
-      "#import('libraryF.dart');"
-      "var fooE = 10;  //fooC has duplicate def. so should be an error.";
-  const char* kLibraryFChars =
-      "#library('libraryF.dart');"
-      "var fooC;";
+      "#import('library2.dart');\n"
+      "#import('library1.dart');\n"
+      "main() {  }\n";
+  const char* kLibrary1Chars =
+      "#library('library1.dart');\n"
+      "var foo;";
+  const char* kLibrary2Chars =
+      "#library('library2.dart');\n"
+      "var foo;";
   Dart_Handle result;
 
   // Create a test library and Load up a test script in it.
@@ -5836,51 +5784,33 @@ TEST_CASE(ImportLibrary4) {
   result = Dart_SetLibraryTagHandler(library_handler);
   EXPECT_VALID(result);
   result = Dart_LoadScript(url, source);
+  EXPECT_VALID(result);
 
-  url = Dart_NewString("libraryA.dart");
-  source = Dart_NewString(kLibraryAChars);
+  url = Dart_NewString("library2.dart");
+  source = Dart_NewString(kLibrary2Chars);
   Dart_LoadLibrary(url, source);
 
-  url = Dart_NewString("libraryC.dart");
-  source = Dart_NewString(kLibraryCChars);
-  Dart_LoadLibrary(url, source);
-
-  url = Dart_NewString("libraryB.dart");
-  source = Dart_NewString(kLibraryBChars);
-  Dart_LoadLibrary(url, source);
-
-  url = Dart_NewString("libraryD.dart");
-  source = Dart_NewString(kLibraryDChars);
-  Dart_LoadLibrary(url, source);
-
-  url = Dart_NewString("libraryF.dart");
-  source = Dart_NewString(kLibraryFChars);
-  Dart_LoadLibrary(url, source);
-
-  url = Dart_NewString("libraryE.dart");
-  source = Dart_NewString(kLibraryEChars);
+  url = Dart_NewString("library1.dart");
+  source = Dart_NewString(kLibrary1Chars);
   Dart_LoadLibrary(url, source);
 
   result = Dart_Invoke(result, Dart_NewString("main"), 0, NULL);
-  EXPECT(Dart_IsError(result));
-  EXPECT_STREQ("Duplicate definition : 'fooC' is defined in"
-               " 'libraryC.dart' and 'libraryF.dart'",
-               Dart_GetError(result));
+  EXPECT_VALID(result);
 }
 
 
 TEST_CASE(ImportLibrary5) {
   const char* kScriptChars =
-      "#import('lib.dart');"
-      "interface Y {"
-      "  void set handler(void callback(List<int> x));"
-      "}"
-      "void main() {}";
+      "#import('lib.dart');\n"
+      "interface Y {\n"
+      "  void set handler(void callback(List<int> x));\n"
+      "}\n"
+      "void main() {}\n";
   const char* kLibraryChars =
-      "#library('lib.dart');"
-      "interface X {"
-      "  void set handler(void callback(List<int> x));"
-      "}";
+      "#library('lib.dart');\n"
+      "interface X {\n"
+      "  void set handler(void callback(List<int> x));\n"
+      "}\n";
   Dart_Handle result;
 
   // Create a test library and Load up a test script in it.

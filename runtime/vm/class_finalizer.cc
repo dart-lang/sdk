@@ -83,13 +83,6 @@ bool ClassFinalizer::FinalizePendingClasses(bool generating_snapshot) {
     // Clear pending classes array.
     class_array = GrowableObjectArray::New();
     object_store->set_pending_classes(class_array);
-
-    // Check to ensure there are no duplicate definitions in the library
-    // hierarchy.
-    const String& str = String::Handle(Library::CheckForDuplicateDefinition());
-    if (!str.IsNull()) {
-      ReportError("Duplicate definition : %s\n", str.ToCString());
-    }
   } else {
     retval = false;
   }

@@ -2924,12 +2924,12 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
   }
   ExpectToken(Token::kCLASS);
   const intptr_t classname_pos = TokenPos();
-  String& class_name = *ExpectTypeIdentifier("class name expected");
+  String& class_name = *ExpectClassIdentifier("class name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing class '%s'\n", class_name.ToCString());
   }
   Class& cls = Class::Handle();
-  Object& obj = Object::Handle(library_.LookupObject(class_name));
+  Object& obj = Object::Handle(library_.LookupLocalObject(class_name));
   if (obj.IsNull()) {
     if (is_patch) {
       ErrorMsg(classname_pos, "missing class '%s' cannot be patched",
@@ -3028,7 +3028,7 @@ void Parser::ParseClassDefinition(const GrowableObjectArray& pending_classes) {
     pending_classes.Add(cls, Heap::kOld);
   } else {
     // Lookup the patched class and apply the changes.
-    obj = library_.LookupObject(class_name);
+    obj = library_.LookupLocalObject(class_name);
     const char* err_msg = Class::Cast(obj).ApplyPatch(cls);
     if (err_msg != NULL) {
       ErrorMsg(classname_pos, "applying patch failed with '%s'", err_msg);
@@ -3149,7 +3149,7 @@ void Parser::ParseFunctionTypeAlias(
 
   const intptr_t alias_name_pos = TokenPos();
   const String* alias_name =
-      ExpectTypeIdentifier("function alias name expected");
+      ExpectClassIdentifier("function alias name expected");
 
   // Parse the type parameters of the function type.
   ParseTypeParameters(alias_owner);
@@ -3203,7 +3203,7 @@ void Parser::ParseFunctionTypeAlias(
 
   // Lookup alias name and report an error if it is already defined in
   // the library scope.
-  const Object& obj = Object::Handle(library_.LookupObject(*alias_name));
+  const Object& obj = Object::Handle(library_.LookupLocalObject(*alias_name));
   if (!obj.IsNull()) {
     ErrorMsg(alias_name_pos,
              "'%s' is already defined", alias_name->ToCString());
@@ -3231,12 +3231,12 @@ void Parser::ParseInterfaceDefinition(
   const intptr_t interface_pos = TokenPos();
   ExpectToken(Token::kINTERFACE);
   const intptr_t interfacename_pos = TokenPos();
-  String& interface_name = *ExpectTypeIdentifier("interface name expected");
+  String& interface_name = *ExpectClassIdentifier("interface name expected");
   if (FLAG_trace_parser) {
     OS::Print("TopLevel parsing interface '%s'\n", interface_name.ToCString());
   }
   Class& interface = Class::Handle();
-  Object& obj = Object::Handle(library_.LookupObject(interface_name));
+  Object& obj = Object::Handle(library_.LookupLocalObject(interface_name));
   if (obj.IsNull()) {
     interface = Class::NewInterface(interface_name, script_, interfacename_pos);
     library_.AddClass(interface);
@@ -3580,16 +3580,16 @@ void Parser::ParseTopLevelVariable(TopLevel* top_level) {
     const intptr_t name_pos = TokenPos();
     String& var_name = *ExpectIdentifier("variable name expected");
 
-    if (library_.LookupObject(var_name) != Object::null()) {
+    if (library_.LookupLocalObject(var_name) != Object::null()) {
       ErrorMsg(name_pos, "'%s' is already defined", var_name.ToCString());
     }
     String& accessor_name = String::Handle(Field::GetterName(var_name));
-    if (library_.LookupObject(accessor_name) != Object::null()) {
+    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
       ErrorMsg(name_pos, "getter for '%s' is already defined",
                var_name.ToCString());
     }
     accessor_name = Field::SetterName(var_name);
-    if (library_.LookupObject(accessor_name) != Object::null()) {
+    if (library_.LookupLocalObject(accessor_name) != Object::null()) {
       ErrorMsg(name_pos, "setter for '%s' is already defined",
                var_name.ToCString());
     }
@@ -3669,19 +3669,19 @@ void Parser::ParseTopLevelFunction(TopLevel* top_level) {
   const intptr_t name_pos = TokenPos();
   const String& func_name = *ExpectIdentifier("function name expected");
 
-  bool found = library_.LookupObject(func_name) != Object::null();
+  bool found = library_.LookupLocalObject(func_name) != Object::null();
   if (found && !is_patch) {
     ErrorMsg(name_pos, "'%s' is already defined", func_name.ToCString());
   } else if (!found && is_patch) {
     ErrorMsg(name_pos, "missing '%s' cannot be patched", func_name.ToCString());
   }
   String& accessor_name = String::Handle(Field::GetterName(func_name));
-  if (library_.LookupObject(accessor_name) != Object::null()) {
+  if (library_.LookupLocalObject(accessor_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined as getter",
              func_name.ToCString());
   }
   accessor_name = Field::SetterName(func_name);
-  if (library_.LookupObject(accessor_name) != Object::null()) {
+  if (library_.LookupLocalObject(accessor_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined as setter",
              func_name.ToCString());
   }
@@ -3790,11 +3790,11 @@ void Parser::ParseTopLevelAccessor(TopLevel* top_level) {
              is_getter ? "getter" : "setter");
   }
 
-  if (library_.LookupObject(*field_name) != Object::null()) {
+  if (library_.LookupLocalObject(*field_name) != Object::null()) {
     ErrorMsg(name_pos, "'%s' is already defined in this library",
              field_name->ToCString());
   }
-  bool found = library_.LookupObject(accessor_name) != Object::null();
+  bool found = library_.LookupLocalObject(accessor_name) != Object::null();
   if (found && !is_patch) {
     ErrorMsg(name_pos, "%s for '%s' is already defined",
              is_getter ? "getter" : "setter",
@@ -4031,9 +4031,7 @@ void Parser::ParseTopLevel() {
         (LookaheadToken(1) == Token::kCLASS)) {
       ConsumeToken();  // Consume and ignore 'abstract'.
       ParseClassDefinition(pending_classes);
-    } else if (is_patch_source() &&
-               (CurrentToken() == Token::kIDENT) &&
-               CurrentLiteral()->Equals("patch") &&
+    } else if (is_patch_source() && IsLiteral("patch") &&
                (LookaheadToken(1) == Token::kCLASS)) {
       ParseClassDefinition(pending_classes);
     } else {
@@ -6236,14 +6234,18 @@ void Parser::UnexpectedToken() {
 }
 
 
-String* Parser::ExpectTypeIdentifier(const char* msg) {
+String* Parser::ExpectClassIdentifier(const char* msg) {
   if (CurrentToken() != Token::kIDENT) {
     ErrorMsg(msg);
   }
   String* ident = CurrentLiteral();
+  if (ident->Equals("Dynamic")) {
+    ErrorMsg(msg);
+  }
   ConsumeToken();
   return ident;
 }
+
 
 // Check whether current token is an identifier or a built-in identifier.
 String* Parser::ExpectIdentifier(const char* msg) {
@@ -7258,13 +7260,18 @@ void Parser::ResolveTypeFromClass(const Class& scope_class,
           return;
         }
       }
-      // Global lookup in current library.
-      resolved_type_class = library_.LookupClass(unresolved_class_name);
+      // Resolve classname in the scope of the current library.
+      resolved_type_class =
+          ResolveClassInCurrentLibraryScope(unresolved_class.token_pos(),
+                                            unresolved_class_name);
     } else {
       LibraryPrefix& lib_prefix =
           LibraryPrefix::Handle(unresolved_class.library_prefix());
-      // Local lookup in library prefix scope.
-      resolved_type_class = lib_prefix.LookupLocalClass(unresolved_class_name);
+      // Resolve class name in the scope of the library prefix.
+      resolved_type_class =
+          ResolveClassInPrefixScope(unresolved_class.token_pos(),
+                                   lib_prefix,
+                                   unresolved_class_name);
     }
     // At this point, we can only have a parameterized_type.
     Type& parameterized_type = Type::Handle();
@@ -7620,96 +7627,198 @@ bool Parser::ResolveIdentInLocalScope(intptr_t ident_pos,
 }
 
 
-// Do a lookup for the identifier in the library scope of the specified
-// library. If resolve_locally is true the lookup does not consider
-// the libraries imported by it for the lookup.
-AstNode* Parser::ResolveIdentInLibraryScope(const Library& lib,
-                                            const QualIdent& qual_ident,
-                                            bool resolve_locally) {
-  TRACE_PARSER("ResolveIdentInLibraryScope");
+static RawObject* LookupNameInLibrary(const Library& lib, const String& name) {
   Object& obj = Object::Handle();
-  if (resolve_locally) {
-    obj = lib.LookupLocalObject(*qual_ident.ident);
-  } else {
-    obj = lib.LookupObject(*qual_ident.ident);
-  }
-  if (obj.IsClass()) {
-    const Class& cls = Class::Cast(obj);
-    return new PrimaryNode(qual_ident.ident_pos, Class::ZoneHandle(cls.raw()));
-  }
-  if (obj.IsField()) {
-    const Field& field = Field::Cast(obj);
-    ASSERT(field.is_static());
-    return GenerateStaticFieldLookup(field, qual_ident.ident_pos);
-  }
-  if (obj.IsFunction()) {
-    const Function& func = Function::Cast(obj);
-    ASSERT(func.is_static());
-    return new PrimaryNode(qual_ident.ident_pos,
-                           Function::ZoneHandle(func.raw()));
-  } else {
-    ASSERT(obj.IsNull() || obj.IsLibraryPrefix());
-  }
-
-  // Check if there is a global getter or setter for qual_ident.
-  // We create a getter node even if a getter doesn't exist since
-  // qual_ident could be followed by an assignment which will convert it
-  // to a setter node. If there is no assignment we will get an error
-  // when we try to invoke the getter.
-  String& accessor_name = String::Handle(Field::GetterName(*qual_ident.ident));
-  if (resolve_locally) {
-    obj = lib.LookupLocalObject(accessor_name);
-  } else {
-    obj = lib.LookupObject(accessor_name);
-  }
-  if (obj.IsNull()) {
-    accessor_name = Field::SetterName(*qual_ident.ident);
-    if (resolve_locally) {
-      obj = lib.LookupLocalObject(accessor_name);
-    } else {
-      obj = lib.LookupObject(accessor_name);
-    }
-  }
+  obj = lib.LookupLocalObject(name);
   if (!obj.IsNull()) {
-    ASSERT(obj.IsFunction());
-    const Function& func = Function::Cast(obj);
-    ASSERT(func.is_static());
-    ASSERT(AbstractType::Handle(func.result_type()).IsResolved());
-    return new StaticGetterNode(qual_ident.ident_pos,
-                                NULL,
-                                false,
-                                Class::ZoneHandle(func.Owner()),
-                                *qual_ident.ident);
+    return obj.raw();
   }
-  if (qual_ident.lib_prefix != NULL) {
-    return NULL;
+  String& accessor_name = String::Handle(Field::GetterName(name));
+  obj = lib.LookupLocalObject(accessor_name);
+  if (!obj.IsNull()) {
+    return obj.raw();
   }
-  // Lexically unresolved primary identifiers are referenced by their name.
-  return new PrimaryNode(qual_ident.ident_pos, *qual_ident.ident);
+  accessor_name = Field::SetterName(name);
+  obj = lib.LookupLocalObject(accessor_name);
+  return obj.raw();
 }
 
 
-// Do a lookup for the identifier in the library prefix scope of the specified
-// library prefix. This would mean trying to resolve it locally in any of the
-// libraries present in the library prefix.
-AstNode* Parser::ResolveIdentInLibraryPrefixScope(const LibraryPrefix& prefix,
-                                                  const QualIdent& qual_ident) {
-  TRACE_PARSER("ResolveIdentInLibraryPrefixScope");
+// Resolve a name by checking the global scope of the current
+// library. If not found in the current library, then look in the scopes
+// of all libraries that are imported without a library prefix.
+// Issue an error if the name is not found in the global scope
+// of the current library, but is defined in more than one imported
+// library, i.e. if the name cannot be resolved unambiguously.
+RawObject* Parser::ResolveNameInCurrentLibraryScope(intptr_t ident_pos,
+                                                    const String& name) {
+  TRACE_PARSER("ResolveNameInCurrentLibraryScope");
+  Object& obj = Object::Handle(LookupNameInLibrary(library_, name));
+  if (obj.IsNull()) {
+    // Name is not found in current library. Check scope of all
+    // imported libraries.
+    String& first_lib_url = String::Handle();
+    Library& lib = Library::Handle();
+    intptr_t num_imports = library_.num_imports();
+    Object& resolved_obj = Object::Handle();
+    for (int i = 0; i < num_imports; i++) {
+      lib ^= library_.ImportAt(i);
+      resolved_obj = LookupNameInLibrary(lib, name);
+      if (!resolved_obj.IsNull()) {
+        if (!first_lib_url.IsNull()) {
+          // Found duplicate definition.
+          ErrorMsg(ident_pos,
+                   "ambiguous reference: "
+                   "'%s' is defined in library '%s' and also in '%s'",
+                   name.ToCString(),
+                   first_lib_url.ToCString(),
+                   String::Handle(lib.url()).ToCString());
+        } else {
+          first_lib_url = lib.url();
+          obj = resolved_obj.raw();
+        }
+      }
+    }
+  }
+  return obj.raw();
+}
+
+
+RawClass* Parser::ResolveClassInCurrentLibraryScope(intptr_t ident_pos,
+                                                    const String& name) {
+  const Object& obj =
+      Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
+  }
+  return Class::null();
+}
+
+
+// Resolve an identifier by checking the global scope of the current
+// library. If not found in the current library, then look in the scopes
+// of all libraries that are imported without a library prefix.
+// Issue an error if the identifier is not found in the global scope
+// of the current library, but is defined in more than one imported
+// library, i.e. if the identifier cannot be resolved unambiguously.
+AstNode* Parser::ResolveIdentInCurrentLibraryScope(intptr_t ident_pos,
+                                                   const String& ident) {
+  TRACE_PARSER("ResolveIdentInCurrentLibraryScope");
+  const Object& obj =
+    Object::Handle(ResolveNameInCurrentLibraryScope(ident_pos, ident));
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+  } else if (obj.IsField()) {
+    const Field& field = Field::Cast(obj);
+    ASSERT(field.is_static());
+    return GenerateStaticFieldLookup(field, ident_pos);
+  } else if (obj.IsFunction()) {
+    const Function& func = Function::Cast(obj);
+    ASSERT(func.is_static());
+    if (func.IsGetterFunction() || func.IsSetterFunction()) {
+      return new StaticGetterNode(ident_pos,
+                                  /* receiver */ NULL,
+                                  /* is_super_getter */ false,
+                                  Class::ZoneHandle(func.Owner()),
+                                  ident);
+
+    } else {
+      return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+    }
+  } else {
+    ASSERT(obj.IsNull() || obj.IsLibraryPrefix());
+  }
+  // Lexically unresolved primary identifiers are referenced by their name.
+  return new PrimaryNode(ident_pos, ident);
+}
+
+
+RawObject* Parser::ResolveNameInPrefixScope(intptr_t ident_pos,
+                                            const LibraryPrefix& prefix,
+                                            const String& name) {
+  TRACE_PARSER("ResolveNameInPrefixScope");
   Library& lib = Library::Handle();
-  AstNode* result = NULL;
-  for (intptr_t i = 0; ((i < prefix.num_libs()) && (result == NULL)); i++) {
+  String& first_lib_url = String::Handle();
+  Object& obj = Object::Handle();
+  Object& resolved_obj = Object::Handle();
+  for (intptr_t i = 0; i < prefix.num_libs(); i++) {
     lib = prefix.GetLibrary(i);
     ASSERT(!lib.IsNull());
-    result = ResolveIdentInLibraryScope(lib, qual_ident, kResolveLocally);
+    resolved_obj = LookupNameInLibrary(lib, name);
+    if (!resolved_obj.IsNull()) {
+      obj = resolved_obj.raw();
+      if (first_lib_url.IsNull()) {
+        first_lib_url = lib.url();
+      } else {
+        ErrorMsg(ident_pos,
+                 "ambiguous reference: '%s.%s' is defined in '%s' and '%s'",
+                 String::Handle(prefix.name()).ToCString(),
+                 name.ToCString(),
+                 first_lib_url.ToCString(),
+                 String::Handle(lib.url()).ToCString());
+      }
+    }
   }
-  if (result == NULL) {
-    // This is an unresolved prefixed primary identifier, need to report
-    // an error.
-    ErrorMsg(qual_ident.ident_pos, "identifier '%s.%s' cannot be resolved",
-             String::Handle(qual_ident.lib_prefix->name()).ToCString(),
-             qual_ident.ident->ToCString());
+  return obj.raw();
+}
+
+
+RawClass* Parser::ResolveClassInPrefixScope(intptr_t ident_pos,
+                                            const LibraryPrefix& prefix,
+                                            const String& name) {
+  const Object& obj =
+      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, name));
+  if (obj.IsClass()) {
+    return Class::Cast(obj).raw();
   }
-  return result;
+  return Class::null();
+}
+
+
+// Do a lookup for the identifier in the scope of the specified
+// library prefix. This means trying to resolve it locally in all of the
+// libraries present in the library prefix. If there are multiple libraries
+// with the name, issue an ambiguous reference error.
+AstNode* Parser::ResolveIdentInPrefixScope(intptr_t ident_pos,
+                                           const LibraryPrefix& prefix,
+                                           const String& ident) {
+  TRACE_PARSER("ResolveIdentInPrefixScope");
+  Object& obj =
+      Object::Handle(ResolveNameInPrefixScope(ident_pos, prefix, ident));
+  if (obj.IsNull()) {
+    // Unresolved prefixed primary identifier.
+    ErrorMsg(ident_pos, "identifier '%s.%s' cannot be resolved",
+             String::Handle(prefix.name()).ToCString(),
+             ident.ToCString());
+  }
+  if (obj.IsClass()) {
+    const Class& cls = Class::Cast(obj);
+    return new PrimaryNode(ident_pos, Class::ZoneHandle(cls.raw()));
+  } else if (obj.IsField()) {
+    const Field& field = Field::Cast(obj);
+    ASSERT(field.is_static());
+    return GenerateStaticFieldLookup(field, ident_pos);
+  } else if (obj.IsFunction()) {
+    const Function& func = Function::Cast(obj);
+    ASSERT(func.is_static());
+    if (func.IsGetterFunction() || func.IsSetterFunction()) {
+      return new StaticGetterNode(ident_pos,
+                                  /* receiver */ NULL,
+                                  /* is_super_getter */ false,
+                                  Class::ZoneHandle(func.Owner()),
+                                  ident);
+
+    } else {
+      return new PrimaryNode(ident_pos, Function::ZoneHandle(func.raw()));
+    }
+  } else {
+    // TODO(hausner): Should this be an error? It is not meaningful to
+    // reference a library prefix defined in an imported library.
+    ASSERT(obj.IsLibraryPrefix());
+  }
+  // Lexically unresolved primary identifiers are referenced by their name.
+  return new PrimaryNode(ident_pos, ident);
 }
 
 
@@ -7742,14 +7851,8 @@ AstNode* Parser::ResolveIdent(intptr_t ident_pos,
     }
     // Not found in the local scope, and the name is not a type parameter.
     // Try finding the variable in the library scope (current library
-    // and all libraries imported by it).
-    QualIdent qual_ident;
-    qual_ident.lib_prefix = NULL;
-    qual_ident.ident_pos = ident_pos;
-    qual_ident.ident = &(String::ZoneHandle(ident.raw()));
-    resolved = ResolveIdentInLibraryScope(library_,
-                                              qual_ident,
-                                              kResolveIncludingImports);
+    // and all libraries imported by it without a library prefix).
+    resolved = ResolveIdentInCurrentLibraryScope(ident_pos, ident);
   }
   if (resolved->IsPrimaryNode()) {
     PrimaryNode* primary = resolved->AsPrimaryNode();
@@ -8707,16 +8810,16 @@ AstNode* Parser::ParsePrimary() {
         // This is a non-local unqualified identifier so resolve the
         // identifier locally in the main app library and all libraries
         // imported by it.
-        primary = ResolveIdentInLibraryScope(library_,
-                                             qual_ident,
-                                             kResolveIncludingImports);
+        primary = ResolveIdentInCurrentLibraryScope(qual_ident.ident_pos,
+                                                    *qual_ident.ident);
       }
     } else {
       // This is a qualified identifier with a library prefix so resolve
       // the identifier locally in that library (we do not include the
       // libraries imported by that library).
-      primary = ResolveIdentInLibraryPrefixScope(*(qual_ident.lib_prefix),
-                                                 qual_ident);
+      primary = ResolveIdentInPrefixScope(qual_ident.ident_pos,
+                                          *qual_ident.lib_prefix,
+                                          *qual_ident.ident);
     }
     ASSERT(primary != NULL);
   } else if (CurrentToken() == Token::kTHIS) {
