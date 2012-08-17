@@ -12,9 +12,6 @@ this_phi_elimination_test: Fail # Issue 3710.
 operator_test: Skip
 string_interpolation_test: Skip
 
-[ $compiler == frog ]
-*: Skip
-
 [ $compiler == dart2js && $runtime == none ]
 *: Fail, Pass # TODO(ahe): Triage these tests.
 

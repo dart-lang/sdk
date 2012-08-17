@@ -517,7 +517,7 @@ class InitializerResolver {
     ResolverTask resolver = visitor.compiler.resolver;
     final SourceString className = lookupTarget.name;
     result = lookupTarget.lookupConstructor(className, constructorName);
-    if (result === null) {
+    if (result === null || !result.isGenerativeConstructor()) {
       String classNameString = className.slowToString();
       String constructorNameString = constructorName.slowToString();
       String name = (constructorName === const SourceString(''))
