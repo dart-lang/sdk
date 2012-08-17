@@ -184,6 +184,7 @@ public class Resolver {
     private EnclosingElement currentHolder;
     private EnclosingElement enclosingElement;
     private MethodElement currentMethod;
+    private boolean inInstanceVariableInitializer;
     private boolean inInitializer;
     private MethodElement innermostFunction;
     private ResolutionContext context;
@@ -662,7 +663,12 @@ public class Resolver {
       boolean isStatic = modifiers.isStatic();
 
       if (expression != null) {
-        resolve(expression);
+        inInstanceVariableInitializer = !isTopLevel;
+        try {
+          resolve(expression);
+        } finally {
+          inInstanceVariableInitializer = false;
+        }
         // Now, this constant has a type. Save it for future reference.
         Element element = node.getElement();
         Type expressionType = expression.getType();
@@ -1095,9 +1101,12 @@ public class Resolver {
                                             String name, Element element) {
       switch (element.getKind()) {
         case FIELD:
-          if (inStaticContext(currentMethod) && !inStaticContext(element)) {
-            onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC,
-                name);
+          if (!inStaticContext(element)) {
+            if (inInstanceVariableInitializer) {
+              onError(x, ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER);
+            } else if (inStaticContext(currentMethod)) {
+              onError(x, ResolverErrorCode.ILLEGAL_FIELD_ACCESS_FROM_STATIC, name);
+            }
           }
           if (isIllegalPrivateAccess(x, enclosingElement, element, x.getName())) {
             return null;
@@ -2151,8 +2160,8 @@ public class Resolver {
     }
 
     private boolean inStaticContext(Element element) {
-      return element == null || Elements.isTopLevel(element)
-          || element.getModifiers().isStatic() || element.getModifiers().isFactory();
+      return element == null || Elements.isTopLevel(element) || element.getModifiers().isStatic()
+          || element.getModifiers().isConstant() || element.getModifiers().isFactory();
     }
 
     @Override

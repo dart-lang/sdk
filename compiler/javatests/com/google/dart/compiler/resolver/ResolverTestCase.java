@@ -71,7 +71,6 @@ abstract class ResolverTestCase extends TestCase {
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
-    new CompileTimeConstantResolver().exec(unit, context, typeProvider);
     new Resolver(context, scope, typeProvider).exec(unit);
     // TODO(zundel): One day, we want all AST nodes that are identifiers to point to
     // elements if they are resolved.  Uncommenting this line helps track missing elements
@@ -88,8 +87,7 @@ abstract class ResolverTestCase extends TestCase {
     // Run phases as in compiler.
     new SupertypeResolver().exec(unit, context, scope, typeProvider);
     new MemberBuilder().exec(unit, context, scope, typeProvider);
-    // Substitute the lightweight CTConst resolver
-    new CompileTimeConstantResolver().exec(unit, context, scope, typeProvider);
+    new Resolver.Phase().exec(unit, context, typeProvider);
     new CompileTimeConstantAnalyzer(typeProvider, context).exec(unit);
     return scope;
   }

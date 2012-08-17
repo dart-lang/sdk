@@ -81,7 +81,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             " var f2 = new Val(f3);",
             "}",
             ""),
-        errEx(ResolverErrorCode.CANNOT_USE_THIS_IN_INSTANCE_FIELD_INITIALIZER, 8, 11, 4),
+        errEx(ResolverErrorCode.THIS_OUTSIDE_OF_METHOD, 8, 11, 4),
         errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 9, 19, 2),
         errEx(ResolverErrorCode.CANNOT_USE_INSTANCE_FIELD_IN_INSTANCE_FIELD_INITIALIZER, 12, 19, 2));
   }
@@ -152,7 +152,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "  const A(this.v);",
             "}",
             "class B extends A {",
-            "  const A() : super(generateValue());",
+            "  const B() : super(generateValue());",
             "  static generateValue() => 42;",
             "}",
             ""),
@@ -210,14 +210,16 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   public void test_nonConstantExpressions() {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(
-            "class Object {}",
             "var x = 0;",
             "const c1 = const {'$x' : 1};",
             "const c2 = const {'key': []};",
-            "const c3 = const [new Object()];"),
-            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 21, 1),
-            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 26,2),
-            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 19, 12));
+            "const c3 = const [new Object()];",
+            "class Object {}",
+            "class String {}",
+            ""),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 2, 21, 1),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 3, 26,2),
+            errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 19, 12));
   }
 
   public void test_expressionsWithNull() {
@@ -230,13 +232,14 @@ public class CompileTimeConstantTest extends ResolverTestCase {
     resolveAndTestCtConstExpectErrors(
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
-            "class Object {}",
             "main() {",
             " int x = 1;",
             " void func([var y = x]) {}",
             "}",
+            "class Object {}",
+            "class int {}",
             ""),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 21, 1));
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 4, 21, 1));
   }
 
   public void test_stringInterpolation_referenceConstVar_num() {
@@ -271,10 +274,13 @@ public class CompileTimeConstantTest extends ResolverTestCase {
         Joiner.on("\n").join(
             "// filler filler filler filler filler filler filler filler filler filler",
             "class Object {}",
-            "final a = const Object();",
+            "class C {",
+            "  const C();",
+            "}",
+            "final a = const C();",
             "final v = '$a';",
             ""),
-        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL, 4, 13, 1));
+        errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION_STRING_NUMBER_BOOL, 7, 13, 1));
   }
 
   public void test_stringInterpolation_inMethod() {
@@ -392,6 +398,8 @@ public class CompileTimeConstantTest extends ResolverTestCase {
             "}",
             "final V2 = A.m;",
             ""),
+        errEx(ResolverErrorCode.ILLEGAL_METHOD_ACCESS_FROM_STATIC, 5, 21, 1),
+        errEx(ResolverErrorCode.NOT_A_STATIC_METHOD, 7, 14, 1),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 5, 21, 1),
         errEx(ResolverErrorCode.EXPECTED_CONSTANT_EXPRESSION, 7, 12, 3));
   }
@@ -666,6 +674,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   public void testConstantTypedLiteralAssign1() {
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
+        "class String {}",
         "class List<T> {}",
         "class Map<K,V> {}",
         "class A {",
@@ -701,6 +710,7 @@ public class CompileTimeConstantTest extends ResolverTestCase {
   public void testConstantTypedLiteralAssign4() {
     resolveAndTestCtConst(Joiner.on("\n").join(
         "class Object {}",
+        "class String {}",
         "class Map<K,V> {}",
         "class A {",
         "  // map literal is not const",
