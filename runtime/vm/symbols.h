@@ -101,6 +101,7 @@ class ObjectPointerVisitor;
   V(ExternalFourByteString, "ExternalFourByteString")                          \
   V(Stacktrace, "Stacktrace")                                                  \
   V(JSSyntaxRegExp, "JSSyntaxRegExp")                                          \
+  V(WeakProperty, "WeakProperty")                                              \
   V(Object, "Object")                                                          \
   V(_Int8Array, "_Int8Array")                                                  \
   V(_Uint8Array, "_Uint8Array")                                                \

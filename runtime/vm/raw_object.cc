@@ -967,4 +967,13 @@ intptr_t RawJSRegExp::VisitJSRegExpPointers(RawJSRegExp* raw_obj,
   return JSRegExp::InstanceSize(length);
 }
 
+
+intptr_t RawWeakProperty::VisitWeakPropertyPointers(
+    RawWeakProperty* raw_obj, ObjectPointerVisitor* visitor) {
+  // Make sure that we got here with the tagged pointer as this.
+  ASSERT(raw_obj->IsHeapObject());
+  visitor->VisitPointers(raw_obj->from(), raw_obj->to());
+  return WeakProperty::InstanceSize();
+}
+
 }  // namespace dart

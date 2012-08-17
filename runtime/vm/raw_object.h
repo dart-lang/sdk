@@ -89,6 +89,7 @@ namespace dart {
       V(ExternalFloat64Array)                                                  \
     V(Stacktrace)                                                              \
     V(JSRegExp)                                                                \
+    V(WeakProperty)                                                            \
     V(Closure)                                                                 \
 
 #define CLASS_LIST(V)                                                          \
@@ -190,8 +191,9 @@ class RawObject {
     kMarkBit = 1,
     kCanonicalBit = 2,
     kFromSnapshotBit = 3,
-    kReservedTagBit = 4,  // kReservedBit{10K,100K,1M,10M}
-    kReservedTagSize = 4,
+    kWatchedBit = 4,
+    kReservedTagBit = 5,  // kReservedBit{10K,100K,1M,10M}
+    kReservedTagSize = 3,
     kSizeTagBit = 8,
     kSizeTagSize = 8,
     kClassIdTagBit = kSizeTagBit + kSizeTagSize,
@@ -260,6 +262,21 @@ class RawObject {
     ASSERT(IsMarked());
     uword tags = ptr()->tags_;
     ptr()->tags_ = MarkBit::update(false, tags);
+  }
+
+  // Support for GC watched bit.
+  bool IsWatched() const {
+    return WatchedBit::decode(ptr()->tags_);
+  }
+  void SetWatchedBit() {
+    ASSERT(!IsWatched());
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = WatchedBit::update(true, tags);
+  }
+  void ClearWatchedBit() {
+    ASSERT(IsWatched());
+    uword tags = ptr()->tags_;
+    ptr()->tags_ = WatchedBit::update(false, tags);
   }
 
   // Support for object tags.
@@ -331,6 +348,8 @@ class RawObject {
 
   class MarkBit : public BitField<bool, kMarkBit, 1> {};
 
+  class WatchedBit : public BitField<bool, kWatchedBit, 1> {};
+
   class CanonicalObjectTag : public BitField<bool, kCanonicalBit, 1> {};
 
   class CreatedFromSnapshotTag : public BitField<bool, kFromSnapshotBit, 1> {};
@@ -355,6 +374,7 @@ class RawObject {
   friend class Api;
   friend class Array;
   friend class FreeListElement;
+  friend class GCMarker;
   friend class Heap;
   friend class HeapProfiler;
   friend class HeapProfilerRootVisitor;
@@ -362,6 +382,7 @@ class RawObject {
   friend class Object;
   friend class RawInstructions;
   friend class RawInstance;
+  friend class Scavenger;
   friend class SnapshotReader;
   friend class SnapshotWriter;
 
@@ -1430,6 +1451,24 @@ class RawJSRegExp : public RawInstance {
 
   // Variable length data follows here.
   uint8_t data_[0];
+};
+
+class RawWeakProperty : public RawInstance {
+  RAW_HEAP_OBJECT_IMPLEMENTATION(WeakProperty);
+
+  RawObject** from() {
+    return reinterpret_cast<RawObject**>(&ptr()->key_);
+  }
+  RawObject* key_;
+  RawObject* value_;
+  RawObject** to() {
+    return reinterpret_cast<RawObject**>(&ptr()->value_);
+  }
+
+  friend class GCMarker;
+  friend class MarkingVisitor;
+  friend class Scavenger;
+  friend class ScavengerVisitor;
 };
 
 // Class Id predicates.

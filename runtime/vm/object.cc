@@ -624,6 +624,12 @@ RawError* Object::Init(Isolate* isolate) {
   RegisterClass(cls, name, core_impl_lib);
   pending_classes.Add(cls, Heap::kOld);
 
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
+  name = Symbols::WeakProperty();
+  RegisterClass(cls, name, core_impl_lib);
+  pending_classes.Add(cls, Heap::kOld);
+
   // Initialize the base interfaces used by the core VM classes.
   const Script& script = Script::Handle(Bootstrap::LoadCoreScript(false));
 
@@ -1023,6 +1029,9 @@ void Object::InitFromSnapshot(Isolate* isolate) {
 
   cls = Class::New<JSRegExp>();
   object_store->set_jsregexp_class(cls);
+
+  cls = Class::New<WeakProperty>();
+  object_store->set_weak_property_class(cls);
 
   // Allocate pre-initialized values.
   Bool& bool_value = Bool::Handle();
@@ -1758,7 +1767,7 @@ RawClass* Class::NewSignatureClass(const String& name,
 
 
 RawClass* Class::GetClass(intptr_t class_id, bool is_signature_class) {
-  if (class_id >= kIntegerCid && class_id <= kJSRegExpCid) {
+  if (class_id >= kIntegerCid && class_id <= kWeakPropertyCid) {
     return Isolate::Current()->class_table()->At(class_id);
   }
   if (class_id >= kNumPredefinedCids) {
@@ -11309,6 +11318,26 @@ const char* JSRegExp::ToCString() const {
   char* chars = Isolate::Current()->current_zone()->Alloc<char>(len + 1);
   OS::SNPrint(chars, (len + 1), format, str.ToCString(), Flags());
   return chars;
+}
+
+
+RawWeakProperty* WeakProperty::New(Heap::Space space) {
+  ASSERT(Isolate::Current()->object_store()->weak_property_class()
+         != Class::null());
+  WeakProperty& result = WeakProperty::Handle();
+  {
+    RawObject* raw = Object::Allocate(WeakProperty::kClassId,
+                                      WeakProperty::InstanceSize(),
+                                      space);
+    NoGCScope no_gc;
+    result ^= raw;
+  }
+  return result.raw();
+}
+
+
+const char* WeakProperty::ToCString() const {
+  return "WeakProperty";
 }
 
 }  // namespace dart

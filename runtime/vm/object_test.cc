@@ -2862,6 +2862,252 @@ TEST_CASE(StackTraceFormat) {
       "#10     main (dart:test-lib:37:24)");
 }
 
+
+TEST_CASE(WeakProperty_PreserveOne_NewSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  OneByteString& key = OneByteString::Handle();
+  key ^= OneByteString::New("key");
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value");
+    weak ^= WeakProperty::New();
+    weak.set_key(key);
+    weak.set_value(value);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveTwo_NewSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  OneByteString& key1 = OneByteString::Handle();
+  key1 ^= OneByteString::New("key1");
+  WeakProperty& weak2 = WeakProperty::Handle();
+  OneByteString& key2 = OneByteString::Handle();
+  key2 ^= OneByteString::New("key2");
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1");
+    weak1 ^= WeakProperty::New();
+    weak1.set_key(key1);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2");
+    weak2 ^= WeakProperty::New();
+    weak2.set_key(key2);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() != Object::null());
+  EXPECT(weak1.value() != Object::null());
+  EXPECT(weak2.key() != Object::null());
+  EXPECT(weak2.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveTwoShared_NewSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  WeakProperty& weak2 = WeakProperty::Handle();
+  OneByteString& key = OneByteString::Handle();
+  key ^= OneByteString::New("key");
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1");
+    weak1 ^= WeakProperty::New();
+    weak1.set_key(key);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2");
+    weak2 ^= WeakProperty::New();
+    weak2.set_key(key);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() != Object::null());
+  EXPECT(weak1.value() != Object::null());
+  EXPECT(weak2.key() != Object::null());
+  EXPECT(weak2.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveOne_OldSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  OneByteString& key = OneByteString::Handle();
+  key ^= OneByteString::New("key", Heap::kOld);
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kOld);
+    weak ^= WeakProperty::New(Heap::kOld);
+    weak.set_key(key);
+    weak.set_value(value);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() != Object::null());
+  EXPECT(weak.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveTwo_OldSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  OneByteString& key1 = OneByteString::Handle();
+  key1 ^= OneByteString::New("key1", Heap::kOld);
+  WeakProperty& weak2 = WeakProperty::Handle();
+  OneByteString& key2 = OneByteString::Handle();
+  key2 ^= OneByteString::New("key2", Heap::kOld);
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1", Heap::kOld);
+    weak1 ^= WeakProperty::New(Heap::kOld);
+    weak1.set_key(key1);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2", Heap::kOld);
+    weak2 ^= WeakProperty::New(Heap::kOld);
+    weak2.set_key(key2);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() != Object::null());
+  EXPECT(weak1.value() != Object::null());
+  EXPECT(weak2.key() != Object::null());
+  EXPECT(weak2.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_PreserveTwoShared_OldSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  WeakProperty& weak2 = WeakProperty::Handle();
+  OneByteString& key = OneByteString::Handle();
+  key ^= OneByteString::New("key", Heap::kOld);
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1", Heap::kOld);
+    weak1 ^= WeakProperty::New(Heap::kOld);
+    weak1.set_key(key);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2", Heap::kOld);
+    weak2 ^= WeakProperty::New(Heap::kOld);
+    weak2.set_key(key);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() != Object::null());
+  EXPECT(weak1.value() != Object::null());
+  EXPECT(weak2.key() != Object::null());
+  EXPECT(weak2.value() != Object::null());
+}
+
+
+TEST_CASE(WeakProperty_ClearOne_NewSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key");
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value");
+    weak ^= WeakProperty::New();
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() == Object::null());
+  EXPECT(weak.value() == Object::null());
+}
+
+
+TEST_CASE(WeakProperty_ClearTwoShared_NewSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  WeakProperty& weak2 = WeakProperty::Handle();
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key");
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1");
+    weak1 ^= WeakProperty::New();
+    weak1.set_key(key);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2");
+    weak2 ^= WeakProperty::New();
+    weak2.set_key(key);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() == Object::null());
+  EXPECT(weak1.value() == Object::null());
+  EXPECT(weak2.key() == Object::null());
+  EXPECT(weak2.value() == Object::null());
+}
+
+
+TEST_CASE(WeakProperty_ClearOne_OldSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak = WeakProperty::Handle();
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key", Heap::kOld);
+    OneByteString& value = OneByteString::Handle();
+    value ^= OneByteString::New("value", Heap::kOld);
+    weak ^= WeakProperty::New(Heap::kOld);
+    weak.set_key(key);
+    weak.set_value(value);
+    key ^= OneByteString::null();
+    value ^= OneByteString::null();
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak.key() == Object::null());
+  EXPECT(weak.value() == Object::null());
+}
+
+
+TEST_CASE(WeakProperty_ClearTwoShared_OldSpace) {
+  Isolate* isolate = Isolate::Current();
+  WeakProperty& weak1 = WeakProperty::Handle();
+  WeakProperty& weak2 = WeakProperty::Handle();
+  {
+    HANDLESCOPE(isolate);
+    OneByteString& key = OneByteString::Handle();
+    key ^= OneByteString::New("key", Heap::kOld);
+    OneByteString& value1 = OneByteString::Handle();
+    value1 ^= OneByteString::New("value1");
+    weak1 ^= WeakProperty::New(Heap::kOld);
+    weak1.set_key(key);
+    weak1.set_value(value1);
+    OneByteString& value2 = OneByteString::Handle();
+    value2 ^= OneByteString::New("value2", Heap::kOld);
+    weak2 ^= WeakProperty::New(Heap::kOld);
+    weak2.set_key(key);
+    weak2.set_value(value2);
+  }
+  isolate->heap()->CollectAllGarbage();
+  EXPECT(weak1.key() == Object::null());
+  EXPECT(weak1.value() == Object::null());
+  EXPECT(weak2.key() == Object::null());
+  EXPECT(weak2.value() == Object::null());
+}
+
 #endif  // defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64).
 
 }  // namespace dart

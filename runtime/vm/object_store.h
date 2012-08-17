@@ -341,6 +341,13 @@ class ObjectStore {
     return OFFSET_OF(ObjectStore, jsregexp_class_);
   }
 
+  RawClass* weak_property_class() const {
+    return weak_property_class_;
+  }
+  void set_weak_property_class(const Class& value) {
+    weak_property_class_ = value.raw();
+  }
+
   RawArray* symbol_table() const { return symbol_table_; }
   void set_symbol_table(const Array& value) { symbol_table_ = value.raw(); }
 
@@ -516,6 +523,7 @@ class ObjectStore {
   RawClass* external_float64_array_class_;
   RawClass* stacktrace_class_;
   RawClass* jsregexp_class_;
+  RawClass* weak_property_class_;
   RawBool* true_value_;
   RawBool* false_value_;
   RawArray* symbol_table_;

@@ -263,6 +263,8 @@ void ClassFinalizer::VerifyBootstrapClasses() {
   ASSERT(ExternalFloat32Array::InstanceSize() == cls.instance_size());
   cls = object_store->external_float64_array_class();
   ASSERT(ExternalFloat64Array::InstanceSize() == cls.instance_size());
+  cls = object_store->weak_property_class();
+  ASSERT(WeakProperty::InstanceSize() == cls.instance_size());
 #endif  // defined(DEBUG)
 
   // Remember the currently pending classes.
@@ -374,7 +376,8 @@ void ClassFinalizer::ResolveSuperType(const Class& cls) {
       case kFloat32ArrayCid:
       case kExternalFloat32ArrayCid:
       case kFloat64ArrayCid:
-      case kExternalFloat64ArrayCid: {
+      case kExternalFloat64ArrayCid:
+      case kWeakPropertyCid: {
         const Script& script = Script::Handle(cls.script());
         ReportError(script, cls.token_pos(),
                     "'%s' is not allowed to extend '%s'",

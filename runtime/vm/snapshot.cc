@@ -30,7 +30,7 @@ static bool IsSingletonClassId(intptr_t class_id) {
 static bool IsObjectStoreClassId(intptr_t class_id) {
   // Check if this is a class which is stored in the object store.
   return (class_id == kObjectCid ||
-          (class_id >= kInstanceCid && class_id <= kJSRegExpCid));
+          (class_id >= kInstanceCid && class_id <= kWeakPropertyCid));
 }
 
 

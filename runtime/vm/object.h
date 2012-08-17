@@ -5410,6 +5410,41 @@ class JSRegExp : public Instance {
 };
 
 
+class WeakProperty : public Instance {
+ public:
+  RawObject* key() const {
+    return raw_ptr()->key_;
+  }
+
+  void set_key(const Object& key) {
+    StorePointer(&raw_ptr()->key_, key.raw());
+  }
+
+  RawObject* value() const {
+    return raw_ptr()->value_;
+  }
+
+  void set_value(const Object& value) {
+    StorePointer(&raw_ptr()->value_, value.raw());
+  }
+
+  static RawWeakProperty* New(Heap::Space space = Heap::kNew);
+
+  static intptr_t InstanceSize() {
+    return RoundedAllocationSize(sizeof(RawWeakProperty));
+  }
+
+  static void Clear(RawWeakProperty* raw_weak) {
+    raw_weak->ptr()->key_ = Object::null();
+    raw_weak->ptr()->value_ = Object::null();
+  }
+
+ private:
+  HEAP_OBJECT_IMPLEMENTATION(WeakProperty, Instance);
+  friend class Class;
+};
+
+
 // Breaking cycles and loops.
 RawClass* Object::clazz() const {
   uword raw_value = reinterpret_cast<uword>(raw_);

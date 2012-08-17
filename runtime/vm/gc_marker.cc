@@ -4,6 +4,9 @@
 
 #include "vm/gc_marker.h"
 
+#include <map>
+#include <utility>
+
 #include "vm/allocation.h"
 #include "vm/dart_api_state.h"
 #include "vm/isolate.h"
@@ -137,6 +140,25 @@ class MarkingVisitor : public ObjectPointerVisitor {
     }
   }
 
+  void DelayWeakProperty(RawWeakProperty* raw_weak) {
+    RawObject* raw_key = raw_weak->ptr()->key_;
+    DelaySet::iterator it = delay_set_.find(raw_key);
+    if (it != delay_set_.end()) {
+      ASSERT(raw_key->IsWatched());
+    } else {
+      ASSERT(!raw_key->IsWatched());
+      raw_key->SetWatchedBit();
+    }
+    delay_set_.insert(std::make_pair(raw_key, raw_weak));
+  }
+
+  void Finalize() {
+    DelaySet::iterator it = delay_set_.begin();
+    for (; it != delay_set_.end(); ++it) {
+      WeakProperty::Clear(it->second);
+    }
+  }
+
   void set_update_store_buffers(bool val) { update_store_buffers_ = val; }
 
  private:
@@ -148,6 +170,16 @@ class MarkingVisitor : public ObjectPointerVisitor {
     ASSERT(!raw_obj->IsMarked());
     RawClass* raw_class = isolate()->class_table()->At(raw_obj->GetClassId());
     raw_obj->SetMarkBit();
+    if (raw_obj->IsWatched()) {
+      std::pair<DelaySet::iterator, DelaySet::iterator> ret;
+      // Visit all elements with a key equal to raw_obj.
+      ret = delay_set_.equal_range(raw_obj);
+      for (DelaySet::iterator it = ret.first; it != ret.second; ++it) {
+        it->second->VisitPointers(this);
+      }
+      delay_set_.erase(ret.first, ret.second);
+      raw_obj->ClearWatchedBit();
+    }
     marking_stack_->Push(raw_obj);
 
     // Update the number of used bytes on this page for fast accounting.
@@ -184,6 +216,8 @@ class MarkingVisitor : public ObjectPointerVisitor {
   Heap* vm_heap_;
   PageSpace* page_space_;
   MarkingStack* marking_stack_;
+  typedef std::multimap<RawObject*, RawWeakProperty*> DelaySet;
+  DelaySet delay_set_;
   bool update_store_buffers_;
 
   DISALLOW_IMPLICIT_CONSTRUCTORS(MarkingVisitor);
@@ -318,9 +352,28 @@ void GCMarker::DrainMarkingStack(Isolate* isolate,
   visitor->set_update_store_buffers(true);
   while (!visitor->marking_stack()->IsEmpty()) {
     RawObject* raw_obj = visitor->marking_stack()->Pop();
-    raw_obj->VisitPointers(visitor);
+    if (raw_obj->GetClassId() != kWeakPropertyCid) {
+      raw_obj->VisitPointers(visitor);
+    } else {
+      RawWeakProperty* raw_weak = reinterpret_cast<RawWeakProperty*>(raw_obj);
+      ProcessWeakProperty(raw_weak, visitor);
+    }
   }
   visitor->set_update_store_buffers(false);
+}
+
+
+void GCMarker::ProcessWeakProperty(RawWeakProperty* raw_weak,
+                                   MarkingVisitor* visitor) {
+  // The fate of the weak property is determined by its key.
+  RawObject* raw_key = raw_weak->ptr()->key_;
+  if (!raw_key->IsMarked()) {
+    // Key is white.  Delay the weak property.
+    visitor->DelayWeakProperty(raw_weak);
+  } else {
+    // Key is gray or black.  Make the weak property black.
+    raw_weak->VisitPointers(visitor);
+  }
 }
 
 
@@ -335,6 +388,7 @@ void GCMarker::MarkObjects(Isolate* isolate,
   IterateWeakReferences(isolate, &mark);
   MarkingWeakVisitor mark_weak;
   IterateWeakRoots(isolate, &mark_weak, invoke_api_callbacks);
+  mark.Finalize();
   Epilogue(isolate, invoke_api_callbacks);
 }
 

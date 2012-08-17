@@ -2051,4 +2051,44 @@ void RawJSRegExp::WriteTo(SnapshotWriter* writer,
 }
 
 
+RawWeakProperty* WeakProperty::ReadFrom(SnapshotReader* reader,
+                                        intptr_t object_id,
+                                        intptr_t tags,
+                                        Snapshot::Kind kind) {
+  ASSERT(reader != NULL);
+
+  // Allocate the weak property object.
+  WeakProperty& weak_property = WeakProperty::ZoneHandle(
+      reader->isolate(),
+      WeakProperty::New((kind == Snapshot::kFull) ? Heap::kOld : Heap::kNew));
+  reader->AddBackRef(object_id, &weak_property, kIsDeserialized);
+
+  // Set the object tags.
+  weak_property.set_tags(tags);
+
+  // Set all the object fields.
+  weak_property.raw_ptr()->key_ = reader->ReadObjectRef();
+  weak_property.raw_ptr()->value_ = reader->ReadObjectRef();
+
+  return weak_property.raw();
+}
+
+
+void RawWeakProperty::WriteTo(SnapshotWriter* writer,
+                          intptr_t object_id,
+                          Snapshot::Kind kind) {
+  ASSERT(writer != NULL);
+
+  // Write out the serialization header value for this object.
+  writer->WriteInlinedObjectHeader(object_id);
+
+  // Write out the class and tags information.
+  writer->WriteIndexedObject(kWeakPropertyCid);
+  writer->WriteIntptrValue(writer->GetObjectTags(this));
+
+  // Write out all the other fields.
+  writer->Write<RawObject*>(ptr()->key_);
+  writer->Write<RawObject*>(ptr()->value_);
+}
+
 }  // namespace dart
