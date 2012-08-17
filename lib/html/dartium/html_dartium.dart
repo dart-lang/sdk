@@ -8697,7 +8697,7 @@ class _HTMLCanvasElementImpl extends _HTMLElementImpl implements CanvasElement {
 
   Object getContext(String contextId) native "HTMLCanvasElement_getContext_Callback";
 
-  String toDataURL(String type) native "HTMLCanvasElement_toDataURL_Callback";
+  String toDataURL(String type, [num quality]) native "HTMLCanvasElement_toDataURL_Callback";
 
 
   CanvasRenderingContext2D get context2d() => getContext('2d');
@@ -24736,7 +24736,7 @@ interface CanvasElement extends Element default _Elements {
   Object getContext(String contextId);
 
   /** @domName HTMLCanvasElement.toDataURL */
-  String toDataURL(String type);
+  String toDataURL(String type, [num quality]);
 
   final CanvasRenderingContext2D context2d;
 }

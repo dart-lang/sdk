@@ -2821,7 +2821,7 @@ class _HTMLCanvasElementJs extends _HTMLElementJs implements HTMLCanvasElement n
 
   Object getContext(String contextId) native;
 
-  String toDataURL(String type) native;
+  String toDataURL(String type, [num quality]) native;
 }
 
 class _HTMLCollectionJs extends _DOMTypeJs implements HTMLCollection native "*HTMLCollection" {
@@ -15539,7 +15539,7 @@ interface HTMLCanvasElement extends HTMLElement {
 
   Object getContext(String contextId);
 
-  String toDataURL(String type);
+  String toDataURL(String type, [num quality]);
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
