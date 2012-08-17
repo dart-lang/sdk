@@ -66,6 +66,37 @@ class InvocationInfo {
 
 }
 
+class ReturnInfo {
+  HType returnType;
+  List<Element> compiledFunctions;
+
+  ReturnInfo(HType this.returnType)
+      : compiledFunctions = new List<Element>();
+
+  ReturnInfo.unknownType()
+      : this.returnType = null,
+        compiledFunctions = new List<Element>();
+
+  void update(HType type, var recompile) {
+    HType newType = returnType != null ? returnType.union(type) : type;
+    if (newType != returnType) {
+      if (returnType == null && newType === HType.UNKNOWN) {
+        // If the first actual piece of information is not providing any type
+        // information there is no need to recompile callers.
+        compiledFunctions.clear();
+      }
+      returnType = newType;
+      if (recompile != null) {
+        compiledFunctions.forEach(recompile);
+      }
+      compiledFunctions.clear();
+    }
+  }
+
+  addCompiledFunction(FunctionElement function) =>
+      compiledFunctions.add(function);
+}
+
 class JavaScriptItemCompilationContext extends ItemCompilationContext {
   final HTypeMap types;
 
@@ -83,6 +114,7 @@ class JavaScriptBackend extends Backend {
 
   final Map<Element, InvocationInfo> staticInvocationInfo;
   final Map<SourceString, Map<Selector, InvocationInfo>> invocationInfo;
+  final Map<Element, ReturnInfo> returnInfo;
 
   final List<Element> invalidateAfterCodegen;
 
@@ -97,6 +129,7 @@ class JavaScriptBackend extends Backend {
         fieldSettersType = new Map<Element, Map<Element, HType>>(),
         invocationInfo = new Map<SourceString, Map<Selector, InvocationInfo>>(),
         staticInvocationInfo = new Map<Element, InvocationInfo>(),
+        returnInfo = new Map<Element, ReturnInfo>(),
         invalidateAfterCodegen = new List<Element>(),
         super(compiler) {
     builder = new SsaBuilderTask(this);
@@ -351,5 +384,37 @@ class JavaScriptBackend extends Backend {
       }
       return null;
     }
+  }
+
+  void registerReturnType(FunctionElement element, HType returnType) {
+    ReturnInfo info = returnInfo[element];
+    if (info != null) {
+      recompile(Element element) {
+        if (compiler.phase == Compiler.PHASE_COMPILING) {
+          invalidateAfterCodegen.add(element);
+        }
+      }
+
+      info.update(returnType, recompile);
+    } else {
+      returnInfo[element] = new ReturnInfo(returnType);
+    }
+  }
+
+  /**
+   * Retreive the return type of the function [calee]. The type is optimistic
+   * in the sense that is is based on the compilation of [callee]. If [calee] is
+   * recompiled the return type might change to someting broader. For that
+   * reason [caller] is registered for recompilation if this happens. If the
+   * function [callee] has not yet been compiled the returned type is [null].
+   */
+  HType optimisticReturnTypesWithRecompilationOnTypeChange(
+      FunctionElement caller, FunctionElement callee) {
+    returnInfo.putIfAbsent(calee, () => new ReturnInfo.unknownType());
+    ReturnInfo info = returnInfo[calee];
+    if (info.returnType != HType.UNKNOWN && caller != null) {
+      info.addCompiledFunction(caller);
+    }
+    return info.returnType;
   }
 }

@@ -27,6 +27,15 @@ class SsaCodeGeneratorTask extends CompilerTask {
 
   CodeBuffer generateMethod(WorkItem work, HGraph graph) {
     return measure(() {
+      HTypeMap types = work.compilationContext.types;
+      graph.exit.predecessors.forEach((block) {
+        assert(block.last is HGoto || block.last is HReturn);
+        if (block.last is HReturn) {
+          backend.registerReturnType(work.element, types[block.last.inputs[0]]);
+        } else {
+          backend.registerReturnType(work.element, HType.NULL);
+        }
+      });
       compiler.tracer.traceGraph("codegen", graph);
       Map<Element, String> parameterNames = getParameterNames(work);
       parameterNames.forEach((element, name) {
