@@ -263,39 +263,33 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   }
 
   // Initialize start environment.
-  GrowableArray<Value*> start_env(variable_count());
+  GrowableArray<Definition*> start_env(variable_count());
   for (intptr_t i = 0; i < parameter_count(); ++i) {
     ParameterInstr* param = new ParameterInstr(i);
     param->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
-    start_env.Add(new UseVal(param));
+    start_env.Add(param);
   }
 
   // All locals are initialized with #null.
-  Value* null_value = new ConstantVal(Object::ZoneHandle());
+  Definition* null_def = new BindInstr(BindInstr::kUsed,
+                                       new ConstantVal(Object::ZoneHandle()));
+  null_def->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
   while (start_env.length() < variable_count()) {
-    start_env.Add(null_value);
+    start_env.Add(null_def);
   }
   graph_entry_->set_start_env(
       new Environment(start_env, non_copied_parameter_count_));
 
   BlockEntryInstr* normal_entry = graph_entry_->SuccessorAt(0);
   ASSERT(normal_entry != NULL);  // Must have entry.
-  GrowableArray<Value*> env(variable_count());
+  GrowableArray<Definition*> env(variable_count());
   env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, live_phis);
 }
 
 
-// Helper to a copy a value iff it is a UseVal.
-static Value* CopyValue(Value* value) {
-  return value->IsUse()
-      ? new UseVal(value->AsUse()->definition())
-      : value;
-}
-
-
 void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
-                                GrowableArray<Value*>* env,
+                                GrowableArray<Definition*>* env,
                                 GrowableArray<PhiInstr*>* live_phis) {
   // 1. Process phis first.
   if (block_entry->IsJoinEntry()) {
@@ -304,7 +298,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       for (intptr_t i = 0; i < join->phis()->length(); ++i) {
         PhiInstr* phi = (*join->phis())[i];
         if (phi != NULL) {
-          (*env)[i] = new UseVal(phi);
+          (*env)[i] = phi;
           phi->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
         }
       }
@@ -329,8 +323,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       // Update expression stack.
       ASSERT(env->length() > variable_count());
 
-      Value* input_value = env->Last();
-      ASSERT(input_value->IsUse());
+      Definition* input_defn = env->Last();
       env->RemoveLast();
 
       BindInstr* as_bind = v->AsUse()->definition()->AsBind();
@@ -343,7 +336,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         // Remove the use, its definition and copy the environment value.
         v->RemoveFromUseList();
         as_bind->RemoveFromGraph();
-        current->SetInputAt(i, CopyValue(input_value));
+        current->SetInputAt(i, new UseVal(input_defn));
       }
     }
 
@@ -364,20 +357,18 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (store != NULL) {
           index = store->local().BitIndexIn(non_copied_parameter_count_);
           // Update renaming environment.
-          (*env)[index] = store->value();
+          ASSERT(store->value()->IsUse());
+          (*env)[index] = store->value()->AsUse()->definition();
         } else {
           // The graph construction ensures we do not have an unused LoadLocal
           // computation.
           ASSERT(bind->is_used());
           index = load->local().BitIndexIn(non_copied_parameter_count_);
 
-          Value* value = (*env)[index];
-          if (value->IsUse()) {
-            PhiInstr* phi = value->AsUse()->definition()->AsPhi();
-            if ((phi != NULL) && !phi->is_alive()) {
-              phi->mark_alive();
-              live_phis->Add(phi);
-            }
+          PhiInstr* phi = (*env)[index]->AsPhi();
+          if ((phi != NULL) && !phi->is_alive()) {
+            phi->mark_alive();
+            live_phis->Add(phi);
           }
         }
         // Update expression stack or remove from graph.
@@ -385,7 +376,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
           // Assert exactly one use.
           ASSERT(bind->use_list() != NULL);
           ASSERT(bind->use_list()->next_use() == NULL);
-          env->Add(CopyValue((*env)[index]));
+          env->Add((*env)[index]);
           // We remove load/store instructions when we find their use in 2a.
         } else {
           it.RemoveCurrentFromGraph();
@@ -395,7 +386,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         if (bind->is_used()) {
           // Assign fresh SSA temporary and update expression stack.
           bind->set_ssa_temp_index(alloc_ssa_temp_index());
-          env->Add(new UseVal(bind));
+          env->Add(bind);
         }
       }
     }
@@ -403,14 +394,14 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
     // 2c. Handle pushed argument.
     PushArgumentInstr* push = current->AsPushArgument();
     if (push != NULL) {
-      env->Add(new UseVal(push));
+      env->Add(push);
     }
   }
 
   // 3. Process dominated blocks.
   for (intptr_t i = 0; i < block_entry->dominated_blocks().length(); ++i) {
     BlockEntryInstr* block = block_entry->dominated_blocks()[i];
-    GrowableArray<Value*> new_env(env->length());
+    GrowableArray<Definition*> new_env(env->length());
     new_env.AddArray(*env);
     RenameRecursive(block, &new_env, live_phis);
   }
@@ -427,8 +418,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
       for (intptr_t i = 0; i < successor->phis()->length(); ++i) {
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
-          // Rename input operand and make a copy if it is a UseVal.
-          phi->SetInputAt(pred_index, CopyValue((*env)[i]));
+          // Rename input operand.
+          phi->SetInputAt(pred_index, new UseVal((*env)[i]));
         }
       }
     }

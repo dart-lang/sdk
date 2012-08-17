@@ -1439,6 +1439,27 @@ void PushArgumentInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 }
 
 
+// Helper to either use the constant value of a defintion or the defintion.
+static Value* UseDefinition(Definition* defn) {
+  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
+    return defn->AsBind()->computation()->AsConstant();
+  } else {
+    return new UseVal(defn);
+  }
+}
+
+
+Environment::Environment(const GrowableArray<Definition*>& definitions,
+                         intptr_t fixed_parameter_count)
+    : values_(definitions.length()),
+      locations_(NULL),
+      fixed_parameter_count_(fixed_parameter_count) {
+  for (intptr_t i = 0; i < definitions.length(); ++i) {
+    values_.Add(UseDefinition(definitions[i]));
+  }
+}
+
+
 #undef __
 
 }  // namespace dart

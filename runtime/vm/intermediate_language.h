@@ -2882,14 +2882,9 @@ class BranchInstr : public TemplateInstruction<2> {
 
 class Environment : public ZoneAllocated {
  public:
-  // Construct an environment by copying from an array of values.
-  explicit Environment(const GrowableArray<Value*>& values,
-                       intptr_t fixed_parameter_count)
-      : values_(values.length()),
-        locations_(NULL),
-        fixed_parameter_count_(fixed_parameter_count) {
-    values_.AddArray(values);
-  }
+  // Construct an environment by constructing uses from an array of definitions.
+  Environment(const GrowableArray<Definition*>& definitions,
+              intptr_t fixed_parameter_count);
 
   void set_locations(Location* locations) {
     ASSERT(locations_ == NULL);

@@ -11,10 +11,10 @@
 namespace dart {
 
 class BlockEntryInstr;
+class Definition;
 class FlowGraphBuilder;
 class GraphEntryInstr;
 class PhiInstr;
-class Value;
 
 // Class to incapsulate the construction and manipulation of the flow graph.
 class FlowGraph: public ZoneAllocated {
@@ -80,7 +80,7 @@ class FlowGraph: public ZoneAllocated {
   void Rename(GrowableArray<PhiInstr*>* live_phis);
   void RenameRecursive(
       BlockEntryInstr* block_entry,
-      GrowableArray<Value*>* env,
+      GrowableArray<Definition*>* env,
       GrowableArray<PhiInstr*>* live_phis);
 
   void InsertPhis(
