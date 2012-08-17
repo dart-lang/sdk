@@ -348,7 +348,7 @@ class PlaceholderCollector extends AbstractVisitor {
       }
     }
     final type = compiler.resolveTypeAnnotation(currentElement, node);
-    if (type is InterfaceType || type is FunctionType) {
+    if (type is InterfaceType || type is TypedefType) {
       var target = node.typeName;
       if (node.typeName is Send) {
         final element = treeElements[node];
