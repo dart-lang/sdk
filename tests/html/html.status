@@ -18,6 +18,14 @@ request_animation_frame_test: Skip   # drt hangs; requestAnimationFrame not impl
 [ $compiler == none && $runtime == drt && $system == windows]
 audiocontext_test: Skip
 
+[ $compiler == dart2js && $runtime == drt && $system == windows]
+audiocontext_test: Fail # Issue 4517
+audioelement_test: Fail # Issue 4517
+blob_constructor_test: Fail # Issue 4517
+css_test: Fail # Issue 4517
+htmlaudioelement_test: Fail # Issue 4517
+indexeddb_2_test: Fail  # Issue 1883 - IndexedDB methods don't handle maps correctly.
+
 [ $compiler == none && $runtime == drt && $system == macos]
 audiocontext_test: Pass, Fail
 
