@@ -161,6 +161,8 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
         else:
           # Now try to find one with a nearby CL num.
           revision_num = int(revision_num) - 1
+          if revision_num <= 0:
+            too_early_error()
     return latest
     
   get_from_gsutil(name, directory, version_file, latest_pattern, osdict, 
@@ -286,6 +288,13 @@ def get_from_gsutil(name, directory, version_file, latest_pattern,
   print 'Successfully downloaded to %s' % directory
   return 0
 
+def too_early_error():
+  """Quick shortcutting function, to return early if someone requests a revision
+  that is smaller than the earliest stored. This saves us from doing repeated
+  requests until we get down to 0."""
+  print ('Unable to download requested revision because it is earlier than the '
+      'earliest revision stored.')
+  sys.exit(1)
 
 def main():
   parser = optparse.OptionParser(usage='usage: %prog [options] download_name')
@@ -296,17 +305,25 @@ def main():
   args, positional = parser.parse_args()
 
   if positional[0] == 'dartium':
+    if args.revision < 4285:
+      return too_early_error()
     get_dartium_revision('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
                          DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PATTERN,
                          args.revision)
   elif positional[0] == 'chromedriver':
+    if args.revision < 7823:
+      return too_early_error()
     get_dartium_revision('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
                          CHROMEDRIVER_LATEST_PATTERN,
                          CHROMEDRIVER_PERMANENT_PATTERN, args.revision)
   elif positional[0] == 'sdk':
+    if args.revision < 9761:
+      return too_early_error()
     get_sdk_revision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)
   elif positional[0] == 'drt':
+    if args.revision < 5342:
+      return too_early_error()
     get_dartium_revision('DumpRenderTree', DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
                          args.revision)
