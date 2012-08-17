@@ -25,5 +25,3 @@ unittest/test/instance_test: Skip
 [ $compiler == dart2js && $checked ]
 fixnum/test/int_32_test: Fail # Issue 3720.
 fixnum/test/int_64_test: Fail # Issue 3720.
-
-args/test/*: Skip # TODO(dgrove): skip while I get bots fixed
