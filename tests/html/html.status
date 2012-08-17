@@ -199,6 +199,10 @@ instance_of_test: Fail     # Issue 2535
 localstorage_test: Fail
 mutationobserver_test: Fail  #  Bots have FF 13, will pass on FF 14.
 
+[ $compiler == dart2js && ($runtime == drt || $runtime == ff) && $system == linux]
+# DOM errors.
+indexeddb_2_test: Fail # Uncaught error
+
 [ $compiler == dart2js && $runtime == chrome && $system == macos ]
 fileapi_test: Skip # Issue 3022
 
