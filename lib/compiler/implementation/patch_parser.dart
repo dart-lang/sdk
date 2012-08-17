@@ -10,42 +10,50 @@
 #import("apiimpl.dart");
 #import("scanner/scannerlib.dart");  // Scanner, Parsers, Listeners
 #import("elements/elements.dart");
-#import('native_handler.dart', prefix: 'native');
+#import('util/util.dart');
 
 class PatchParserTask extends leg.CompilerTask {
   PatchParserTask(leg.Compiler compiler): super(compiler);
   final String name = "Patching Parser";
 
-  LibraryElement loadPatchLibrary(Uri uri) {
-    bool newLibrary = false;
-    LibraryElement library =
-      compiler.libraries.putIfAbsent(uri.toString(), () {
-          newLibrary = true;
-          leg.Script script = compiler.readScript(uri, null);
-          LibraryElement element =
-              new LibraryElement(script);
-          native.maybeEnableNative(compiler, element, uri);
-          return element;
-        });
-    if (newLibrary) {
-      compiler.withCurrentElement(library, () {
-        scanLibraryElements(library);
-        compiler.onLibraryLoaded(library, uri);
-      });
+  /**
+   * Scans a library patch file, applies the method patches and
+   * injections to the library, and returns a list of class
+   * patches.
+   */
+  void patchLibrary(Uri patchUri, LibraryElement library) {
+    leg.Script script = compiler.readScript(patchUri, null);
+    CompilationUnitElement compilationUnit =
+        new CompilationUnitElement(script, library);
+    library.addCompilationUnit(compilationUnit);
+    LinkBuilder<tree.ScriptTag> imports = new LinkBuilder<tree.ScriptTag>();
+    compiler.withCurrentElement(compilationUnit, () {
+      // This patches the elements of the patch library into [library].
+      // Injected elements are added directly under the compilation unit.
+      // Patche elements are stored on the patched functions or classes.
+      scanLibraryElements(compilationUnit, imports);
+    });
+    // After scanning declarations, we handle the import tags in the patch.
+    // TODO(lrn): These imports end up in the original library and are in
+    // scope for the original methods too. This should be fixed.
+    for (tree.ScriptTag tag in imports.toLink()) {
+      compiler.scanner.importLibraryFromTag(tag, compilationUnit);
     }
-    return library;
   }
 
-  void scanLibraryElements(LibraryElement library) {
+  void scanLibraryElements(
+        CompilationUnitElement compilationUnit,
+        LinkBuilder<tree.ScriptTag> imports) {
     measure(() {
       // TODO(lrn): Possibly recursively handle #source directives in patch.
-      leg.Script script = library.entryCompilationUnit.script;
+      leg.Script script = compilationUnit.script;
       Token tokens = new StringScanner(script.text).tokenize();
       Function idGenerator = compiler.getNextFreeClassId;
       PatchListener patchListener =
           new PatchElementListener(compiler,
-                                   library.entryCompilationUnit,
-                                   idGenerator);
+                                   compilationUnit,
+                                   idGenerator,
+                                   imports);
       new PatchParser(patchListener).parseUnit(tokens);
     });
   }
@@ -149,11 +157,14 @@ class PatchClassElementParser extends PatchParser {
  * Extension of [ElementListener] for parsing patch files.
  */
 class PatchElementListener extends ElementListener implements PatchListener {
+  final LinkBuilder<tree.ScriptTag> imports;
   bool isMemberPatch = false;
   bool isClassPatch = false;
+
   PatchElementListener(leg.DiagnosticListener listener,
                        CompilationUnitElement patchElement,
-                       int idGenerator())
+                       int idGenerator(),
+                       this.imports)
     : super(listener, patchElement, idGenerator);
 
   void beginPatch(Token token) {
@@ -173,9 +184,63 @@ class PatchElementListener extends ElementListener implements PatchListener {
     }
   }
 
+  /**
+    * Allow script tags (import only, the parser rejects the rest for now) in
+    * patch files. The import tags will be added to the library.
+    */
+  bool allowScriptTags() => true;
+
+  void addScriptTag(tree.ScriptTag tag) {
+    super.addScriptTag(tag);
+    imports.addLast(tag);
+  }
+
   void pushElement(Element element) {
     if (isMemberPatch || (isClassPatch && element is ClassElement)) {
+      // Apply patch.
       element.addMetadata(popNode());
+      LibraryElement library = compilationUnitElement.getLibrary();
+      Element existing = library.localLookup(element.name);
+      if (isMemberPatch) {
+        if (element is! FunctionElement) {
+          listener.internalErrorOnElement(element,
+                                          "Member patch is not a function.");
+        }
+        if (existing.kind === ElementKind.ABSTRACT_FIELD) {
+          if (!element.isAccessor()) {
+            listener.internalErrorOnElement(
+                element, "Patching non-accessor with accessor");
+          }
+          AbstractField field = existing;
+          if (element.isGetter()) {
+            existing = field.getter;
+          } else {
+            existing = field.setter;
+          }
+        }
+        if (existing is! FunctionElement) {
+          listener.internalErrorOnElement(element,
+                                          "No corresponding method for patch.");
+        }
+        FunctionElement function = existing;
+        if (function.isPatched) {
+          listener.internalErrorOnElement(
+              element, "Patching the same function more than once.");
+        }
+        function.patch = element;
+      } else {
+        if (existing is! ClassElement) {
+          listener.internalErrorOnElement(
+              element, "Patching a non-class with a class patch.");
+        }
+        ClassElement classElement = existing;
+        if (classElement.isPatched) {
+          listener.internalErrorOnElement(
+              element, "Patching the same class more than once.");
+        }
+        classElement.patch = element;
+      }
+      return;
     }
     super.pushElement(element);
   }

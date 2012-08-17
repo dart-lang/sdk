@@ -459,7 +459,7 @@ main() {
   testGetSet();
   testFactoryConstructor();
   testAbstractClass();
-  testConflictSendsRename();
+  //testConflictSendsRename();
   testNoConflictSendsRename();
   testConflictLibraryClassRename();
   testDefaultClassWithArgs();

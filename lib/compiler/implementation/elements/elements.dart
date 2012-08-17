@@ -399,21 +399,21 @@ class CompilationUnitOverrideElement extends Element {
 }
 
 class LibraryElement extends ScopeContainerElement {
+  final Uri uri;
   CompilationUnitElement entryCompilationUnit;
   Link<CompilationUnitElement> compilationUnits =
       const EmptyLink<CompilationUnitElement>();
-
   Link<ScriptTag> tags = const EmptyLink<ScriptTag>();
   ScriptTag libraryTag;
   bool canUseNative = false;
   LibraryElement patch = null;
 
-  LibraryElement(Script script)
-    : super(new SourceString(script.name), ElementKind.LIBRARY, null) {
+  LibraryElement(Script script, [Uri uri])
+    : this.uri = ((uri === null) ? script.uri : uri),
+      super(new SourceString(script.name), ElementKind.LIBRARY, null) {
     entryCompilationUnit = new CompilationUnitElement(script, this);
   }
 
-  Uri get uri() => entryCompilationUnit.script.uri;
 
   bool get isPatched() => patch !== null;
 
@@ -1042,6 +1042,9 @@ class ClassElement extends ScopeContainerElement
 
   Link<Type> allSupertypes;
 
+  // Lazily applied patch of class members.
+  ClassElement patch = null;
+
   ClassElement(SourceString name, Element enclosing, this.id)
     : super(name, ElementKind.CLASS, enclosing);
 
@@ -1054,6 +1057,8 @@ class ClassElement extends ScopeContainerElement
     }
     return type;
   }
+
+  bool get isPatched() => patch != null;
 
   Link<Type> get typeVariables() => type.arguments;
 

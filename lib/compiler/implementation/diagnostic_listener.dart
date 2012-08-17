@@ -8,4 +8,9 @@ interface DiagnosticListener {
   // TODO(karlklose): rename log to something like reportInfo.
   void log(message);
   // TODO(karlklose): add reportWarning and reportError to this interface.
+
+  void internalErrorOnElement(Element element, String message);
+  void internalError(String message,
+                     [Node node, Token token, HInstruction instruction,
+                      Element element]);
 }

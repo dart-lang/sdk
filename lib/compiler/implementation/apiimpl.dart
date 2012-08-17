@@ -34,7 +34,14 @@ class Compiler extends leg.Compiler {
 
   elements.LibraryElement scanBuiltinLibrary(String path) {
     Uri uri = libraryRoot.resolve(DART2JS_LIBRARY_MAP[path].libraryPath);
-    elements.LibraryElement library = scanner.loadLibrary(uri, null);
+    Uri canonicalUri;
+    if (path.startsWith("_")) {
+      canonicalUri = uri;
+    } else {
+      canonicalUri = new Uri.fromComponents(scheme: "dart", path: path);
+    }
+    elements.LibraryElement library =
+        scanner.loadLibrary(uri, null, canonicalUri);
     return library;
   }
 
