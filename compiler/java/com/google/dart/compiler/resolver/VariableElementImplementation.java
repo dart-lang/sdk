@@ -66,6 +66,11 @@ class VariableElementImplementation extends AbstractNodeElement implements Varia
   }
 
   @Override
+  public boolean isOptional() {
+    return modifiers.isOptional();
+  }
+  
+  @Override
   public boolean isNamed() {
     return isNamed;
   }

@@ -1,4 +1,4 @@
-// Copyright (c) 2011, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -79,10 +79,11 @@ public class FunctionTypeTest extends TypeTestCase {
     assertEquals(stringAndIntToMap, stringAndIntToMapS.subst(args, vars));
 
     FunctionType oAndNamedToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(o),
+                                                              null,
                                                               named(itype(string), "arg"), null, o);
     assertEquals(objectAndNamedStringToObject, oAndNamedToO.subst(args, vars));
 
-    Type osToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(), null, o, o);
+    Type osToO = FunctionTypeImplementation.of(function, Arrays.<Type>asList(), null, null, o, o);
     assertEquals(objectsToObject, osToO.subst(args, vars));
   }
 

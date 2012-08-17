@@ -9,6 +9,7 @@ import com.google.dart.compiler.ast.DartExpression;
 public interface VariableElement extends Element {
   FieldElement getParameterInitializerElement();
 
+  boolean isOptional();
   boolean isNamed();
 
   DartExpression getDefaultValue();

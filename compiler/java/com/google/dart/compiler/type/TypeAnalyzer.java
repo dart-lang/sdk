@@ -987,6 +987,29 @@ public class TypeAnalyzer implements DartCompilationPhase {
         }
       }
 
+      // Check optional parameters.
+      // TODO(scheglov) currently this block does not work,
+      // because we handle all optional parameter as named
+      {
+        Map<String, Type> optionalParameterTypes = ftype.getOptionalParameterTypes();
+        Iterator<Entry<String, Type>> optionalParameterTypesIterator =
+            optionalParameterTypes.entrySet().iterator();
+        while (optionalParameterTypesIterator.hasNext()
+            && argumentTypes.hasNext()) {
+          Entry<String, Type> namedEntry = optionalParameterTypesIterator.next();
+          Type optionalType = namedEntry.getValue();
+          optionalType.getClass(); // quick null check
+          Type argumentType = argumentTypes.next();
+          argumentType.getClass(); // quick null check
+          DartExpression argumentNode = argumentNodes.get(argumentIndex);
+          argumentNode.setInvocationParameterId(argumentIndex);
+          if (checkAssignable(argumentNode, optionalType, argumentType)) {
+            inferFunctionLiteralParametersTypes(argumentNode, optionalType);
+          }
+          argumentIndex++;
+        }
+      }
+      
       // Check named parameters.
       {
         Set<String> usedNamedParametersPositional = Sets.newHashSet();
@@ -1021,6 +1044,7 @@ public class TypeAnalyzer implements DartCompilationPhase {
           DartExpression argumentNode = namedExpression.getExpression();
           // Prepare parameter name.
           String parameterName = namedExpression.getName().getName();
+          namedExpression.setInvocationParameterId(parameterName);
           argumentNode.setInvocationParameterId(parameterName);
           if (usedNamedParametersPositional.contains(parameterName)) {
             onError(namedExpression, TypeErrorCode.DUPLICATE_NAMED_ARGUMENT);

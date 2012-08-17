@@ -260,6 +260,11 @@ class DynamicElementImplementation extends AbstractNodeElement implements Dynami
   }
 
   @Override
+  public boolean isOptional() {
+    return false;
+  }
+
+  @Override
   public boolean isNamed() {
     return false;
   }

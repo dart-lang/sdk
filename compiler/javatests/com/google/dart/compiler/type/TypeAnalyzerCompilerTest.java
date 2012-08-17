@@ -3641,6 +3641,109 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 5, 5, 12),
         errEx(TypeErrorCode.USE_ASSIGNMENT_ON_SETTER, 10, 5, 12));
   }
+  
+  private abstract static class ArgumentsBindingTester {
+    static List<DartExpression> arguments;
+    void doTest(DartUnit unit) {
+      unit.accept(new ASTVisitor<Void>() {
+        int invocationIndex = 0;
+        @Override
+        public Void visitUnqualifiedInvocation(DartUnqualifiedInvocation node) {
+          arguments = node.getArguments();
+          checkArgs(invocationIndex++);
+          return super.visitUnqualifiedInvocation(node);
+        }
+      });
+    }
+    abstract void checkArgs(int invocationIndex);
+    void assertId(int index, Object expected) {
+      DartExpression argument = arguments.get(index);
+      assertEquals(expected, argument.getInvocationParameterId());
+    }
+  }
+
+  public void test_formalParameters_positional_optional() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method(var a, var b, [var c = 3, var d = 4]) {}",
+        "main() {",
+        "  method(10, 20);",
+        "  method(10, 20, 30);",
+        "  method(10, 20, 30, 40);",
+        "}");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    new ArgumentsBindingTester() {
+      @Override
+      void checkArgs(int invocationIndex) {
+        switch (invocationIndex) {
+          case 0: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            break;
+          }
+          case 1: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, Integer.valueOf(2));
+            break;
+          }
+          case 3: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, Integer.valueOf(2));
+            assertId(3, Integer.valueOf(3));
+            break;
+          }
+        }
+      }
+    }.doTest(unit);
+  }
+  
+  public void test_formalParameters_positional_named() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "method(var a, var b, {var c : 3, var d : 4}) {}",
+        "main() {",
+        "  method(10, 20);",
+        "  method(10, 20, c: 30);",
+        "  method(10, 20, d: 40);",
+        "  method(10, 20, d: 40, c: 30);",
+        "}");
+    assertErrors(libraryResult.getErrors());
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    new ArgumentsBindingTester() {
+      @Override
+      void checkArgs(int invocationIndex) {
+        switch (invocationIndex) {
+          case 0: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            break;
+          }
+          case 1: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "c");
+            break;
+          }
+          case 2: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "d");
+            break;
+          }
+          case 3: {
+            assertId(0, Integer.valueOf(0));
+            assertId(1, Integer.valueOf(1));
+            assertId(2, "d");
+            assertId(3, "c");
+            break;
+          }
+        }
+      }
+    }.doTest(unit);
+  }
 
   private static <T extends DartNode> T findNode(
       AnalyzeLibraryResult libraryResult,

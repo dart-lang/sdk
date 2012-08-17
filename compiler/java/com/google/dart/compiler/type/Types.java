@@ -428,21 +428,29 @@ public class Types {
                                               List<VariableElement> parameters,
                                               Type returnType) {
     List<Type> parameterTypes = new ArrayList<Type>(parameters.size());
+    Map<String, Type> optionalParameterTypes = null;
     Map<String, Type> namedParameterTypes = null;
     Type restParameter = null;
     for (VariableElement parameter : parameters) {
       Type type = parameter.getType();
+      // TODO(scheglov) one we will make optional parameter not named,
+      // check isOptional() before isNamed() 
       if (parameter.isNamed()) {
         if (namedParameterTypes == null) {
           namedParameterTypes = new LinkedHashMap<String, Type>();
         }
         namedParameterTypes.put(parameter.getName(), type);
+      } else if (parameter.isOptional()) {
+        if (optionalParameterTypes == null) {
+          optionalParameterTypes = new LinkedHashMap<String, Type>();
+        }
+        optionalParameterTypes.put(parameter.getName(), type);
       } else {
         parameterTypes.add(type);
       }
     }
-    return FunctionTypeImplementation.of(element, parameterTypes, namedParameterTypes,
-                                         restParameter, returnType);
+    return FunctionTypeImplementation.of(element, parameterTypes, optionalParameterTypes,
+        namedParameterTypes, restParameter, returnType);
   }
 
   public static Types getInstance(CoreTypeProvider typeProvider) {
