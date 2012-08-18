@@ -190,6 +190,9 @@ namespace dart {
   V(GrowableObjectArray_getCapacity, 1)                                        \
   V(GrowableObjectArray_setLength, 2)                                          \
   V(GrowableObjectArray_setData, 2)                                            \
+  V(WeakProperty_new, 2)                                                       \
+  V(WeakProperty_getKey, 1)                                                    \
+  V(WeakProperty_getValue, 1)                                                  \
 
 BOOTSTRAP_NATIVE_LIST(DECLARE_NATIVE_ENTRY)
 

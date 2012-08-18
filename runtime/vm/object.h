@@ -5417,7 +5417,7 @@ class WeakProperty : public Instance {
     return raw_ptr()->key_;
   }
 
-  void set_key(const Object& key) {
+  void set_key(const Object& key) const {
     StorePointer(&raw_ptr()->key_, key.raw());
   }
 
@@ -5425,7 +5425,7 @@ class WeakProperty : public Instance {
     return raw_ptr()->value_;
   }
 
-  void set_value(const Object& value) {
+  void set_value(const Object& value) const {
     StorePointer(&raw_ptr()->value_, value.raw());
   }
 

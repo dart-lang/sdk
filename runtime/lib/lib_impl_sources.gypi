@@ -27,5 +27,7 @@
     'stopwatch_patch.dart',
     'string.cc',
     'string.dart',
+    'weak_property.cc',
+    'weak_property.dart',
   ],
 }
