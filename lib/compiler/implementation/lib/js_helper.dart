@@ -815,7 +815,9 @@ unwrapException(ex) {
           message.endsWith('is undefined') ||
           message.endsWith('is null or undefined')) {
         return new NullPointerException();
-      } else if (message.endsWith('is not a function')) {
+      } else if (message.contains(' is not a function')) {
+        //  x.foo is not a function
+        //  'undefined' is not a function (evaluating 'x.foo(1,2,3)')
         // TODO(kasperl): Compute the right name if possible.
         return new NoSuchMethodException('', '<unknown>', []);
       }
