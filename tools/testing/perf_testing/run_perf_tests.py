@@ -26,6 +26,9 @@ DART_REPO_LOC = abspath(os.path.join(dirname(abspath(__file__)), '..', '..',
                                              '..', '..', '..',
                                              'dart_checkout_for_perf_testing',
                                              'dart'))
+# The earliest stored version of Dartium. Don't try to test earlier than this.
+EARLIEST_REVISION = 4285
+FIRST_CHROMEDRIVER = 7823
 sys.path.append(TOOLS_PATH)
 sys.path.append(os.path.join(TOP_LEVEL_DIR, 'internal', 'tests'))
 import post_results
@@ -344,6 +347,17 @@ class Test(object):
     """Check whether data should be captured for this platform/variant
     combination.
     """
+    # TODO(vsm): This avoids a bug in 32-bit Chrome (dartium)
+    # running JS dromaeo.
+    if platform == 'dartium' and variant == 'js':
+      return False
+    if (platform == 'safari' and variant == 'dart2js' and
+        int(self.test_runner.current_revision_num) < 10193):
+      # In revision 10193 we fixed a bug that allows Safari 6 to run dart2js
+      # code. Since we can't change the Safari version on the machine, we're
+      # just not running
+      # for this case.
+      return False
     return True
 
   def run(self):
@@ -505,7 +519,7 @@ class RuntimePerformanceTest(Test):
 class BrowserTester(Tester):
   @staticmethod
   def get_browsers(add_dartium=True):
-    browsers = ['ff', 'chrome']
+    browsers = []#['ff', 'chrome']
     if add_dartium:
       browsers += ['dartium']
     has_shell = False
@@ -712,17 +726,6 @@ class DromaeoTest(RuntimePerformanceTest):
   def name():
     return 'dromaeo'
 
-  def is_valid_combination(self, browser, version):
-    # TODO(vsm): This avoids a bug in 32-bit Chrome (dartium)
-    # running JS dromaeo.
-    if browser == 'dartium' and version == 'js':
-      return False
-    # dart:dom has been removed from Dartium.
-    if browser == 'dartium' and 'dom' in version:
-      return False
-    return True
-
-
   class DromaeoPerfTester(DromaeoTester):
     def move_chrome_driver_if_needed(self, browser):
       """Move the appropriate version of ChromeDriver onto the path. 
@@ -769,14 +772,21 @@ class DromaeoTest(RuntimePerformanceTest):
             if os.path.exists(orig_chromedriver_path):
               move_chromedriver(loc)
           elif browser == 'dartium':
-            if not os.path.exists(dartium_chromedriver_path):
+            if self.test.test_runner.current_revision_num < FIRST_CHROMEDRIVER:
+              # If we don't have a stashed a different chromedriver just use
+              # the regular chromedriver.
+              self.test.test_runner.run_cmd(os.path.join(
+                  TOP_LEVEL_DIR, 'tools', 'testing', 'webdriver_test_setup.py'),
+                  '-f', '-s', '-p')
+            elif not os.path.exists(dartium_chromedriver_path):
               self.test.test_runner.get_archive('chromedriver')
             # Move original chromedriver for storage.
             if not os.path.exists(orig_chromedriver_path):
               move_chromedriver(loc, copy_to_depot_tools_dir=False)
-            # Copy Dartium chromedriver into depot_tools
-            move_chromedriver(loc, from_path=os.path.join(
-                              dartium_chromedriver_path, 'chromedriver'))
+            if self.test.test_runner.current_revision_num >= FIRST_CHROMEDRIVER:
+              # Copy Dartium chromedriver into depot_tools
+              move_chromedriver(loc, from_path=os.path.join(
+                                dartium_chromedriver_path, 'chromedriver'))
       os.chdir(current_dir)
 
     def run_tests(self):
@@ -978,7 +988,8 @@ def fill_in_back_history(results_set, runner):
     tries = 0
     # Select which "thousands bucket" we're going to run additional tests for.
     bucket_size = 1000
-    thousands_list = range(1, int(revision_num)/bucket_size + 1)
+    thousands_list = range(EARLIEST_REVISION/bucket_size,
+                           int(revision_num)/bucket_size + 1)
     weighted_total = sum(thousands_list)
     generated_random_number = random.randint(0, weighted_total - 1)
     for i in list(reversed(thousands_list)):
@@ -1002,7 +1013,7 @@ def fill_in_back_history(results_set, runner):
     # CL that does not yet have 10 runs. But only perform a set of extra
     # runs at most 2 at a time before checking to see if new code has been
     # checked in.
-    while revision_num > 0 and not has_run_extra:
+    while revision_num > EARLIEST_REVISION and not has_run_extra:
       if revision_num not in results_set:
         has_run_extra = try_to_run_additional(revision_num)
       revision_num -= 1
