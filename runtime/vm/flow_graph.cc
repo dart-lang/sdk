@@ -271,11 +271,12 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   }
 
   // All locals are initialized with #null.
-  Definition* null_def = new BindInstr(BindInstr::kUsed,
-                                       new ConstantVal(Object::ZoneHandle()));
-  null_def->set_ssa_temp_index(alloc_ssa_temp_index());  // New SSA temp.
+  Definition* null_defn = new BindInstr(BindInstr::kUsed,
+                                        new ConstantVal(Object::ZoneHandle()));
+  // The null definition should not appear in input positions.
+  ASSERT(null_defn->ssa_temp_index() == -1);
   while (start_env.length() < variable_count()) {
-    start_env.Add(null_def);
+    start_env.Add(null_defn);
   }
   graph_entry_->set_start_env(
       new Environment(start_env, non_copied_parameter_count_));
@@ -285,6 +286,16 @@ void FlowGraph::Rename(GrowableArray<PhiInstr*>* live_phis) {
   GrowableArray<Definition*> env(variable_count());
   env.AddArray(start_env);
   RenameRecursive(normal_entry, &env, live_phis);
+}
+
+
+// Helper to either use the constant value of a defintion or the defintion.
+static Value* UseDefinition(Definition* defn) {
+  if (defn->IsBind() && defn->AsBind()->computation()->IsConstant()) {
+    return defn->AsBind()->computation()->AsConstant();
+  } else {
+    return new UseVal(defn);
+  }
 }
 
 
@@ -336,6 +347,8 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         // Remove the use, its definition and copy the environment value.
         v->RemoveFromUseList();
         as_bind->RemoveFromGraph();
+        // Assert we are not referencing nulls in the initial environment.
+        ASSERT(input_defn->ssa_temp_index() != -1);
         current->SetInputAt(i, new UseVal(input_defn));
       }
     }
@@ -419,7 +432,7 @@ void FlowGraph::RenameRecursive(BlockEntryInstr* block_entry,
         PhiInstr* phi = (*successor->phis())[i];
         if (phi != NULL) {
           // Rename input operand.
-          phi->SetInputAt(pred_index, new UseVal((*env)[i]));
+          phi->SetInputAt(pred_index, UseDefinition((*env)[i]));
         }
       }
     }
