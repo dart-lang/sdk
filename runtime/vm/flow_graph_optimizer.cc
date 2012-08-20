@@ -601,6 +601,16 @@ void FlowGraphOptimizer::VisitRelationalOp(RelationalOpComp* comp,
 
 void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
                                               BindInstr* instr) {
+  // If one of the inputs is null, no ICdata will be collected.
+  if (comp->left()->BindsToConstantNull() ||
+      comp->right()->BindsToConstantNull()) {
+    Token::Kind strict_kind = (comp->kind() == Token::kEQ) ?
+        Token::kEQ_STRICT : Token::kNE_STRICT;
+    StrictCompareComp* strict_comp =
+        new StrictCompareComp(strict_kind, comp->left(), comp->right());
+    instr->set_computation(strict_comp);
+    return;
+  }
   if (!comp->HasICData() || (comp->ic_data()->NumberOfChecks() == 0)) return;
   if (comp->ic_data()->NumberOfChecks() == 1) {
     ASSERT(comp->ic_data()->num_args_tested() == 2);
@@ -618,6 +628,21 @@ void FlowGraphOptimizer::VisitEqualityCompare(EqualityCompareComp* comp,
   } else if (comp->ic_data()->AllReceiversAreNumbers()) {
     comp->set_receiver_class_id(kNumberCid);
   }
+}
+
+
+void FlowGraphOptimizer::VisitBranch(BranchInstr* instr) {
+  if ((instr->kind() != Token::kEQ) &&
+      (instr->kind() != Token::kNE)) {
+    return;
+  }
+  if (!instr->left()->BindsToConstantNull() &&
+      !instr->right()->BindsToConstantNull()) {
+    return;
+  }
+  Token::Kind strict_kind = (instr->kind() == Token::kEQ) ?
+      Token::kEQ_STRICT : Token::kNE_STRICT;
+  instr->set_kind(strict_kind);
 }
 
 
