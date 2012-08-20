@@ -1122,6 +1122,9 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
                   name.ToCString());
     }
     cls.Finalize();
+    // Signature classes extend Object. No need to add this class to the direct
+    // subclasses of Object.
+    ASSERT(super_type.IsNull() || super_type.IsObjectType());
     return;
   }
   // Finalize factory class, if any.
@@ -1167,6 +1170,12 @@ void ClassFinalizer::FinalizeClass(const Class& cls, bool generating_snapshot) {
                   "but library '%s' has no native resolvers",
                   cls_name.ToCString(), lib_name.ToCString());
     }
+  }
+  // Add this class to the direct subclasses of the superclass, unless the
+  // superclass is Object.
+  if (!super_type.IsNull() && !super_type.IsObjectType()) {
+    ASSERT(!super_class.IsNull());
+    super_class.AddDirectSubclass(cls);
   }
 }
 

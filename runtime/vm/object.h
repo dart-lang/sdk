@@ -553,6 +553,13 @@ class Class : public Object {
     return OFFSET_OF(RawClass, interfaces_);
   }
 
+  // Returns the list of classes having this class as direct superclass.
+  RawGrowableObjectArray* direct_subclasses() const {
+    return raw_ptr()->direct_subclasses_;
+  }
+  void AddDirectSubclass(const Class& subclass) const;
+  // TODO(regis): Implement RemoveDirectSubclass for class unloading support.
+
   // Check if this class represents the class of null.
   bool IsNullClass() const { return raw() == Object::null_class(); }
 

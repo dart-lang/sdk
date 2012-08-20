@@ -1857,6 +1857,28 @@ void Class::set_interfaces(const Array& value) const {
 }
 
 
+void Class::AddDirectSubclass(const Class& subclass) const {
+  ASSERT(!subclass.IsNull());
+  ASSERT(subclass.SuperClass() == raw());
+  // Do not keep track of the direct subclasses of class Object.
+  // TODO(regis): Replace assert below with ASSERT(id() != kDartObjectCid).
+  ASSERT(!IsObjectClass());
+  GrowableObjectArray& direct_subclasses =
+      GrowableObjectArray::Handle(raw_ptr()->direct_subclasses_);
+  if (direct_subclasses.IsNull()) {
+    direct_subclasses = GrowableObjectArray::New(4, Heap::kOld);
+    StorePointer(&raw_ptr()->direct_subclasses_, direct_subclasses.raw());
+  }
+#if defined(DEBUG)
+  // Verify that the same class is not added twice.
+  for (intptr_t i = 0; i < direct_subclasses.Length(); i++) {
+    ASSERT(direct_subclasses.At(i) != subclass.raw());
+  }
+#endif
+  direct_subclasses.Add(subclass);
+}
+
+
 RawArray* Class::constants() const {
   return raw_ptr()->constants_;
 }

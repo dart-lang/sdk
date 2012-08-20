@@ -408,6 +408,7 @@ class RawClass : public RawObject {
   RawArray* fields_;
   RawGrowableObjectArray* closure_functions_;  // Local functions and literals.
   RawArray* interfaces_;  // Array of AbstractType.
+  RawGrowableObjectArray* direct_subclasses_;  // Array of Class.
   RawScript* script_;
   RawLibrary* library_;
   RawTypeArguments* type_parameters_;  // Array of TypeParameter.
