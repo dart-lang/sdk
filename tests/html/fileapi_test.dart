@@ -14,7 +14,7 @@ main() {
 
       fs.root.getDirectory(
           'directory2',
-          flags: {},
+          options: {},
           successCallback: expectAsync1((e) {
             expect(false, 'Should not be reached');
           }, count:0),
@@ -24,7 +24,7 @@ main() {
 
       fs.root.getDirectory(
           'directory3',
-          flags: {'create': true},
+          options: {'create': true},
           successCallback: expectAsync1((e) {
             expect(e.name, equals('directory3'));
           }),
@@ -38,7 +38,7 @@ main() {
 
       fs.root.getDirectory(
           'file2',
-          flags: {},
+          options: {},
           successCallback: expectAsync1((e) {
             expect(false, 'Should not be reached');
           }, count:0),
@@ -48,7 +48,7 @@ main() {
 
       fs.root.getDirectory(
           'file3',
-          flags: {'create': true},
+          options: {'create': true},
           successCallback: expectAsync1((e) {
             expect(e.name, equals('file3'));
           }),
