@@ -61,7 +61,7 @@ class InvocationInfo {
   addCompiledFunction(FunctionElement function) =>
       compiledFunctions.add(function);
 
-  void clearTypeInformation() => providedTypes = null;
+  void clearTypeInformation() { providedTypes = null; }
   bool get hasTypeInformation() => providedTypes != null;
 
 }
