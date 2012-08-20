@@ -682,7 +682,7 @@ class SsaCheckInserter extends HBaseVisitor implements OptimizationPhase {
   HIntegerCheck insertIntegerCheck(HInstruction node, HInstruction value) {
     HIntegerCheck check = new HIntegerCheck(value);
     node.block.addBefore(node, check);
-    Set<HInstruction> dominatedUsers = value.dominatedUsers(check);
+    Set<HInstruction> dominatedUsers = value.dominatedUsers(node);
     for (HInstruction user in dominatedUsers) {
       user.changeUse(value, check);
     }
@@ -1135,15 +1135,14 @@ class SsaTypeConversionInserter extends HBaseVisitor
   void changeUsesDominatedBy(HBasicBlock dominator,
                              HInstruction input,
                              HType convertedType) {
-    HTypeConversion newInput;
     Set<HInstruction> dominatedUsers = input.dominatedUsers(dominator.first);
-    for (HInstruction user in dominatedUsers) {
-      if (newInput === null) {
-        newInput = new HTypeConversion(convertedType, input);
-        dominator.addBefore(dominator.first, newInput);
-      }
+    if (dominatedUsers.isEmpty()) return;
+
+    HTypeConversion newInput = new HTypeConversion(convertedType, input);
+    dominator.addBefore(dominator.first, newInput);
+    dominatedUsers.forEach((HInstruction user) {
       user.changeUse(input, newInput);
-    }
+    });
   }
 
   void visitIs(HIs instruction) {

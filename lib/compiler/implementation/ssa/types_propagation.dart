@@ -140,8 +140,7 @@ class SsaTypePropagator extends HGraphVisitor implements OptimizationPhase {
     HTypeConversion converted =
         new HTypeConversion.argumentTypeCheck(type, input);
     instruction.block.addBefore(instruction, converted);
-    instruction.changeUse(input, converted);
-    Set<HInstruction> dominatedUsers = input.dominatedUsers(converted);
+    Set<HInstruction> dominatedUsers = input.dominatedUsers(instruction);
     for (HInstruction user in dominatedUsers) {
       user.changeUse(input, converted);
       addToWorkList(user);

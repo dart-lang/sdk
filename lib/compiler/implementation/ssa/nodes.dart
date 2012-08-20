@@ -932,7 +932,8 @@ class HInstruction implements Hashable {
   }
 
   // Compute the set of users of this instruction that is dominated by
-  // [other].
+  // [other]. If [other] is a user of [this], it is included in the
+  // returned set.
   Set<HInstruction> dominatedUsers(HInstruction other) {
     // Keep track of all instructions that we have to deal with later
     // and count the number of them that are in the current block.
@@ -944,7 +945,7 @@ class HInstruction implements Hashable {
     HBasicBlock otherBlock = other.block;
     for (int i = 0, length = usedBy.length; i < length; i++) {
       HInstruction current = usedBy[i];
-      if (current !== other && otherBlock.dominates(current.block)) {
+      if (otherBlock.dominates(current.block)) {
         if (current.block === otherBlock) usersInCurrentBlock++;
         users.add(current);
       }
