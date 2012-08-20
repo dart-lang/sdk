@@ -4024,8 +4024,13 @@ public class DartParser extends CompletionHooksParserBase {
             List<DartVariable> vars = parseInitializedVariableList();
             if (optional(Token.SEMICOLON)) {
               return done(new DartVariableStatement(vars, type));
-            } else {
+            } else if (peek(0) == Token.LPAREN) {
+              // Probably a function object invocation.
               rollback();
+            } else {
+              //reportError(position(), ParserErrorCode.EXPECTED_SEMICOLON);
+              expectStatmentTerminator();
+              return done(new DartVariableStatement(vars, type));
             }
           } else {
             rollback();
