@@ -8,6 +8,14 @@
 *vm_negative_test: Skip
 
 [ $compiler == dart2js && $checked ]
+getters_setters2_test/03: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/00: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/01: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/02: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/03: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/04: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+type_variable_scope_test/05: Pass # TODO(ahe): For the wrong reason, I will change that soon.
+
 assign_static_type_test/01: Fail
 assign_static_type_test/02: Fail
 assign_static_type_test/03: Fail
