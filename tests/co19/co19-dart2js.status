@@ -226,6 +226,8 @@ LibTest/core/TimeZone/TimeZone.utc_A01_t01: Fail, Pass
 # can understand so he can file a bug later.
 #
 [ $compiler == dart2js ]
+Language/07_Classes/2_Getters_A01_t03: Fail, OK # co19 issue 170.
+Language/07_Classes/3_Setters_A01_t03: Fail, OK # Bad test: assumes eager loading.
 Language/10_Expressions/06_Lists_A08_t01: Fail, OK # co19 issue 145.
 Language/10_Expressions/07_Maps_A01_t01: Fail, OK # Bad test: an expression statement cannot start with a map literal (specification bug).
 Language/10_Expressions/08_Function_Expressions_A01_t05: Fail, OK # Function declaration takes precedence over function expression.
