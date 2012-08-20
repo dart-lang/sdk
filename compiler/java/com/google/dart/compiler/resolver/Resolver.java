@@ -1643,6 +1643,7 @@ public class Resolver {
             case CLASS:
               onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_CLASS, name,
                       classOrLibrary.getName());
+              node.getFunctionName().markResolutionAlreadyReportedThatTheMethodCouldNotBeFound();
               break;
             case LIBRARY:
               onError(errorNode, ResolverErrorCode.CANNOT_RESOLVE_METHOD_IN_LIBRARY, name,
