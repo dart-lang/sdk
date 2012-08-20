@@ -60,18 +60,21 @@ SDK_LATEST_PATTERN = 'gs://dart-editor-archive-continuous/latest/VERSION'
 SDK_PERMANENT = ('gs://dart-editor-archive-continuous/%(version_num)s/' + 
     'dartsdk-%(osname)s-32.zip')
 
+# Dictionary storing the earliest revision of each download we have stored.
+LAST_VALID = {'dartium': 4285, 'chromedriver': 7823, 'sdk': 9761, 'drt': 5342}
+
 sys.path.append(os.path.join(GSUTIL_DIR, 'boto'))
 import boto
 
 
-def execute_command(*cmd):
+def ExecuteCommand(*cmd):
   """Execute a command in a subprocess."""
   pipe = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
   output, error = pipe.communicate()
   return pipe.returncode, output
 
 
-def execute_command_visible(*cmd):
+def ExecuteCommandVisible(*cmd):
   """Execute a command in a subprocess, but show stdout/stderr."""
   result = subprocess.call(cmd, stdout=sys.stdout, stderr=sys.stderr,
                            stdin=sys.stdin)
@@ -79,15 +82,15 @@ def execute_command_visible(*cmd):
     raise Exception('Execution of "%s" failed' % ' '.join(cmd))
 
 
-def gsutil(*cmd):
-  return execute_command('python', GSUTIL, *cmd)
+def Gsutil(*cmd):
+  return ExecuteCommand('python', GSUTIL, *cmd)
 
 
-def gsutil_visible(*cmd):
-  execute_command_visible('python', GSUTIL, *cmd)
+def GsutilVisible(*cmd):
+  ExecuteCommandVisible('python', GSUTIL, *cmd)
 
 
-def has_boto_config():
+def HasBotoConfig():
   """Returns true if boto config exists."""
 
   config_paths = boto.pyami.config.BotoConfigLocations
@@ -100,14 +103,14 @@ def has_boto_config():
   return False
 
 
-def in_runhooks():
+def InRunhooks():
   '''True if this script was called by "gclient runhooks" or "gclient sync"'''
   return 'runhooks' in sys.argv
 
 
-def ensure_config():
+def EnsureConfig():
   # If ~/.boto doesn't exist, tell the user to run "gsutil config"
-  if not has_boto_config():
+  if not HasBotoConfig():
     print >>sys.stderr, '''
 *******************************************************************************
 * WARNING: Can't download DumpRenderTree! This is required to test client apps.
@@ -121,7 +124,7 @@ def ensure_config():
     sys.exit(1)
 
 
-def get_dartium_revision(name, directory, version_file, latest_pattern,
+def GetDartiumRevision(name, directory, version_file, latest_pattern,
     permanent_prefix, revision_num=None):
   """Get the latest binary that is stored in the dartium archive.
 
@@ -137,7 +140,7 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
   """
   osdict = {'Darwin':'mac', 'Linux':'lucid64', 'Windows':'win'}
 
-  def find_permanent_url(out, osname, revision_num):
+  def FindPermanentUrl(out, osname, revision_num):
     output_lines = out.split()
     latest = output_lines[-1]
     if not revision_num:
@@ -151,7 +154,7 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
       while not foundURL:
         # Test to ensure this URL exists because the dartium-archive builds can
         # have unusual numbering (a range of CL numbers) sometimes.
-        result, out = gsutil('ls', permanent_prefix % {'osname' : osname,
+        result, out = Gsutil('ls', permanent_prefix % {'osname' : osname,
             'num1': '*', 'num2': revision_num })
         if result == 0:
           # First try to find one with the the second number the same as the
@@ -162,13 +165,14 @@ def get_dartium_revision(name, directory, version_file, latest_pattern,
           # Now try to find one with a nearby CL num.
           revision_num = int(revision_num) - 1
           if revision_num <= 0:
-            too_early_error()
+            TooEarlyError()
     return latest
     
-  get_from_gsutil(name, directory, version_file, latest_pattern, osdict, 
-                  find_permanent_url, revision_num)
+  GetFromGsutil(name, directory, version_file, latest_pattern, osdict, 
+                  FindPermanentUrl, revision_num)
 
-def get_sdk_revision(name, directory, version_file, latest_pattern,
+
+def GetSdkRevision(name, directory, version_file, latest_pattern,
     permanent_prefix, revision_num):
   """Get a revision of the SDK from the editor build archive.
 
@@ -181,12 +185,12 @@ def get_sdk_revision(name, directory, version_file, latest_pattern,
     revision_num: the desired revision number, or None for the most recent
   """
   osdict = {'Darwin':'macos', 'Linux':'linux', 'Windows':'win32'}
-  def find_permanent_url(out, osname, not_used):
+  def FindPermanentUrl(out, osname, not_used):
     rev_num = revision_num
     if not rev_num:
       temp_file = tempfile.NamedTemporaryFile()
       temp_file_url = 'file://' + temp_file.name
-      gsutil('cp', latest_pattern % {'osname' : osname }, temp_file_url)
+      Gsutil('cp', latest_pattern % {'osname' : osname }, temp_file_url)
       temp_file.seek(0)
       version_info = temp_file.read()
       temp_file.close()
@@ -198,10 +202,11 @@ def get_sdk_revision(name, directory, version_file, latest_pattern,
     latest = (permanent_prefix % { 'osname' : osname, 'version_num': rev_num})
     return latest
     
-  get_from_gsutil(name, directory, version_file, latest_pattern, osdict,
-                  find_permanent_url, revision_num)
+  GetFromGsutil(name, directory, version_file, latest_pattern, osdict,
+                  FindPermanentUrl, revision_num)
 
-def get_from_gsutil(name, directory, version_file, latest_pattern,
+
+def GetFromGsutil(name, directory, version_file, latest_pattern,
     os_name_dict, get_permanent_url, revision_num = ''):
   """Download and unzip the desired file from Google Storage.
     Args:
@@ -224,11 +229,11 @@ def get_from_gsutil(name, directory, version_file, latest_pattern,
         '%s.') % (system, name)
     return 0
 
-  ensure_config()
+  EnsureConfig()
 
   # Query for the lastest version
   pattern = latest_pattern  % { 'osname' : osname }
-  result, out = gsutil('ls', pattern)
+  result, out = Gsutil('ls', pattern)
   if result == 0:
     # use permanent link instead, just in case the latest zip entry gets deleted
     # while we are downloading it.
@@ -243,7 +248,7 @@ def get_from_gsutil(name, directory, version_file, latest_pattern,
   if os.path.exists(version_file):
     v = open(version_file, 'r').read()
     if v == latest:
-      if not in_runhooks():
+      if not InRunhooks():
         print name + ' is up to date.\nVersion: ' + latest
       return 0 # up to date
 
@@ -257,13 +262,13 @@ def get_from_gsutil(name, directory, version_file, latest_pattern,
     temp_zip = os.path.join(temp_dir, 'drt.zip')
     temp_zip_url = 'file://' + temp_zip
     # It's nice to show download progress
-    gsutil_visible('cp', latest, temp_zip_url)
+    GsutilVisible('cp', latest, temp_zip_url)
 
     if platform.system() != 'Windows':
       # The Python zip utility does not preserve executable permissions, but
       # this does not seem to be a problem for Windows, which does not have a
       # built in zip utility. :-/
-      result, out = execute_command('unzip', temp_zip, '-d', temp_dir)
+      result, out = ExecuteCommand('unzip', temp_zip, '-d', temp_dir)
       if result != 0:
         raise Exception('Execution of "unzip %s -d %s" failed: %s' %
                         (temp_zip, temp_dir, str(out)))
@@ -288,13 +293,15 @@ def get_from_gsutil(name, directory, version_file, latest_pattern,
   print 'Successfully downloaded to %s' % directory
   return 0
 
-def too_early_error():
+
+def TooEarlyError():
   """Quick shortcutting function, to return early if someone requests a revision
   that is smaller than the earliest stored. This saves us from doing repeated
   requests until we get down to 0."""
   print ('Unable to download requested revision because it is earlier than the '
       'earliest revision stored.')
   sys.exit(1)
+
 
 def main():
   parser = optparse.OptionParser(usage='usage: %prog [options] download_name')
@@ -304,27 +311,22 @@ def main():
                     action='store', default=None)
   args, positional = parser.parse_args()
 
+  if args.revision and int(args.revision) < LAST_VALID[positional[0]]:
+    return TooEarlyError()
+
   if positional[0] == 'dartium':
-    if args.revision and args.revision < 4285:
-      return too_early_error()
-    get_dartium_revision('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
+    GetDartiumRevision('Dartium', DARTIUM_DIR, DARTIUM_VERSION,
                          DARTIUM_LATEST_PATTERN, DARTIUM_PERMANENT_PATTERN,
                          args.revision)
   elif positional[0] == 'chromedriver':
-    if args.revision and args.revision < 7823:
-      return too_early_error()
-    get_dartium_revision('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
+    GetDartiumRevision('chromedriver', CHROMEDRIVER_DIR, CHROMEDRIVER_VERSION,
                          CHROMEDRIVER_LATEST_PATTERN,
                          CHROMEDRIVER_PERMANENT_PATTERN, args.revision)
   elif positional[0] == 'sdk':
-    if args.revision and args.revision < 9761:
-      return too_early_error()
-    get_sdk_revision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
+    GetSdkRevision('sdk', SDK_DIR, SDK_VERSION, SDK_LATEST_PATTERN,
         SDK_PERMANENT, args.revision)
   elif positional[0] == 'drt':
-    if args.revision and args.revision < 5342:
-      return too_early_error()
-    get_dartium_revision('DumpRenderTree', DRT_DIR, DRT_VERSION,
+    GetDartiumRevision('DumpRenderTree', DRT_DIR, DRT_VERSION,
                          DRT_LATEST_PATTERN, DRT_PERMANENT_PATTERN,
                          args.revision)
   else:
