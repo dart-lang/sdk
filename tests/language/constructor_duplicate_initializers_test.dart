@@ -15,10 +15,17 @@ class Class {
       // formals and initializer list.
     : field_ = 2  /// 02: compile-time error
   ;
+  // Test against duplicate final field initialization in initializing formals.
+  Class.two_fields(this.field_
+    , this.field_ /// 03: compile-time error
+  );
   final field_;
 }
 
 main() {
   new Class(42);
   new Class.field(42);
+  new Class.two_fields(42
+    , 42   /// 03: continued
+  );
 }

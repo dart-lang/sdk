@@ -429,6 +429,14 @@ class InitializerResolver {
     return node.receiver.asIdentifier().isThis();
   }
 
+  void checkForDuplicateInitializers(SourceString name, Node init) {
+    if (initialized.containsKey(name)) {
+      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
+      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
+    }
+    initialized[name] = init;
+  }
+
   void resolveFieldInitializer(FunctionElement constructor, SendSet init) {
     // init is of the form [this.]field = value.
     final Node selector = init.selector;
@@ -450,12 +458,7 @@ class InitializerResolver {
     }
     visitor.useElement(init, target);
     visitor.world.registerStaticUse(target);
-    // Check for duplicate initializers.
-    if (initialized.containsKey(name)) {
-      error(init, MessageKind.DUPLICATE_INITIALIZER, [name]);
-      warning(initialized[name], MessageKind.ALREADY_INITIALIZED, [name]);
-    }
-    initialized[name] = init;
+    checkForDuplicateInitializers(name, init);
     // Resolve initializing value.
     visitor.visitInStaticContext(init.arguments.head);
   }
@@ -554,6 +557,17 @@ class InitializerResolver {
    */
   FunctionElement resolveInitializers(FunctionElement constructor,
                                       FunctionExpression functionNode) {
+    // Keep track of all "this.param" parameters specified for constructor so
+    // that we can ensure that fields are initialized only once.
+    FunctionSignature functionParameters =
+        constructor.computeSignature(visitor.compiler);
+    functionParameters.forEachParameter((Element element) {
+      if (element.kind === ElementKind.FIELD_PARAMETER) {
+        checkForDuplicateInitializers(element.name,
+                                      element.parseNode(visitor.compiler));
+      }
+    });
+
     if (functionNode.initializers === null) {
       initializers = const EmptyLink<Node>();
     } else {

@@ -228,7 +228,6 @@ const_syntax_test/01: Fail # Negative language test.
 const_syntax_test/02: Fail # Negative language test.
 const_syntax_test/03: Fail # Negative language test.
 constructor2_negative_test: Fail # Negative language test.
-constructor_duplicate_initializers_test/02: Fail # Negative language test.
 constructor_negative_test: Pass # For the wrong reason.
 constructor_return_negative_test: Fail # Negative language test.
 constructor_return_with_arrow_negative_test: Fail # Negative language test.

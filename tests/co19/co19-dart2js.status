@@ -578,9 +578,6 @@ Language/07_Classes/3_Setters_A03_t08: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t04: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A03_t05: Fail # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A07_t05: Fail # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t01: Fail # @compile-error
-Language/07_Classes/5_Constructors/1_Generative_Constructors_A08_t02: Fail # @compile-error
 Language/07_Classes/5_Constructors/1_Generative_Constructors_A09_t01: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A01_t05: Fail # @compile-error
 Language/07_Classes/5_Constructors/2_Factories_A02_t01: Fail # @compile-error
