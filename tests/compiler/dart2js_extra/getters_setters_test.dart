@@ -6,7 +6,7 @@ class GettersSettersTest {
 
   static int foo;
 
-  static get bar() {
+  static get bar {
     return foo;
   }
 
@@ -69,7 +69,7 @@ class A {
   int x_;
   static int foo;
 
-  static get bar() {
+  static get bar {
     return foo;
   }
 
@@ -77,7 +77,7 @@ class A {
     foo = newValue;
   }
 
-  int get x() {
+  int get x {
     return x_;
   }
 
@@ -113,7 +113,7 @@ class C extends A {
     this.x_ = 0;
   }
 
-  int get x() {
+  int get x {
     return y_;
   }
 

@@ -1006,7 +1006,8 @@ class ResolverVisitor extends CommonResolverVisitor<Element> {
     // Put the parameters in scope.
     FunctionSignature functionParameters =
         function.computeSignature(compiler);
-    Link<Node> parameterNodes = node.parameters.nodes;
+    Link<Node> parameterNodes = (node.parameters === null)
+        ? const EmptyLink<Node>() : node.parameters.nodes;
     functionParameters.forEachParameter((Element element) {
       if (element == functionParameters.optionalParameters.head) {
         NodeList nodes = parameterNodes.head;
@@ -2268,14 +2269,35 @@ class SignatureResolver extends CommonResolverVisitor<Element> {
                                    Node returnNode,
                                    Element element) {
     SignatureResolver visitor = new SignatureResolver(compiler, element);
-    LinkBuilder<Element> parametersBuilder =
+    Link<Element> parameters = const EmptyLink<Element>();
+    int requiredParameterCount = 0;
+    if (formalParameters === null) {
+      if (!element.isGetter()) {
+        compiler.reportMessage(compiler.spanFromElement(element),
+                               MessageKind.MISSING_FORMALS.error([]),
+                               api.Diagnostic.ERROR);
+      }
+    } else {
+      if (element.isGetter()) {
+        if (!element.getLibrary().isPlatformLibrary) {
+          // TODO(ahe): Remove the isPlatformLibrary check.
+          if (formalParameters.getEndToken().next.stringValue !== 'native') {
+            // TODO(ahe): Remove the check for native keyword.
+            compiler.reportMessage(compiler.spanFromNode(formalParameters),
+                                   MessageKind.EXTRA_FORMALS.error([]),
+                                   api.Diagnostic.WARNING);
+          }
+        }
+      }
+      LinkBuilder<Element> parametersBuilder =
         visitor.analyzeNodes(formalParameters.nodes);
-    Link<Element> parameters = parametersBuilder.toLink();
-    Type returnType =
-        compiler.resolveTypeAnnotation(element, returnNode);
+      requiredParameterCount  = parametersBuilder.length;
+      parameters = parametersBuilder.toLink();
+    }
+    Type returnType = compiler.resolveTypeAnnotation(element, returnNode);
     return new FunctionSignature(parameters,
                                  visitor.optionalParameters,
-                                 parametersBuilder.length,
+                                 requiredParameterCount,
                                  visitor.optionalParameterCount,
                                  returnType);
   }

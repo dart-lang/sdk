@@ -31,7 +31,7 @@ class A native "*A" {
 
 // This class is here just so that a dynamic context is polymorphic.
 class B {
-  int get code() => 666;
+  int get code => 666;
   op(String x) => 123;
 }
 

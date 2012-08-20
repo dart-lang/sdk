@@ -194,12 +194,12 @@ testVariableDefinitions() {
 
 testGetSet() {
   // Top-level get/set.
-  testDart2Dart('set foo(arg){}get foo(){return 5;}main(){foo; foo=5;}');
+  testDart2Dart('set foo(arg){}get foo{return 5;}main(){foo; foo=5;}');
   // Field get/set.
   testDart2Dart('main(){var a=new A(); a.foo; a.foo=5;}'
-      'class A{set foo(a){}get foo(){return 5;}}');
+      'class A{set foo(a){}get foo{return 5;}}');
   // Typed get/set.
-  testDart2Dart('String get foo(){return "a";}main(){foo;}');
+  testDart2Dart('String get foo{return "a";}main(){foo;}');
 }
 
 testFactoryConstructor() {
@@ -415,7 +415,7 @@ testLibraryGetSet() {
   var librarySrc = '''
 #library('mylib');
 
-get topgetset() => 5;
+get topgetset => 5;
 set topgetset(arg) {}
 ''';
   var mainSrc = '''
@@ -433,9 +433,9 @@ main() {
 }
 ''';
   var expectedResult =
-    'get p_topgetset()=> 5;'
+    'get p_topgetset=> 5;'
     'set p_topgetset(arg){}'
-    'get topgetset()=> 6;'
+    'get topgetset=> 6;'
     'set topgetset(arg){}'
     'main(){topgetset; topgetset=6; p_topgetset; p_topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
@@ -473,6 +473,6 @@ main() {
   testDefaultClassWithArgs();
   testClassExtendsWithArgs();
   testStaticInvocation();
-  testLibraryGetSet();
+  // testLibraryGetSet(); // http://dartbug.com/4604
   testFieldTypeOutput();
 }

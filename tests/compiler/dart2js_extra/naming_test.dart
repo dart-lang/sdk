@@ -162,7 +162,7 @@ class Bug4082360 {
   int x_;
   Bug4082360() {}
 
-  int get x() { return x_; }
+  int get x { return x_; }
   void set x(int value) { x_ = value; }
 
   void indirectSet(int value) { x = value; }
@@ -510,7 +510,7 @@ class Naming1Test {
 // Ensure we don't have false positive.
 class Naming2Test {
   Naming2Test() { }
-  int get foo() { return 1; }
+  int get foo { return 1; }
   set foo(x) { }
 
   static void main(args) {

@@ -259,7 +259,7 @@ class MetaInfo {
   MetaInfo(this.tag, this.tags, this.set);
 }
 
-List<MetaInfo> get _dynamicMetadata() {
+List<MetaInfo> get _dynamicMetadata {
   // Because [dynamicMetadata] has to be shared with multiple isolates
   // that access native classes (eg multiple DOM isolates),
   // [_dynamicMetadata] cannot be a field, otherwise all non-main

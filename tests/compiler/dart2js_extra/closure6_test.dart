@@ -7,7 +7,7 @@ class A {
   bar() => foo(3, 99);
   gee(f) => foo(fun: f);
 
-  get foo2() => foo;
+  get foo2 => foo;
   bar2() => foo2(3, 99);
   gee2(f) => foo2(fun: f);
 }

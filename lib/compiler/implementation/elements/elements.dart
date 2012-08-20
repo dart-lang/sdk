@@ -469,6 +469,8 @@ class LibraryElement extends ScopeContainerElement {
   }
 
   Scope buildEnclosingScope() => new TopScope(this);
+
+  bool get isPlatformLibrary => uri.scheme == "dart";
 }
 
 class PrefixElement extends Element {

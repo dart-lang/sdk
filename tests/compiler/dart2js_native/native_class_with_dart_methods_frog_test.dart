@@ -8,7 +8,7 @@ class A native "*A" {
 
   var _field;
 
-  int get X() => _field;
+  int get X => _field;
   void set X(int x) { _field = x; }
 
   int method(int z) => _field + z;

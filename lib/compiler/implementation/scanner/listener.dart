@@ -76,6 +76,9 @@ class Listener {
   void endFormalParameter(Token token, Token thisKeyword) {
   }
 
+  void handleNoFormalParameters(Token token) {
+  }
+
   void beginFormalParameters(Token token) {
   }
 
@@ -988,6 +991,10 @@ class NodeListener extends ElementListener {
 
   void endFormalParameters(int count, Token beginToken, Token endToken) {
     pushNode(makeNodeList(count, beginToken, endToken, ","));
+  }
+
+  void handleNoFormalParameters(Token token) {
+    pushNode(null);
   }
 
   void endArguments(int count, Token beginToken, Token endToken) {

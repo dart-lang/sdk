@@ -9,7 +9,7 @@
 class A native "*A" {
   var _field;
 
-  int get X() => _field;
+  int get X => _field;
   void set X(int x) { _field = x; }
 
   int method(int z) => _field + z;
@@ -18,7 +18,7 @@ class A native "*A" {
 class B extends A native "*B" {
   var _field2;
 
-  int get X() => _field2;
+  int get X => _field2;
   void set X(int x) { _field2 = x; }
 
   int method(int z) => _field2 + z;
