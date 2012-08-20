@@ -14,8 +14,8 @@ template <typename T> class GrowableArray;
 
 class FlowGraphOptimizer : public FlowGraphVisitor {
  public:
-  explicit FlowGraphOptimizer(const FlowGraph& flow_graph)
-      : FlowGraphVisitor(flow_graph.reverse_postorder()) {}
+  FlowGraphOptimizer(const FlowGraph& flow_graph, bool use_ssa)
+      : FlowGraphVisitor(flow_graph.reverse_postorder()), use_ssa_(use_ssa) {}
   virtual ~FlowGraphOptimizer() {}
 
   void ApplyICData();
@@ -45,6 +45,8 @@ class FlowGraphOptimizer : public FlowGraphVisitor {
   bool TryInlineInstanceSetter(BindInstr* instr, InstanceCallComp* comp);
 
   bool TryInlineInstanceMethod(BindInstr* instr, InstanceCallComp* comp);
+
+  bool use_ssa_;
 
   DISALLOW_COPY_AND_ASSIGN(FlowGraphOptimizer);
 };
@@ -106,6 +108,21 @@ class FlowGraphTypePropagator : public FlowGraphVisitor {
   bool still_changing_;
   DISALLOW_COPY_AND_ASSIGN(FlowGraphTypePropagator);
 };
+
+
+class LocalCSE : public ValueObject {
+ public:
+  explicit LocalCSE(const FlowGraph& flow_graph)
+      : blocks_(flow_graph.reverse_postorder()) { }
+
+  void Optimize();
+
+ private:
+  const GrowableArray<BlockEntryInstr*>& blocks_;
+
+  DISALLOW_COPY_AND_ASSIGN(LocalCSE);
+};
+
 
 }  // namespace dart
 

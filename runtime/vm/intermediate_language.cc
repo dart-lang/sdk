@@ -21,6 +21,46 @@ namespace dart {
 
 DECLARE_FLAG(bool, enable_type_checks);
 
+
+intptr_t Computation::Hashcode() const {
+  intptr_t result = computation_kind();
+  for (intptr_t i = 0; i < InputCount(); ++i) {
+    UseVal* val = InputAt(i)->AsUse();
+    intptr_t j = val != NULL
+        ? val->definition()->ssa_temp_index()
+        : -1;
+    result = result * 31 + j;
+  }
+  return result;
+}
+
+
+bool Computation::Equals(Computation* other) const {
+  if (computation_kind() != other->computation_kind()) return false;
+  for (intptr_t i = 0; i < InputCount(); ++i) {
+    if (!InputAt(i)->Equals(other->InputAt(i))) return false;
+  }
+  return AttributesEqual(other);
+}
+
+
+bool CheckClassComp::AttributesEqual(Computation* other) const {
+  CheckClassComp* other_check = other->AsCheckClass();
+  if (other_check == NULL) return false;
+  if (ic_data()->NumberOfChecks() != other->ic_data()->NumberOfChecks()) {
+    return false;
+  }
+  for (intptr_t i = 0; i < ic_data()->NumberOfChecks(); ++i) {
+    // TODO(fschneider): Make sure ic_data are sorted to hit more cases.
+    if (ic_data()->GetReceiverClassIdAt(i) !=
+        other->ic_data()->GetReceiverClassIdAt(i)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+
 UseVal::UseVal(Definition* definition)
     : definition_(definition), next_use_(NULL), previous_use_(NULL) {
   AddToUseList();
@@ -174,6 +214,16 @@ Instruction* Instruction::RemoveFromGraph(bool return_previous) {
   set_next(NULL);
   ASSERT(!IsDefinition() || AsDefinition()->use_list() == NULL);
   return return_previous ? prev_instr : next_instr;
+}
+
+
+void BindInstr::InsertBefore(BindInstr* next) {
+  ASSERT(previous_ == NULL);
+  ASSERT(next_ == NULL);
+  next_ = next;
+  previous_ = next->previous_;
+  next->previous_ = this;
+  previous_->next_ = this;
 }
 
 
@@ -962,6 +1012,11 @@ RawAbstractType* DoubleToDoubleComp::CompileType() const {
 
 RawAbstractType* SmiToDoubleComp::CompileType() const {
   return Type::DoubleInterface();
+}
+
+
+RawAbstractType* CheckClassComp::CompileType() const {
+  return AbstractType::null();
 }
 
 

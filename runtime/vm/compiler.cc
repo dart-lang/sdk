@@ -35,6 +35,7 @@ DEFINE_FLAG(bool, disassemble_optimized, false, "Disassemble optimized code.");
 DEFINE_FLAG(bool, trace_bailout, false, "Print bailout from ssa compiler.");
 DEFINE_FLAG(bool, trace_compiler, false, "Trace compiler operations.");
 DEFINE_FLAG(bool, use_ssa, true, "Use SSA form");
+DEFINE_FLAG(bool, local_cse, true, "Do local subexpression elimination.");
 DEFINE_FLAG(int, deoptimization_counter_threshold, 5,
     "How many times we allow deoptimization before we disallow"
     " certain optimizations");
@@ -177,17 +178,23 @@ static bool CompileParsedFunctionHelper(
       }
 
       if (optimized) {
-        FlowGraphOptimizer optimizer(*flow_graph);
+        FlowGraphOptimizer optimizer(*flow_graph, use_ssa);
         optimizer.ApplyICData();
 
         // Propagate types and eliminate more type tests.
         FlowGraphTypePropagator propagator(*flow_graph, optimized && use_ssa);
         propagator.PropagateTypes();
 
-        // Do optimizations that depend on the propagated type information.
-        optimizer.OptimizeComputations();
 
         if (use_ssa) {
+          // Do optimizations that depend on the propagated type information.
+          optimizer.OptimizeComputations();
+
+          if (FLAG_local_cse) {
+            LocalCSE local_cse(*flow_graph);
+            local_cse.Optimize();
+          }
+
           // Perform register allocation on the SSA graph.
           FlowGraphAllocator allocator(*flow_graph);
           allocator.AllocateRegisters();

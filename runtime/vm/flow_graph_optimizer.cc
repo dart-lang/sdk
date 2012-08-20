@@ -5,6 +5,7 @@
 #include "vm/flow_graph_optimizer.h"
 
 #include "vm/flow_graph_builder.h"
+#include "vm/hash_map.h"
 #include "vm/il_printer.h"
 #include "vm/object_store.h"
 #include "vm/parser.h"
@@ -81,9 +82,9 @@ static bool ICDataHasReceiverArgumentClassIds(const ICData& ic_data,
 
 
 static bool ClassIdIsOneOf(intptr_t class_id,
-                           GrowableArray<intptr_t>* class_ids) {
-  for (intptr_t i = 0; i < class_ids->length(); i++) {
-    if ((*class_ids)[i] == class_id) {
+                           const GrowableArray<intptr_t>& class_ids) {
+  for (intptr_t i = 0; i < class_ids.length(); i++) {
+    if (class_ids[i] == class_id) {
       return true;
     }
   }
@@ -93,8 +94,8 @@ static bool ClassIdIsOneOf(intptr_t class_id,
 
 static bool ICDataHasOnlyReceiverArgumentClassIds(
     const ICData& ic_data,
-    GrowableArray<intptr_t>* receiver_class_ids,
-    GrowableArray<intptr_t>* argument_class_ids) {
+    const GrowableArray<intptr_t>& receiver_class_ids,
+    const GrowableArray<intptr_t>& argument_class_ids) {
   if (ic_data.num_args_tested() != 2) return false;
 
   Function& target = Function::Handle();
@@ -125,10 +126,10 @@ static bool HasOnlyTwoSmi(const ICData& ic_data) {
 // Returns false if the ICData contains anything other than the 4 combinations
 // of Mint and Smi for the receiver and argument classes.
 static bool HasTwoMintOrSmi(const ICData& ic_data) {
-  GrowableArray<intptr_t> class_ids;
+  GrowableArray<intptr_t> class_ids(2);
   class_ids.Add(kSmiCid);
   class_ids.Add(kMintCid);
-  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, &class_ids, &class_ids);
+  return ICDataHasOnlyReceiverArgumentClassIds(ic_data, class_ids, class_ids);
 }
 
 
@@ -363,9 +364,35 @@ bool FlowGraphOptimizer::TryInlineInstanceGetter(BindInstr* instr,
         String::Handle(Field::NameFromGetter(comp->function_name()));
     const Field& field = Field::Handle(GetField(class_ids[0], field_name));
     ASSERT(!field.IsNull());
-    LoadInstanceFieldComp* load = new LoadInstanceFieldComp(
-        field, comp->ArgumentAt(0)->value(), comp);
-    load->set_ic_data(comp->ic_data());
+
+    LoadInstanceFieldComp* load;
+    if (!use_ssa_) {
+      load = new LoadInstanceFieldComp(field,
+                                       comp->ArgumentAt(0)->value(),
+                                       comp,
+                                       true);  // Can deoptimize.
+      // TODO(fschneider): Remove the boolean parameter can_deoptimize once
+      // the non-SSA optimizer is removed.
+      load->set_ic_data(comp->ic_data());
+    } else {
+      // TODO(fschneider): Avoid generating redundant checks by checking the
+      // result-cid of the value.
+      CheckClassComp* check =
+          new CheckClassComp(comp->ArgumentAt(0)->value(), comp);
+      const ICData& unary_checks =
+          ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
+      check->set_ic_data(&unary_checks);
+      BindInstr* check_instr = new BindInstr(BindInstr::kUnused, check);
+      ASSERT(instr->env() != NULL);  // Always the case with SSA.
+      // Attach the original environment to the check instruction.
+      check_instr->set_env(instr->env());
+      instr->set_env(NULL);
+      check_instr->InsertBefore(instr);
+      load = new LoadInstanceFieldComp(field,
+                                       comp->ArgumentAt(0)->value(),
+                                       NULL,
+                                       false);  // Can not deoptimize.
+    }
     instr->set_computation(load);
     RemovePushArguments(comp);
     return true;
@@ -489,7 +516,7 @@ void FlowGraphOptimizer::VisitInstanceCall(InstanceCallComp* comp,
     const intptr_t kMaxChecks = 4;
     if (comp->ic_data()->NumberOfChecks() <= kMaxChecks) {
       PolymorphicInstanceCallComp* call = new PolymorphicInstanceCallComp(comp);
-      ICData& unary_checks =
+      const ICData& unary_checks =
           ICData::ZoneHandle(comp->ic_data()->AsUnaryClassChecks());
       call->set_ic_data(&unary_checks);
       instr->set_computation(call);
@@ -867,5 +894,32 @@ void FlowGraphAnalyzer::Analyze() {
     }
   }
 }
+
+
+void LocalCSE::Optimize() {
+  for (intptr_t i = 0; i < blocks_.length(); ++i) {
+    BlockEntryInstr* entry = blocks_[i];
+    DirectChainedHashMap<BindInstr*> map;
+    ASSERT(map.IsEmpty());
+    for (ForwardInstructionIterator it(entry); !it.Done(); it.Advance()) {
+      BindInstr* instr = it.Current()->AsBind();
+      if (instr == NULL || instr->computation()->HasSideEffect()) continue;
+      BindInstr* result = map.Lookup(instr);
+      if (result == NULL) {
+        map.Insert(instr);
+        continue;
+      }
+      // Replace current with lookup result.
+      instr->ReplaceUsesWith(result);
+      it.RemoveCurrentFromGraph();
+      if (FLAG_trace_optimization) {
+        OS::Print("Replacing v%d with v%d\n",
+                  instr->ssa_temp_index(),
+                  result->ssa_temp_index());
+      }
+    }
+  }
+}
+
 
 }  // namespace dart

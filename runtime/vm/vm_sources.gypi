@@ -153,6 +153,8 @@
     'handles.h',
     'handles_impl.h',
     'handles_test.cc',
+    'hash_map.h',
+    'hash_map_test.cc',
     'hash_set.h',
     'heap.cc',
     'heap.h',

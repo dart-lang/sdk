@@ -2203,6 +2203,47 @@ void BranchInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   EmitBranchOnCondition(compiler, branch_condition);
 }
 
+
+LocationSummary* CheckClassComp::MakeLocationSummary() const {
+  const intptr_t kNumInputs = 1;
+  const intptr_t kNumTemps = 1;
+  LocationSummary* summary =
+      new LocationSummary(kNumInputs, kNumTemps, LocationSummary::kNoCall);
+  summary->set_in(0, Location::RequiresRegister());
+  summary->set_temp(0, Location::RequiresRegister());
+  return summary;
+}
+
+
+void CheckClassComp::EmitNativeCode(FlowGraphCompiler* compiler) {
+  Register value = locs()->in(0).reg();
+  Register temp = locs()->temp(0).reg();
+  Label* deopt = compiler->AddDeoptStub(deopt_id(),
+                                        try_index(),
+                                        kDeoptCheckClass,
+                                        value);
+  ASSERT(ic_data()->GetReceiverClassIdAt(0) != kSmiCid);
+  __ testq(value, Immediate(kSmiTagMask));
+  __ j(ZERO, deopt);
+  __ LoadClassId(temp, value);
+  Label is_ok;
+  const intptr_t num_checks = ic_data()->NumberOfChecks();
+  const bool use_near_jump = num_checks < 5;
+  for (intptr_t i = 0; i < num_checks; i++) {
+    __ cmpl(temp, Immediate(ic_data()->GetReceiverClassIdAt(i)));
+    if (i == (num_checks - 1)) {
+      __ j(NOT_EQUAL, deopt);
+    } else {
+      if (use_near_jump) {
+        __ j(EQUAL, &is_ok, Assembler::kNearJump);
+      } else {
+        __ j(EQUAL, &is_ok);
+      }
+    }
+  }
+  __ Bind(&is_ok);
+}
+
 }  // namespace dart
 
 #undef __

@@ -101,7 +101,8 @@ class LocalVariable;
   M(NumberNegate, NumberNegateComp)                                            \
   M(CheckStackOverflow, CheckStackOverflowComp)                                \
   M(DoubleToDouble, DoubleToDoubleComp)                                        \
-  M(SmiToDouble, SmiToDoubleComp)
+  M(SmiToDouble, SmiToDoubleComp)                                              \
+  M(CheckClass, CheckClassComp)
 
 
 #define FORWARD_DECLARATION(ShortName, ClassName) class ClassName;
@@ -129,8 +130,8 @@ class Computation : public ZoneAllocated {
   // Unique id used for deoptimization.
   intptr_t deopt_id() const { return deopt_id_; }
 
-  ICData* ic_data() const { return ic_data_; }
-  void set_ic_data(ICData* value) { ic_data_ = value; }
+  const ICData* ic_data() const { return ic_data_; }
+  void set_ic_data(const ICData* value) { ic_data_ = value; }
   bool HasICData() const {
     return (ic_data() != NULL) && !ic_data()->IsNull();
   }
@@ -152,6 +153,24 @@ class Computation : public ZoneAllocated {
   // Optimize this computation. Returns a replacement for the instruction
   // that wraps this computation or NULL if nothing to replace.
   virtual Definition* TryReplace(BindInstr* instr) { return NULL; }
+
+  // Compares two computations. Returns true, if:
+  // 1. They are of the same kind.
+  // 2. All input operands match.
+  // 3. All other attributes match.
+  bool Equals(Computation* other) const;
+
+  // Returns a hash code for use with hash maps.
+  virtual intptr_t Hashcode() const;
+
+  // Compare attributes of an computation (except input operands and kind).
+  // TODO(fschneider): Make this abstract and implement for all computations.
+  virtual bool AttributesEqual(Computation* other) const { return true; }
+
+  // Returns true if the instruction may have side effects.
+  // TODO(fschneider): Make this abstract and implement for all computations
+  // instead of returning the safe default (true).
+  virtual bool HasSideEffect() const { return true; }
 
   // Compile time type of the computation, which typically depends on the
   // compile time types (and possibly propagated types) of its inputs.
@@ -214,7 +233,7 @@ FOR_EACH_COMPUTATION(DECLARE_PREDICATE)
 
  private:
   intptr_t deopt_id_;
-  ICData* ic_data_;
+  const ICData* ic_data_;
   LocationSummary* locs_;
 
   DISALLOW_COPY_AND_ASSIGN(Computation);
@@ -936,8 +955,9 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
  public:
   LoadInstanceFieldComp(const Field& field,
                         Value* instance,
-                        InstanceCallComp* original)  // Maybe NULL.
-      : field_(field), original_(original) {
+                        InstanceCallComp* original,  // Maybe NULL.
+                        bool can_deoptimize)
+      : field_(field), original_(original), can_deoptimize_(can_deoptimize) {
     ASSERT(instance != NULL);
     inputs_[0] = instance;
   }
@@ -950,11 +970,12 @@ class LoadInstanceFieldComp : public TemplateComputation<1> {
 
   virtual void PrintOperandsTo(BufferFormatter* f) const;
 
-  virtual bool CanDeoptimize() const { return true; }
+  virtual bool CanDeoptimize() const { return can_deoptimize_; }
 
  private:
   const Field& field_;
   const InstanceCallComp* original_;  // For optimizations.
+  const bool can_deoptimize_;
 
   DISALLOW_COPY_AND_ASSIGN(LoadInstanceFieldComp);
 };
@@ -1773,6 +1794,34 @@ class SmiToDoubleComp : public TemplateComputation<0> {
 };
 
 
+class CheckClassComp : public TemplateComputation<1> {
+ public:
+  CheckClassComp(Value* value, InstanceCallComp* original)
+      : original_(original) {
+    ASSERT(value != NULL);
+    inputs_[0] = value;
+  }
+
+  DECLARE_COMPUTATION(CheckClass)
+
+  virtual bool CanDeoptimize() const { return true; }
+
+  virtual bool AttributesEqual(Computation* other) const;
+
+  virtual bool HasSideEffect() const { return false; }
+
+  Value* value() const { return inputs_[0]; }
+
+  intptr_t deopt_id() const { return original_->deopt_id(); }
+  intptr_t try_index() const { return original_->try_index(); }
+
+ private:
+  InstanceCallComp* original_;
+
+  DISALLOW_COPY_AND_ASSIGN(CheckClassComp);
+};
+
+
 #undef DECLARE_COMPUTATION
 
 
@@ -1882,6 +1931,7 @@ class Instruction : public ZoneAllocated {
 
   // Removed this instruction from the graph.
   Instruction* RemoveFromGraph(bool return_previous = true);
+
   // Remove value uses within this instruction and its inputs.
   virtual void RemoveInputUses() = 0;
 
@@ -1955,6 +2005,8 @@ FOR_EACH_INSTRUCTION(INSTRUCTION_TYPE_CHECK)
   }
 
  private:
+  friend class BindInstr;  // Needed for BindInstr::InsertBefore.
+
   intptr_t lifetime_position_;  // Position used by register allocator.
   Instruction* previous_;
   Instruction* next_;
@@ -2503,6 +2555,12 @@ class BindInstr : public Definition {
   virtual void RecordAssignedVars(BitVector* assigned_vars,
                                   intptr_t fixed_parameter_count);
 
+  intptr_t Hashcode() const { return computation()->Hashcode(); }
+
+  bool Equals(BindInstr* other) const {
+    return computation()->Equals(other->computation());
+  }
+
   virtual LocationSummary* locs() {
     return computation()->locs();
   }
@@ -2510,6 +2568,9 @@ class BindInstr : public Definition {
   virtual void EmitNativeCode(FlowGraphCompiler* compiler);
 
   virtual void RemoveInputUses() { computation()->RemoveInputUses(); }
+
+  // Insert this instruction before 'next'.
+  void InsertBefore(BindInstr* next);
 
  private:
   Computation* computation_;
