@@ -233,6 +233,15 @@ static bool DeleteEntry(LPWIN32_FIND_DATA find_file_data,
 
 
 static bool DeleteRecursively(const char* dir_name) {
+  // If the directory is a junction, it's pointing to some other place in the
+  // filesystem that we do not want to recurse into.
+  DWORD attributes = GetFileAttributes(dir_name);
+  if ((attributes != INVALID_FILE_ATTRIBUTES) &&
+      (attributes & FILE_ATTRIBUTE_REPARSE_POINT) != 0) {
+    // Just delete the junction itself.
+    return RemoveDirectory(dir_name) != 0;
+  }
+
   // Compute full path for the directory currently being deleted.  The
   // path buffer will be used to construct the current path in the
   // recursive traversal. path_length does not always equal

@@ -186,6 +186,45 @@ class DirectoryTest {
     d.deleteRecursivelySync();
   }
 
+  static void testDeleteSymlink() {
+    // temp/
+    //   a/
+    //     file.txt
+    //   b/
+    //     a_link -> a
+    var d = new Directory("").createTempSync();
+    var a = new Directory("${d.path}/a");
+    a.createSync();
+
+    var b = new Directory("${d.path}/b");
+    b.createSync();
+
+    var f = new File("${d.path}/a/file.txt");
+    f.createSync();
+    Expect.isTrue(f.existsSync());
+
+    // Create a symlink (or junction on Windows) from
+    // temp/b/a_link to temp/a.
+    var cmd = "ln";
+    var args = ['-s', "${d.path}/b/a_link", "${d.path}/a"];
+
+    if (Platform.operatingSystem == "windows") {
+      cmd = "cmd";
+      args = ["/c", "mklink", "/j", "${d.path}\\b\\a_link", "${d.path}\\a"];
+    }
+
+    Process.run(cmd, args).then((_) {
+      // Delete the directory containing the junction.
+      b.deleteRecursivelySync();
+
+      // We should not have recursed through a_link into a.
+      Expect.isTrue(f.existsSync());
+
+      // Clean up after ourselves.
+      d.deleteRecursivelySync();
+    });
+  }
+
   static void testExistsCreateDelete() {
     new Directory("").createTemp().then((d) {
       d.exists().then((bool exists) {
@@ -337,6 +376,7 @@ class DirectoryTest {
     testDeleteTooLongName();
     testDeleteNonExistentSync();
     testDeleteTooLongNameSync();
+    testDeleteSymlink();
     testExistsCreateDelete();
     testExistsCreateDeleteSync();
     testCreateTemp();
@@ -435,7 +475,6 @@ testRename() {
     temp1.deleteRecursivelySync();
   });
 }
-
 
 main() {
   DirectoryTest.testMain();
