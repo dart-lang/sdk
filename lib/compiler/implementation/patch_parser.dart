@@ -211,7 +211,7 @@ class PatchElementListener extends ElementListener implements PatchListener {
             listener.internalErrorOnElement(
                 element, "Patching non-accessor with accessor");
           }
-          AbstractField field = existing;
+          AbstractFieldElement field = existing;
           if (element.isGetter()) {
             existing = field.getter;
           } else {
