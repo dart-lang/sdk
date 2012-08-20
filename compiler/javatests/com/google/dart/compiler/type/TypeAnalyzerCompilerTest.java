@@ -3,6 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 package com.google.dart.compiler.type;
 
+import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
+import static com.google.dart.compiler.common.ErrorExpectation.errEx;
+
 import com.google.common.base.Joiner;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
@@ -19,6 +22,7 @@ import com.google.dart.compiler.MockArtifactProvider;
 import com.google.dart.compiler.MockLibrarySource;
 import com.google.dart.compiler.ast.ASTVisitor;
 import com.google.dart.compiler.ast.DartClass;
+import com.google.dart.compiler.ast.DartDeclaration;
 import com.google.dart.compiler.ast.DartExprStmt;
 import com.google.dart.compiler.ast.DartExpression;
 import com.google.dart.compiler.ast.DartField;
@@ -43,9 +47,6 @@ import com.google.dart.compiler.resolver.MethodElement;
 import com.google.dart.compiler.resolver.NodeElement;
 import com.google.dart.compiler.resolver.ResolverErrorCode;
 import com.google.dart.compiler.resolver.TypeErrorCode;
-
-import static com.google.dart.compiler.common.ErrorExpectation.assertErrors;
-import static com.google.dart.compiler.common.ErrorExpectation.errEx;
 
 import java.io.Reader;
 import java.io.StringReader;
@@ -3617,6 +3618,68 @@ public class TypeAnalyzerCompilerTest extends CompilerTestCase {
     assertErrors(
         libraryResult.getErrors(),
         errEx(ResolverErrorCode.USE_ASSIGNMENT_ON_SETTER, 4, 3, 12));
+  }
+  
+  /**
+   * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
+   * many other points in the Editor.
+   */
+  public void test_typeForEveryExpression_variable() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class A {}",
+        "process(x) {}",
+        "main() {",
+        "  A aaa = new A();",
+        "  process(aaa);",
+        "}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
+      public Void visitIdentifier(DartIdentifier node) {
+        // ignore declaration
+        if (node.getParent() instanceof DartDeclaration) {
+          return null;
+        }
+        // check "aaa"
+        if (node.toString().equals("aaa")) {
+          Type type = node.getType();
+          assertNotNull(type);
+          assertEquals("A", type.toString());
+        }
+        return null;
+      }
+    });
+  }
+  
+  /**
+   * Every {@link DartExpression} should have {@link Type} set. Just to don't guess this type at
+   * many other points in the Editor.
+   */
+  public void test_typeForEveryExpression_typeNode() throws Exception {
+    AnalyzeLibraryResult libraryResult = analyzeLibrary(
+        "// filler filler filler filler filler filler filler filler filler filler",
+        "class AAA {",
+        "  static foo() {}",
+        "}",
+        "main() {",
+        "  AAA.foo();",
+        "}");
+    DartUnit unit = libraryResult.getLibraryUnitResult().getUnit(getName());
+    unit.accept(new ASTVisitor<Void>() {
+      public Void visitIdentifier(DartIdentifier node) {
+        // ignore declaration
+        if (node.getParent() instanceof DartDeclaration) {
+          return null;
+        }
+        // check "AAA"
+        if (node.toString().equals("AAA")) {
+          Type type = node.getType();
+          assertNotNull(type);
+          assertEquals("AAA", type.toString());
+        }
+        return null;
+      }
+    });
   }
 
   /**

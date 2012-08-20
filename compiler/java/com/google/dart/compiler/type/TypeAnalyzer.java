@@ -1188,13 +1188,6 @@ public class TypeAnalyzer implements DartCompilationPhase {
      * @return a non-null type
      */
     private Type nonVoidTypeOf(DartNode node) {
-      if (node != null) {
-        ElementKind kind = ElementKind.of(node.getElement());
-        if (kind == ElementKind.CLASS || kind == ElementKind.FUNCTION_TYPE_ALIAS || kind == ElementKind.TYPE_VARIABLE) {
-          // We have already created an error in this case.
-          return dynamicType;
-        }
-      }
       Type type = typeOf(node);
       return checkNonVoid(node, type);
     }
@@ -1291,16 +1284,17 @@ public class TypeAnalyzer implements DartCompilationPhase {
       if (node.getFunctionName().isResolutionAlreadyReportedThatTheMethodCouldNotBeFound()) {
         return dynamicType;
       }
+      DartNode target = node.getTarget();
       DartIdentifier nameNode = node.getFunctionName();
       String name = node.getFunctionNameString();
       Element element = node.getElement();
       if (element != null && (element.getModifiers().isStatic()
                               || Elements.isTopLevel(element))) {
+        typeOf(target);
         node.setElement(element);
         checkDeprecated(nameNode, element);
         return checkInvocation(node, nameNode, name, element.getType());
       }
-      DartNode target = node.getTarget();
       Type receiver = nonVoidTypeOf(target);
       Member member = lookupMember(receiver, name, nameNode);
       if (member != null) {
@@ -1641,6 +1635,9 @@ public class TypeAnalyzer implements DartCompilationPhase {
 
           break;
 
+        case CLASS:
+          return element.getType();
+          
         case FIELD:
           type = typeAsMemberOf(element, currentClass);
           // try to resolve as getter/setter
