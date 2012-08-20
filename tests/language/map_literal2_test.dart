@@ -5,7 +5,7 @@
 
 int nextValCtr;
 
-get nextVal() {
+get nextVal {
   return nextValCtr++;
 }
 

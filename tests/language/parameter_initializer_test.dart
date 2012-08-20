@@ -56,7 +56,7 @@ class SubFoo extends Foo {
     Expect.equals(super.x, y);
   }
 
-  get x() {
+  get x {
     return x_;
   }
 

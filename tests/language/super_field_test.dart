@@ -28,7 +28,7 @@ class C extends B {
   String greeting() {
     return "Servus ".concat(super.greeting());
   }
-  String get city() {
+  String get city {
     return "Basel ".concat(super.city);
   }
 }

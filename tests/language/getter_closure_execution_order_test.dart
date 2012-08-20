@@ -8,7 +8,7 @@
 var counter = 0;
 
 class Test1 {
-  get a() {
+  get a {
     Expect.equals(1, counter);
     counter++;
     return (c) { };
@@ -22,7 +22,7 @@ class Test1 {
 }
 
 class Test2 {
-  static get a() {
+  static get a {
     Expect.equals(0, counter);
     counter++;
     return (c) { };
@@ -35,7 +35,7 @@ class Test2 {
   }
 }
 
-get a() {
+get a {
   Expect.equals(0, counter);
   counter++;
   return (c) { };

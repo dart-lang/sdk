@@ -7,7 +7,7 @@
 
 int bar = 499;
 
-get foo() => bar;
+get foo => bar;
 
 void set foo(String str) { bar = str.length; }
 

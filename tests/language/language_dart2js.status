@@ -42,8 +42,63 @@ arithmetic_test: Fail
 assertion_test: Fail
 
 [ $compiler == dart2js ]
-top_level_getter_arrow_syntax_test: Fail # TODO(ahe): I'm working on this.
+getter_no_setter_test/01: Pass # TODO(ahe): Syntax error masks a crash.
+
+call_through_getter_test: Fail # TODO(ahe): I'm working on this.
+call_through_null_getter_test: Fail # TODO(ahe): I'm working on this.
+cascade_precedence_test: Fail # TODO(ahe): I'm working on this.
+compound_assignment_operator_test: Fail # TODO(ahe): I'm working on this.
+const_test: Fail # TODO(ahe): I'm working on this.
+field_test: Fail # TODO(ahe): I'm working on this.
+getter_closure_execution_order_test: Fail # TODO(ahe): I'm working on this.
+getter_no_setter_test/00: Fail # TODO(ahe): I'm working on this.
+getter_no_setter_test/none: Fail # TODO(ahe): I'm working on this.
+getter_setter_in_lib_test: Fail # TODO(ahe): I'm working on this.
+getters_setters2_test/01: Fail # TODO(ahe): I'm working on this.
+getters_setters2_test/02: Fail # TODO(ahe): I'm working on this.
+getters_setters2_test/03: Fail # TODO(ahe): I'm working on this.
+getters_setters2_test/none: Fail # TODO(ahe): I'm working on this.
 getters_setters_test: Fail # TODO(ahe): I'm working on this.
+getters_setters_type2_test: Fail # TODO(ahe): I'm working on this.
+getters_setters_type3_test: Fail # TODO(ahe): I'm working on this.
+getters_setters_type_test/01: Fail # TODO(ahe): I'm working on this.
+getters_setters_type_test/none: Fail # TODO(ahe): I'm working on this.
+implicit_this_test/01: Fail # TODO(ahe): I'm working on this.
+implicit_this_test/02: Fail # TODO(ahe): I'm working on this.
+implicit_this_test/03: Fail # TODO(ahe): I'm working on this.
+implicit_this_test/04: Fail # TODO(ahe): I'm working on this.
+implicit_this_test/none: Fail # TODO(ahe): I'm working on this.
+incr_op_test: Fail # TODO(ahe): I'm working on this.
+instance_compound_assignment_operator_test: Fail # TODO(ahe): I'm working on this.
+interface_inherit_field_test: Fail # TODO(ahe): I'm working on this.
+map_literal2_test: Fail # TODO(ahe): I'm working on this.
+naming3_test: Fail # TODO(ahe): I'm working on this.
+naming_test: Fail # TODO(ahe): I'm working on this.
+optimized_setter_test: Fail # TODO(ahe): I'm working on this.
+parameter_initializer_test: Fail # TODO(ahe): I'm working on this.
+prefix21_test: Fail # TODO(ahe): I'm working on this.
+property_field_override_test: Fail # TODO(ahe): I'm working on this.
+resolution_test: Fail # TODO(ahe): I'm working on this.
+setter0_test: Fail # TODO(ahe): I'm working on this.
+setter1_test: Fail # TODO(ahe): I'm working on this.
+setter_no_getter_call_test/none: Fail # TODO(ahe): I'm working on this.
+side_effect_throw_test: Fail # TODO(ahe): I'm working on this.
+skip_expression_test: Fail # TODO(ahe): I'm working on this.
+static_implicit_closure_test: Fail # TODO(ahe): I'm working on this.
+super_closure_test: Fail # TODO(ahe): I'm working on this.
+super_field_test: Fail # TODO(ahe): I'm working on this.
+super_setter_test: Fail # TODO(ahe): I'm working on this.
+top_level_func_test: Fail # TODO(ahe): I'm working on this.
+top_level_getter_arrow_syntax_test: Fail # TODO(ahe): I'm working on this.
+top_level_in_initializer_test: Fail # TODO(ahe): I'm working on this.
+top_level_prefixed_declaration_test: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/00: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/01: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/02: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/03: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/04: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/05: Fail # TODO(ahe): I'm working on this.
+type_variable_scope_test/none: Fail # TODO(ahe): I'm working on this.
 
 function_type_this_parameter_test: Crash # Issue 4417.
 compile_time_constant8_test: Fail # We don't take the generic type into account yet.

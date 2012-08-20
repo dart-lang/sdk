@@ -3,15 +3,15 @@
 // BSD-style license that can be found in the LICENSE file.
 
 class OneArg<A> {
-  OneArg<A> get foo() => new OneArg<A>();
-  OneArg<A> get bar() {
+  OneArg<A> get foo => new OneArg<A>();
+  OneArg<A> get bar {
     return new OneArg<A>();
   }
 }
 
 class TwoArgs<A,B> {
-  TwoArgs<A,B> get foo() => new TwoArgs<A,B>();
-  TwoArgs<A,B> get bar() {
+  TwoArgs<A,B> get foo => new TwoArgs<A,B>();
+  TwoArgs<A,B> get bar {
     return new TwoArgs<A,B>();
   }
 

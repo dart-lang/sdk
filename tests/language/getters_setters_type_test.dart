@@ -7,7 +7,7 @@
 int bar = 499;
 
 int  /// 01: static type warning
-get foo() => bar;
+get foo => bar;
 
 void set foo(
              String   /// 01: continued

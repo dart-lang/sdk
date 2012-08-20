@@ -5,7 +5,7 @@
 
 class Example {
   static int _var = 1;
-  static int get nextVar() => _var++;
+  static int get nextVar => _var++;
   Example() {
     {
       bool flag_exception = false;
@@ -38,7 +38,7 @@ class Example1 {
 
 class Example2 extends Example1 {
   static int _var = 1;
-  static int get nextVar() => _var++;
+  static int get nextVar => _var++;
   Example2() : super(nextVar) { }  // No 'this' in scope.
 }
 

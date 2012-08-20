@@ -40,17 +40,17 @@ int Sum(List<int> v) {
   return s;
 }
 
-get Window() { return "win" "dow"; }
+get Window { return "win" "dow"; }
 
 String rgb;
 
 void set Color(col) { rgb = "#$col"; }
 
-List<String> get digits() {
+List<String> get digits {
   return ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
 }
 
-Function get Enumerator() {
+Function get Enumerator {
   int k = 0;
   return () => k++;
 }

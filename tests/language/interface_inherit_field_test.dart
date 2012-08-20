@@ -14,7 +14,7 @@ interface IB extends IA {
 
 class B implements IB {
   int _f = 123;
-  int get foo() => _f;
+  int get foo => _f;
 }
 
 main() {

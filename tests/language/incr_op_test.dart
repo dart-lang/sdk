@@ -9,7 +9,7 @@ class A {
     yy = v;
   }
 
-  static get y() {
+  static get y {
     return yy;
   }
 }

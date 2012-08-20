@@ -136,7 +136,7 @@ class A {
 
   A() { }
   var field;
-  get getter() { return field; }
+  get getter { return field; }
   method() { return field; }
 
 }
@@ -146,14 +146,14 @@ class B {
 
   B() : _order = new StringBuffer("") { }
 
-  get g0() { _mark('g'); return f0() { return _mark('f'); }; }
-  get g1() { _mark('g'); return f1(x) { return _mark('f'); }; }
-  get g2() { _mark('g'); return f2(x, y) { return _mark('f'); }; }
-  get g3() { _mark('g'); return f3(x, y, z) { return _mark('f'); }; }
+  get g0 { _mark('g'); return f0() { return _mark('f'); }; }
+  get g1 { _mark('g'); return f1(x) { return _mark('f'); }; }
+  get g2 { _mark('g'); return f2(x, y) { return _mark('f'); }; }
+  get g3 { _mark('g'); return f3(x, y, z) { return _mark('f'); }; }
 
-  get x() { _mark('x'); return 0; }
-  get y() { _mark('y'); return 1; }
-  get z() { _mark('z'); return 2; }
+  get x { _mark('x'); return 0; }
+  get y { _mark('y'); return 1; }
+  get z { _mark('z'); return 2; }
 
   _mark(m) { _order.add(m); return _order.toString(); }
   StringBuffer _order;

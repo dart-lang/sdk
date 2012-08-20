@@ -4,5 +4,5 @@
 
 #library('GetterSetterInLib');
 
-get foo() => 42;
+get foo => 42;
 set foo(a) {}
