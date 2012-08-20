@@ -125,9 +125,7 @@ type_variable_static_context_negative_test: Fail # language change 1031
 
 [ $compiler == none && $runtime == drt ]
 # TODO: These need to be retriaged.
-disable_privacy_test: Skip
 richards_test: Fail
-string_escape1_negative_test: Skip
 gc_test: Skip # Issue 1487
 import_core_no_prefix_test: Fail
 
