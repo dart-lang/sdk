@@ -424,7 +424,7 @@ set topgetset(arg) {}
   var mainSrc = '''
 #import('mylib.dart', prefix: 'mylib');
 
-get topgetset() => 6;
+get topgetset => 6;
 set topgetset(arg) {}
 
 main() {
@@ -504,7 +504,7 @@ main() {
   testDefaultClassWithArgs();
   testClassExtendsWithArgs();
   testStaticInvocation();
-  // testLibraryGetSet(); // http://dartbug.com/4604
+  testLibraryGetSet();
   testFieldTypeOutput();
   testDefaultClassNamePlaceholder();
 }
