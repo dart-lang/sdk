@@ -4667,9 +4667,9 @@ class _DirectoryEntryImpl extends _EntryImpl implements DirectoryEntry native "*
 
   _DirectoryReaderImpl createReader() native;
 
-  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
-  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]) native;
+  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]) native;
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]) native;
 }
@@ -4678,9 +4678,9 @@ class _DirectoryEntrySyncImpl extends _EntrySyncImpl implements DirectoryEntrySy
 
   _DirectoryReaderSyncImpl createReader() native;
 
-  _DirectoryEntrySyncImpl getDirectory(String path, Object flags) native;
+  _DirectoryEntrySyncImpl getDirectory(String path, Map flags) native;
 
-  _FileEntrySyncImpl getFile(String path, Object flags) native;
+  _FileEntrySyncImpl getFile(String path, Map flags) native;
 
   void removeRecursively() native;
 }
@@ -7630,7 +7630,7 @@ class _IDBFactoryImpl implements IDBFactory native "*IDBFactory" {
 
   _IDBVersionChangeRequestImpl deleteDatabase(String name) native;
 
-  _IDBRequestImpl open(String name) native;
+  _IDBOpenDBRequestImpl open(String name, [int version]) native;
 
   _IDBRequestImpl webkitGetDatabaseNames() native;
 }
@@ -7705,6 +7705,28 @@ class _IDBObjectStoreImpl implements IDBObjectStore native "*IDBObjectStore" {
   _IDBRequestImpl put(value, [key]) native;
 }
 
+class _IDBOpenDBRequestImpl extends _IDBRequestImpl implements IDBOpenDBRequest native "*IDBOpenDBRequest" {
+
+  _IDBOpenDBRequestEventsImpl get on() =>
+    new _IDBOpenDBRequestEventsImpl(this);
+
+  // From EventTarget
+
+  void $dom_addEventListener(String type, EventListener listener, [bool useCapture]) native "addEventListener";
+
+  bool $dom_dispatchEvent(_EventImpl event) native "dispatchEvent";
+
+  void $dom_removeEventListener(String type, EventListener listener, [bool useCapture]) native "removeEventListener";
+}
+
+class _IDBOpenDBRequestEventsImpl extends _IDBRequestEventsImpl implements IDBOpenDBRequestEvents {
+  _IDBOpenDBRequestEventsImpl(_ptr) : super(_ptr);
+
+  EventListenerList get blocked() => this['blocked'];
+
+  EventListenerList get upgradeNeeded() => this['upgradeneeded'];
+}
+
 class _IDBRequestImpl extends _EventTargetImpl implements IDBRequest native "*IDBRequest" {
 
   _IDBRequestEventsImpl get on() =>
@@ -7775,6 +7797,13 @@ class _IDBTransactionEventsImpl extends _EventsImpl implements IDBTransactionEve
   EventListenerList get complete() => this['complete'];
 
   EventListenerList get error() => this['error'];
+}
+
+class _IDBUpgradeNeededEventImpl extends _EventImpl implements IDBUpgradeNeededEvent native "*IDBUpgradeNeededEvent" {
+
+  final int newVersion;
+
+  final int oldVersion;
 }
 
 class _IDBVersionChangeEventImpl extends _EventImpl implements IDBVersionChangeEvent native "*IDBVersionChangeEvent" {
@@ -8642,8 +8671,6 @@ class _MediaElementImpl extends _ElementImpl implements MediaElement native "*HT
   bool webkitClosedCaptionsVisible;
 
   final bool webkitHasClosedCaptions;
-
-  final String webkitMediaSourceURL;
 
   bool webkitPreservesPitch;
 
@@ -10092,6 +10119,8 @@ class _OverflowEventImpl extends _EventImpl implements OverflowEvent native "*Ov
 }
 
 class _PagePopupControllerImpl implements PagePopupController native "*PagePopupController" {
+
+  String localizeNumberString(String numberString) native;
 
   void setValueAndClosePopup(int numberValue, String stringValue) native;
 }
@@ -14065,6 +14094,8 @@ class _SharedWorkerContextEventsImpl extends _WorkerContextEventsImpl implements
 class _SourceBufferImpl implements SourceBuffer native "*SourceBuffer" {
 
   final _TimeRangesImpl buffered;
+
+  num timestampOffset;
 
   void abort() native;
 
@@ -22690,10 +22721,10 @@ interface DirectoryEntry extends Entry {
   DirectoryReader createReader();
 
   /** @domName DirectoryEntry.getDirectory */
-  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
   /** @domName DirectoryEntry.getFile */
-  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
   /** @domName DirectoryEntry.removeRecursively */
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
@@ -22711,10 +22742,10 @@ interface DirectoryEntrySync extends EntrySync {
   DirectoryReaderSync createReader();
 
   /** @domName DirectoryEntrySync.getDirectory */
-  DirectoryEntrySync getDirectory(String path, Object flags);
+  DirectoryEntrySync getDirectory(String path, Map flags);
 
   /** @domName DirectoryEntrySync.getFile */
-  FileEntrySync getFile(String path, Object flags);
+  FileEntrySync getFile(String path, Map flags);
 
   /** @domName DirectoryEntrySync.removeRecursively */
   void removeRecursively();
@@ -25011,7 +25042,7 @@ interface IDBFactory {
   IDBVersionChangeRequest deleteDatabase(String name);
 
   /** @domName IDBFactory.open */
-  IDBRequest open(String name);
+  IDBOpenDBRequest open(String name, [int version]);
 
   /** @domName IDBFactory.webkitGetDatabaseNames */
   IDBRequest webkitGetDatabaseNames();
@@ -25167,6 +25198,27 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
+/// @domName IDBOpenDBRequest
+interface IDBOpenDBRequest extends IDBRequest, EventTarget {
+
+  /**
+   * @domName EventTarget.addEventListener, EventTarget.removeEventListener, EventTarget.dispatchEvent
+   */
+  IDBOpenDBRequestEvents get on();
+}
+
+interface IDBOpenDBRequestEvents extends IDBRequestEvents {
+
+  EventListenerList get blocked();
+
+  EventListenerList get upgradeNeeded();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 /// @domName IDBRequest
 interface IDBRequest extends EventTarget {
 
@@ -25264,6 +25316,21 @@ interface IDBTransactionEvents extends Events {
   EventListenerList get complete();
 
   EventListenerList get error();
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+/// @domName IDBUpgradeNeededEvent
+interface IDBUpgradeNeededEvent extends Event {
+
+  /** @domName IDBUpgradeNeededEvent.newVersion */
+  final int newVersion;
+
+  /** @domName IDBUpgradeNeededEvent.oldVersion */
+  final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -26283,9 +26350,6 @@ interface MediaElement extends Element {
 
   /** @domName HTMLMediaElement.webkitHasClosedCaptions */
   final bool webkitHasClosedCaptions;
-
-  /** @domName HTMLMediaElement.webkitMediaSourceURL */
-  final String webkitMediaSourceURL;
 
   /** @domName HTMLMediaElement.webkitPreservesPitch */
   bool webkitPreservesPitch;
@@ -27875,6 +27939,9 @@ interface OverflowEvent extends Event {
 
 /// @domName PagePopupController
 interface PagePopupController {
+
+  /** @domName PagePopupController.localizeNumberString */
+  String localizeNumberString(String numberString);
 
   /** @domName PagePopupController.setValueAndClosePopup */
   void setValueAndClosePopup(int numberValue, String stringValue);
@@ -32347,6 +32414,9 @@ interface SourceBuffer {
   /** @domName SourceBuffer.buffered */
   final TimeRanges buffered;
 
+  /** @domName SourceBuffer.timestampOffset */
+  num timestampOffset;
+
   /** @domName SourceBuffer.abort */
   void abort();
 
@@ -33918,7 +33988,7 @@ interface VideoElement extends MediaElement default _Elements {
 
 // WARNING: Do not edit - generated code.
 
-typedef void VoidCallback();
+typedef bool VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.

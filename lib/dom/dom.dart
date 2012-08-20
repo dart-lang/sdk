@@ -2145,9 +2145,9 @@ interface DirectoryEntry extends Entry {
 
   DirectoryReader createReader();
 
-  void getDirectory(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getDirectory(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
-  void getFile(String path, [Object flags, EntryCallback successCallback, ErrorCallback errorCallback]);
+  void getFile(String path, [Map options, EntryCallback successCallback, ErrorCallback errorCallback]);
 
   void removeRecursively(VoidCallback successCallback, [ErrorCallback errorCallback]);
 }
@@ -2161,9 +2161,9 @@ interface DirectoryEntrySync extends EntrySync {
 
   DirectoryReaderSync createReader();
 
-  DirectoryEntrySync getDirectory(String path, Object flags);
+  DirectoryEntrySync getDirectory(String path, Map flags);
 
-  FileEntrySync getFile(String path, Object flags);
+  FileEntrySync getFile(String path, Map flags);
 
   void removeRecursively();
 }
@@ -4285,8 +4285,6 @@ interface HTMLMediaElement extends HTMLElement {
 
   final bool webkitHasClosedCaptions;
 
-  final String webkitMediaSourceURL;
-
   bool webkitPreservesPitch;
 
   final int webkitVideoDecodedByteCount;
@@ -5213,7 +5211,7 @@ interface IDBFactory {
 
   IDBVersionChangeRequest deleteDatabase(String name);
 
-  IDBRequest open(String name);
+  IDBOpenDBRequest open(String name, [int version]);
 
   IDBRequest webkitGetDatabaseNames();
 }
@@ -5323,6 +5321,14 @@ interface IDBObjectStore {
 
 // WARNING: Do not edit - generated code.
 
+interface IDBOpenDBRequest extends IDBRequest, EventTarget {
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
 interface IDBRequest extends EventTarget {
 
   final DOMError error;
@@ -5374,6 +5380,18 @@ interface IDBTransaction extends EventTarget {
   IDBObjectStore objectStore(String name);
 
   void removeEventListener(String type, EventListener listener, [bool useCapture]);
+}
+// Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
+// for details. All rights reserved. Use of this source code is governed by a
+// BSD-style license that can be found in the LICENSE file.
+
+// WARNING: Do not edit - generated code.
+
+interface IDBUpgradeNeededEvent extends Event {
+
+  final int newVersion;
+
+  final int oldVersion;
 }
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
@@ -6606,6 +6624,8 @@ interface OverflowEvent extends Event {
 // WARNING: Do not edit - generated code.
 
 interface PagePopupController {
+
+  String localizeNumberString(String numberString);
 
   void setValueAndClosePopup(int numberValue, String stringValue);
 }
@@ -9874,6 +9894,8 @@ interface SourceBuffer {
 
   final TimeRanges buffered;
 
+  num timestampOffset;
+
   void abort();
 
   void append(Uint8Array data);
@@ -10629,7 +10651,7 @@ interface ValidityState {
 
 // WARNING: Do not edit - generated code.
 
-typedef void VoidCallback();
+typedef bool VoidCallback();
 // Copyright (c) 2012, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
