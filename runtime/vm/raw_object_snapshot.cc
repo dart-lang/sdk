@@ -754,7 +754,6 @@ RawLibrary* Library::ReadFrom(SnapshotReader* reader,
     // Set all non object fields.
     library.raw_ptr()->index_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_imports_ = reader->ReadIntptrValue();
-    library.raw_ptr()->num_imported_into_ = reader->ReadIntptrValue();
     library.raw_ptr()->num_anonymous_ = reader->ReadIntptrValue();
     library.raw_ptr()->corelib_imported_ = reader->Read<bool>();
     library.raw_ptr()->debuggable_ = reader->Read<bool>();
@@ -803,7 +802,6 @@ void RawLibrary::WriteTo(SnapshotWriter* writer,
     // Write out all non object fields.
     writer->WriteIntptrValue(ptr()->index_);
     writer->WriteIntptrValue(ptr()->num_imports_);
-    writer->WriteIntptrValue(ptr()->num_imported_into_);
     writer->WriteIntptrValue(ptr()->num_anonymous_);
     writer->Write<bool>(ptr()->corelib_imported_);
     writer->Write<bool>(ptr()->debuggable_);
