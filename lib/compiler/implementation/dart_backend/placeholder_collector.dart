@@ -222,16 +222,6 @@ class PlaceholderCollector extends AbstractVisitor {
     });
   }
 
-  Type resolveType(TypeAnnotation typeAnnotation) {
-    if (treeElements === null) return null;
-    var result = treeElements.getType(typeAnnotation);
-    // TODO: Have better type resolution.
-    if (result === null) {
-      result = compiler.resolveTypeAnnotation(currentElement, typeAnnotation);
-    }
-    return result;
-  }
-
   void tryMakePrivateIdentifier(Identifier identifier) {
     if (identifier.source.isPrivate()) makePrivateIdentifier(identifier);
   }
