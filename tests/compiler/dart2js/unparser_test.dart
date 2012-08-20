@@ -4,7 +4,10 @@
 
 #import('dart:uri');
 #import('parser_helper.dart');
+#import('mock_compiler.dart');
 #import("../../../lib/compiler/compiler.dart");
+#import("../../../lib/compiler/implementation/dart_backend/dart_backend.dart");
+#import("../../../lib/compiler/implementation/elements/elements.dart");
 #import("../../../lib/compiler/implementation/tree/tree.dart");
 
 testUnparse(String statement) {
@@ -446,6 +449,34 @@ testFieldTypeOutput() {
   testDart2Dart('main(){new A().field;}class B{}class A{B field;}');
 }
 
+testDefaultClassNamePlaceholder() {
+  var src = '''
+interface I default C{
+  I();
+}
+
+class C {
+  I() {}
+}
+
+main() {
+  new I();
+}
+''';
+  MockCompiler compiler = new MockCompiler();
+  compiler.parseScript(src);
+  ClassElement interfaceElement = compiler.mainApp.find(buildSourceString('I'));
+  interfaceElement.ensureResolved(compiler);
+  PlaceholderCollector collector = new PlaceholderCollector(compiler);
+  collector.collect(interfaceElement,
+      compiler.enqueuer.resolution.resolvedElements[interfaceElement]);
+  ClassNode interfaceNode = interfaceElement.parseNode(compiler);
+  Node defaultTypeNode = interfaceNode.defaultClause.typeName;
+  ClassElement classElement = compiler.mainApp.find(buildSourceString('C'));
+  // Check that 'C' in default clause of I gets into placeholders.
+  Expect.isTrue(collector.elementNodes[classElement].contains(defaultTypeNode));
+}
+
 main() {
   testSignedConstants();
   testGenericTypes();
@@ -475,4 +506,5 @@ main() {
   testStaticInvocation();
   // testLibraryGetSet(); // http://dartbug.com/4604
   testFieldTypeOutput();
+  testDefaultClassNamePlaceholder();
 }
