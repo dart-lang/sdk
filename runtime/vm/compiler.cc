@@ -520,6 +520,8 @@ RawObject* Compiler::ExecuteOnce(SequenceNode* fragment) {
     func.set_result_type(Type::Handle(Type::DynamicType()));
     func.set_num_fixed_parameters(0);
     func.set_num_optional_parameters(0);
+    // Manually generated AST, do not recompile.
+    func.set_is_optimizable(false);
 
     // We compile the function here, even though InvokeStatic() below
     // would compile func automatically. We are checking fewer invariants

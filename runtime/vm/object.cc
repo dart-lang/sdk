@@ -3873,6 +3873,12 @@ void Function::set_num_optional_parameters(intptr_t n) const {
 }
 
 
+bool Function::is_optimizable() const {
+  return OptimizableBit::decode(raw_ptr()->kind_tag_) &&
+         (script() != Script::null());
+}
+
+
 void Function::set_is_optimizable(bool value) const {
   uword bits = raw_ptr()->kind_tag_;
   raw_ptr()->kind_tag_ = OptimizableBit::update(value, bits);

@@ -1483,9 +1483,7 @@ class Function : public Object {
     raw_ptr()->deoptimization_counter_ = value;
   }
 
-  bool is_optimizable() const {
-    return OptimizableBit::decode(raw_ptr()->kind_tag_);
-  }
+  bool is_optimizable() const;
   void set_is_optimizable(bool value) const;
 
   bool has_finally() const {
