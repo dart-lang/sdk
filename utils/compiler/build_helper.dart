@@ -103,7 +103,12 @@ List<String> buildScript(String name,
 # BSD-style license that can be found in the LICENSE file.
 
 BIN_DIR=`dirname \$0`
-exec \$BIN_DIR/dart$options \$BIN_DIR/$path "\$@"
+NO_COLORS="--no-colors"
+if test -t 1; then
+    # Enable colors if stdout is a terminal.
+    unset NO_COLORS
+fi
+exec \$BIN_DIR/dart$options \$BIN_DIR/$path \$NO_COLORS "\$@"
 ''',
 '''
 @echo off
@@ -118,6 +123,6 @@ if %SCRIPTPATH:~-1%==\ set SCRIPTPATH=%SCRIPTPATH:~0,-1%
 
 set arguments=%*
 
-"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$pathWin" %arguments%
+"%SCRIPTPATH%\dart.exe"$options "%SCRIPTPATH%$pathWin" --no-colors %arguments%
 '''.replaceAll('\n', '\r\n')];
 }
