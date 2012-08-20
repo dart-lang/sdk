@@ -278,7 +278,6 @@ class Printer implements NodeVisitor {
   visitTry(Try node) {
     outIndent("try");
     blockBody(node.body, needsSeparation: true, needsNewline: false);
-    spaceOut();
     if (node.catchPart !== null) {
       visit(node.catchPart);
     }
@@ -642,7 +641,7 @@ class Printer implements NodeVisitor {
       LiteralString selectorString = selector;
       String fieldWithQuotes = selectorString.value;
       if (isValidJavaScriptId(fieldWithQuotes)) {
-        if (isDigit(lastCharCode)) out(" ");
+        if (access.receiver is LiteralNumber) out(" ");
         out(".");
         out(fieldWithQuotes.substring(1, fieldWithQuotes.length - 1));
         return;
@@ -754,15 +753,13 @@ class Printer implements NodeVisitor {
     if (parts.length != inputs.length + 1) {
       compiler.internalError('Wrong number of arguments for JS: $template');
     }
-    // Save [atStatementBegin] because visiting the parts might change it.
-    bool beginStatement = atStatementBegin;
-    if (!beginStatement) out("(");
+    // Code that uses JS must take care of operator precedences, and
+    // put parenthesis if needed.
     out(parts[0]);
     for (int i = 0; i < inputs.length; i++) {
       visit(inputs[i]);
       out(parts[i + 1]);
     }
-    if (!beginStatement) out(")");
   }
 
   visitLiteralStatement(LiteralStatement node) {

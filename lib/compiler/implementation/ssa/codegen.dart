@@ -89,7 +89,7 @@ class SsaCodeGeneratorTask extends CompilerTask {
       codegen.visitGraph(graph);
 
       js.Block body = new js.Block(<js.Statement>[]);
-      body.statements.add(codegen.setup);
+      if (codegen.setup != null) body.statements.add(codegen.setup);
       body.statements.add(codegen.body);
       js.Fun fun =
           buildJavaScriptFunction(work.element, codegen.newParameters, body);
@@ -2602,7 +2602,6 @@ class SsaUnoptimizedCodeGenerator extends SsaCodeGenerator {
 
   SsaUnoptimizedCodeGenerator(backend, work, parameters, parameterNames)
     : super(backend, work, parameterNames),
-      setup = new js.EmptyStatement(),
       oldBailoutSwitches = <js.Switch>[],
       newParameters = <js.Parameter>[],
       labels = <String>[],
