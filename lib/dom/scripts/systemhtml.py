@@ -181,6 +181,7 @@ _html_event_names = {
   'touchmove': 'touchMove',
   'touchstart': 'touchStart',
   'unload': 'unload',
+  'upgradeneeded': 'upgradeNeeded',
   'unmute': 'unmute',
   'updateready': 'updateReady',
   'versionchange': 'versionChange',

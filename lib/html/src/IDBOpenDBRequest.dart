@@ -8,15 +8,3 @@
 // See:
 // http://www.w3.org/TR/IndexedDB/#request-api
 // http://dvcs.w3.org/hg/IndexedDB/raw-file/tip/Overview.html#request-api
-
-interface IDBOpenDBRequest extends IDBRequest {
-
-  IDBOpenDBRequestEvents get on();
-}
-
-interface IDBOpenDBRequestEvents extends IDBRequestEvents {
-
-  EventListenerList get blocked();
-
-  EventListenerList get upgradeneeded();
-}

@@ -430,6 +430,8 @@ class NativeImplementationGenerator(systembase.BaseGenerator):
           webcore_function_name = 'getNonEmptyURLAttribute'
         else:
           webcore_function_name = 'getURLAttribute'
+    elif 'ImplementedAs' in attr.ext_attrs:
+      webcore_function_name = attr.ext_attrs['ImplementedAs']
     else:
       if attr.id == 'operator':
         webcore_function_name = '_operator'
