@@ -244,9 +244,11 @@ static Condition TokenKindToSmiCondition(Token::Kind kind) {
 
 
 LocationSummary* EqualityCompareComp::MakeLocationSummary() const {
+  const intptr_t dart_object_cid =
+      Class::Handle(Isolate::Current()->object_store()->object_class()).id();
   const intptr_t kNumInputs = 2;
   const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(dart_object_cid);
   if ((receiver_class_id() == kSmiCid) ||
       (receiver_class_id() == kDoubleCid) ||
       is_checked_strict_equal) {
@@ -646,8 +648,10 @@ void EqualityCompareComp::EmitNativeCode(FlowGraphCompiler* compiler) {
                            deopt_id(), token_pos(), try_index());
     return;
   }
+  const intptr_t dart_object_cid =
+      Class::Handle(Isolate::Current()->object_store()->object_class()).id();
   const bool is_checked_strict_equal =
-      HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid);
+      HasICData() && ic_data()->AllTargetsHaveSameOwner(dart_object_cid);
   if (is_checked_strict_equal) {
     EmitCheckedStrictEqual(compiler, *ic_data(), *locs(), kind(), NULL,
                            deopt_id(), token_pos(), try_index());
@@ -2068,8 +2072,10 @@ static bool ICDataWithBothClassIds(const ICData& ic_data, intptr_t class_id) {
 
 
 static bool IsCheckedStrictEquals(const ICData& ic_data, Token::Kind kind) {
+  const intptr_t dart_object_cid =
+      Class::Handle(Isolate::Current()->object_store()->object_class()).id();
   if ((kind == Token::kEQ) || (kind == Token::kNE)) {
-    return ic_data.AllTargetsHaveSameOwner(kInstanceCid);
+    return ic_data.AllTargetsHaveSameOwner(dart_object_cid);
   }
   return false;
 }

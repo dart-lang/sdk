@@ -789,7 +789,9 @@ RawAbstractType* EqualityCompareComp::CompileType() const {
       (receiver_class_id() == kNumberCid)) {
     return Type::BoolInterface();
   }
-  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+  const intptr_t dart_object_cid =
+      Class::Handle(Isolate::Current()->object_store()->object_class()).id();
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(dart_object_cid)) {
     return Type::BoolInterface();
   }
   return Type::DynamicType();
@@ -803,7 +805,9 @@ intptr_t EqualityCompareComp::ResultCid() const {
     // Known/library equalities that are guaranteed to return Boolean.
     return kBoolCid;
   }
-  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(kInstanceCid)) {
+  const intptr_t dart_object_cid =
+      Class::Handle(Isolate::Current()->object_store()->object_class()).id();
+  if (HasICData() && ic_data()->AllTargetsHaveSameOwner(dart_object_cid)) {
     return kBoolCid;
   }
   return kDynamicCid;
