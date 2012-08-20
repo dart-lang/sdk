@@ -436,11 +436,11 @@ main() {
 }
 ''';
   var expectedResult =
-    'get p_topgetset=> 5;'
-    'set p_topgetset(arg){}'
-    'get topgetset=> 6;'
+    'get topgetset=> 5;'
     'set topgetset(arg){}'
-    'main(){topgetset; topgetset=6; p_topgetset; p_topgetset=5;}';
+    'get p_topgetset=> 6;'
+    'set p_topgetset(arg){}'
+    'main(){p_topgetset; p_topgetset=6; topgetset; topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }

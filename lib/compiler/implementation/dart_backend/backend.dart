@@ -38,11 +38,10 @@ class DartBackend extends Backend {
     Map<ClassElement, Set<Element>> classMembers =
         new Map<ClassElement, Set<Element>>();
 
-    PlaceholderCollector collector = new PlaceholderCollector(compiler);
+    // Build all top level elements to emit and necessary class members.
     var newTypedefElementCallback, newClassElementCallback;
 
     processElement(element, treeElements) {
-      collector.collect(element, treeElements);
       new ReferencedElementCollector(
           compiler,
           element, treeElements,
@@ -87,6 +86,19 @@ class DartBackend extends Backend {
       }
     });
 
+    // Create all necessary placeholders.
+    PlaceholderCollector collector = new PlaceholderCollector(compiler);
+    makePlaceholders(element) {
+      TreeElements treeElements = resolvedElements[element];
+      if (treeElements === null) treeElements = emptyTreeElements;
+      collector.collect(element, treeElements);
+      if (element is ClassElement) {
+        classMembers[element].forEach(makePlaceholders);
+      }
+    }
+    topLevelElements.forEach(makePlaceholders);
+
+    // Create renames.
     Map<Node, String> renames = new Map<Node, String>();
     Map<LibraryElement, String> imports = new Map<LibraryElement, String>();
     renamePlaceholders(compiler, collector, renames, imports);
