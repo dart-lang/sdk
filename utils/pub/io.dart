@@ -172,10 +172,11 @@ Future<Directory> ensureDir(path) {
 
 /**
  * Creates a temp directory whose name will be based on [dir] with a unique
- * suffix appended to it. Returns a [Future] that completes when the directory
- * is created.
+ * suffix appended to it. If [dir] is not provided, a temp directory will be
+ * created in a platform-dependent temporary location. Returns a [Future] that
+ * completes when the directory is created.
  */
-Future<Directory> createTempDir(dir) {
+Future<Directory> createTempDir([dir = '']) {
   dir = _getDirectory(dir);
   return dir.createTemp();
 }

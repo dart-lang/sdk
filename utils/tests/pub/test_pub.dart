@@ -316,7 +316,7 @@ void ensureGit() {
 }
 
 Future<Directory> _setUpSandbox() {
-  return createTempDir('pub-test-sandbox-');
+  return createTempDir();
 }
 
 Future _runScheduled(Directory parentDir, List<_ScheduledEvent> scheduled) {
@@ -790,7 +790,7 @@ class TarFileDescriptor extends Descriptor {
     var sinkStream = new ListInputStream();
     var tempDir;
     // TODO(nweiz): propagate any errors to the return value. See issue 3657.
-    createTempDir("pub-test-tmp-").chain((_tempDir) {
+    createTempDir().chain((_tempDir) {
       tempDir = _tempDir;
       return create(tempDir);
     }).then((tar) {
