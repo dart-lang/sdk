@@ -303,6 +303,9 @@ class PlaceholderCollector extends AbstractVisitor {
     if (element !== null) {
       if (element.isInstanceMember()) {
         tryMakePrivateIdentifier(send.selector.asIdentifier());
+      } else if (element.isTopLevel()) {
+        assert(element is VariableElement || element.isSetter());
+        makeElementPlaceholder(send.selector, element);
       } else {
         assert(send.selector is Identifier);
         tryMakeLocalPlaceholder(element, send.selector);

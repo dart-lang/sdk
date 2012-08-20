@@ -421,15 +421,23 @@ set topgetset(arg) {}
   var mainSrc = '''
 #import('mylib.dart', prefix: 'mylib');
 
+get topgetset() => 6;
+set topgetset(arg) {}
+
 main() {
+  topgetset;
+  topgetset = 6;
+
   mylib.topgetset;
   mylib.topgetset = 5;
 }
 ''';
   var expectedResult =
-    'get topgetset()=> 5;'
+    'get p_topgetset()=> 5;'
+    'set p_topgetset(arg){}'
+    'get topgetset()=> 6;'
     'set topgetset(arg){}'
-    'main(){topgetset; topgetset=5;}';
+    'main(){topgetset; topgetset=6; p_topgetset; p_topgetset=5;}';
   testDart2DartWithLibrary(mainSrc, librarySrc,
       (String result) { Expect.equals(expectedResult, result); });
 }
