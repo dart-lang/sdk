@@ -181,6 +181,8 @@ extends void /// 49: compile-time error
 main() {
   try {
     new SyntaxTest();
+    new SyntaxTest().foo(); /// 02: continued
+    SyntaxTest.foo(); /// 03: continued
     fisk(); /// 27: continued
 
     new Window();
