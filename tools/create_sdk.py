@@ -36,8 +36,8 @@
 # ........runtime/
 # ......dart2js/
 # ......isolate/
-# ........isolate_{frog, runtime}.dart
-# ........{frog, runtime}/
+# ........isolate_{dart2js, runtime}.dart
+# ........dart2js/
 # ......dom/
 # ........dom.dart
 # ......html/
